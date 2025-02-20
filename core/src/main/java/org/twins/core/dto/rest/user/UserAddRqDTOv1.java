@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 
+import java.util.Locale;
 import java.util.UUID;
 
 @Data
@@ -22,4 +23,7 @@ public class UserAddRqDTOv1 extends Request {
 
     @Schema(description = "user")
     public UserDTOv1 user;
+
+    @Schema(description = "locale [optional]", example = DTOExamples.LOCALE)
+    public String locale;
 }

@@ -24,7 +24,7 @@ public class TransitionSpecification extends CommonSpecification<TwinflowTransit
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
             Join<TwinflowTransitionEntity, TwinflowEntity> twinflowJoin = root.join(TwinflowTransitionEntity.Fields.twinflow, JoinType.INNER);
-            return not ? twinflowJoin.get(TwinflowEntity.Fields.twinClassId).in(uuids).not()
+            return not ? cb.not(twinflowJoin.get(TwinflowEntity.Fields.twinClassId).in(uuids))
                     : twinflowJoin.get(TwinflowEntity.Fields.twinClassId).in(uuids);
         };
     }

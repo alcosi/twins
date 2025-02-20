@@ -19,7 +19,7 @@ public enum FactoryPipelineMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum FactoryPipelineStep2FactoryPipeline implements MapperModePointer<FactoryPipelineMode> {
+    public enum FactoryPipelineStep2FactoryPipelineMode implements MapperModePointer<FactoryPipelineMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

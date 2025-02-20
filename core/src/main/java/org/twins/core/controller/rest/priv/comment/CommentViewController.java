@@ -46,7 +46,7 @@ public class CommentViewController extends ApiController {
     @GetMapping(value = "/private/comment/{commentId}/v1")
     public ResponseEntity<?> twinCommentV1(
             @MapperContextBinding(roots = CommentViewRestDTOMapper.class, response = CommentViewRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.TWIN_COMMENT) @PathVariable UUID commentId) {
+            @Parameter(example = DTOExamples.TWIN_COMMENT_ID) @PathVariable UUID commentId) {
         CommentViewRsDTOv1 rs = new CommentViewRsDTOv1();
         try {
             TwinCommentEntity comment = commentService.findEntitySafe(commentId);

@@ -14,7 +14,9 @@ import org.twins.core.dao.factory.TwinFactoryConditionSetRepository;
 import org.twins.core.domain.search.FactoryConditionSetSearch;
 import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.specifications.factory.FactoryConditionSetSpecification.*;
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeIn;
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 
 
 @Slf4j
@@ -31,14 +33,13 @@ public class FactoryConditionSetSearchService {
     }
 
     private Specification<TwinFactoryConditionSetEntity> createFactoryConditionSetSearchSpecification(FactoryConditionSetSearch search) throws ServiceException {
-        return Specification.where(
-                checkDomainId(authService.getApiUser().getDomainId())
-                        .and(checkFieldLikeIn(TwinFactoryConditionSetEntity.Fields.name, search.getNameLikeList(), false, true))
-                        .and(checkFieldLikeIn(TwinFactoryConditionSetEntity.Fields.name, search.getNameNotLikeList(), true, true))
-                        .and(checkFieldLikeIn(TwinFactoryConditionSetEntity.Fields.description, search.getDescriptionLikeList(), false, true))
-                        .and(checkFieldLikeIn(TwinFactoryConditionSetEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
-                        .and(checkUuidIn(TwinFactoryConditionSetEntity.Fields.id, search.getIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryConditionSetEntity.Fields.id, search.getIdExcludeList(), true, false))
-        );
+        return Specification.allOf(
+                checkFieldUuid(authService.getApiUser().getDomainId(), TwinFactoryConditionSetEntity.Fields.domainId),
+                checkFieldLikeIn(search.getNameLikeList(), false, true, TwinFactoryConditionSetEntity.Fields.name),
+                checkFieldLikeIn(search.getNameNotLikeList(), true, true, TwinFactoryConditionSetEntity.Fields.name),
+                checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinFactoryConditionSetEntity.Fields.description),
+                checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryConditionSetEntity.Fields.description),
+                checkUuidIn(search.getIdList(), false, false, TwinFactoryConditionSetEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, TwinFactoryConditionSetEntity.Fields.id));
     }
 }

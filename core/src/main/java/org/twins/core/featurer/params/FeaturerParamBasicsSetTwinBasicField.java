@@ -8,7 +8,7 @@ import org.twins.core.domain.TwinBasicFields;
 import java.util.*;
 
 @FeaturerParamType(
-        id = "WORD_LIST:TWINS_TWIN_BASIC_FIELD",
+        id = "WORD_LIST:TWINS:TWIN_BASIC_FIELD",
         description = "",
         regexp = ".*",
         example = FeaturerParamUUIDSet.UUID_SET_EXAMPLE)

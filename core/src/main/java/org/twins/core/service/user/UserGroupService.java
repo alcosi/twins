@@ -3,10 +3,13 @@ package org.twins.core.service.user;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.*;
@@ -15,62 +18,109 @@ import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+import java.util.function.Function;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserGroupService {
-    final EntitySmartService entitySmartService;
+public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntity> {
     final UserGroupRepository userGroupRepository;
     final UserGroupTypeRepository userGroupTypeRepository;
-    final UserGroupMapRepository userGroupMapRepository;
     final FeaturerService featurerService;
     @Lazy
     final AuthService authService;
+    @Lazy
+    final UserService userService;
 
-    public List<UserGroupEntity> findGroupsForUser(UUID userId) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        List<UserGroupEntity> userGroupEntityList = new ArrayList<>();
-        List<UserGroupMapEntity> userGroupMapEntityList = getUserGroupsMap(userId);
-        for (UserGroupMapEntity userGroupMapEntity : userGroupMapEntityList) {
-            Slugger slugger = featurerService.getFeaturer(userGroupMapEntity.getUserGroup().getUserGroupType().getSluggerFeaturer(), Slugger.class);
-            UserGroupEntity userGroup = slugger.checkConfigAndGetGroup(userGroupMapEntity);
-            if (userGroup != null)
-                userGroupEntityList.add(userGroup);
+    @Override
+    public CrudRepository<UserGroupEntity, UUID> entityRepository() {
+        return userGroupRepository;
+    }
+
+    @Override
+    public Function<UserGroupEntity, UUID> entityGetIdFunction() {
+        return UserGroupEntity::getId;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(UserGroupEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(UserGroupEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
+    }
+
+    public Kit<UserGroupEntity, UUID> findGroupsForUser(UUID userId) throws ServiceException {
+        UserEntity userEntity = userService.findEntitySafe(userId);
+        loadGroups(userEntity);
+        return userEntity.getUserGroups();
+    }
+
+    public void loadGroupsForCurrentUser() throws ServiceException {
+        loadGroups(authService.getApiUser().getUser());
+    }
+
+    public void loadGroups(UserEntity userEntity) throws ServiceException {
+        loadGroups(Collections.singletonList(userEntity));
+    }
+
+    public void loadGroups(List<UserEntity> userEntityList) throws ServiceException {
+        Kit<UserEntity, UUID> needLoad = new Kit<>(UserEntity::getId);
+        for (UserEntity userEntity : userEntityList) {
+            if (userEntity.getUserGroups() == null) {
+                userEntity.setUserGroups(new Kit<>(UserGroupEntity::getId));
+                needLoad.add(userEntity);
+            }
         }
-        return userGroupEntityList;
-    }
-
-    public Set<UUID> loadGroups(ApiUser apiUser) throws ServiceException {
-        if (apiUser.getUserGroups() != null)
-            return apiUser.getUserGroups();
-        List<UserGroupMapEntity> userGroupMapEntityList = getUserGroupsMap(apiUser.getUserId());
-        if (CollectionUtils.isNotEmpty(userGroupMapEntityList))
-            apiUser.setUserGroups(new HashSet<>());
-        for (UserGroupMapEntity userGroupMapEntity : userGroupMapEntityList) {
-            Slugger slugger = featurerService.getFeaturer(userGroupMapEntity.getUserGroup().getUserGroupType().getSluggerFeaturer(), Slugger.class);
-            UserGroupEntity userGroup = slugger.checkConfigAndGetGroup(userGroupMapEntity);
-            if (userGroup != null)
-                apiUser.getUserGroups().add(userGroup.getId());
-        }
-        return apiUser.getUserGroups();
-    }
-
-    public List<UserGroupMapEntity> getUserGroupsMap(UUID userId) throws ServiceException {
+        if (CollectionUtils.isEmpty(needLoad))
+            return;
         ApiUser apiUser = authService.getApiUser();
-        if (apiUser.isBusinessAccountSpecified())
-            return userGroupMapRepository.findByUserIdAndBusinessAccountSafe(userId, apiUser.getDomain().getId(), apiUser.getBusinessAccountId());
-        else
-            return userGroupMapRepository.findByUserIdAndBusinessAccountSafe(userId, apiUser.getDomain().getId());
+        UUID businessAccountId = apiUser.isBusinessAccountSpecified() ? apiUser.getBusinessAccountId() : ApiUser.NOT_SPECIFIED; // this will help to call next query
+        List<UserGroupTypeEntity> userGroupTypes = userGroupTypeRepository.findValidTypes(apiUser.getDomainId(), businessAccountId);
+        if (CollectionUtils.isEmpty(userGroupTypes))
+            return;
+        List<? extends UserGroupMap> userGroups;
+        for (UserGroupTypeEntity userGroupTypeEntity : userGroupTypes) {
+            Slugger<UserGroupMap> slugger = featurerService.getFeaturer(userGroupTypeEntity.getSluggerFeaturer(), Slugger.class);
+            userGroups = slugger.getGroups(userGroupTypeEntity.getSluggerParams(), needLoad.getIdSet());
+            if (CollectionUtils.isNotEmpty(userGroups))
+                for (var userGroupMap : userGroups) {
+                    if (slugger.checkConfig(userGroupMap))
+                        needLoad.get(userGroupMap.getUserId()).getUserGroups().add(userGroupMap.getUserGroup());
+                }
+        }
     }
 
+    public void enterGroup(UUID userGroupId) throws ServiceException {
+        manageForUser(authService.getApiUser().getUserId(), Collections.singletonList(userGroupId), null);
+    }
+
+    public void enterGroup(UUID userId, UUID userGroupId) throws ServiceException {
+        manageForUser(userId, Collections.singletonList(userGroupId), null);
+    }
+
+    public void exitGroup(UUID userGroupId) throws ServiceException {
+        manageForUser(authService.getApiUser().getUserId(), null, Collections.singletonList(userGroupId));
+    }
+
+    public void exitGroup(UUID userId, UUID userGroupId) throws ServiceException {
+        manageForUser(userId, null, Collections.singletonList(userGroupId));
+    }
 
     public void manageForUser(UUID userId, List<UUID> userGroupEnterList, List<UUID> userGroupExitList) throws ServiceException {
+        manageForUser(userService.findEntitySafe(userId), userGroupEnterList, userGroupExitList);
+    }
+
+    public void manageForUser(UserEntity user, List<UUID> userGroupEnterList, List<UUID> userGroupExitList) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         DomainEntity domainEntity = apiUser.getDomain();
         UserGroupManager userGroupManager = featurerService.getFeaturer(domainEntity.getUserGroupManagerFeaturer(), UserGroupManager.class);
-        userGroupManager.manageForUser(domainEntity.getUserGroupManagerParams(), userId, userGroupEnterList, userGroupExitList, apiUser);
+        userGroupManager.manageForUser(domainEntity.getUserGroupManagerParams(), user, userGroupEnterList, userGroupExitList, apiUser);
     }
 
     public void processDomainBusinessAccountDeletion(UUID businessAccountId) throws ServiceException {
@@ -83,4 +133,6 @@ public class UserGroupService {
             slugger.processDomainBusinessAccountDeletion(type, businessAccountId);
         }
     }
+
+
 }

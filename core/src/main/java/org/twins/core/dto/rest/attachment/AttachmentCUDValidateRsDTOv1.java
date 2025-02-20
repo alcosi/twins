@@ -13,12 +13,10 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "AttachmentCUDValidateRsV1")
 public class AttachmentCUDValidateRsDTOv1 extends Response {
+
     @Schema(description = "Twin attachment problems")
-    public TwinAttachmentProblemsDTOv1 twinAttachmentProblems;
-    @Schema(description = "Field attachment problems")
-    public List<TwinFieldAttachmentProblemsDTOv1> twinFieldAttachmentProblems;
-    @Schema(description = "Comment attachment problems")
-    public List<TwinCommentAttachmentProblemsDTOv1> twinCommentAttachmentProblems;
+    public AttachmentCUDProblemsDTOv1 cudProblems;
+
     @Schema(description = "Attachment entities for update and delete operations")
-    public List<AttachmentViewDTOv2> attachmentsForUpdateDeleteOperations;
+    public List<AttachmentDTOv2> attachmentsForUD;
 }

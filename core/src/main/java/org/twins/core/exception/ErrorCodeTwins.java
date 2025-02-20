@@ -25,11 +25,14 @@ public enum ErrorCodeTwins implements ErrorCode {
     DOMAIN_BUSINESS_ACCOUNT_NOT_EXISTS(10208, "domain business_account is not registered"),
     DOMAIN_LOCALE_UNKNOWN(10209, "unknown locale"),
     DOMAIN_OR_BUSINESS_ACCOUNT_USER_NOT_EXISTS(10210, "domain or business_account user not exists"),
+    DOMAIN_LOCALE_INACTIVE(10211, "Local is not active"),
     PERMISSION_SCHEMA_NOT_ALLOWED(10301, "permission schema is not allowed"),
     PERMISSION_ID_UNKNOWN(10302, "permission id unknown"),
     TWIN_NOT_PROTECTED(10303, "Twin is not protected by permission"),
     PERMISSION_SCHEMA_NOT_SPECIFIED(10304, "permission schema is not specified"),
-    TWIN_ID_IS_INCORRECT(10304, "twin id is invalid"),
+    PERMISSION_KEY_INCORRECT(10305, "permission key is incorrect"),
+    TWIN_ID_IS_INCORRECT(10306, "twin id is invalid"),
+    PERMISSION_GROUP_UNSUPPORTED(10307, "Current permission group is system group. No permission can be added to such group"),
     TWIN_CLASS_SCHEMA_NOT_ALLOWED(10401, "twin class schema is not allowed"),
     TWIN_CLASS_FIELD_KEY_UNKNOWN(10402, "twin class field key is unknown"),
     TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT(10403, "twin class field value type is incorrect"),
@@ -62,6 +65,9 @@ public enum ErrorCodeTwins implements ErrorCode {
     DATALIST_OPTION_IS_NOT_VALID_FOR_LIST(10601, "data list option is not valid for current data list"),
     DATALIST_OPTION_IS_NOT_VALID_FOR_BUSINESS_ACCOUNT(10602, "data list option is not valid for current business account"),
     DATALIST_LIST_UNKNOWN(10603, "data list is unknown"),
+    DATALIST_NAME_IS_NOT_UNIQUE(10604, "data list with this key is not unique"),
+    DATALIST_OPTION_INVALID_ATTRIBUTE(10605, "invalid attribute"),
+    DATALIST_KEY_INCORRECT(10606, "invalid datalist key"),
     SPACE_TWIN_ID_INCORRECT(10701, "given twin id is not a space twin"),
     HEAD_TWIN_ID_NOT_ALLOWED(10702, "given twin is not allowed for given class"),
     HEAD_TWIN_NOT_SPECIFIED(10703, "space twin must be specified"),
@@ -76,6 +82,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     FACTORY_RESULT_LOCKED(11004, "twin factory result was locked by eraser"),
     TWIN_STATUS_INCORRECT(11101, "twin status is incorrect"),
     TWIN_STATUS_TWIN_CLASS_NOT_SPECIFIED(11102, "twin status class is not specified"),
+    TWIN_STATUS_KEY_INCORRECT(11103, "twin status key incorrect"),
     PAGINATION_ERROR(11201, "pagination offset must be a multiple of the size"),
     PAGINATION_LIMIT_ERROR(11202, "pagination value limit cannot be less than 1"),
     TWIN_COMMENT_FIELD_TEXT_IS_NULL(11301, "twin comment field is null"),
@@ -108,8 +115,12 @@ public enum ErrorCodeTwins implements ErrorCode {
     BUSINESS_ACCOUNT_USER_ALREADY_EXISTS(12202, "business_account user already exists"),
     BUSINESS_ACCOUNT_USER_NOT_EXISTS(12203, "business_account user not exists"),
     TIER_NOT_ALLOWED(12301, "tier is not allowed"),
+    TIER_NOT_CONFIGURED_FOR_DOMAIN(12302, "tier is not configured for domain"),
     LINK_DIRECTION_CLASS_NULL(12401, "Src or dst class of link cannot be null. Dont send nullify marker"),
-    LINK_UPDATE_RESTRICTED(12402, "link can not be updated"),;
+    LINK_UPDATE_RESTRICTED(12402, "link can not be updated"),
+    TIER_SIZE_QUOTA_REACHED(12501, "common attachments size exceeds tier quota"),
+    TIER_COUNT_QUOTA_REACHED(12502, "common attachments count exceeds tier quota"),
+    ATTACHMENTS_NOT_VALID(12503, "attachment not valid");
 
 
     private final int code;

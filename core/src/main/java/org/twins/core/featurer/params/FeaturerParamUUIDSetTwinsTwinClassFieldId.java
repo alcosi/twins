@@ -4,7 +4,7 @@ import org.cambium.featurer.annotations.FeaturerParamType;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
 
 @FeaturerParamType(
-        id = "UUID_SET:TWINS_TWIN_CLASS_FIELD_ID",
+        id = "UUID_SET:TWINS:TWIN_CLASS_FIELD_ID",
         description = "",
         regexp = FeaturerParamUUIDSet.UUID_SET_REGEXP,
         example = FeaturerParamUUIDSet.UUID_SET_EXAMPLE)

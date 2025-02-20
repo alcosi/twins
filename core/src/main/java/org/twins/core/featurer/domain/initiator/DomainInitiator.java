@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.DomainRepository;
 import org.twins.core.dao.domain.DomainTypeEntity;
+import org.twins.core.dao.domain.TierRepository;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaRepository;
 import org.twins.core.dao.twin.TwinEntity;
@@ -64,6 +65,8 @@ public abstract class DomainInitiator extends FeaturerTwins {
     TwinClassSchemaRepository twinClassSchemaRepository;
     @Autowired
     PermissionSchemaRepository permissionSchemaRepository;
+    @Autowired
+    TierRepository tierRepository;
 
     @Lazy
     @Autowired
@@ -90,9 +93,11 @@ public abstract class DomainInitiator extends FeaturerTwins {
         DomainTypeEntity domainTypeEntity = domainService.loadDomainType(domainEntity);
         Properties properties = featurerService.extractProperties(this, domainTypeEntity.getDomainInitiatorParams(), new HashMap<>());
         domainEntity
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setTokenHandlerFeaturerId(domainTypeEntity.getDefaultTokenHandlerFeaturer().getId())
                 .setTokenHandlerParams(domainTypeEntity.getDefaultTokenHandlerParams())
                 .setUserGroupManagerFeaturerId(domainTypeEntity.getDefaultUserGroupManagerFeaturer().getId())
+                .setUserGroupManagerFeaturer(domainTypeEntity.getDefaultUserGroupManagerFeaturer())
                 .setUserGroupManagerParams(domainTypeEntity.getDefaultUserGroupManagerParams())
                 .setAttachmentsStorageUsedSize(0L)
                 .setAttachmentsStorageUsedCount(0L);
@@ -121,6 +126,8 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setDomainUserTemplateTwinId(createDomainUserTemplateTwin(domainEntity));
     }
 
+
+
     protected UUID createDomainUserTemplateTwin(DomainEntity domainEntity) throws ServiceException {
         TwinClassEntity twinClassEntity = new TwinClassEntity()
                 .setDomainId(domainEntity.getId())
@@ -134,6 +141,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
 
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
                 .setTwinClassId(twinClassEntity.getId())
+                .setTwinClass(twinClassEntity)
                 .setKey("Active")
                 .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME,"Active").getId());
         twinStatusEntity = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
@@ -144,6 +152,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWINFLOW_NAME, twinflowName).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWINFLOW_DESCRIPTION, twinflowName).getId())
                 .setInitialTwinStatusId(twinStatusEntity.getId())
+                .setInitialTwinStatus(twinStatusEntity)
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(systemEntityService.getUserIdSystem());
         twinflowEntity = entitySmartService.save(twinflowEntity, twinflowRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
@@ -151,13 +160,16 @@ public abstract class DomainInitiator extends FeaturerTwins {
         TwinflowSchemaMapEntity twinflowSchemaMapEntity = new TwinflowSchemaMapEntity()
                 .setTwinflowSchemaId(domainEntity.getTwinflowSchemaId())
                 .setTwinClassId(twinClassEntity.getId())
+                .setTwinClass(twinClassEntity)
                 .setTwinflowId(twinflowEntity.getId())
                 .setTwinflow(twinflowEntity);
         entitySmartService.save(twinflowSchemaMapEntity, twinflowSchemaMapRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
         TwinEntity twinEntity = new TwinEntity()
                 .setTwinClassId(twinClassEntity.getId())
+                .setTwinClass(twinClassEntity)
                 .setTwinStatusId(twinStatusEntity.getId())
+                .setTwinStatus(twinStatusEntity)
                 .setName("Domain user template")
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(systemEntityService.getUserIdSystem());
@@ -172,6 +184,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setAbstractt(true)
                 .setKey(domainEntity.getKey().toUpperCase())
                 .setOwnerType(TwinClassEntity.OwnerType.DOMAIN)
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(systemEntityService.getUserIdSystem());
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         return twinClassEntity.getId();
@@ -182,6 +195,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
         TwinflowSchemaEntity twinflowSchemaEntity = new TwinflowSchemaEntity()
                 .setDomainId(domainEntity.getId())
                 .setName("Default domain twinflow schema")
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(systemEntityService.getUserIdSystem());
         twinflowSchemaEntity = entitySmartService.save(twinflowSchemaEntity, twinflowSchemaRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         return twinflowSchemaEntity.getId();
@@ -192,6 +206,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
         TwinClassSchemaEntity twinClassSchemaEntity = new TwinClassSchemaEntity()
                 .setDomainId(domainEntity.getId())
                 .setName("Default domain twin class schema")
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(systemEntityService.getUserIdSystem());
         twinClassSchemaEntity = entitySmartService.save(twinClassSchemaEntity, twinClassSchemaRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         return twinClassSchemaEntity.getId();
@@ -202,6 +217,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
         PermissionSchemaEntity permissionSchema = new PermissionSchemaEntity()
                 .setDomainId(domainEntity.getId())
                 .setName("Default domain permission schema")
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(systemEntityService.getUserIdSystem());
         permissionSchema = entitySmartService.save(permissionSchema, permissionSchemaRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         return permissionSchema.getId();

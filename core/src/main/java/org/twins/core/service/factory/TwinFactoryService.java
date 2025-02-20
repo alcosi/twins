@@ -4,10 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.i18n.dao.I18nEntity;
+import org.cambium.i18n.dao.I18nType;
+import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -16,8 +20,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.factory.*;
+import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
@@ -33,9 +39,13 @@ import org.twins.core.service.twin.TwinEraserService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+
+import static org.cambium.common.util.RowUtils.mapUuidInt;
+
 
 @Service
 @Slf4j
@@ -60,6 +70,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     final DraftService draftService;
     final DraftCommitService draftCommitService;
     private final TwinflowTransitionRepository twinflowTransitionRepository;
+    private final I18nService i18nService;
 
     @Override
     public CrudRepository<TwinFactoryEntity, UUID> entityRepository() {
@@ -73,12 +84,63 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
 
     @Override
     public boolean isEntityReadDenied(TwinFactoryEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
+        ApiUser apiUser = authService.getApiUser();
+        return !entity.getDomainId().equals(apiUser.getDomainId());
     }
 
     @Override
     public boolean validateEntity(TwinFactoryEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public TwinFactoryEntity createFactory(TwinFactoryEntity factory, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        factory
+                .setDomainId(apiUser.getDomainId())
+                .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, nameI18n).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n).getId())
+                .setCreatedByUserId(apiUser.getUserId())
+                .setCreatedByUser(apiUser.getUser())
+                .setCreatedAt(Timestamp.from(Instant.now()));
+        validateEntityAndThrow(factory, EntitySmartService.EntityValidateMode.beforeSave);
+        return twinFactoryRepository.save(factory);
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public TwinFactoryEntity updateFactory(TwinFactoryEntity factoryEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+        TwinFactoryEntity dbEntity = findEntitySafe(factoryEntity.getId());
+        ChangesHelper changesHelper = new ChangesHelper();
+        updateFactoryKey(factoryEntity, dbEntity, changesHelper);
+        updateFactoryName(nameI18n, dbEntity, changesHelper);
+        updateFactoryDescription(descriptionI18n, dbEntity, changesHelper);
+        return updateSafe(dbEntity, changesHelper);
+    }
+
+    private void updateFactoryKey(TwinFactoryEntity factoryEntity, TwinFactoryEntity dbEntity, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(TwinFactoryEntity.Fields.key, dbEntity.getKey(), factoryEntity.getKey()))
+            return;
+        dbEntity.setKey(factoryEntity.getKey());
+    }
+
+    private void updateFactoryName(I18nEntity nameI18n, TwinFactoryEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
+        if (nameI18n == null)
+            return;
+        if (dbEntity.getNameI18NId() != null)
+            nameI18n.setId(dbEntity.getNameI18NId());
+        i18nService.saveTranslations(I18nType.TWIN_FACTORY_NAME, nameI18n);
+        if (changesHelper.isChanged(TwinFactoryEntity.Fields.nameI18NId, dbEntity.getNameI18NId(), nameI18n.getId()))
+            dbEntity.setNameI18NId(nameI18n.getId());
+    }
+
+    private void updateFactoryDescription(I18nEntity descriptionI18n, TwinFactoryEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
+        if (descriptionI18n == null)
+            return;
+        if (dbEntity.getDescriptionI18NId() != null)
+            descriptionI18n.setId(dbEntity.getDescriptionI18NId());
+        i18nService.saveTranslations(I18nType.TWIN_FACTORY_DESCRIPTION, descriptionI18n);
+        if (changesHelper.isChanged(PermissionEntity.Fields.descriptionI18NId, dbEntity.getDescriptionI18NId(), descriptionI18n.getId()))
+            dbEntity.setDescriptionI18NId(descriptionI18n.getId());
     }
 
     public FactoryResultUncommited runFactoryAndCollectResult(UUID factoryId, FactoryContext factoryContext) throws ServiceException {
@@ -409,9 +471,9 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> twinflowTransitionCounts = convertToMap(twinflowTransitionRepository.countByInbuiltTwinFactoryIds(needLoad.getIdSet()));
-        Map<UUID, Integer> twinFactoryBranchCounts = convertToMap(twinFactoryBranchRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
-        Map<UUID, Integer> twinFactoryPipelineCounts = convertToMap(twinFactoryPipelineRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> twinflowTransitionCounts = mapUuidInt(twinflowTransitionRepository.countByInbuiltTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> twinFactoryBranchCounts = mapUuidInt(twinFactoryBranchRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> twinFactoryPipelineCounts = mapUuidInt(twinFactoryPipelineRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
 
         needLoad.getCollection().forEach(twinFactory -> {
             int twinflowTransitionCount = twinflowTransitionCounts.getOrDefault(twinFactory.getId(), 0);
@@ -434,7 +496,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> factoryPipelines = convertToMap(twinFactoryPipelineRepository.countByTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> factoryPipelines = mapUuidInt(twinFactoryPipelineRepository.countByTwinFactoryIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(twinFactory -> twinFactory.setFactoryPipelinesCount(factoryPipelines.getOrDefault(twinFactory.getId(), 0)));
     }
 
@@ -451,7 +513,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> factoryPipelineSteps = convertToMap(twinFactoryPipelineStepRepository.countByFactoryPipelineIds(needLoad.getIdSet()));
+        Map<UUID, Integer> factoryPipelineSteps = mapUuidInt(twinFactoryPipelineStepRepository.countByFactoryPipelineIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(twinFactoryPipeline -> twinFactoryPipeline.setPipelineStepsCount(factoryPipelineSteps.getOrDefault(twinFactoryPipeline.getId(), 0)));
     }
 
@@ -468,7 +530,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> factoryMultipliers = convertToMap(twinFactoryMultiplierRepository.countByTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> factoryMultipliers = mapUuidInt(twinFactoryMultiplierRepository.countByTwinFactoryIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(twinFactory -> twinFactory.setFactoryMultipliersCount(factoryMultipliers.getOrDefault(twinFactory.getId(), 0)));
     }
 
@@ -485,7 +547,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> factoryBranches = convertToMap(twinFactoryBranchRepository.countByTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> factoryBranches = mapUuidInt(twinFactoryBranchRepository.countByTwinFactoryIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(twinFactory -> twinFactory.setFactoryBranchesCount(factoryBranches.getOrDefault(twinFactory.getId(), 0)));
     }
 
@@ -502,7 +564,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> factoryErasers = convertToMap(twinFactoryEraserRepository.countByTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> factoryErasers = mapUuidInt(twinFactoryEraserRepository.countByTwinFactoryIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(twinFactory -> twinFactory.setFactoryErasersCount(factoryErasers.getOrDefault(twinFactory.getId(), 0)));
     }
 
@@ -519,7 +581,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryPipelineRepository.countByConditionSetIds(needLoad.getIdSet()));
+        Map<UUID, Integer> conditionSetMap = mapUuidInt(twinFactoryPipelineRepository.countByConditionSetIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryPipelineUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
     }
 
@@ -536,7 +598,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryPipelineStepRepository.countByConditionSetIds(needLoad.getIdSet()));
+        Map<UUID, Integer> conditionSetMap = mapUuidInt(twinFactoryPipelineStepRepository.countByConditionSetIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryPipelineStepUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
     }
 
@@ -553,7 +615,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryMultiplierFilterRepository.countByConditionSetIds(needLoad.getIdSet()));
+        Map<UUID, Integer> conditionSetMap = mapUuidInt(twinFactoryMultiplierFilterRepository.countByConditionSetIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryMultiplierFilterUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
     }
 
@@ -570,7 +632,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryBranchRepository.countByConditionSetIds(needLoad.getIdSet()));
+        Map<UUID, Integer> conditionSetMap = mapUuidInt(twinFactoryBranchRepository.countByConditionSetIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryBranchUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
     }
 
@@ -587,7 +649,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryEraserRepository.countByConditionSetIds(needLoad.getIdSet()));
+        Map<UUID, Integer> conditionSetMap = mapUuidInt(twinFactoryEraserRepository.countByConditionSetIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryEraserUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
     }
 
@@ -604,14 +666,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> mulitplierFilterMap = convertToMap(twinFactoryMultiplierFilterRepository.countByMultiplierIds(needLoad.getIdSet()));
+        Map<UUID, Integer> mulitplierFilterMap = mapUuidInt(twinFactoryMultiplierFilterRepository.countByMultiplierIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(multiplierFilter -> multiplierFilter.setFactoryMultiplierFiltersCount(mulitplierFilterMap.getOrDefault(multiplierFilter.getId(), 0)));
-    }
-
-    private Map<UUID, Integer> convertToMap(List<Object[]> resultList) {
-        return resultList.stream().collect(Collectors.toMap(
-                row -> (UUID) row[0],
-                row -> ((Long) row[1]).intValue()
-        ));
     }
 }

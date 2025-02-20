@@ -16,9 +16,7 @@ import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.permission.PermissionSchemaSpecification.checkDomainId;
-import static org.twins.core.dao.specifications.permission.PermissionSchemaSpecification.checkFieldLikeIn;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 
 @Slf4j
@@ -28,26 +26,26 @@ public class PermissionSchemaSearchService {
     private final AuthService authService;
     private final PermissionSchemaRepository permissionSchemaRepository;
 
+
     public PaginationResult<PermissionSchemaEntity> findPermissionSchemasByDomain(PermissionSchemaSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<PermissionSchemaEntity> spec = createPermissionSchemaSearchSpecification(search)
-                .and(checkDomainId(domainId));
+                .and(checkFieldUuid(domainId, PermissionSchemaEntity.Fields.domainId));
         Page<PermissionSchemaEntity> ret = permissionSchemaRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
     private Specification<PermissionSchemaEntity> createPermissionSchemaSearchSpecification(PermissionSchemaSearch search) throws ServiceException {
-        return Specification.where(
-                        checkFieldLikeIn(PermissionSchemaEntity.Fields.name, search.getNameLikeList(), false, false))
-                .and(checkFieldLikeIn(PermissionSchemaEntity.Fields.name, search.getNameNotLikeList(), true, true))
-                .and(checkFieldLikeIn(PermissionSchemaEntity.Fields.description, search.getDescriptionLikeList(), false, false))
-                .and(checkFieldLikeIn(PermissionSchemaEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
-                .and(checkUuidIn(PermissionSchemaEntity.Fields.id, search.getIdList(), false, true))
-                .and(checkUuidIn(PermissionSchemaEntity.Fields.id, search.getIdExcludeList(), true, false))
-                .and(checkUuidIn(PermissionSchemaEntity.Fields.businessAccountId, search.getBusinessAccountIdList(), false, true))
-                .and(checkUuidIn(PermissionSchemaEntity.Fields.businessAccountId, search.getBusinessAccountIdExcludeList(), true, true))
-                .and(checkUuidIn(PermissionSchemaEntity.Fields.createdByUserId, search.getCreatedByUserIdList(), false, true))
-                .and(checkUuidIn(PermissionSchemaEntity.Fields.createdByUserId, search.getCreatedByUserIdExcludeList(), true, true))
-                ;
+        return Specification.allOf(
+                checkFieldLikeContainsIn(search.getNameLikeList(), false, false, PermissionSchemaEntity.Fields.name),
+                checkFieldLikeContainsIn(search.getNameNotLikeList(), true, true, PermissionSchemaEntity.Fields.name),
+                checkFieldLikeContainsIn(search.getDescriptionLikeList(), false, false, PermissionSchemaEntity.Fields.description),
+                checkFieldLikeContainsIn(search.getDescriptionNotLikeList(), true, true, PermissionSchemaEntity.Fields.description),
+                checkUuidIn(search.getIdList(), false, true, PermissionSchemaEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, PermissionSchemaEntity.Fields.id),
+                checkUuidIn(search.getBusinessAccountIdList(), false, true, PermissionSchemaEntity.Fields.businessAccountId),
+                checkUuidIn(search.getBusinessAccountIdExcludeList(), true, true, PermissionSchemaEntity.Fields.businessAccountId),
+                checkUuidIn(search.getCreatedByUserIdList(), false, true, PermissionSchemaEntity.Fields.createdByUserId),
+                checkUuidIn(search.getCreatedByUserIdExcludeList(), true, true, PermissionSchemaEntity.Fields.createdByUserId));
     }
 }

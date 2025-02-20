@@ -8,25 +8,26 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.PermissionSchemaMode;
 
+import static org.cambium.common.util.DateUtils.convertOrNull;
+
 @Component
 @MapperModeBinding(modes = PermissionSchemaMode.class)
 public class PermissionSchemaRestDTOMapper extends RestSimpleDTOMapper<PermissionSchemaEntity, PermissionSchemaDTOv1> {
     @Override
     public void map(PermissionSchemaEntity src, PermissionSchemaDTOv1 dst, MapperContext mapperContext) {
         switch (mapperContext.getModeOrUse(PermissionSchemaMode.DETAILED)) {
-            case DETAILED:
+            case DETAILED ->
                 dst
                         .setId(src.getId())
                         .setName(src.getName())
                         .setDomainId(src.getDomainId())
                         .setBusinessAccountId(src.getBusinessAccountId())
-                        .setDescription(src.getDescription());
-                break;
-            case SHORT:
+                        .setDescription(src.getDescription())
+                        .setCreatedAt(convertOrNull(src.getCreatedAt()));
+            case SHORT ->
                 dst
                         .setId(src.getId())
                         .setName(src.getName());
-                break;
         }
     }
 

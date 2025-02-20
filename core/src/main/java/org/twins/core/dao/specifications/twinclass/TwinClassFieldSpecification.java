@@ -39,33 +39,11 @@ public class TwinClassFieldSpecification extends CommonSpecification<TwinClassFi
             String id = TwinClassFieldEntity.Fields.fieldTyperFeaturerId;
             return not ?
                     (ifNotIsTrueIncludeNullValues ?
-                            cb.or(root.get(id).in(ids).not(), root.get(id).isNull())
-                            : root.get(id).in(ids).not())
+                            cb.or(cb.not(root.get(id).in(ids)), root.get(id).isNull())
+                            : cb.not(root.get(id).in(ids)))
                     : root.get(id).in(ids);
         };
     }
 
-    public static Specification<TwinClassFieldEntity> checkFieldLikeIn(final String field, final Collection<String> search, final boolean not, final boolean or) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(search))
-                return cb.conjunction();
 
-            ArrayList<Predicate> predicates = new ArrayList<>();
-            for (String name : search) {
-                Predicate predicate = cb.like(cb.lower(root.get(field)), name.toLowerCase());
-                if (not) predicate = cb.not(predicate);
-                predicates.add(predicate);
-            }
-            return getPredicate(cb, predicates, or);
-        };
-    }
-
-    public static Specification<TwinClassFieldEntity> checkDomainId(UUID domainId) {
-        return (root, query, cb) -> {
-            if (domainId == null)
-                return cb.disjunction();
-            Join<TwinClassFieldEntity, TwinClassEntity> twinClassJoin = root.join(TwinClassFieldEntity.Fields.twinClass, JoinType.INNER);
-            return cb.equal(twinClassJoin.get(TwinClassEntity.Fields.domainId), domainId);
-        };
-    }
 }

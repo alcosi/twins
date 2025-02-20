@@ -8,13 +8,15 @@ import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dto.rest.comment.CommentViewDTOv1;
 import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
+import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.comment.CommentService;
 import org.twins.core.service.comment.CommentActionService;
 
 import java.util.Collection;
+
+import static org.cambium.common.util.DateUtils.convertOrNull;
 
 @Component
 @RequiredArgsConstructor
@@ -25,7 +27,7 @@ public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEnt
     private final UserRestDTOMapper userRestDTOMapper;
 
     @MapperModePointerBinding(modes = AttachmentMode.Comment2AttachmentMode.class)
-    private final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
+    private final AttachmentRestDTOMapper attachmentRestDTOMapper;
 
     private final CommentService commentService;
     private final CommentActionService commentActionService;
@@ -43,7 +45,7 @@ public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEnt
                         .setId(src.getId())
                         .setAuthorUserId(src.getCreatedByUserId())
                         .setAuthorUser(userRestDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext))
-                        .setCreatedAt(src.getCreatedAt().toLocalDateTime() != null ? src.getCreatedAt().toLocalDateTime() : null)
+                        .setCreatedAt(convertOrNull(src.getCreatedAt()))
                         .setText(src.getText());
                 break;
         }

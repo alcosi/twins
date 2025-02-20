@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.attachment.FieldAttachmentProblem;
 
 import java.util.UUID;
 
@@ -11,9 +12,12 @@ import java.util.UUID;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinFieldAttachmentProblemsV1")
-public class TwinFieldAttachmentProblemsDTOv1 extends TwinAttachmentProblemsDTOv1 {
+public class TwinFieldAttachmentProblemsDTOv1 extends AttachmentProblemDTOv1 {
 
     @Schema(description = "Twin field id")
     public UUID twinFieldId;
+
+    @Schema(description = "Twin field attachment problem")
+    public FieldAttachmentProblem problem;
 
 }

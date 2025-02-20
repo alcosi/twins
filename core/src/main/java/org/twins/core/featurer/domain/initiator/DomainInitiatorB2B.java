@@ -9,6 +9,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -24,7 +25,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2502,
-        name = "DomainInitiatorB2B",
+        name = "B2B",
         description = "")
 @RequiredArgsConstructor
 @Slf4j
@@ -53,9 +54,26 @@ public class DomainInitiatorB2B extends DomainInitiator {
     protected void postInit(Properties properties, DomainEntity domainEntity) throws ServiceException {
         super.postInit(properties, domainEntity);
         domainEntity
-                .setBusinessAccountInitiatorFeaturerId(1103)
-                .setBusinessAccountInitiatorParams(null) // 1103 does not need params
-                .setBusinessAccountTemplateTwinId(createBusinessAccountTemplateTwin(domainEntity));
+                .setBusinessAccountInitiatorFeaturerId(1101)
+                .setBusinessAccountInitiatorParams(null) // 1101 does not need params
+                .setBusinessAccountTemplateTwinId(createBusinessAccountTemplateTwin(domainEntity))
+                .setDefaultTierId(createDefaultTier(domainEntity));
+    }
+
+    private UUID createDefaultTier(DomainEntity domainEntity) throws ServiceException {
+        TierEntity tier = new TierEntity();
+        tier
+                .setDomainId(domainEntity.getId())
+                .setName("Free")
+                .setDescription("Default tier for [" + domainEntity.getKey() + "] domain.")
+                .setCustom(false)
+                .setPermissionSchemaId(domainEntity.getPermissionSchemaId())
+                .setTwinflowSchemaId(domainEntity.getTwinflowSchemaId())
+                .setTwinClassSchemaId(domainEntity.getTwinClassSchemaId())
+                .setAttachmentsStorageQuotaCount(0)
+                .setAttachmentsStorageQuotaSize(0L)
+                .setUserCountQuota(0);
+        return entitySmartService.save(tier, tierRepository,  EntitySmartService.SaveMode.saveAndThrowOnException).getId();
     }
 
     protected UUID createBusinessAccountTemplateTwin(DomainEntity domainEntity) throws ServiceException {
@@ -66,6 +84,7 @@ public class DomainInitiatorB2B extends DomainInitiator {
                 .setExtendsTwinClassId(domainEntity.getAncestorTwinClassId())
                 .setKey("DOMAIN_BUSINESS_ACCOUNT_FOR_" + domainEntity.getKey().toUpperCase())
                 .setOwnerType(TwinClassEntity.OwnerType.DOMAIN_BUSINESS_ACCOUNT)
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(systemEntityService.getUserIdSystem());
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
@@ -81,6 +100,7 @@ public class DomainInitiatorB2B extends DomainInitiator {
                 .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWINFLOW_NAME, twinflowName).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWINFLOW_DESCRIPTION, twinflowName).getId())
                 .setInitialTwinStatusId(twinStatusEntity.getId())
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(systemEntityService.getUserIdSystem());
         twinflowEntity = entitySmartService.save(twinflowEntity, twinflowRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
@@ -95,6 +115,7 @@ public class DomainInitiatorB2B extends DomainInitiator {
                 .setTwinClassId(twinClassEntity.getId())
                 .setTwinStatusId(twinStatusEntity.getId())
                 .setName("Business account template")
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(systemEntityService.getUserIdSystem());
         twinEntity = entitySmartService.save(twinEntity, twinRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         return twinEntity.getId();

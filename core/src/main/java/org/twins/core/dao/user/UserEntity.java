@@ -5,10 +5,11 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.hibernate.annotations.CreationTimestamp;
+import org.cambium.common.kit.Kit;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
 import java.sql.Timestamp;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.twins.core.service.user.UserService.maskEmail;
@@ -38,14 +39,18 @@ public class UserEntity implements EasyLoggable, TwinFieldStorage {
     @Column(name = "avatar")
     private String avatar;
 
-    @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 
     @Column(name = "user_status_id")
     @Enumerated(EnumType.STRING)
     private UserStatus userStatusId;
+
+    @Transient
+    private Kit<UserGroupEntity, UUID> userGroups;
+
+    @Transient
+    private Set<UUID> permissions;
 
     public String easyLog(Level level) {
         return "user[id:" + id + ", email:" + maskEmail(email) + "]";

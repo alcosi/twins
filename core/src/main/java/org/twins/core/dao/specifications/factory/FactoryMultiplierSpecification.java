@@ -1,56 +1,27 @@
 package org.twins.core.dao.specifications.factory;
 
-import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.JoinType;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.Ternary;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.data.jpa.domain.Specification;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
-import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Set;
-
-import static org.cambium.common.util.SpecificationUtils.getPredicate;
+import java.util.UUID;
 
 @Slf4j
 public class FactoryMultiplierSpecification extends CommonSpecification<TwinFactoryMultiplierEntity> {
 
-    public static Specification<TwinFactoryMultiplierEntity> checkIntegerIn(final String field, final Set<Integer> ids, boolean not) {
+    public static Specification<TwinFactoryMultiplierEntity> checkDomainId(UUID domainId) {
+        return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.or(criteriaBuilder.isNull(property), criteriaBuilder.equal(property, filedValue)), JoinType.INNER, TwinFactoryMultiplierEntity.Fields.twinFactory, TwinFactoryEntity.Fields.domainId);
+    }
+
+    public static Specification<TwinFactoryMultiplierEntity> checkIntegerIn(final Set<Integer> ids, boolean not, final String field) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(ids)) return cb.conjunction();
-            return not ? root.get(field).in(ids).not() : root.get(field).in(ids);
+            return not ? cb.not(root.get(field).in(ids)) : root.get(field).in(ids);
         };
     }
-
-    public static Specification<TwinFactoryMultiplierEntity> checkFieldLikeIn(final String field, final Collection<String> search, final boolean not, final boolean or) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(search))
-                return cb.conjunction();
-
-            ArrayList<Predicate> predicates = new ArrayList<>();
-            for (String name : search) {
-                Predicate predicate = cb.like(cb.lower(root.get(field)), name.toLowerCase());
-                if (not) predicate = cb.not(predicate);
-                predicates.add(predicate);
-            }
-            return getPredicate(cb, predicates, or);
-        };
-    }
-
-    public static Specification<TwinFactoryMultiplierEntity> checkTernary(final String field, Ternary ternary) {
-        return (root, query, cb) -> {
-            if (ternary == null)
-                return cb.conjunction();
-            return switch (ternary) {
-                case ONLY -> cb.isTrue(root.get(field));
-                case ONLY_NOT -> cb.isFalse(root.get(field));
-                default -> cb.conjunction();
-            };
-        };
-    }
-
 }

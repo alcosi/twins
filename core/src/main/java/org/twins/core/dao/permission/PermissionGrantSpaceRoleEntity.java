@@ -3,7 +3,6 @@ package org.twins.core.dao.permission;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
-import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.user.UserEntity;
 
@@ -31,8 +30,6 @@ public class PermissionGrantSpaceRoleEntity {
     @Column(name = "granted_by_user_id")
     private UUID grantedByUserId;
 
-    @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "granted_at")
     private Timestamp grantedAt;
 

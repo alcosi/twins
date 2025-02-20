@@ -11,13 +11,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.permission.PermissionGrantUserEntity;
 import org.twins.core.dao.permission.PermissionGrantUserRepository;
+import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.domain.search.PermissionGrantUserSearch;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.permission.PermissionGrantUserSpecification.*;
+import static org.twins.core.dao.specifications.permission.PermissionGrantUserSpecification.checkFieldUuid;
 
 
 @Slf4j
@@ -27,6 +28,8 @@ public class PermissionGrantUserSearchService {
     private final AuthService authService;
     private final PermissionGrantUserRepository permissionGrantUserRepository;
 
+
+
     public PaginationResult<PermissionGrantUserEntity> findPermissionGrantUsersByDomain(PermissionGrantUserSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<PermissionGrantUserEntity> spec = createPermissionGrantUserSearchSpecification(search, domainId);
@@ -35,17 +38,18 @@ public class PermissionGrantUserSearchService {
     }
 
     private Specification<PermissionGrantUserEntity> createPermissionGrantUserSearchSpecification(PermissionGrantUserSearch search, UUID domainId) throws ServiceException {
-        return Specification.where(
-                checkDomainId(domainId))
-                        .and(checkUuidIn(PermissionGrantUserEntity.Fields.id, search.getIdList(), false, true))
-                        .and(checkUuidIn(PermissionGrantUserEntity.Fields.id, search.getIdExcludeList(), true, true))
-                        .and(checkUuidIn(PermissionGrantUserEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdList(), false, true))
-                        .and(checkUuidIn(PermissionGrantUserEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdExcludeList(), true, true))
-                        .and(checkUuidIn(PermissionGrantUserEntity.Fields.permissionId, search.getPermissionIdList(), false, true))
-                        .and(checkUuidIn(PermissionGrantUserEntity.Fields.permissionId, search.getPermissionIdExcludeList(), true, true))
-                        .and(checkUuidIn(PermissionGrantUserEntity.Fields.userId, search.getUserIdList(), false, true))
-                        .and(checkUuidIn(PermissionGrantUserEntity.Fields.userId, search.getUserIdExcludeList(), true, true))
-                        .and(checkUuidIn(PermissionGrantUserEntity.Fields.grantedByUserId, search.getGrantedByUserIdList(), false, true))
-                        .and(checkUuidIn(PermissionGrantUserEntity.Fields.grantedByUserId, search.getGrantedByUserIdExcludeList(), true, true));
+
+        return Specification.allOf(
+                checkFieldUuid(domainId, PermissionGrantUserEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
+                checkUuidIn(search.getIdList(), false, true, PermissionGrantUserEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, true, PermissionGrantUserEntity.Fields.id),
+                checkUuidIn(search.getPermissionSchemaIdList(), false, true, PermissionGrantUserEntity.Fields.permissionSchemaId),
+                checkUuidIn(search.getPermissionSchemaIdExcludeList(), true, true, PermissionGrantUserEntity.Fields.permissionSchemaId),
+                checkUuidIn(search.getPermissionIdList(), false, true, PermissionGrantUserEntity.Fields.permissionId),
+                checkUuidIn(search.getPermissionIdExcludeList(), true, true, PermissionGrantUserEntity.Fields.permissionId),
+                checkUuidIn(search.getUserIdList(), false, true, PermissionGrantUserEntity.Fields.userId),
+                checkUuidIn(search.getUserIdExcludeList(), true, true, PermissionGrantUserEntity.Fields.userId),
+                checkUuidIn(search.getGrantedByUserIdList(), false, true, PermissionGrantUserEntity.Fields.grantedByUserId),
+                checkUuidIn(search.getGrantedByUserIdExcludeList(), true, true, PermissionGrantUserEntity.Fields.grantedByUserId));
     }
 }

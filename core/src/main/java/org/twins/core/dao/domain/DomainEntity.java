@@ -11,10 +11,11 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.LocaleConverter;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
+import org.twins.core.dao.resource.ResourceEntity;
+import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.tokenhandler.TokenHandler;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
@@ -39,6 +40,10 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "key")
     private String key;
 
+    @Column(name = "domain_status_id")
+    @Enumerated(EnumType.STRING)
+    private DomainStatus domainStatusId;
+
     @Column(name = "description")
     private String description;
 
@@ -60,8 +65,6 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "domain_user_template_twin_id")
     private UUID domainUserTemplateTwinId;
 
-    @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 
@@ -105,6 +108,18 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "user_group_manager_featurer_id")
     private Integer userGroupManagerFeaturerId;
 
+    @Column(name = "icon_light_resource_id")
+    private UUID iconLightResourceId;
+
+    @Column(name = "icon_dark_resource_id")
+    private UUID iconDarkResourceId;
+
+    @Column(name = "attachments_storage_id")
+    private UUID attachmentsStorageId;
+
+    @Column(name = "resources_storage_id")
+    private UUID resourcesStorageId;
+
     @FeaturerList(type = UserGroupManager.class)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_group_manager_featurer_id", insertable = false, updatable = false)
@@ -117,6 +132,22 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "domain_type_id")
     @Convert(converter = DomainTypeConverter.class)
     private DomainType domainType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "icon_light_resource_id", insertable = false, updatable = false)
+    private ResourceEntity iconLightResource;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "icon_dark_resource_id", insertable = false, updatable = false)
+    private ResourceEntity iconDarkResource;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "attachments_storage_id", insertable = false, updatable = false)
+    private StorageEntity attachmentsStorage;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "resources_storage_id", insertable = false, updatable = false)
+    private StorageEntity resourcesStorage;
 
     // needed for specification
     @Deprecated

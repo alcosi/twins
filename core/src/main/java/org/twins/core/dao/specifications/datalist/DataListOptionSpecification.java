@@ -3,6 +3,7 @@ package org.twins.core.dao.specifications.datalist;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.datalist.DataListEntity;
@@ -26,14 +27,14 @@ public class DataListOptionSpecification extends CommonSpecification<DataListOpt
         };
     }
 
-    public static Specification<DataListOptionEntity> checkFieldLikeIn(String field, Collection<String> search, boolean not, boolean or) {
+    public static Specification<DataListOptionEntity> checkStatusLikeIn(Collection<String> search, boolean not, boolean or) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(search))
                 return cb.conjunction();
 
             List<Predicate> predicates = new ArrayList<>();
             for (String value : search) {
-                Predicate predicate = cb.like(cb.lower(root.get(field)), value.toLowerCase());
+                Predicate predicate = cb.like(cb.lower(root.get(DataListOptionEntity.Fields.status)), value.toLowerCase());
                 if (not) predicate = cb.not(predicate);
                 predicates.add(predicate);
             }
@@ -46,7 +47,8 @@ public class DataListOptionSpecification extends CommonSpecification<DataListOpt
             if (CollectionUtils.isEmpty(search))
                 return cb.conjunction();
 
-            Join<DataListOptionEntity, DataListEntity> joinDataListOption = root.join(DataListOptionEntity.Fields.dataList, JoinType.INNER);
+            // include double join
+            Join<DataListOptionEntity, ?> joinDataListOption = getOrCreateJoin(root);
 
             List<Predicate> predicates = new ArrayList<>();
             for (String value : search) {
@@ -56,6 +58,13 @@ public class DataListOptionSpecification extends CommonSpecification<DataListOpt
             }
             return getPredicate(cb, predicates, or);
         };
+    }
+
+    public static Join<DataListOptionEntity, ?> getOrCreateJoin(Root<DataListOptionEntity> root) {
+        return root.getJoins().stream()
+                .filter(j -> j.getAttribute().getName().equals(DataListOptionEntity.Fields.dataList))
+                .findFirst()
+                .orElseGet(() -> root.join(DataListEntity.Fields.key, JoinType.LEFT));
     }
 
     public static Specification<DataListOptionEntity> checkDataListSubset(Collection<UUID> search, boolean not) {
@@ -92,12 +101,4 @@ public class DataListOptionSpecification extends CommonSpecification<DataListOpt
         };
     }
 
-    public static Specification<DataListOptionEntity> checkDomainId(UUID domainId) {
-        return (root, query, cb) -> {
-            if (domainId == null)
-                return cb.disjunction();
-            Join<DataListOptionEntity, DataListEntity> joinDataListOption = root.join(DataListOptionEntity.Fields.dataList, JoinType.INNER);
-            return cb.equal(joinDataListOption.get(DataListEntity.Fields.domainId), domainId);
-        };
-    }
 }

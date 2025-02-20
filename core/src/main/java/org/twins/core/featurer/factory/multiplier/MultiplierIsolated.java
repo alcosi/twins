@@ -22,10 +22,10 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2202,
-        name = "MultiplierIsolated",
+        name = "Isolated",
         description = "New output twin for each input. Output class from params")
 public class MultiplierIsolated extends Multiplier {
-    @FeaturerParam(name = "outputTwinClassId", description = "")
+    @FeaturerParam(name = "Output twin class id", description = "", order = 1)
     public static final FeaturerParamUUID outputTwinClassId = new FeaturerParamUUIDTwinsTwinClassId("outputTwinClassId");
 
     @Override
@@ -38,6 +38,7 @@ public class MultiplierIsolated extends Multiplier {
                     .setName("")
                     .setTwinClass(outputTwinClassEntity)
                     .setTwinClassId(outputTwinClassEntity.getId())
+                    .setCreatedAt(Timestamp.from(Instant.now()))
                     .setCreatedByUserId(apiUser.getUser().getId())
                     .setCreatedByUser(apiUser.getUser());
             TwinCreate twinCreate = new TwinCreate();

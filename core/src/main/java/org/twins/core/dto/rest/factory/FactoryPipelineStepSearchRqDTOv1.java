@@ -52,6 +52,12 @@ public class FactoryPipelineStepSearchRqDTOv1 extends Request {
     @Schema(description = "filler featurer id exclude list")
     public Set<Integer> fillerFeaturerIdExcludeList;
 
+    @Schema(description = "condition invert", example = DTOExamples.TERNARY)
+    public Ternary conditionInvert;
+
+    @Schema(description = "active", example = DTOExamples.TERNARY)
+    public Ternary active;
+
     @Schema(description = "optional", example = DTOExamples.TERNARY)
     public Ternary optional;
 }

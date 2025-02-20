@@ -15,11 +15,11 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2418,
-        name = "ConditionerContextValueExists",
+        name = "Value exists",
         description = "")
 @Slf4j
 public class ConditionerContextValueExists extends Conditioner {
-    @FeaturerParam(name = "twinClassFieldId", description = "")
+    @FeaturerParam(name = "Twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
     @Override

@@ -23,12 +23,14 @@ public class PermissionGrantUserGroupRestDTOMapper extends RestSimpleDTOMapper<P
                         .setPermissionSchemaId(src.getPermissionSchemaId())
                         .setPermissionId(src.getPermissionId())
                         .setUserGroupId(src.getUserGroupId())
-                        .setGrantedByUserId(src.getGrantedByUserId());
+                        .setGrantedByUserId(src.getGrantedByUserId())
+                        .setGrantedAt(src.getGrantedAt().toLocalDateTime());
                 break;
             case SHORT:
                 dst
                         .setId(src.getId())
-                        .setPermissionId(src.getPermissionId());
+                        .setPermissionId(src.getPermissionId())
+                        .setUserGroupId(src.getUserGroupId());
                 break;
         }
     }

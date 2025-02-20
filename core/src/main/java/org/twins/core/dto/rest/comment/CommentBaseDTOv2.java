@@ -18,7 +18,7 @@ import java.util.UUID;
 @Schema(name = "CommentBaseDTOv2")
 public class CommentBaseDTOv2 extends CommentBaseDTOv1 {
 
-    @Schema(description = "id", example = DTOExamples.TWIN_COMMENT)
+    @Schema(description = "id", example = DTOExamples.TWIN_COMMENT_ID)
     public UUID id;
 
     @Schema(description = "author id", example = DTOExamples.USER_ID)

@@ -20,20 +20,9 @@ public class FeaturerSpecification {
     public static Specification<FeaturerEntity> checkIntegerIn(final String field, final Set<Integer> ids, boolean not) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(ids)) return cb.conjunction();
-            return not ? root.get(field).in(ids).not() : root.get(field).in(ids);
+            return not ? cb.not(root.get(field).in(ids)) : root.get(field).in(ids);
         };
     }
 
-    public static Specification<FeaturerEntity> checkFieldLikeIn(final String fieldName, final Collection<String> search, final boolean or) {
-        return (root, query, cb) -> {
-            ArrayList<Predicate> predicates = new ArrayList<>();
-            if (CollectionUtils.isNotEmpty(search))
-                for (String s : search) {
-                    Predicate predicate = cb.like(cb.lower(root.get(fieldName)), s.toLowerCase());
-                    predicates.add(predicate);
-                }
-            return getPredicate(cb, predicates, or);
-        };
-    }
 }
 

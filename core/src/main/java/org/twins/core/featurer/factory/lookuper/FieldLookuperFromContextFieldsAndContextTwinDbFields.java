@@ -16,7 +16,12 @@ public class FieldLookuperFromContextFieldsAndContextTwinDbFields extends FieldL
     @Override
     public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID lookupTwinClassFieldId) throws ServiceException {
         TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
-        FieldValue fieldValue = twinService.getTwinFieldValue(contextTwin, lookupTwinClassFieldId);
+        // we will look inside context fields
+        FieldValue fieldValue = factoryItem.getFactoryContext().getFields().get(lookupTwinClassFieldId);
+        if (TwinService.isFilled(fieldValue))
+            return fieldValue;
+        // we will look inside context twin fields
+        fieldValue = twinService.getTwinFieldValue(contextTwin, lookupTwinClassFieldId);
         if (TwinService.isFilled(fieldValue))
             return fieldValue;
         // we will try to look deeper
@@ -24,8 +29,6 @@ public class FieldLookuperFromContextFieldsAndContextTwinDbFields extends FieldL
         fieldValue = twinService.getTwinFieldValue(contextTwin, lookupTwinClassFieldId);
         if (TwinService.isFilled(fieldValue))
             return fieldValue;
-        // we will look inside context fields
-        fieldValue = factoryItem.getFactoryContext().getFields().get(lookupTwinClassFieldId);
         if (!TwinService.isFilled(fieldValue))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] is not present in context fields and in context twins");
         return fieldValue;

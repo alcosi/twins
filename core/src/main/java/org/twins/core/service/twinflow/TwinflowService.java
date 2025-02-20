@@ -52,8 +52,8 @@ import java.util.function.Function;
 import static org.cambium.common.util.CacheUtils.evictCache;
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.springframework.data.jpa.domain.Specification.where;
-import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkSchemas;
+import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkUuidIn;
 
 @Slf4j
 @Service
@@ -224,9 +224,9 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
                 .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWINFLOW_NAME, twinflowName).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWINFLOW_DESCRIPTION, twinflowName).getId())
                 .setInitialTwinStatusId(twinStatusEntity.getId())
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(SystemEntityService.USER_SYSTEM);
-        validateEntity(twinflowEntity, EntitySmartService.EntityValidateMode.beforeSave);
-        return entitySmartService.save(twinflowEntity, twinflowRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        return saveSafe(twinflowEntity);
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -238,9 +238,9 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         twinflowEntity
                 .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWINFLOW_NAME, nameI18n).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWINFLOW_DESCRIPTION, descriptionI18n).getId())
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
-        validateEntity(twinflowEntity, EntitySmartService.EntityValidateMode.beforeSave);
-        return entitySmartService.save(twinflowEntity, twinflowRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        return saveSafe(twinflowEntity);
     }
 
     @Transactional
@@ -266,18 +266,18 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         Locale locale = authService.getApiUser().getLocale();
         return where(checkSchemas(TwinflowEntity.Fields.schemaMappings, twinflowSearch.getTwinflowSchemaIdList(), true, false)
                 .and(checkSchemas(TwinflowEntity.Fields.schemaMappings, twinflowSearch.getTwinflowSchemaIdExcludeList(), true, true))
-                .and(checkUuidIn(TwinflowEntity.Fields.id, twinflowSearch.getIdList(), false, false))
-                .and(checkUuidIn(TwinflowEntity.Fields.id, twinflowSearch.getIdExcludeList(), false, false))
-                .and(checkUuidIn(TwinflowEntity.Fields.twinClassId, twinflowSearch.getTwinClassIdList(), false, false))
-                .and(checkUuidIn(TwinflowEntity.Fields.twinClassId, twinflowSearch.getTwinClassIdExcludeList(), true, false))
+                .and(checkUuidIn(twinflowSearch.getIdList(), false, false, TwinflowEntity.Fields.id))
+                .and(checkUuidIn(twinflowSearch.getIdExcludeList(), false, false, TwinflowEntity.Fields.id))
+                .and(checkUuidIn(twinflowSearch.getTwinClassIdList(), false, false, TwinflowEntity.Fields.twinClassId))
+                .and(checkUuidIn(twinflowSearch.getTwinClassIdExcludeList(), true, false, TwinflowEntity.Fields.twinClassId))
                 .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinflowSearch.getNameI18nLikeList(), locale, false, false))
                 .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinflowSearch.getNameI18nNotLikeList(), locale, true, true))
                 .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinflowSearch.getDescriptionI18nLikeList(), locale, false, false))
                 .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinflowSearch.getDescriptionI18nNotLikeList(), locale, false, true))
-                .and(checkUuidIn(TwinflowEntity.Fields.initialTwinStatusId, twinflowSearch.getInitialStatusIdList(), false, false))
-                .and(checkUuidIn(TwinflowEntity.Fields.initialTwinStatusId, twinflowSearch.getInitialStatusIdExcludeList(), true, false))
-                .and(checkUuidIn(TwinflowEntity.Fields.createdByUserId, twinflowSearch.getCreatedByUserIdList(), false, false))
-                .and(checkUuidIn(TwinflowEntity.Fields.createdByUserId, twinflowSearch.getCreatedByUserIdExcludeList(), true, true))
+                .and(checkUuidIn(twinflowSearch.getInitialStatusIdList(), false, false, TwinflowEntity.Fields.initialTwinStatusId))
+                .and(checkUuidIn(twinflowSearch.getInitialStatusIdExcludeList(), true, false, TwinflowEntity.Fields.initialTwinStatusId))
+                .and(checkUuidIn(twinflowSearch.getCreatedByUserIdList(), false, false, TwinflowEntity.Fields.createdByUserId))
+                .and(checkUuidIn(twinflowSearch.getCreatedByUserIdExcludeList(), true, true, TwinflowEntity.Fields.createdByUserId))
 
         );
     }
@@ -289,8 +289,9 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         updateTwinflowName(dbTwinflowEntity, nameI18n, changesHelper);
         updateTwinflowDescription(dbTwinflowEntity, descriptionI18n, changesHelper);
         updateTwinflowInitStatus(dbTwinflowEntity, twinflowEntity.getInitialTwinStatusId(), changesHelper);
-        dbTwinflowEntity = entitySmartService.saveAndLogChanges(dbTwinflowEntity, twinflowRepository, changesHelper);
-        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbTwinflowEntity.getTwinClassId());
+        dbTwinflowEntity = updateSafe(dbTwinflowEntity, changesHelper);
+        if (changesHelper.hasChanges())
+            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbTwinflowEntity.getTwinClassId());
         return dbTwinflowEntity;
     }
 

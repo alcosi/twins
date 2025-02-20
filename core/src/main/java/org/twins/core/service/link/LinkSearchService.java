@@ -33,6 +33,7 @@ public class LinkSearchService {
     private final LinkRepository linkRepository;
     private final AuthService authService;
 
+
     public PaginationResult<LinkEntity> findLinks(LinkSearch search, SimplePagination pagination) throws ServiceException {
         Specification<LinkEntity> spec = createLinkSearchSpecification(search);
         Page<LinkEntity> ret = linkRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
@@ -41,24 +42,24 @@ public class LinkSearchService {
 
     private Specification<LinkEntity> createLinkSearchSpecification(LinkSearch search) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        return Specification.where(
-                checkDomainId(apiUser.getDomainId())
-                        .and(checkUuidIn(LinkEntity.Fields.id, search.getIdList(), false, false))
-                        .and(checkUuidIn(LinkEntity.Fields.id, search.getIdExcludeList(), true, false))
-                        .and(checkUuidIn(LinkEntity.Fields.srcTwinClassId, search.getSrcTwinClassIdList(), false, false))
-                        .and(checkUuidIn(LinkEntity.Fields.srcTwinClassId, search.getSrcTwinClassIdExcludeList(), true, false))
-                        .and(checkUuidIn(LinkEntity.Fields.dstTwinClassId, search.getDstTwinClassIdList(), false, false))
-                        .and(checkUuidIn(LinkEntity.Fields.dstTwinClassId, search.getDstTwinClassIdExcludeList(), true, false))
-                        .and(checkSrcOrDstTwinClassIdIn(search.getSrcOrDstTwinClassIdList(), false))
-                        .and(checkSrcOrDstTwinClassIdIn(search.getSrcOrDstTwinClassIdExcludeList(), true))
-                        .and(joinAndSearchByI18NField(LinkEntity.Fields.forwardNameI18n, search.getForwardNameLikeList(), apiUser.getLocale(), true, false))
-                        .and(joinAndSearchByI18NField(LinkEntity.Fields.forwardNameI18n, search.getForwardNameNotLikeList(), apiUser.getLocale(), true, true))
-                        .and(joinAndSearchByI18NField(LinkEntity.Fields.backwardNameI18n, search.getBackwardNameLikeList(), apiUser.getLocale(), true, false))
-                        .and(joinAndSearchByI18NField(LinkEntity.Fields.backwardNameI18n, search.getBackwardNameNotLikeList(), apiUser.getLocale(), true, true))
-                        .and(checkFieldLikeIn(LinkEntity.Fields.type, safeConvertTypeLink(search.getTypeLikeList()), false, true))
-                        .and(checkFieldLikeIn(LinkEntity.Fields.type, safeConvertTypeLink(search.getTypeNotLikeList()), true, true))
-                        .and(checkFieldLikeIn(LinkEntity.Fields.linkStrengthId, safeConvertStrengthLink(search.getStrengthLikeList()), false, true))
-                        .and(checkFieldLikeIn(LinkEntity.Fields.linkStrengthId, safeConvertStrengthLink(search.getStrengthNotLikeList()), true, true))
+        return Specification.allOf(
+                checkFieldUuid(apiUser.getDomainId(), LinkEntity.Fields.domainId),
+                checkUuidIn(search.getIdList(), false, false, LinkEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, LinkEntity.Fields.id),
+                checkUuidIn(search.getSrcTwinClassIdList(), false, false, LinkEntity.Fields.srcTwinClassId),
+                checkUuidIn(search.getSrcTwinClassIdExcludeList(), true, false, LinkEntity.Fields.srcTwinClassId),
+                checkUuidIn(search.getDstTwinClassIdList(), false, false, LinkEntity.Fields.dstTwinClassId),
+                checkUuidIn(search.getDstTwinClassIdExcludeList(), true, false, LinkEntity.Fields.dstTwinClassId),
+                checkSrcOrDstTwinClassIdIn(search.getSrcOrDstTwinClassIdList(), false),
+                checkSrcOrDstTwinClassIdIn(search.getSrcOrDstTwinClassIdExcludeList(), true),
+                joinAndSearchByI18NField(LinkEntity.Fields.forwardNameI18n, search.getForwardNameLikeList(), apiUser.getLocale(), true, false),
+                joinAndSearchByI18NField(LinkEntity.Fields.forwardNameI18n, search.getForwardNameNotLikeList(), apiUser.getLocale(), true, true),
+                joinAndSearchByI18NField(LinkEntity.Fields.backwardNameI18n, search.getBackwardNameLikeList(), apiUser.getLocale(), true, false),
+                joinAndSearchByI18NField(LinkEntity.Fields.backwardNameI18n, search.getBackwardNameNotLikeList(), apiUser.getLocale(), true, true),
+                checkFieldLikeIn(safeConvertTypeLink(search.getTypeLikeList()), false, true, LinkEntity.Fields.type),
+                checkFieldLikeIn(safeConvertTypeLink(search.getTypeNotLikeList()), true, true, LinkEntity.Fields.type),
+                checkFieldLikeIn(safeConvertStrengthLink(search.getStrengthLikeList()), false, true, LinkEntity.Fields.linkStrengthId),
+                checkFieldLikeIn(safeConvertStrengthLink(search.getStrengthNotLikeList()), true, true, LinkEntity.Fields.linkStrengthId)
         );
     }
 

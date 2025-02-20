@@ -53,6 +53,7 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
 
     @Override
     public boolean isEntityReadDenied(UserEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        //todo denied if user is not registered in current domain
         return false;
     }
 
@@ -62,6 +63,7 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     }
 
     public UserEntity addUser(UserEntity userEntity, EntitySmartService.SaveMode userSaveMode) throws ServiceException {
+        userEntity.setCreatedAt(Timestamp.from(Instant.now()));
         userEntity.setUserStatusId(UserStatus.ACTIVE);
         EntitySmartService.SaveResult<UserEntity> saveResult = entitySmartService.saveWithResult(userEntity.getId(), userEntity, userRepository, userSaveMode);
         // The logic of creating a user record in twin is implemented through a trigger in the database
@@ -84,8 +86,7 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
             dbEntity.setAvatar(updateEntity.getAvatar());
         if (changesHelper.isChanged(UserEntity.Fields.userStatusId, dbEntity.getUserStatusId(), updateEntity.getUserStatusId()))
             dbEntity.setUserStatusId(updateEntity.getUserStatusId());
-        if (changesHelper.hasChanges())
-            entitySmartService.saveAndLogChanges(dbEntity, userRepository, changesHelper);
+        updateSafe(dbEntity, changesHelper);
     }
 
     public void deleteUser(UUID userId) throws ServiceException {

@@ -1,13 +1,13 @@
 package org.twins.core.featurer.factory.filler;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.BigDecimalUtil;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUID;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
@@ -21,46 +21,54 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
-import org.twins.core.service.twinclass.TwinClassService;
 
+import java.math.BigDecimal;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.cambium.common.util.StringUtils.fmt;
-
 @Component
 @Featurer(id = FeaturerTwins.ID_2321,
-        name = "FillerFieldMathDifferenceFromContextField",
+        name = "Field math difference from context field",
         description = "")
 @Slf4j
+@RequiredArgsConstructor
 public class FillerFieldMathDifferenceFromContextField extends Filler {
-    @FeaturerParam(name = "minuendTwinClassFieldId", description = "")
+    @FeaturerParam(name = "Minuend twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID minuendTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("minuendTwinClassFieldId");
-    @FeaturerParam(name = "subtrahendTwinClassFieldId", description = "Value from this field will be ")
+    @FeaturerParam(name = "Subtrahend twin class field id", description = "Value from this field will be ", order = 2)
     public static final FeaturerParamUUID subtrahendTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("subtrahendTwinClassFieldId");
-    @FeaturerParam(name = "allowNegativeResult", description = "")
+    @FeaturerParam(name = "Allow negative result", description = "", order = 3)
     public static final FeaturerParamBoolean allowNegativeResult = new FeaturerParamBoolean("allowNegativeResult");
-    @Lazy
-    @Autowired
-    TwinClassService twinClassService;
 
+    /**
+     * A service for handling operations related to twin entities.
+     * The TwinService is lazily initialized,
+     * meaning its instantiation is deferred until it is necessary during runtime.
+     * This behavior helps improve application startup time and resource utilization.
+     */
     @Lazy
-    @Autowired
-    TwinService twinService;
+    private final TwinService twinService;
 
-    @Lazy
-    @Autowired
-    TwinClassFieldService twinClassFieldService;
-
+    /**
+     * Populates specified properties and fields for a given factory item and template twin entity.
+     * This method determines the subtraction result of two field values (minuend and subtrahend),
+     * checks constraints like non-negative results if required, and updates the factory output
+     * field with the resulting value.
+     *
+     * @param properties Configuration properties that provide additional parameters for the operation.
+     *                   These properties include information such as field identifiers and allowable constraints.
+     * @param factoryItem The factory item containing context and output data, which will be modified based on the operation logic.
+     * @param templateTwin The template twin entity associated with the factory item. It serves as a reference for certain operations.
+     * @throws ServiceException If an error occurs during field value extraction, type conversion, or constraint validation.
+     */
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID paramSubtrahendTwinClassFieldId = subtrahendTwinClassFieldId.extract(properties);
         UUID paramMinuendTwinClassFieldId = minuendTwinClassFieldId.extract(properties);
         FieldValue subtrahendFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields().lookupFieldValue(factoryItem, paramSubtrahendTwinClassFieldId);
-        if (!(subtrahendFieldValue instanceof FieldValueText))
+        if (!(subtrahendFieldValue instanceof FieldValueText)) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "subtrahendTwinClassField[" + paramSubtrahendTwinClassFieldId + "] is not instance of text field and can not be converted to number");
-        Number subtrahendNumber = NumberUtils.createNumber(((FieldValueText) subtrahendFieldValue).getValue());
+        }
 
         FieldValue minuendFieldValue = factoryItem.getOutput().getField(paramMinuendTwinClassFieldId);
         if (minuendFieldValue == null && factoryItem.getOutput() instanceof TwinCreate)
@@ -73,16 +81,21 @@ public class FillerFieldMathDifferenceFromContextField extends Filler {
         }
         if (minuendFieldValue == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "minuendTwinClassField[" + paramMinuendTwinClassFieldId + "] can not be detected");
+
         if (minuendFieldValue instanceof FieldValueText minuedFieldValueText) {
-            Number minuendNumber = NumberUtils.createNumber(minuedFieldValueText.getValue());
-            double difference = minuendNumber.doubleValue() - subtrahendNumber.doubleValue();
-            if (!allowNegativeResult.extract(properties) && difference < 0)
+            BigDecimal subtrahendNumber = new BigDecimal(((FieldValueText) subtrahendFieldValue).getValue());
+            BigDecimal minuendNumber = new BigDecimal(minuedFieldValueText.getValue());
+            log.trace("minuendNumber: {} and subtrahendNumber {}", minuendNumber, subtrahendNumber);
+            BigDecimal difference = minuendNumber.subtract(subtrahendNumber);
+            log.trace("difference = {}", difference);
+            if (!allowNegativeResult.extract(properties) && difference.compareTo(BigDecimal.ZERO) < 0) {
+                log.warn("Negative result detected, skipping difference");
                 throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "negative difference result");
-            factoryItem.getOutput().addField(minuedFieldValueText.setValue(fmt(difference)));
-        } else
+            }
+            factoryItem.getOutput().addField(minuedFieldValueText.setValue(BigDecimalUtil.getProcessedString(difference)));
+        } else {
+            log.warn("Incorrect result detected, skipping difference");
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "minuendTwinClassField[" + paramMinuendTwinClassFieldId + "] is not instance of text field and can not be converted to number");
-
+        }
     }
-
-
 }
