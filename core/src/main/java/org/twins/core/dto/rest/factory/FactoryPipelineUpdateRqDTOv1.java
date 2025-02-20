@@ -15,8 +15,6 @@ import java.util.UUID;
 @Schema(name = "FactoryPipelineUpdateRqV1")
 public class FactoryPipelineUpdateRqDTOv1 extends Request {
     @Schema(description = "factory pipeline save")
-    public FactoryPipelineSaveDTOv1 factoryPipelineSaveDTO;
+    public FactoryPipelineUpdateDTOv1 factoryPipelineUpdateDTO;
 
-    @JsonIgnore
-    public UUID pipelineId;
 }
