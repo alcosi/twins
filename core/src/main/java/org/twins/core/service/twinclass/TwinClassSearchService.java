@@ -22,10 +22,11 @@ import java.util.Locale;
 
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.springframework.data.jpa.domain.Specification.where;
-import static org.twins.core.dao.specifications.AbstractTwinEntityBasicSearchSpecification.*;
+import static org.twins.core.dao.specifications.AbstractTwinEntityBasicSearchSpecification.checkFieldLikeIn;
+import static org.twins.core.dao.specifications.AbstractTwinEntityBasicSearchSpecification.checkUuid;
 import static org.twins.core.dao.specifications.CommonSpecification.checkTernary;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.twinclass.TwinClassSpecification.checkOwnerTypeIn;
+import static org.twins.core.dao.specifications.twinclass.TwinClassSpecification.*;
 
 @Slf4j
 @Service

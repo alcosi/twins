@@ -2,12 +2,9 @@ package org.twins.core.dao.specifications;
 
 import jakarta.persistence.criteria.*;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.Range;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.ArrayUtils;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LTreeUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -15,7 +12,6 @@ import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinSearch;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.cambium.common.util.ArrayUtils.concatArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
@@ -180,72 +176,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
     }
 
 
-    public static <T> Specification<T> checkExtendsTwinClassChilds(Collection<UUID> ids, boolean not,
-                                                                   boolean includeNullValues, Integer depthLimit, final String... twinClassFieldPath) {
-        return checkLtreeChilds(ids, not, includeNullValues, depthLimit, ArrayUtils.concatArray(twinClassFieldPath, TwinClassEntity.Fields.extendsHierarchyTree));
-    }
 
-    public static <T> Specification<T> checkHeadTwinClassChilds(Collection<UUID> ids, boolean not,
-                                                                boolean includeNullValues, Integer depthLimit, final String... twinClassFieldPath) {
-        return checkLtreeChilds(ids, not, includeNullValues, depthLimit, ArrayUtils.concatArray(twinClassFieldPath, TwinClassEntity.Fields.headHierarchyTree));
-    }
-
-    public static <T> Specification<T> checkLtreeChilds(Collection<UUID> ids, boolean not,
-                                                        boolean includeNullValues, Integer depthLimit, final String... ltreeFieldPath) {
-
-        return (root, query, cb) -> {
-            if (org.cambium.common.util.CollectionUtils.isEmpty(ids))
-                return cb.conjunction();
-            var preparedDepthLimit = depthLimit == null ? 1 : depthLimit;
-            var preparedIds = LTreeUtils.findChildsLQuery(ids.stream().map(UUID::toString).collect(Collectors.toList()), Range.of(1, preparedDepthLimit));
-            Path<String> ltreePath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, ltreeFieldPath);
-            Predicate idPredicate;
-            var ltreeIsInFunction = cb.function("hierarchy_check_lquery", Boolean.class, ltreePath, cb.literal(preparedIds));
-            if (not) {
-                idPredicate = cb.isFalse(ltreeIsInFunction);
-            } else {
-                idPredicate = cb.isTrue(ltreeIsInFunction);
-            }
-            if (includeNullValues) {
-                return cb.or(idPredicate, ltreePath.isNull());
-            } else {
-                return idPredicate;
-            }
-        };
-    }
-
-    public static <T> Specification<T> checkExtendsTwinClassParents(Collection<UUID> ids, boolean not,
-                                                                    boolean includeNullValues, Integer depthLimit, final String... twinClassFieldPath) {
-        return checkTwinClassHierarchyParent(ids, not, includeNullValues, depthLimit, "twin_class_extends_hierarchy_get_parent_ids", twinClassFieldPath);
-    }
-
-    public static <T> Specification<T> checkHeadTwinClassParents(Collection<UUID> ids, boolean not,
-                                                                 boolean includeNullValues, Integer depthLimit, final String... twinClassFieldPath) {
-        return checkTwinClassHierarchyParent(ids, not, includeNullValues, depthLimit, "twin_class_head_hierarchy_get_parent_ids", twinClassFieldPath);
-    }
-
-    protected static <T> @NotNull Specification<T> checkTwinClassHierarchyParent(Collection<UUID> ids, boolean not, boolean includeNullValues, Integer depthLimit, String functionName, String... ltreeFieldPath) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(ids))
-                return cb.conjunction();
-            var preparedDepthLimit = depthLimit == null ? 1 : depthLimit;
-            Path<UUID> classIdPath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, concatArray(ltreeFieldPath, TwinClassEntity.Fields.id));
-            Subquery<UUID> subquery = query.subquery(UUID.class);
-
-            subquery.select(cb.function(functionName, UUID.class, cb.literal(ids.toArray(new UUID[0])), cb.literal(preparedDepthLimit)));
-            Predicate idPredicate;
-            if (not) {
-                idPredicate = cb.not(classIdPath.in(subquery));
-            } else {
-                idPredicate = classIdPath.in(subquery);
-            }
-            if (includeNullValues) {
-                return cb.or(idPredicate, classIdPath.isNull());
-            } else {
-                return idPredicate;
-            }
-        };
-    }
 
 
 

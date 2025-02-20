@@ -15,37 +15,7 @@ SELECT DISTINCT replace(ltree2text(subpath(ltree_root_val, f.position, 1)), '_',
 FROM filter_negative AS f;
 $$;
 
--- create or replace function ltree_get_parent_uuid_array(ltree_root_val ltree,depth_val integer) returns  uuid[]
---     language sql
---     immutable parallel safe
---     returns null on null input
--- as
--- $$
--- SELECT array_agg(f) from ltree_get_parent_uuid(ltree_root_val,depth_val) f
--- $$;
 
-
-create or replace function twin_class_head_hierarchy_get_parent_ids(ids_val uuid[], depth_val integer) returns setof uuid
-    language sql
-    immutable parallel safe
-    returns null on null input
-as
-$$
-SELECT ltree_of_uuids_get_parents(c.head_hierarchy_tree, depth_val)
-from twin_class c
-where c.id = any (ids_val::uuid[])
-$$;
-
-create or replace function twin_class_extends_hierarchy_get_parent_ids(ids_val uuid[], depth_val integer) returns setof uuid
-    language sql
-    immutable parallel safe
-    returns null on null input
-as
-$$
-SELECT ltree_of_uuids_get_parents(c.extends_hierarchy_tree, depth_val)
-from twin_class c
-where c.id = any (ids_val::uuid[])
-$$;
 
 
 
