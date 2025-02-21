@@ -53,13 +53,12 @@ public class PermissionGrantAssigneePropagationUpdateController extends ApiContr
 
         PermissionGrantAssigneePropagationRsDTOv1 rs = new PermissionGrantAssigneePropagationRsDTOv1();
         try {
-            PermissionGrantAssigneePropagationEntity entity = permissionGrantAssigneePropagationUpdateDTOReverseMapper.convert(request);
-
-            entity.setId(permissionGrantAssigneePropagationId);
-            entity = service.updatePermissionGrantAssigneePropagationEntity(entity);
+            PermissionGrantAssigneePropagationEntity permissionGrantAssigneePropagation = permissionGrantAssigneePropagationUpdateDTOReverseMapper.convert(request)
+                    .setId(permissionGrantAssigneePropagationId);
+            permissionGrantAssigneePropagation = service.updatePermissionGrantAssigneePropagationEntity(permissionGrantAssigneePropagation);
 
             rs
-                    .setPermissionGrantAssigneePropagation(permissionGrantAssigneePropagationRestDTOMapperV2.convert(entity, mapperContext))
+                    .setPermissionGrantAssigneePropagation(permissionGrantAssigneePropagationRestDTOMapperV2.convert(permissionGrantAssigneePropagation, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

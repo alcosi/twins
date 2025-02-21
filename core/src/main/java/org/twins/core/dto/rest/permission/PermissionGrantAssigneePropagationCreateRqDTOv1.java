@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.Request;
 @Schema(name = "PermissionGrantAssigneePropagationCreateRqV1")
 public class PermissionGrantAssigneePropagationCreateRqDTOv1 extends Request {
     @Schema(description = "permission grant assignee propagation create")
-    public PermissionGrantAssigneePropagationCreateDTOv1 permissionGrantAssigneePropagationCreateDTO;
+    public PermissionGrantAssigneePropagationCreateDTOv1 permissionGrantAssigneePropagation;
 }

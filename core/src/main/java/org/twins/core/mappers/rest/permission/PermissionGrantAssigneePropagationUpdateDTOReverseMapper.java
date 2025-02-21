@@ -14,6 +14,6 @@ public class PermissionGrantAssigneePropagationUpdateDTOReverseMapper extends Re
 
     @Override
     public void map(PermissionGrantAssigneePropagationUpdateRqDTOv1 src, PermissionGrantAssigneePropagationEntity dst, MapperContext mapperContext) throws Exception {
-        permissionGrantAssigneePropagationSaveDTOReverseMapper.map(src.getPermissionGrantAssigneePropagationUpdateDTO(), dst, mapperContext);
+        permissionGrantAssigneePropagationSaveDTOReverseMapper.map(src.getPermissionGrantAssigneePropagation(), dst, mapperContext);
     }
 }

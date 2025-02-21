@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.Request;
 @Schema(name = "PermissionGrantAssigneePropagationUpdateRqV1")
 public class PermissionGrantAssigneePropagationUpdateRqDTOv1 extends Request {
     @Schema(description = "permission grant assignee propagation update")
-    public PermissionGrantAssigneePropagationUpdateDTOv1 permissionGrantAssigneePropagationUpdateDTO;
+    public PermissionGrantAssigneePropagationUpdateDTOv1 permissionGrantAssigneePropagation;
 }
