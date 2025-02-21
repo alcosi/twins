@@ -24,8 +24,6 @@ import org.twins.core.mappers.rest.permission.PermissionGrantAssigneePropagation
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantAssigneePropagationService;
 
-import java.util.UUID;
-
 @Tag(description = "", name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -39,7 +37,7 @@ public class PermissionGrantAssigneePropagationCreateController extends ApiContr
     @ParametersApiUserHeaders
     @Operation(operationId = "permissionGrantAssigneePropagationCreateV1", summary = "permission grantAssignee propagation create add")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "permission grantAssignee propagation create add", content = {
+            @ApiResponse(responseCode = "200", description = "permission grant assignee propagation add", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = PermissionGrantAssigneePropagationRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})

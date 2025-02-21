@@ -132,4 +132,10 @@ public class PermissionGrantAssigneePropagationService extends EntitySecureFindS
             return;
         dbEntity.setInSpaceOnly(newInSpaceOnly);
     }
+
+    @Transactional
+    public void deleteById(UUID id) throws ServiceException {
+        //todo need validate???
+        entitySmartService.deleteAndLog(id, repository);
+    }
 }
