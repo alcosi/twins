@@ -53,8 +53,8 @@ public class FactoryMultiplierUpdateController extends ApiController {
             @RequestBody FactoryMultiplierUpdateRqDTOv1 request) {
         FactoryMultiplierRsDTOv1 rs = new FactoryMultiplierRsDTOv1();
         try {
-            TwinFactoryMultiplierEntity multiplierEntity = factoryMultiplierUpdateDTOReverseMapper.convert(request);
-            multiplierEntity.setId(factoryMultiplierId);
+            TwinFactoryMultiplierEntity multiplierEntity = factoryMultiplierUpdateDTOReverseMapper.convert(request)
+                    .setId(factoryMultiplierId);
             multiplierEntity = factoryMultiplierService.updateFactoryMultiplier(multiplierEntity);
             rs
                     .setFactoryMultiplier(factoryMultiplierRestDTOMapperV2.convert(multiplierEntity, mapperContext))
