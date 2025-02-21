@@ -13,6 +13,4 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "PermissionGrantUserGroupUpdateV1")
 public class PermissionGrantUserGroupUpdateDTOv1 extends PermissionGrantUserGroupSaveDTOv1 {
-    @Transient
-    private UUID id;
 }
