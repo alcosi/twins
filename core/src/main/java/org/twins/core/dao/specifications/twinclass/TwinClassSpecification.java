@@ -3,6 +3,7 @@ package org.twins.core.dao.specifications.twinclass;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.util.ArrayUtils;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -17,6 +18,28 @@ import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
 @Slf4j
 public class TwinClassSpecification extends CommonSpecification<TwinClassEntity> {
+    public static <T> Specification<T> checkExtendsTwinClassChilds(Collection<UUID> ids, boolean not,
+                                                                   boolean includeNullValues, Integer depthLimit, final String... twinClassFieldPath) {
+        return checkHierarchyChilds(ids, not, includeNullValues, depthLimit, ArrayUtils.concatArray(twinClassFieldPath, TwinClassEntity.Fields.extendsHierarchyTree));
+    }
+
+    public static <T> Specification<T> checkHeadTwinClassChilds(Collection<UUID> ids, boolean not,
+                                                                boolean includeNullValues, Integer depthLimit, final String... twinClassFieldPath) {
+        return checkHierarchyChilds(ids, not, includeNullValues, depthLimit, ArrayUtils.concatArray(twinClassFieldPath, TwinClassEntity.Fields.headHierarchyTree));
+    }
+
+
+    public static <T> Specification<T> checkExtendsTwinClassParents(Collection<UUID> ids, boolean not,
+                                                                    boolean includeNullValues, Integer depthLimit, final String... twinClassFieldPath) {
+        return checkHierarchyParent(ids, not, includeNullValues, depthLimit, TwinClassEntity.Fields.extendsHierarchyTree, TwinClassEntity.Fields.id, TwinClassEntity.class, twinClassFieldPath);
+    }
+
+    public static <T> Specification<T> checkHeadTwinClassParents(Collection<UUID> ids, boolean not,
+                                                                 boolean includeNullValues, Integer depthLimit, final String... twinClassFieldPath) {
+        return checkHierarchyParent(ids, not, includeNullValues, depthLimit, TwinClassEntity.Fields.headHierarchyTree, TwinClassEntity.Fields.id, TwinClassEntity.class, twinClassFieldPath);
+    }
+
+
 
     public static Specification<TwinClassEntity> checkHierarchyIsChild(String field, final UUID id) {
         return (root, query, cb) -> {
