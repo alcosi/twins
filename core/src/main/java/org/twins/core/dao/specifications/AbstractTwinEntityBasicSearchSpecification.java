@@ -29,6 +29,8 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] headTwinIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.headTwinId);
         String[] hierarchyTreeFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.hierarchyTree);
         String[] twinClassIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.twinClassId);
+        String[] twinClassFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.twinClass);
+
         String[] tagsFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.tags, TwinTagEntity.Fields.tagDataListOptionId);
         String[] markersFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.markers, TwinMarkerEntity.Fields.markerDataListOptionId);
         String[] touchFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.touches);
@@ -54,8 +56,8 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkHierarchyContainsAny(twinSearch.getHierarchyTreeContainsIdList(), hierarchyTreeFieldPath),
                 checkUuidIn(twinSearch.getMarkerDataListOptionIdList(), false, false, markersFieldPath),
                 checkUuidIn(twinSearch.getMarkerDataListOptionIdExcludeList(), true, true, markersFieldPath),
-                checkUuidIn(twinSearch.getHeadTwinClassIdList(), false, false, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.headTwinClassId),
-                checkUuidIn(twinSearch.getExtendsTwinClassIdList(), false, false, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.extendsTwinClassId),
+                checkUuidIn(twinSearch.getHeadTwinClassIdList(), false, false, concatArray(twinClassFieldPath, TwinClassEntity.Fields.headTwinClassId)),
+                checkUuidIn(twinSearch.getExtendsTwinClassIdList(), false, false, concatArray(twinClassFieldPath, TwinClassEntity.Fields.extendsTwinClassId)),
                 checkTouchSearch(userId,false,twinSearch.getTouchList(),touchFieldPath),
                 checkTouchSearch(userId,true,twinSearch.getTouchExcludeList(),touchFieldPath),
         };
@@ -172,6 +174,10 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
             return cb.and(include, exclude);
         };
     }
+
+
+
+
 
 
 }
