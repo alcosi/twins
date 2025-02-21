@@ -61,6 +61,19 @@ public class PermissionGrantAssigneePropagationService extends EntitySecureFindS
 
     @Override
     public boolean validateEntity(PermissionGrantAssigneePropagationEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        switch (entityValidateMode) {
+            case beforeSave:
+                if (entity.getPermissionSchemaId() != null && (entity.getPermissionSchema() != null || !entity.getPermissionSchema().getId().equals(entity.getPermissionSchemaId())))
+                    entity.setPermissionSchema(permissionSchemaService.findEntitySafe(entity.getPermissionSchemaId()));
+                if (entity.getPermissionId() != null && (entity.getPermission() != null || !entity.getPermission().getId().equals(entity.getPermissionId())))
+                    entity.setPermission(permissionService.findEntitySafe(entity.getPermissionId()));
+                if (entity.getPropagationByTwinClassId() != null && (entity.getTwinClass() != null || !entity.getTwinClass().getId().equals(entity.getPropagationByTwinClassId())))
+                    entity.setTwinClass(twinClassService.findEntitySafe(entity.getPropagationByTwinClassId()));
+                if (entity.getPropagationByTwinStatusId() != null && (entity.getTwinStatus() != null || !entity.getTwinStatus().getId().equals(entity.getPropagationByTwinStatusId())))
+                    entity.setTwinStatus(twinStatusService.findEntitySafe(entity.getPropagationByTwinStatusId()));
+                if (entity.getGrantedByUserId() != null && (entity.getGrantedByUser() != null || !entity.getGrantedByUser().getId().equals(entity.getGrantedByUserId())))
+                    entity.setGrantedByUser(userService.findEntitySafe(entity.getGrantedByUserId()));
+        }
         return true;
     }
 
