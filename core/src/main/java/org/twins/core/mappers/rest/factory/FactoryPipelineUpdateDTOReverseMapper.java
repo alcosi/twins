@@ -14,6 +14,6 @@ public class FactoryPipelineUpdateDTOReverseMapper extends RestSimpleDTOMapper<F
 
     @Override
     public void map(FactoryPipelineUpdateRqDTOv1 src, TwinFactoryPipelineEntity dst, MapperContext mapperContext) throws Exception {
-        mapper.map(src.getFactoryPipelineSaveDTO(), dst, mapperContext);
+        mapper.map(src.getFactoryPipeline(), dst, mapperContext);
     }
 }

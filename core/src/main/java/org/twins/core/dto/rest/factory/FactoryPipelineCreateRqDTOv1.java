@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.Request;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "FactoryPipelineCreateV1")
+@Schema(name = "FactoryPipelineCreateRqV1")
 public class FactoryPipelineCreateRqDTOv1 extends Request {
     @Schema(description = "factory pipeline create")
     public FactoryPipelineCreateDTOv1 factoryPipeline;
