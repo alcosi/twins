@@ -16,12 +16,8 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import static org.cambium.common.util.EnumUtils.convertOrNull;
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.datalist.DataListOptionSpecification.*;
 
 
@@ -51,8 +47,8 @@ public class DataListOptionSearchService {
                 checkFieldLikeIn(search.getOptionNotLikeList(), true, true, DataListOptionEntity.Fields.option),
                 checkDataListKeyLikeIn(search.getDataListKeyList(), false, true),
                 checkDataListKeyLikeIn(search.getDataListKeyExcludeList(), true, true),
-                checkStatusLikeIn(safeConvert(search.getStatusIdList()), false, true),
-                checkStatusLikeIn(safeConvert(search.getStatusIdExcludeList()), true, true),
+                checkStatusLikeIn(convertOrNull(search.getStatusIdList()), false, true),
+                checkStatusLikeIn(convertOrNull(search.getStatusIdExcludeList()), true, true),
                 joinAndSearchByI18NField(DataListOptionEntity.Fields.optionI18n, search.getOptionI18nLikeList(), apiUser.getLocale(), true, false),
                 joinAndSearchByI18NField(DataListOptionEntity.Fields.optionI18n, search.getOptionI18nNotLikeList(), apiUser.getLocale(), true, true),
                 checkDataListSubset(search.getDataListSubsetIdList(), false),
@@ -64,14 +60,10 @@ public class DataListOptionSearchService {
     private Specification<DataListOptionEntity> createBusinessAccountSpecification(ApiUser apiUser, DataListOptionSearch search) {
         if (!apiUser.isBusinessAccountSpecified())
             return Specification.where((root, query, cb) -> root.get(DataListOptionEntity.Fields.businessAccountId).isNull());
-        else {
-            return Specification.where(empty())
-                    .and(checkUuidIn(search.getBusinessAccountIdList(), false, false, DataListOptionEntity.Fields.businessAccountId))
-                    .and(checkUuidIn(search.getBusinessAccountIdExcludeList(), true, true, DataListOptionEntity.Fields.businessAccountId));
-        }
-    }
-
-    private Set<String> safeConvert(Set<DataListOptionEntity.Status> collection) {
-        return collection == null ? Collections.emptySet() : collection.stream().map(Enum::name).collect(Collectors.toSet());
+        else
+            return Specification.allOf(
+                    checkUuidIn(search.getBusinessAccountIdList(), false, false, DataListOptionEntity.Fields.businessAccountId),
+                    checkUuidIn(search.getBusinessAccountIdExcludeList(), true, true, DataListOptionEntity.Fields.businessAccountId)
+            );
     }
 }

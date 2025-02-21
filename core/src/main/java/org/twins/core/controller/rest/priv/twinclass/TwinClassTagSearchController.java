@@ -32,6 +32,7 @@ import org.twins.core.mappers.rest.datalist.DataListRestDTOMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.twinclass.TagSearchDTOReverseMapper;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListOptionSearchService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -49,6 +50,7 @@ public class TwinClassTagSearchController extends ApiController {
     private final DataListOptionSearchService dataListOptionSearchService;
     private final PaginationMapper paginationMapper;
     private final TwinClassService twinClassService;
+    private final AuthService authService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "tagSearchV1", summary = "Tag search")
@@ -76,7 +78,9 @@ public class TwinClassTagSearchController extends ApiController {
             }
 
             DataListOptionSearch dataListOptionSearch = tagSearchDTOReverseMapper.convert(request);
-            dataListOptionSearch.setDataListIdList(Set.of(twinClassEntity.getTagDataListId()));
+            dataListOptionSearch
+                    .setDataListIdList(Set.of(twinClassEntity.getTagDataListId()))
+                    .setBusinessAccountIdList(Set.of(authService.getApiUser().getBusinessAccountId()));
 
             PaginationResult<DataListOptionEntity> tags = dataListOptionSearchService
                     .findDataListOptionForDomain(dataListOptionSearch, pagination);
