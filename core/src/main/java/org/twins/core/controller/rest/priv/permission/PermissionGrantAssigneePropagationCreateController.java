@@ -1,7 +1,6 @@
 package org.twins.core.controller.rest.priv.permission;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,7 +16,6 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.permission.PermissionGrantAssigneePropagationEntity;
-import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionGrantAssigneePropagationCreateRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGrantAssigneePropagationRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -55,6 +53,7 @@ public class PermissionGrantAssigneePropagationCreateController extends ApiContr
             entity = service.createPermissionGrantAssigneePropagationEntity(entity);
             rs
                     .setPermissionGrantAssigneePropagation(permissionGrantAssigneePropagationRestDTOMapperV2.convert(entity, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
