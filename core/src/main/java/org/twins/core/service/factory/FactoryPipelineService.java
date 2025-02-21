@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.controller.rest.priv.factory.TwinFactoryConditionSetService;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineRepository;
@@ -34,7 +33,7 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
     private final AuthService authService;
     private final TwinClassService twinClassService;
     private final TwinFactoryService twinFactoryService;
-    private final TwinFactoryConditionSetService twinFactoryConditionSetService;
+    private final FactoryConditionSetService factoryConditionSetService;
     private final TwinStatusService twinStatusService;
     private final TwinService twinService;
 
@@ -69,7 +68,7 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                 if (entity.getNextTwinFactory() == null || !entity.getNextTwinFactory().getId().equals(entity.getNextTwinFactoryId()))
                     entity.setNextTwinFactory(twinFactoryService.findEntitySafe(entity.getNextTwinFactoryId()));
                 if (entity.getConditionSet() == null || !entity.getConditionSet().getId().equals(entity.getTwinFactoryConditionSetId()))
-                    entity.setConditionSet(twinFactoryConditionSetService.findEntitySafe(entity.getTwinFactoryConditionSetId()));
+                    entity.setConditionSet(factoryConditionSetService.findEntitySafe(entity.getTwinFactoryConditionSetId()));
                 if (entity.getOutputTwinStatus() == null || !entity.getOutputTwinStatus().getId().equals(entity.getOutputTwinStatusId()))
                     entity.setOutputTwinStatus(twinStatusService.findEntitySafe(entity.getOutputTwinStatusId()));
                 if (entity.getTemplateTwin() == null || !entity.getTemplateTwin().getId().equals(entity.getTemplateTwinId()))

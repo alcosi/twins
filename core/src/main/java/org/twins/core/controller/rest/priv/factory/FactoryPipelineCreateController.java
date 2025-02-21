@@ -52,11 +52,11 @@ public class FactoryPipelineCreateController extends ApiController {
             @RequestBody FactoryPipelineCreateRqDTOv1 request) {
         FactoryPipelineRsDTOv1 rs = new FactoryPipelineRsDTOv1();
         try {
-            TwinFactoryPipelineEntity entity = factoryPipelineCreateDTOReverseMapper.convert(request);
-            entity.setTwinFactoryId(factoryId);
-            entity = factoryPipelineService.createFactoryPipeline(entity);
+            TwinFactoryPipelineEntity factoryPipeline = factoryPipelineCreateDTOReverseMapper.convert(request)
+                    .setTwinFactoryId(factoryId);
+            factoryPipeline = factoryPipelineService.createFactoryPipeline(factoryPipeline);
             rs
-                    .setFactoryPipeline(factoryPipelineRestDTOMapperV2.convert(entity, mapperContext))
+                    .setFactoryPipeline(factoryPipelineRestDTOMapperV2.convert(factoryPipeline, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
