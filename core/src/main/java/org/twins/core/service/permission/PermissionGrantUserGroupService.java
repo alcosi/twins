@@ -20,7 +20,6 @@ import org.twins.core.service.auth.AuthService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.UUID;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @Slf4j
@@ -65,32 +64,20 @@ public class PermissionGrantUserGroupService extends EntitySecureFindServiceImpl
         createEntity
                 .setGrantedByUserId(authService.getApiUser().getUserId())
                 .setGrantedAt(Timestamp.from(Instant.now()));
-        validateEntityAndThrow(createEntity, EntitySmartService.EntityValidateMode.beforeSave);
-        return repository.save(createEntity);
+        return saveSafe(createEntity);
     }
 
     @Transactional(rollbackFor = Throwable.class)
     public PermissionGrantUserGroupEntity updatePermissionGrantUserGroup(PermissionGrantUserGroupEntity updateEntity) throws ServiceException {
         PermissionGrantUserGroupEntity dbEntity = findEntitySafe(updateEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
-        updateFieldEntityId(updateEntity, dbEntity, PermissionGrantUserGroupEntity::getPermissionSchemaId, PermissionGrantUserGroupEntity::setPermissionSchemaId,
+        updateEntityField(updateEntity, dbEntity, PermissionGrantUserGroupEntity::getPermissionSchemaId, PermissionGrantUserGroupEntity::setPermissionSchemaId,
                 PermissionGrantUserGroupEntity.Fields.permissionSchemaId, changesHelper);
-        updateFieldEntityId(updateEntity, dbEntity, PermissionGrantUserGroupEntity::getPermissionId, PermissionGrantUserGroupEntity::setPermissionId,
+        updateEntityField(updateEntity, dbEntity, PermissionGrantUserGroupEntity::getPermissionId, PermissionGrantUserGroupEntity::setPermissionId,
                 PermissionGrantUserGroupEntity.Fields.permissionId, changesHelper);
-        updateFieldEntityId(updateEntity, dbEntity, PermissionGrantUserGroupEntity::getUserGroupId, PermissionGrantUserGroupEntity::setUserGroupId,
+        updateEntityField(updateEntity, dbEntity, PermissionGrantUserGroupEntity::getUserGroupId, PermissionGrantUserGroupEntity::setUserGroupId,
                 PermissionGrantUserGroupEntity.Fields.userGroupId, changesHelper);
         return updateSafe(dbEntity, changesHelper);
-    }
-
-    private void updateFieldEntityId(PermissionGrantUserGroupEntity updateEntity, PermissionGrantUserGroupEntity dbEntity,
-                                     Function<PermissionGrantUserGroupEntity, UUID> getFunction, BiConsumer<PermissionGrantUserGroupEntity, UUID> setFunction,
-                                     String field, ChangesHelper changesHelper) {
-        UUID updateValue = getFunction.apply(updateEntity);
-        UUID dbValue = getFunction.apply(dbEntity);
-        if (!changesHelper.isChanged(field, dbValue, updateValue)) {
-            return;
-        }
-        setFunction.accept(dbEntity, updateValue);
     }
 
     @Transactional

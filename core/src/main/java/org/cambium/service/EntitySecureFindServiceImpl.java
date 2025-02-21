@@ -8,11 +8,13 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
+import org.twins.core.dao.permission.PermissionGrantUserGroupEntity;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @Slf4j
@@ -171,5 +173,13 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     public boolean logErrorAndReturnTrue(String message) {
         log.error(message);
         return true;
+    }
+
+    protected <T, R> void updateEntityField(T updateEntity, T dbEntity, Function<T, R> getFunction, BiConsumer<T, R> setFunction, String field, ChangesHelper changesHelper) {
+        R updateValue = getFunction.apply(updateEntity);
+        R dbValue = getFunction.apply(dbEntity);
+        if (!changesHelper.isChanged(field, dbValue, updateValue))
+            return;
+        setFunction.accept(dbEntity, updateValue);
     }
 }

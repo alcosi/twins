@@ -15,7 +15,5 @@ public class PermissionGrantUserGroupUpdateRestReverseDTOMapper extends RestSimp
     @Override
     public void map(PermissionGrantUserGroupUpdateDTOv1 src, PermissionGrantUserGroupEntity dst, MapperContext mapperContext) throws Exception {
         permissionGrantUserGroupSaveRestReverseDTOMapper.map(src, dst, mapperContext);
-        dst
-                .setId(src.getId());
     }
 }
