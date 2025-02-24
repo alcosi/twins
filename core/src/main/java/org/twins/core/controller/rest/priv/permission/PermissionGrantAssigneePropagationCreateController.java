@@ -29,7 +29,7 @@ import org.twins.core.service.permission.PermissionGrantAssigneePropagationServi
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class PermissionGrantAssigneePropagationCreateController extends ApiController {
-    private final PermissionGrantAssigneePropagationService service;
+    private final PermissionGrantAssigneePropagationService permissionGrantAssigneePropagationService;
     private final PermissionGrantAssigneePropagationRestDTOMapperV2 permissionGrantAssigneePropagationRestDTOMapperV2;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PermissionGrantAssigneePropagationCreateDTOReverseMapper permissionGrantAssigneePropagationCreateDTOReverseMapper;
@@ -47,8 +47,8 @@ public class PermissionGrantAssigneePropagationCreateController extends ApiContr
             @RequestBody PermissionGrantAssigneePropagationCreateRqDTOv1 request) {
         PermissionGrantAssigneePropagationRsDTOv1 rs = new PermissionGrantAssigneePropagationRsDTOv1();
         try {
-            PermissionGrantAssigneePropagationEntity permissionGrantAssigneePropagation = permissionGrantAssigneePropagationCreateDTOReverseMapper.convert(request);
-            permissionGrantAssigneePropagation = service.createPermissionGrantAssigneePropagationEntity(permissionGrantAssigneePropagation);
+            PermissionGrantAssigneePropagationEntity permissionGrantAssigneePropagation = permissionGrantAssigneePropagationService.createPermissionGrantAssigneePropagationEntity
+                    (permissionGrantAssigneePropagationCreateDTOReverseMapper.convert(request.getPermissionGrantAssigneePropagation()));
             rs
                     .setPermissionGrantAssigneePropagation(permissionGrantAssigneePropagationRestDTOMapperV2.convert(permissionGrantAssigneePropagation, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

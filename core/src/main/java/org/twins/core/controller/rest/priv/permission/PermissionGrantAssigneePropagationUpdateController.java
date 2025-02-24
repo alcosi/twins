@@ -41,7 +41,7 @@ public class PermissionGrantAssigneePropagationUpdateController extends ApiContr
     @ParametersApiUserHeaders
     @Operation(operationId = "permissionGrantAssigneePropagationUpdateV1", summary = "Permission grant assignee propagation update")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Factory data multiplier update", content = {
+            @ApiResponse(responseCode = "200", description = "Permission grant assignee propagation update", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = PermissionGrantAssigneePropagationRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
@@ -53,7 +53,7 @@ public class PermissionGrantAssigneePropagationUpdateController extends ApiContr
 
         PermissionGrantAssigneePropagationRsDTOv1 rs = new PermissionGrantAssigneePropagationRsDTOv1();
         try {
-            PermissionGrantAssigneePropagationEntity permissionGrantAssigneePropagation = permissionGrantAssigneePropagationUpdateDTOReverseMapper.convert(request)
+            PermissionGrantAssigneePropagationEntity permissionGrantAssigneePropagation = permissionGrantAssigneePropagationUpdateDTOReverseMapper.convert(request.getPermissionGrantAssigneePropagation())
                     .setId(permissionGrantAssigneePropagationId);
             permissionGrantAssigneePropagation = service.updatePermissionGrantAssigneePropagationEntity(permissionGrantAssigneePropagation);
 

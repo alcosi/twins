@@ -95,7 +95,7 @@ public class PermissionGrantAssigneePropagationService extends EntitySecureFindS
         updatePropagationByTwinStatusId(dbEntity, entity.getPropagationByTwinStatusId(), changesHelper);
         updateInSpaceOnly(dbEntity, entity.getInSpaceOnly(), changesHelper);
 
-        return updateSafe(entity, changesHelper);
+        return updateSafe(dbEntity, changesHelper);
     }
 
     private void updatePermissionSchemaId(PermissionGrantAssigneePropagationEntity dbEntity, UUID newPermissionSchemaId,
