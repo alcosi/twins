@@ -67,6 +67,12 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                     entity.setTwinFactory(twinFactoryService.findEntitySafe(entity.getTwinFactoryId()));
                 if (entity.getNextTwinFactory() == null || !entity.getNextTwinFactory().getId().equals(entity.getNextTwinFactoryId()))
                     entity.setNextTwinFactory(twinFactoryService.findEntitySafe(entity.getNextTwinFactoryId()));
+                if (entity.getTwinFactoryConditionSetId() != null && (entity.getConditionSet() == null || !entity.getConditionSet().getId().equals(entity.getTwinFactoryConditionSetId())))
+                    entity.setConditionSet(factoryConditionSetService.findEntitySafe(entity.getTwinFactoryConditionSetId()));
+                if (entity.getOutputTwinStatusId() != null && (entity.getOutputTwinStatus() == null || !entity.getOutputTwinStatus().getId().equals(entity.getOutputTwinStatusId())))
+                    entity.setOutputTwinStatus(twinStatusService.findEntitySafe(entity.getOutputTwinStatusId()));
+                if (entity.getTemplateTwinId() != null && (entity.getTemplateTwin() == null || !entity.getTemplateTwin().getId().equals(entity.getTemplateTwinId())))
+                    entity.setTemplateTwin(twinService.findEntitySafe(entity.getTemplateTwinId()));
         }
         return true;
     }
@@ -83,8 +89,8 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
 
         updateInputTwinClassId(dbEntity, entity.getInputTwinClassId(), changesHelper);
         updateFactoryConditionSetId(dbEntity, entity.getTwinFactoryConditionSetId(), changesHelper);
-        updateFactoryConditionSetInvert(dbEntity, entity.getTwinFactoryConditionInvert(), changesHelper);
-        updateActive(dbEntity, entity.getActive(), changesHelper);
+        updateFactoryConditionSetInvert(dbEntity, entity.isTwinFactoryConditionInvert(), changesHelper);
+        updateActive(dbEntity, entity.isActive(), changesHelper);
         updateOutputStatusId(dbEntity, entity.getOutputTwinStatusId(), changesHelper);
         updateNextFactoryId(dbEntity, entity.getNextTwinFactoryId(), changesHelper);
         updateTemplateTwinId(dbEntity, entity.getTemplateTwinId(), changesHelper);
@@ -109,14 +115,14 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
 
     private void updateFactoryConditionSetInvert(TwinFactoryPipelineEntity dbEntity, Boolean newFactoryConditionSetInvert,
                                         ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryPipelineEntity.Fields.twinFactoryConditionInvert, dbEntity.getTwinFactoryConditionInvert(), newFactoryConditionSetInvert))
+        if (!changesHelper.isChanged(TwinFactoryPipelineEntity.Fields.twinFactoryConditionInvert, dbEntity.isTwinFactoryConditionInvert(), newFactoryConditionSetInvert))
             return;
         dbEntity.setTwinFactoryConditionInvert(newFactoryConditionSetInvert);
     }
 
-    private void updateActive(TwinFactoryPipelineEntity dbEntity, Boolean newActive,
+    private void updateActive(TwinFactoryPipelineEntity dbEntity, boolean newActive,
                               ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryPipelineEntity.Fields.active, dbEntity.getActive(), newActive))
+        if (!changesHelper.isChanged(TwinFactoryPipelineEntity.Fields.active, dbEntity.isActive(), newActive))
             return;
         dbEntity.setActive(newActive);
     }
