@@ -8,7 +8,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
-import org.twins.core.dao.permission.PermissionGrantUserGroupEntity;
 
 import java.util.Collection;
 import java.util.Iterator;
