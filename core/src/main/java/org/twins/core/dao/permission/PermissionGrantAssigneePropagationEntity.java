@@ -35,7 +35,7 @@ public class PermissionGrantAssigneePropagationEntity {
     private UUID propagationByTwinStatusId;
 
     @Column(name = "in_space_only")
-    private boolean inSpaceOnly;
+    private Boolean inSpaceOnly;
 
     @Column(name = "granted_by_user_id")
     private UUID grantedByUserId;

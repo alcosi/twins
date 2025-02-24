@@ -93,7 +93,7 @@ public class PermissionGrantAssigneePropagationService extends EntitySecureFindS
         updatePermissionId(dbEntity, entity.getPermissionId(), changesHelper);
         updatePropagationByTwinClassId(dbEntity, entity.getPropagationByTwinClassId(), changesHelper);
         updatePropagationByTwinStatusId(dbEntity, entity.getPropagationByTwinStatusId(), changesHelper);
-        updateInSpaceOnly(dbEntity, entity.isInSpaceOnly(), changesHelper);
+        updateInSpaceOnly(dbEntity, entity.getInSpaceOnly(), changesHelper);
 
         return updateSafe(entity, changesHelper);
     }
@@ -128,7 +128,7 @@ public class PermissionGrantAssigneePropagationService extends EntitySecureFindS
 
     private void updateInSpaceOnly(PermissionGrantAssigneePropagationEntity dbEntity, Boolean newInSpaceOnly,
                                    ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(PermissionGrantAssigneePropagationEntity.Fields.inSpaceOnly, dbEntity.isInSpaceOnly(), newInSpaceOnly))
+        if (!changesHelper.isChanged(PermissionGrantAssigneePropagationEntity.Fields.inSpaceOnly, dbEntity.getInSpaceOnly(), newInSpaceOnly))
             return;
         dbEntity.setInSpaceOnly(newInSpaceOnly);
     }
