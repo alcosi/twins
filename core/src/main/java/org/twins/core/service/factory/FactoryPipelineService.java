@@ -65,7 +65,7 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                     entity.setInputTwinClass(twinClassService.findEntitySafe(entity.getInputTwinClassId()));
                 if (entity.getTwinFactory() == null || !entity.getTwinFactory().getId().equals(entity.getTwinFactoryId()))
                     entity.setTwinFactory(twinFactoryService.findEntitySafe(entity.getTwinFactoryId()));
-                if (entity.getTwinFactoryConditionSetId() != null && (entity.getNextTwinFactory() == null || !entity.getNextTwinFactory().getId().equals(entity.getNextTwinFactoryId())))
+                if (entity.getNextTwinFactoryId() != null && (entity.getNextTwinFactory() == null || !entity.getNextTwinFactory().getId().equals(entity.getNextTwinFactoryId())))
                     entity.setNextTwinFactory(twinFactoryService.findEntitySafe(entity.getNextTwinFactoryId()));
                 if (entity.getTwinFactoryConditionSetId() != null && (entity.getConditionSet() == null || !entity.getConditionSet().getId().equals(entity.getTwinFactoryConditionSetId())))
                     entity.setConditionSet(factoryConditionSetService.findEntitySafe(entity.getTwinFactoryConditionSetId()));
