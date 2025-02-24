@@ -23,7 +23,7 @@ public class EnumUtils {
 
     }
 
-    public static <T extends Enum<T>> Set<String> convertOrNull(Set<T> collection) {
+    public static <T extends Enum<T>> Set<String> convertOrEmpty(Set<T> collection) {
         return collection == null ? Collections.emptySet() : collection.stream().map(Enum::name).collect(Collectors.toSet());
     }
 }
