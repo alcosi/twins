@@ -23,6 +23,7 @@ public class FactoryEraserSearchDTOReverseMapper extends RestSimpleDTOMapper<Fac
                 .setInputTwinClassIdExcludeList(src.getInputTwinClassIdExcludeList())
                 .setFactoryConditionSetIdList(src.getFactoryConditionSetIdList())
                 .setFactoryConditionSetIdExcludeList(src.getFactoryConditionSetIdExcludeList())
+                .setConditionInvert(src.getConditionInvert())
                 .setDescriptionLikeList(src.getDescriptionLikeList())
                 .setDescriptionNotLikeList(src.getDescriptionNotLikeList())
                 .setEraseActionLikeList(src.getEraseActionLikeList())

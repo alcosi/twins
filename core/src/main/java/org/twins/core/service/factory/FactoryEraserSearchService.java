@@ -14,10 +14,7 @@ import org.twins.core.dao.factory.TwinFactoryEraserRepository;
 import org.twins.core.domain.search.FactoryEraserSearch;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import static org.cambium.common.util.EnumUtils.convertOrEmpty;
 import static org.twins.core.dao.specifications.factory.FactoryEraserSpecification.*;
 
 
@@ -47,12 +44,9 @@ public class FactoryEraserSearchService {
                 checkUuidIn(search.getInputTwinClassIdExcludeList(), true, false, TwinFactoryEraserEntity.Fields.inputTwinClassId),
                 checkUuidIn(search.getFactoryConditionSetIdList(), false, false, TwinFactoryEraserEntity.Fields.twinFactoryConditionSetId),
                 checkUuidIn(search.getFactoryConditionSetIdExcludeList(), true, false, TwinFactoryEraserEntity.Fields.twinFactoryConditionSetId),
-                checkFieldLikeIn(safeConvert(search.getEraseActionLikeList()), false, true, TwinFactoryEraserEntity.Fields.eraserAction),
-                checkFieldLikeIn(safeConvert(search.getEraseActionNotLikeList()), true, true, TwinFactoryEraserEntity.Fields.eraserAction),
+                checkFieldLikeIn(convertOrEmpty(search.getEraseActionLikeList()), false, true, TwinFactoryEraserEntity.Fields.eraserAction),
+                checkFieldLikeIn(convertOrEmpty(search.getEraseActionNotLikeList()), true, true, TwinFactoryEraserEntity.Fields.eraserAction),
+                checkTernary(search.getConditionInvert(), TwinFactoryEraserEntity.Fields.twinFactoryConditionInvert),
                 checkTernary(search.getActive(), TwinFactoryEraserEntity.Fields.active));
-    }
-
-    private Set<String> safeConvert(Set<TwinFactoryEraserEntity.Action> collection) {
-        return collection == null ? Collections.emptySet() : collection.stream().map(Enum::name).collect(Collectors.toSet());
     }
 }
