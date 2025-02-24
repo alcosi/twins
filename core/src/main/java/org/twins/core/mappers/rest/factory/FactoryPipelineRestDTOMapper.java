@@ -34,12 +34,13 @@ public class FactoryPipelineRestDTOMapper extends RestSimpleDTOMapper<TwinFactor
                         .setFactoryId(src.getTwinFactoryId())
                         .setInputTwinClassId(src.getInputTwinClassId())
                         .setFactoryConditionSetId(src.getTwinFactoryConditionSetId())
-                        .setFactoryConditionSetInvert(src.isTwinFactoryConditionInvert())
-                        .setActive(src.isActive())
+                        .setFactoryConditionSetInvert(src.getTwinFactoryConditionInvert())
+                        .setActive(src.getActive())
                         .setOutputTwinStatusId(src.getOutputTwinStatusId())
                         .setNextFactoryId(src.getNextTwinFactoryId())
-                        .setNextFactoryLimitScope(src.isNextTwinFactoryLimitScope())
-                        .setPipelineStepsCount(src.getPipelineStepsCount());
+                        .setNextFactoryLimitScope(src.getNextTwinFactoryLimitScope())
+                        .setPipelineStepsCount(src.getPipelineStepsCount())
+                        .setDescription(src.getDescription());
                 break;
             case SHORT:
                 dst

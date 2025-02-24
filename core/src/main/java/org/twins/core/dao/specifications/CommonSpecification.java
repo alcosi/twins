@@ -1,29 +1,104 @@
 package org.twins.core.dao.specifications;
 
 import jakarta.persistence.criteria.*;
+import org.apache.commons.lang3.Range;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.LTreeUtils;
 import org.cambium.common.util.Ternary;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.LongRange;
 import org.twins.core.domain.DataTimeRange;
+import org.twins.core.domain.LongRange;
 
-import java.util.*;
 import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.cambium.common.util.ArrayUtils.concatArray;
 import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
 
 public class CommonSpecification<T> extends AbstractSpecification<T> {
+    /**
+     * Generates a Specification to check hierarchy of child elements based on the given parameters.
+     * The method supports filtering based on a list of UUIDs, negating the condition,
+     * including null values, and limiting the hierarchy depth.
+     *
+     * @param <T>               The type of the entities being queried.
+     * @param ids               A collection of UUIDs representing the hierarchy roots to validate against.
+     * @param not               A flag indicating whether to negate the result of the condition.
+     * @param includeNullValues A flag indicating whether null values should be included in the results.
+     * @param depthLimit        The maximum depth of the hierarchy to consider for the query. If null, defaults to 1.
+     * @param ltreeFieldPath    The path to the ltree field in the entity. Can be one or more strings representing a nested field path.
+     * @return A Specification object that can be used in a JPA Criteria query to apply the hierarchy child check based on the given parameters.
+     */
+    public static <T> Specification<T> checkHierarchyChilds(Collection<UUID> ids, boolean not,
+                                                            boolean includeNullValues, Integer depthLimit, final String... ltreeFieldPath) {
+
+        return (root, query, cb) -> {
+            if (org.cambium.common.util.CollectionUtils.isEmpty(ids))
+                return cb.conjunction();
+            var preparedDepthLimit = depthLimit == null ? 1 : depthLimit;
+            var preparedIds = LTreeUtils.findChildsLQuery(ids.stream().map(UUID::toString).collect(Collectors.toList()), Range.of(1, preparedDepthLimit));
+            Path<String> ltreePath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, ltreeFieldPath);
+            Predicate idPredicate;
+            var ltreeIsInFunction = cb.function("hierarchy_check_lquery", Boolean.class, ltreePath, cb.literal(preparedIds));
+            if (not) {
+                idPredicate = cb.isFalse(ltreeIsInFunction);
+            } else {
+                idPredicate = cb.isTrue(ltreeIsInFunction);
+            }
+            if (includeNullValues) {
+                return cb.or(idPredicate, ltreePath.isNull());
+            } else {
+                return idPredicate;
+            }
+        };
+    }
+
+    /**
+     * Builds a JPA Specification to check if the hierarchy parent meets certain conditions,
+     * such as belonging to a specified set of IDs or satisfying additional criteria like depth limit or null value inclusion.
+     *
+     * @param ids               A collection of UUIDs representing the hierarchy parent IDs to filter against.
+     * @param not               A boolean indicating whether the result should exclude (`true`) or include (`false`) the IDs specified.
+     * @param includeNullValues A boolean indicating whether entities with null in the hierarchy field should be included in the results.
+     * @param depthLimit        An optional integer specifying the maximum depth to consider in the hierarchy traversal (default is 1 if null).
+     * @param ltreeFiled        The name of the field storing the hierarchy (ltree) path.
+     * @param ltreeRootIdFiled  The field representing the parent ID whose hierarchy is being queried.
+     * @param ltreeRootClass    The entity class used as the root for the subquery.
+     * @param ltreeRootPath     An array of strings representing the path to access fields in the ltree root entity.
+     * @return A JPA Specification that can be used to apply the hierarchy parent check with the provided criteria.
+     */
+    protected static <T> @NotNull Specification<T> checkHierarchyParent(Collection<UUID> ids, boolean not, boolean includeNullValues, Integer depthLimit, String ltreeFiled, String ltreeRootIdFiled, Class ltreeRootClass, String... ltreeRootPath) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(ids))
+                return cb.conjunction();
+            var preparedDepthLimit = depthLimit == null ? 1 : depthLimit;
+            Path<UUID> classIdPath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, concatArray(ltreeRootPath, ltreeRootIdFiled));
+            Subquery<UUID> subquery = query.subquery(UUID.class);
+            var subqueryRoot = subquery.from(ltreeRootClass);
+            subquery.select(cb.function("ltree_of_uuids_get_parents", UUID.class, subqueryRoot.get(ltreeFiled), cb.literal(preparedDepthLimit)));
+            subquery.where(subqueryRoot.get(ltreeRootIdFiled).in(new ArrayList<>(ids)));
+            Predicate idPredicate;
+            if (not) {
+                idPredicate = cb.not(classIdPath.in(subquery));
+            } else {
+                idPredicate = classIdPath.in(subquery);
+            }
+            if (includeNullValues) {
+                return cb.or(idPredicate, classIdPath.isNull());
+            } else {
+                return idPredicate;
+            }
+        };
+    }
+
     public static <T> Specification<T> checkClassId(final Collection<UUID> twinClassUuids, String... twinEntityFieldPath) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(twinClassUuids)) {
@@ -194,7 +269,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
     }
 
     public static <T> Specification<T> checkUuid(final UUID uuid, boolean not,
-                                                   boolean includeNullValues, final String... uuidFieldPath) {
+                                                 boolean includeNullValues, final String... uuidFieldPath) {
         return (root, query, cb) -> {
             if (uuid == null) return cb.conjunction();
             Path<UUID> fieldPath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);

@@ -247,7 +247,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         LoggerUtils.traceTreeLevelDown();
         for (TwinFactoryPipelineEntity factoryPipelineEntity : factoryPipelineEntityList) {
             log.info("Checking input for " + factoryPipelineEntity.logNormal() + " **" + factoryPipelineEntity.getDescription() + "** ");
-            Set<FactoryItem> pipelineInputList = getInputItems(factoryContext, factoryPipelineEntity.getInputTwinClassId(), factoryPipelineEntity.getTwinFactoryConditionSetId(), factoryPipelineEntity.isTwinFactoryConditionInvert());
+            Set<FactoryItem> pipelineInputList = getInputItems(factoryContext, factoryPipelineEntity.getInputTwinClassId(), factoryPipelineEntity.getTwinFactoryConditionSetId(), factoryPipelineEntity.getTwinFactoryConditionInvert());
             if (CollectionUtils.isEmpty(pipelineInputList)) {
                 log.info("Skipping " + factoryPipelineEntity.logShort() + " because of empty input");
                 continue;
@@ -255,14 +255,14 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             runPipelineSteps(factoryContext, factoryPipelineEntity, pipelineInputList);
             if (factoryPipelineEntity.getNextTwinFactoryId() != null) {
                 log.info("{} has nextFactoryId configured", factoryPipelineEntity.logShort());
-                if (factoryPipelineEntity.isNextTwinFactoryLimitScope()) {
+                if (factoryPipelineEntity.getNextTwinFactoryLimitScope()) {
                     //we will limit next factory items access only by current pipeline items
                     factoryContext.currentFactoryBranchEnterPipeline(factoryPipelineEntity.getId());
                     factoryContext.snapshotPipelineScope(pipelineInputList);
                 }
                 LoggerUtils.traceTreeLevelDown();
                 runFactory(factoryPipelineEntity.getNextTwinFactoryId(), factoryContext);
-                if (factoryPipelineEntity.isNextTwinFactoryLimitScope()) {
+                if (factoryPipelineEntity.getNextTwinFactoryLimitScope()) {
                     factoryContext.evictPipelineScope(); // we can clear it here
                     factoryContext.currentFactoryBranchExitPipeline();
                 }
@@ -280,7 +280,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             log.info("Checking input for " + factoryBranchEntity.logNormal() + " **" + factoryBranchEntity.getDescription() + "** ");
             boolean selected = false;
             for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
-                if (checkCondition(factoryBranchEntity.getTwinFactoryConditionSetId(), factoryBranchEntity.isTwinFactoryConditionInvert(), factoryItem)) {
+                if (checkCondition(factoryBranchEntity.getTwinFactoryConditionSetId(), factoryBranchEntity.getTwinFactoryConditionInvert(), factoryItem)) {
                     selected = true;
                     log.info("Branch was selected because of success condition check for {}", factoryItem.toString());
                     break;

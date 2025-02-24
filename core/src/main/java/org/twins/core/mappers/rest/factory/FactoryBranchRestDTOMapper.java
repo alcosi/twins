@@ -17,21 +17,20 @@ public class FactoryBranchRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryB
     @Override
     public void map(TwinFactoryBranchEntity src, FactoryBranchDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(FactoryBranchMode.DETAILED)) {
-            case DETAILED:
+            case DETAILED ->
                 dst
                         .setId(src.getId())
                         .setFactoryId(src.getTwinFactoryId())
                         .setFactoryConditionSetId(src.getTwinFactoryConditionSetId())
-                        .setFactoryConditionSetInvert(src.isTwinFactoryConditionInvert())
+                        .setFactoryConditionSetInvert(src.getTwinFactoryConditionInvert())
                         .setNextFactoryId(src.getNextTwinFactoryId())
                         .setDescription(src.getDescription())
-                        .setActive(src.isActive());
-                break;
-            case SHORT:
+                        .setActive(src.getActive());
+            case SHORT ->
                 dst
                         .setId(src.getId())
                         .setFactoryId(src.getTwinFactoryId());
-                break;
+
         }
     }
 }
