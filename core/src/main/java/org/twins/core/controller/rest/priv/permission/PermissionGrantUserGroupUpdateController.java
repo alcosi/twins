@@ -52,7 +52,7 @@ public class PermissionGrantUserGroupUpdateController extends ApiController {
             @RequestBody PermissionGrantUserGroupUpdateRqDTOv1 request) {
         PermissionGrantUserGroupSaveRsDTOv1 rs = new PermissionGrantUserGroupSaveRsDTOv1();
         try {
-            PermissionGrantUserGroupEntity entity = permissionGrantUserGroupUpdateRestReverseDTOMapper.convert(request.getPermissionGrantUserGroupUpdate());
+            PermissionGrantUserGroupEntity entity = permissionGrantUserGroupUpdateRestReverseDTOMapper.convert(request.getPermissionGrantUserGroup());
             entity = permissionGrantUserGroupService.updatePermissionGrantUserGroup(entity.setId(permissionGrantUserGroupId));
             rs
                     .setPermissionGrantUserGroup(permissionGrantUserGroupRestDTOMapperV2.convert(entity))
