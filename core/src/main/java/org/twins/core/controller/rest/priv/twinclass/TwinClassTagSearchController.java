@@ -22,6 +22,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TagSearchRqDTOv1;
@@ -32,6 +33,7 @@ import org.twins.core.mappers.rest.datalist.DataListRestDTOMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.twinclass.TagSearchDTOReverseMapper;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListOptionSearchService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -49,6 +51,7 @@ public class TwinClassTagSearchController extends ApiController {
     private final DataListOptionSearchService dataListOptionSearchService;
     private final PaginationMapper paginationMapper;
     private final TwinClassService twinClassService;
+    private final AuthService authService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "tagSearchV1", summary = "Tag search")
@@ -66,9 +69,9 @@ public class TwinClassTagSearchController extends ApiController {
             @SimplePaginationParams SimplePagination pagination,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
             @RequestBody TagSearchRqDTOv1 request) {
-
         TagSearchRsDTOv1 rs = new TagSearchRsDTOv1();
         try {
+            ApiUser apiUser = authService.getApiUser();
             TwinClassEntity twinClassEntity = twinClassService.findEntitySafe(twinClassId);
 
             if (twinClassEntity.getTagDataListId() == null) {
@@ -76,7 +79,11 @@ public class TwinClassTagSearchController extends ApiController {
             }
 
             DataListOptionSearch dataListOptionSearch = tagSearchDTOReverseMapper.convert(request);
-            dataListOptionSearch.setDataListIdList(Set.of(twinClassEntity.getTagDataListId()));
+            dataListOptionSearch
+                    .setDataListIdList(Set.of(twinClassEntity.getTagDataListId()));
+            if (!apiUser.isBusinessAccountSpecified())
+                dataListOptionSearch
+                        .setBusinessAccountIdList(Set.of(apiUser.getBusinessAccountId()));
 
             PaginationResult<DataListOptionEntity> tags = dataListOptionSearchService
                     .findDataListOptionForDomain(dataListOptionSearch, pagination);
