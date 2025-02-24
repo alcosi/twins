@@ -88,7 +88,8 @@ public class PermissionGrantSpaceRoleService extends EntitySecureFindServiceImpl
         updatePermissionSchemaId(dbEntity, entity.getPermissionSchemaId(), changesHelper);
         updatePermissionId(dbEntity, entity.getPermissionId(), changesHelper);
         updateSpaceRoleId(dbEntity, entity.getSpaceRoleId(), changesHelper);
-        return updateSafe(entity, changesHelper);
+
+        return updateSafe(dbEntity, changesHelper);
     }
 
     private void updatePermissionSchemaId(PermissionGrantSpaceRoleEntity dbEntity, UUID newPermissionSchemaId,
