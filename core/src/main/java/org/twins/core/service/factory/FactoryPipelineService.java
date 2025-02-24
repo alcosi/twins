@@ -83,8 +83,8 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
 
         updateInputTwinClassId(dbEntity, entity.getInputTwinClassId(), changesHelper);
         updateFactoryConditionSetId(dbEntity, entity.getTwinFactoryConditionSetId(), changesHelper);
-        updateFactoryConditionSetInvert(dbEntity, entity.isTwinFactoryConditionInvert(), changesHelper);
-        updateActive(dbEntity, entity.isActive(), changesHelper);
+        updateFactoryConditionSetInvert(dbEntity, entity.getTwinFactoryConditionInvert(), changesHelper);
+        updateActive(dbEntity, entity.getActive(), changesHelper);
         updateOutputStatusId(dbEntity, entity.getOutputTwinStatusId(), changesHelper);
         updateNextFactoryId(dbEntity, entity.getNextTwinFactoryId(), changesHelper);
         updateTemplateTwinId(dbEntity, entity.getTemplateTwinId(), changesHelper);
@@ -109,14 +109,14 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
 
     private void updateFactoryConditionSetInvert(TwinFactoryPipelineEntity dbEntity, Boolean newFactoryConditionSetInvert,
                                         ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryPipelineEntity.Fields.twinFactoryConditionInvert, dbEntity.isTwinFactoryConditionInvert(), newFactoryConditionSetInvert))
+        if (!changesHelper.isChanged(TwinFactoryPipelineEntity.Fields.twinFactoryConditionInvert, dbEntity.getTwinFactoryConditionInvert(), newFactoryConditionSetInvert))
             return;
         dbEntity.setTwinFactoryConditionInvert(newFactoryConditionSetInvert);
     }
 
-    private void updateActive(TwinFactoryPipelineEntity dbEntity, boolean newActive,
+    private void updateActive(TwinFactoryPipelineEntity dbEntity, Boolean newActive,
                               ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryPipelineEntity.Fields.active, dbEntity.isActive(), newActive))
+        if (!changesHelper.isChanged(TwinFactoryPipelineEntity.Fields.active, dbEntity.getActive(), newActive))
             return;
         dbEntity.setActive(newActive);
     }

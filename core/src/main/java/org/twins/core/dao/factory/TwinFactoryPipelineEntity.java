@@ -31,16 +31,16 @@ public class TwinFactoryPipelineEntity implements EasyLoggable {
     private UUID twinFactoryConditionSetId;
 
     @Column(name = "twin_factory_condition_invert")
-    private boolean twinFactoryConditionInvert;
+    private Boolean twinFactoryConditionInvert;
 
     @Column(name = "active")
-    private boolean active;
+    private Boolean active;
 
     @Column(name = "next_twin_factory_id")
     private UUID nextTwinFactoryId;
 
     @Column(name = "next_twin_factory_limit_scope")
-    private boolean nextTwinFactoryLimitScope;
+    private Boolean nextTwinFactoryLimitScope;
 
     @Column(name = "template_twin_id")
     private UUID templateTwinId;
