@@ -36,8 +36,8 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
         branchUpdate.setTwinFactoryId(dbFactoryBranchEntity.getTwinFactoryId());
         ChangesHelper changesHelper = new ChangesHelper();
         updateFactoryBranchConditionSetId(dbFactoryBranchEntity, branchUpdate.getTwinFactoryConditionSetId(), changesHelper);
-        updateFactoryBranchConditionSerInvert(dbFactoryBranchEntity, branchUpdate.isTwinFactoryConditionInvert(), changesHelper);
-        updateFactoryBranchActive(dbFactoryBranchEntity, branchUpdate.isActive(), changesHelper);
+        updateFactoryBranchConditionSerInvert(dbFactoryBranchEntity, branchUpdate.getTwinFactoryConditionInvert(), changesHelper);
+        updateFactoryBranchActive(dbFactoryBranchEntity, branchUpdate.getActive(), changesHelper);
         updateFactoryBranchNextFactoryId(dbFactoryBranchEntity, branchUpdate.getNextTwinFactoryId(), changesHelper);
         updateFactoryBranchDescription(dbFactoryBranchEntity, branchUpdate.getDescription(), changesHelper);
         return updateSafe(dbFactoryBranchEntity, changesHelper);
@@ -50,13 +50,13 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
     }
 
     private void updateFactoryBranchConditionSerInvert(TwinFactoryBranchEntity dbFactoryBranchEntity, Boolean twinFactoryConditionInvert, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryBranchEntity.Fields.twinFactoryConditionInvert, dbFactoryBranchEntity.isTwinFactoryConditionInvert(), twinFactoryConditionInvert))
+        if (!changesHelper.isChanged(TwinFactoryBranchEntity.Fields.twinFactoryConditionInvert, dbFactoryBranchEntity.getTwinFactoryConditionInvert(), twinFactoryConditionInvert))
             return;
         dbFactoryBranchEntity.setTwinFactoryConditionInvert(twinFactoryConditionInvert);
     }
 
     private void updateFactoryBranchActive(TwinFactoryBranchEntity dbFactoryBranchEntity, Boolean active, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryBranchEntity.Fields.active, dbFactoryBranchEntity.isActive(), active))
+        if (!changesHelper.isChanged(TwinFactoryBranchEntity.Fields.active, dbFactoryBranchEntity.getActive(), active))
             return;
         dbFactoryBranchEntity.setActive(active);
     }

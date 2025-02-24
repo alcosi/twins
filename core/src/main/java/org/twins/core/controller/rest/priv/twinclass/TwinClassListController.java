@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,8 +26,7 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassSearchRestDTOReverseMapper;
-import org.twins.core.service.auth.AuthService;
-import org.cambium.common.pagination.PaginationResult;
+import org.twins.core.service.twinclass.TwinClassSearchService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 @Tag(name = ApiTag.TWIN_CLASS)
@@ -35,6 +35,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 @RequiredArgsConstructor
 public class TwinClassListController extends ApiController {
     private final TwinClassService twinClassService;
+    private final TwinClassSearchService twinClassSearchService;
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final TwinClassSearchRestDTOReverseMapper twinClassSearchRestDTOReverseMapper;
@@ -54,7 +55,7 @@ public class TwinClassListController extends ApiController {
             @RequestBody TwinClassSearchRqDTOv1 request) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
-            PaginationResult<TwinClassEntity> twinClasses = twinClassService
+            PaginationResult<TwinClassEntity> twinClasses = twinClassSearchService
                     .findTwinClasses(twinClassSearchRestDTOReverseMapper.convert(request), pagination);
             rs
                     .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))
@@ -81,7 +82,7 @@ public class TwinClassListController extends ApiController {
             @SimplePaginationParams SimplePagination pagination) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
-            PaginationResult<TwinClassEntity> twinClasses = twinClassService.findTwinClasses(null, pagination);
+            PaginationResult<TwinClassEntity> twinClasses = twinClassSearchService.findTwinClasses(null, pagination);
             rs
                     .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClasses))
