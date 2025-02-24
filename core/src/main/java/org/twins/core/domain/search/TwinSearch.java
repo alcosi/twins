@@ -121,15 +121,7 @@ public class TwinSearch {
         return this;
     }
 
-    public TwinSearch addHeadTwinClassId(UUID headTwinClassId) {
-        headTwinClassIdList = CollectionUtils.safeAdd(headTwinClassIdList, headTwinClassId);
-        return this;
-    }
 
-    public TwinSearch addExtendsTwinClassId(UUID extendsTwinClassId) {
-        extendsTwinClassIdList = CollectionUtils.safeAdd(extendsTwinClassIdList, extendsTwinClassId);
-        return this;
-    }
 
     public TwinSearch addStatusId(UUID statusId, boolean exclude) {
         if (exclude)

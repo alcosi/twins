@@ -280,7 +280,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             log.info("Checking input for " + factoryBranchEntity.logNormal() + " **" + factoryBranchEntity.getDescription() + "** ");
             boolean selected = false;
             for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
-                if (checkCondition(factoryBranchEntity.getTwinFactoryConditionSetId(), factoryBranchEntity.isTwinFactoryConditionInvert(), factoryItem)) {
+                if (checkCondition(factoryBranchEntity.getTwinFactoryConditionSetId(), factoryBranchEntity.getTwinFactoryConditionInvert(), factoryItem)) {
                     selected = true;
                     log.info("Branch was selected because of success condition check for {}", factoryItem.toString());
                     break;

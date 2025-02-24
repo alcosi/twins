@@ -14,10 +14,9 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.link.LinkService;
-import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
-import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclass.TwinClassSearchService;
 import org.twins.core.service.twinflow.TwinflowService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 
@@ -31,7 +30,7 @@ public class LogSupportService {
 
     public static String PATH_LOGS = "./logs/";
 
-    final TwinClassService twinClassService;
+    final TwinClassSearchService twinClassSearchService;
     final TwinStatusService twinStatusService;
     final TwinClassFieldService twinClassFieldService;
     final LinkService linkService;
@@ -42,7 +41,7 @@ public class LogSupportService {
         if (ObjectUtils.isEmpty(filename)) filename = apiUser.getDomain().getKey() + ".conf";
 
         var domain = apiUser.getDomain();
-        var twinClasses = twinClassService.searchTwinClasses(null);
+        var twinClasses = twinClassSearchService.searchTwinClasses(null);
         twinStatusService.loadStatusesForTwinClasses(twinClasses);
         twinClassFieldService.loadTwinClassFields(twinClasses);
         linkService.loadLinksForTwinClasses(twinClasses);
