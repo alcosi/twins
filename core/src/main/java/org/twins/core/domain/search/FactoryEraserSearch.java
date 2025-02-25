@@ -21,6 +21,7 @@ public class FactoryEraserSearch {
     private Set<UUID> inputTwinClassIdExcludeList;
     private Set<UUID> factoryConditionSetIdList;
     private Set<UUID> factoryConditionSetIdExcludeList;
+    private Ternary conditionInvert;
     private Set<String> descriptionLikeList;
     private Set<String> descriptionNotLikeList;
     private Set<TwinFactoryEraserEntity.Action> eraseActionLikeList;

@@ -39,7 +39,8 @@ public class FactoryPipelineRestDTOMapper extends RestSimpleDTOMapper<TwinFactor
                         .setOutputTwinStatusId(src.getOutputTwinStatusId())
                         .setNextFactoryId(src.getNextTwinFactoryId())
                         .setNextFactoryLimitScope(src.getNextTwinFactoryLimitScope())
-                        .setPipelineStepsCount(src.getPipelineStepsCount());
+                        .setPipelineStepsCount(src.getPipelineStepsCount())
+                        .setDescription(src.getDescription());
                 break;
             case SHORT:
                 dst
