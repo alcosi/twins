@@ -61,18 +61,27 @@ public class PermissionGrantAssigneePropagationService extends EntitySecureFindS
 
     @Override
     public boolean validateEntity(PermissionGrantAssigneePropagationEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entity.getPermissionSchemaId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty permissionSchemaId");
+        if (entity.getPermissionId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty permissionId");
+        if (entity.getPropagationByTwinClassId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty propagationByTwinClassId");
+        if (entity.getGrantedByUserId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty grantedByUserId");
+
         switch (entityValidateMode) {
             case beforeSave:
-                if (entity.getPermissionSchemaId() != null && (entity.getPermissionSchema() == null || !entity.getPermissionSchema().getId().equals(entity.getPermissionSchemaId())))
+                if (entity.getPermissionSchema() == null || !entity.getPermissionSchema().getId().equals(entity.getPermissionSchemaId()))
                     entity.setPermissionSchema(permissionSchemaService.findEntitySafe(entity.getPermissionSchemaId()));
-                if (entity.getPermissionId() != null && (entity.getPermission() == null || !entity.getPermission().getId().equals(entity.getPermissionId())))
+                if (entity.getPermission() == null || !entity.getPermission().getId().equals(entity.getPermissionId()))
                     entity.setPermission(permissionService.findEntitySafe(entity.getPermissionId()));
-                if (entity.getPropagationByTwinClassId() != null && (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getPropagationByTwinClassId())))
+                if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getPropagationByTwinClassId()))
                     entity.setTwinClass(twinClassService.findEntitySafe(entity.getPropagationByTwinClassId()));
+                if (entity.getGrantedByUser() == null || !entity.getGrantedByUser().getId().equals(entity.getGrantedByUserId()))
+                    entity.setGrantedByUser(userService.findEntitySafe(entity.getGrantedByUserId()));
                 if (entity.getPropagationByTwinStatusId() != null && (entity.getTwinStatus() == null || !entity.getTwinStatus().getId().equals(entity.getPropagationByTwinStatusId())))
                     entity.setTwinStatus(twinStatusService.findEntitySafe(entity.getPropagationByTwinStatusId()));
-                if (entity.getGrantedByUserId() != null && (entity.getGrantedByUser() == null || !entity.getGrantedByUser().getId().equals(entity.getGrantedByUserId())))
-                    entity.setGrantedByUser(userService.findEntitySafe(entity.getGrantedByUserId()));
         }
         return true;
     }
@@ -89,53 +98,22 @@ public class PermissionGrantAssigneePropagationService extends EntitySecureFindS
         PermissionGrantAssigneePropagationEntity dbEntity = findEntitySafe(entity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
 
-        updatePermissionSchemaId(dbEntity, entity.getPermissionSchemaId(), changesHelper);
-        updatePermissionId(dbEntity, entity.getPermissionId(), changesHelper);
-        updatePropagationByTwinClassId(dbEntity, entity.getPropagationByTwinClassId(), changesHelper);
-        updatePropagationByTwinStatusId(dbEntity, entity.getPropagationByTwinStatusId(), changesHelper);
-        updateInSpaceOnly(dbEntity, entity.getInSpaceOnly(), changesHelper);
+        updateEntityField(entity, dbEntity, PermissionGrantAssigneePropagationEntity::getPermissionSchemaId,
+                PermissionGrantAssigneePropagationEntity::setPermissionSchemaId, PermissionGrantAssigneePropagationEntity.Fields.permissionSchemaId ,changesHelper);
+        updateEntityField(entity, dbEntity, PermissionGrantAssigneePropagationEntity::getPermissionId,
+                PermissionGrantAssigneePropagationEntity::setPermissionId, PermissionGrantAssigneePropagationEntity.Fields.permissionId ,changesHelper);
+        updateEntityField(entity, dbEntity, PermissionGrantAssigneePropagationEntity::getPropagationByTwinClassId,
+                PermissionGrantAssigneePropagationEntity::setPropagationByTwinClassId, PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinClassId ,changesHelper);
+        updateEntityField(entity, dbEntity, PermissionGrantAssigneePropagationEntity::getPropagationByTwinStatusId,
+                PermissionGrantAssigneePropagationEntity::setPropagationByTwinStatusId, PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinStatusId ,changesHelper);
+        updateEntityField(entity, dbEntity, PermissionGrantAssigneePropagationEntity::getInSpaceOnly,
+                PermissionGrantAssigneePropagationEntity::setInSpaceOnly, PermissionGrantAssigneePropagationEntity.Fields.inSpaceOnly ,changesHelper);
 
         return updateSafe(dbEntity, changesHelper);
     }
 
-    private void updatePermissionSchemaId(PermissionGrantAssigneePropagationEntity dbEntity, UUID newPermissionSchemaId,
-                                          ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(PermissionGrantAssigneePropagationEntity.Fields.permissionSchemaId, dbEntity.getPermissionSchemaId(), newPermissionSchemaId))
-            return;
-        dbEntity.setPermissionSchemaId(newPermissionSchemaId);
-    }
-
-    private void updatePermissionId(PermissionGrantAssigneePropagationEntity dbEntity, UUID newPermissionId,
-                                    ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(PermissionGrantAssigneePropagationEntity.Fields.permissionId, dbEntity.getPermissionId(), newPermissionId))
-            return;
-        dbEntity.setPermissionId(newPermissionId);
-    }
-
-    private void updatePropagationByTwinClassId(PermissionGrantAssigneePropagationEntity dbEntity, UUID newPropagationByTwinClassId,
-                                                ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinClassId, dbEntity.getPropagationByTwinClassId(), newPropagationByTwinClassId))
-            return;
-        dbEntity.setPropagationByTwinClassId(newPropagationByTwinClassId);
-    }
-
-    private void updatePropagationByTwinStatusId(PermissionGrantAssigneePropagationEntity dbEntity, UUID newPropagationByTwinStatusId,
-                                                 ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinStatusId, dbEntity.getPermissionSchemaId(), newPropagationByTwinStatusId))
-            return;
-        dbEntity.setPermissionSchemaId(newPropagationByTwinStatusId);
-    }
-
-    private void updateInSpaceOnly(PermissionGrantAssigneePropagationEntity dbEntity, Boolean newInSpaceOnly,
-                                   ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(PermissionGrantAssigneePropagationEntity.Fields.inSpaceOnly, dbEntity.getInSpaceOnly(), newInSpaceOnly))
-            return;
-        dbEntity.setInSpaceOnly(newInSpaceOnly);
-    }
-
     @Transactional
     public void deleteById(UUID id) throws ServiceException {
-        //todo need validate???
-        entitySmartService.deleteAndLog(id, repository);
+        deleteSafe(id);
     }
 }

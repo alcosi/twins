@@ -33,7 +33,7 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class PermissionGrantAssigneePropagationUpdateController extends ApiController {
-    private final PermissionGrantAssigneePropagationService service;
+    private final PermissionGrantAssigneePropagationService permissionGrantAssigneePropagationService;
     private final PermissionGrantAssigneePropagationRestDTOMapperV2 permissionGrantAssigneePropagationRestDTOMapperV2;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PermissionGrantAssigneePropagationUpdateDTOReverseMapper permissionGrantAssigneePropagationUpdateDTOReverseMapper;
@@ -55,7 +55,7 @@ public class PermissionGrantAssigneePropagationUpdateController extends ApiContr
         try {
             PermissionGrantAssigneePropagationEntity permissionGrantAssigneePropagation = permissionGrantAssigneePropagationUpdateDTOReverseMapper.convert(request.getPermissionGrantAssigneePropagation())
                     .setId(permissionGrantAssigneePropagationId);
-            permissionGrantAssigneePropagation = service.updatePermissionGrantAssigneePropagationEntity(permissionGrantAssigneePropagation);
+            permissionGrantAssigneePropagation = permissionGrantAssigneePropagationService.updatePermissionGrantAssigneePropagationEntity(permissionGrantAssigneePropagation);
 
             rs
                     .setPermissionGrantAssigneePropagation(permissionGrantAssigneePropagationRestDTOMapperV2.convert(permissionGrantAssigneePropagation, mapperContext))
