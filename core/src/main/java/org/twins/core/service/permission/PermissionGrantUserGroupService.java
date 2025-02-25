@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.permission.PermissionGrantUserGroupEntity;
 import org.twins.core.dao.permission.PermissionGrantUserGroupRepository;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
@@ -60,6 +59,12 @@ public class PermissionGrantUserGroupService extends EntitySecureFindServiceImpl
 
     @Override
     public boolean validateEntity(PermissionGrantUserGroupEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entity.getPermissionSchemaId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty permissionSchemaId");
+        if (entity.getPermissionId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty permissionId");
+        if (entity.getUserGroupId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty userGroupId");
         switch (entityValidateMode) {
             case beforeSave:
                 if (entity.getPermissionSchema() == null || !entity.getPermissionSchema().getId().equals(entity.getPermissionSchemaId()))
@@ -97,10 +102,6 @@ public class PermissionGrantUserGroupService extends EntitySecureFindServiceImpl
 
     @Transactional
     public void deleteById(UUID id) throws ServiceException {
-        PermissionGrantUserGroupEntity entity = findEntitySafe(id);
-        DomainEntity domain = authService.getApiUser().getDomain();
-        if (!entity.getPermissionSchema().getDomainId().equals(domain.getId()))
-            throw new ServiceException(ErrorCodeTwins.DOMAIN_PERMISSION_DENIED);
-        entitySmartService.deleteAndLog(id, repository);
+        deleteSafe(id);
     }
 }
