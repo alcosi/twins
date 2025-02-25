@@ -8,11 +8,15 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
+import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.permission.PermissionGrantUserGroupEntity;
+import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @Slf4j
@@ -151,6 +155,11 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         return entity;
     }
 
+    public void deleteSafe(UUID id) throws ServiceException {
+        findEntitySafe(id);
+        entitySmartService.deleteAndLog(id, entityRepository());
+    }
+
     public T validateEntityAndThrow(T entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entityValidateMode == EntitySmartService.EntityValidateMode.none)
             return entity;
@@ -171,5 +180,15 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     public boolean logErrorAndReturnTrue(String message) {
         log.error(message);
         return true;
+    }
+
+    protected <T, R> void updateEntityField(T updateEntity, T dbEntity, Function<T, R> getFunction, BiConsumer<T, R> setFunction, String field, ChangesHelper changesHelper) {
+        //todo if the new field will have a nullify marker, then we will set the field to null,
+        // which will throw an error when saving if the entity field should not be null
+        R updateValue = getFunction.apply(updateEntity);
+        R dbValue = getFunction.apply(dbEntity);
+        if (!changesHelper.isChanged(field, dbValue, updateValue))
+            return;
+        setFunction.accept(dbEntity, updateValue);
     }
 }
