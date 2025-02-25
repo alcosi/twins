@@ -11,8 +11,8 @@ import java.util.List;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
-@Schema(name = "TagSearchRsV1")
+@EqualsAndHashCode(callSuper = false)
+@Schema(name = "TierSearchRsV1")
 public class TierSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
 
     @Schema(description = "pagination")
