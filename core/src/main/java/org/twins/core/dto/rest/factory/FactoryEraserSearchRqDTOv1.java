@@ -41,6 +41,9 @@ public class FactoryEraserSearchRqDTOv1 extends Request {
     @Schema(description = "factory condition set id exclude list")
     public Set<UUID> factoryConditionSetIdExcludeList;
 
+    @Schema(description = "factory condition invert", example = DTOExamples.TERNARY)
+    public Ternary conditionInvert;
+
     @Schema(description = "description like list")
     public Set<String> descriptionLikeList;
 

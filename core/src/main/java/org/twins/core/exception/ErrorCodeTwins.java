@@ -26,6 +26,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     DOMAIN_LOCALE_UNKNOWN(10209, "unknown locale"),
     DOMAIN_OR_BUSINESS_ACCOUNT_USER_NOT_EXISTS(10210, "domain or business_account user not exists"),
     DOMAIN_LOCALE_INACTIVE(10211, "Local is not active"),
+    DOMAIN_PERMISSION_DENIED(10212, "No permission to delete record in another domain"),
     PERMISSION_SCHEMA_NOT_ALLOWED(10301, "permission schema is not allowed"),
     PERMISSION_ID_UNKNOWN(10302, "permission id unknown"),
     TWIN_NOT_PROTECTED(10303, "Twin is not protected by permission"),

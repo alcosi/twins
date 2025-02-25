@@ -56,6 +56,7 @@ public interface DTOExamples {
     String PERMISSION_SCHEMA_ID = "af143656-9899-4e1f-8683-48795cdefeac";
     String PERMISSION_GRANT_USER_ID = "9e8641f2-dda1-4a43-9a23-8786124cdb6b";
     String PERMISSION_GRANT_ASSIGNEE_PROPAGATION_ID = "a7485d77-16bc-440e-a88e-1a576954a839";
+    String PERMISSION_GRANT_SPACE_ROLE_ID = "f64ec2c1-a791-4305-acfc-6925d671c005";
     String TWINFLOW_SCHEMA_ID = "2c618b09-e8dc-4712-a433-2e18915ee70d";
     String TWINFLOW_ID = "34618b09-e8dc-4712-a433-2e18915ee70d";
     String DRAFT_ID = "34618b09-e8dc-4712-a433-2e18915ee70d";
@@ -84,6 +85,7 @@ public interface DTOExamples {
     String LAZY_RELATION_MODE_OFF = " Will be filled only in lazyRelations mode is false";
     String SPACE_ID = "5d956a15-6858-40ba-b0aa-b123c54e250d";
     String SPACE_ROLE = "creator";
+    String SPACE_ROLE_ID = "d74c3adc-c83c-4b55-92ca-cf570598296a";
     String SPACE_ROLE_USER_ID = "275bf3c4-951a-4d26-bb82-5e18361d301c";
     String SEARCH_ALIAS = "tools";
     String SEARCH_ID = "8c580967-c050-47cf-ac27-4096c6dda2d1";
