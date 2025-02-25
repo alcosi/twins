@@ -59,6 +59,15 @@ public class PermissionGrantSpaceRoleService extends EntitySecureFindServiceImpl
 
     @Override
     public boolean validateEntity(PermissionGrantSpaceRoleEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entity.getPermissionSchemaId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty permissionSchemaId");
+        if (entity.getPermissionId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty permissionId");
+        if (entity.getSpaceRoleId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty spaceRoleId");
+        if (entity.getGrantedByUserId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty grantedByUserId");
+
         switch (entityValidateMode) {
             case beforeSave:
                 if (entity.getPermissionSchema() == null || !entity.getPermissionSchema().getId().equals(entity.getPermissionSchemaId()))
@@ -67,7 +76,7 @@ public class PermissionGrantSpaceRoleService extends EntitySecureFindServiceImpl
                     entity.setPermission(permissionService.findEntitySafe(entity.getPermissionId()));
                 if (entity.getSpaceRole() == null || !entity.getSpaceRole().getId().equals(entity.getSpaceRoleId()))
                     entity.setSpaceRole(spaceRoleService.findEntitySafe(entity.getSpaceRoleId()));
-                if (entity.getGrantedByUserId() != null && (entity.getGrantedByUser() == null || !entity.getGrantedByUser().getId().equals(entity.getGrantedByUserId())))
+                if (entity.getGrantedByUser() == null || !entity.getGrantedByUser().getId().equals(entity.getGrantedByUserId()))
                     entity.setGrantedByUser(userService.findEntitySafe(entity.getGrantedByUserId()));
         }
         return true;
@@ -85,37 +94,18 @@ public class PermissionGrantSpaceRoleService extends EntitySecureFindServiceImpl
         PermissionGrantSpaceRoleEntity dbEntity = findEntitySafe(entity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
 
-        updatePermissionSchemaId(dbEntity, entity.getPermissionSchemaId(), changesHelper);
-        updatePermissionId(dbEntity, entity.getPermissionId(), changesHelper);
-        updateSpaceRoleId(dbEntity, entity.getSpaceRoleId(), changesHelper);
+        updateEntityField(entity, dbEntity, PermissionGrantSpaceRoleEntity::getPermissionSchemaId,
+                PermissionGrantSpaceRoleEntity::setPermissionSchemaId, PermissionGrantSpaceRoleEntity.Fields.permissionSchemaId ,changesHelper);
+        updateEntityField(entity, dbEntity, PermissionGrantSpaceRoleEntity::getPermissionId,
+                PermissionGrantSpaceRoleEntity::setPermissionId, PermissionGrantSpaceRoleEntity.Fields.permissionId ,changesHelper);
+        updateEntityField(entity, dbEntity, PermissionGrantSpaceRoleEntity::getSpaceRoleId,
+                PermissionGrantSpaceRoleEntity::setSpaceRoleId, PermissionGrantSpaceRoleEntity.Fields.spaceRoleId ,changesHelper);
 
         return updateSafe(dbEntity, changesHelper);
     }
 
-    private void updatePermissionSchemaId(PermissionGrantSpaceRoleEntity dbEntity, UUID newPermissionSchemaId,
-                                          ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(PermissionGrantSpaceRoleEntity.Fields.permissionSchemaId, dbEntity.getPermissionSchemaId(), newPermissionSchemaId))
-            return;
-        dbEntity.setPermissionSchemaId(newPermissionSchemaId);
-    }
-
-    private void updatePermissionId(PermissionGrantSpaceRoleEntity dbEntity, UUID newPermissionId,
-                                    ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(PermissionGrantSpaceRoleEntity.Fields.permissionId, dbEntity.getPermissionId(), newPermissionId))
-            return;
-        dbEntity.setPermissionId(newPermissionId);
-    }
-
-    private void updateSpaceRoleId(PermissionGrantSpaceRoleEntity dbEntity, UUID newSpaceRoleId,
-                                    ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(PermissionGrantSpaceRoleEntity.Fields.spaceRoleId, dbEntity.getSpaceRoleId(), newSpaceRoleId))
-            return;
-        dbEntity.setSpaceRoleId(newSpaceRoleId);
-    }
-
     @Transactional
     public void deleteById(UUID id) throws ServiceException {
-        //todo need validate???
-        entitySmartService.deleteAndLog(id, repository);
+        deleteSafe(id);
     }
 }
