@@ -31,17 +31,17 @@ public class TwinFactoryPipelineStepEntity implements EasyLoggable {
     private UUID twinFactoryConditionSetId;
 
     @Column(name = "twin_factory_condition_invert")
-    private boolean twinFactoryConditionInvert;
+    private Boolean twinFactoryConditionInvert;
 
     @Column(name = "`order`")
     @Basic
-    private int order;
+    private Integer order;
 
     @Column(name = "active")
-    private boolean active;
+    private Boolean active;
 
     @Column(name = "optional")
-    private boolean optional;
+    private Boolean optional;
 
     @Column(name = "filler_featurer_id")
     private int fillerFeaturerId;
