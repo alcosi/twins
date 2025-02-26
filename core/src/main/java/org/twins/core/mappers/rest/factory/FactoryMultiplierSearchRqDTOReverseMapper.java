@@ -25,7 +25,7 @@ public class FactoryMultiplierSearchRqDTOReverseMapper extends RestSimpleDTOMapp
                 .setMultiplierFeaturerIdList(src.getMultiplierFeaturerIdList())
                 .setMultiplierFeaturerIdExcludeList(src.getMultiplierFeaturerIdExcludeList())
                 .setDescriptionLikeList(src.getDescriptionLikeList())
-                .setDescriptionLikeList(src.getDescriptionNotLikeList())
+                .setDescriptionNotLikeList(src.getDescriptionNotLikeList())
                 .setActive(src.getActive());
     }
 }
