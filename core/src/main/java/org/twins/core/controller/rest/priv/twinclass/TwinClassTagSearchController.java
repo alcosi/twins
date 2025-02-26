@@ -81,7 +81,7 @@ public class TwinClassTagSearchController extends ApiController {
             DataListOptionSearch dataListOptionSearch = tagSearchDTOReverseMapper.convert(request);
             dataListOptionSearch
                     .setDataListIdList(Set.of(twinClassEntity.getTagDataListId()));
-            if (!apiUser.isBusinessAccountSpecified())
+            if (apiUser.isBusinessAccountSpecified())
                 dataListOptionSearch
                         .setBusinessAccountIdList(Set.of(apiUser.getBusinessAccountId()));
 
