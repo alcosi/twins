@@ -12,6 +12,6 @@ import org.twins.core.dto.rest.Request;
 @Schema(name = "FactoryPipelineStepUpdateRqV1")
 public class FactoryPipelineStepUpdateRqDTOv1 extends Request {
     @Schema(description = "factory pipeline step update")
-    public FactoryPipelineStepCreateDTOv1 factoryPipelineStep;
+    public FactoryPipelineStepUpdateDTOv1 factoryPipelineStep;
 }
 

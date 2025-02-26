@@ -60,7 +60,7 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
     public boolean validateEntity(TwinFactoryPipelineStepEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entity.getTwinFactoryPipelineId() == null)
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinFactoryPipelineId");
-        if (entity.getFillerFeaturerId() == 0)
+        if (entity.getFillerFeaturerId() == null)
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty fillerFeaturerId");
         if (entity.getOrder() == null) {
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty Order");
@@ -83,7 +83,7 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
     }
 
     public TwinFactoryPipelineStepEntity updateFactoryPipelineStep(TwinFactoryPipelineStepEntity entity) throws ServiceException {
-        TwinFactoryPipelineStepEntity dbEntity = new TwinFactoryPipelineStepEntity();
+        TwinFactoryPipelineStepEntity dbEntity = findEntitySafe(entity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
 
         updateEntityField(entity, dbEntity, TwinFactoryPipelineStepEntity::getTwinFactoryPipelineId,

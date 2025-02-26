@@ -44,7 +44,7 @@ public class TwinFactoryPipelineStepEntity implements EasyLoggable {
     private Boolean optional;
 
     @Column(name = "filler_featurer_id")
-    private int fillerFeaturerId;
+    private Integer fillerFeaturerId;
 
     @Column(name = "description")
     private String description;
