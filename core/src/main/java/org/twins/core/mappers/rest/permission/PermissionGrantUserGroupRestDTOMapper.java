@@ -9,6 +9,8 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.PermissionGrantUserGroupMode;
 
+import static org.cambium.common.util.DateUtils.convertOrNull;
+
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = PermissionGrantUserGroupMode.class)
@@ -17,21 +19,19 @@ public class PermissionGrantUserGroupRestDTOMapper extends RestSimpleDTOMapper<P
     @Override
     public void map(PermissionGrantUserGroupEntity src, PermissionGrantUserGroupDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(PermissionGrantUserGroupMode.DETAILED)) {
-            case DETAILED:
+            case DETAILED ->
                 dst
                         .setId(src.getId())
                         .setPermissionSchemaId(src.getPermissionSchemaId())
                         .setPermissionId(src.getPermissionId())
                         .setUserGroupId(src.getUserGroupId())
                         .setGrantedByUserId(src.getGrantedByUserId())
-                        .setGrantedAt(src.getGrantedAt().toLocalDateTime());
-                break;
-            case SHORT:
+                        .setGrantedAt(convertOrNull(src.getGrantedAt()));
+            case SHORT ->
                 dst
                         .setId(src.getId())
                         .setPermissionId(src.getPermissionId())
                         .setUserGroupId(src.getUserGroupId());
-                break;
         }
     }
 }
