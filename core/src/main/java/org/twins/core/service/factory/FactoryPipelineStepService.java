@@ -63,7 +63,7 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
         if (entity.getFillerFeaturerId() == null)
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty fillerFeaturerId");
         if (entity.getOrder() == null) {
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty Order");
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty order");
         }
 
         switch (entityValidateMode) {

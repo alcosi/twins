@@ -18,7 +18,7 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.factory.FactoryPipelineStepRsDTOv1;
+import org.twins.core.dto.rest.factory.FactoryPipelineStepSaveRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineStepUpdateRqDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryPipelineStepRestDTOMapperV2;
 import org.twins.core.mappers.rest.factory.FactoryPipelineStepUpdateDTOReverseMapper;
@@ -41,16 +41,16 @@ public class FactoryPipelineStepUpdateController extends ApiController {
     @ParametersApiUserHeaders
     @Operation(operationId = "factoryPipelineStepUpdateV1", summary = "Factory pipeline step update")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Factory pipeline set update", content = {
+            @ApiResponse(responseCode = "200", description = "Factory pipeline set updated successfully", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = FactoryPipelineStepRsDTOv1.class))}),
+                    @Schema(implementation = FactoryPipelineStepSaveRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/factory/factory_pipeline_step/{factoryPipelineStepId}/v1")
     public ResponseEntity<?> factoryPipelineStepUpdateV1(
-            @MapperContextBinding(roots = FactoryPipelineStepRestDTOMapperV2.class, response = FactoryPipelineStepRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryPipelineStepRestDTOMapperV2.class, response = FactoryPipelineStepSaveRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_PIPELINE_STEP_ID) @PathVariable UUID factoryPipelineStepId,
             @RequestBody FactoryPipelineStepUpdateRqDTOv1 request) {
-        FactoryPipelineStepRsDTOv1 rs = new FactoryPipelineStepRsDTOv1();
+        FactoryPipelineStepSaveRsDTOv1 rs = new FactoryPipelineStepSaveRsDTOv1();
 
         try {
             TwinFactoryPipelineStepEntity factoryPipelineStep = factoryPipelineStepService.updateFactoryPipelineStep(

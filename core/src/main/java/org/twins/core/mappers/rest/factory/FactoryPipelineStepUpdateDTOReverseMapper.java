@@ -11,10 +11,10 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 @Component
 @RequiredArgsConstructor
 public class FactoryPipelineStepUpdateDTOReverseMapper extends RestSimpleDTOMapper<FactoryPipelineStepUpdateDTOv1, TwinFactoryPipelineStepEntity> {
-    private final FactoryPipelineStepSaveDTOReverseMapper mapper;
+    private final FactoryPipelineStepSaveDTOReverseMapper factoryPipelineStepSaveDTOReverseMapper;
 
     @Override
     public void map(FactoryPipelineStepUpdateDTOv1 src, TwinFactoryPipelineStepEntity dst, MapperContext mapperContext) throws Exception {
-        mapper.map(src, dst, mapperContext);
+        factoryPipelineStepSaveDTOReverseMapper.map(src, dst, mapperContext);
     }
 }
