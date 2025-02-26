@@ -313,7 +313,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             for (int step = 0; step < pipelineStepEntityList.size(); step++) {
                 stepOrder = "Step " + (step + 1) + "/" + pipelineStepEntityList.size() + " ";
                 TwinFactoryPipelineStepEntity pipelineStepEntity = pipelineStepEntityList.get(step);
-                if (!checkCondition(pipelineStepEntity.getTwinFactoryConditionSetId(), pipelineStepEntity.isTwinFactoryConditionInvert(), pipelineInput)) {
+                if (!checkCondition(pipelineStepEntity.getTwinFactoryConditionSetId(), pipelineStepEntity.getTwinFactoryConditionInvert(), pipelineInput)) {
                     log.info(stepOrder + pipelineStepEntity.logNormal() + " was skipped)");
                     continue;
                 }
@@ -322,7 +322,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 try {
                     filler.fill(pipelineStepEntity.getFillerParams(), pipelineInput, factoryPipelineEntity.getTemplateTwin(), logMsg);
                 } catch (Exception ex) {
-                    if (pipelineStepEntity.isOptional() && filler.canBeOptional()) {
+                    if (pipelineStepEntity.getOptional() && filler.canBeOptional()) {
                         log.warn("Step is optional and unsuccessful: " + (ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage()) + ". Pipeline will not be aborted");
                     } else {
                         log.error("Step[{}] is mandatory. Factory process will be aborted", pipelineStepEntity.getId());
