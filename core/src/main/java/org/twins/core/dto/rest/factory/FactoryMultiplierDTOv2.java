@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 
@@ -18,4 +19,7 @@ public class FactoryMultiplierDTOv2 extends FactoryMultiplierDTOv1 {
 
     @Schema(description = "input twin class")
     public TwinClassBaseDTOv1 inputTwinClass;
+
+    @Schema(description = "multiplier featurer")
+    public FeaturerDTOv1 multiplierFeaturer;
 }
