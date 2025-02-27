@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.Request;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "PermissionGrantUserCreateRqV1")
+@Schema(name = "PermissionGrantUserUpdateRqV1")
 public class PermissionGrantUserUpdateRqDTOv1 extends Request {
     @Schema(description = "permission grant user")
     public PermissionGrantUserUpdateDTOv1 permissionGrantUser;
