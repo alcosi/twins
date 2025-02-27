@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "TierSaveRqV1")
+@Schema(name = "TierSaveV1")
 public class TierSaveDTOv1 {
 
     @Schema(description = "name", example = DTOExamples.NAME)
