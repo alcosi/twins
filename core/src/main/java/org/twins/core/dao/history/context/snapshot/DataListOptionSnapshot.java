@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.StringUtils;
-import org.twins.core.i18n.service.I18nService;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 
 import java.util.HashMap;

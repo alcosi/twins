@@ -1,4 +1,4 @@
-package org.twins.core.i18n.service;
+package org.twins.core.service.i18n;
 
 
 import jakarta.persistence.EntityManager;
@@ -11,9 +11,10 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.StringUtils;
-import org.twins.core.i18n.config.I18nProperties;
-import org.twins.core.i18n.dao.*;
-import org.twins.core.i18n.exception.ErrorCodeI18n;
+import org.cambium.service.EntitySecureFindServiceImpl;
+import org.twins.core.config.i18n.I18nProperties;
+import org.twins.core.dao.i18n.*;
+import org.twins.core.exception.i18n.ErrorCodeI18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
@@ -25,7 +26,7 @@ import static org.cambium.common.util.CacheUtils.evictCache;
 
 @Component
 @Slf4j
-public abstract class I18nService  {
+public abstract class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
     @Autowired
     private I18nRepository i18nRepository;
     @Autowired

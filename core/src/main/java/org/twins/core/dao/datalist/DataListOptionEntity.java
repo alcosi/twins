@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.i18n.dao.I18nEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 
 import java.util.Arrays;

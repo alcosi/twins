@@ -1,7 +1,7 @@
 package org.twins.core.mappers.rest.space;
 
 import lombok.RequiredArgsConstructor;
-import org.twins.core.i18n.service.I18nService;
+import org.twins.core.service.i18n.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.space.SpaceRoleEntity;

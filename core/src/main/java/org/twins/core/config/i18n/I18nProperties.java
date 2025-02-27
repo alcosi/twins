@@ -1,4 +1,4 @@
-package org.twins.core.i18n.config;
+package org.twins.core.config.i18n;
 
 import org.springframework.context.annotation.Configuration;
 

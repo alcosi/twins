@@ -10,7 +10,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
-import org.twins.core.i18n.dao.LocaleConverter;
+import org.twins.core.dao.i18n.LocaleConverter;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.permission.PermissionSchemaEntity;

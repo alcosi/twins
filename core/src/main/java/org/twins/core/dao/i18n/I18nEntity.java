@@ -1,4 +1,4 @@
-package org.twins.core.i18n.dao;
+package org.twins.core.dao.i18n;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -8,6 +8,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.kit.Kit;
+import org.twins.core.dao.domain.DomainEntity;
 
 import java.util.List;
 import java.util.Locale;
@@ -24,6 +25,9 @@ public class I18nEntity {
     @Column(name = "id")
     private UUID id;
 
+    @Column(name = "domain_id")
+    private UUID domainId;
+
     @Basic
     @Column(name = "name")
     private String name;
@@ -35,6 +39,10 @@ public class I18nEntity {
     @Basic
     @Column(name = "key")
     private String key;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
+    private DomainEntity domain;
 
     @OneToMany(fetch = FetchType.LAZY)
     @EqualsAndHashCode.Exclude

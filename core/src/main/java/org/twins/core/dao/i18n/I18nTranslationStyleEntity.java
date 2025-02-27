@@ -1,4 +1,4 @@
-package org.twins.core.i18n.dao;
+package org.twins.core.dao.i18n;
 
 import jakarta.persistence.*;
 import lombok.Data;

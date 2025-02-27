@@ -9,7 +9,7 @@ import java.util.Locale;
 @PropertySource("classpath:configprops.properties")
 @ConfigurationProperties(prefix = "cambium.i18n")
 @Data
-public class I18nProperties implements org.twins.core.i18n.config.I18nProperties {
+public class I18nProperties implements org.twins.core.config.i18n.I18nProperties {
     private String defaultLocale;
 
     @Override

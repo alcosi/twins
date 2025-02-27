@@ -1,4 +1,4 @@
-package org.twins.core.i18n.dao;
+package org.twins.core.dao.i18n;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;

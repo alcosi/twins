@@ -1,4 +1,4 @@
-package org.twins.core.i18n.dao;
+package org.twins.core.dao.i18n;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,7 +20,7 @@ import java.util.*;
 @Table(name = "i18n_translation")
 @IdClass(I18nTranslationEntity.PK.class)
 @FieldNameConstants
-public class I18nTranslationEntity {
+public class I18nTranslationEntity implements EasyLoggable {
     @Id
     @Column(name = "i18n_id")
     private UUID i18nId;
@@ -99,6 +100,10 @@ public class I18nTranslationEntity {
             return null;
         }
     }
+
+    @Override
+    public String easyLog(Level level) {
+        return "i18nTranslation from i18nId[" + i18nId + "]";}
 
     @Data
     protected static class PK implements Serializable {

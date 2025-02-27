@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.i18n.dao.I18nLocaleEntity;
-import org.twins.core.i18n.dao.LocaleConverter;
+import org.twins.core.dao.i18n.I18nLocaleEntity;
+import org.twins.core.dao.i18n.LocaleConverter;
 
 import java.util.Locale;
 import java.util.UUID;

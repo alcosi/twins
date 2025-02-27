@@ -17,7 +17,7 @@ import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.service.auth.AuthService;
 
 import static org.cambium.common.util.EnumUtils.convertOrEmpty;
-import static org.twins.core.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.datalist.DataListOptionSpecification.*;
 
 

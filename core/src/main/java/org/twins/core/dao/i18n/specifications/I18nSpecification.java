@@ -1,9 +1,9 @@
-package org.twins.core.i18n.dao.specifications;
+package org.twins.core.dao.i18n.specifications;
 
 import jakarta.persistence.criteria.*;
 import org.cambium.common.util.CollectionUtils;
-import org.twins.core.i18n.dao.I18nEntity;
-import org.twins.core.i18n.dao.I18nTranslationEntity;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.ArrayList;

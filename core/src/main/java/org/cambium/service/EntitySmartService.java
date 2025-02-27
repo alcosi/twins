@@ -183,6 +183,7 @@ public class EntitySmartService {
         return checkOptional(optional, uuid, repository, mode);
     }
 
+
     public <T> T checkOptional(Optional<T> optional, Object keyObj, CrudRepository<T, UUID> repository, FindMode mode) throws ServiceException {
         String key = (keyObj instanceof UUID ? "id[" : "key[") + keyObj + "]";
         switch (mode) {
@@ -352,6 +353,31 @@ public class EntitySmartService {
                     .stream().collect(Collectors.toMap(functionGetId, Function.identity(), (left, right) -> left, LinkedHashMap::new));
         }
         return ret;
+    }
+
+    public <T> List<T> findAllByForeignKey(UUID foreignKey, JpaRepository<T, UUID> repository, Function<T, UUID> foreignKeyExtractor, FindMode mode) throws ServiceException {
+        List<T> entities = IterableUtils.toList(repository.findAll());
+
+        List<T> filteredEntities = entities.stream()
+                .filter(entity -> foreignKey.equals(foreignKeyExtractor.apply(entity)))
+                .collect(Collectors.toList());
+
+        return checkList(filteredEntities, foreignKey, repository, mode);
+    }
+
+    private <T> List<T> checkList(List<T> entities, UUID foreignKey, CrudRepository<T, UUID> repository, FindMode mode) throws ServiceException {
+        if (entities.isEmpty()) {
+            switch (mode) {
+                case ifEmptyNull:
+                    return Collections.emptyList();
+                case ifEmptyLogAndNull:
+                    log.error(entityShortName(repository) + " can not find entities with foreignKey[" + foreignKey + "]");
+                    return Collections.emptyList();
+                case ifEmptyThrows:
+                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "No entities found for foreignKey[" + foreignKey + "]");
+            }
+        }
+        return entities;
     }
 
     public enum CheckMode {
