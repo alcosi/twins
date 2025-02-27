@@ -8,6 +8,6 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "FactoryEraserCreateV1")
+@Schema(name = "FactoryEraserUpdateV1")
 public class FactoryEraserUpdateDTOv1 extends FactoryEraserSaveDTOv1 {
 }
