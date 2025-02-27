@@ -9,6 +9,8 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TierMode;
 
+import static org.cambium.common.util.DateUtils.convertOrNull;
+
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = TierMode.class)
@@ -28,8 +30,8 @@ public class TierRestDTOMapper extends RestSimpleDTOMapper<TierEntity, TierDTOv1
                     .setAttachmentsStorageQuotaCount(src.getAttachmentsStorageQuotaCount())
                     .setAttachmentsStorageQuotaSize(src.getAttachmentsStorageQuotaSize())
                     .setUserCountQuota(src.getUserCountQuota())
-                    .setCreatedAt(src.getCreatedAt())
-                    .setUpdatedAt(src.getUpdatedAt());
+                    .setCreatedAt(convertOrNull(src.getCreatedAt()))
+                    .setUpdatedAt(convertOrNull(src.getUpdatedAt()));
 
             case SHORT -> dst
                     .setId(src.getId())
