@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 
 @Data
@@ -42,4 +43,10 @@ public class TierDTOv1 {
 
     @Schema(description = "user count quota")
     public Integer userCountQuota;
+
+    @Schema(description = "created at")
+    private Timestamp createdAt;
+
+    @Schema(description = "updated at")
+    private Timestamp updatedAt;
 }

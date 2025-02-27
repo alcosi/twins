@@ -27,7 +27,9 @@ public class TierRestDTOMapper extends RestSimpleDTOMapper<TierEntity, TierDTOv1
                     .setCustom(src.getCustom())
                     .setAttachmentsStorageQuotaCount(src.getAttachmentsStorageQuotaCount())
                     .setAttachmentsStorageQuotaSize(src.getAttachmentsStorageQuotaSize())
-                    .setUserCountQuota(src.getUserCountQuota());
+                    .setUserCountQuota(src.getUserCountQuota())
+                    .setCreatedAt(src.getCreatedAt())
+                    .setUpdatedAt(src.getUpdatedAt());
 
             case SHORT -> dst
                     .setId(src.getId())

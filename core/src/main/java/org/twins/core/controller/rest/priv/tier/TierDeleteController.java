@@ -43,7 +43,7 @@ public class TierDeleteController extends ApiController {
             @Parameter(example = DTOExamples.TIER_ID) @PathVariable UUID tierId) {
         Response rs = new Response();
         try {
-            tierService.deleteTierById(tierId);
+            tierService.deleteTier(tierId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
