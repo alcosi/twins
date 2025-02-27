@@ -10,7 +10,7 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "TierRsV1")
-public class TierRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+public class TierSaveRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "results - tier")
     public TierDTOv2 tier;
 }
