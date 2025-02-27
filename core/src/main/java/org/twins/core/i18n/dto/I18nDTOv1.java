@@ -1,10 +1,10 @@
-package org.cambium.i18n.dto;
+package org.twins.core.i18n.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.i18n.dao.I18nType;
+import org.twins.core.i18n.dao.I18nType;
 import org.twins.core.dto.rest.DTOExamples;
 
 import java.util.Locale;

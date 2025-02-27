@@ -1,4 +1,4 @@
-package org.cambium.i18n.config;
+package org.twins.core.i18n.config;
 
 import org.springframework.context.annotation.Configuration;
 

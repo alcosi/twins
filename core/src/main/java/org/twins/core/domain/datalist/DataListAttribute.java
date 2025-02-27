@@ -2,9 +2,7 @@ package org.twins.core.domain.datalist;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.i18n.dao.I18nEntity;
-
-import java.util.UUID;
+import org.twins.core.i18n.dao.I18nEntity;
 
 @Data
 @Accessors(chain = true)

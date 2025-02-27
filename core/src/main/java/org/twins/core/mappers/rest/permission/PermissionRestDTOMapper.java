@@ -1,8 +1,7 @@
 package org.twins.core.mappers.rest.permission;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.i18n.service.I18nService;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.twins.core.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.permission.PermissionEntity;

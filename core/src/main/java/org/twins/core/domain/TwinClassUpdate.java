@@ -2,7 +2,7 @@ package org.twins.core.domain;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.i18n.dao.I18nEntity;
+import org.twins.core.i18n.dao.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.HashMap;

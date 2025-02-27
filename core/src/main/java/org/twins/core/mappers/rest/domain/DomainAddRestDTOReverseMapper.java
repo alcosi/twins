@@ -1,7 +1,7 @@
 package org.twins.core.mappers.rest.domain;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.i18n.service.I18nService;
+import org.twins.core.i18n.service.I18nService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.domain.DomainEntity;

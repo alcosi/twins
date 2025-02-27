@@ -3,7 +3,7 @@ package org.twins.core.dao.history.context;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.i18n.service.I18nService;
+import org.twins.core.i18n.service.I18nService;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.history.context.snapshot.DataListOptionSnapshot;
 

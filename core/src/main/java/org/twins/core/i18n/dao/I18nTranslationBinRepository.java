@@ -1,4 +1,4 @@
-package org.cambium.i18n.dao;
+package org.twins.core.i18n.dao;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;

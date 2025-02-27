@@ -1,4 +1,4 @@
-package org.cambium.i18n.dao;
+package org.twins.core.i18n.dao;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;

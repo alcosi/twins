@@ -1,7 +1,7 @@
 package org.twins.core.dao.specifications.locale;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.i18n.dao.I18nLocaleEntity;
+import org.twins.core.i18n.dao.I18nLocaleEntity;
 import org.springframework.data.jpa.domain.Specification;
 
 @Slf4j

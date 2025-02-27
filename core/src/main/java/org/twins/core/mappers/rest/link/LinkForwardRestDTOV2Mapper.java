@@ -2,7 +2,7 @@ package org.twins.core.mappers.rest.link;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.i18n.service.I18nService;
+import org.twins.core.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dto.rest.link.LinkDTOv2;

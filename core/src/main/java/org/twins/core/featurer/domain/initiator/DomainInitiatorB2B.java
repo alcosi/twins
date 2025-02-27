@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
-import org.cambium.i18n.dao.I18nType;
+import org.twins.core.i18n.dao.I18nType;
 import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

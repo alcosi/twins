@@ -1,4 +1,4 @@
-package org.cambium.i18n.exception;
+package org.twins.core.i18n.exception;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ErrorCode;

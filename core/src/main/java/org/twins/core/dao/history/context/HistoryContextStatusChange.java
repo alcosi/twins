@@ -2,7 +2,7 @@ package org.twins.core.dao.history.context;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.i18n.service.I18nService;
+import org.twins.core.i18n.service.I18nService;
 import org.twins.core.dao.history.context.snapshot.StatusSnapshot;
 import org.twins.core.dao.twin.TwinStatusEntity;
 

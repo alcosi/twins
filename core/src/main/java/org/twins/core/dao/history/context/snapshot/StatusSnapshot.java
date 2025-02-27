@@ -3,7 +3,7 @@ package org.twins.core.dao.history.context.snapshot;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.StringUtils;
-import org.cambium.i18n.service.I18nService;
+import org.twins.core.i18n.service.I18nService;
 import org.twins.core.dao.twin.TwinStatusEntity;
 
 import java.util.HashMap;
