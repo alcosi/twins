@@ -5,15 +5,15 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.Request;
 
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Schema(name = "TierCreateRqV1")
-public class TierCreateRqDTOv1 extends TierSaveRqDTOv1 {
-
-    @Schema(description = "id", example = DTOExamples.TIER_ID)
-    public UUID id;
+public class TierCreateRqDTOv1 extends Request {
+    @Schema(description = "tier create")
+    public TierCreateDTOv1 tier;
 }

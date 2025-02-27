@@ -19,7 +19,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv3;
-import org.twins.core.dto.rest.tier.TierRsDTOv1;
+import org.twins.core.dto.rest.tier.TierSaveRsDTOv1;
 import org.twins.core.dto.rest.tier.TierUpdateRqDTOv1;
 import org.twins.core.mappers.rest.tier.TierRestDTOMapper;
 import org.twins.core.mappers.rest.tier.TierRestDTOMapperV2;
@@ -41,18 +41,18 @@ public class TierUpdateController extends ApiController {
     @ParametersApiUserHeaders
     @Operation(operationId = "tierUpdateV1", summary = "tier for update")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Updated tier data", content = {
+            @ApiResponse(responseCode = "200", description = "Tier data updated successfully", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = DataListOptionRsDTOv3.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/tier/{tierId}/v1")
     public ResponseEntity<?> tierUpdateV1(
-            @MapperContextBinding(roots = TierRestDTOMapper.class, response = TierRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TierRestDTOMapper.class, response = TierSaveRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TIER_ID) @PathVariable UUID tierId,
             @RequestBody TierUpdateRqDTOv1 request) {
-        TierRsDTOv1 rs = new TierRsDTOv1();
+        TierSaveRsDTOv1 rs = new TierSaveRsDTOv1();
         try {
-            TierEntity tierEntity = tierService.updateTier(tierUpdateDTOReverseMapper.convert(request).setId(tierId));
+            TierEntity tierEntity = tierService.updateTier(tierUpdateDTOReverseMapper.convert(request.getTier()).setId(tierId));
             rs.setTier(tierRestDTOMapperV2.convert(tierEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
