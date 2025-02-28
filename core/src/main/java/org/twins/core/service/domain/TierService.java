@@ -2,6 +2,7 @@ package org.twins.core.service.domain;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -18,6 +19,8 @@ import org.twins.core.service.permission.PermissionSchemaService;
 import org.twins.core.service.twinclass.TwinClassSchemaService;
 import org.twins.core.service.twinflow.TwinflowSchemaService;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -57,6 +60,13 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
 
     @Override
     public boolean validateEntity(TierEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entity.getPermissionSchemaId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty permissionSchemaId");
+        if (entity.getTwinflowSchemaId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinflowSchemaId");
+        if (entity.getTwinClassSchemaId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinClassSchemaId");
+
         switch (entityValidateMode) {
             case beforeSave:
                 if (entity.getPermissionSchema() == null || !entity.getPermissionSchema().getId().equals(entity.getPermissionSchemaId()))
@@ -81,7 +91,8 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
     @Transactional(rollbackFor = Throwable.class)
     public TierEntity createTier(TierEntity tierCreate) throws ServiceException {
         tierCreate
-                .setDomainId(authService.getApiUser().getDomainId());
+                .setDomainId(authService.getApiUser().getDomainId())
+                .setCreatedAt(Timestamp.from(Instant.now()));
         return saveSafe(tierCreate);
     }
 
@@ -90,70 +101,32 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
         TierEntity dbTierEntity = findEntitySafe(tierUpdate.getId());
         ChangesHelper changesHelper = new ChangesHelper();
 
-        updateTierName(dbTierEntity, tierUpdate.getName(), changesHelper);
-        updateTierDescription(dbTierEntity, tierUpdate.getDescription(), changesHelper);
-        updateTierCustom(dbTierEntity, tierUpdate.isCustom(), changesHelper);
-        updateTierPermissionSchemaId(dbTierEntity, tierUpdate.getPermissionSchemaId(), changesHelper);
-        updateTierTwinflowSchemaId(dbTierEntity, tierUpdate.getTwinflowSchemaId(), changesHelper);
-        updateTierTwinClassSchemaId(dbTierEntity, tierUpdate.getTwinClassSchemaId(), changesHelper);
-        updateTierAttachmentsStorageQuotaCount(dbTierEntity, tierUpdate.getAttachmentsStorageQuotaCount(), changesHelper);
-        updateTierAttachmentsStorageQuotaSize(dbTierEntity, tierUpdate.getAttachmentsStorageQuotaSize(), changesHelper);
-        updateTierUserCountQuota(dbTierEntity, tierUpdate.getUserCountQuota(), changesHelper);
+        updateEntityField(tierUpdate, dbTierEntity, TierEntity::getName,
+                TierEntity::setName, TierEntity.Fields.name, changesHelper);
+        updateEntityField(tierUpdate, dbTierEntity, TierEntity::getDescription,
+                TierEntity::setDescription, TierEntity.Fields.description, changesHelper);
+        updateEntityField(tierUpdate, dbTierEntity, TierEntity::getCustom,
+                TierEntity::setCustom, TierEntity.Fields.custom, changesHelper);
+        updateEntityField(tierUpdate, dbTierEntity, TierEntity::getPermissionSchemaId,
+                TierEntity::setPermissionSchemaId, TierEntity.Fields.permissionSchemaId, changesHelper);
+        updateEntityField(tierUpdate, dbTierEntity, TierEntity::getTwinflowSchemaId,
+                TierEntity::setTwinflowSchemaId, TierEntity.Fields.twinflowSchemaId, changesHelper);
+        updateEntityField(tierUpdate, dbTierEntity, TierEntity::getTwinClassSchemaId,
+                TierEntity::setTwinClassSchemaId, TierEntity.Fields.twinClassSchemaId, changesHelper);
+        updateEntityField(tierUpdate, dbTierEntity, TierEntity::getAttachmentsStorageQuotaCount,
+                TierEntity::setAttachmentsStorageQuotaCount, TierEntity.Fields.attachmentsStorageQuotaCount, changesHelper);
+        updateEntityField(tierUpdate, dbTierEntity, TierEntity::getAttachmentsStorageQuotaSize,
+                TierEntity::setAttachmentsStorageQuotaSize, TierEntity.Fields.attachmentsStorageQuotaSize, changesHelper);
+        updateEntityField(tierUpdate, dbTierEntity, TierEntity::getUserCountQuota,
+                TierEntity::setUserCountQuota, TierEntity.Fields.userCountQuota, changesHelper);
+
+        dbTierEntity.setUpdatedAt(Timestamp.from(Instant.now()));
 
         return updateSafe(dbTierEntity, changesHelper);
     }
 
-    private void updateTierName(TierEntity tierEntity, String newName, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TierEntity.Fields.name, tierEntity.getName(), newName))
-            return;
-        tierEntity.setName(newName);
-    }
-
-    private void updateTierDescription(TierEntity tierEntity, String newDescription, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TierEntity.Fields.description, tierEntity.getName(), newDescription))
-            return;
-        tierEntity.setDescription(newDescription);
-    }
-
-    private void updateTierCustom(TierEntity tierEntity, Boolean newCustom, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TierEntity.Fields.custom, tierEntity.getName(), newCustom))
-            return;
-        tierEntity.setCustom(newCustom);
-    }
-
-    private void updateTierPermissionSchemaId(TierEntity tierEntity, UUID newPermissionSchemaId, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TierEntity.Fields.permissionSchemaId, tierEntity.getName(), newPermissionSchemaId))
-            return;
-        tierEntity.setPermissionSchemaId(newPermissionSchemaId);
-    }
-
-    private void updateTierTwinflowSchemaId(TierEntity tierEntity, UUID newTwinflowSchemaId, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TierEntity.Fields.twinflowSchemaId, tierEntity.getName(), newTwinflowSchemaId))
-            return;
-        tierEntity.setTwinflowSchemaId(newTwinflowSchemaId);
-    }
-
-    private void updateTierTwinClassSchemaId(TierEntity tierEntity, UUID newTwinClassSchemaId, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TierEntity.Fields.twinClassSchemaId, tierEntity.getName(), newTwinClassSchemaId))
-            return;
-        tierEntity.setTwinClassSchemaId(newTwinClassSchemaId);
-    }
-
-    private void updateTierAttachmentsStorageQuotaCount(TierEntity tierEntity, Integer newQuotaCount, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TierEntity.Fields.attachmentsStorageQuotaCount, tierEntity.getName(), newQuotaCount))
-            return;
-        tierEntity.setAttachmentsStorageQuotaCount(newQuotaCount);
-    }
-
-    private void updateTierAttachmentsStorageQuotaSize(TierEntity tierEntity, Long newQuotaSize, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TierEntity.Fields.attachmentsStorageQuotaSize, tierEntity.getName(), newQuotaSize))
-            return;
-        tierEntity.setAttachmentsStorageQuotaSize(newQuotaSize);
-    }
-
-    private void updateTierUserCountQuota(TierEntity tierEntity, Integer newUserCountQuota, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TierEntity.Fields.userCountQuota, tierEntity.getName(), newUserCountQuota))
-            return;
-        tierEntity.setUserCountQuota(newUserCountQuota);
+    @Transactional
+    public void deleteTier(UUID id) throws ServiceException {
+        deleteSafe(id);
     }
 }

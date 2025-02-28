@@ -41,7 +41,7 @@ public class PermissionGrantUserGroupCreateController extends ApiController {
     @ParametersApiUserHeaders
     @Operation(operationId = "permissionGrantUserGroupCreateV1", summary = "Create permission grant user group")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", content = {
+            @ApiResponse(responseCode = "200", description = "Permission grant user group created successfully", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = PermissionGrantUserGroupSaveRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
@@ -54,7 +54,7 @@ public class PermissionGrantUserGroupCreateController extends ApiController {
             PermissionGrantUserGroupEntity entity = permissionGrantUserGroupCreateRestReverseDTOMapper.convert(request, mapperContext);
             entity = permissionGrantUserGroupService.createPermissionGrantUserGroup(entity);
             rs
-                    .setPermissionGrantUserGroup(permissionGrantUserGroupRestDTOMapperV2.convert(entity))
+                    .setPermissionGrantUserGroup(permissionGrantUserGroupRestDTOMapperV2.convert(entity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

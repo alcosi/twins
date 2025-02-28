@@ -34,6 +34,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     PERMISSION_KEY_INCORRECT(10305, "permission key is incorrect"),
     TWIN_ID_IS_INCORRECT(10306, "twin id is invalid"),
     PERMISSION_GROUP_UNSUPPORTED(10307, "Current permission group is system group. No permission can be added to such group"),
+    PERMISSION_GRANT_USER_ALREADY_EXISTS(10307, "Entry permission grant user with same data already exists"),
     TWIN_CLASS_SCHEMA_NOT_ALLOWED(10401, "twin class schema is not allowed"),
     TWIN_CLASS_FIELD_KEY_UNKNOWN(10402, "twin class field key is unknown"),
     TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT(10403, "twin class field value type is incorrect"),

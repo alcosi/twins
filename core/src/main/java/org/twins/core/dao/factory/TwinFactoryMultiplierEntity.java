@@ -32,7 +32,7 @@ public class TwinFactoryMultiplierEntity implements EasyLoggable {
     private UUID inputTwinClassId;
 
     @Column(name = "multiplier_featurer_id")
-    private int multiplierFeaturerId;
+    private Integer multiplierFeaturerId;
 
     @Column(name = "description")
     private String description;

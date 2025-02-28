@@ -347,7 +347,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         LoggerUtils.traceTreeLevelDown();
         for (TwinFactoryEraserEntity eraserEntity : eraserEntityList) {
             log.info("Checking input for {} **{}** ", eraserEntity.logNormal(), eraserEntity.getDescription());
-            Set<FactoryItem> eraserInputList = getInputItems(factoryContext, eraserEntity.getInputTwinClassId(), eraserEntity.getTwinFactoryConditionSetId(), eraserEntity.isTwinFactoryConditionInvert());
+            Set<FactoryItem> eraserInputList = getInputItems(factoryContext, eraserEntity.getInputTwinClassId(), eraserEntity.getTwinFactoryConditionSetId(), eraserEntity.getTwinFactoryConditionInvert());
             if (CollectionUtils.isEmpty(eraserInputList)) {
                 log.info("Skipping {} because of empty input", eraserEntity.logShort());
                 continue;

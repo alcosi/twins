@@ -16,47 +16,46 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
+import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.factory.FactoryMultiplierCreateRqDTOv1;
-import org.twins.core.dto.rest.factory.FactoryMultiplierRsDTOv1;
-import org.twins.core.mappers.rest.factory.FactoryMultiplierCreateDTOReverseMapper;
-import org.twins.core.mappers.rest.factory.FactoryMultiplierRestDTOMapperV2;
+import org.twins.core.dto.rest.factory.FactoryEraserCreateRqDTOv1;
+import org.twins.core.dto.rest.factory.FactoryEraserSaveRsDTOv1;
+import org.twins.core.mappers.rest.factory.FactoryEraserCreateDTOReverseMapper;
+import org.twins.core.mappers.rest.factory.FactoryEraserRestDTOMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.factory.FactoryMultiplierService;
+import org.twins.core.service.factory.FactoryEraserService;
 
 import java.util.UUID;
 
-@Tag(name = ApiTag.FACTORY)
+@Tag(description = "", name = ApiTag.FACTORY)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class FactoryMultiplierCreateController extends ApiController {
-    private final FactoryMultiplierRestDTOMapperV2 factoryMultiplierRestDTOMapperV2;
-    private final FactoryMultiplierCreateDTOReverseMapper factoryMultiplierCreateDTOReverseMapper;
-    private final FactoryMultiplierService factoryMultiplierService;
+public class FactoryEraserCreateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
+    private final FactoryEraserCreateDTOReverseMapper factoryEraserCreateDTOReverseMapper;
+    private final FactoryEraserRestDTOMapperV2 factoryEraserRestDTOMapperV2;
+    private final FactoryEraserService factoryEraserService;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "factoryMultiplierCreateV1", summary = "Factory multiplier add")
+    @Operation(operationId = "factoryEraserCreateV1", summary = "Create factory eraser")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Factory multiplier add", content = {
+            @ApiResponse(responseCode = "200", description = "Factory eraser created successfully", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = FactoryMultiplierRsDTOv1.class))}),
+                    @Schema(implementation = FactoryEraserSaveRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/factory/{factoryId}/factory_multiplier/v1")
-    public ResponseEntity<?> factoryMultiplierCreateV1(
-            @MapperContextBinding(roots = FactoryMultiplierRestDTOMapperV2.class, response = FactoryMultiplierRsDTOv1.class) MapperContext mapperContext,
+    @PostMapping(value = "/private/factory/{factoryId}/factory_eraser/v1")
+    public ResponseEntity<?> factoryEraserCreateV1(
+            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserSaveRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_ID) @PathVariable UUID factoryId,
-            @RequestBody FactoryMultiplierCreateRqDTOv1 request) {
-        FactoryMultiplierRsDTOv1 rs = new FactoryMultiplierRsDTOv1();
+            @RequestBody FactoryEraserCreateRqDTOv1 request) {
+        FactoryEraserSaveRsDTOv1 rs = new FactoryEraserSaveRsDTOv1();
         try {
-            TwinFactoryMultiplierEntity multiplierEntity = factoryMultiplierCreateDTOReverseMapper.convert(request.getFactoryMultiplier());
-            multiplierEntity.setTwinFactoryId(factoryId);
-            multiplierEntity = factoryMultiplierService.createFactoryMultiplier(multiplierEntity);
+            TwinFactoryEraserEntity entity = factoryEraserCreateDTOReverseMapper.convert(request.getEraser(), mapperContext);
+            entity = factoryEraserService.createEraser(entity.setTwinFactoryId(factoryId));
             rs
-                    .setFactoryMultiplier(factoryMultiplierRestDTOMapperV2.convert(multiplierEntity, mapperContext))
+                    .setEraser(factoryEraserRestDTOMapperV2.convert(entity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
