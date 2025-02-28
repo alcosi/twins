@@ -6,8 +6,10 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dto.rest.factory.FactoryMultiplierDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryMode;
+import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 
@@ -25,6 +27,9 @@ public class FactoryMultiplierRestDTOMapperV2 extends RestSimpleDTOMapper<TwinFa
     @MapperModePointerBinding(modes = TwinClassMode.FactoryMultiplier2TwinClassMode.class)
     private final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
 
+    @MapperModePointerBinding(modes = FeaturerMode.FactoryMultiplier2FeaturerMode.class)
+    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+
     @Override
     public void map(TwinFactoryMultiplierEntity src, FactoryMultiplierDTOv2 dst, MapperContext mapperContext) throws Exception {
         factoryMultiplierRestDTOMapper.map(src, dst, mapperContext);
@@ -36,6 +41,10 @@ public class FactoryMultiplierRestDTOMapperV2 extends RestSimpleDTOMapper<TwinFa
             dst
                     .setInputTwinClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getInputTwinClass(), mapperContext.forkOnPoint(TwinClassMode.FactoryMultiplier2TwinClassMode.SHORT)))
                     .setInputTwinClassId(src.getInputTwinClassId());
+        if (mapperContext.hasModeButNot(FeaturerMode.FactoryMultiplier2FeaturerMode.HIDE))
+            dst
+                    .setMultiplierFeaturer(featurerRestDTOMapper.convertOrPostpone(src.getMultiplierFeaturer(), mapperContext.forkOnPoint(FeaturerMode.FactoryMultiplier2FeaturerMode.SHORT)))
+                    .setMultiplierFeaturerId(src.getMultiplierFeaturerId());
 
     }
 

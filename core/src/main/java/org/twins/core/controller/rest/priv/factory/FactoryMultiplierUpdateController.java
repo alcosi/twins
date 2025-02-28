@@ -18,7 +18,6 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.factory.FactoryBranchRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryMultiplierRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryMultiplierUpdateRqDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryMultiplierRestDTOMapperV2;
@@ -44,7 +43,7 @@ public class FactoryMultiplierUpdateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Factory data multiplier update", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = FactoryBranchRsDTOv1.class))}),
+                    @Schema(implementation = FactoryMultiplierRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/factory_multiplier/{factoryMultiplierId}/v1")
     public ResponseEntity<?> factoryMultiplierUpdateV1(
@@ -53,7 +52,7 @@ public class FactoryMultiplierUpdateController extends ApiController {
             @RequestBody FactoryMultiplierUpdateRqDTOv1 request) {
         FactoryMultiplierRsDTOv1 rs = new FactoryMultiplierRsDTOv1();
         try {
-            TwinFactoryMultiplierEntity multiplierEntity = factoryMultiplierUpdateDTOReverseMapper.convert(request)
+            TwinFactoryMultiplierEntity multiplierEntity = factoryMultiplierUpdateDTOReverseMapper.convert(request.getFactoryMultiplier())
                     .setId(factoryMultiplierId);
             multiplierEntity = factoryMultiplierService.updateFactoryMultiplier(multiplierEntity);
             rs

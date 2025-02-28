@@ -52,7 +52,7 @@ public class FactoryMultiplierCreateController extends ApiController {
             @RequestBody FactoryMultiplierCreateRqDTOv1 request) {
         FactoryMultiplierRsDTOv1 rs = new FactoryMultiplierRsDTOv1();
         try {
-            TwinFactoryMultiplierEntity multiplierEntity = factoryMultiplierCreateDTOReverseMapper.convert(request);
+            TwinFactoryMultiplierEntity multiplierEntity = factoryMultiplierCreateDTOReverseMapper.convert(request.getFactoryMultiplier());
             multiplierEntity.setTwinFactoryId(factoryId);
             multiplierEntity = factoryMultiplierService.createFactoryMultiplier(multiplierEntity);
             rs

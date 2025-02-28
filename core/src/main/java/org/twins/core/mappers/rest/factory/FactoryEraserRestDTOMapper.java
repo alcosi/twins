@@ -17,23 +17,21 @@ public class FactoryEraserRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryE
     @Override
     public void map(TwinFactoryEraserEntity src, FactoryEraserDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(FactoryEraserMode.DETAILED)) {
-            case DETAILED:
+            case DETAILED ->
                 dst
                         .setId(src.getId())
                         .setFactoryId(src.getTwinFactoryId())
                         .setInputTwinClassId(src.getInputTwinClassId())
                         .setFactoryConditionSetId(src.getTwinFactoryConditionSetId())
-                        .setFactoryConditionSetInvert(src.isTwinFactoryConditionInvert())
+                        .setFactoryConditionSetInvert(src.getTwinFactoryConditionInvert())
                         .setDescription(src.getDescription())
                         .setAction(src.getEraserAction())
-                        .setActive(src.isActive());
-                break;
-            case SHORT:
+                        .setActive(src.getActive());
+            case SHORT ->
                 dst
                         .setId(src.getId())
                         .setFactoryId(src.getTwinFactoryId())
                         .setAction(src.getEraserAction());
-                break;
         }
     }
 }
