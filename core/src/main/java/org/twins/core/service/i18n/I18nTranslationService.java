@@ -52,15 +52,11 @@ public class I18nTranslationService extends EntitySecureFindServiceImpl<I18nTran
         I18nTranslationEntity dbEntity = findEntitySafe(entity.getI18nId());
         ChangesHelper changesHelper = new ChangesHelper();
 
-        updateEntityField(entity, dbEntity,I18nTranslationEntity::getLocale, I18nTranslationEntity::setLocale,
+        updateEntityField(entity, dbEntity, I18nTranslationEntity::getLocale, I18nTranslationEntity::setLocale,
                 I18nTranslationEntity.Fields.locale, changesHelper);
-        updateEntityField(entity, dbEntity,I18nTranslationEntity::getTranslation, I18nTranslationEntity::setTranslation,
+        updateEntityField(entity, dbEntity, I18nTranslationEntity::getTranslation, I18nTranslationEntity::setTranslation,
                 I18nTranslationEntity.Fields.translation, changesHelper);
 
         return updateSafe(dbEntity, changesHelper);
-    }
-
-    public I18nTranslationEntity getI18nTranslationById(UUID id) throws ServiceException {
-        return findEntitySafe(id);
     }
 }
