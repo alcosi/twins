@@ -16,11 +16,13 @@ import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldMode;
 public class I18nTranslationRestDTOMapper extends RestSimpleDTOMapper<I18nTranslationEntity, I18nTranslationDTOv1> {
     @Override
     public void map(I18nTranslationEntity src, I18nTranslationDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(TwinClassFieldMode.DETAILED)) {
-            case SHORT -> dst
+        switch (mapperContext.getModeOrUse(I18nTranslationMode.DETAILED)) {
+            case SHORT ->
+                dst
                     .setI18nId(src.getI18nId())
                     .setLocale(src.getLocale());
-            case DETAILED -> dst
+            case DETAILED ->
+                dst
                     .setI18nId(src.getI18nId())
                     .setLocale(src.getLocale())
                     .setTranslation(src.getTranslation());
