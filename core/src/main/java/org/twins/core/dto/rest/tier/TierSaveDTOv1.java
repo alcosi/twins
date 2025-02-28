@@ -10,14 +10,14 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "TierSaveRqV1")
-public class TierSaveRqDTOv1 extends Request {
+@Schema(name = "TierSaveV1")
+public class TierSaveDTOv1 {
 
     @Schema(description = "name", example = DTOExamples.NAME)
     public String name;
 
     @Schema(description = "custom", example = DTOExamples.BOOLEAN_TRUE)
-    public boolean custom;
+    public Boolean custom;
 
     @Schema(description = "permission schema id", example = DTOExamples.PERMISSION_SCHEMA_ID)
     public UUID permissionSchemaId;
