@@ -18,13 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierRepository;
-import org.twins.core.dao.twin.TwinFieldDataListEntity;
-import org.twins.core.dao.twin.TwinFieldSimpleEntity;
-import org.twins.core.dao.twin.TwinFieldUserEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
-import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -69,6 +63,13 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
 
     @Override
     public boolean validateEntity(TwinFactoryMultiplierEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if(entity.getInputTwinClassId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty inputTwinClassId");
+        if(entity.getTwinFactoryId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinFactoryId");
+        if(entity.getMultiplierFeaturerId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty multiplierFeaturerId");
+
         switch (entityValidateMode) {
             case beforeSave:
                 if (entity.getInputTwinClass() == null || !entity.getInputTwinClass().getId().equals(entity.getInputTwinClassId()))
@@ -90,20 +91,18 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
         TwinFactoryMultiplierEntity dbMultiplierEntity = findEntitySafe(multiplierUpdate.getId());
         ChangesHelper changesHelper = new ChangesHelper();
 
-        updateInputTwinClassId(dbMultiplierEntity, multiplierUpdate.getInputTwinClassId(), changesHelper);
+        updateEntityField(multiplierUpdate, dbMultiplierEntity, TwinFactoryMultiplierEntity::getInputTwinClassId,
+                TwinFactoryMultiplierEntity::setInputTwinClassId, TwinFactoryMultiplierEntity.Fields.inputTwinClassId, changesHelper);
+        updateEntityField(multiplierUpdate, dbMultiplierEntity, TwinFactoryMultiplierEntity::getDescription,
+                TwinFactoryMultiplierEntity::setDescription, TwinFactoryMultiplierEntity.Fields.description, changesHelper);
+        updateEntityField(multiplierUpdate, dbMultiplierEntity, TwinFactoryMultiplierEntity::getActive,
+                TwinFactoryMultiplierEntity::setActive, TwinFactoryMultiplierEntity.Fields.active, changesHelper);
+
         updateMultiplierFeaturerId(dbMultiplierEntity, multiplierUpdate.getMultiplierFeaturerId(), multiplierUpdate.getMultiplierParams(), changesHelper);
-        updateActive(dbMultiplierEntity, multiplierUpdate.getActive(), changesHelper);
-        updateDescription(dbMultiplierEntity, multiplierUpdate.getDescription(), changesHelper);
 
         return updateSafe(dbMultiplierEntity, changesHelper);
     }
 
-    private void updateInputTwinClassId(TwinFactoryMultiplierEntity dbMultiplierEntity, UUID newInputTwinClassId,
-                                        ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryMultiplierEntity.Fields.inputTwinClassId, dbMultiplierEntity.getInputTwinClassId(), newInputTwinClassId))
-            return;
-        dbMultiplierEntity.setInputTwinClassId(newInputTwinClassId);
-    }
 
     public void updateMultiplierFeaturerId(TwinFactoryMultiplierEntity dbMultiplierEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
         FeaturerEntity newMultiplierFeaturer = null;
@@ -126,19 +125,5 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
                     .setMultiplierFeaturerId(newMultiplierFeaturer.getId())
                     .setMultiplierFeaturer(newMultiplierFeaturer);
         }
-    }
-
-    private void updateActive(TwinFactoryMultiplierEntity dbMultiplierEntity, boolean newActive,
-                              ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryMultiplierEntity.Fields.active, dbMultiplierEntity.getActive(), newActive))
-            return;
-        dbMultiplierEntity.setActive(newActive);
-    }
-
-    private void updateDescription(TwinFactoryMultiplierEntity dbMultiplierEntity, String newDescription,
-                                   ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryMultiplierEntity.Fields.description, dbMultiplierEntity.getDescription(), newDescription))
-            return;
-        dbMultiplierEntity.setDescription(newDescription);
     }
 }
