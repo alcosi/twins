@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest;
 
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.KitUtils;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 import java.lang.reflect.ParameterizedType;
@@ -64,19 +65,28 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
         return ret;
     }
 
-    public void postpone(T src, MapperContext mapperContext) throws Exception {
+    public void postpone(T src, MapperContext mapperContext) {
         if (hideMode(mapperContext))
             return;
         if (!mapperContext.isLazyRelations())
             mapperContext.addRelatedObject(src);
     }
 
-    public void postpone(Collection<T> srcList, MapperContext mapperContext) throws Exception {
+    public void postpone(Collection<T> srcList, MapperContext mapperContext) {
         if (srcList == null)
             return;
         for (T src : srcList) {
             postpone(src, mapperContext);
         }
+    }
+
+    public Set<UUID> postpone(Kit<T, UUID> srcKit, MapperContext mapperContext) {
+        if (KitUtils.isEmpty(srcKit) || hideMode(mapperContext))
+            return Collections.emptySet();
+        for (T src : srcKit) {
+            mapperContext.addRelatedObject(src);
+        }
+        return srcKit.getIdSet();
     }
 
     public boolean hideMode(MapperContext mapperContext) {
