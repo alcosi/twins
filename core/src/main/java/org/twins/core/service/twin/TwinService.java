@@ -315,15 +315,33 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinCreateResult createTwin(TwinCreate twinCreate) throws ServiceException {
+        return createTwin(Collections.singletonList(twinCreate)).getTwinCreateResultList().getFirst();
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public TwinBatchCreateResult createTwin(List<TwinCreate> twinCreateList) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-        createTwin(twinCreate, twinChangesCollector);
+        for (TwinCreate twinCreate : twinCreateList) {
+            // todo need optimize for create batch
+            createTwin(twinCreate, twinChangesCollector);
+        }
         twinChangesService.applyChanges(twinChangesCollector);
-        TwinEntity twinEntity = twinCreate.getTwinEntity();
-        twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
+        List<TwinEntity> twinEntityList = new ArrayList<>();
+        for (TwinCreate twinCreate : twinCreateList) {
+            TwinEntity twinEntity = twinCreate.getTwinEntity();
+            twinEntityList.add(twinEntity);
+            twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
+        }
         //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
-        return new TwinCreateResult()
-                .setCreatedTwin(twinEntity)
-                .setTwinAliasEntityList(twinAliasService.createAliases(twinEntity));
+        TwinBatchCreateResult twinBatchCreateResult = new TwinBatchCreateResult();
+        for (TwinEntity twinEntity : twinEntityList) {
+            twinBatchCreateResult.getTwinCreateResultList().add(
+                    new TwinCreateResult()
+                            .setCreatedTwin(twinEntity)
+                            .setTwinAliasEntityList(twinAliasService.createAliases(twinEntity))
+            );
+        }
+        return twinBatchCreateResult;
     }
 
     public void createTwin(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
@@ -1002,6 +1020,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public static class TwinCreateResult {
         private TwinEntity createdTwin;
         private List<TwinAliasEntity> twinAliasEntityList;
+    }
+
+    @Data
+    public static class TwinBatchCreateResult {
+        private List<TwinCreateResult> twinCreateResultList = new ArrayList<>();
     }
 
     @Data
