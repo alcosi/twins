@@ -194,7 +194,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContextLevel3.getRelatedUserMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedUserMap(), userRestDTOMapper, mapperContextLevel3, userMap, UserEntity::getId);
         if (!mapperContextLevel3.getRelatedUserGroupMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedUserGroupMap(), userGroupRestDTOMapper, mapperContextLevel3, userGroupMap, UserGroupEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedUserGroupMap(), userGroupRestDTOMapper, mapperContextLevel3, userGroupMap, UserGroupEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinflowTransitionMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedTwinflowTransitionMap(), transitionBaseV1RestDTOMapper, mapperContextLevel3, twinflowTransitionMap, TwinflowTransitionEntity::getId);
         if (!mapperContextLevel3.getRelatedDataListMap().isEmpty())
