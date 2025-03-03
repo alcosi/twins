@@ -14,5 +14,5 @@ import java.util.List;
 @Schema(name = "I18nTranslationSaveRsV1")
 public class I18nTranslationSaveRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "results - i18n translation")
-    public I18nTranslationDTOv1 i18nTranslation;
+    public List<I18nTranslationDTOv1> i18nTranslations;
 }

@@ -13,9 +13,6 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "I18nTranslationSaveV1")
 public class I18nTranslationSaveDTOv1 {
-    @Schema(description = "locale", example = DTOExamples.LOCALE)
-    public Locale locale;
-
-    @Schema(description = "translation", example = DTOExamples.TRANSLATION)
-    public String translation;
+    @Schema(description = "map (locale : translate)", example = DTOExamples.TRANSLATION_MAP)
+    public Map<Locale, String> translations;
 }

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.i18n.I18nTranslationRepository;
 
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -48,15 +48,22 @@ public class I18nTranslationService extends EntitySecureFindServiceImpl<I18nTran
         return true;
     }
 
-    public I18nTranslationEntity updateI18nTranslationEntity(I18nTranslationEntity entity) throws ServiceException {
-        I18nTranslationEntity dbEntity = findEntitySafe(entity.getI18nId());
-        ChangesHelper changesHelper = new ChangesHelper();
+    public List<I18nTranslationEntity> updateI18nTranslations(UUID i18nId, List<I18nTranslationEntity> entities) throws ServiceException {
+        List<I18nTranslationEntity> updatedEntities = new ArrayList<>();
 
-        updateEntityField(entity, dbEntity, I18nTranslationEntity::getLocale, I18nTranslationEntity::setLocale,
-                I18nTranslationEntity.Fields.locale, changesHelper);
-        updateEntityField(entity, dbEntity, I18nTranslationEntity::getTranslation, I18nTranslationEntity::setTranslation,
-                I18nTranslationEntity.Fields.translation, changesHelper);
+        for (Map.Entry<Locale, String> entry : translations.entrySet()) {
+            Locale locale = entry.getKey();
+            String translation = entry.getValue();
 
-        return updateSafe(dbEntity, changesHelper);
+            I18nTranslationEntity entity = repository.findByI18nIdAndLocale(i18nId, locale)
+                    .orElse(new I18nTranslationEntity().setI18nId(i18nId).setLocale(locale));
+
+            entity.setTranslation(translation);
+
+            validateEntity(entity, EntitySmartService.EntityValidateMode.beforeSave);
+            updatedEntities.add(repository.save(entity));
+        }
+
+        return updatedEntities;
     }
 }

@@ -52,13 +52,6 @@ public class I18nTranslationUpdateController extends ApiController {
             @RequestBody I18nTranslationUpdateRqDTOv1 request) {
         I18nTranslationSaveRsDTOv1 rs = new I18nTranslationSaveRsDTOv1();
         try {
-            I18nTranslationEntity i18nTranslation = i18nTranslationUpdateDTOReverseMapper.convert(request.getI18nTranslation())
-                    .setI18nId(i18nId);
-
-            i18nTranslation = i18nTranslationService.updateI18nTranslationEntity(i18nTranslation);
-            rs
-                    .setI18nTranslation(i18nTranslationRestDTOMapper.convert(i18nTranslation, mapperContext))
-                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
 
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

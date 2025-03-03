@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.Request;
 @Schema(name = "I18nTranslationUpdateRqV1")
 public class I18nTranslationUpdateRqDTOv1 extends Request {
     @Schema(description = "i18n translation update")
-    public I18nTranslationUpdateDTOv1 i18nTranslation;
+    public I18nTranslationUpdateDTOv1 i18nTranslations;
 }
