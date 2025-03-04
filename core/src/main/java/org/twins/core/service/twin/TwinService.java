@@ -322,7 +322,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public TwinBatchCreateResult createTwin(List<TwinCreate> twinCreateList) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         for (TwinCreate twinCreate : twinCreateList) {
-            // todo need optimize for create batch
             createTwin(twinCreate, twinChangesCollector);
         }
         twinChangesService.applyChanges(twinChangesCollector);
