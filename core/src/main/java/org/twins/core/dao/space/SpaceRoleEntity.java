@@ -2,6 +2,9 @@ package org.twins.core.dao.space;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -10,6 +13,7 @@ import java.util.UUID;
 
 @Entity
 @Data
+@FieldNameConstants
 @Table(name = "space_role")
 public class SpaceRoleEntity {
     @Id
@@ -39,12 +43,15 @@ public class SpaceRoleEntity {
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
     private BusinessAccountEntity businessAccount;
 
-//    @ManyToOne
-//    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-//    private I18nEntity nameI18N;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-//    private I18nEntity descriptionI18N;
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
+    private I18nEntity nameI18n;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
+    private I18nEntity descriptionI18n;
 }
