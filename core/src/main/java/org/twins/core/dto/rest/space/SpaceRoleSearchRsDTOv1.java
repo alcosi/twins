@@ -12,8 +12,8 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@Schema(name = "SpaceRoleSearchRsV2")
-public class SpaceRoleSearchRsDTOv2 extends ResponseRelatedObjectsDTOv1 {
+@Schema(name = "SpaceRoleSearchRsV1")
+public class SpaceRoleSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 

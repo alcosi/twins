@@ -23,7 +23,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dto.rest.space.SpaceRoleSearchRqDTOv1;
-import org.twins.core.dto.rest.space.SpaceRoleSearchRsDTOv2;
+import org.twins.core.dto.rest.space.SpaceRoleSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -47,14 +47,14 @@ public class SpaceRoleSearchController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Space role list", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = SpaceRoleSearchRsDTOv2.class))}),
+                    @Schema(implementation = SpaceRoleSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/space_role/search/v1")
     public ResponseEntity<?> spaceRoleSearchListV1(
-            @MapperContextBinding(roots = SpaceRoleDTOMapperV2.class, response = SpaceRoleSearchRsDTOv2.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = SpaceRoleDTOMapperV2.class, response = SpaceRoleSearchRsDTOv1.class) MapperContext mapperContext,
             @RequestBody SpaceRoleSearchRqDTOv1 request,
             @SimplePaginationParams SimplePagination pagination) {
-        SpaceRoleSearchRsDTOv2 rs = new SpaceRoleSearchRsDTOv2();
+        SpaceRoleSearchRsDTOv1 rs = new SpaceRoleSearchRsDTOv1();
         try {
             PaginationResult<SpaceRoleEntity> spaceRoleList = spaceRoleSearchService
                     .findSpaceRole(spaceRoleSearchDTOReverseMapper.convert(request), pagination);
