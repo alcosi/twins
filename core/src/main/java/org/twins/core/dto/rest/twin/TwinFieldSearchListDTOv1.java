@@ -8,9 +8,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinFieldSearchDataListOptionsV1")
-public class TwinFieldSearchListDTOv1 extends TwinFieldSearchDTOv1 {
+public class TwinFieldSearchListDTOv1 implements TwinFieldSearchDTOv1 {
 
     public static final String KEY = "searchListOptionsV1";
     public String type = KEY;

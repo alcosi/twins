@@ -8,9 +8,8 @@ import java.util.Set;
 
 @Data
 @Accessors(fluent = true)
-@EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinFieldSearchTextV1")
-public class TwinFieldSearchTextDTOv1 extends TwinFieldSearchDTOv1 {
+public class TwinFieldSearchTextDTOv1 implements TwinFieldSearchDTOv1 {
 
     public static final String KEY = "searchTextValueV1";
     public String type = KEY;

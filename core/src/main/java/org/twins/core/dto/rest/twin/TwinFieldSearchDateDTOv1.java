@@ -8,9 +8,8 @@ import java.time.LocalDateTime;
 
 @Data
 @Accessors(fluent = true)
-@EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinFieldSearchDateV1", description = "(less & more connected with AND) and after connected to equals with OR and to emty with OR")
-public class TwinFieldSearchDateDTOv1 extends TwinFieldSearchDTOv1 {
+public class TwinFieldSearchDateDTOv1 implements TwinFieldSearchDTOv1 {
 
     public static final String KEY = "searchDateValueV1";
     public String type = KEY;
