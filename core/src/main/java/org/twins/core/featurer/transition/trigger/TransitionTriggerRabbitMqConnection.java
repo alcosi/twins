@@ -17,7 +17,7 @@ public abstract class TransitionTriggerRabbitMqConnection extends TransitionTrig
     public static final FeaturerParamString url = new FeaturerParamString("url");
 
     @FeaturerParam(name = "port", description = "rabbit server port", optional = false)
-    public static final FeaturerParamInt port = new FeaturerParamInt("99999");
+    public static final FeaturerParamInt port = new FeaturerParamInt("port");
 
     //todo parameters etc.
 
@@ -36,7 +36,7 @@ public abstract class TransitionTriggerRabbitMqConnection extends TransitionTrig
     public Object connect(Properties properties) {
         Integer portValue = port.extract(properties);
         //... todo set connection
-
+        return null;
     }
 
     public abstract void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus);
