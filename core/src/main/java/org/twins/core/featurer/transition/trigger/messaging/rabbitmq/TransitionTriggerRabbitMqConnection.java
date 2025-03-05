@@ -1,4 +1,4 @@
-package org.twins.core.featurer.transition.trigger;
+package org.twins.core.featurer.transition.trigger.messaging.rabbitmq;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -7,6 +7,7 @@ import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 
 import java.util.Properties;
 
