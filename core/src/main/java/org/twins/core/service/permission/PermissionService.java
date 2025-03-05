@@ -449,10 +449,12 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     }
 
     //todo create load for collection
+    //todo move to psql stored function. returns [uuid] accept userId and permissionschemaId(but we can use stored - spaceId=null)
     public void loadUserPermissions(UserEntity user) throws ServiceException {
         if (user.getPermissions() != null)
             return;
-        UUID permissionSchemaId = detectPermissionSchemaId(authService.getApiUser());
+                                    //todo tier schema???( also in stored )
+        UUID permissionSchemaId = detectPermissionSchemaId(authService.getApiUser()); //todo we can use stored
         userGroupService.loadGroups(user);
         List<UUID> permissionList = permissionGrantUserRepository
                 .findPermissionIdByPermissionSchemaIdAndUserId(permissionSchemaId, user.getId());
