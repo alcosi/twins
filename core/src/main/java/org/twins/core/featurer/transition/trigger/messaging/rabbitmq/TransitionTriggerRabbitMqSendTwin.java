@@ -10,31 +10,34 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.rabbit.DynamicAmpqManager;
+import org.twins.core.service.rabbit.AmpqManager;
 
+import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 
 @Service
 @Slf4j
 @Featurer(id = FeaturerTwins.ID_1504,
-        name = "ConnectEventTrigger",
-        description = "Trigger for ...")
+        name = "RabbitMqSendTwin",
+        description = "Trigger for sending event to rabbit")
 @RequiredArgsConstructor
-public class TransitionTriggerRabbitMqSendTwinId extends TransitionTriggerRabbitMqConnection {
+public class TransitionTriggerRabbitMqSendTwin extends TransitionTriggerRabbitMqConnection {
 
-    @FeaturerParam(name = "Main exchange", description = "Name of main exchange", order = 1)
-    private static final FeaturerParamString MAIN_EXCHANGE = new FeaturerParamString("mainExc");
-    @FeaturerParam(name = "Main queue", description = "Name of main queue", order = 2) //todo order?
-    private static final FeaturerParamString MAIN_QUEUE = new FeaturerParamString("mainQueue");
-    private final DynamicAmpqManager dynamicAmpqManager;
+    @FeaturerParam(name = "Exchange", description = "Name of exchange")
+    private static final FeaturerParamString EXCHANGE = new FeaturerParamString("exc");
+    @FeaturerParam(name = "Queue", description = "Name of queue")
+    private static final FeaturerParamString QUEUE = new FeaturerParamString("queue");
+    private final AmpqManager ampqManager;
 
     @Override
     public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) {
-
+        log.debug("Sending to Rabbit");
         ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(
                 TransitionTriggerRabbitMqConnection.URL.extract(properties));
 
-        dynamicAmpqManager.sendMessage(factory, MAIN_EXCHANGE.extract(properties), MAIN_QUEUE.extract(properties), twinEntity);
-        log.debug("Sending to Rabbit");
+        Map<String, UUID> eventMap = Map.of( "twinId" ,twinEntity.getId(), "statusId", dstTwinStatus.getId());
+        ampqManager.sendMessage(factory, EXCHANGE.extract(properties), QUEUE.extract(properties), eventMap);
+        log.debug("Done sending to Rabbit");
     }
 }
