@@ -36,7 +36,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             TwinClassMode.class,
             TwinClassMode.TwinClassHead2TwinClassMode.class,
             TwinClassMode.TwinClassExtends2TwinClassMode.class,
-            TwinClassChildShortMode.class
+            TwinClassMode.TwinClassChild2TwinClassMode.class
     })
     private final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
 
@@ -155,10 +155,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                     .setHeadHunterFeaturer(featurerRestDTOMapper.convertOrPostpone(src.getHeadHunterFeaturer(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.TwinClass2FeaturerMode.SHORT))))
                     .setHeadHunterFeaturerId(src.getHeadHunterFeaturerId());
         }
-        if (mapperContext.hasModeButNot(TwinClassChildShortMode.HIDE)) {
-            mapperContext.setMode(TwinClassMode.SHORT);
+        if (mapperContext.hasModeButNot(TwinClassMode.TwinClassChild2TwinClassMode.HIDE)) {
             twinClassService.loadChild(src);
-            dst.setChildTwinClassList(twinClassBaseRestDTOMapper.convertCollection(src.getChildTwinClassList(), mapperContext));
+            dst.setChildTwinClassList(twinClassBaseRestDTOMapper.convertCollection(src.getChildTwinClassList(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.TwinClassChild2TwinClassMode.SHORT))));
         }
     }
 
@@ -186,7 +185,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (mapperContext.hasModeButNot(FeaturerMode.TwinClass2FeaturerMode.HIDE)) {
             twinClassService.loadHeadHunter(srcCollection);
         }
-        if (mapperContext.hasModeButNot(TwinClassChildShortMode.HIDE) && mapperContext.hasModeButNot(TwinClassMode.HIDE)) {
+        if (mapperContext.hasModeButNot(TwinClassMode.TwinClassChild2TwinClassMode.HIDE)) {
             twinClassService.loadChild(srcCollection);
         }
     }
