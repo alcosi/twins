@@ -7,6 +7,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
@@ -54,6 +55,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
 
@@ -804,5 +806,24 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         for (Map.Entry<Integer, TwinClassEntity> map : needLoad.entrySet()) {
             map.getValue().setHeadHunterFeaturer(featurerList.get(map.getKey()));
         }
+    }
+
+    public void loadChild(TwinClassEntity twinClassEntity) {
+        loadChild(Collections.singletonList(twinClassEntity));
+    }
+
+    public void loadChild(Collection<TwinClassEntity> twinClassCollection) {
+        Kit<TwinClassEntity, UUID> needLoad = new Kit<>(TwinClassEntity::getId);
+        for (TwinClassEntity twinClass : twinClassCollection) {
+            if (twinClass.getChildTwinClassList() == null)
+                needLoad.add(twinClass);
+        }
+        if (needLoad.isEmpty())
+            return;
+        KitGrouped<TwinClassEntity, UUID, UUID> kitGrouped = new KitGrouped<>(twinClassRepository.findChildClassByHeadTwinClassIn(needLoad.getIdSet()), TwinClassEntity::getId, TwinClassEntity::getHeadTwinClassId);
+        for (TwinClassEntity twinClass : needLoad) {
+            twinClass.setChildTwinClassList(kitGrouped.getGrouped(twinClass.getId()));
+        }
+        
     }
 }

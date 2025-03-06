@@ -34,6 +34,8 @@ public interface TwinClassRepository extends CrudRepository<TwinClassEntity, UUI
     @Query(value = "select id from TwinClassEntity where extendsTwinClassId = :twinClassId")
     List<UUID> findChildClassIdList(@Param("twinClassId") UUID twinClassId);
 
+    @Query(value = "select tc from TwinClassEntity tc where tc.headTwinClassId in :headTwinClassIds")
+    List<TwinClassEntity> findChildClassByHeadTwinClassIn(@Param("headTwinClassIds") Collection<UUID> headTwinClassIds);
 
     Optional<TwinClassEntity> findByDomainIdAndKey(UUID domainId, String key);
 

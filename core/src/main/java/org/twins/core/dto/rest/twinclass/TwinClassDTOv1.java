@@ -35,10 +35,13 @@ public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
     @Schema(description = "List of tag id." + DTOExamples.LAZY_RELATION_MODE_OFF)
     public List<UUID> tagList;
 
-    @Schema()
+    @Schema(description = "list of child twin class")
+    public List<TwinClassBaseDTOv1> childTwinClassList;
+
+    @Schema(description = "forward link map")
     public Map<UUID, LinkDTOv1> forwardLinkMap;
 
-    @Schema()
+    @Schema(description = "backward link map")
     public Map<UUID, LinkDTOv1> backwardLinkMap;
 
     @Schema(description = "Map of statuses." + DTOExamples.LAZY_RELATION_MODE_ON)

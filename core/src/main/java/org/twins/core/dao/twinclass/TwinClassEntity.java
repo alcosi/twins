@@ -194,6 +194,10 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    private List<TwinClassEntity> childTwinClassList;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
     private Kit<TwinActionPermissionEntity, TwinAction> actionsProtectedByPermission;
 
     @Transient
