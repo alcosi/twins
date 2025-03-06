@@ -23,10 +23,10 @@ public class TwinClassFieldSearchRqDTOv1 extends Request {
     public Set<UUID> idExcludeList;
 
     @Schema(description = "twin class id list")
-    public Set<UUID> twinClassIdList;
+    public Set<TwinClassMapDTOv1> twinClassMapList;
 
     @Schema(description = "twin class id exclude list")
-    public Set<UUID> twinClassIdExcludeList;
+    public Set<TwinClassMapDTOv1> twinClassMapExcludeList;
 
     @Schema(description = "key like list")
     public Set<String> keyLikeList;
