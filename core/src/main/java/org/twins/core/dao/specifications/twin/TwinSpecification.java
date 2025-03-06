@@ -68,7 +68,8 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
             Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
             twinFieldSimpleJoin.on(cb.equal(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
             // convert string to double in DB for math compare
-            Expression<Double> numericValue = twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value).as(Double.class);
+            Expression<Double> numericValue = cb.function("text2double", Double.class, twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value));
+
             List<Predicate> predicates = new ArrayList<>();
             if (search.getLessThen() != null)
                 predicates.add(cb.lessThan(numericValue, cb.literal(search.getLessThen())));
@@ -103,8 +104,10 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
             List<Predicate> predicates = new ArrayList<>();
             Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
             twinFieldSimpleJoin.on(cb.equal(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
+
+
             Expression<String> stringValue = twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value);
-            Expression<LocalDateTime> dateTimeValue = stringValue.as(LocalDateTime.class);
+            Expression<LocalDateTime> dateTimeValue = cb.function("text2timestamp", LocalDateTime.class, twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value));
 
             Predicate lessAndMore = null;
             Predicate equals = null;
