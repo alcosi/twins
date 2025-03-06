@@ -158,9 +158,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (mapperContext.hasModeButNot(TwinClassChildShortMode.HIDE)) {
             mapperContext.setMode(TwinClassMode.SHORT);
             twinClassService.loadChild(src);
-            dst
-                    .setChildTwinClassList(twinClassBaseRestDTOMapper.convertCollection(src.getChildTwinClassList(), mapperContext))
-                    .setId(src.getId());
+            dst.setChildTwinClassList(twinClassBaseRestDTOMapper.convertCollection(src.getChildTwinClassList(), mapperContext));
         }
     }
 
@@ -188,7 +186,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (mapperContext.hasModeButNot(FeaturerMode.TwinClass2FeaturerMode.HIDE)) {
             twinClassService.loadHeadHunter(srcCollection);
         }
-        if (mapperContext.hasModeButNot(TwinClassChildShortMode.HIDE)) {
+        if (mapperContext.hasModeButNot(TwinClassChildShortMode.HIDE) && mapperContext.hasModeButNot(TwinClassMode.HIDE)) {
             twinClassService.loadChild(srcCollection);
         }
     }
