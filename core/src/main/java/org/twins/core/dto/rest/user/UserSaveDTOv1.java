@@ -3,18 +3,11 @@ package org.twins.core.dto.rest.user;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.DTOExamples;
-
-import java.util.Set;
-import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name =  "UserV1")
-public class UserDTOv1 {
-    @Schema(description = "id", example = DTOExamples.USER_ID)
-    public UUID id;
-
+@Schema(name =  "UserSaveV1")
+public class UserSaveDTOv1 {
     @Schema(description = "fullName", example = "John Doe")
     public String fullName;
 
@@ -23,7 +16,4 @@ public class UserDTOv1 {
 
     @Schema(description = "avatar url", example = "http://twins.org/a/avatar/carkikrefmkawfwfwg.png")
     public String avatar;
-
-    @Schema(description = "an ids of user groups")
-    public Set<UUID> userGroupIds;
 }

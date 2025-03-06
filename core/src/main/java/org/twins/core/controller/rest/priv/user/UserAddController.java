@@ -33,6 +33,8 @@ import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.user.UserService;
 
+import java.util.UUID;
+
 @Tag(name = ApiTag.USER)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -56,13 +58,17 @@ public class UserAddController extends ApiController {
             @RequestBody UserAddRqDTOv1 request) {
         Response rs = new Response();
         try {
-            domainService.checkDomainId(request.domainId, EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS);
+            // for deprecated fields
+            UUID businessAccountId = request.getUser().getBusinessAccountId() != null ? request.getUser().getBusinessAccountId() : request.getBusinessAccountId();
+            UUID domainId = request.getUser().getDomainId() != null ? request.getUser().getDomainId() : request.getDomainId();
+            String locale = request.getUser().getLocale() != null ? request.getUser().getLocale() : request.getLocale();
+            domainService.checkDomainId(domainId, EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS);
             ApiUser apiUser = authService.getApiUser();
             apiUser
-                    .setBusinessAccountResolver(new BusinessAccountResolverGivenId(request.businessAccountId))
+                    .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId))
                     .setUserResolver(new UserResolverGivenId(request.user.id))
-                    .setDomainResolver(new DomainResolverGivenId(request.domainId))
-                    .setLocaleResolver(new LocaleResolverGivenOrSystemDefault(request.getLocale()))
+                    .setDomainResolver(new DomainResolverGivenId(domainId))
+                    .setLocaleResolver(new LocaleResolverGivenOrSystemDefault(locale))
                     .setCheckMembershipMode(false);
             userService.addUser(new UserEntity()
                             .setId(request.user.id)
@@ -73,16 +79,16 @@ public class UserAddController extends ApiController {
                     EntitySmartService.SaveMode.ifPresentThrowsElseCreate
             );
             // if domain is empty and BA is empty - all done
-            if (request.businessAccountId == null && request.domainId == null)
+            if (businessAccountId == null && domainId == null)
                 return new ResponseEntity<>(rs, HttpStatus.OK);
-            if (request.businessAccountId != null) {
-                businessAccountService.addUser(request.businessAccountId, request.user.id, EntitySmartService.SaveMode.ifNotPresentCreate, EntitySmartService.SaveMode.none, true);
+            if (businessAccountId != null) {
+                businessAccountService.addUser(businessAccountId, request.user.id, EntitySmartService.SaveMode.ifNotPresentCreate, EntitySmartService.SaveMode.none, true);
             }
-            if (request.domainId != null) {
-                domainService.addUser(request.domainId, request.user.id, EntitySmartService.SaveMode.none, true);
+            if (domainId != null) {
+                domainService.addUser(domainId, request.user.id, EntitySmartService.SaveMode.none, true);
             }
-            if (request.domainId != null && request.businessAccountId != null && apiUser.getDomain().getDomainType() == DomainType.b2b) {
-                domainService.addBusinessAccount(request.getDomainId(), request.getBusinessAccountId(), null, null, EntitySmartService.SaveMode.none, true);
+            if (domainId != null && businessAccountId != null && apiUser.getDomain().getDomainType() == DomainType.b2b) {
+                domainService.addBusinessAccount(domainId, businessAccountId, null, null, EntitySmartService.SaveMode.none, true);
             }
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

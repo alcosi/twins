@@ -21,7 +21,7 @@ public class SpaceRoleDTOMapper extends RestSimpleDTOMapper<SpaceRoleEntity, Spa
     @Override
     public void map(SpaceRoleEntity src, SpaceRoleDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(SpaceRoleMode.DETAILED)) {
-            case DETAILED:
+            case DETAILED ->
                 dst
                         .setId(src.getId())
                         .setKey(src.getKey())
@@ -29,12 +29,10 @@ public class SpaceRoleDTOMapper extends RestSimpleDTOMapper<SpaceRoleEntity, Spa
                         .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
                         .setTwinClassId(src.getTwinClassId())
                         .setBusinessAccountId(src.getBusinessAccountId());
-                break;
-            case SHORT:
+            case SHORT ->
                 dst
                         .setId(src.getId())
                         .setKey(src.getKey());
-                break;
         }
     }
 

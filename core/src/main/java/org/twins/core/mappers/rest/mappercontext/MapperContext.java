@@ -197,7 +197,7 @@ public class MapperContext {
             return false;
         }
         if (relatedObject instanceof EasyLoggable loggable)
-            log.debug(loggable.easyLog(EasyLoggable.Level.NORMAL) + " will be converted later");
+            log.debug("{} will be converted later", loggable.logNormal());
         return true;
     }
 

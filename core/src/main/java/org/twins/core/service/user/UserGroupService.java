@@ -18,6 +18,7 @@ import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -69,7 +70,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         loadGroups(Collections.singletonList(userEntity));
     }
 
-    public void loadGroups(List<UserEntity> userEntityList) throws ServiceException {
+    public void loadGroups(Collection<UserEntity> userEntityList) throws ServiceException {
         Kit<UserEntity, UUID> needLoad = new Kit<>(UserEntity::getId);
         for (UserEntity userEntity : userEntityList) {
             if (userEntity.getUserGroups() == null) {

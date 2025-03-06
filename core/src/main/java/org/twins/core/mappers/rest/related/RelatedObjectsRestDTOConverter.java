@@ -8,10 +8,10 @@ import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
+import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
-import org.twins.core.dao.permission.PermissionGroupEntity;
-import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -19,9 +19,9 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
+import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
-import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.factory.FactoryDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
@@ -31,21 +31,21 @@ import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
 import org.twins.core.dto.rest.related.RelatedObjectsDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
-import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
+import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
+import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.businessaccount.BusinessAccountDTOMapper;
+import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
+import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryPipelineRestDTOMapperV2;
 import org.twins.core.mappers.rest.factory.FactoryRestDTOMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.RelatedObject;
-import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
-import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionGroupRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapperV2;
@@ -156,7 +156,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContextLevel2.getRelatedUserMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedUserMap(), userRestDTOMapper, mapperContextLevel3, userMap, UserEntity::getId);
         if (!mapperContextLevel2.getRelatedUserGroupMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedUserGroupMap(), userGroupRestDTOMapper, mapperContextLevel3, userGroupMap, UserGroupEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedUserGroupMap(), userGroupRestDTOMapper, mapperContextLevel3, userGroupMap, UserGroupEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinflowTransitionMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedTwinflowTransitionMap(), transitionBaseV1RestDTOMapper, mapperContextLevel3, twinflowTransitionMap, TwinflowTransitionEntity::getId);
         if (!mapperContextLevel2.getRelatedDataListMap().isEmpty())
@@ -194,7 +194,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContextLevel3.getRelatedUserMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedUserMap(), userRestDTOMapper, mapperContextLevel3, userMap, UserEntity::getId);
         if (!mapperContextLevel3.getRelatedUserGroupMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedUserGroupMap(), userGroupRestDTOMapper, mapperContextLevel3, userGroupMap, UserGroupEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedUserGroupMap(), userGroupRestDTOMapper, mapperContextLevel3, userGroupMap, UserGroupEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinflowTransitionMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedTwinflowTransitionMap(), transitionBaseV1RestDTOMapper, mapperContextLevel3, twinflowTransitionMap, TwinflowTransitionEntity::getId);
         if (!mapperContextLevel3.getRelatedDataListMap().isEmpty())
