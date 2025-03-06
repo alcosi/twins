@@ -5,10 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.service.rabbit.DynamicAmpqManager;
 
 import java.util.Properties;
 
@@ -20,17 +22,19 @@ import java.util.Properties;
 @RequiredArgsConstructor
 public class TransitionTriggerRabbitMqSendTwinId extends TransitionTriggerRabbitMqConnection {
 
-//    todo additional specific parameters for this trigger-rabbit-sender realisation
-//    @FeaturerParam(name = "url", description = "rabbit server url", optional = false)
-//    public static final FeaturerParamString url = new FeaturerParamString("url");
+    @FeaturerParam(name = "Main exchange", description = "Name of main exchange", order = 1)
+    private static final FeaturerParamString MAIN_EXCHANGE = new FeaturerParamString("mainExc");
+    @FeaturerParam(name = "Main queue", description = "Name of main queue", order = 2) //todo order?
+    private static final FeaturerParamString MAIN_QUEUE = new FeaturerParamString("mainQueue");
+    private final DynamicAmpqManager dynamicAmpqManager;
 
     @Override
     public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) {
+
+        ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(
+                TransitionTriggerRabbitMqConnection.URL.extract(properties));
+
+        dynamicAmpqManager.sendMessage(factory, MAIN_EXCHANGE.extract(properties), MAIN_QUEUE.extract(properties), twinEntity);
         log.debug("Sending to Rabbit");
-
-        //todo form message body and send to queue
-
-//        dynamicAmpqManager.sendMessage(MAIN_EXCHANGE.extract(properties), MAIN_QUEUE.extract(properties), twinEntity.getId());
-
     }
 }
