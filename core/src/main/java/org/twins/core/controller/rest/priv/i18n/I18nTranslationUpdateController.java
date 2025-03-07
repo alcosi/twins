@@ -49,7 +49,7 @@ public class I18nTranslationUpdateController extends ApiController {
                     @Schema(implementation = I18nTranslationSaveRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/i18n/{i18nId}/v1")
-    public ResponseEntity<?> tierUpdateV1(
+    public ResponseEntity<?> i18nTranslationUpdateV1(
             @MapperContextBinding(roots = I18nTranslationRestDTOMapper.class, response = I18nTranslationSaveRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.I18N_ID) @PathVariable UUID i18nId,
             @RequestBody I18nTranslationUpdateRqDTOv1 request) {
