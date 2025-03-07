@@ -5,6 +5,4 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 
 
 public class TwinStatusSpecification extends CommonSpecification<TwinStatusEntity> {
-
-
 }

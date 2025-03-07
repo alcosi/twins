@@ -33,6 +33,7 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
+import org.twins.core.domain.twinclass.TwinClassIdsExtender;
 import org.twins.core.domain.twinclass.TwinClassUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.headhunter.HeadHunter;
@@ -804,5 +805,26 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         for (Map.Entry<Integer, TwinClassEntity> map : needLoad.entrySet()) {
             map.getValue().setHeadHunterFeaturer(featurerList.get(map.getKey()));
         }
+    }
+
+    //todo do throws specification
+    public Set<UUID> loadExtendedClasses(List<TwinClassIdsExtender> extendClassList) {
+        if (CollectionUtils.isEmpty(extendClassList))
+            return null;
+        Set<UUID> ret = new HashSet<>();
+        Set<UUID> needLoad = new HashSet<>();
+        for (TwinClassIdsExtender twinClassIdsExtender : extendClassList) {
+            if (twinClassIdsExtender.getAddExtendableTwinClassIds())
+                needLoad.add(twinClassIdsExtender.getTwinClassId());
+            else
+                ret.add(twinClassIdsExtender.getTwinClassId());
+        }
+        if (CollectionUtils.isNotEmpty(needLoad)) {
+            List<TwinClassEntity> classes = twinClassRepository.findByIdIn(needLoad);
+            for (TwinClassEntity twinClass : classes) {
+                ret.addAll(twinClass.getExtendedClassIdSet());
+            }
+        }
+        return ret;
     }
 }
