@@ -11,15 +11,15 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 @RequiredArgsConstructor
 public class TwinClassFieldSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinClassFieldSearchRqDTOv1, TwinClassFieldSearch> {
 
-    private final TwinClassMapRestDTOReverseMapper twinClassMapRestDTOReverseMapper;
+    private final TwinClassIdsExtenderRestDTOReverseMapper twinClassIdsExtenderRestDTOReverseMapper;
 
     @Override
     public void map(TwinClassFieldSearchRqDTOv1 src, TwinClassFieldSearch dst, MapperContext mapperContext) throws Exception {
         dst
                 .setIdList(src.getIdList())
                 .setIdExcludeList(src.getIdExcludeList())
-                .setTwinClassIdsExtenderList(twinClassMapRestDTOReverseMapper.convertCollection(src.getTwinClassIdsExtenderList()))
-                .setTwinClassIdsExtenderExcludeList(twinClassMapRestDTOReverseMapper.convertCollection(src.getTwinClassIdsExtenderExcludeList()))
+                .setTwinClassIdsExtenderList(twinClassIdsExtenderRestDTOReverseMapper.convertCollection(src.getTwinClassIdsExtenderList()))
+                .setTwinClassIdsExtenderExcludeList(twinClassIdsExtenderRestDTOReverseMapper.convertCollection(src.getTwinClassIdsExtenderExcludeList()))
                 .setKeyLikeList(src.getKeyLikeList())
                 .setKeyNotLikeList(src.getKeyNotLikeList())
                 .setNameI18nLikeList(src.getNameI18nLikeList())

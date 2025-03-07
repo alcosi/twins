@@ -8,7 +8,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 
 @Component
-public class TwinClassMapRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassIdsExtenderDTOv1, TwinClassIdsExtender> {
+public class TwinClassIdsExtenderRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassIdsExtenderDTOv1, TwinClassIdsExtender> {
 
     @Override
     public void map(TwinClassIdsExtenderDTOv1 src, TwinClassIdsExtender dst, MapperContext mapperContext) throws Exception {
