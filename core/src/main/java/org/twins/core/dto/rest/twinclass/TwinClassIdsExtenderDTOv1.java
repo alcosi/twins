@@ -10,10 +10,11 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Schema(name = "TwinClassMapV1")
-public class TwinClassMapDTOv1 {
-    @Schema(description = "twin classs id", example = DTOExamples.TWIN_CLASS_ID)
+public class TwinClassIdsExtenderDTOv1 {
+    @Schema(description = "twin class id", example = DTOExamples.TWIN_CLASS_ID)
     public UUID twinClassId;
 
-    @Schema(description = "include parent fields", example = DTOExamples.BOOLEAN_TRUE)
-    public Boolean includeParentFields;
+    @Schema(description = "add extensible Twin class identifiers", example = DTOExamples.BOOLEAN_TRUE)
+    public Boolean addExtendableTwinClassIds;
+
 }

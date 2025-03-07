@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.Ternary;
-import org.twins.core.domain.twinclass.TwinClassMap;
+import org.twins.core.domain.twinclass.TwinClassIdsExtender;
 
 import java.util.List;
 import java.util.Set;
@@ -17,8 +17,8 @@ import java.util.UUID;
 public class TwinClassFieldSearch {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
-    private List<TwinClassMap> twinClassMapList;
-    private List<TwinClassMap> twinClassMapExcludeList;
+    private List<TwinClassIdsExtender> twinClassIdsExtenderList;
+    private List<TwinClassIdsExtender> twinClassIdsExtenderExcludeList;
     private Set<String> keyLikeList;
     private Set<String> keyNotLikeList;
     private Set<String> nameI18nLikeList;

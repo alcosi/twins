@@ -15,14 +15,13 @@ import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinClassFieldSearch;
-import org.twins.core.domain.twinclass.TwinClassMap;
+import org.twins.core.domain.twinclass.TwinClassIdsExtender;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecification.*;
@@ -48,8 +47,8 @@ public class TwinClassFieldSearchService {
                 checkFieldUuid(apiUser.getDomainId(), TwinClassFieldEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinClassFieldEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinClassFieldEntity.Fields.id),
-                checkUuidIn(loadExtendedClasses(search.getTwinClassMapList()), false, false, TwinClassFieldEntity.Fields.twinClassId),
-                checkUuidIn(loadExtendedClasses(search.getTwinClassMapExcludeList()), true, false, TwinClassFieldEntity.Fields.twinClassId),
+                checkUuidIn(loadExtendedClasses(search.getTwinClassIdsExtenderList()), false, false, TwinClassFieldEntity.Fields.twinClassId),
+                checkUuidIn(loadExtendedClasses(search.getTwinClassIdsExtenderExcludeList()), true, false, TwinClassFieldEntity.Fields.twinClassId),
                 checkFieldLikeIn(search.getKeyLikeList(), false, true, TwinClassFieldEntity.Fields.key),
                 checkFieldLikeIn(search.getKeyNotLikeList(), true, true, TwinClassFieldEntity.Fields.key),
                 joinAndSearchByI18NField(TwinClassFieldEntity.Fields.nameI18n, search.getNameI18nLikeList(), apiUser.getLocale(), true, false),
@@ -65,14 +64,15 @@ public class TwinClassFieldSearchService {
                 checkTernary(search.getRequired()));
     }
 
-    private Set<UUID> loadExtendedClasses(List<TwinClassMap> extendClassList) {
+    //todo do throws specification
+    private Set<UUID> loadExtendedClasses(List<TwinClassIdsExtender> extendClassList) {
         Set<UUID> ret = new HashSet<>();
         Set<UUID> needLoad = new HashSet<>();
-        for (TwinClassMap twinClassMap : extendClassList) {
-            if (twinClassMap.getIncludeParentFields())
-                needLoad.add(twinClassMap.getTwinClassId());
+        for (TwinClassIdsExtender twinClassIdsExtender : extendClassList) {
+            if (twinClassIdsExtender.getAddExtendableTwinClassIds())
+                needLoad.add(twinClassIdsExtender.getTwinClassId());
             else
-                ret.add(twinClassMap.getTwinClassId());
+                ret.add(twinClassIdsExtender.getTwinClassId());
         }
         List<TwinClassEntity> byIdIn = twinClassRepository.findByIdIn(needLoad);
         for (TwinClassEntity twinClass : byIdIn) {

@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class TwinClassMap {
+public class TwinClassIdsExtender {
     private UUID twinClassId;
-    private Boolean includeParentFields;
+    private Boolean addExtendableTwinClassIds;
 }

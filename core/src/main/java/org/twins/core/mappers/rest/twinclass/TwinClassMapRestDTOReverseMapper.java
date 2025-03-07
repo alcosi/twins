@@ -1,19 +1,19 @@
 package org.twins.core.mappers.rest.twinclass;
 
 import org.springframework.stereotype.Component;
-import org.twins.core.domain.twinclass.TwinClassMap;
-import org.twins.core.dto.rest.twinclass.TwinClassMapDTOv1;
+import org.twins.core.domain.twinclass.TwinClassIdsExtender;
+import org.twins.core.dto.rest.twinclass.TwinClassIdsExtenderDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 
 @Component
-public class TwinClassMapRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassMapDTOv1, TwinClassMap> {
+public class TwinClassMapRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassIdsExtenderDTOv1, TwinClassIdsExtender> {
 
     @Override
-    public void map(TwinClassMapDTOv1 src, TwinClassMap dst, MapperContext mapperContext) throws Exception {
+    public void map(TwinClassIdsExtenderDTOv1 src, TwinClassIdsExtender dst, MapperContext mapperContext) throws Exception {
         dst
                 .setTwinClassId(src.getTwinClassId())
-                .setIncludeParentFields(src.getIncludeParentFields());
+                .setAddExtendableTwinClassIds(src.getAddExtendableTwinClassIds());
     }
 }
