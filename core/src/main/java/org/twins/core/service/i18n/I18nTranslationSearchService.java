@@ -41,12 +41,12 @@ public class I18nTranslationSearchService {
         return Specification.allOf(
                 checkDomainId(authService.getApiUser().getDomainId()),
                 checkUuidIn(search.getI18nIdList(), false, false, I18nTranslationEntity.Fields.i18nId),
-                checkUuidIn(search.getI18nIdList(), false, false, I18nTranslationEntity.Fields.i18nId),
+                checkUuidIn(search.getI18nIdExcludeList(), true, false, I18nTranslationEntity.Fields.i18nId),
                 checkFieldLikeIn(search.getTranslationLikeList(), false, true, I18nTranslationEntity.Fields.translation),
                 checkFieldLikeIn(search.getTranslationNotLikeList(), true, true, I18nTranslationEntity.Fields.translation),
                 checkFieldLongRange(search.getUsageCounter(), I18nTranslationEntity.Fields.usageCounter),
                 checkLocaleIn(search.getLocaleLikeList(), false),
-                checkLocaleIn(search.getLocaleLikeList(), true)
+                checkLocaleIn(search.getLocaleNotLikeList(), true)
         );
     }
 }
