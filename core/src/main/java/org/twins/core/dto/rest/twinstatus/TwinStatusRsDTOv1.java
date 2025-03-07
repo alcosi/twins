@@ -8,9 +8,9 @@ import org.twins.core.dto.rest.Response;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Schema(name =  "TwinStatusRsV1")
 public class TwinStatusRsDTOv1 extends Response {
     @Schema(description = "twin status")
-    public TwinStatusDTOv1 twinStatus;
+    public TwinStatusDTOv2 twinStatus;
 }
