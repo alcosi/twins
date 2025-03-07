@@ -22,7 +22,7 @@ import java.util.UUID;
         name = "RabbitMqSendTwin",
         description = "Trigger for sending event to rabbit")
 @RequiredArgsConstructor
-public class TransitionTriggerRabbitMqSendTwinIdAndDstStustId extends TransitionTriggerRabbitMqConnection {
+public class TransitionTriggerRabbitMqSendTwinIdAndDstTwinStatusId extends TransitionTriggerRabbitMqConnection {
 
     @FeaturerParam(name = "Exchange", description = "Name of exchange")
     private static final FeaturerParamString EXCHANGE = new FeaturerParamString("exchange");
