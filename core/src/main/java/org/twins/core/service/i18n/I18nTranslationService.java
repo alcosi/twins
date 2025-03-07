@@ -9,11 +9,14 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.i18n.I18nTranslationRepository;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -48,22 +51,29 @@ public class I18nTranslationService extends EntitySecureFindServiceImpl<I18nTran
         return true;
     }
 
+    @Transactional
     public List<I18nTranslationEntity> updateI18nTranslations(UUID i18nId, List<I18nTranslationEntity> entities) throws ServiceException {
+        List<I18nTranslationEntity> dbEntities = repository.findByI18nId(i18nId);
+        ChangesHelper changesHelper = new ChangesHelper();
+
+        Map<Locale, I18nTranslationEntity> dbEntitiesMap = dbEntities.stream()
+                .collect(Collectors.toMap(I18nTranslationEntity::getLocale, Function.identity()));
+
         List<I18nTranslationEntity> updatedEntities = new ArrayList<>();
 
-        for (Map.Entry<Locale, String> entry : translations.entrySet()) {
-            Locale locale = entry.getKey();
-            String translation = entry.getValue();
+        for (I18nTranslationEntity entity : entities) {
+            I18nTranslationEntity dbEntity = dbEntitiesMap.get(entity.getLocale());
 
-            I18nTranslationEntity entity = repository.findByI18nIdAndLocale(i18nId, locale)
-                    .orElse(new I18nTranslationEntity().setI18nId(i18nId).setLocale(locale));
+            updateEntityField(entity, dbEntity, I18nTranslationEntity::getTranslation, I18nTranslationEntity::setTranslation,
+                    I18nTranslationEntity.Fields.translation, changesHelper);
+            if (changesHelper.hasChanges()) {
+                validateEntity(dbEntity, EntitySmartService.EntityValidateMode.beforeSave);
+            }
 
-            entity.setTranslation(translation);
-
-            validateEntity(entity, EntitySmartService.EntityValidateMode.beforeSave);
-            updatedEntities.add(repository.save(entity));
+            updatedEntities.add(dbEntity);
         }
 
-        return updatedEntities;
+        return StreamSupport.stream(repository.saveAll(updatedEntities).spliterator(), false)
+                .collect(Collectors.toList());
     }
 }

@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.i18n.I18nTranslationDTOv1;
 import org.twins.core.dto.rest.i18n.I18nTranslationSaveRsDTOv1;
 import org.twins.core.dto.rest.i18n.I18nTranslationUpdateRqDTOv1;
 import org.twins.core.mappers.rest.i18n.I18nTranslationRestDTOMapper;
@@ -26,7 +27,9 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.i18n.I18nTranslationService;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Tag(name = ApiTag.I18N)
 @RestController
@@ -50,9 +53,28 @@ public class I18nTranslationUpdateController extends ApiController {
             @MapperContextBinding(roots = I18nTranslationRestDTOMapper.class, response = I18nTranslationSaveRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.I18N_ID) @PathVariable UUID i18nId,
             @RequestBody I18nTranslationUpdateRqDTOv1 request) {
-        I18nTranslationSaveRsDTOv1 rs = new I18nTranslationSaveRsDTOv1();
-        try {
 
+        I18nTranslationSaveRsDTOv1 rs = new I18nTranslationSaveRsDTOv1();
+
+        try {
+            List<I18nTranslationEntity> i18nTranslations = i18nTranslationUpdateDTOReverseMapper.convert(request.getI18nTranslations());
+            i18nTranslations = i18nTranslationService.updateI18nTranslations(i18nId, i18nTranslations);
+
+            List<I18nTranslationDTOv1> translationDTOs = i18nTranslations.stream()
+                    .map(entity -> {
+                        I18nTranslationDTOv1 dto = new I18nTranslationDTOv1();
+                        try {
+                            i18nTranslationRestDTOMapper.map(entity, dto, mapperContext);
+                        } catch (Exception e) {
+                            throw new RuntimeException("Failed to map entity to DTO", e);
+                        }
+                        return dto;
+                    })
+                    .toList();
+
+            rs
+                    .setI18nTranslations(translationDTOs)
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

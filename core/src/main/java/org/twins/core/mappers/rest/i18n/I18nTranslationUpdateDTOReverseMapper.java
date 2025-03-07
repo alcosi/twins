@@ -7,15 +7,16 @@ import org.twins.core.dto.rest.i18n.I18nTranslationUpdateDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class I18nTranslationUpdateDTOReverseMapper extends RestSimpleDTOMapper<I18nTranslationUpdateDTOv1, List<I18nTranslationEntity>> {
+public class I18nTranslationUpdateDTOReverseMapper extends RestSimpleDTOMapper<I18nTranslationUpdateDTOv1, ArrayList<I18nTranslationEntity>> {
     private final I18nTranslationSaveDTOReverseMapper i18nTranslationSaveDTOReverseMapper;
 
     @Override
-    public void map(I18nTranslationUpdateDTOv1 src, List<I18nTranslationEntity> dst, MapperContext mapperContext) throws Exception {
+    public void map(I18nTranslationUpdateDTOv1 src, ArrayList<I18nTranslationEntity> dst, MapperContext mapperContext) throws Exception {
         i18nTranslationSaveDTOReverseMapper.map(src, dst, mapperContext);
     }
 }
