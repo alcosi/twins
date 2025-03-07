@@ -1,9 +1,8 @@
 package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Component;
-import org.twins.core.domain.TwinClassUpdate;
+import org.twins.core.domain.twinclass.TwinClassUpdate;
 import org.twins.core.dto.rest.twinclass.TwinClassUpdateRqDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
