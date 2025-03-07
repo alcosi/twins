@@ -2,7 +2,7 @@ package org.twins.core.domain.twinclass;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.i18n.dao.I18nEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.EntityRelinkOperation;
 

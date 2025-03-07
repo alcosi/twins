@@ -2,7 +2,7 @@ package org.twins.core.mappers.rest.i18n;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
-import org.cambium.i18n.dao.I18nTranslationEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.springframework.stereotype.Component;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;

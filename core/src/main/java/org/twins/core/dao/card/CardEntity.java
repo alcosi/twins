@@ -3,7 +3,6 @@ package org.twins.core.dao.card;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.i18n.dao.I18nEntity;
 
 import java.util.UUID;
 
