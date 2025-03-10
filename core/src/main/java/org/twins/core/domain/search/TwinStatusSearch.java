@@ -3,9 +3,8 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.twins.core.domain.twinclass.TwinClassIdsExtender;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -15,8 +14,8 @@ import java.util.UUID;
 public class TwinStatusSearch {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
-    private List<TwinClassIdsExtender> twinClassIdsExtenderList;
-    private List<TwinClassIdsExtender> twinClassIdsExtenderExcludeList;
+    private Map<UUID, Boolean> twinClassIdMap;
+    private Map<UUID, Boolean> twinClassIdExcludeMap;
     private Set<String> keyLikeList;
     private Set<String> keyNotLikeList;
     private Set<String> nameI18nLikeList;
