@@ -333,12 +333,23 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
         TwinBatchCreateResult twinBatchCreateResult = new TwinBatchCreateResult();
-        for (TwinEntity twinEntity : twinEntityList) {
-            twinBatchCreateResult.getTwinCreateResultList().add(
-                    new TwinCreateResult()
-                            .setCreatedTwin(twinEntity)
-                            .setTwinAliasEntityList(twinAliasService.createAliases(twinEntity))
-            );
+
+        if (twinEntityList.size() < 2) {
+            for (TwinEntity twinEntity : twinEntityList)
+                twinBatchCreateResult.getTwinCreateResultList().add(new TwinCreateResult().setCreatedTwin(twinEntity).setTwinAliasEntityList(twinAliasService.createAliases(twinEntity, true)));
+        } else {
+            for (TwinEntity twinEntity : twinEntityList)
+                twinBatchCreateResult.getTwinCreateResultList().add(new TwinCreateResult().setCreatedTwin(twinEntity));
+            twinAliasService.createAliases(twinEntityList);
+//            log.warn("start: " + twinEntityList.size());
+//            int counter = 0;
+//            for (TwinEntity twinEntity : twinEntityList) {
+//                counter++;
+//                log.warn(counter + ") Creation aliases for twin with id: " + twinEntity.getId());
+//                twinAliasService.createAliases(twinEntity, false);
+//            }
+//            log.warn("stop: " + twinEntityList.size());
+
         }
         return twinBatchCreateResult;
     }
@@ -346,7 +357,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public void createTwin(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
         ApiUser apiUser = authService.getApiUser();
-        if(twinCreate.isCheckCreatePermission())
+        if (twinCreate.isCheckCreatePermission())
             checkCreatePermission(twinEntity, apiUser);
         createTwinEntity(twinEntity, twinChangesCollector);
         saveTwinFields(twinEntity, twinCreate.getFields(), twinChangesCollector);
@@ -380,7 +391,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public UUID detectDeletePermissionId(TwinEntity twinEntity) throws ServiceException {
-        if(null == twinEntity.getTwinClass())
+        if (null == twinEntity.getTwinClass())
             twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
         return twinEntity.getTwinClass().getDeletePermissionId();
     }
@@ -396,7 +407,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public UUID detectCreatePermissionId(TwinEntity twinEntity) throws ServiceException {
-        if(null == twinEntity.getTwinClass())
+        if (null == twinEntity.getTwinClass())
             twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
         return twinEntity.getTwinClass().getCreatePermissionId();
     }
@@ -411,7 +422,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public UUID detectUpdatePermissionId(TwinEntity twinEntity) throws ServiceException {
-        if(null == twinEntity.getTwinClass())
+        if (null == twinEntity.getTwinClass())
             twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
         return twinEntity.getTwinClass().getEditPermissionId();
     }
@@ -521,7 +532,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twinChangesCollector;
     }
 
-    @Transactional
     public void updateTwinFields(TwinEntity twinEntity, List<FieldValue> values) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         updateTwinFields(twinEntity, values, twinChangesCollector);
@@ -554,7 +564,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (!twinUpdate.isChanged())
             return;
         ApiUser apiUser = authService.getApiUser();
-        if(twinUpdate.isCheckEditPermission())
+        if (twinUpdate.isCheckEditPermission())
             checkUpdatePermission(twinUpdate.getDbTwinEntity(), apiUser);
         updateTwinBasics(twinChangesRecorder);
         if (twinChangesRecorder.hasChanges())
@@ -798,6 +808,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twinDuplicate;
     }
 
+    @Transactional(rollbackFor = Throwable.class)
     public void saveDuplicateTwin(TwinDuplicate twinDuplicate) throws ServiceException {
         twinChangesService.applyChanges(twinDuplicate.getChangesCollector());
         twinflowService.runTwinStatusTransitionTriggers(twinDuplicate.getDuplicate(), null, twinDuplicate.getDuplicate().getTwinStatus());

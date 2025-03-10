@@ -7,6 +7,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinAliasEntity;
 import org.twins.core.dao.twin.TwinAliasRepository;
@@ -17,6 +18,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.twins.core.dao.twin.TwinAliasType.*;
 
@@ -25,9 +27,9 @@ import static org.twins.core.dao.twin.TwinAliasType.*;
 @Service
 @RequiredArgsConstructor
 public class TwinAliasService {
-    final TwinAliasRepository twinAliasRepository;
-    final AuthService authService;
-    final EntitySmartService entitySmartService;
+    private final TwinAliasRepository twinAliasRepository;
+    private final AuthService authService;
+    private final EntitySmartService entitySmartService;
 
     public TwinAliasEntity findAlias(String twinAlias) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -59,23 +61,42 @@ public class TwinAliasService {
             entry.getValue().setTwinAliases(new Kit<>(aliasKit.getGrouped(entry.getKey()), TwinAliasEntity::getAliasTypeId));
     }
 
-    public List<TwinAliasEntity> createAliases(TwinEntity twin) throws ServiceException {
+
+    @Async
+    public void createAliases(List<TwinEntity> twinEntityList) {
+        try {
+            log.warn("start: " + twinEntityList.size());
+            int counter = 0;
+            TimeUnit.SECONDS.sleep(2);
+            for (TwinEntity twinEntity : twinEntityList) {
+                counter++;
+                log.warn(counter + ") Creation aliases for twin with id: " + twinEntity.getId());
+                createAliases(twinEntity, false);
+            }
+            log.warn("stop");
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public List<TwinAliasEntity> createAliases(TwinEntity twin, boolean returnAlias) throws ServiceException {
         List<TwinAliasEntity> aliases = new ArrayList<>();
         switch (twin.getTwinClass().getOwnerType()) {
             case DOMAIN:
-                addAliasIfNotNull(aliases, createAlias(twin, _D));
-                addAliasIfNotNull(aliases, createAlias(twin, _C));
-                addAliasIfNotNull(aliases, createAlias(twin, _S));
+                addAliasIfNotNull(aliases, createAlias(twin, _D, returnAlias));
+                addAliasIfNotNull(aliases, createAlias(twin, _C, returnAlias));
+                addAliasIfNotNull(aliases, createAlias(twin, _S, returnAlias));
                 break;
             case DOMAIN_BUSINESS_ACCOUNT:
-                addAliasIfNotNull(aliases, createAlias(twin, _D));
-                addAliasIfNotNull(aliases, createAlias(twin, _C));
-                addAliasIfNotNull(aliases, createAlias(twin, _B));
-                addAliasIfNotNull(aliases, createAlias(twin, _K));
+                addAliasIfNotNull(aliases, createAlias(twin, _D, returnAlias));
+                addAliasIfNotNull(aliases, createAlias(twin, _C, returnAlias));
+                addAliasIfNotNull(aliases, createAlias(twin, _B, returnAlias));
+                addAliasIfNotNull(aliases, createAlias(twin, _K, returnAlias));
                 break;
             case DOMAIN_USER:
-                addAliasIfNotNull(aliases, createAlias(twin, _D));
-                addAliasIfNotNull(aliases, createAlias(twin, _T));
+                addAliasIfNotNull(aliases, createAlias(twin, _D, returnAlias));
+                addAliasIfNotNull(aliases, createAlias(twin, _T, returnAlias));
                 break;
             default:
                 log.warn("Unsupported owner type for alias creation: {}", twin.getTwinClass().getOwnerType());
@@ -87,7 +108,7 @@ public class TwinAliasService {
         if (alias != null) aliases.add(alias);
     }
 
-    private TwinAliasEntity createAlias(TwinEntity twin, String aliasType) throws ServiceException {
+    private TwinAliasEntity createAlias(TwinEntity twin, String aliasType, boolean returnAlias) throws ServiceException {
         switch (aliasType) {
             case _D:
                 twinAliasRepository.createDomainAlias(twin.getId(), twin.getTwinClass().getDomainId());
@@ -107,7 +128,7 @@ public class TwinAliasService {
             default:
                 throw new ServiceException(ErrorCodeTwins.UNSUPPORTED_ALIAS_TYPE, "Unsupported alias type: " + aliasType);
         }
-        return twinAliasRepository.findByTwinIdAndType(twin.getId(), TwinAliasType.valueOf(aliasType));
+        return returnAlias ? twinAliasRepository.findByTwinIdAndType(twin.getId(), TwinAliasType.valueOf(aliasType)) : null;
     }
 
     public void forceDeleteAliasCounters(UUID businessAccountId) throws ServiceException {
