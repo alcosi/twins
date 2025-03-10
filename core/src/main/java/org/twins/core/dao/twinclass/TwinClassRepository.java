@@ -46,6 +46,8 @@ public interface TwinClassRepository extends CrudRepository<TwinClassEntity, UUI
     @Query(value = "SELECT * FROM twin_class_head_hierarchy_any_of(:domainId, string_to_array(:twinClassIdsLQueryArray, ','))", nativeQuery = true)
     List<TwinClassEntity> findByDomainIdAndHeadHierarchyContains(@Param("domainId") UUID domainId, @Param("twinClassIdsLQueryArray") String twinClassIdsLQueryArray);
 
+    List<TwinClassExtendsProjection> findByDomainIdAndIdIn(UUID domainId, List<UUID> ids);
+
     boolean existsByDomainIdAndId(UUID domainId, UUID twinClassId);
 
     boolean existsByDomainIdAndKey(UUID domainId, String key);

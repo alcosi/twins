@@ -8,6 +8,7 @@ import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -22,11 +23,11 @@ public class TwinClassFieldSearchRqDTOv1 extends Request {
     @Schema(description = "id exclude list")
     public Set<UUID> idExcludeList;
 
-    @Schema(description = "twin class ids extender list")
-    public Set<TwinClassIdsExtenderDTOv1> twinClassIdsExtenderList;
+    @Schema(description = "twin class ids extender map")
+    public Map<UUID, Boolean> twinClassIdsExtenderMap;
 
-    @Schema(description = "twin class ids extender exclude list")
-    public Set<TwinClassIdsExtenderDTOv1> twinClassIdsExtenderExcludeList;
+    @Schema(description = "twin class ids extender exclude map")
+    public Map<UUID, Boolean> twinClassIdsExtenderExcludeMap;
 
     @Schema(description = "key like list")
     public Set<String> keyLikeList;

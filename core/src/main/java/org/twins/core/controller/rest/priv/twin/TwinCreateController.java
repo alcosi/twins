@@ -127,11 +127,15 @@ public class TwinCreateController extends ApiController {
             @RequestBody TwinBatchCreateRqDTOv1 request) {
         Response rs = new Response();
         try {
+            long before = System.currentTimeMillis();
             List<TwinCreate> twinCreates = twinCreateRqRestDTOReverseMapper.convertCollection(request.getTwins());
             for (TwinCreate twinCreate : twinCreates) {
                 twinCreate.setCheckCreatePermission(true);
             }
             twinService.createTwin(twinCreates);
+            long after = System.currentTimeMillis();
+            long ret = after - before;
+            System.out.println(ret);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
