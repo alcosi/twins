@@ -16,8 +16,8 @@ import java.util.UUID;
 public class TwinClassFieldSearch {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
-    private Map<UUID, Boolean> twinClassIdsExtenderMap;
-    private Map<UUID, Boolean> twinClassIdsExtenderExcludeMap;
+    private Map<UUID, Boolean> twinClassIdMap;
+    private Map<UUID, Boolean> twinClassIdExcludeMap;
     private Set<String> keyLikeList;
     private Set<String> keyNotLikeList;
     private Set<String> nameI18nLikeList;
