@@ -18,12 +18,12 @@ import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.domain.twinclass.TwinClassIdsExtender;
 import org.twins.core.service.auth.AuthService;
 
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecification.*;
 
 
