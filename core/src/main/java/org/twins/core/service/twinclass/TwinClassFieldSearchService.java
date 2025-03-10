@@ -12,9 +12,16 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRepository;
+import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinClassFieldSearch;
+import org.twins.core.domain.twinclass.TwinClassIdsExtender;
 import org.twins.core.service.auth.AuthService;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecification.*;
@@ -26,9 +33,10 @@ import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecific
 public class TwinClassFieldSearchService {
     private final AuthService authService;
     private final TwinClassFieldRepository twinClassFieldRepository;
+    private final TwinClassRepository twinClassRepository;
     private final TwinClassService twinClassService;
 
-    public PaginationResult<TwinClassFieldEntity> findTwinClassFieldForDomain(TwinClassFieldSearch search, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
         Page<TwinClassFieldEntity> ret = twinClassFieldRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
@@ -40,8 +48,8 @@ public class TwinClassFieldSearchService {
                 checkFieldUuid(apiUser.getDomainId(), TwinClassFieldEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinClassFieldEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinClassFieldEntity.Fields.id),
-                checkUuidIn(twinClassService.loadExtendedClasses(search.getTwinClassIdsExtenderList()), false, false, TwinClassFieldEntity.Fields.twinClassId),
-                checkUuidIn(twinClassService.loadExtendedClasses(search.getTwinClassIdsExtenderExcludeList()), true, false, TwinClassFieldEntity.Fields.twinClassId),
+                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdMap()), false, false, TwinClassFieldEntity.Fields.twinClassId),
+                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdExcludeMap()), true, false, TwinClassFieldEntity.Fields.twinClassId),
                 checkFieldLikeIn(search.getKeyLikeList(), false, true, TwinClassFieldEntity.Fields.key),
                 checkFieldLikeIn(search.getKeyNotLikeList(), true, true, TwinClassFieldEntity.Fields.key),
                 joinAndSearchByI18NField(TwinClassFieldEntity.Fields.nameI18n, search.getNameI18nLikeList(), apiUser.getLocale(), true, false),
