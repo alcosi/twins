@@ -123,6 +123,11 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         return true;
     }
 
+    @Override
+    public Optional<DomainEntity> findByKey(String key) throws ServiceException {
+        return Optional.ofNullable(domainRepository.findByKey(key));
+    }
+
     public UUID checkDomainId(UUID domainId, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(domainId, domainRepository, checkMode);
     }
