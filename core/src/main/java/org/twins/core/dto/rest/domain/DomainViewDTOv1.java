@@ -14,16 +14,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Schema(name = "DomainViewRsv1")
-public class DomainViewDTOv1 {
-    @Schema(description = "domain id")
-    private UUID id;
-
-    @Schema(description = "key", example = DTOExamples.DOMAIN_KEY)
-    public String key;
-
-    @Schema(description = "domain description", example = DTOExamples.DOMAIN_KEY)
-    public String description;
-
+public class DomainViewDTOv1 extends DomainViewPublicDTOv1 {
     @Schema(description = "type [basic/b2b]")
     public DomainType type;
 
@@ -45,9 +36,4 @@ public class DomainViewDTOv1 {
 
     @Schema(description = "default locale")
     public String defaultLocale;
-    @Schema(description = "Icon dark uri. Might be relative")
-    public String iconDark;
-    @Schema(description = "Icon light uri. Might be relative")
-    public String iconLight;
-
 }
