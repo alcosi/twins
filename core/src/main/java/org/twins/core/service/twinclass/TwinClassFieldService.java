@@ -153,17 +153,15 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     public TwinClassFieldEntity findByTwinClassIdAndKeyIncludeParents(UUID twinClassId, String key) {
-        TwinClassFieldEntity twinClassFieldEntity = twinClassFieldRepository.findByTwinClassIdAndKey(twinClassId, key);
-        if (twinClassFieldEntity == null) {
-            TwinClassEntity twinClass = twinClassRepository.findById(twinClassId).orElse(null);
-            if (twinClass != null) {
-                Set<UUID> extendedClassIds = twinClass.getExtendedClassIdSet();
-                for (UUID extendedClassId : extendedClassIds) {
-                    twinClassFieldEntity = twinClassFieldRepository.findByTwinClassIdAndKey(extendedClassId, key);
-                    if (twinClassFieldEntity != null)
-                        break;
-                }
-            }
+        TwinClassEntity twinClass = twinClassRepository.findById(twinClassId).orElse(null);
+        return findByTwinClassIdAndKeyIncludeParents(twinClass, key);
+    }
+
+    public TwinClassFieldEntity findByTwinClassIdAndKeyIncludeParents(TwinClassEntity twinClass, String key) {
+        TwinClassFieldEntity twinClassFieldEntity = null;
+        if (twinClass != null) {
+            Set<UUID> extendedClassIds = twinClass.getExtendedClassIdSet();
+            twinClassFieldEntity = twinClassFieldRepository.findByKeyAndTwinClassIdIn(key, extendedClassIds);
         }
         return twinClassFieldEntity;
     }
