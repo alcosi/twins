@@ -33,7 +33,6 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
-import org.twins.core.domain.twinclass.TwinClassIdsExtender;
 import org.twins.core.domain.twinclass.TwinClassUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.headhunter.HeadHunter;
@@ -57,6 +56,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
+import static org.twins.core.dao.twinclass.TwinClassEntity.convertUuidFromLtreeFormat;
 
 @Slf4j
 @Service
@@ -807,23 +807,24 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
     }
 
-    //todo do throws specification
-    public Set<UUID> loadExtendedClasses(List<TwinClassIdsExtender> extendClassList) {
-        if (CollectionUtils.isEmpty(extendClassList))
-            return null;
+    //todo replace immutable stored procedure
+    public Set<UUID> loadExtendsHierarchyClasses(Map<UUID, Boolean> twinClassIdMap) throws ServiceException {
+        if (MapUtils.isEmpty(twinClassIdMap))
+            return Collections.emptySet();
+        List<UUID> needLoad = new ArrayList<>();
         Set<UUID> ret = new HashSet<>();
-        Set<UUID> needLoad = new HashSet<>();
-        for (TwinClassIdsExtender twinClassIdsExtender : extendClassList) {
-            if (twinClassIdsExtender.getAddExtendableTwinClassIds())
-                needLoad.add(twinClassIdsExtender.getTwinClassId());
+        for (var twinClass : twinClassIdMap.entrySet()) {
+            if (twinClass.getValue())
+                needLoad.add(twinClass.getKey());
             else
-                ret.add(twinClassIdsExtender.getTwinClassId());
+                ret.add(twinClass.getKey());
         }
-        if (CollectionUtils.isNotEmpty(needLoad)) {
-            List<TwinClassEntity> classes = twinClassRepository.findByIdIn(needLoad);
-            for (TwinClassEntity twinClass : classes) {
-                ret.addAll(twinClass.getExtendedClassIdSet());
-            }
+        if (CollectionUtils.isEmpty(needLoad))
+            return ret;
+        List<TwinClassExtendsProjection> twinClassExtendsProjectionList = twinClassRepository.findByDomainIdAndIdIn(authService.getApiUser().getDomainId(), needLoad);
+        for (TwinClassExtendsProjection childClass : twinClassExtendsProjectionList) {
+            for (String hierarchyItem : convertUuidFromLtreeFormat(childClass.getExtendsHierarchyTree()).split("\\."))
+                ret.add(UUID.fromString(hierarchyItem));
         }
         return ret;
     }

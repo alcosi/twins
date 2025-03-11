@@ -25,8 +25,8 @@ public class TwinSearch {
     Set<UUID> twinClassIdList;
     Set<UUID> twinClassIdExcludeList;
     Set<UUID> headTwinClassIdList;
-    Set<UUID> extendsTwinClassIdList;
-    Set<UUID> headerTwinIdList;
+    Set<UUID> twinClassExtendsHierarchyContainsIdList;
+    Set<UUID> headTwinIdList;
     Set<UUID> statusIdList;
     Set<UUID> assigneeUserIdList;
     Set<UUID> assigneeUserIdExcludeList;
@@ -58,8 +58,8 @@ public class TwinSearch {
                 CollectionUtils.isEmpty(twinClassIdList) &&
                 CollectionUtils.isEmpty(twinClassIdExcludeList) &&
                 CollectionUtils.isEmpty(headTwinClassIdList) &&
-                CollectionUtils.isEmpty(extendsTwinClassIdList) &&
-                CollectionUtils.isEmpty(headerTwinIdList) &&
+                CollectionUtils.isEmpty(twinClassExtendsHierarchyContainsIdList) &&
+                CollectionUtils.isEmpty(headTwinIdList) &&
                 CollectionUtils.isEmpty(statusIdList) &&
                 CollectionUtils.isEmpty(assigneeUserIdList) &&
                 CollectionUtils.isEmpty(assigneeUserIdExcludeList) &&
@@ -112,12 +112,12 @@ public class TwinSearch {
     }
 
     public TwinSearch addHeaderTwinId(UUID headerTwinId) {
-        headerTwinIdList = CollectionUtils.safeAdd(headerTwinIdList, headerTwinId);
+        headTwinIdList = CollectionUtils.safeAdd(headTwinIdList, headerTwinId);
         return this;
     }
 
     public TwinSearch addHeaderTwinId(List<UUID> headerTwinIds) {
-        headerTwinIdList = CollectionUtils.safeAdd(headerTwinIdList, headerTwinIds);
+        headTwinIdList = CollectionUtils.safeAdd(headTwinIdList, headerTwinIds);
         return this;
     }
 
@@ -218,7 +218,7 @@ public class TwinSearch {
     }
 
     public static final ImmutableList<Pair<Function<TwinSearch, Set<UUID>>, BiConsumer<TwinSearch, Set<UUID>>>> FUNCTIONS = ImmutableList.of(
-            Pair.of(TwinSearch::getHeaderTwinIdList, TwinSearch::setHeaderTwinIdList),
+            Pair.of(TwinSearch::getHeadTwinIdList, TwinSearch::setHeadTwinIdList),
             Pair.of(TwinSearch::getCreatedByUserIdList, TwinSearch::setCreatedByUserIdList),
             Pair.of(TwinSearch::getCreatedByUserIdExcludeList, TwinSearch::setCreatedByUserIdExcludeList),
             Pair.of(TwinSearch::getAssigneeUserIdList, TwinSearch::setAssigneeUserIdList),
@@ -236,7 +236,7 @@ public class TwinSearch {
             Pair.of(TwinSearch::getTwinClassIdList, TwinSearch::setTwinClassIdList),
             Pair.of(TwinSearch::getTwinClassIdExcludeList, TwinSearch::setTwinClassIdExcludeList),
             Pair.of(TwinSearch::getHierarchyTreeContainsIdList, TwinSearch::setHierarchyTreeContainsIdList),
-            Pair.of(TwinSearch::getExtendsTwinClassIdList, TwinSearch::setExtendsTwinClassIdList),
+            Pair.of(TwinSearch::getTwinClassExtendsHierarchyContainsIdList, TwinSearch::setTwinClassExtendsHierarchyContainsIdList),
             Pair.of(TwinSearch::getHeadTwinClassIdList, TwinSearch::setHeadTwinClassIdList)
     );
 
