@@ -5,8 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
-import org.twins.core.dto.rest.twinclass.TwinClassIdsExtenderDTOv1;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -19,10 +19,10 @@ public class TwinStatusSearchRqDTOv1 extends Request {
     public Set<UUID> idList;
     @Schema(description = "id exclude list")
     public Set<UUID> idExcludeList;
-    @Schema(description = "twin class ids extender list")
-    public Set<TwinClassIdsExtenderDTOv1> twinClassIdsExtenderList;
-    @Schema(description = "twin class ids extender exclude list")
-    public Set<TwinClassIdsExtenderDTOv1> twinClassIdsExtenderExcludeList;
+    @Schema(description = "twin class id map")
+    public Map<UUID, Boolean> twinClassIdMap;
+    @Schema(description = "twin class id exclude map")
+    public Map<UUID, Boolean> twinClassIdExcludeMap;
     @Schema(description = "key like list")
     public Set<String> keyLikeList;
     @Schema(description = "key not like list")
