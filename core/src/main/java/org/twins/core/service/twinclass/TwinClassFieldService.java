@@ -64,6 +64,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     @Autowired
     private CacheManager cacheManager;
+    @Autowired
+    private TwinClassRepository twinClassRepository;
 
     @Override
     public CrudRepository<TwinClassFieldEntity, UUID> entityRepository() {
@@ -150,11 +152,17 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         return checkEntityReadAllow(twinClassFieldEntity);
     }
 
-    public TwinClassFieldEntity findByTwinClassIdAndKeyIncludeParent(UUID twinClassId, String key) {
-        TwinClassFieldEntity twinClassFieldEntity = twinClassFieldRepository.findByTwinClassIdAndKey(twinClassId, key);
-        if (twinClassFieldEntity == null)
-            //todo go to more depth
-            twinClassFieldEntity = twinClassFieldRepository.findByTwinClassIdAndParentKey(twinClassId, key);
+    public TwinClassFieldEntity findByTwinClassIdAndKeyIncludeParents(UUID twinClassId, String key) {
+        TwinClassEntity twinClass = twinClassRepository.findById(twinClassId).orElse(null);
+        return findByTwinClassIdAndKeyIncludeParents(twinClass, key);
+    }
+
+    public TwinClassFieldEntity findByTwinClassIdAndKeyIncludeParents(TwinClassEntity twinClass, String key) {
+        TwinClassFieldEntity twinClassFieldEntity = null;
+        if (twinClass != null) {
+            Set<UUID> extendedClassIds = twinClass.getExtendedClassIdSet();
+            twinClassFieldEntity = twinClassFieldRepository.findByKeyAndTwinClassIdIn(key, extendedClassIds);
+        }
         return twinClassFieldEntity;
     }
 
