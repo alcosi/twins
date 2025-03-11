@@ -28,6 +28,8 @@ public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldE
     @Cacheable(value = CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_KEY, key = "#twinClassId + '' + #key")
     TwinClassFieldEntity findByTwinClassIdAndKey(UUID twinClassId, String key);
 
+    TwinClassFieldEntity findByKeyAndTwinClassIdIn(String key, Collection<UUID> twinClassIds);
+
     TwinClassFieldEntity findByTwinClass_KeyAndKey(String twinClassKey, String key);
 
     String CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_PARENT_KEY = "TwinClassFieldRepository.findByTwinClassIdAndParentKey";

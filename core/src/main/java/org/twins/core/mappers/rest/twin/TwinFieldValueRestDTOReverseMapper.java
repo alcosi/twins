@@ -33,7 +33,7 @@ public class TwinFieldValueRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
         FieldValue fieldValue = null;
         if (fieldValueDTO.twinClassId == null || StringUtils.isNoneBlank(fieldValueDTO.fieldKey))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_UNKNOWN);
-        TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findByTwinClassIdAndKeyIncludeParent(fieldValueDTO.twinClassId, fieldValueDTO.fieldKey);
+        TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findByTwinClassIdAndKeyIncludeParents(fieldValueDTO.twinClassId, fieldValueDTO.fieldKey);
         if (fieldValueDTO instanceof TwinFieldValueTextDTOv1 text)
             fieldValue =  new FieldValueText(twinClassFieldEntity)
                     .setValue(text.text());
