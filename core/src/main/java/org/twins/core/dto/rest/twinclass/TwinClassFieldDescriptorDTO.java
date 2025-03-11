@@ -22,7 +22,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorNumericDTOv1.class, name = TwinClassFieldDescriptorNumericDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorImmutableDTOv1.class, name = TwinClassFieldDescriptorImmutableDTOv1.KEY),
 })
-@Schema(description = "On of values", example = "", oneOf = {
+@Schema(description = "One of values", example = "", oneOf = {
         TwinClassFieldDescriptorTextDTOv1.class,
         TwinClassFieldDescriptorColorHexDTOv1.class,
         TwinClassFieldDescriptorUrlDTOv1.class,

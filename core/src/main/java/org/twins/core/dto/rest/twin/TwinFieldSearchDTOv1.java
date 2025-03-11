@@ -4,11 +4,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.experimental.Accessors;
 
-@Data
-@Accessors(fluent = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = TwinFieldSearchTextDTOv1.class, name = TwinFieldSearchTextDTOv1.KEY),
@@ -26,7 +22,7 @@ import lombok.experimental.Accessors;
         @DiscriminatorMapping(value = TwinFieldSearchNumericDTOv1.KEY, schema = TwinFieldSearchNumericDTOv1.class),
         @DiscriminatorMapping(value = TwinFieldSearchListDTOv1.KEY, schema = TwinFieldSearchListDTOv1.class),
 })
-public abstract class TwinFieldSearchDTOv1 {
+public interface TwinFieldSearchDTOv1 {
 
     @Schema(description = "discriminator", requiredMode = Schema.RequiredMode.REQUIRED, examples = {
             TwinFieldSearchTextDTOv1.KEY,
@@ -34,6 +30,5 @@ public abstract class TwinFieldSearchDTOv1 {
             TwinFieldSearchDateDTOv1.KEY,
             TwinFieldSearchListDTOv1.KEY,
     })
-    public abstract String type();
-
+    String type();
 }

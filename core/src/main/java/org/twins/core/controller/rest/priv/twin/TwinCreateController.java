@@ -18,10 +18,8 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.twinoperation.TwinCreate;
-import org.twins.core.dto.rest.twin.TwinCreateRqDTOv1;
-import org.twins.core.dto.rest.twin.TwinCreateRqDTOv2;
-import org.twins.core.dto.rest.twin.TwinCreateRsDTOv1;
-import org.twins.core.dto.rest.twin.TwinFieldValueDTO;
+import org.twins.core.dto.rest.Response;
+import org.twins.core.dto.rest.twin.*;
 import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.TwinLinkAddRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinCreateRqRestDTOReverseMapper;
@@ -109,6 +107,31 @@ public class TwinCreateController extends ApiController {
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
                             .createTwin(twinCreate));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "twinBatchCreateV1", summary = "Create batch twins")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Import was completed successfully", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/private/twin/batch/v1")
+    public ResponseEntity<?> twinBatchCreateV1(
+            @RequestBody TwinBatchCreateRqDTOv1 request) {
+        Response rs = new Response();
+        try {
+            List<TwinCreate> twinCreates = twinCreateRqRestDTOReverseMapper.convertCollection(request.getTwins());
+            for (TwinCreate twinCreate : twinCreates) {
+                twinCreate.setCheckCreatePermission(true);
+            }
+            twinService.createTwin(twinCreates);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
