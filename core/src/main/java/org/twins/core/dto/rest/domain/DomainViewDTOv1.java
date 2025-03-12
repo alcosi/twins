@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dao.domain.DomainType;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.face.FaceBasicDTOv1;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -36,4 +37,7 @@ public class DomainViewDTOv1 extends DomainViewPublicDTOv1 {
 
     @Schema(description = "default locale")
     public String defaultLocale;
+
+    @Schema(description = "domain navigation bar pointer")
+    private FaceBasicDTOv1 navbar;
 }

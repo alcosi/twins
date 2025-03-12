@@ -13,7 +13,7 @@ insert into face_component_type values ('WIDGET', 'Widget') on conflict do nothi
 
 create table if not exists face_component
 (
-    id                     varchar(4) not null
+    id                     varchar(5) not null
         constraint face_component_pk
             primary key,
     face_component_type_id varchar    not null
@@ -33,12 +33,21 @@ create table if not exists face
     id                uuid       not null
         constraint face_pk
             primary key,
+    domain_id                   uuid
+        constraint face_domain_id_fk
+            references domain
+            on update cascade,
     face_component_id varchar(4) not null
         constraint face_face_component_id_fk
             references face_component_type
             on update cascade on delete restrict,
     name              varchar,
-    description       varchar
+    description       varchar,
+    created_at             timestamp default CURRENT_TIMESTAMP,
+    created_by_user_id     uuid
+        constraint face_created_by_user_id_fk
+            references "user"
+            on update cascade
 );
 
 alter table domain
