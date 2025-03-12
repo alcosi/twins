@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
+import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
@@ -20,6 +21,7 @@ import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
+import org.twins.core.dto.rest.comment.CommentBaseDTOv2;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.factory.FactoryDTOv1;
@@ -39,6 +41,7 @@ import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.businessaccount.BusinessAccountDTOMapper;
+import org.twins.core.mappers.rest.comment.CommentRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryPipelineRestDTOMapperV2;
@@ -86,6 +89,7 @@ public class RelatedObjectsRestDTOConverter {
     private final FactoryRestDTOMapper factoryRestDTOMapper;
     private final FactoryPipelineRestDTOMapperV2 factoryPipelineRestDTOMapperV2;
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final CommentRestDTOMapper commentRestDTOMapper;
 
     public RelatedObjectsDTOv1 convert(MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())
@@ -107,6 +111,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, TwinflowBaseDTOv1> twinflowMap = new HashMap<>();
         Map<UUID, FactoryDTOv1> factoryMap = new HashMap<>();
         Map<UUID, FactoryPipelineDTOv1> factoryPipelineMap = new HashMap<>();
+        Map<UUID, CommentBaseDTOv2> commentMap = new HashMap<>();
         Map<Integer, FeaturerDTOv1> featurerMap = new HashMap<>();
 
         MapperContext mapperContextLevel2 = mapperContext.cloneIgnoreRelatedObjects();
@@ -142,6 +147,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContext.getRelatedFactoryMap(), factoryRestDTOMapper, mapperContextLevel2, factoryMap, TwinFactoryEntity::getId);
         if (!mapperContext.getRelatedFactoryPipelineMap().isEmpty())
             convertAndPut(mapperContext.getRelatedFactoryPipelineMap(), factoryPipelineRestDTOMapperV2, mapperContextLevel2, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
+        if (!mapperContext.getRelatedCommnetMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedCommnetMap(), commentRestDTOMapper, mapperContextLevel2, commentMap, TwinCommentEntity::getId);
         if (!mapperContext.getRelatedFeaturerMap().isEmpty())
             convertAndPut(mapperContext.getRelatedFeaturerMap(), featurerRestDTOMapper, mapperContextLevel2, featurerMap, FeaturerEntity::getId);
 
@@ -179,6 +186,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel2.getRelatedFactoryMap(), factoryRestDTOMapper, mapperContextLevel3, factoryMap, TwinFactoryEntity::getId);
         if (!mapperContextLevel2.getRelatedFactoryPipelineMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedFactoryPipelineMap(), factoryPipelineRestDTOMapperV2, mapperContextLevel3, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
+        if (!mapperContextLevel2.getRelatedCommnetMap().isEmpty())
+            convertAndPut(mapperContextLevel2.getRelatedCommnetMap(), commentRestDTOMapper, mapperContextLevel3, commentMap, TwinCommentEntity::getId);
         if (!mapperContextLevel2.getRelatedFeaturerMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedFeaturerMap(), featurerRestDTOMapper, mapperContextLevel3, featurerMap, FeaturerEntity::getId);
 
@@ -217,6 +226,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedFactoryMap(), factoryRestDTOMapper, mapperContextLevel3, factoryMap, TwinFactoryEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryPipelineMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedFactoryPipelineMap(), factoryPipelineRestDTOMapperV2, mapperContextLevel3, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
+        if (!mapperContextLevel3.getRelatedCommnetMap().isEmpty())
+            convertAndPut(mapperContextLevel3.getRelatedCommnetMap(), commentRestDTOMapper, mapperContextLevel3, commentMap, TwinCommentEntity::getId);
         if (!mapperContextLevel3.getRelatedFeaturerMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedFeaturerMap(), featurerRestDTOMapper, mapperContextLevel3, featurerMap, FeaturerEntity::getId);
 
@@ -237,6 +248,7 @@ public class RelatedObjectsRestDTOConverter {
                 .setTwinflowMap(twinflowMap.isEmpty() ? null : twinflowMap)
                 .setFactoryMap(factoryMap.isEmpty() ? null : factoryMap)
                 .setFactoryPipelineMap(factoryPipelineMap.isEmpty() ? null : factoryPipelineMap)
+                .setCommentMap(commentMap.isEmpty() ? null : commentMap)
                 .setFeaturerMap(featurerMap.isEmpty() ? null : featurerMap)
         ;
         return ret;

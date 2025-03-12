@@ -18,5 +18,5 @@ public class CommentListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     public PaginationDTOv1 pagination;
 
     @Schema(description = "comment data")
-    public List<CommentViewDTOv1> comments;
+    public List<CommentBaseDTOv2> comments;
 }

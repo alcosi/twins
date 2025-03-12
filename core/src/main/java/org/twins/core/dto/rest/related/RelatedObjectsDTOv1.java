@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.related;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.comment.CommentBaseDTOv2;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
@@ -79,6 +80,9 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related twinclass schema map", example = "{twin class schema map}")
     public Map<UUID, TwinClassSchemaDTOv1> twinClassSchemaMap;
+
+    @Schema(description = "related comment map", example = "{comment map}")
+    public Map<UUID, CommentBaseDTOv2> commentMap;
 
     @Schema(description = "related featurer map", example = "{featurer map}")
     public Map<Integer, FeaturerDTOv1> featurerMap;

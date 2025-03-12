@@ -7,8 +7,8 @@ import org.twins.core.dto.rest.Response;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "CommentViewRsV1")
-public class CommentViewRsDTOv1 extends Response {
+@Schema(name = "CommentRsV1")
+public class CommentRsDTOv1 extends Response {
     @Schema(description = "comment")
-    public CommentViewDTOv1 comment;
+    public CommentBaseDTOv2 comment;
 }

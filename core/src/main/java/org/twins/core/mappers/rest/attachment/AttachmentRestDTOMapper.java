@@ -8,6 +8,7 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dto.rest.attachment.AttachmentDTOv1;
+import org.twins.core.mappers.rest.comment.CommentRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
@@ -41,6 +42,11 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
 
     @Lazy
     @Autowired
+    @MapperModePointerBinding(modes = CommentMode.Attachment2CommentModeMode.class)
+    private final CommentRestDTOMapper commentRestDTOMapper;
+
+    @Lazy
+    @Autowired
     @MapperModePointerBinding(modes = TwinMode.Attachment2TwinMode.class)
     private TwinRestDTOMapper twinRestDTOMapper;
 
@@ -64,12 +70,22 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
                         .setId(src.getId())
                         .setStorageLink(src.getStorageLink());
         }
-        if (mapperContext.hasModeButNot(TransitionMode.Attachment2TransitionMode.HIDE))
+        if (mapperContext.hasModeButNot(CommentMode.Attachment2CommentModeMode.HIDE)) {
+            dst.setCommentId(src.getTwinCommentId());
+            commentRestDTOMapper.postpone(src.getComment(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(CommentMode.Attachment2CommentModeMode.SHORT)));
+        }
+        if (mapperContext.hasModeButNot(TransitionMode.Attachment2TransitionMode.HIDE)) {
+            dst.setTwinflowTransitionId(src.getTwinflowTransitionId());
             transitionRestDTOMapper.postpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TransitionMode.Attachment2TransitionMode.SHORT)));
-        if (mapperContext.hasModeButNot(UserMode.Attachment2UserMode.HIDE))
+        }
+        if (mapperContext.hasModeButNot(UserMode.Attachment2UserMode.HIDE)) {
+            dst.setAuthorUserId(src.getCreatedByUserId());
             userDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Attachment2UserMode.SHORT)));
-        if (mapperContext.hasModeButNot(TwinMode.Attachment2TwinMode.HIDE))
+        }
+        if (mapperContext.hasModeButNot(TwinMode.Attachment2TwinMode.HIDE)) {
+            dst.setTwinId(src.getTwinId());
             twinRestDTOMapper.postpone(src.getTwin(), mapperContext.forkOnPoint(TwinMode.Attachment2TwinMode.SHORT));
+        }
         if (mapperContext.hasModeButNot(TwinAttachmentActionMode.HIDE)) {
             attachmentActionService.loadAttachmentActions(src);
             dst.setAttachmentActions(src.getAttachmentActions());
