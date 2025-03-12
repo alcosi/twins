@@ -51,7 +51,10 @@ public class CommentRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEntity,
             userRestDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.Comment2UserMode.SHORT));
         }
         if (mapperContext.hasModeButNot(AttachmentMode.Comment2AttachmentMode.HIDE)) {
-            attachmentRestDTOMapper.convertCollection(commentService.loadAttachments(src).getCollection(), mapperContext.forkOnPoint(AttachmentMode.Comment2AttachmentMode.SHORT).setMode(AttachmentCollectionMode.FROM_COMMENTS));
+            dst.setAttachments(attachmentRestDTOMapper.convertCollection(
+                    commentService.loadAttachments(src).getCollection(),
+                    mapperContext.forkOnPoint(AttachmentMode.Comment2AttachmentMode.SHORT)
+                            .setMode(AttachmentCollectionMode.FROM_COMMENTS)));
         }
         if (mapperContext.hasModeButNot(TwinCommentActionMode.HIDE)) {
             commentActionService.loadCommentActions(src);

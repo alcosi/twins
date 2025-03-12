@@ -8,7 +8,6 @@ import lombok.experimental.Accessors;
 import org.twins.core.dao.attachment.TwinAttachmentAction;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -30,9 +29,6 @@ public class AttachmentDTOv1 extends AttachmentBaseDTOv1 {
 
     @Schema(description = "twin class field id", example = DTOExamples.TWIN_CLASS_FIELD_ID)
     public UUID twinClassFieldId;
-
-    @Schema(description = "twin class field")
-    public TwinClassFieldDTOv1 twinClassField;
 
     @Schema(description = "twinflow transition id")
     public UUID twinflowTransitionId;
