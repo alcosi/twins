@@ -19,7 +19,6 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
-import org.twins.core.controller.rest.annotation.ParametersApiUserNoDomainHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.domain.DomainViewPublicRsDTOv1;
 import org.twins.core.mappers.rest.domain.DomainViewPublicRestDTOMapper;
@@ -38,7 +37,6 @@ public class DomainViewPublicController extends ApiController {
     private final DomainService domainService;
     private final DomainViewPublicRestDTOMapper domainViewPublicRestDTOMapper;
 
-    @ParametersApiUserNoDomainHeaders
     @Operation(operationId = "domainViewPublicV1", summary = "Returns public domain data by id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Public domain details prepared", content = {
@@ -63,7 +61,6 @@ public class DomainViewPublicController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
-    @ParametersApiUserNoDomainHeaders
     @Operation(operationId = "domainViewByKeyPublicV1", summary = "Returns public domain data by key")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Public domain details prepared", content = {
