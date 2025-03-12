@@ -13,10 +13,9 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "AttachmentCUDValidateRsV1")
 public class AttachmentCUDValidateRsDTOv1 extends Response {
-
     @Schema(description = "Twin attachment problems")
     public AttachmentCUDProblemsDTOv1 cudProblems;
 
     @Schema(description = "Attachment entities for update and delete operations")
-    public List<AttachmentDTOv2> attachmentsForUD;
+    public List<AttachmentDTOv1> attachmentsForUD;
 }

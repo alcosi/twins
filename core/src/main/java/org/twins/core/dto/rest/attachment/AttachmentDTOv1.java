@@ -9,6 +9,7 @@ import org.twins.core.dao.attachment.TwinAttachmentAction;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.comment.CommentBaseDTOv2;
+import org.twins.core.dto.rest.twin.TwinDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
@@ -48,6 +49,9 @@ public class AttachmentDTOv1 extends AttachmentBaseDTOv1 {
 
     @Schema(description = "twinflow transition")
     public TwinflowTransitionBaseDTOv1 twinflowTransition;
+
+    @Schema(description = "twin")
+    public TwinDTOv1 twin;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)

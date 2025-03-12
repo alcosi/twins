@@ -24,7 +24,7 @@ import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dto.rest.attachment.AttachmentSearchRqDTOv1;
 import org.twins.core.dto.rest.attachment.AttachmentSearchRsDTOv1;
-import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapperV2;
+import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
@@ -39,7 +39,7 @@ public class AttachmentSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;
     private final AttachmentSearchDTOReverseMapper attachmentSearchDTOReverseMapper;
-    private final AttachmentRestDTOMapperV2 attachmentRestDTOMapperV2;
+    private final AttachmentRestDTOMapper attachmentRestDTOMapper;
     private final AttachmentSearchService attachmentSearchService;
 
     @ParametersApiUserHeaders
@@ -51,7 +51,7 @@ public class AttachmentSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/attachment/search/v1")
     public ResponseEntity<?> attachmentSearchV1(
-            @MapperContextBinding(roots = AttachmentRestDTOMapperV2.class, response = AttachmentSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = AttachmentRestDTOMapper.class, response = AttachmentSearchRsDTOv1.class) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody AttachmentSearchRqDTOv1 request) {
         AttachmentSearchRsDTOv1 rs = new AttachmentSearchRsDTOv1();
@@ -59,7 +59,7 @@ public class AttachmentSearchController extends ApiController {
             PaginationResult<TwinAttachmentEntity> attachmentList = attachmentSearchService
                     .findAttachments(attachmentSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setAttachments(attachmentRestDTOMapperV2.convertCollection(attachmentList.getList(), mapperContext))
+                    .setAttachments(attachmentRestDTOMapper.convertCollection(attachmentList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(attachmentList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
