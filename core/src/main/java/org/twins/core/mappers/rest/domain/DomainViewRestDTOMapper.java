@@ -7,10 +7,10 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dto.rest.domain.DomainViewDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.face.FaceBasicRestDTOMapper;
+import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.DomainMode;
-import org.twins.core.mappers.rest.mappercontext.modes.FacePointerMode;
+import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.core.service.domain.DomainService;
 
 import java.util.Collection;
@@ -22,8 +22,9 @@ import java.util.Collection;
 public class DomainViewRestDTOMapper extends RestSimpleDTOMapper<DomainEntity, DomainViewDTOv1> {
     protected final DomainService domainService;
     protected final DomainViewPublicRestDTOMapper domainViewPublicRestDTOMapper;
-    @MapperModePointerBinding(modes = FacePointerMode.DomainNavbar2FaceMode.class)
-    protected final FaceBasicRestDTOMapper facePointerRestDTOMapper;
+
+    @MapperModePointerBinding(modes = FaceMode.DomainNavbar2FaceMode.class)
+    protected final FaceRestDTOMapper faceRestDTOMapper;
 
     @Override
     public void map(DomainEntity src, DomainViewDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -46,8 +47,9 @@ public class DomainViewRestDTOMapper extends RestSimpleDTOMapper<DomainEntity, D
                         .setKey(src.getKey());
                 break;
         }
-        if (mapperContext.hasModeButNot(FacePointerMode.DomainNavbar2FaceMode.HIDE)) {
-            dst.setNavbar(facePointerRestDTOMapper.convert(src.getNavbarFace(), mapperContext.forkOnPoint(FacePointerMode.DomainNavbar2FaceMode.SHOW)));
+        if (mapperContext.hasModeButNot(FaceMode.DomainNavbar2FaceMode.HIDE)) {
+            faceRestDTOMapper.postpone(src.getNavbarFace(), mapperContext.forkOnPoint(FaceMode.DomainNavbar2FaceMode.SHORT));
+            dst.setNavbarFaceId(src.getNavbarFaceId());
         }
     }
 

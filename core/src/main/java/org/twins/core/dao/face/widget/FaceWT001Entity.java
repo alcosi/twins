@@ -19,18 +19,18 @@ public class FaceWT001Entity {
     private UUID faceId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "face_id", nullable = false)
+    @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     private FaceEntity face;
 
     @Column(name = "key", nullable = false)
     private String key;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "label_i18n_id", nullable = false)
+    @JoinColumn(name = "label_i18n_id", nullable = false, insertable = false, updatable = false)
     private I18nEntity labelI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "twin_class_id", nullable = false)
+    @JoinColumn(name = "twin_class_id", nullable = false, insertable = false, updatable = false)
     private I18nEntity twinClass;
 
     @Column(name = "hide_columns")

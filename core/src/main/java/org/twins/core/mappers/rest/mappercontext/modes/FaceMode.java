@@ -9,26 +9,29 @@ import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 @Getter
 @AllArgsConstructor
 @FieldNameConstants(onlyExplicitlyIncluded = true)
-public enum FacePointerMode implements MapperMode {
+public enum FaceMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
-    @FieldNameConstants.Include SHOW(1);
+    @FieldNameConstants.Include SHORT(1),
+    @FieldNameConstants.Include DETAILED(2);
 
     final int priority;
 
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum DomainNavbar2FaceMode implements MapperModePointer<FacePointerMode> {
+    public enum DomainNavbar2FaceMode implements MapperModePointer<FaceMode> {
         @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHOW(1);
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
 
         final int priority;
 
         @Override
-        public FacePointerMode point() {
+        public FaceMode point() {
             return switch (this) {
-                case HIDE -> FacePointerMode.HIDE;
-                case SHOW -> FacePointerMode.SHOW;
+                case HIDE -> FaceMode.HIDE;
+                case SHORT -> FaceMode.SHORT;
+                case DETAILED -> FaceMode.DETAILED;
             };
         }
     }

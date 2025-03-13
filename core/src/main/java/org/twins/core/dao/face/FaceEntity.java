@@ -24,8 +24,8 @@ public class FaceEntity implements EasyLoggable {
     @Column(name = "face_component_id")
     private String faceComponentId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "face_component_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "face_component_id", nullable = false, insertable = false, updatable = false)
     private FaceComponentTypeEntity faceComponent;
 
     @Column(name = "name")

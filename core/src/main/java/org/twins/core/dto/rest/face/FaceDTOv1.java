@@ -12,12 +12,18 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "FaceViewV1")
-public class FaceViewDTOv1 extends FaceBasicDTOv1 {
-    @Schema(description = "name", example = DTOExamples.FACE_COMPONENT)
+@Schema(name = "FaceV1")
+public class FaceDTOv1 {
+    @Schema(description = "config id", example = DTOExamples.FACE_ID)
+    public UUID id;
+
+    @Schema(description = "component", example = DTOExamples.FACE_COMPONENT)
+    public String component;
+
+    @Schema(description = "name")
     public String name;
 
-    @Schema(description = "description", example = DTOExamples.FACE_CONFIG_ID)
+    @Schema(description = "description")
     public String description;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)

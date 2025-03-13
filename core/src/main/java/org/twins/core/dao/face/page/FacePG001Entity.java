@@ -22,7 +22,7 @@ public class FacePG001Entity {
     private UUID widgetFaceId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "face_id", nullable = false)
+    @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     private FaceEntity face;
 
     @ColumnDefault("0")
@@ -30,6 +30,6 @@ public class FacePG001Entity {
     private Integer widgetOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "widget_face_id", nullable = false)
+    @JoinColumn(name = "widget_face_id", nullable = false, insertable = false, updatable = false)
     private FaceEntity widgetFace;
 }

@@ -52,7 +52,7 @@ public interface DTOExamples {
     String DOMAIN_TYPE = "basic";
     String DOMAIN_DESCRIPTION = "some domain";
     String FACE_COMPONENT = "some domain";
-    String FACE_CONFIG_ID = "9a3f6075-f175-41cd-a804-934201ec969c";
+    String FACE_ID = "9a3f6075-f175-41cd-a804-934201ec969c";
     String BUSINESS_ACCOUNT_ID = "9a3f6075-f175-41cd-a804-934201ec969c";
     String BUSINESS_ACCOUNT_NAME = "Business account name";
     String AUTH_TOKEN = USER_ID + "," + BUSINESS_ACCOUNT_ID;

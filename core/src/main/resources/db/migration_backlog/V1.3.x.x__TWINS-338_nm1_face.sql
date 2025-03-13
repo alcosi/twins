@@ -71,20 +71,30 @@ insert into face_navbar_nb001_status values ('HIDDEN')  on conflict do nothing ;
 
 create table if not exists face_navbar_nb001
 (
+    face_id                     uuid    not null
+        primary key
+        constraint face_navbar_nb001_face_id_fk
+            references face
+            on update cascade on delete restrict,
+    skin                     varchar not null
+);
+
+create table if not exists face_navbar_nb001_menu_items
+(
     id                          uuid    not null
-        constraint face_navbar_nb001_pk
+        constraint face_navbar_nb001_menu_items_pk
             primary key,
     face_id                     uuid    not null
-        constraint face_navbar_nb001_face_id_fk
+        constraint face_navbar_nb001_menu_items_face_id_fk
             references face
             on update cascade on delete restrict,
     key                     varchar not null,
     label_i18n_id               uuid not null
-        constraint face_navbar_nb001_label_i18n_id_fk
+        constraint face_navbar_nb001_menu_items_label_i18n_id_fk
             references i18n
             on update cascade,
     description_i18n_id               uuid not null
-        constraint face_navbar_nb001_description_i18n_id_fk
+        constraint face_navbar_nb001_menu_items_description_i18n_id_fk
             references i18n
             on update cascade,
     icon_dark_resource_id                  uuid
@@ -93,13 +103,12 @@ create table if not exists face_navbar_nb001
     icon_light_resource_id                 uuid
         references resource
             on update cascade,
-
     face_navbar_nb001_status_id varchar not null
-        constraint face_navbar_nb001_face_navbar_nb001_status_id_fk
+        constraint face_navbar_nb001_menu_items_face_navbar_nb001_status_id_fk
             references face_navbar_nb001_status
             on update cascade on delete restrict,
-    page_face_id               uuid    not null
-        constraint face_navbar_nb001_page_face_id_fk
+    target_page_face_id               uuid    not null
+        constraint face_navbar_nb001_menu_items_page_face_id_fk
             references face
             on update cascade on delete restrict
 );
