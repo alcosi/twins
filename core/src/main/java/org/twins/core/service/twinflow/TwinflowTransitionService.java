@@ -525,7 +525,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (!transition.getTwinflowId().equals(twinEntity.getTwinflow().getId()))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionId + "] can not be performed for " + twinEntity.logDetailed()
                     + ". Twinflow[" + twinEntity.getTwinflow().getId() + "] was detected for twin, but given transition is linked to twinflow[" + transition.getTwinflowId() + "]");
-        if (!transition.getSrcTwinStatusId().equals(twinEntity.getTwinStatusId()))
+        if (!(transition.getSrcTwinStatusId() != null && transition.getSrcTwinStatusId().equals(twinEntity.getTwinStatusId())))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionId + "] can not be performed for " + twinEntity.logDetailed()
                     + ". Given transition is valid only from status[" + transition.getSrcTwinStatusId() + "]");
         TransitionContext transitionContext = new TransitionContext();
