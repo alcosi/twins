@@ -21,8 +21,9 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.attachment.AttachmentViewRsDTOv1;
-import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapperV2;
+import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.attachment.AttachmentService;
 
 import java.util.UUID;
@@ -34,7 +35,8 @@ import java.util.UUID;
 public class AttachmentViewController extends ApiController {
 
     private final AttachmentService attachmentService;
-    private final AttachmentRestDTOMapperV2 attachmentRestDTOMapperV2;
+    private final AttachmentRestDTOMapper attachmentRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "attachmentViewV1", summary = "View attachment by id")
@@ -45,14 +47,13 @@ public class AttachmentViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/attachment/{attachmentId}/v1")
     public ResponseEntity<?> attachmentViewV1(
-            @MapperContextBinding(roots = AttachmentRestDTOMapperV2.class, response = AttachmentViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = AttachmentRestDTOMapper.class, response = AttachmentViewRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.ATTACHMENT_ID) @PathVariable UUID attachmentId) {
         AttachmentViewRsDTOv1 rs = new AttachmentViewRsDTOv1();
         try {
-            rs.setAttachment(
-                    attachmentRestDTOMapperV2.convert(
-                            attachmentService.findEntitySafe(attachmentId), mapperContext
-                    ));
+            rs
+                    .setAttachment(attachmentRestDTOMapper.convert(attachmentService.findEntitySafe(attachmentId), mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

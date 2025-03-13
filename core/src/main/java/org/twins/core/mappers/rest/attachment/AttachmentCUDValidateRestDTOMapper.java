@@ -12,10 +12,8 @@ import org.twins.core.mappers.rest.mappercontext.modes.AttachmentMode;
 @Component
 @RequiredArgsConstructor
 public class AttachmentCUDValidateRestDTOMapper extends RestSimpleDTOMapper<AttachmentCUDValidateResult, AttachmentCUDValidateRsDTOv1> {
-
-
     @MapperModePointerBinding(modes = AttachmentMode.AttachmentCUDValidate2AttachmentMode.class)
-    private final AttachmentRestDTOMapperV2 attachmentRestDTOMapperV2;
+    private final AttachmentRestDTOMapper attachmentRestDTOMapper;
 
     private final AttachmentProblemsRestDTOMapper attachmentProblemsRestDTOMapper;
 
@@ -23,7 +21,7 @@ public class AttachmentCUDValidateRestDTOMapper extends RestSimpleDTOMapper<Atta
     @Override
     public void map(AttachmentCUDValidateResult src, AttachmentCUDValidateRsDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
-                .setAttachmentsForUD(attachmentRestDTOMapperV2.convertCollection(src.getAttachmentsForUD()))
+                .setAttachmentsForUD(attachmentRestDTOMapper.convertCollection(src.getAttachmentsForUD()))
                 .setCudProblems(attachmentProblemsRestDTOMapper.convert(src.getCudProblems(), mapperContext));
     }
 }

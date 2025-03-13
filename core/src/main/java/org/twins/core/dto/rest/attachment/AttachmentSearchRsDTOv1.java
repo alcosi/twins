@@ -19,5 +19,5 @@ public class AttachmentSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     public PaginationDTOv1 pagination;
 
     @Schema(description = "attachment list")
-    public List<AttachmentDTOv2> attachments;
+    public List<AttachmentDTOv1> attachments;
 }

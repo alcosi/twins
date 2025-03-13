@@ -21,10 +21,10 @@ import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.comment.CommentUpdateRqDTOv1;
-import org.twins.core.dto.rest.comment.CommentViewRsDTOv1;
+import org.twins.core.dto.rest.comment.CommentRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapperV2;
-import org.twins.core.mappers.rest.comment.CommentViewRestDTOMapper;
+import org.twins.core.mappers.rest.comment.CommentRestDTOMapper;
 import org.twins.core.service.comment.CommentService;
 
 import java.util.UUID;
@@ -35,7 +35,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CommentEditController extends ApiController {
     private final CommentService commentService;
-    private final CommentViewRestDTOMapper commentViewRestDTOMapper;
+    private final CommentRestDTOMapper commentRestDTOMapper;
     private final AttachmentCUDRestDTOReverseMapperV2 attachmentCUDRestDTOReverseMapperV2;
 
     @ParametersApiUserHeaders
@@ -43,19 +43,19 @@ public class CommentEditController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = CommentViewRsDTOv1.class))}),
+                    @Schema(implementation = CommentRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/comment/{commentId}/v1")
     public ResponseEntity<?> twinCommentUpdateV1(
-            @MapperContextBinding(roots = CommentViewRestDTOMapper.class, response = CommentViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = CommentRestDTOMapper.class, response = CommentRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_COMMENT_ID) @PathVariable UUID commentId,
             @RequestBody CommentUpdateRqDTOv1 request) {
-        CommentViewRsDTOv1 rs = new CommentViewRsDTOv1();
+        CommentRsDTOv1 rs = new CommentRsDTOv1();
         try {
             EntityCUD<TwinAttachmentEntity> attachmentCUD = attachmentCUDRestDTOReverseMapperV2.convert(request.getAttachments());
             TwinCommentEntity twinComment = commentService.updateComment(commentId, request.getText(), attachmentCUD);
             rs
-                    .setComment(commentViewRestDTOMapper.convert(twinComment, mapperContext));
+                    .setComment(commentRestDTOMapper.convert(twinComment, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

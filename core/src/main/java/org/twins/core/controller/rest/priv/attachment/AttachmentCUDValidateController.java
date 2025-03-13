@@ -25,6 +25,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDValidateRestDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDValidateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.attachment.AttachmentService;
 
 @Tag(description = "", name = ApiTag.ATTACHMENT)
@@ -36,6 +37,7 @@ public class AttachmentCUDValidateController extends ApiController {
     private final AttachmentCUDValidateRestDTOReverseMapper attachmentCUDValidateRestDTOReverseMapper;
     private final AttachmentCUDValidateRestDTOMapper attachmentCUDValidateRestDTOMapper;
     private final AttachmentService attachmentService;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "attachmentValidateV1", summary = "Validate attachment CUD operations")
@@ -52,6 +54,8 @@ public class AttachmentCUDValidateController extends ApiController {
         try {
             AttachmentCUDValidateResult result = attachmentService.validateCUD(request.getTwinId(), attachmentCUDValidateRestDTOReverseMapper.convert(request, mapperContext));
             rs = attachmentCUDValidateRestDTOMapper.convert(result, mapperContext);
+            rs
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
             if (result.hasProblems())
                 throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID);
 

@@ -12,6 +12,6 @@ import java.util.List;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "CommentCreateRqV1")
-public class CommentCreateRqDTOv1 extends CommentBaseDTOv1 {
+public class CommentCreateRqDTOv1 extends CommentDTOv1 {
     public List<AttachmentAddDTOv1> attachments;
 }
