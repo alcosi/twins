@@ -29,7 +29,7 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusSearchRestDTOReverseMapper;
-import org.twins.core.service.twin.TwinStatusService;
+import org.twins.core.service.twin.TwinStatusSearchService;
 
 @Tag(name = ApiTag.TWIN_STATUS)
 @RestController
@@ -40,7 +40,7 @@ public class TwinStatusSearchController extends ApiController {
     private final TwinStatusSearchRestDTOReverseMapper twinStatusSearchRestDTOReverseMapper;
     private final TwinStatusRestDTOMapperV2 twinStatusRestDTOMapperV2;
     private final PaginationMapper paginationMapper;
-    private final TwinStatusService twinStatusService;
+    private final TwinStatusSearchService twinStatusSearchService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinStatusSearchV1", summary = "Returns twin status search result in current domain")
@@ -56,8 +56,8 @@ public class TwinStatusSearchController extends ApiController {
             @RequestBody TwinStatusSearchRqDTOv1 request) {
         TwinStatusSearchRsDTOv1 rs = new TwinStatusSearchRsDTOv1();
         try {
-            PaginationResult<TwinStatusEntity> twinStatusList = twinStatusService
-                    .findTwinStatusesForDomain(twinStatusSearchRestDTOReverseMapper.convert(request), pagination);
+            PaginationResult<TwinStatusEntity> twinStatusList = twinStatusSearchService
+                    .findTwinStatuses(twinStatusSearchRestDTOReverseMapper.convert(request), pagination);
             rs
                     .setStatuses(twinStatusRestDTOMapperV2.convertCollection(twinStatusList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinStatusList))
