@@ -15,6 +15,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -757,6 +758,16 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 .setTwin(twinEntity)
                 .setTwinId(twinEntity.getId())
                 .setValue(value);
+    }
+
+    public TwinFieldI18nEntity createTwinFieldI18nEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, I18nEntity i18nEntity) {
+        return new TwinFieldI18nEntity()
+                .setTwinClassField(twinClassFieldEntity)
+                .setTwinClassFieldId(twinClassFieldEntity.getId())
+                .setTwin(twinEntity)
+                .setTwinId(twinEntity.getId())
+                .setI18n(i18nEntity)
+                .setI18nId(i18nEntity.getId());
     }
 
     public TwinEntity duplicateTwin(UUID srcTwinId, UUID newTwinId) throws ServiceException {
