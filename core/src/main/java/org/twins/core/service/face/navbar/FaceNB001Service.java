@@ -66,7 +66,7 @@ public class FaceNB001Service extends EntitySecureFindServiceImpl<FaceNB001Entit
     public void loadMenuItems(Collection<FaceNB001Entity> srcList) {
         if (CollectionUtils.isEmpty(srcList))
             return;
-        Kit<FaceNB001Entity, UUID> needLoad = new Kit<>(srcList, FaceNB001Entity::getFaceId);
+        Kit<FaceNB001Entity, UUID> needLoad = new Kit<>(FaceNB001Entity::getFaceId);
         for (var faceNB001Entity : srcList)
             if (faceNB001Entity.getMenuItems() == null) {
                 faceNB001Entity.setMenuItems(new Kit<>(FaceNB001MenuItemEntity::getId));

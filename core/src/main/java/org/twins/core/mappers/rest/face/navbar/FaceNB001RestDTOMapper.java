@@ -8,6 +8,7 @@ import org.twins.core.dto.rest.face.navbar.nb001.FaceNB001DTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.core.service.face.navbar.FaceNB001Service;
 
 import java.util.Collection;
@@ -24,7 +25,9 @@ public class FaceNB001RestDTOMapper extends RestSimpleDTOMapper<FaceNB001Entity,
     @Override
     public void map(FaceNB001Entity src, FaceNB001DTOv1 dst, MapperContext mapperContext) throws Exception {
         faceRestDTOMapper.map(src.getFace(), dst, mapperContext);
-        dst.setSkin(src.getSkin());
+        switch (mapperContext.getModeOrUse(FaceMode.SHORT)) { // perhaps we need some separate mode
+            case DETAILED -> dst.setSkin(src.getSkin());
+        }
         if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItemCollectionMode.HIDE)) {
             faceNB001Service.loadMenuItems(src);
             dst.setMenuItems(faceNB001MenuItemRestDTOMapper.convertCollection(src.getMenuItems(), mapperContext));

@@ -22,7 +22,6 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.face.navbar.FaceNB001Entity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.face.navbar.nb001.FaceNB001ViewRsDTOv1;
-import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.face.navbar.FaceNB001RestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -30,7 +29,7 @@ import org.twins.core.service.face.navbar.FaceNB001Service;
 
 import java.util.UUID;
 
-@Tag(description = "Get face by id", name = ApiTag.CARD)
+@Tag(description = "Get face by id", name = ApiTag.FACE)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -48,7 +47,7 @@ public class FaceNB001Controller extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/face/nb001/{faceId}/v1")
     public ResponseEntity<?> faceNB001ViewV1(
-            @MapperContextBinding(roots = FaceRestDTOMapper.class, response = FaceNB001ViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FaceNB001RestDTOMapper.class, response = FaceNB001ViewRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACE_ID) @PathVariable UUID faceId) {
         FaceNB001ViewRsDTOv1 rs = new FaceNB001ViewRsDTOv1();
         try {

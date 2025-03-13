@@ -249,6 +249,7 @@ public class RelatedObjectsRestDTOConverter {
                 .setFactoryMap(factoryMap.isEmpty() ? null : factoryMap)
                 .setFactoryPipelineMap(factoryPipelineMap.isEmpty() ? null : factoryPipelineMap)
                 .setFeaturerMap(featurerMap.isEmpty() ? null : featurerMap)
+                .setFaceMap(faceMap.isEmpty() ? null : faceMap)
         ;
         return ret;
     }

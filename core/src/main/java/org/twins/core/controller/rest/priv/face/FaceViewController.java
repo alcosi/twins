@@ -29,7 +29,7 @@ import org.twins.core.service.face.FaceService;
 
 import java.util.UUID;
 
-@Tag(description = "Get face by id", name = ApiTag.CARD)
+@Tag(description = "Get face by id", name = ApiTag.FACE)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
