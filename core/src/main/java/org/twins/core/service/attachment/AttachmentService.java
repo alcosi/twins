@@ -24,7 +24,6 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
-import org.twins.core.service.domain.TierService;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinActionService;
@@ -48,8 +47,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     @Lazy
     private final TwinService twinService;
     @Lazy
-    private final TierService tierService;
-    @Lazy
     private final DomainService domainService;
     private final AttachmentActionService attachmentActionService;
 
@@ -63,7 +60,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         return entitySmartService.findById(attachmentId, twinAttachmentRepository, findMode);
     }
 
-    @Transactional
     public List<TwinAttachmentEntity> addAttachments(List<TwinAttachmentEntity> attachments, TwinEntity twinEntity) throws ServiceException {
         checkAndSetAttachmentTwin(attachments, twinEntity);
         return addAttachments(attachments);
@@ -212,7 +208,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         updateAttachments(attachmentEntityList);
     }
 
-    @Transactional
     public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentEntityList))
             return;
@@ -268,7 +263,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         return field + " was changed from[" + oldValue + "] to[" + newValue + "]";
     }
 
-    @Transactional
     public void deleteAttachments(TwinEntity twinEntity, List<TwinAttachmentEntity> attachmentDeleteList) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentDeleteList))
             return;

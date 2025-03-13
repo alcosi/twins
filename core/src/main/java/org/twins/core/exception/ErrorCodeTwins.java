@@ -75,6 +75,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     HEAD_TWIN_NOT_SPECIFIED(10703, "space twin must be specified"),
     TWIN_ALIAS_UNKNOWN(10801, "alias is unknown"),
     UNSUPPORTED_ALIAS_TYPE(10802, "unsupported alias type"),
+    ERROR_TWIN_ALIASES_CREATION(10803, "Aliases creation error for twins."),
     TWIN_LINK_INCORRECT(10901, "twins can not be linkend"),
     TWIN_FIELD_VALUE_INCORRECT(10902, "twins field value can not be converted"),
     TWIN_BASIC_FIELD_UNKNOWN(10903, "unknown twin basic field"),
