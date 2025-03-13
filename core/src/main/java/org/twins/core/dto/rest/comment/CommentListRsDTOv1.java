@@ -10,7 +10,7 @@ import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 import java.util.List;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Schema(name = "CommentListRsv1")
 public class CommentListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
@@ -18,5 +18,5 @@ public class CommentListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     public PaginationDTOv1 pagination;
 
     @Schema(description = "comment data")
-    public List<CommentBaseDTOv2> comments;
+    public List<CommentDTOv1> comments;
 }

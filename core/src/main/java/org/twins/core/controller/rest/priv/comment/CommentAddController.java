@@ -49,7 +49,7 @@ public class CommentAddController extends ApiController {
             @RequestBody CommentCreateRqDTOv1 request) {
         CommentCreateRsDTOv1 rs = new CommentCreateRsDTOv1();
         try {
-            TwinCommentEntity comment = commentRestDTOReverseMapper.convert(request.setTwinId(twinId));
+            TwinCommentEntity comment = commentRestDTOReverseMapper.convert(request).setTwinId(twinId);
             rs = commentCreateRsRestDTOMapper.convert(commentService
                     .createComment(comment, attachmentAddRestDTOReverseMapper.
                             convertCollection(request.attachments)));

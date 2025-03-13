@@ -6,9 +6,9 @@ import lombok.EqualsAndHashCode;
 import org.twins.core.dto.rest.Response;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Schema(name = "CommentRsV1")
 public class CommentRsDTOv1 extends Response {
     @Schema(description = "comment")
-    public CommentBaseDTOv2 comment;
+    public CommentDTOv1 comment;
 }

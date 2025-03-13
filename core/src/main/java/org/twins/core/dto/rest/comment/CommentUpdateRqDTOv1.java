@@ -10,7 +10,7 @@ import org.twins.core.dto.rest.attachment.AttachmentCudDTOv1;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "CommentUpdateRqV1")
-public class CommentUpdateRqDTOv1 extends CommentBaseDTOv1 {
+public class CommentUpdateRqDTOv1 extends CommentDTOv1 {
     @Schema(description = "AttachmentCudV1")
     public AttachmentCudDTOv1 attachments;
 }

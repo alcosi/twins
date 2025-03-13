@@ -136,7 +136,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         if (needLoad.size() == 0)
             return;
         List<TwinAttachmentEntity> attachmentEntityList = attachmentRepository.findByTwinCommentIdIn(needLoad.keySet());
-        if (org.apache.commons.collections4.CollectionUtils.isEmpty(attachmentEntityList))
+        if (CollectionUtils.isEmpty(attachmentEntityList))
             return;
         Map<UUID, List<TwinAttachmentEntity>> attachmentMap = new HashMap<>(); // key - twinCommentId
         for (TwinAttachmentEntity attachmentEntity : attachmentEntityList) { //grouping by twinCommentId
