@@ -65,6 +65,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         return addAttachments(attachments);
     }
 
+    @Transactional
     public List<TwinAttachmentEntity> addAttachments(List<TwinAttachmentEntity> attachments) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         addAttachments(attachments, twinChangesCollector);
@@ -201,6 +202,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 .shotAttachment(attachmentEntity));
     }
 
+    @Transactional
     public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList, TwinEntity twinEntity) throws ServiceException {
         checkAndSetAttachmentTwin(attachmentEntityList, twinEntity);
         updateAttachments(attachmentEntityList);

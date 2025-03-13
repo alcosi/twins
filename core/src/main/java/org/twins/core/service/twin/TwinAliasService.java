@@ -9,6 +9,8 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinAliasEntity;
 import org.twins.core.dao.twin.TwinAliasRepository;
 import org.twins.core.dao.twin.TwinAliasType;
@@ -18,7 +20,9 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.twins.core.dao.twin.TwinAliasType.*;
 
@@ -30,6 +34,8 @@ public class TwinAliasService {
     private final TwinAliasRepository twinAliasRepository;
     private final AuthService authService;
     private final EntitySmartService entitySmartService;
+
+    private final Lock counterLock = new ReentrantLock();
 
     public TwinAliasEntity findAlias(String twinAlias) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -63,24 +69,29 @@ public class TwinAliasService {
 
 
     @Async
-    public void createAliases(List<TwinEntity> twinEntityList) {
+    @Transactional(rollbackFor = Throwable.class, propagation = Propagation.REQUIRES_NEW)
+    public CompletableFuture<Map<UUID, List<TwinAliasEntity>>> createAliasesForTwins(List<TwinEntity> twins, boolean returnAlias) {
+        Map<UUID, List<TwinAliasEntity>> result = new HashMap<>();
+        counterLock.lock();
         try {
-            log.warn("start: " + twinEntityList.size());
+            log.warn("start: " + twins.size());
             int counter = 0;
-            TimeUnit.SECONDS.sleep(2);
-            for (TwinEntity twinEntity : twinEntityList) {
+            for (TwinEntity twin : twins) {
                 counter++;
-                log.warn(counter + ") Creation aliases for twin with id: " + twinEntity.getId());
-                createAliases(twinEntity, false);
+                log.warn(counter + ") Creation aliases for twin with id: " + twin.getId());
+                result.put(twin.getId(), createAliasesForTwin(twin, returnAlias));
             }
             log.warn("stop");
         } catch (Exception e) {
             log.warn(e.getMessage());
             e.printStackTrace();
+        } finally {
+            counterLock.unlock();
         }
+        return CompletableFuture.completedFuture(returnAlias ? result : null);
     }
 
-    public List<TwinAliasEntity> createAliases(TwinEntity twin, boolean returnAlias) throws ServiceException {
+    public List<TwinAliasEntity> createAliasesForTwin(TwinEntity twin, boolean returnAlias) throws ServiceException {
         List<TwinAliasEntity> aliases = new ArrayList<>();
         switch (twin.getTwinClass().getOwnerType()) {
             case DOMAIN:

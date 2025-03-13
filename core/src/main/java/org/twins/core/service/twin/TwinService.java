@@ -56,6 +56,7 @@ import org.twins.core.service.user.UserService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
 @Lazy
@@ -315,44 +316,43 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinCreateResult createTwin(TwinCreate twinCreate) throws ServiceException {
-        return createTwin(Collections.singletonList(twinCreate)).getTwinCreateResultList().getFirst();
+        try {
+            return generateTwinAliasesAndMakeCreationResult(createTwins(Collections.singletonList(twinCreate))).getTwinCreateResultList().getFirst();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinBatchCreateResult createTwin(List<TwinCreate> twinCreateList) throws ServiceException {
+    public List<TwinEntity> createTwins(List<TwinCreate> twinCreateList) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         for (TwinCreate twinCreate : twinCreateList) {
             createTwin(twinCreate, twinChangesCollector);
         }
         twinChangesService.applyChanges(twinChangesCollector);
-        List<TwinEntity> twinEntityList = new ArrayList<>();
+        List<TwinEntity> twins = new ArrayList<>();
         for (TwinCreate twinCreate : twinCreateList) {
             TwinEntity twinEntity = twinCreate.getTwinEntity();
-            twinEntityList.add(twinEntity);
+            twins.add(twinEntity);
             twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
         }
         //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
+        return twins;
+    }
+
+    public TwinBatchCreateResult generateTwinAliasesAndMakeCreationResult(List<TwinEntity> twins) throws ServiceException, ExecutionException, InterruptedException {
         TwinBatchCreateResult twinBatchCreateResult = new TwinBatchCreateResult();
-
-        if (twinEntityList.size() < 2) {
-            for (TwinEntity twinEntity : twinEntityList)
-                twinBatchCreateResult.getTwinCreateResultList().add(new TwinCreateResult().setCreatedTwin(twinEntity).setTwinAliasEntityList(twinAliasService.createAliases(twinEntity, true)));
-        } else {
-            for (TwinEntity twinEntity : twinEntityList)
-                twinBatchCreateResult.getTwinCreateResultList().add(new TwinCreateResult().setCreatedTwin(twinEntity));
-            twinAliasService.createAliases(twinEntityList);
-//            log.warn("start: " + twinEntityList.size());
-//            int counter = 0;
-//            for (TwinEntity twinEntity : twinEntityList) {
-//                counter++;
-//                log.warn(counter + ") Creation aliases for twin with id: " + twinEntity.getId());
-//                twinAliasService.createAliases(twinEntity, false);
-//            }
-//            log.warn("stop: " + twinEntityList.size());
-
-        }
+        boolean returnResult = twins.size() == 1;
+        Map<UUID, List<TwinAliasEntity>> aliasesForTwins = twinAliasService.createAliasesForTwins(twins, returnResult).get();
+        for(TwinEntity twin : twins)
+            twinBatchCreateResult.getTwinCreateResultList().add(
+                    new TwinCreateResult()
+                            .setCreatedTwin(twin)
+                            .setTwinAliasEntityList(returnResult ? aliasesForTwins.get(twin.getId()) : null));
         return twinBatchCreateResult;
     }
+
+
 
     public void createTwin(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
