@@ -56,8 +56,8 @@ import org.twins.core.service.user.UserService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Lazy
 @Slf4j
@@ -316,11 +316,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinCreateResult createTwin(TwinCreate twinCreate) throws ServiceException {
-        try {
-            return generateTwinAliasesAndMakeCreationResult(createTwins(Collections.singletonList(twinCreate))).getTwinCreateResultList().getFirst();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        List<TwinEntity> twins = createTwins(Collections.singletonList(twinCreate));
+        TwinBatchCreateResult twinBatchCreateResult = generateTwinAliasesAndMakeCreationResult(twins);
+        TwinCreateResult result = twinBatchCreateResult.getTwinCreateResultList().getFirst();
+        return result;
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -340,15 +339,25 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twins;
     }
 
-    public TwinBatchCreateResult generateTwinAliasesAndMakeCreationResult(List<TwinEntity> twins) throws ServiceException, ExecutionException, InterruptedException {
+    public TwinBatchCreateResult generateTwinAliasesAndMakeCreationResult(List<TwinEntity> twins) throws ServiceException {
         TwinBatchCreateResult twinBatchCreateResult = new TwinBatchCreateResult();
         boolean returnResult = twins.size() == 1;
-        Map<UUID, List<TwinAliasEntity>> aliasesForTwins = twinAliasService.createAliasesForTwins(twins, returnResult).get();
+        Map<UUID, List<TwinAliasEntity>> aliasesForTwins = null;
+        try {
+            aliasesForTwins = twinAliasService.createAliasesForTwins(twins, returnResult).get();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceException(ErrorCodeTwins.ERROR_TWIN_ALIASES_CREATION, "failed to create aliases for twins: " + twins.stream().map(TwinEntity::logShort).collect(Collectors.joining(", ")));
+        }
         for(TwinEntity twin : twins)
             twinBatchCreateResult.getTwinCreateResultList().add(
                     new TwinCreateResult()
                             .setCreatedTwin(twin)
-                            .setTwinAliasEntityList(returnResult ? aliasesForTwins.get(twin.getId()) : null));
+                            .setTwinAliasEntityList(
+                                    returnResult && null != aliasesForTwins ?
+                                            aliasesForTwins.get(twin.getId()) :
+                                            null
+                            ));
         return twinBatchCreateResult;
     }
 

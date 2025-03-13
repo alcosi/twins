@@ -70,24 +70,16 @@ public class TwinAliasService {
 
     @Async
     @Transactional(rollbackFor = Throwable.class, propagation = Propagation.REQUIRES_NEW)
-    public CompletableFuture<Map<UUID, List<TwinAliasEntity>>> createAliasesForTwins(List<TwinEntity> twins, boolean returnAlias) {
+    public CompletableFuture<Map<UUID, List<TwinAliasEntity>>> createAliasesForTwins(List<TwinEntity> twins, boolean returnAlias) throws ServiceException {
         Map<UUID, List<TwinAliasEntity>> result = new HashMap<>();
-        counterLock.lock();
-        try {
-            log.warn("start: " + twins.size());
-            int counter = 0;
-            for (TwinEntity twin : twins) {
-                counter++;
-                log.warn(counter + ") Creation aliases for twin with id: " + twin.getId());
-                result.put(twin.getId(), createAliasesForTwin(twin, returnAlias));
-            }
-            log.warn("stop");
-        } catch (Exception e) {
-            log.warn(e.getMessage());
-            e.printStackTrace();
-        } finally {
-            counterLock.unlock();
+        log.warn("start alias creation: " + twins.size());
+        int counter = 0;
+        for (TwinEntity twin : twins) {
+            counter++;
+            log.warn(counter + ") Creation aliases for twin with id: " + twin.getId());
+            result.put(twin.getId(), createAliasesForTwin(twin, returnAlias));
         }
+        log.warn("finish alias creation.");
         return CompletableFuture.completedFuture(returnAlias ? result : null);
     }
 

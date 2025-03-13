@@ -7,6 +7,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.repository.CrudRepository;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.permission.PermissionGrantUserGroupEntity;
@@ -43,6 +44,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     }
 
     @Override
+//    @Cacheable(value = "EC", key = "EntitySmartService.entityShortName() + '' + #entityId")
     public T findEntity(UUID entityId,
                         EntitySmartService.FindMode findMode,
                         EntitySmartService.ReadPermissionCheckMode permissionCheckMode,
@@ -52,6 +54,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     }
 
     @Override
+//    @Cacheable(value = "EC2", key = "EntitySmartService.entityShortName() + '' + #entityKey")
     public T findEntity(String entityKey,
                         EntitySmartService.FindMode findMode,
                         EntitySmartService.ReadPermissionCheckMode permissionCheckMode,
@@ -94,6 +97,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             return "entity of class[" + entity.getClass().getSimpleName() + "] is invalid";
     }
 
+//    @Cacheable(value = "EC3", key = "EntitySmartService.entityShortName() + '' + #entityId")
     public T findEntitySafe(UUID entityId) throws ServiceException {
         return findEntity(entityId,
                 EntitySmartService.FindMode.ifEmptyThrows,
@@ -101,6 +105,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
                 EntitySmartService.EntityValidateMode.afterRead);
     }
 
+//    @Cacheable(value = "EC4", key = "EntitySmartService.entityShortName() + '' + #entityKey")
     public T findEntitySafe(String entityKey) throws ServiceException {
         return findEntity(entityKey,
                 EntitySmartService.FindMode.ifEmptyThrows,
