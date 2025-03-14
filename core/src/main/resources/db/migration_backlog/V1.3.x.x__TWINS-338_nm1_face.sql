@@ -121,10 +121,21 @@ create table if not exists face_page_pg001
         constraint face_page_pg001_face_id_fk
             primary key
             references face
+            on update cascade on delete restrict
+);
+
+create table if not exists face_page_pg001_widget
+(
+    id                          uuid    not null
+        constraint face_page_pg001_widget_pk
+            primary key,
+    face_id                     uuid    not null
+        constraint face_page_pg001_widget_face_id_fk
+        references face
             on update cascade on delete restrict,
     widget_order                     integer not null default 0,
     widget_face_id               uuid    not null
-        constraint face_page_pg001_widget_face_id_fk
+        constraint face_page_pg001_widget_widget_face_id_fk
             references face
             on update cascade on delete restrict
 );
@@ -143,7 +154,11 @@ create table if not exists face_widget_wt001
             on update cascade,
     twin_class_id               uuid not null
         constraint face_widget_wt001_twin_class_id_fk
-            references i18n
+            references twin_class
+            on update cascade,
+    search_id               uuid
+        constraint face_widget_wt001_search_id_fk
+            references search
             on update cascade,
     hide_columns                varchar[]
 );
@@ -174,8 +189,12 @@ insert into face_navbar_nb001_menu_items (id, face_id, key, label_i18n_id, face_
 insert into face_navbar_nb001_menu_items (id, face_id, key, label_i18n_id, face_navbar_nb001_status_id, target_page_face_id) values ('f30e3369-6f35-45c2-a333-94ac510b39e2','b929c624-368c-4a5f-84b7-0522f3257e3b', 'tasks',    '88cdaaeb-5f10-4f69-9bff-d284824bb142', 'ACTIVE', 'f0e1c3b8-d88f-46a3-b013-e52a7cdff34f') on conflict do nothing;
 insert into face_navbar_nb001_menu_items (id, face_id, key, label_i18n_id, face_navbar_nb001_status_id, target_page_face_id) values ('b53cde28-d5b1-4dad-83a5-8572d0bd8293','b929c624-368c-4a5f-84b7-0522f3257e3b', 'tools',    '6c4ec589-423d-4e36-959d-6ac4b21a2b77', 'ACTIVE', '61f47cfe-5ea3-44f1-b007-effa920fceb9') on conflict do nothing;
 insert into face_navbar_nb001_menu_items (id, face_id, key, label_i18n_id, face_navbar_nb001_status_id, target_page_face_id) values ('c5ab6edb-dda3-4d0f-a9cd-a512bc849f7d','b929c624-368c-4a5f-84b7-0522f3257e3b', 'supplies', '7b7c59b3-2fcc-470e-a1a1-81d78560074e', 'ACTIVE', '0663cb2f-0a0e-437b-a81d-a2f74df04295') on conflict do nothing;
-insert into face_page_pg001 (face_id, widget_order, widget_face_id) values ('d425b8a6-9855-4baa-ae29-99b6b0bfb446', 1, '07abc204-e1f4-45ff-8585-1379fa34ba3d') on conflict do nothing;
-insert into face_page_pg001 (face_id, widget_order, widget_face_id) values ('f0e1c3b8-d88f-46a3-b013-e52a7cdff34f', 1, '040bdc99-3288-40b3-892f-65a470cd0aa8') on conflict do nothing;
-insert into face_page_pg001 (face_id, widget_order, widget_face_id) values ('61f47cfe-5ea3-44f1-b007-effa920fceb9', 1, 'b3a5c11c-3f07-42cc-bb04-be1da3291439') on conflict do nothing;
-insert into face_page_pg001 (face_id, widget_order, widget_face_id) values ('0663cb2f-0a0e-437b-a81d-a2f74df04295', 1, '11407415-838d-4bea-b837-d62cc5017045') on conflict do nothing;
+insert into face_page_pg001 (face_id) values ('d425b8a6-9855-4baa-ae29-99b6b0bfb446') on conflict do nothing;
+insert into face_page_pg001 (face_id) values ('f0e1c3b8-d88f-46a3-b013-e52a7cdff34f') on conflict do nothing;
+insert into face_page_pg001 (face_id) values ('61f47cfe-5ea3-44f1-b007-effa920fceb9') on conflict do nothing;
+insert into face_page_pg001 (face_id) values ('0663cb2f-0a0e-437b-a81d-a2f74df04295') on conflict do nothing;
+insert into face_page_pg001_widget (id, face_id, widget_order, widget_face_id) values ('b7b67c9c-b810-485d-9edc-dac500140243', 'd425b8a6-9855-4baa-ae29-99b6b0bfb446', 1, '07abc204-e1f4-45ff-8585-1379fa34ba3d') on conflict do nothing;
+insert into face_page_pg001_widget (id, face_id, widget_order, widget_face_id) values ('a713d757-a180-4f94-bbac-c100c1f6123f', 'f0e1c3b8-d88f-46a3-b013-e52a7cdff34f', 1, '040bdc99-3288-40b3-892f-65a470cd0aa8') on conflict do nothing;
+insert into face_page_pg001_widget (id, face_id, widget_order, widget_face_id) values ('a9be080f-4fc1-42e0-8ccc-eee603cce971', '61f47cfe-5ea3-44f1-b007-effa920fceb9', 1, 'b3a5c11c-3f07-42cc-bb04-be1da3291439') on conflict do nothing;
+insert into face_page_pg001_widget (id, face_id, widget_order, widget_face_id) values ('93662b84-b488-44e4-9f3c-25737080509d', '0663cb2f-0a0e-437b-a81d-a2f74df04295', 1, '11407415-838d-4bea-b837-d62cc5017045') on conflict do nothing;
 update domain set navbar_face_id = 'b929c624-368c-4a5f-84b7-0522f3257e3b' where id = 'f67ad556-dd27-4871-9a00-16fb0e8a4102' and domain.navbar_face_id is null;
