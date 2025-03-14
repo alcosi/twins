@@ -1,7 +1,6 @@
 package org.twins.core.dao.face.navbar;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -23,7 +22,6 @@ public class FaceNB001Entity implements EasyLoggable {
     @Column(name = "face_id")
     private UUID faceId;
 
-    @NotNull
     @Column(name = "skin")
     private String skin;
 

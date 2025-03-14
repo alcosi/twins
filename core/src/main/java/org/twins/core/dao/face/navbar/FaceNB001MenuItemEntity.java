@@ -1,7 +1,6 @@
 package org.twins.core.dao.face.navbar;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
@@ -23,15 +22,12 @@ public class FaceNB001MenuItemEntity {
     @Column(name = "id")
     private UUID id;
 
-    @Basic
     @Column(name = "face_id")
     private UUID faceId;
 
-    @NotNull
     @Column(name = "key")
     private String key;
 
-    @Basic
     @Column(name = "label_i18n_id")
     private UUID labelI18nId;
 

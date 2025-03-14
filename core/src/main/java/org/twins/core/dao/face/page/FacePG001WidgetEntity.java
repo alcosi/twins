@@ -21,7 +21,6 @@ public class FacePG001WidgetEntity implements EasyLoggable {
     @Column(name = "face_id")
     private UUID faceId;
 
-    @Basic
     @Column(name = "widget_face_id")
     private UUID widgetFaceId;
 

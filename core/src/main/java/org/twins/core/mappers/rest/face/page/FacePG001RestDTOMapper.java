@@ -1,6 +1,7 @@
 package org.twins.core.mappers.rest.face.page;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.face.page.FacePG001Entity;
@@ -18,6 +19,7 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {FacePG001Modes.FacePG001WidgetCollectionMode.class})
 public class FacePG001RestDTOMapper extends RestSimpleDTOMapper<FacePG001Entity, FacePG001DTOv1> {
+    protected final I18nService i18nService;
     protected final FaceRestDTOMapper faceRestDTOMapper;
     protected final FacePG001WidgetRestDTOMapper facePG001WidgetRestDTOMapper;
     protected final FacePG001Service facePG001Service;
@@ -26,7 +28,8 @@ public class FacePG001RestDTOMapper extends RestSimpleDTOMapper<FacePG001Entity,
     public void map(FacePG001Entity src, FacePG001DTOv1 dst, MapperContext mapperContext) throws Exception {
         faceRestDTOMapper.map(src.getFace(), dst, mapperContext);
         switch (mapperContext.getModeOrUse(FaceMode.SHORT)) { // perhaps we need some separate mode
-            // for more fields mapping
+            case SHORT, DETAILED -> dst
+                    .setTitle(i18nService.translateToLocale(src.getTitleI18nId()));
         }
         if (mapperContext.hasModeButNot(FacePG001Modes.FacePG001WidgetCollectionMode.HIDE)) {
             facePG001Service.loadWidgets(src);
