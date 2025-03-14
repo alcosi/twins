@@ -1,4 +1,4 @@
-package org.twins.face.controller.navbar;
+package org.twins.face.controller.rest.widget;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,10 +22,10 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.face.dao.navbar.FaceNB001Entity;
-import org.twins.face.dto.rest.navbar.FaceNB001ViewRsDTOv1;
-import org.twins.face.mappers.rest.navbar.FaceNB001RestDTOMapper;
-import org.twins.face.service.navbar.FaceNB001Service;
+import org.twins.face.dao.widget.FaceWT001Entity;
+import org.twins.face.dto.rest.widget.FaceWT001ViewRsDTOv1;
+import org.twins.face.mappers.rest.widget.FaceWT001RestDTOMapper;
+import org.twins.face.service.widget.FaceWT001Service;
 
 import java.util.UUID;
 
@@ -33,27 +33,27 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class FaceNB001Controller extends ApiController {
-    private final FaceNB001Service faceNB001Service;
-    private final FaceNB001RestDTOMapper faceNB001RestDTOMapper;
+public class FaceWT001Controller extends ApiController {
+    private final FaceWT001Service faceWT001Service;
+    private final FaceWT001RestDTOMapper faceWT001RestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "faceNB001ViewV1", summary = "Returns nb001 navigation bar details")
+    @Operation(operationId = "faceWT001ViewV1", summary = "Returns wt001 navigation bar details")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "NB001 face config", content = {
+            @ApiResponse(responseCode = "200", description = "WT001 face config", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = FaceNB001ViewRsDTOv1.class))}),
+                    @Schema(implementation = FaceWT001ViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/private/face/nb001/{faceId}/v1")
-    public ResponseEntity<?> faceNB001ViewV1(
-            @MapperContextBinding(roots = FaceNB001RestDTOMapper.class, response = FaceNB001ViewRsDTOv1.class) MapperContext mapperContext,
+    @GetMapping(value = "/private/face/wt001/{faceId}/v1")
+    public ResponseEntity<?> faceWT001ViewV1(
+            @MapperContextBinding(roots = FaceWT001RestDTOMapper.class, response = FaceWT001ViewRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACE_ID) @PathVariable UUID faceId) {
-        FaceNB001ViewRsDTOv1 rs = new FaceNB001ViewRsDTOv1();
+        FaceWT001ViewRsDTOv1 rs = new FaceWT001ViewRsDTOv1();
         try {
-            FaceNB001Entity faceNB001Entity = faceNB001Service.findEntitySafe(faceId);
+            FaceWT001Entity faceWT001Entity = faceWT001Service.findEntitySafe(faceId);
             rs
-                    .setNavbar(faceNB001RestDTOMapper.convert(faceNB001Entity, mapperContext))
+                    .setWidget(faceWT001RestDTOMapper.convert(faceWT001Entity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
