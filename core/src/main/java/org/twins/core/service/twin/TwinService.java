@@ -17,6 +17,7 @@ import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -57,12 +58,19 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Lazy
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
+
+    // resolve AOP problem: one-service self-invocation methodss
+    @Autowired
+    private TwinService self;
+
+
     private final TwinRepository twinRepository;
     private final TwinFieldSimpleRepository twinFieldSimpleRepository;
     private final TwinFieldUserRepository twinFieldUserRepository;
@@ -313,40 +321,63 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return new TwinField(twinEntity, twinClassFieldEntity);
     }
 
-    @Transactional(rollbackFor = Throwable.class)
+    public void createTwinsBatch(List<TwinCreate> twinCreates) throws ServiceException{
+        List<TwinEntity> twins = self.createTwins(twinCreates);
+        generateTwinAliasesAndMakeCreationResult(twins);
+    }
+
     public TwinCreateResult createTwin(TwinCreate twinCreate) throws ServiceException {
-        return createTwin(Collections.singletonList(twinCreate)).getTwinCreateResultList().getFirst();
+        List<TwinEntity> twins = self.createTwins(Collections.singletonList(twinCreate));
+        TwinBatchCreateResult twinBatchCreateResult = generateTwinAliasesAndMakeCreationResult(twins);
+        TwinCreateResult result = twinBatchCreateResult.getTwinCreateResultList().getFirst();
+        return result;
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinBatchCreateResult createTwin(List<TwinCreate> twinCreateList) throws ServiceException {
+    public List<TwinEntity> createTwins(List<TwinCreate> twinCreateList) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         for (TwinCreate twinCreate : twinCreateList) {
             createTwin(twinCreate, twinChangesCollector);
         }
         twinChangesService.applyChanges(twinChangesCollector);
-        List<TwinEntity> twinEntityList = new ArrayList<>();
+        List<TwinEntity> twins = new ArrayList<>();
         for (TwinCreate twinCreate : twinCreateList) {
             TwinEntity twinEntity = twinCreate.getTwinEntity();
-            twinEntityList.add(twinEntity);
+            twins.add(twinEntity);
             twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
         }
         //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
+        return twins;
+    }
+
+    public TwinBatchCreateResult generateTwinAliasesAndMakeCreationResult(List<TwinEntity> twins) throws ServiceException {
         TwinBatchCreateResult twinBatchCreateResult = new TwinBatchCreateResult();
-        for (TwinEntity twinEntity : twinEntityList) {
+        boolean returnResult = twins.size() == 1;
+        Map<UUID, List<TwinAliasEntity>> aliasesForTwins = null;
+        try {
+            aliasesForTwins = twinAliasService.createAliasesForTwins(twins, returnResult).get();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceException(ErrorCodeTwins.ERROR_TWIN_ALIASES_CREATION, "failed to create aliases for twins: " + twins.stream().map(TwinEntity::logShort).collect(Collectors.joining(", ")));
+        }
+        for(TwinEntity twin : twins)
             twinBatchCreateResult.getTwinCreateResultList().add(
                     new TwinCreateResult()
-                            .setCreatedTwin(twinEntity)
-                            .setTwinAliasEntityList(twinAliasService.createAliases(twinEntity))
-            );
-        }
+                            .setCreatedTwin(twin)
+                            .setTwinAliasEntityList(
+                                    returnResult && null != aliasesForTwins ?
+                                            aliasesForTwins.get(twin.getId()) :
+                                            null
+                            ));
         return twinBatchCreateResult;
     }
+
+
 
     public void createTwin(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
         ApiUser apiUser = authService.getApiUser();
-        if(twinCreate.isCheckCreatePermission())
+        if (twinCreate.isCheckCreatePermission())
             checkCreatePermission(twinEntity, apiUser);
         createTwinEntity(twinEntity, twinChangesCollector);
         saveTwinFields(twinEntity, twinCreate.getFields(), twinChangesCollector);
@@ -380,7 +411,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public UUID detectDeletePermissionId(TwinEntity twinEntity) throws ServiceException {
-        if(null == twinEntity.getTwinClass())
+        if (null == twinEntity.getTwinClass())
             twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
         return twinEntity.getTwinClass().getDeletePermissionId();
     }
@@ -396,7 +427,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public UUID detectCreatePermissionId(TwinEntity twinEntity) throws ServiceException {
-        if(null == twinEntity.getTwinClass())
+        if (null == twinEntity.getTwinClass())
             twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
         return twinEntity.getTwinClass().getCreatePermissionId();
     }
@@ -411,7 +442,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public UUID detectUpdatePermissionId(TwinEntity twinEntity) throws ServiceException {
-        if(null == twinEntity.getTwinClass())
+        if (null == twinEntity.getTwinClass())
             twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
         return twinEntity.getTwinClass().getEditPermissionId();
     }
@@ -521,7 +552,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twinChangesCollector;
     }
 
-    @Transactional
     public void updateTwinFields(TwinEntity twinEntity, List<FieldValue> values) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         updateTwinFields(twinEntity, values, twinChangesCollector);
@@ -554,7 +584,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (!twinUpdate.isChanged())
             return;
         ApiUser apiUser = authService.getApiUser();
-        if(twinUpdate.isCheckEditPermission())
+        if (twinUpdate.isCheckEditPermission())
             checkUpdatePermission(twinUpdate.getDbTwinEntity(), apiUser);
         updateTwinBasics(twinChangesRecorder);
         if (twinChangesRecorder.hasChanges())
@@ -798,6 +828,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twinDuplicate;
     }
 
+    @Transactional(rollbackFor = Throwable.class)
     public void saveDuplicateTwin(TwinDuplicate twinDuplicate) throws ServiceException {
         twinChangesService.applyChanges(twinDuplicate.getChangesCollector());
         twinflowService.runTwinStatusTransitionTriggers(twinDuplicate.getDuplicate(), null, twinDuplicate.getDuplicate().getTwinStatus());
@@ -1013,6 +1044,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             twinFieldDataListRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
         }
     }
+
 
     @Data
     @Accessors(chain = true)
