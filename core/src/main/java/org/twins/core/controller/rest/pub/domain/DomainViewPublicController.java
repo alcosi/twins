@@ -52,7 +52,7 @@ public class DomainViewPublicController extends ApiController {
         try {
             authService.getApiUser().setAnonymous();
             rs.setDomain(domainViewPublicRestDTOMapper.convert(
-                    domainService.findEntitySafe(domainId), mapperContext));
+                    domainService.findEntityPublic(domainId), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -77,7 +77,7 @@ public class DomainViewPublicController extends ApiController {
             authService.getApiUser().setAnonymous();
             rs
                     .setDomain(domainViewPublicRestDTOMapper.convert(
-                            domainService.findEntitySafe(domainKey), mapperContext));
+                            domainService.findEntityPublic(domainKey), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
