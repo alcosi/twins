@@ -17,6 +17,7 @@ import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -64,6 +65,11 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
+
+    @Autowired
+    private TwinService self;
+
+
     private final TwinRepository twinRepository;
     private final TwinFieldSimpleRepository twinFieldSimpleRepository;
     private final TwinFieldUserRepository twinFieldUserRepository;
@@ -314,9 +320,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return new TwinField(twinEntity, twinClassFieldEntity);
     }
 
-    @Transactional(rollbackFor = Throwable.class)
+    public void createTwinsBatch(List<TwinCreate> twinCreates) throws ServiceException{
+        List<TwinEntity> twins = self.createTwins(twinCreates);
+        generateTwinAliasesAndMakeCreationResult(twins);
+    }
+
     public TwinCreateResult createTwin(TwinCreate twinCreate) throws ServiceException {
-        List<TwinEntity> twins = createTwins(Collections.singletonList(twinCreate));
+        List<TwinEntity> twins = self.createTwins(Collections.singletonList(twinCreate));
         TwinBatchCreateResult twinBatchCreateResult = generateTwinAliasesAndMakeCreationResult(twins);
         TwinCreateResult result = twinBatchCreateResult.getTwinCreateResultList().getFirst();
         return result;
@@ -1033,6 +1043,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             twinFieldDataListRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
         }
     }
+
 
     @Data
     @Accessors(chain = true)

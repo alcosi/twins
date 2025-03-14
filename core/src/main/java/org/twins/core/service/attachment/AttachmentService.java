@@ -60,6 +60,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         return entitySmartService.findById(attachmentId, twinAttachmentRepository, findMode);
     }
 
+    @Transactional
     public List<TwinAttachmentEntity> addAttachments(List<TwinAttachmentEntity> attachments, TwinEntity twinEntity) throws ServiceException {
         checkAndSetAttachmentTwin(attachments, twinEntity);
         return addAttachments(attachments);
@@ -208,6 +209,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         updateAttachments(attachmentEntityList);
     }
 
+    @Transactional
     public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentEntityList))
             return;
