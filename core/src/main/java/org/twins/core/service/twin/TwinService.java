@@ -321,20 +321,34 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return new TwinField(twinEntity, twinClassFieldEntity);
     }
 
-    public void createTwinsBatch(List<TwinCreate> twinCreates) throws ServiceException{
-        List<TwinEntity> twins = self.createTwins(twinCreates);
-        generateTwinAliasesAndMakeCreationResult(twins);
+    @Transactional(rollbackFor = Throwable.class)
+    public TwinCreateResult createTwin(TwinCreate twinCreate) throws ServiceException {
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        createTwin(twinCreate, twinChangesCollector);
+        twinChangesService.applyChanges(twinChangesCollector);
+        TwinEntity twinEntity = twinCreate.getTwinEntity();
+        twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
+        //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
+        return new TwinCreateResult()
+                .setCreatedTwin(twinEntity)
+                .setTwinAliasEntityList(twinAliasService.createAliasesForTwin(twinEntity, true));
     }
 
-    public TwinCreateResult createTwin(TwinCreate twinCreate) throws ServiceException {
-        List<TwinEntity> twins = self.createTwins(Collections.singletonList(twinCreate));
+    //faster, but dont call it form method annotated by @transactional
+    public TwinCreateResult createTwinAsync(TwinCreate twinCreate) throws ServiceException {
+        List<TwinEntity> twins = self.createTwinsAsync(Collections.singletonList(twinCreate));
         TwinBatchCreateResult twinBatchCreateResult = generateTwinAliasesAndMakeCreationResult(twins);
         TwinCreateResult result = twinBatchCreateResult.getTwinCreateResultList().getFirst();
         return result;
     }
 
+    public void createTwinsAsyncBatch(List<TwinCreate> twinCreates) throws ServiceException{
+        List<TwinEntity> twins = self.createTwinsAsync(twinCreates);
+        generateTwinAliasesAndMakeCreationResult(twins);
+    }
+
     @Transactional(rollbackFor = Throwable.class)
-    public List<TwinEntity> createTwins(List<TwinCreate> twinCreateList) throws ServiceException {
+    public List<TwinEntity> createTwinsAsync(List<TwinCreate> twinCreateList) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         for (TwinCreate twinCreate : twinCreateList) {
             createTwin(twinCreate, twinChangesCollector);

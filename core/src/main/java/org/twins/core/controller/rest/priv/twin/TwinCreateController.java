@@ -131,7 +131,7 @@ public class TwinCreateController extends ApiController {
             for (TwinCreate twinCreate : twinCreates) {
                 twinCreate.setCheckCreatePermission(true);
             }
-            twinService.createTwinsBatch(twinCreates);
+            twinService.createTwinsAsyncBatch(twinCreates);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
