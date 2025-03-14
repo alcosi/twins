@@ -34,11 +34,8 @@ public class FaceNB001MenuItemEntity {
     @Column(name = "description_i18n_id")
     private UUID descriptionI18nId;
 
-    @Column(name = "icon_dark_resource_id")
-    private UUID iconDarkResourceId;
-
-    @Column(name = "icon_light_resource_id")
-    private UUID iconLightResourceId;
+    @Column(name = "icon_resource_id")
+    private UUID iconResourceId;
 
     @Column(name = "face_navbar_nb001_status_id")
     @Enumerated(EnumType.STRING)
@@ -61,12 +58,8 @@ public class FaceNB001MenuItemEntity {
     private I18nEntity descriptionI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "icon_dark_resource_id", insertable = false, updatable = false)
-    private ResourceEntity iconDarkResource;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "icon_light_resource_id", insertable = false, updatable = false)
-    private ResourceEntity iconLightResource;
+    @JoinColumn(name = "icon_resource_id", insertable = false, updatable = false)
+    private ResourceEntity iconResource;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "target_page_face_id", nullable = false, insertable = false, updatable = false)

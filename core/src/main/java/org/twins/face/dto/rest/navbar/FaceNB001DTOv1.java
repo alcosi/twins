@@ -13,9 +13,18 @@ import java.util.List;
 @Accessors(chain = true)
 @Schema(name = "FaceNB001v1")
 public class FaceNB001DTOv1 extends FaceDTOv1 {
-    @Schema(description = "skin")
-    public String skin;
+    @Schema(description = "label for admin area menu")
+    public String adminAreaLabel;
+
+    @Schema(description = "Icon for admin area menu")
+    public String adminAreaIcon;
+
+    @Schema(description = "label for user area menu")
+    public String userAreaLabel;
+
+    @Schema(description = "Icon for user area menu")
+    public String userAreaIcon;
 
     @Schema(description = "menu items list")
-    public List<FaceNB001MenuItemDTOv1> menuItems;
+    public List<FaceNB001MenuItemDTOv1> userAreaMenuItems;
 }

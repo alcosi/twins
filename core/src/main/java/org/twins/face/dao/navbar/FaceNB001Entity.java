@@ -8,7 +8,9 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.face.FaceEntity;
+import org.twins.core.dao.resource.ResourceEntity;
 
 import java.util.UUID;
 
@@ -22,12 +24,37 @@ public class FaceNB001Entity implements EasyLoggable {
     @Column(name = "face_id")
     private UUID faceId;
 
-    @Column(name = "skin")
-    private String skin;
+    @Column(name = "admin_area_label_i18n_id")
+    private UUID adminAreaLabelI18nId;
+
+    @Column(name = "admin_area_icon_resource_id")
+    private UUID adminAreaIconResourceId;
+
+    @Column(name = "user_area_label_i18n_id")
+    private UUID userAreaLabelI18nId;
+
+    @Column(name = "user_area_icon_resource_id")
+    private UUID userAreaIconResourceId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     private FaceEntity face;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_area_label_i18n_id", nullable = false, insertable = false, updatable = false)
+    private I18nEntity adminAreaLabelI18n;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_area_icon_resource_id", insertable = false, updatable = false)
+    private ResourceEntity adminAreaIconResource;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_area_label_i18n_id", nullable = false, insertable = false, updatable = false)
+    private I18nEntity userAreaLabelI18n;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_area_icon_resource_id", insertable = false, updatable = false)
+    private ResourceEntity userAreaIconResource;
 
     @Override
     public String easyLog(Level level) {

@@ -26,11 +26,8 @@ public class FaceNB001MenuItemDTOv1 {
     @Schema(description = "item is not selectable")
     public boolean disabled;
 
-    @Schema(description = "Icon dark uri. Might be relative")
-    public String iconDark;
-
     @Schema(description = "Icon light uri. Might be relative")
-    public String iconLight;
+    public String icon;
 
     @Schema(description = "domain navigation bar pointer")
     public UUID targetPageFaceId;
