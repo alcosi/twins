@@ -470,7 +470,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
         updateSafe(dbTwinClassEntity, changesHelper);
         if (changesHelper.hasChanges()) {
-            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassUpdate.getDbTwinClassEntity().getId());
+            Map<String, List<Object>> cacheEntries = Map.of(
+                    TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(twinClassUpdate.getDbTwinClassEntity().getId()),
+                    ENTITY_CACHE, Collections.emptyList()
+            );
+            evictCache(cacheManager, cacheEntries);
         }
     }
 

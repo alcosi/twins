@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.cambium.service.EntitySecureFindServiceImpl.TWIN_CLASS_FIELD_CACHE_KEY;
+
 
 @Component
 @RequiredArgsConstructor
@@ -49,7 +51,7 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
     }
 
     public FieldValueText createValueByTwinClassFieldId(UUID twinClassFieldId, String fieldValue) throws ServiceException {
-        TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findEntitySafe(twinClassFieldId);
+        TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findEntitySafeCached(twinClassFieldId, TWIN_CLASS_FIELD_CACHE_KEY);
         if (twinClassFieldEntity == null)
             return null;
         return new FieldValueText(twinClassFieldEntity)

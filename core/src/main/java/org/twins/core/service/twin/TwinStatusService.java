@@ -7,6 +7,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.CacheUtils;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KeyUtils;
 import org.cambium.common.util.PaginationUtils;
@@ -36,7 +37,6 @@ import org.twins.core.service.twinclass.TwinClassService;
 import java.util.*;
 import java.util.function.Function;
 
-import static org.cambium.common.util.CacheUtils.evictCache;
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
@@ -73,7 +73,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     public PaginationResult<TwinStatusEntity> findTwinStatusesForDomain(TwinStatusSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<TwinStatusEntity> spec = createTwinStatusSearchSpecification(search)
-                .and(checkFieldUuid(domainId,TwinStatusEntity.Fields.twinClass,TwinClassEntity.Fields.domainId));
+                .and(checkFieldUuid(domainId, TwinStatusEntity.Fields.twinClass, TwinClassEntity.Fields.domainId));
         Page<TwinStatusEntity> ret = twinStatusRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
@@ -167,7 +167,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
                 .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getId());
         validateEntityAndThrow(twinStatusEntity, EntitySmartService.EntityValidateMode.beforeSave);
         TwinStatusEntity savedStatus = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, savedStatus.getTwinClassId());
+        evictCache(savedStatus);
         return savedStatus;
     }
 
@@ -179,7 +179,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
                 .setDescriptionI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_DESCRIPTION, descriptionsI18n).getId());
         validateEntityAndThrow(twinStatusEntity, EntitySmartService.EntityValidateMode.beforeSave);
         TwinStatusEntity savedStatus = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, savedStatus.getTwinClassId());
+        evictCache(savedStatus);
         return savedStatus;
     }
 
@@ -211,9 +211,18 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         }
         dbEntity = updateSafe(dbEntity, changesHelper);
         if (changesHelper.hasChanges()) {
-            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbEntity.getTwinClassId());
+            evictCache(dbEntity);
         }
         return dbEntity;
     }
+
+    private void evictCache(TwinStatusEntity status) throws ServiceException {
+        Map<String, List<Object>> cacheEntries = Map.of(
+                TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(status.getTwinClassId()),
+                ENTITY_CACHE, Collections.emptyList()
+        );
+        CacheUtils.evictCache(cacheManager, cacheEntries);
+    }
+
 
 }

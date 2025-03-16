@@ -7,6 +7,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.Collection;
@@ -103,6 +104,19 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         return findEntity(entityId,
                 EntitySmartService.FindMode.ifEmptyThrows,
                 EntitySmartService.ReadPermissionCheckMode.none,
+                EntitySmartService.EntityValidateMode.afterRead);
+    }
+
+    //todo override in impl with cache key
+    //dont forget evict this cache on update new entity types
+    public static final String ENTITY_CACHE = "entityCache";
+    public static final String TWIN_CLASS_CACHE_KEY = "TWIN_CLASS";
+    public static final String TWIN_CLASS_FIELD_CACHE_KEY = "TWIN_CLASS_FIELD";
+    @Cacheable(value = ENTITY_CACHE, key = "#entityId + '_' + #cacheKey")
+    public T findEntitySafeCached(UUID entityId, String cacheKey) throws ServiceException {
+        return findEntity(entityId,
+                EntitySmartService.FindMode.ifEmptyThrows,
+                EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows,
                 EntitySmartService.EntityValidateMode.afterRead);
     }
 
