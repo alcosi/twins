@@ -19,16 +19,16 @@ public class DomainViewDTOv1 extends DomainViewPublicDTOv1 {
     public DomainType type;
 
     @Schema(description = "permission schema id")
-    private UUID permissionSchemaId;
+    public UUID permissionSchemaId;
 
     @Schema(description = "twinflow schema id")
-    private UUID twinflowSchemaId;
+    public UUID twinflowSchemaId;
 
     @Schema(description = "twinclass schema id")
-    private UUID twinClassSchemaId;
+    public UUID twinClassSchemaId;
 
     @Schema(description = "business account template twin id")
-    private UUID businessAccountTemplateTwinId;
+    public UUID businessAccountTemplateTwinId;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)
@@ -36,4 +36,7 @@ public class DomainViewDTOv1 extends DomainViewPublicDTOv1 {
 
     @Schema(description = "default locale")
     public String defaultLocale;
+
+    @Schema(description = "domain navigation bar pointer")
+    public UUID navbarFaceId;
 }

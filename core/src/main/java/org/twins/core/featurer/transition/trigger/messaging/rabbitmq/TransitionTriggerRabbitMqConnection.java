@@ -38,12 +38,11 @@ public abstract class TransitionTriggerRabbitMqConnection extends TransitionTrig
         String connectionUrl = URL.extract(properties);
         rabbitConnectionCache.computeIfAbsent(connectionUrl, key -> {
             log.info("Creat new connectionFactory URL: {}", key);
-            CachingConnectionFactory connectionFactory; connectionFactory = new CachingConnectionFactory();
+            CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
             connectionFactory.setUri(connectionUrl);
             connectionFactory.setCacheMode(CachingConnectionFactory.CacheMode.CHANNEL);
             connectionFactory.setChannelCacheSize(25);
             connectionFactory.setConnectionCacheSize(5);
-            rabbitConnectionCache.put(connectionUrl, connectionFactory);
             return connectionFactory;
         });
     }
