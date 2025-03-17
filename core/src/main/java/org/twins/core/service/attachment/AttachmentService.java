@@ -231,27 +231,27 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             dbAttachmentEntity = dbAttachmentKit.get(attachmentEntity.getId());
             attachmentActionService.checkAllowed(dbAttachmentEntity, TwinAttachmentAction.EDIT);
             HistoryItem<HistoryContextAttachmentChange> historyItem = historyService.attachmentUpdate(attachmentEntity);
-            if (twinChangesCollector.collectIfChanged(attachmentEntity, "twinId", dbAttachmentEntity.getTwinId(), attachmentEntity.getTwinId())) {
+            if (twinChangesCollector.collectIfChanged(attachmentEntity, TwinAttachmentEntity.Fields.twinId, dbAttachmentEntity.getTwinId(), attachmentEntity.getTwinId())) {
                 // twin relink is not security safe, so it's currently denied. perhaps we can move it to permissions
                 throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_CAN_NOT_BE_RELINKED, "This attachment belongs to another twin");
             }
-            if (twinChangesCollector.collectIfChanged(attachmentEntity, "commentId", dbAttachmentEntity.getTwinCommentId(), attachmentEntity.getTwinCommentId())) {
+            if (twinChangesCollector.collectIfChanged(attachmentEntity, TwinAttachmentEntity.Fields.twinCommentId, dbAttachmentEntity.getTwinCommentId(), attachmentEntity.getTwinCommentId())) {
                 // comment relink is not security safe, so it's currently denied. perhaps we can move it to permissions
                 throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_INCORRECT_COMMENT, "This attachment belongs to another comment");
             }
-            if (twinChangesCollector.collectIfChanged(attachmentEntity, "description", dbAttachmentEntity.getDescription(), attachmentEntity.getDescription())) {
+            if (twinChangesCollector.collectIfChanged(attachmentEntity, TwinAttachmentEntity.Fields.description, dbAttachmentEntity.getDescription(), attachmentEntity.getDescription())) {
                 historyItem.getContext().setNewDescription(attachmentEntity.getDescription());
                 dbAttachmentEntity.setDescription(attachmentEntity.getDescription());
             }
-            if (twinChangesCollector.collectIfChanged(attachmentEntity, "title", dbAttachmentEntity.getTitle(), attachmentEntity.getTitle())) {
+            if (twinChangesCollector.collectIfChanged(attachmentEntity, TwinAttachmentEntity.Fields.title, dbAttachmentEntity.getTitle(), attachmentEntity.getTitle())) {
                 historyItem.getContext().setNewTitle(attachmentEntity.getTitle());
                 dbAttachmentEntity.setTitle(attachmentEntity.getTitle());
             }
-            if (twinChangesCollector.collectIfChanged(attachmentEntity, "storageLink", dbAttachmentEntity.getStorageLink(), attachmentEntity.getStorageLink())) {
-                historyItem.getContext().setNewStorageLink(attachmentEntity.getStorageLink());
-                dbAttachmentEntity.setStorageLink(attachmentEntity.getStorageLink());
+            if (twinChangesCollector.collectIfChanged(attachmentEntity, TwinAttachmentEntity.Fields.storageLinksMap, dbAttachmentEntity.getStorageLinksMap(), attachmentEntity.getStorageLinksMap())) {
+                historyItem.getContext().setNewStorageLinksMap(attachmentEntity.getStorageLinksMap());
+                dbAttachmentEntity.setStorageLinksMap(attachmentEntity.getStorageLinksMap());
             }
-            if (twinChangesCollector.collectIfChanged(attachmentEntity, "externalId", dbAttachmentEntity.getExternalId(), attachmentEntity.getExternalId())) {
+            if (twinChangesCollector.collectIfChanged(attachmentEntity, TwinAttachmentEntity.Fields.externalId, dbAttachmentEntity.getExternalId(), attachmentEntity.getExternalId())) {
                 historyItem.getContext().setNewExternalId(attachmentEntity.getExternalId());
                 dbAttachmentEntity.setExternalId(attachmentEntity.getExternalId());
             }

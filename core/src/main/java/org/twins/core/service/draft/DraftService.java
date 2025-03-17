@@ -750,7 +750,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 .setExternalId(twinAttachmentEntity.getExternalId())
                 .setTitle(twinAttachmentEntity.getTitle())
                 .setDescription(twinAttachmentEntity.getDescription())
-                .setStorageLink(twinAttachmentEntity.getStorageLink())
+                .setStorageLinksMap(twinAttachmentEntity.getStorageLinksMap())
                 .setViewPermissionId(twinAttachmentEntity.getViewPermissionId())
                 .setTwinClassFieldId(twinAttachmentEntity.getTwinClassFieldId()) // not sure that we should allow this on update
                 .setTwinCommentId(twinAttachmentEntity.getTwinCommentId())

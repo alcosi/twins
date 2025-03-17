@@ -53,7 +53,7 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
             case SHORT:
                 dst
                         .setId(src.getId())
-                        .setStorageLink(src.getStorageLink());
+                        .setStorageLinksMap(src.getStorageLinksMap());
         }
         if (mapperContext.hasModeButNot(TransitionMode.Attachment2TransitionMode.HIDE)) {
             dst
