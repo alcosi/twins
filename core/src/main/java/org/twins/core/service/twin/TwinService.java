@@ -386,10 +386,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twinBatchCreateResult;
     }
 
-
-
     public void createTwin(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
+        if (twinEntity.getTwinClass() == null)
+            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
         setHeadSafe(twinEntity);
         if (twinCreate.isCheckCreatePermission())
             checkCreatePermission(twinEntity, authService.getApiUser());
@@ -422,8 +422,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void createTwinEntity(TwinEntity twinEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (twinEntity.getTwinClass() == null)
-            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
         if (twinEntity.getId() == null)
             twinEntity.setId(UUID.randomUUID()); // this id is necessary for fields and links. Because entity is not stored currently
         if (twinEntity.getTwinStatusId() == null) {

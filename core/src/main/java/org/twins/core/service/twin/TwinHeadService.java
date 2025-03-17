@@ -68,7 +68,7 @@ public class TwinHeadService {
         basicSearch.addTwinClassId(headTwinClassEntity.getExtendsHierarchyChildClassKit().getIdSet(), false);
         if (twinClassEntity.getHeadHunterFeaturer() != null) {//headhunter should not be empty if head twin is specified and head class is not USER and BA
             HeadHunter headHunter = featurerService.getFeaturer(twinClassEntity.getHeadHunterFeaturer(), HeadHunter.class);
-            headHunter.expandValidHeadSearch(headTwinClassEntity.getHeadHunterParams(), headTwinClassEntity, basicSearch);
+            headHunter.expandValidHeadSearch(twinClassEntity.getHeadHunterParams(), twinClassEntity, basicSearch);
         }
         return twinSearchService.findTwins(basicSearch, pagination);
     }
