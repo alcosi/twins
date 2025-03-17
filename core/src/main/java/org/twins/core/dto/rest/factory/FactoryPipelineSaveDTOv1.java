@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.factory;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Column;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
@@ -28,6 +29,9 @@ public class FactoryPipelineSaveDTOv1 {
 
     @Schema(description = "next factory id", example = DTOExamples.FACTORY_ID)
     public UUID nextFactoryId;
+
+    @Schema(description = "next twin factory limit scope", example = DTOExamples.BOOLEAN_TRUE)
+    private Boolean nextTwinFactoryLimitScope;
 
     @Schema(description = "template twin id", example = DTOExamples.TWIN_ID)
     public UUID templateTwinId;

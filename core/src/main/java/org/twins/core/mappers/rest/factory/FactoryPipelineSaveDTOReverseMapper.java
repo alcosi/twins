@@ -19,6 +19,7 @@ public class FactoryPipelineSaveDTOReverseMapper extends RestSimpleDTOMapper<Fac
                 .setActive(src.getActive())
                 .setOutputTwinStatusId(src.getOutputStatusId())
                 .setNextTwinFactoryId(src.getNextFactoryId())
+                .setNextTwinFactoryLimitScope(src.getNextTwinFactoryLimitScope())
                 .setTemplateTwinId(src.getTemplateTwinId())
                 .setDescription(src.getDescription());
     }
