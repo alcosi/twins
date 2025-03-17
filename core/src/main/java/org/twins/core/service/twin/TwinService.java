@@ -390,9 +390,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public void createTwin(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
-        ApiUser apiUser = authService.getApiUser();
+        setHeadSafe(twinEntity);
         if (twinCreate.isCheckCreatePermission())
-            checkCreatePermission(twinEntity, apiUser);
+            checkCreatePermission(twinEntity, authService.getApiUser());
         createTwinEntity(twinEntity, twinChangesCollector);
         saveTwinFields(twinEntity, twinCreate.getFields(), twinChangesCollector);
         if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
@@ -408,12 +408,24 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
+    private void setHeadSafe(TwinEntity twinEntity) throws ServiceException {
+        if (twinEntity.getHeadTwinId() == null)
+            return;
+        TwinEntity headTwin = twinHeadService.checkValidHeadForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass());
+        twinEntity
+                .setHeadTwinId(headTwin.getId())
+                .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin));
+    }
+
+    private static UUID getPermissionSchemaSpaceId(TwinEntity headTwin) {
+        return headTwin.getTwinClass().isPermissionSchemaSpace() ? headTwin.getId() : headTwin.getPermissionSchemaSpaceId();
+    }
+
     public void createTwinEntity(TwinEntity twinEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinEntity.getTwinClass() == null)
             twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
         if (twinEntity.getId() == null)
             twinEntity.setId(UUID.randomUUID()); // this id is necessary for fields and links. Because entity is not stored currently
-        twinEntity.setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass()));
         if (twinEntity.getTwinStatusId() == null) {
             TwinflowEntity twinflowEntity = twinflowService.loadTwinflow(twinEntity);
             twinEntity
@@ -643,13 +655,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (changesRecorder.isChanged("headTwinId", changesRecorder.getDbEntity().getHeadTwinId(), changesRecorder.getUpdateEntity().getHeadTwinId())) {
             if (changesRecorder.isHistoryCollectorEnabled())
                 changesRecorder.getHistoryCollector().add(historyService.headChanged(changesRecorder.getDbEntity().getHeadTwin(), changesRecorder.getUpdateEntity().getHeadTwin()));
-            UUID headTwinId = twinHeadService.checkHeadTwinAllowedForClass(changesRecorder.getUpdateEntity().getHeadTwinId(), changesRecorder.getDbEntity().getTwinClass());
+            TwinEntity headTwin = twinHeadService.checkValidHeadForClass(changesRecorder.getUpdateEntity().getHeadTwinId(), changesRecorder.getDbEntity().getTwinClass());
             if (changesRecorder.getRecorder() instanceof DraftTwinPersistEntity draftTwinPersistEntity)
                 draftTwinPersistEntity
-                        .setHeadTwinId(headTwinId);
+                        .setHeadTwinId(headTwin.getId()); //todo check permissionSchemaSpace is updated on db level
             if (changesRecorder.getRecorder() instanceof TwinEntity twinEntity)
                 twinEntity
-                        .setHeadTwinId(headTwinId);
+                        .setHeadTwinId(headTwin.getId())
+                        .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin));
         }
     }
 
