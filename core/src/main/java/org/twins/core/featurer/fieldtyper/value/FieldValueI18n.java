@@ -4,8 +4,10 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.cambium.i18n.dao.I18nTranslationEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -14,6 +16,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class FieldValueI18n extends FieldValue {
     private UUID i18nId;
+    private List<I18nTranslationEntity> i18nTranslations;
 
     public FieldValueI18n(TwinClassFieldEntity twinClassField) {
         super(twinClassField);

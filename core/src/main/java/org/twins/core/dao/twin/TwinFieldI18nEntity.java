@@ -46,6 +46,16 @@ public class TwinFieldI18nEntity implements TwinFieldStorage {
     @ManyToOne
     @JoinColumn(name = "i18n_id", insertable = false, updatable = false, nullable = false)
     private I18nEntity i18n;
+
+    public TwinFieldI18nEntity cloneFor(TwinEntity dstTwinEntity) {
+        return new TwinFieldI18nEntity()
+                .setTwin(dstTwinEntity)
+                .setTwinId(dstTwinEntity.getId())
+                .setTwinClassFieldId(twinClassFieldId)
+                .setTwinClassField(twinClassField)
+                .setI18n(i18n)
+                .setI18nId(i18nId);
+    }
 }
 
 
