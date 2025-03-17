@@ -389,7 +389,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public void createTwin(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
         if (twinEntity.getTwinClass() == null)
-            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
+            twinEntity.setTwinClass(twinClassService.findEntitySafeCached(twinEntity.getTwinClassId()));
         setHeadSafe(twinEntity);
         if (twinCreate.isCheckCreatePermission())
             checkCreatePermission(twinEntity, authService.getApiUser());
@@ -452,7 +452,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public UUID detectCreatePermissionId(TwinEntity twinEntity) throws ServiceException {
         if (null == twinEntity.getTwinClass())
-            twinEntity.setTwinClass(twinClassService.findEntitySafeCached(twinEntity.getTwinClassId(), TWIN_CLASS_CACHE_KEY));
+            twinEntity.setTwinClass(twinClassService.findEntitySafeCached(twinEntity.getTwinClassId()));
         return twinEntity.getTwinClass().getCreatePermissionId();
     }
 

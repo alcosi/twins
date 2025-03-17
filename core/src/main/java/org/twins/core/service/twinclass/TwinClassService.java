@@ -161,6 +161,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     @Override
+    public boolean globalCacheSupport() {
+        return false;
+    }
+
+    @Override
     public boolean requestCacheSupport() {
         return true;
     }

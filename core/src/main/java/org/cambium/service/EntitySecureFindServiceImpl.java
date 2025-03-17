@@ -160,13 +160,16 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         throw new IllegalStateException("Cannot determine entity class");
     }
 
+    //prevails over the global if both support is true.
+    public boolean requestCacheSupport() {
+        return false;
+    }
+
+    //don't forget evict cache if necessary
     public boolean globalCacheSupport() {
         return false;
     }
 
-    public boolean requestCacheSupport() {
-        return false;
-    }
 
     public T findEntitySafe(String entityKey) throws ServiceException {
         return findEntity(entityKey,
