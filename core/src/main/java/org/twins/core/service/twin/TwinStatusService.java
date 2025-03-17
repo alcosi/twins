@@ -102,7 +102,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
             case beforeSave:
                 //todo validate that status is uniq in class
                 if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getTwinClassId()))
-                    entity.setTwinClass(twinClassService.findEntitySafe(entity.getTwinClassId()));
+                    entity.setTwinClass(twinClassService.findEntitySafeCached(entity.getTwinClassId()));
         }
         return true;
     }
@@ -219,7 +219,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     private void evictCache(TwinStatusEntity status) throws ServiceException {
         Map<String, List<Object>> cacheEntries = Map.of(
                 TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(status.getTwinClassId()),
-                ENTITY_CACHE, Collections.emptyList()
+                TwinClassEntity.class.getSimpleName(), List.of(status.getTwinClassId())
         );
         CacheUtils.evictCache(cacheManager, cacheEntries);
     }

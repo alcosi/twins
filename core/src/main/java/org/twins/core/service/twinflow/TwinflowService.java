@@ -293,7 +293,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         if (changesHelper.hasChanges()) {
             Map<String, List<Object>> cacheEntries = Map.of(
                     TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(dbTwinflowEntity.getTwinClassId()),
-                    ENTITY_CACHE, Collections.emptyList()
+                    TwinClassEntity.class.getSimpleName(), List.of(dbTwinflowEntity.getTwinClassId())
             );
             evictCache(cacheManager, cacheEntries);
         }

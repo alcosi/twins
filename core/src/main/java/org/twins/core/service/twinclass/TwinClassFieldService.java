@@ -109,6 +109,11 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         return true;
     }
 
+    @Override
+    public boolean requestCacheSupport() {
+        return true;
+    }
+
     // only direct fields
     public List<TwinClassFieldEntity> findTwinClassFields(UUID twinClassId) {
         return twinClassFieldRepository.findByTwinClassId(twinClassId).stream().filter(twinClassFieldEntity -> !isEntityReadDenied(twinClassFieldEntity)).toList();
@@ -259,7 +264,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         twinClassFieldEntity = entitySmartService.save(twinClassFieldEntity, twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         Map<String, List<Object>> cacheEntries = Map.of(
                 TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(twinClassFieldEntity.getTwinClassId()),
-                ENTITY_CACHE, Collections.emptyList()
+                TwinClassEntity.class.getSimpleName(), List.of(twinClassFieldEntity.getTwinClassId())
         );
         evictCache(cacheManager, cacheEntries);
         return twinClassFieldEntity;
@@ -295,7 +300,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         if (changesHelper.hasChanges()) {
             Map<String, List<Object>> cacheEntries = Map.of(
                     TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(dbTwinClassFieldEntity.getTwinClassId()),
-                    ENTITY_CACHE, Collections.emptyList(),
+                    TwinClassEntity.class.getSimpleName(), List.of(dbTwinClassFieldEntity.getTwinClassId()),
                     TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_ID_IN, Collections.emptyList(),
                     TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN, Collections.emptyList(),
                     TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_KEY_AND_TWIN_CLASS_ID_IN, Collections.emptyList(),

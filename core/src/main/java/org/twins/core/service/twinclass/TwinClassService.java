@@ -160,6 +160,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         return true;
     }
 
+    @Override
+    public boolean requestCacheSupport() {
+        return true;
+    }
+
     public UUID checkTwinClassSchemaAllowed(UUID domainId, UUID twinClassSchemaId) throws ServiceException {
         Optional<TwinClassSchemaEntity> twinClassSchemaEntity = twinClassSchemaRepository.findById(twinClassSchemaId);
         if (twinClassSchemaEntity.isEmpty())
@@ -472,7 +477,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         if (changesHelper.hasChanges()) {
             Map<String, List<Object>> cacheEntries = Map.of(
                     TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(twinClassUpdate.getDbTwinClassEntity().getId()),
-                    ENTITY_CACHE, Collections.emptyList()
+                    TwinClassEntity.class.getSimpleName(), List.of(twinClassUpdate.getDbTwinClassEntity().getId())
             );
             evictCache(cacheManager, cacheEntries);
         }

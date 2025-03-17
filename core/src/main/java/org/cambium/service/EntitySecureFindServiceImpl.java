@@ -7,9 +7,14 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
@@ -21,6 +26,9 @@ import java.util.function.Function;
 public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFindService<T> {
     @Autowired
     public EntitySmartService entitySmartService;
+
+    @Autowired
+    private CacheManager cacheManager;
 
     @Override
     public UUID checkId(UUID id, EntitySmartService.CheckMode checkMode) throws ServiceException {
@@ -70,9 +78,9 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
 
     @Override
     public Kit<T, UUID> findEntities(Collection<UUID> entityIds,
-                                EntitySmartService.ListFindMode findMode,
-                                EntitySmartService.ReadPermissionCheckMode permissionCheckMode,
-                                EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+                                     EntitySmartService.ListFindMode findMode,
+                                     EntitySmartService.ReadPermissionCheckMode permissionCheckMode,
+                                     EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         Kit<T, UUID> kit = entitySmartService.findByIdIn(entityIds, entityRepository(), entityGetIdFunction(), findMode);
         Iterator<T> iterator = kit.iterator();
         while (iterator.hasNext()) {
@@ -107,17 +115,57 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
                 EntitySmartService.EntityValidateMode.afterRead);
     }
 
-    //todo override in impl with cache key
-    //dont forget evict this cache on update new entity types
-    public static final String ENTITY_CACHE = "entityCache";
-    public static final String TWIN_CLASS_CACHE_KEY = "TWIN_CLASS";
-    public static final String TWIN_CLASS_FIELD_CACHE_KEY = "TWIN_CLASS_FIELD";
-    @Cacheable(value = ENTITY_CACHE, key = "#entityId + '_' + #cacheKey")
-    public T findEntitySafeCached(UUID entityId, String cacheKey) throws ServiceException {
-        return findEntity(entityId,
-                EntitySmartService.FindMode.ifEmptyThrows,
-                EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows,
-                EntitySmartService.EntityValidateMode.afterRead);
+    @SuppressWarnings("unchecked")
+    public T findEntitySafeCached(UUID entityId) throws ServiceException {
+        if (requestCacheSupport()) {
+            T entity;
+            Class<T> clazz = getEntityClass();
+            String cacheKey = clazz.getSimpleName();
+            RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+            if (requestAttributes != null) {
+                String requestCacheKey = cacheKey + "_" + entityId;
+                entity = (T) requestAttributes.getAttribute(requestCacheKey, RequestAttributes.SCOPE_REQUEST);
+                if (entity != null) return entity;
+                entity = findEntitySafe(entityId);
+                if (entity != null)
+                    requestAttributes.setAttribute(requestCacheKey, entity, RequestAttributes.SCOPE_REQUEST);
+                return entity;
+            }
+        }
+        if (globalCacheSupport()) {
+            T entity;
+            Class<T> clazz = getEntityClass();
+            String cacheKey = clazz.getSimpleName();
+            Cache cache = cacheManager.getCache(cacheKey);
+            if (cache != null) {
+                entity = cache.get(entityId, clazz);
+                if (entity != null) return entity;
+                entity = findEntitySafe(entityId);
+                if (entity != null) cache.put(entityId, entity);
+                return entity;
+            }
+        }
+        return findEntitySafe(entityId);
+    }
+
+    @SuppressWarnings("unchecked")
+    private Class<T> getEntityClass() {
+        Type genericSuperclass = getClass().getGenericSuperclass();
+        if (genericSuperclass instanceof ParameterizedType) {
+            Type[] actualTypeArguments = ((ParameterizedType) genericSuperclass).getActualTypeArguments();
+            if (actualTypeArguments.length > 0) {
+                return (Class<T>) actualTypeArguments[0];
+            }
+        }
+        throw new IllegalStateException("Cannot determine entity class");
+    }
+
+    public boolean globalCacheSupport() {
+        return false;
+    }
+
+    public boolean requestCacheSupport() {
+        return false;
     }
 
     public T findEntitySafe(String entityKey) throws ServiceException {
