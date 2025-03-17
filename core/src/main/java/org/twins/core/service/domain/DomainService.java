@@ -115,6 +115,12 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
 
     @Override
     public boolean isEntityReadDenied(DomainEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        if (authService.getApiUser().isDomainSpecified() && authService.getApiUser().getDomainId().equals(entity.getId()))
+            return false;
+        else if (!domainUserRepository.existsByDomainIdAndUserId(entity.getId(), authService.getApiUser().getUserId())) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logNormal() + " read is not allowed for current user[" + authService.getApiUser().getUserId() + "]");
+            return true;
+        }
         return false;
     }
 

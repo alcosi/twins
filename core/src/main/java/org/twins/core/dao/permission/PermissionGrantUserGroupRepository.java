@@ -15,9 +15,4 @@ public interface PermissionGrantUserGroupRepository extends CrudRepository<Permi
     List<PermissionGrantUserGroupEntity> findByPermissionSchemaIdAndUserGroupIdIn(UUID permissionSchemaId, List<UUID> userGroupIdList);
 
     List<PermissionGrantUserGroupEntity> findByPermissionSchemaIdAndPermissionIdAndUserGroupIdIn(UUID permissionSchemaId, UUID permissionIdm, Collection<UUID> userGroupIdList);
-
-    @Query(value = "select distinct psu.permissionId from PermissionGrantUserGroupEntity psu where psu.userGroupId in :userGroupIdList " +
-            "and psu.permissionSchemaId = :permissionSchemaId " +
-            "and (psu.permission.permissionGroup.domainId = psu.permissionSchema.domainId or psu.permission.permissionGroup.domainId is null)")
-    List<UUID> findPermissionIdByPermissionSchemaIdAndUserGroupIdIn(UUID permissionSchemaId, Set<UUID> userGroupIdList);
 }

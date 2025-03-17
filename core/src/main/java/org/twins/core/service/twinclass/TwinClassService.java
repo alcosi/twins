@@ -814,7 +814,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         List<UUID> needLoad = new ArrayList<>();
         Set<UUID> ret = new HashSet<>();
         for (var twinClass : twinClassIdMap.entrySet()) {
-            if (twinClass.getValue())
+            if (Boolean.TRUE.equals(twinClass.getValue()))
                 needLoad.add(twinClass.getKey());
             else
                 ret.add(twinClass.getKey());

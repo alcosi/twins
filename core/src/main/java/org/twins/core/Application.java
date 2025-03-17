@@ -10,8 +10,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(scanBasePackages = {"org.twins", "org.cambium"},
         exclude = {SecurityAutoConfiguration.class })
-@EnableJpaRepositories({"org.twins.core.dao", "org.cambium.featurer.dao", "org.cambium.i18n.dao"})
-@EntityScan({"org.twins.core.dao", "org.cambium.featurer.dao", "org.cambium.i18n.dao"})
+@EnableJpaRepositories({"org.twins.core.dao", "org.cambium.featurer.dao", "org.cambium.i18n.dao", "org.twins.face.dao"})
+@EntityScan({"org.twins.core.dao", "org.cambium.featurer.dao", "org.cambium.i18n.dao", "org.twins.face.dao"})
 @EnableCaching
 @EnableScheduling
 public class Application {

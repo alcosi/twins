@@ -11,6 +11,7 @@ public class ApiTag {
     public static final String TWINFLOW = "twinflow";
     public static final String DRAFT = "draft";
     public static final String CARD = "card";
+    public static final String FACE = "face";
     public static final String WIDGET = "widget";
     public static final String LINK = "link";
     public static final String TRANSITION = "transition";
