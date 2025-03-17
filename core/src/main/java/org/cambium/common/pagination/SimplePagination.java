@@ -12,4 +12,6 @@ public class SimplePagination {
     protected int limit;
     protected boolean sortAsc;
     protected String sortField;
+
+    public static final SimplePagination SINGLE = new SimplePagination().setLimit(1).setOffset(0);
 }

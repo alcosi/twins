@@ -40,6 +40,8 @@ public class PaginationUtils {
             throw new ServiceException(PAGINATION_LIMIT_ERROR);
         if (pagination.getOffset() % pagination.getLimit() > 0)
             throw new ServiceException(PAGINATION_ERROR);
+        if (pagination.getSortField() == null)
+            pagination.setSortField(SORT_UNSORTED);
         Sort sort = sortType(pagination.isSortAsc(), pagination.getSortField());
         return sort.isUnsorted()
                 ? PageRequest.of(pagination.getOffset() / pagination.getLimit(), pagination.getLimit())
