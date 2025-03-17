@@ -56,6 +56,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
+import static org.twins.core.dao.twinclass.TwinClassEntity.convertUuidFromLtreeFormat;
 
 @Slf4j
 @Service
@@ -804,5 +805,27 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         for (Map.Entry<Integer, TwinClassEntity> map : needLoad.entrySet()) {
             map.getValue().setHeadHunterFeaturer(featurerList.get(map.getKey()));
         }
+    }
+
+    //todo replace immutable stored procedure
+    public Set<UUID> loadExtendsHierarchyClasses(Map<UUID, Boolean> twinClassIdMap) throws ServiceException {
+        if (MapUtils.isEmpty(twinClassIdMap))
+            return Collections.emptySet();
+        List<UUID> needLoad = new ArrayList<>();
+        Set<UUID> ret = new HashSet<>();
+        for (var twinClass : twinClassIdMap.entrySet()) {
+            if (Boolean.TRUE.equals(twinClass.getValue()))
+                needLoad.add(twinClass.getKey());
+            else
+                ret.add(twinClass.getKey());
+        }
+        if (CollectionUtils.isEmpty(needLoad))
+            return ret;
+        List<TwinClassExtendsProjection> twinClassExtendsProjectionList = twinClassRepository.findByDomainIdAndIdIn(authService.getApiUser().getDomainId(), needLoad);
+        for (TwinClassExtendsProjection childClass : twinClassExtendsProjectionList) {
+            for (String hierarchyItem : convertUuidFromLtreeFormat(childClass.getExtendsHierarchyTree()).split("\\."))
+                ret.add(UUID.fromString(hierarchyItem));
+        }
+        return ret;
     }
 }

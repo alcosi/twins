@@ -14,7 +14,6 @@ import java.util.UUID;
 
 @Repository
 public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldEntity, UUID>, JpaSpecificationExecutor<TwinClassFieldEntity> {
-    String CACHE_TWIN_CLASS_FIELD_BY_ID_IN = "TwinClassFieldRepository.findByIdIn";
 
     List<TwinClassFieldEntity> findByTwinClassId(UUID twinClassId);
 
@@ -25,10 +24,16 @@ public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldE
 
     List<TwinClassFieldEntity> findByTwinClassIdOrTwinClassId(UUID twinClassId, UUID parentTwinClassId);
 
+    String CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_KEY = "TwinClassFieldRepository.findByTwinClassIdAndKey";
+    @Cacheable(value = CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_KEY, key = "#twinClassId + '' + #key")
     TwinClassFieldEntity findByTwinClassIdAndKey(UUID twinClassId, String key);
+
+    TwinClassFieldEntity findByKeyAndTwinClassIdIn(String key, Collection<UUID> twinClassIds);
 
     TwinClassFieldEntity findByTwinClass_KeyAndKey(String twinClassKey, String key);
 
+    String CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_PARENT_KEY = "TwinClassFieldRepository.findByTwinClassIdAndParentKey";
+    @Cacheable(value = CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_PARENT_KEY, key = "#twinClassId + '' + #key")
     @Query(value = "from TwinClassFieldEntity field, TwinClassEntity  class " +
             "where field.key = :key " +
             "and field.twinClassId = class.extendsTwinClassId and class.id = :twinClassId")
@@ -37,6 +42,7 @@ public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldE
     @Query(value = "select field.id from TwinClassFieldEntity field, TwinClassEntity twinClass where twinClass.id = :twinClassId and field.twinClassId in (twinClass.extendsHierarchyTree)")
     Set<UUID> findInheritedTwinClassFieldIds(UUID twinClassId);
 
+    String CACHE_TWIN_CLASS_FIELD_BY_ID_IN = "TwinClassFieldRepository.findByIdIn";
     @Cacheable(value = CACHE_TWIN_CLASS_FIELD_BY_ID_IN, key = "T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#ids)")
     List<TwinClassFieldEntity> findByIdIn(Collection<UUID> ids);
 

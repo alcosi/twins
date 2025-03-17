@@ -13,6 +13,7 @@ import org.cambium.featurer.dao.FeaturerEntity;
 import org.twins.core.dao.i18n.LocaleConverter;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.resource.StorageEntity;
@@ -120,6 +121,9 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "resources_storage_id")
     private UUID resourcesStorageId;
 
+    @Column(name = "navbar_face_id")
+    private UUID navbarFaceId;
+
     @FeaturerList(type = UserGroupManager.class)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_group_manager_featurer_id", insertable = false, updatable = false)
@@ -148,6 +152,10 @@ public class DomainEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resources_storage_id", insertable = false, updatable = false)
     private StorageEntity resourcesStorage;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "navbar_face_id", insertable = false, updatable = false)
+    private FaceEntity navbarFace;
 
     // needed for specification
     @Deprecated

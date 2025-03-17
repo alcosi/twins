@@ -115,7 +115,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         ApiUser apiUser = authService.getApiUser();
         for (TwinLinkEntity twinLinkEntity : linksEntityList) {
             if (twinLinkEntity.getLink() == null)
-                twinLinkEntity.setLink(linkService.findEntity(twinLinkEntity.getLinkId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows));
+                twinLinkEntity.setLink(linkService.findLinkByIdCached(twinLinkEntity.getLinkId()));
             if (twinLinkEntity.getDstTwin() == null)
                 twinLinkEntity.setDstTwin(twinService.findEntity(twinLinkEntity.getDstTwinId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows));
             Set<UUID> srcTwinExtendedClasses = srcTwinEntity.getTwinClass().getExtendedClassIdSet();

@@ -55,9 +55,10 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     }
 
     private T checkResult(EntitySmartService.ReadPermissionCheckMode permissionCheckMode, EntitySmartService.EntityValidateMode entityValidateMode, T entity) throws ServiceException {
-        if (entity == null || permissionCheckMode.equals(EntitySmartService.ReadPermissionCheckMode.none))
-            return entity;
-        if (isEntityReadDenied(entity, permissionCheckMode))
+        if (entity == null)
+            return null;
+        if (!permissionCheckMode.equals(EntitySmartService.ReadPermissionCheckMode.none)
+                && isEntityReadDenied(entity, permissionCheckMode))
             return null;
         validateEntityAndThrow(entity, entityValidateMode);
         return entity;
@@ -95,10 +96,24 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
                 EntitySmartService.EntityValidateMode.afterRead);
     }
 
+    public T findEntityPublic(UUID entityId) throws ServiceException {
+        return findEntity(entityId,
+                EntitySmartService.FindMode.ifEmptyThrows,
+                EntitySmartService.ReadPermissionCheckMode.none,
+                EntitySmartService.EntityValidateMode.afterRead);
+    }
+
     public T findEntitySafe(String entityKey) throws ServiceException {
         return findEntity(entityKey,
                 EntitySmartService.FindMode.ifEmptyThrows,
                 EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows,
+                EntitySmartService.EntityValidateMode.afterRead);
+    }
+
+    public T findEntityPublic(String entityKey) throws ServiceException {
+        return findEntity(entityKey,
+                EntitySmartService.FindMode.ifEmptyThrows,
+                EntitySmartService.ReadPermissionCheckMode.none,
                 EntitySmartService.EntityValidateMode.afterRead);
     }
 

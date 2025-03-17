@@ -9,20 +9,14 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldRepository;
-import org.twins.core.dao.twinclass.TwinClassRepository;
+import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.domain.twinclass.TwinClassIdsExtender;
 import org.twins.core.service.auth.AuthService;
 
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+
 
 import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecification.*;
 
@@ -34,8 +28,9 @@ public class TwinClassFieldSearchService {
     private final AuthService authService;
     private final TwinClassFieldRepository twinClassFieldRepository;
     private final TwinClassRepository twinClassRepository;
+    private final TwinClassService twinClassService;
 
-    public PaginationResult<TwinClassFieldEntity> findTwinClassFieldForDomain(TwinClassFieldSearch search, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
         Page<TwinClassFieldEntity> ret = twinClassFieldRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
@@ -47,8 +42,8 @@ public class TwinClassFieldSearchService {
                 checkFieldUuid(apiUser.getDomainId(), TwinClassFieldEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinClassFieldEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinClassFieldEntity.Fields.id),
-                checkUuidIn(loadExtendedClasses(search.getTwinClassIdsExtenderList()), false, false, TwinClassFieldEntity.Fields.twinClassId),
-                checkUuidIn(loadExtendedClasses(search.getTwinClassIdsExtenderExcludeList()), true, false, TwinClassFieldEntity.Fields.twinClassId),
+                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdMap()), false, false, TwinClassFieldEntity.Fields.twinClassId),
+                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdExcludeMap()), true, false, TwinClassFieldEntity.Fields.twinClassId),
                 checkFieldLikeIn(search.getKeyLikeList(), false, true, TwinClassFieldEntity.Fields.key),
                 checkFieldLikeIn(search.getKeyNotLikeList(), true, true, TwinClassFieldEntity.Fields.key),
                 joinAndSearchByI18NField(TwinClassFieldEntity.Fields.nameI18n, search.getNameI18nLikeList(), apiUser.getLocale(), true, false),
@@ -62,22 +57,5 @@ public class TwinClassFieldSearchService {
                 checkUuidIn(search.getViewPermissionIdList(), false, false, TwinClassFieldEntity.Fields.editPermissionId),
                 checkUuidIn(search.getViewPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.editPermissionId),
                 checkTernary(search.getRequired()));
-    }
-
-    //todo do throws specification
-    private Set<UUID> loadExtendedClasses(List<TwinClassIdsExtender> extendClassList) {
-        Set<UUID> ret = new HashSet<>();
-        Set<UUID> needLoad = new HashSet<>();
-        for (TwinClassIdsExtender twinClassIdsExtender : extendClassList) {
-            if (twinClassIdsExtender.getAddExtendableTwinClassIds())
-                needLoad.add(twinClassIdsExtender.getTwinClassId());
-            else
-                ret.add(twinClassIdsExtender.getTwinClassId());
-        }
-        List<TwinClassEntity> byIdIn = twinClassRepository.findByIdIn(needLoad);
-        for (TwinClassEntity twinClass : byIdIn) {
-            ret.addAll(twinClass.getExtendedClassIdSet());
-        }
-        return ret;
     }
 }

@@ -48,6 +48,8 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -448,23 +450,16 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         loadUserPermissions(apiUser.getUser());
     }
 
-    //todo create load for collection
     public void loadUserPermissions(UserEntity user) throws ServiceException {
         if (user.getPermissions() != null)
             return;
         UUID permissionSchemaId = detectPermissionSchemaId(authService.getApiUser());
         userGroupService.loadGroups(user);
-        List<UUID> permissionList = permissionGrantUserRepository
-                .findPermissionIdByPermissionSchemaIdAndUserId(permissionSchemaId, user.getId());
-        Set<UUID> permissionSet = new HashSet<>(permissionList);
-        permissionList = permissionGrantUserGroupRepository
-                .findPermissionIdByPermissionSchemaIdAndUserGroupIdIn(permissionSchemaId, user.getUserGroups().getIdSetSafe());
-        permissionSet.addAll(permissionList);
-        permissionList = permissionGrantGlobalRepository
-                .findPermissionIdByUserGroupIdIn(user.getUserGroups().getIdSetSafe());
-        permissionSet.addAll(permissionList);
-        user.setPermissions(permissionSet);
+        Set<UUID> userGroupIds = user.getUserGroups().getIdSetSafe();
+        List<UUID> permissionList = permissionGrantUserRepository.findAllPermissionsForUser(permissionSchemaId, user.getId(), collectionUuidsToSqlArray(userGroupIds));
+        user.setPermissions(new HashSet<>(permissionList));
     }
+
 
     public void forceDeleteSchemas(UUID businessAccountId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();

@@ -24,11 +24,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TransitionTriggerRabbitMqSendTwinIdAndDstTwinStatusId extends TransitionTriggerRabbitMqConnection {
 
-    @FeaturerParam(name = "Exchange", description = "Name of exchange")
-    private static final FeaturerParamString EXCHANGE = new FeaturerParamString("exchange");
-    @FeaturerParam(name = "Queue", description = "Name of queue")
-    private static final FeaturerParamString QUEUE = new FeaturerParamString("queue");
     private final AmpqManager ampqManager;
+
+    @FeaturerParam(name = "Exchange", description = "Name of exchange")
+    public static final FeaturerParamString EXCHANGE = new FeaturerParamString("exchange");
+
+    @FeaturerParam(name = "Queue", description = "Name of queue")
+    public static final FeaturerParamString QUEUE = new FeaturerParamString("queue");
+
 
     @Override
     public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) {

@@ -24,16 +24,17 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 public class TwinChangesService {
-    final TwinRepository twinRepository;
-    final TwinFieldSimpleRepository twinFieldSimpleRepository;
-    final TwinFieldDataListRepository twinFieldDataListRepository;
-    final TwinLinkRepository twinLinkRepository;
-    final TwinFieldUserRepository twinFieldUserRepository;
-    final TwinMarkerRepository twinMarkerRepository;
-    final TwinTagRepository twinTagRepository;
-    final TwinAttachmentRepository twinAttachmentRepository;
-    final EntitySmartService entitySmartService;
-    final HistoryService historyService;
+
+    private final TwinRepository twinRepository;
+    private final TwinFieldSimpleRepository twinFieldSimpleRepository;
+    private final TwinFieldDataListRepository twinFieldDataListRepository;
+    private final TwinLinkRepository twinLinkRepository;
+    private final TwinFieldUserRepository twinFieldUserRepository;
+    private final TwinMarkerRepository twinMarkerRepository;
+    private final TwinTagRepository twinTagRepository;
+    private final TwinAttachmentRepository twinAttachmentRepository;
+    private final EntitySmartService entitySmartService;
+    private final HistoryService historyService;
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinChangesApplyResult applyChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
