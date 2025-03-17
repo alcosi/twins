@@ -41,7 +41,7 @@ public class AttachmentSearchService {
                 checkUuidIn(search.getCommentIdExcludeList(), true, true, TwinAttachmentEntity.Fields.twinCommentId),
                 checkUuidIn(search.getTwinClassFieldIdList(), false, false, TwinAttachmentEntity.Fields.twinClassFieldId),
                 checkUuidIn(search.getTwinClassFieldIdExcludeList(), true, true, TwinAttachmentEntity.Fields.twinClassFieldId),
-                //TODO test it.
+                //TODO repair it.
                 checkMapFieldLikeIn(search.getStorageLinkLikeList(), false, true, false, TwinAttachmentEntity.Fields.storageLinksMap, "link_value"),
                 checkMapFieldLikeIn(search.getStorageLinkNotLikeList(), true, true, false, TwinAttachmentEntity.Fields.storageLinksMap, "link_value"),
                 checkUuidIn(search.getViewPermissionIdList(), false, false, TwinAttachmentEntity.Fields.viewPermissionId),

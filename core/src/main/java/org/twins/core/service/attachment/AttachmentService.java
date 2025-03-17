@@ -247,6 +247,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 historyItem.getContext().setNewTitle(attachmentEntity.getTitle());
                 dbAttachmentEntity.setTitle(attachmentEntity.getTitle());
             }
+            //TODO updateEntityField
             if (twinChangesCollector.collectIfChanged(attachmentEntity, TwinAttachmentEntity.Fields.storageLinksMap, dbAttachmentEntity.getStorageLinksMap(), attachmentEntity.getStorageLinksMap())) {
                 historyItem.getContext().setNewStorageLinksMap(attachmentEntity.getStorageLinksMap());
                 dbAttachmentEntity.setStorageLinksMap(attachmentEntity.getStorageLinksMap());
