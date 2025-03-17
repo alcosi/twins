@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinClassFieldSearch;
-import org.twins.core.domain.twinclass.TwinClassIdsExtender;
 import org.twins.core.service.auth.AuthService;
 
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
