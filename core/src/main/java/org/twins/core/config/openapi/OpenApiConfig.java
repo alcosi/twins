@@ -37,7 +37,7 @@ public class OpenApiConfig {
                 .addOperationCustomizer(new SimplePaginationParamsOperationCustomizer())
                 .addOperationCustomizer(new ParameterExcludeOperationCustomizer())
                 .addOperationCustomizer(new HeadersOperationCustomizer())
-                .packagesToScan("org.twins.core.controller.rest")
+                .packagesToScan("org.twins.core.controller.rest", "org.twins.face.controller.rest")
                 .build();
     }
 }

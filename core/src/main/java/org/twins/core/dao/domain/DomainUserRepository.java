@@ -24,6 +24,8 @@ public interface DomainUserRepository extends CrudRepository<DomainUserEntity, U
 
     DomainUserEntity findByDomainIdAndUserId(UUID uuid, UUID userId);
 
+    boolean existsByDomainIdAndUserId(UUID uuid, UUID userId);
+
     @Modifying
     @Query("UPDATE DomainUserEntity e SET e.i18nLocaleId = :locale WHERE e.domainId = :domainId AND e.userId = :userId")
     void updateLocale(@Param("domainId") UUID domainId, @Param("userId") UUID userId, @Param("locale") Locale locale);
