@@ -17,6 +17,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
+import org.twins.core.domain.i18n.I18nTranslation;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.i18n.I18nTranslationDTOv1;
 import org.twins.core.dto.rest.i18n.I18nTranslationSaveRsDTOv1;
@@ -29,7 +30,6 @@ import org.twins.core.service.i18n.I18nTranslationService;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Tag(name = ApiTag.I18N)
 @RestController
@@ -57,20 +57,12 @@ public class I18nTranslationUpdateController extends ApiController {
         I18nTranslationSaveRsDTOv1 rs = new I18nTranslationSaveRsDTOv1();
 
         try {
-            List<I18nTranslationEntity> i18nTranslations = i18nTranslationUpdateDTOReverseMapper.convert(request.getI18nTranslations());
-            i18nTranslations = i18nTranslationService.updateI18nTranslations(i18nId, i18nTranslations);
+            request.getI18nTranslations().setI18nId(i18nId);
+            List<I18nTranslation> i18nTranslations = i18nTranslationUpdateDTOReverseMapper.convert(request.getI18nTranslations());
 
-            List<I18nTranslationDTOv1> translationDTOs = i18nTranslations.stream()
-                    .map(entity -> {
-                        I18nTranslationDTOv1 dto = new I18nTranslationDTOv1();
-                        try {
-                            i18nTranslationRestDTOMapper.map(entity, dto, mapperContext);
-                        } catch (Exception e) {
-                            throw new RuntimeException("Failed to map entity to DTO", e);
-                        }
-                        return dto;
-                    })
-                    .toList();
+            List<I18nTranslationEntity> i18nTranslationEntities = i18nTranslationService.updateI18nTranslations(i18nTranslations);
+
+            List<I18nTranslationDTOv1> translationDTOs = i18nTranslationRestDTOMapper.convertCollection(i18nTranslationEntities);
 
             rs
                     .setI18nTranslations(translationDTOs)
