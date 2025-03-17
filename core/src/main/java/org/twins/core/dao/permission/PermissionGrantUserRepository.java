@@ -12,11 +12,6 @@ import java.util.UUID;
 public interface PermissionGrantUserRepository extends CrudRepository<PermissionGrantUserEntity, UUID>, JpaSpecificationExecutor<PermissionGrantUserEntity> {
     List<PermissionGrantUserEntity> findByPermissionSchemaIdAndUserId(UUID permissionSchemaId, UUID userId);
 
-    @Query(value = "select distinct psu.permissionId from PermissionGrantUserEntity psu where psu.userId = :userId " +
-            "and psu.permissionSchemaId = :permissionSchemaId " +
-            "and (psu.permission.permissionGroup.domainId = psu.permissionSchema.domainId or psu.permission.permissionGroup.domainId is null)")
-    List<UUID> findPermissionIdByPermissionSchemaIdAndUserId(UUID permissionSchemaId, UUID userId);
-
     List<PermissionGrantUserEntity> findByPermissionSchemaIdAndUserIdAndPermission_PermissionGroup_DomainId(UUID permissionSchemaId, UUID userId, UUID domainId);
 
     boolean existsByPermissionSchemaIdAndPermissionIdAndUserId(UUID permissionSchemaId, UUID permissionId, UUID userId);

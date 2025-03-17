@@ -28,5 +28,7 @@ BEGIN
         SELECT DISTINCT pgap.permission_id
         FROM permission_grant_assignee_propagation pgap
                  JOIN twin t ON t.assigner_user_id = p_userId
-        WHERE (t.twin_class_id = pgap.propagation_by_twin_class_id OR t.twin_status_id = pgap.propagation_by_twin_status_id);
+        WHERE (t.twin_class_id = pgap.propagation_by_twin_class_id AND pgap.propagation_by_twin_status_id is null)
+           or (t.twin_status_id = pgap.propagation_by_twin_status_id AND pgap.propagation_by_twin_status_id is not null);
+
 END $$ LANGUAGE plpgsql;
