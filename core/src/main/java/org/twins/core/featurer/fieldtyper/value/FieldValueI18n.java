@@ -24,19 +24,21 @@ public class FieldValueI18n extends FieldValue {
 
     @Override
     public boolean isFilled() {
-        return i18nId != null;
+        return i18nId != null && i18nTranslations != null && !i18nTranslations.isEmpty();
     }
 
     @Override
     public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueI18n clone = new FieldValueI18n(newTwinClassFieldEntity);
         clone.setI18nId(this.i18nId);
+        clone.setI18nTranslations(List.copyOf(this.i18nTranslations));
         return clone;
     }
 
     @Override
     public void nullify() {
         i18nId = null;
+        i18nTranslations = null;
     }
 
     @Override
