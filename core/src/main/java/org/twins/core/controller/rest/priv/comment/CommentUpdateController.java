@@ -33,7 +33,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class CommentEditController extends ApiController {
+public class CommentUpdateController extends ApiController {
     private final CommentService commentService;
     private final CommentRestDTOMapper commentRestDTOMapper;
     private final AttachmentCUDRestDTOReverseMapperV2 attachmentCUDRestDTOReverseMapperV2;
@@ -52,8 +52,8 @@ public class CommentEditController extends ApiController {
             @RequestBody CommentUpdateRqDTOv1 request) {
         CommentRsDTOv1 rs = new CommentRsDTOv1();
         try {
-            EntityCUD<TwinAttachmentEntity> attachmentCUD = attachmentCUDRestDTOReverseMapperV2.convert(request.getAttachments());
-            TwinCommentEntity twinComment = commentService.updateComment(commentId, request.getText(), attachmentCUD);
+            EntityCUD<TwinAttachmentEntity> attachmentCUD = attachmentCUDRestDTOReverseMapperV2.convert(request.getComment().getAttachments());
+            TwinCommentEntity twinComment = commentService.updateComment(commentId, request.getComment().getText(), attachmentCUD);
             rs
                     .setComment(commentRestDTOMapper.convert(twinComment, mapperContext));
         } catch (ServiceException se) {

@@ -4,14 +4,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.attachment.AttachmentAddDTOv1;
+import org.twins.core.dto.rest.Request;
 
-import java.util.List;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Schema(name = "CommentCreateRqV1")
-public class CommentCreateRqDTOv1 extends CommentDTOv1 {
-    public List<AttachmentAddDTOv1> attachments;
+public class CommentCreateRqDTOv1 extends Request {
+    @Schema(description = "comment")
+    public CommentCreateDTOv1 comment;
 }
