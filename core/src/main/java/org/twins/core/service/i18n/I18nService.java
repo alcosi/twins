@@ -3,6 +3,7 @@ package org.twins.core.service.i18n;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -12,35 +13,36 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntitySmartService;
+import org.springframework.data.repository.CrudRepository;
 import org.twins.core.config.i18n.I18nProperties;
 import org.twins.core.dao.i18n.*;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.i18n.ErrorCodeI18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
+import java.util.function.Function;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
 
 @Component
 @Slf4j
-public abstract class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
-    @Autowired
+@RequiredArgsConstructor
+public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
     private I18nRepository i18nRepository;
-    @Autowired
     private I18nTranslationRepository i18nTranslationRepository;
-    @Autowired
     private I18nTranslationBinRepository i18nTranslationBinRepository;
-    @Autowired
     private I18nTranslationStyleRepository i18nTranslationStyleRepository;
-    @Autowired
     private I18nProperties i18nProperties;
     @PersistenceContext
     private EntityManager entityManager;
-    @Autowired
     private CacheManager cacheManager;
+    private AuthService authService;
 
     public String translateToLocale(I18nEntity i18NEntity, Locale locale) {
         return translateToLocale(i18NEntity, locale, null);
@@ -235,10 +237,28 @@ public abstract class I18nService extends EntitySecureFindServiceImpl<I18nEntity
         return originalStr + " [copy]";
     }
 
-    protected abstract Locale resolveCurrentUserLocale();
+    public Locale resolveCurrentUserLocale() {
+        ApiUser apiUser;
+        try {
+            apiUser = authService.getApiUser();
+            return apiUser.getLocale();
+        } catch (ServiceException e) {
+            return null;
+        }
+    }
 
-    protected Locale resolveDefaultLocale() {
-        return i18nProperties.defaultLocale();
+
+    public Locale resolveDefaultLocale() {
+        ApiUser apiUser;
+        try {
+            apiUser = authService.getApiUser();
+            Locale domainLocale = null;
+            if(apiUser.isDomainSpecified())
+                domainLocale = apiUser.getDomain().getDefaultI18nLocaleId();
+            return domainLocale != null ? domainLocale : i18nProperties.defaultLocale();
+        } catch (ServiceException e) {
+            return i18nProperties.defaultLocale();
+        }
     }
 
     public Locale localeFromTagOrSystemDefault(String langTag) {
@@ -279,5 +299,25 @@ public abstract class I18nService extends EntitySecureFindServiceImpl<I18nEntity
         i18nTranslationRepository.saveAll(entitiesToSave);
 
         return i18nEntity;
+    }
+
+    @Override
+    public CrudRepository<I18nEntity, UUID> entityRepository() {
+        return null;
+    }
+
+    @Override
+    public Function<I18nEntity, UUID> entityGetIdFunction() {
+        return null;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(I18nEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(I18nEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
     }
 }
