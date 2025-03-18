@@ -5,21 +5,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KeyUtils;
-import org.cambium.common.util.PaginationUtils;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.service.i18n.I18nService;
+import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,19 +24,13 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
-import org.twins.core.domain.search.TwinStatusSearch;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
 import java.util.function.Function;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
-import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.twinstatus.TwinStatusSpecification.checkFieldLikeContainsIn;
 
 @Lazy
 @Slf4j
@@ -50,7 +40,6 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     final TwinStatusRepository twinStatusRepository;
     final TwinClassService twinClassService;
     final I18nService i18nService;
-    private final AuthService authService;
 
     @Autowired
     private CacheManager cacheManager;
@@ -68,30 +57,6 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     @Override
     public boolean isEntityReadDenied(TwinStatusEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         return false;
-    }
-
-    public PaginationResult<TwinStatusEntity> findTwinStatusesForDomain(TwinStatusSearch search, SimplePagination pagination) throws ServiceException {
-        UUID domainId = authService.getApiUser().getDomainId();
-        Specification<TwinStatusEntity> spec = createTwinStatusSearchSpecification(search)
-                .and(checkFieldUuid(domainId,TwinStatusEntity.Fields.twinClass,TwinClassEntity.Fields.domainId));
-        Page<TwinStatusEntity> ret = twinStatusRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
-        return PaginationUtils.convertInPaginationResult(ret, pagination);
-    }
-
-    private Specification<TwinStatusEntity> createTwinStatusSearchSpecification(TwinStatusSearch search) throws ServiceException {
-        Locale locale = authService.getApiUser().getLocale();
-        return Specification.allOf(
-                checkFieldLikeContainsIn(search.getKeyLikeList(), false, true, TwinStatusEntity.Fields.key),
-                checkFieldLikeContainsIn(search.getKeyNotLikeList(), true, true, TwinStatusEntity.Fields.key),
-                joinAndSearchByI18NField(TwinStatusEntity.Fields.nameI18n, search.getNameI18nLikeList(), locale, true, false),
-                joinAndSearchByI18NField(TwinStatusEntity.Fields.nameI18n, search.getNameI18nNotLikeList(), locale, true, true),
-                joinAndSearchByI18NField(TwinStatusEntity.Fields.descriptionI18n, search.getDescriptionI18nLikeList(), locale, true, false),
-                joinAndSearchByI18NField(TwinStatusEntity.Fields.descriptionI18n, search.getDescriptionI18nNotLikeList(), locale, true, true),
-                checkUuidIn(search.getIdList(), false, false, TwinStatusEntity.Fields.id),
-                checkUuidIn(search.getIdExcludeList(), true, true, TwinStatusEntity.Fields.id),
-                checkUuidIn(search.getTwinClassIdList(), false, true, TwinStatusEntity.Fields.twinClassId),
-                checkUuidIn(search.getTwinClassIdExcludeList(), true, true, TwinStatusEntity.Fields.twinClassId));
-
     }
 
     @Override
@@ -167,20 +132,31 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
                 .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getId());
         validateEntityAndThrow(twinStatusEntity, EntitySmartService.EntityValidateMode.beforeSave);
         TwinStatusEntity savedStatus = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, savedStatus.getTwinClassId());
+        evictClassesCache(twinClassEntity);
         return savedStatus;
     }
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinStatusEntity createStatus(TwinStatusEntity twinStatusEntity, I18nEntity nameI18n, I18nEntity descriptionsI18n) throws ServiceException {
+        TwinClassEntity twinClassEntity = twinClassService.findEntitySafe(twinStatusEntity.getTwinClassId());
         twinStatusEntity
                 .setKey(KeyUtils.lowerCaseNullSafe(twinStatusEntity.getKey(), ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT))
                 .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_NAME, nameI18n).getId())
                 .setDescriptionI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_DESCRIPTION, descriptionsI18n).getId());
         validateEntityAndThrow(twinStatusEntity, EntitySmartService.EntityValidateMode.beforeSave);
         TwinStatusEntity savedStatus = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, savedStatus.getTwinClassId());
+        evictClassesCache(twinClassEntity);
         return savedStatus;
+    }
+
+    private void evictClassesCache(TwinClassEntity twinClassEntity) throws ServiceException {
+        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassEntity.getId());
+        twinClassService.loadExtendsHierarchyChildClasses(twinClassEntity);
+        if (KitUtils.isEmpty(twinClassEntity.getExtendsHierarchyChildClassKit()))
+            return;
+        for (var childClass : twinClassEntity.getExtendsHierarchyChildClassKit()) {
+            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, childClass.getId());
+        }
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -211,7 +187,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         }
         dbEntity = updateSafe(dbEntity, changesHelper);
         if (changesHelper.hasChanges()) {
-            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbEntity.getTwinClassId());
+            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbEntity.getTwinClassId()); //todo also inherited
         }
         return dbEntity;
     }
