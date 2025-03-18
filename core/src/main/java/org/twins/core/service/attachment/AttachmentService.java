@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.attachment.*;
+import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
@@ -231,6 +232,10 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             dbAttachmentEntity = dbAttachmentKit.get(attachmentEntity.getId());
             attachmentActionService.checkAllowed(dbAttachmentEntity, TwinAttachmentAction.EDIT);
             HistoryItem<HistoryContextAttachmentChange> historyItem = historyService.attachmentUpdate(attachmentEntity);
+
+            updateEntityField(tierUpdate, dbTierEntity, TierEntity::getName,
+                    TierEntity::setName, TierEntity.Fields.name, changesHelper);
+
             if (twinChangesCollector.collectIfChanged(attachmentEntity, TwinAttachmentEntity.Fields.twinId, dbAttachmentEntity.getTwinId(), attachmentEntity.getTwinId())) {
                 // twin relink is not security safe, so it's currently denied. perhaps we can move it to permissions
                 throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_CAN_NOT_BE_RELINKED, "This attachment belongs to another twin");
@@ -248,9 +253,12 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 dbAttachmentEntity.setTitle(attachmentEntity.getTitle());
             }
             //TODO updateEntityField
-            if (twinChangesCollector.collectIfChanged(attachmentEntity, TwinAttachmentEntity.Fields.storageLinksMap, dbAttachmentEntity.getStorageLinksMap(), attachmentEntity.getStorageLinksMap())) {
-                historyItem.getContext().setNewStorageLinksMap(attachmentEntity.getStorageLinksMap());
-                dbAttachmentEntity.setStorageLinksMap(attachmentEntity.getStorageLinksMap());
+            if (twinChangesCollector.collectIfChanged(attachmentEntity, "storageLink", dbAttachmentEntity.getStorageLink(), attachmentEntity.getStorageLink())) {
+                historyItem.getContext().setNewStorageLink(attachmentEntity.getStorageLink());
+                dbAttachmentEntity.setStorageLink(attachmentEntity.getStorageLink());
+            }
+            if (twinChangesCollector.collectIfChanged(attachmentEntity, TwinAttachmentEntity.Fields.modificationLinks, dbAttachmentEntity.getModificationLinks(), attachmentEntity.getModificationLinks())) {
+                dbAttachmentEntity.setModificationLinks(attachmentEntity.getModificationLinks());
             }
             if (twinChangesCollector.collectIfChanged(attachmentEntity, TwinAttachmentEntity.Fields.externalId, dbAttachmentEntity.getExternalId(), attachmentEntity.getExternalId())) {
                 historyItem.getContext().setNewExternalId(attachmentEntity.getExternalId());

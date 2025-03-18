@@ -15,7 +15,8 @@ public class AttachmentBaseRestDTOReverseMapper extends RestSimpleDTOMapper<Atta
     @Override
     public void map(AttachmentBaseDTOv1 src, TwinAttachmentEntity dst, MapperContext mapperContext) throws Exception {
         dst
-                .setStorageLinksMap(src.getStorageLinksMap())
+                .setStorageLink(src.getStorageLink())
+                .setModificationLinks(src.getStorageLinksMap())
                 .setTitle(src.getTitle())
                 //TODO set size as is.
                 .setSize(src.getSize() == null ? 0 : src.getSize())

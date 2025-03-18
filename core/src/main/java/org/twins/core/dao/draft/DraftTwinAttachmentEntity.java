@@ -40,16 +40,19 @@ public class DraftTwinAttachmentEntity {
     @Column(name = "twinflow_transition_id")
     private UUID twinflowTransitionId;
 
+    @Column(name = "storage_link")
+    private String storageLink;
+
     @ElementCollection
     @CollectionTable(
-            name = "draft_twin_attachment_storage_links",
+            name = "draft_twin_attachment_modification_links",
             joinColumns = @JoinColumn(name = "draft_twin_attachment_id"),
-            foreignKey = @ForeignKey(name = "FK_draft_twin_attachment_storage_links_draft_twin_attachment_id")
+            foreignKey = @ForeignKey(name = "FK_draft_twin_attachment_mod_links_draft_twin_attachment_id")
     )
-    @MapKeyColumn(name = "link_key")
-    @Column(name = "link_value")
+    @MapKeyColumn(name = "mod_key")
+    @Column(name = "mod_link")
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
-    private Map<String, String> storageLinksMap;
+    private Map<String, String> modificationLinks;
 
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;

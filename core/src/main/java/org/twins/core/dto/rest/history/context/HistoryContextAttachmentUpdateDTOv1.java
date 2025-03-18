@@ -17,11 +17,11 @@ public class HistoryContextAttachmentUpdateDTOv1 implements HistoryContextDTO {
     @Schema(description = "Attachment id", example = DTOExamples.ATTACHMENT_ID)
     public UUID attachmentId;
 
-    @Schema(description = "From external storage link", example = DTOExamples.ATTACHMENT_STORAGE_LINKS_MAP)
-    public String fromStorageLinksMap;
+    @Schema(description = "From external storage link", example = DTOExamples.ATTACHMENT_STORAGE_LINK)
+    public String fromStorageLink;
 
-    @Schema(description = "To external storage link", example = DTOExamples.ATTACHMENT_STORAGE_LINKS_MAP)
-    public String toStorageLinksMap;
+    @Schema(description = "To external storage link", example = DTOExamples.ATTACHMENT_STORAGE_LINK)
+    public String toStorageLink;
 
     @Schema(description = "From external id", example = DTOExamples.ATTACHMENT_EXTERNAL_ID)
     public String fromExternalId;

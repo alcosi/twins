@@ -6,14 +6,13 @@ import org.cambium.common.util.StringUtils;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
 public class AttachmentSnapshot {
     private UUID id;
-    private Map<String, String> storageLinksMap;
+    private String storageLink;
     private String externalId;
     private String title;
     private String description;
@@ -23,7 +22,7 @@ public class AttachmentSnapshot {
             return null;
         return new AttachmentSnapshot()
                 .setId(attachmentEntity.getId())
-                .setStorageLinksMap(attachmentEntity.getStorageLinksMap())
+                .setStorageLink(attachmentEntity.getStorageLink())
                 .setExternalId(attachmentEntity.getExternalId())
                 .setTitle(attachmentEntity.getTitle())
                 .setDescription(attachmentEntity.getDescription());
@@ -32,7 +31,7 @@ public class AttachmentSnapshot {
     public static void extractTemplateVars(HashMap<String, String> vars, AttachmentSnapshot attachmentSnapshot, String prefix) {
         prefix = StringUtils.isNotEmpty(prefix) ? prefix + "." : "";
         vars.put(prefix + "id", attachmentSnapshot != null ? attachmentSnapshot.id.toString() : "");
-        vars.put(prefix + "storageLinksMap", attachmentSnapshot != null ? attachmentSnapshot.storageLinksMap.toString() : "");
+        vars.put(prefix + "storageLink", attachmentSnapshot != null ? attachmentSnapshot.storageLink : "");
         vars.put(prefix + "externalId", attachmentSnapshot != null ? attachmentSnapshot.externalId : "");
         vars.put(prefix + "title", attachmentSnapshot != null ? attachmentSnapshot.title : "");
         vars.put(prefix + "description", attachmentSnapshot != null ? attachmentSnapshot.description : "");

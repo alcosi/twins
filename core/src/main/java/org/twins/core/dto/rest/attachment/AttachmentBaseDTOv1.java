@@ -17,6 +17,9 @@ public class AttachmentBaseDTOv1 {
     @Schema(description = "twin id", example = DTOExamples.TWIN_ID)
     public UUID twinId;
 
+    @Schema(description = "External storage link", example = DTOExamples.ATTACHMENT_STORAGE_LINK)
+    public String storageLink;
+
     @Schema(description = "External storage links map by key", example = DTOExamples.ATTACHMENT_STORAGE_LINKS_MAP)
     public Map<String, String> storageLinksMap;
 

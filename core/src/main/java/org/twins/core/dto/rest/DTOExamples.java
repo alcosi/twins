@@ -69,6 +69,7 @@ public interface DTOExamples {
     String TWINFLOW_TRANSITION_ALIAS_ID = "da755c8a-248f-4e4f-978a-6474e41c8dca";
     String TWIN_CLASS_SCHEMA_ID = "8b9ea6ad-2b9b-4a4a-8ea9-1b17da4d603b";
     String CHANNEL = "WEB";
+    String ATTACHMENT_STORAGE_LINK = "https://test.filestorage.by/JFUjEFWksfqwf";
     String ATTACHMENT_STORAGE_LINKS_MAP = "{\"origin\":\"https://test.filestorage.by/JFUjEFWksfqwf\"}";
     String ATTACHMENT_EXTERNAL_ID = "JD999weqw9f";
     String ATTACHMENT_TITLE = "cert.pdf";

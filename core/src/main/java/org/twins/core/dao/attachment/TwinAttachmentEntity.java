@@ -42,16 +42,19 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
     @Column(name = "twinflow_transition_id")
     private UUID twinflowTransitionId;
 
+    @Column(name = "storage_link")
+    private String storageLink;
+
     @ElementCollection
     @CollectionTable(
-            name = "twin_attachment_storage_links",
+            name = "twin_attachment_modification_links",
             joinColumns = @JoinColumn(name = "twin_attachment_id"),
-            foreignKey = @ForeignKey(name = "FK_twin_attachment_storage_links_twin_attachment_id")
+            foreignKey = @ForeignKey(name = "FK_twin_attachment_mod_links_twin_attachment_id")
     )
-    @MapKeyColumn(name = "link_key")
-    @Column(name = "link_value")
+    @MapKeyColumn(name = "mod_key")
+    @Column(name = "mod_link")
     @Cascade(org.hibernate.annotations.CascadeType.ALL)
-    private Map<String, String> storageLinksMap;
+    private Map<String, String> modificationLinks;
 
     @Column(name = "external_id")
     private String externalId;
@@ -112,7 +115,8 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
                 .setExternalId(externalId)
                 .setTitle(title)
                 .setDescription(description)
-                .setStorageLinksMap(storageLinksMap)
+                .setStorageLink(storageLink)
+                .setModificationLinks(modificationLinks)
                 .setCreatedAt(createdAt)
                 .setTwinCommentId(twinCommentId)
                 .setTwinflowTransition(twinflowTransition)
@@ -126,7 +130,7 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
         return switch (level) {
             case SHORT -> "attachment[" + id + "]";
             case NORMAL -> "attachment[id:" + id + ", twinId:" + twinId + "]";
-            default -> "attachment[id:" + id + ", twinId:" + twinId + ", storageLinks:" + storageLinksMap + "]";
+            default -> "attachment[id:" + id + ", twinId:" + twinId + ", storageLinks:" + storageLink + "]";
         };
 
     }

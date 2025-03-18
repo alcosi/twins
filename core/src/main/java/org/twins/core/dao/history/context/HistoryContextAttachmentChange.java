@@ -10,7 +10,7 @@ import java.util.Map;
 @Accessors(chain = true)
 public class HistoryContextAttachmentChange extends HistoryContextAttachment {
     public static final String DISCRIMINATOR = "history.attachmentChange";
-    private Map<String, String> newStorageLinksMap;
+    private String newStorageLink;
     private String newExternalId;
     private String newTitle;
     private String newDescription;
@@ -23,8 +23,8 @@ public class HistoryContextAttachmentChange extends HistoryContextAttachment {
     @Override
     protected HashMap<String, String> extractTemplateVars() {
         HashMap<String, String> vars = super.extractTemplateVars();
-        if (newStorageLinksMap != null)
-            vars.put("attachment.newStorageLinksMap", newStorageLinksMap.toString());
+        if (newStorageLink != null)
+            vars.put("attachment.newStorageLinksMap", newStorageLink);
         if (newExternalId != null)
             vars.put("attachment.newExternalId", newExternalId);
         if (newTitle != null)
