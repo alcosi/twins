@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "DomainViewPublicRsv1")
+@Schema(name = "DomainViewPublicV1")
 public class DomainViewPublicDTOv1 {
     @Schema(description = "domain id")
     private UUID id;

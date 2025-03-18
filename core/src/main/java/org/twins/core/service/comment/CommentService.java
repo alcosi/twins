@@ -61,7 +61,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     final CommentActionService commentActionService;
     final UserGroupService userGroupService;
 
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public TwinCommentEntity createComment(TwinCommentEntity comment, List<TwinAttachmentEntity> attachmentList) throws ServiceException {
         if (comment.getText() == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_COMMENT_FIELD_TEXT_IS_NULL);
@@ -81,7 +81,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         return comment.setAttachmentKit(new Kit<>(attachmentList, TwinAttachmentEntity::getId));
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public TwinCommentEntity updateComment(UUID commentId, String commentText, EntityCUD<TwinAttachmentEntity> attachmentCUD) throws ServiceException {
         TwinCommentEntity currentComment = findEntitySafe(commentId);
         commentActionService.checkAllowed(currentComment, TwinCommentAction.EDIT);
