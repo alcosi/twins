@@ -14,13 +14,6 @@ import java.util.Set;
 import java.util.UUID;
 
 public class I18nTranslationSpecification extends CommonSpecification<I18nTranslationEntity> {
-    public static Specification<I18nTranslationEntity> checkDomainId(UUID domainId) {
-        return (root, query, cb) -> {
-            Join<I18nTranslationEntity, I18nEntity> i18nJoin = root.join(I18nTranslationEntity.Fields.i18n, JoinType.INNER);
-
-            return cb.equal(i18nJoin.get(I18nEntity.Fields.domainId), domainId);
-        };
-    }
 
     public static Specification<I18nTranslationEntity> checkLocaleIn(Set<Locale> locales, boolean exclude) {
         return (root, query, cb) -> {

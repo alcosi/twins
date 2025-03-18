@@ -9,11 +9,13 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.i18n.I18nTranslationRepository;
 import org.twins.core.domain.search.I18nTranslationSearch;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.twins.core.dao.i18n.specifications.I18nTranslationSpecification.*;
@@ -39,7 +41,7 @@ public class I18nTranslationSearchService {
 
     private Specification<I18nTranslationEntity> createI18nTranslationSpecification(I18nTranslationSearch search) throws ServiceException {
         return Specification.allOf(
-                checkDomainId(authService.getApiUser().getDomainId()),
+                checkUuidIn(Collections.singletonList(authService.getApiUser().getDomainId()), false, false, I18nTranslationEntity.Fields.i18n, I18nEntity.Fields.domainId),
                 checkUuidIn(search.getI18nIdList(), false, false, I18nTranslationEntity.Fields.i18nId),
                 checkUuidIn(search.getI18nIdExcludeList(), true, false, I18nTranslationEntity.Fields.i18nId),
                 checkFieldLikeIn(search.getTranslationLikeList(), false, true, I18nTranslationEntity.Fields.translation),
