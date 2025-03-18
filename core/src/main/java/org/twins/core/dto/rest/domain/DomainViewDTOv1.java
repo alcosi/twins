@@ -13,31 +13,22 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "DomainViewRsv1")
-public class DomainViewDTOv1 {
-    @Schema(description = "domain id")
-    private UUID id;
-
-    @Schema(description = "key", example = DTOExamples.DOMAIN_KEY)
-    public String key;
-
-    @Schema(description = "domain description", example = DTOExamples.DOMAIN_KEY)
-    public String description;
-
+@Schema(name = "DomainViewV1")
+public class DomainViewDTOv1 extends DomainViewPublicDTOv1 {
     @Schema(description = "type [basic/b2b]")
     public DomainType type;
 
     @Schema(description = "permission schema id")
-    private UUID permissionSchemaId;
+    public UUID permissionSchemaId;
 
     @Schema(description = "twinflow schema id")
-    private UUID twinflowSchemaId;
+    public UUID twinflowSchemaId;
 
     @Schema(description = "twinclass schema id")
-    private UUID twinClassSchemaId;
+    public UUID twinClassSchemaId;
 
     @Schema(description = "business account template twin id")
-    private UUID businessAccountTemplateTwinId;
+    public UUID businessAccountTemplateTwinId;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)
@@ -45,9 +36,7 @@ public class DomainViewDTOv1 {
 
     @Schema(description = "default locale")
     public String defaultLocale;
-    @Schema(description = "Icon dark uri. Might be relative")
-    public String iconDark;
-    @Schema(description = "Icon light uri. Might be relative")
-    public String iconLight;
 
+    @Schema(description = "domain navigation bar pointer")
+    public UUID navbarFaceId;
 }

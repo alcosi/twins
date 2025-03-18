@@ -51,6 +51,8 @@ public interface DTOExamples {
     String DOMAIN_KEY = "alcosi";
     String DOMAIN_TYPE = "basic";
     String DOMAIN_DESCRIPTION = "some domain";
+    String FACE_COMPONENT = "some domain";
+    String FACE_ID = "9a3f6075-f175-41cd-a804-934201ec969c";
     String BUSINESS_ACCOUNT_ID = "9a3f6075-f175-41cd-a804-934201ec969c";
     String BUSINESS_ACCOUNT_NAME = "Business account name";
     String AUTH_TOKEN = USER_ID + "," + BUSINESS_ACCOUNT_ID;
@@ -114,7 +116,7 @@ public interface DTOExamples {
     String RESOURCE_STORAGE_ID = "00000000-0000-0000-0007-000000000001";
     String RESOURCE_ID = "09cd9a50-dcbe-4c73-b39e-65d2000a8e85";
     String TIER_ID = "64807201-e3d6-4016-b699-b36c5f91c58e";
-
+    String I18N_ID = "633c6d7d-99c8-4d87-89c6-2f72d0f5d673";
 
 
 }

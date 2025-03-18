@@ -17,7 +17,7 @@ import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.service.auth.AuthService;
 
 import static org.cambium.common.util.EnumUtils.convertOrEmpty;
-import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.datalist.DataListOptionSpecification.*;
 
 
@@ -58,12 +58,13 @@ public class DataListOptionSearchService {
     }
 
     private Specification<DataListOptionEntity> createBusinessAccountSpecification(ApiUser apiUser, DataListOptionSearch search) {
-        if (!apiUser.isBusinessAccountSpecified())
-            return Specification.where((root, query, cb) -> root.get(DataListOptionEntity.Fields.businessAccountId).isNull());
-        else
+        if (apiUser.isBusinessAccountSpecified()) {
             return Specification.allOf(
-                    checkUuidIn(search.getBusinessAccountIdList(), false, false, DataListOptionEntity.Fields.businessAccountId),
+                    checkUuidIn(search.getBusinessAccountIdList(), false, true, DataListOptionEntity.Fields.businessAccountId),
                     checkUuidIn(search.getBusinessAccountIdExcludeList(), true, true, DataListOptionEntity.Fields.businessAccountId)
             );
+        } else {
+            return Specification.where((root, query, cb) -> root.get(DataListOptionEntity.Fields.businessAccountId).isNull());
+        }
     }
 }

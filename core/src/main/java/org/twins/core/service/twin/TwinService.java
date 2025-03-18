@@ -18,6 +18,7 @@ import org.cambium.featurer.FeaturerService;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -58,17 +59,23 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Lazy
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
+
+    // resolve AOP problem: one-service self-invocation methodss
+    @Autowired
+    private TwinService self;
+
+
     private final TwinRepository twinRepository;
     private final TwinFieldSimpleRepository twinFieldSimpleRepository;
     private final TwinFieldUserRepository twinFieldUserRepository;
     private final TwinFieldDataListRepository twinFieldDataListRepository;
-    private final TwinFieldI18nRepository twinFieldI18nRepository;
     private final TwinClassFieldService twinClassFieldService;
     private final EntitySmartService entitySmartService;
     private final TwinflowService twinflowService;
@@ -325,7 +332,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public TwinField wrapField(UUID twinId, String fieldKey) throws ServiceException {
         TwinEntity twinEntity = entitySmartService.findById(twinId, twinRepository, EntitySmartService.FindMode.ifEmptyThrows);
-        TwinClassFieldEntity twinClassField = twinClassFieldService.findByTwinClassIdAndKeyIncludeParent(twinEntity.getTwinClassId(), fieldKey);
+        TwinClassFieldEntity twinClassField = twinClassFieldService.findByTwinClassIdAndKeyIncludeParents(twinEntity.getTwinClass(), fieldKey);
         if (twinClassField == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_UNKNOWN, "unknown fieldKey[" + fieldKey + "] for twin["
                     + twinId + "] of class[" + twinEntity.getTwinClass().getKey() + " : " + twinEntity.getTwinClassId() + "]");
@@ -341,39 +348,76 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinCreateResult createTwin(TwinCreate twinCreate) throws ServiceException {
-        return createTwin(Collections.singletonList(twinCreate)).getTwinCreateResultList().getFirst();
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        createTwin(twinCreate, twinChangesCollector);
+        twinChangesService.applyChanges(twinChangesCollector);
+        TwinEntity twinEntity = twinCreate.getTwinEntity();
+        twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
+        //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
+        return new TwinCreateResult()
+                .setCreatedTwin(twinEntity)
+                .setTwinAliasEntityList(twinAliasService.createAliasesForTwin(twinEntity, true));
+    }
+
+    //faster, but dont call it form method annotated by @transactional
+    public TwinCreateResult createTwinAsync(TwinCreate twinCreate) throws ServiceException {
+        List<TwinEntity> twins = self.createTwinsAsync(Collections.singletonList(twinCreate));
+        TwinBatchCreateResult twinBatchCreateResult = generateTwinAliasesAndMakeCreationResult(twins);
+        TwinCreateResult result = twinBatchCreateResult.getTwinCreateResultList().getFirst();
+        return result;
+    }
+
+    public void createTwinsAsyncBatch(List<TwinCreate> twinCreates) throws ServiceException{
+        List<TwinEntity> twins = self.createTwinsAsync(twinCreates);
+        generateTwinAliasesAndMakeCreationResult(twins);
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinBatchCreateResult createTwin(List<TwinCreate> twinCreateList) throws ServiceException {
+    public List<TwinEntity> createTwinsAsync(List<TwinCreate> twinCreateList) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         for (TwinCreate twinCreate : twinCreateList) {
             createTwin(twinCreate, twinChangesCollector);
         }
         twinChangesService.applyChanges(twinChangesCollector);
-        List<TwinEntity> twinEntityList = new ArrayList<>();
+        List<TwinEntity> twins = new ArrayList<>();
         for (TwinCreate twinCreate : twinCreateList) {
             TwinEntity twinEntity = twinCreate.getTwinEntity();
-            twinEntityList.add(twinEntity);
+            twins.add(twinEntity);
             twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
         }
         //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
+        return twins;
+    }
+
+    public TwinBatchCreateResult generateTwinAliasesAndMakeCreationResult(List<TwinEntity> twins) throws ServiceException {
         TwinBatchCreateResult twinBatchCreateResult = new TwinBatchCreateResult();
-        for (TwinEntity twinEntity : twinEntityList) {
+        boolean returnResult = twins.size() == 1;
+        Map<UUID, List<TwinAliasEntity>> aliasesForTwins = null;
+        try {
+            aliasesForTwins = twinAliasService.createAliasesForTwins(twins, returnResult).get();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceException(ErrorCodeTwins.ERROR_TWIN_ALIASES_CREATION, "failed to create aliases for twins: " + twins.stream().map(TwinEntity::logShort).collect(Collectors.joining(", ")));
+        }
+        for(TwinEntity twin : twins)
             twinBatchCreateResult.getTwinCreateResultList().add(
                     new TwinCreateResult()
-                            .setCreatedTwin(twinEntity)
-                            .setTwinAliasEntityList(twinAliasService.createAliases(twinEntity))
-            );
-        }
+                            .setCreatedTwin(twin)
+                            .setTwinAliasEntityList(
+                                    returnResult && null != aliasesForTwins ?
+                                            aliasesForTwins.get(twin.getId()) :
+                                            null
+                            ));
         return twinBatchCreateResult;
     }
 
     public void createTwin(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
-        ApiUser apiUser = authService.getApiUser();
+        if (twinEntity.getTwinClass() == null)
+            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
+        setHeadSafe(twinEntity);
         if (twinCreate.isCheckCreatePermission())
-            checkCreatePermission(twinEntity, apiUser);
+            checkCreatePermission(twinEntity, authService.getApiUser());
         createTwinEntity(twinEntity, twinChangesCollector);
         saveTwinFields(twinEntity, twinCreate.getFields(), twinChangesCollector);
         if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
@@ -389,12 +433,22 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
+    private void setHeadSafe(TwinEntity twinEntity) throws ServiceException {
+        if (twinEntity.getHeadTwinId() == null)
+            return;
+        TwinEntity headTwin = twinHeadService.checkValidHeadForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass());
+        twinEntity
+                .setHeadTwinId(headTwin.getId())
+                .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin));
+    }
+
+    private static UUID getPermissionSchemaSpaceId(TwinEntity headTwin) {
+        return headTwin.getTwinClass().isPermissionSchemaSpace() ? headTwin.getId() : headTwin.getPermissionSchemaSpaceId();
+    }
+
     public void createTwinEntity(TwinEntity twinEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (twinEntity.getTwinClass() == null)
-            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
         if (twinEntity.getId() == null)
             twinEntity.setId(UUID.randomUUID()); // this id is necessary for fields and links. Because entity is not stored currently
-        twinEntity.setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass()));
         if (twinEntity.getTwinStatusId() == null) {
             TwinflowEntity twinflowEntity = twinflowService.loadTwinflow(twinEntity);
             twinEntity
@@ -547,7 +601,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twinChangesCollector;
     }
 
-    @Transactional
     public void updateTwinFields(TwinEntity twinEntity, List<FieldValue> values) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         updateTwinFields(twinEntity, values, twinChangesCollector);
@@ -625,13 +678,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (changesRecorder.isChanged("headTwinId", changesRecorder.getDbEntity().getHeadTwinId(), changesRecorder.getUpdateEntity().getHeadTwinId())) {
             if (changesRecorder.isHistoryCollectorEnabled())
                 changesRecorder.getHistoryCollector().add(historyService.headChanged(changesRecorder.getDbEntity().getHeadTwin(), changesRecorder.getUpdateEntity().getHeadTwin()));
-            UUID headTwinId = twinHeadService.checkHeadTwinAllowedForClass(changesRecorder.getUpdateEntity().getHeadTwinId(), changesRecorder.getDbEntity().getTwinClass());
+            TwinEntity headTwin = twinHeadService.checkValidHeadForClass(changesRecorder.getUpdateEntity().getHeadTwinId(), changesRecorder.getDbEntity().getTwinClass());
             if (changesRecorder.getRecorder() instanceof DraftTwinPersistEntity draftTwinPersistEntity)
                 draftTwinPersistEntity
-                        .setHeadTwinId(headTwinId);
+                        .setHeadTwinId(headTwin.getId()); //todo check permissionSchemaSpace is updated on db level
             if (changesRecorder.getRecorder() instanceof TwinEntity twinEntity)
                 twinEntity
-                        .setHeadTwinId(headTwinId);
+                        .setHeadTwinId(headTwin.getId())
+                        .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin));
         }
     }
 

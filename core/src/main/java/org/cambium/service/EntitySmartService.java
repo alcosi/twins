@@ -183,6 +183,7 @@ public class EntitySmartService {
         return checkOptional(optional, uuid, repository, mode);
     }
 
+
     public <T> T checkOptional(Optional<T> optional, Object keyObj, CrudRepository<T, UUID> repository, FindMode mode) throws ServiceException {
         String key = (keyObj instanceof UUID ? "id[" : "key[") + keyObj + "]";
         switch (mode) {
@@ -196,7 +197,7 @@ public class EntitySmartService {
                     return optional.get();
             case ifEmptyThrows:
                 if (optional.isEmpty())
-                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, " unknown " + entityShortName(repository) + " " + key);
+                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Unknown " + entityShortName(repository) + " " + key);
                 return optional.get();
         }
         return null;

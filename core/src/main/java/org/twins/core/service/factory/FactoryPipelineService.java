@@ -21,6 +21,7 @@ import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @Slf4j
@@ -59,6 +60,12 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
 
     @Override
     public boolean validateEntity(TwinFactoryPipelineEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entity.getTwinFactoryId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinFactoryId");
+        if (entity.getInputTwinClassId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty inputTwinClassId");
+
+
         switch (entityValidateMode) {
             case beforeSave:
                 if (entity.getInputTwinClass() == null || !entity.getInputTwinClass().getId().equals(entity.getInputTwinClassId()))
@@ -73,6 +80,8 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                     entity.setOutputTwinStatus(twinStatusService.findEntitySafe(entity.getOutputTwinStatusId()));
                 if (entity.getTemplateTwinId() != null && (entity.getTemplateTwin() == null || !entity.getTemplateTwin().getId().equals(entity.getTemplateTwinId())))
                     entity.setTemplateTwin(twinService.findEntitySafe(entity.getTemplateTwinId()));
+                if (entity.getNextTwinFactoryLimitScope() == null)
+                    entity.setNextTwinFactoryLimitScope(true);
         }
         return true;
     }
@@ -87,71 +96,23 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
         entity.setId(dbEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
 
-        updateInputTwinClassId(dbEntity, entity.getInputTwinClassId(), changesHelper);
-        updateFactoryConditionSetId(dbEntity, entity.getTwinFactoryConditionSetId(), changesHelper);
-        updateFactoryConditionSetInvert(dbEntity, entity.getTwinFactoryConditionInvert(), changesHelper);
-        updateActive(dbEntity, entity.getActive(), changesHelper);
-        updateOutputStatusId(dbEntity, entity.getOutputTwinStatusId(), changesHelper);
-        updateNextFactoryId(dbEntity, entity.getNextTwinFactoryId(), changesHelper);
-        updateTemplateTwinId(dbEntity, entity.getTemplateTwinId(), changesHelper);
-        updateDescription(dbEntity, entity.getDescription(), changesHelper);
+        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getInputTwinClassId,
+                TwinFactoryPipelineEntity::setInputTwinClassId, TwinFactoryPipelineEntity.Fields.inputTwinClassId, changesHelper);
+        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getTwinFactoryConditionSetId,
+                TwinFactoryPipelineEntity::setTwinFactoryConditionSetId, TwinFactoryPipelineEntity.Fields.twinFactoryConditionSetId, changesHelper);
+        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getTwinFactoryConditionInvert,
+                TwinFactoryPipelineEntity::setTwinFactoryConditionInvert, TwinFactoryPipelineEntity.Fields.twinFactoryConditionInvert, changesHelper);
+        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getActive,
+                TwinFactoryPipelineEntity::setActive, TwinFactoryPipelineEntity.Fields.active, changesHelper);
+        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getOutputTwinStatusId,
+                TwinFactoryPipelineEntity::setOutputTwinStatusId, TwinFactoryPipelineEntity.Fields.outputTwinStatusId, changesHelper);
+        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getNextTwinFactoryId,
+                TwinFactoryPipelineEntity::setNextTwinFactoryId, TwinFactoryPipelineEntity.Fields.nextTwinFactoryId, changesHelper);
+        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getTemplateTwinId,
+                TwinFactoryPipelineEntity::setTemplateTwinId, TwinFactoryPipelineEntity.Fields.templateTwinId, changesHelper);
+        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getDescription,
+                TwinFactoryPipelineEntity::setDescription, TwinFactoryPipelineEntity.Fields.description, changesHelper);
 
         return updateSafe(dbEntity, changesHelper);
-    }
-
-    private void updateInputTwinClassId(TwinFactoryPipelineEntity dbEntity, UUID newInputTwinClassId,
-                                        ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryPipelineEntity.Fields.inputTwinClassId, dbEntity.getInputTwinClassId(), newInputTwinClassId))
-            return;
-        dbEntity.setInputTwinClassId(newInputTwinClassId);
-    }
-
-    private void updateFactoryConditionSetId(TwinFactoryPipelineEntity dbEntity, UUID newFactoryConditionSetId,
-                                        ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryPipelineEntity.Fields.twinFactoryConditionSetId, dbEntity.getTwinFactoryConditionSetId(), newFactoryConditionSetId))
-            return;
-        dbEntity.setTwinFactoryConditionSetId(newFactoryConditionSetId);
-    }
-
-    private void updateFactoryConditionSetInvert(TwinFactoryPipelineEntity dbEntity, Boolean newFactoryConditionSetInvert,
-                                        ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryPipelineEntity.Fields.twinFactoryConditionInvert, dbEntity.getTwinFactoryConditionInvert(), newFactoryConditionSetInvert))
-            return;
-        dbEntity.setTwinFactoryConditionInvert(newFactoryConditionSetInvert);
-    }
-
-    private void updateActive(TwinFactoryPipelineEntity dbEntity, Boolean newActive,
-                              ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryPipelineEntity.Fields.active, dbEntity.getActive(), newActive))
-            return;
-        dbEntity.setActive(newActive);
-    }
-
-    private void updateOutputStatusId(TwinFactoryPipelineEntity dbEntity, UUID newOutputStatusId,
-                                        ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryPipelineEntity.Fields.outputTwinStatusId, dbEntity.getOutputTwinStatusId(), newOutputStatusId))
-            return;
-        dbEntity.setOutputTwinStatusId(newOutputStatusId);
-    }
-
-    private void updateNextFactoryId(TwinFactoryPipelineEntity dbEntity, UUID newNextFactoryId,
-                                        ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryPipelineEntity.Fields.nextTwinFactoryId, dbEntity.getNextTwinFactoryId(), newNextFactoryId))
-            return;
-        dbEntity.setNextTwinFactoryId(newNextFactoryId);
-    }
-
-    private void updateTemplateTwinId(TwinFactoryPipelineEntity dbEntity, UUID newTemplateTwinId,
-                                        ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryPipelineEntity.Fields.templateTwinId, dbEntity.getTemplateTwinId(), newTemplateTwinId))
-            return;
-        dbEntity.setTemplateTwinId(newTemplateTwinId);
-    }
-
-    private void updateDescription(TwinFactoryPipelineEntity dbEntity, String newDescription,
-                                   ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryPipelineEntity.Fields.description, dbEntity.getDescription(), newDescription))
-            return;
-        dbEntity.setDescription(newDescription);
     }
 }

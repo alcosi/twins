@@ -10,9 +10,9 @@ import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
-import org.cambium.i18n.dao.I18nEntity;
-import org.cambium.i18n.dao.I18nType;
-import org.cambium.i18n.service.I18nService;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -56,6 +56,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
+import static org.twins.core.dao.twinclass.TwinClassEntity.convertUuidFromLtreeFormat;
 
 @Slf4j
 @Service
@@ -157,6 +158,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             default:
         }
         return true;
+    }
+
+    @Override
+    public CacheSupportType getCacheSupportType() {
+        return CacheSupportType.GLOBAL;
     }
 
     public UUID checkTwinClassSchemaAllowed(UUID domainId, UUID twinClassSchemaId) throws ServiceException {
@@ -469,7 +475,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
         updateSafe(dbTwinClassEntity, changesHelper);
         if (changesHelper.hasChanges()) {
-            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassUpdate.getDbTwinClassEntity().getId());
+            Map<String, List<Object>> cacheEntries = Map.of(
+                    TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(twinClassUpdate.getDbTwinClassEntity().getId()),
+                    TwinClassEntity.class.getSimpleName(), List.of(twinClassUpdate.getDbTwinClassEntity().getId())
+            );
+            evictCache(cacheManager, cacheEntries);
         }
     }
 
@@ -804,5 +814,27 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         for (Map.Entry<Integer, TwinClassEntity> map : needLoad.entrySet()) {
             map.getValue().setHeadHunterFeaturer(featurerList.get(map.getKey()));
         }
+    }
+
+    //todo replace immutable stored procedure
+    public Set<UUID> loadExtendsHierarchyClasses(Map<UUID, Boolean> twinClassIdMap) throws ServiceException {
+        if (MapUtils.isEmpty(twinClassIdMap))
+            return Collections.emptySet();
+        List<UUID> needLoad = new ArrayList<>();
+        Set<UUID> ret = new HashSet<>();
+        for (var twinClass : twinClassIdMap.entrySet()) {
+            if (Boolean.TRUE.equals(twinClass.getValue()))
+                needLoad.add(twinClass.getKey());
+            else
+                ret.add(twinClass.getKey());
+        }
+        if (CollectionUtils.isEmpty(needLoad))
+            return ret;
+        List<TwinClassExtendsProjection> twinClassExtendsProjectionList = twinClassRepository.findByDomainIdAndIdIn(authService.getApiUser().getDomainId(), needLoad);
+        for (TwinClassExtendsProjection childClass : twinClassExtendsProjectionList) {
+            for (String hierarchyItem : convertUuidFromLtreeFormat(childClass.getExtendsHierarchyTree()).split("\\."))
+                ret.add(UUID.fromString(hierarchyItem));
+        }
+        return ret;
     }
 }
