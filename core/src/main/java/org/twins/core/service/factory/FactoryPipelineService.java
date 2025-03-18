@@ -64,8 +64,6 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinFactoryId");
         if (entity.getInputTwinClassId() == null)
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty inputTwinClassId");
-        if (entity.getNextTwinFactoryLimitScope() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty nextTwinFactoryLimitScope");
 
 
         switch (entityValidateMode) {
@@ -82,6 +80,8 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                     entity.setOutputTwinStatus(twinStatusService.findEntitySafe(entity.getOutputTwinStatusId()));
                 if (entity.getTemplateTwinId() != null && (entity.getTemplateTwin() == null || !entity.getTemplateTwin().getId().equals(entity.getTemplateTwinId())))
                     entity.setTemplateTwin(twinService.findEntitySafe(entity.getTemplateTwinId()));
+                if (entity.getNextTwinFactoryLimitScope() == null)
+                    entity.setNextTwinFactoryLimitScope(true);
         }
         return true;
     }
@@ -108,8 +108,6 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                 TwinFactoryPipelineEntity::setOutputTwinStatusId, TwinFactoryPipelineEntity.Fields.outputTwinStatusId, changesHelper);
         updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getNextTwinFactoryId,
                 TwinFactoryPipelineEntity::setNextTwinFactoryId, TwinFactoryPipelineEntity.Fields.nextTwinFactoryId, changesHelper);
-        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getNextTwinFactoryLimitScope,
-                TwinFactoryPipelineEntity::setNextTwinFactoryLimitScope, TwinFactoryPipelineEntity.Fields.nextTwinFactoryLimitScope, changesHelper);
         updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getTemplateTwinId,
                 TwinFactoryPipelineEntity::setTemplateTwinId, TwinFactoryPipelineEntity.Fields.templateTwinId, changesHelper);
         updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getDescription,
