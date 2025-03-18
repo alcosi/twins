@@ -160,6 +160,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         return true;
     }
 
+    @Override
+    public CacheSupportType getCacheSupportType() {
+        return CacheSupportType.GLOBAL;
+    }
+
     public UUID checkTwinClassSchemaAllowed(UUID domainId, UUID twinClassSchemaId) throws ServiceException {
         Optional<TwinClassSchemaEntity> twinClassSchemaEntity = twinClassSchemaRepository.findById(twinClassSchemaId);
         if (twinClassSchemaEntity.isEmpty())
@@ -470,7 +475,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
         updateSafe(dbTwinClassEntity, changesHelper);
         if (changesHelper.hasChanges()) {
-            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassUpdate.getDbTwinClassEntity().getId());
+            Map<String, List<Object>> cacheEntries = Map.of(
+                    TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(twinClassUpdate.getDbTwinClassEntity().getId()),
+                    TwinClassEntity.class.getSimpleName(), List.of(twinClassUpdate.getDbTwinClassEntity().getId())
+            );
+            evictCache(cacheManager, cacheEntries);
         }
     }
 

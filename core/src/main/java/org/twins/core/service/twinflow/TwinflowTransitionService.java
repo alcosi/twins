@@ -318,7 +318,11 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
         dbTwinflowTransitionEntity = updateSafe(dbTwinflowTransitionEntity, changesHelper);
         if (changesHelper.hasChanges()) {
-            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbTwinflowTransitionEntity.getTwinflow().getTwinClassId());
+            Map<String, List<Object>> cacheEntries = Map.of(
+                    TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(dbTwinflowTransitionEntity.getTwinflow().getTwinClassId()),
+                    TwinClassEntity.class.getSimpleName(), List.of(dbTwinflowTransitionEntity.getTwinflow().getTwinClassId())
+            );
+            evictCache(cacheManager, cacheEntries);
         }
         return dbTwinflowTransitionEntity;
     }

@@ -290,8 +290,13 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         updateTwinflowDescription(dbTwinflowEntity, descriptionI18n, changesHelper);
         updateTwinflowInitStatus(dbTwinflowEntity, twinflowEntity.getInitialTwinStatusId(), changesHelper);
         dbTwinflowEntity = updateSafe(dbTwinflowEntity, changesHelper);
-        if (changesHelper.hasChanges())
-            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbTwinflowEntity.getTwinClassId());
+        if (changesHelper.hasChanges()) {
+            Map<String, List<Object>> cacheEntries = Map.of(
+                    TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(dbTwinflowEntity.getTwinClassId()),
+                    TwinClassEntity.class.getSimpleName(), List.of(dbTwinflowEntity.getTwinClassId())
+            );
+            evictCache(cacheManager, cacheEntries);
+        }
         return dbTwinflowEntity;
     }
 
