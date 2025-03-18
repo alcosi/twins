@@ -30,7 +30,6 @@ public class FactoryPipelineSaveDTOv1 {
     @Schema(description = "next factory id", example = DTOExamples.FACTORY_ID)
     public UUID nextFactoryId;
 
-
     @Schema(description = "template twin id", example = DTOExamples.TWIN_ID)
     public UUID templateTwinId;
 
