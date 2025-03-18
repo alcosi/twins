@@ -13,9 +13,7 @@ import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
 import org.twins.core.domain.search.AttachmentSearch;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.attachement.AttachmentSpecification.checkFieldLikeIn;
-import static org.twins.core.dao.specifications.attachement.AttachmentSpecification.checkFieldLocalDateTimeBetween;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 
 @Slf4j
