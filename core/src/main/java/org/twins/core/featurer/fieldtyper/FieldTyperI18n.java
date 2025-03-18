@@ -1,9 +1,9 @@
 package org.twins.core.featurer.fieldtyper;
 
+import lombok.RequiredArgsConstructor;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldI18nEntity;
@@ -21,12 +21,11 @@ import org.cambium.i18n.dao.I18nEntity;
 import java.util.Properties;
 
 @Component
+@RequiredArgsConstructor
 @Featurer(id = FeaturerTwins.ID_1320,
         name = "i18n",
         description = "")
 public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI18n, TwinFieldI18nEntity, TwinFieldSearchNotImplemented> {
-
-    @Autowired
     private TwinService twinService;
 
     @Override
@@ -100,14 +99,28 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
             return null;
         }
 
+        I18nEntity i18nEntity = twinFieldEntity.getI18n();
+        if (i18nEntity == null) {
+            i18nEntity = i18nService.findEntitySafe(twinFieldEntity.getI18nId());
+        }
+
         return new FieldValueI18n(twinField.getTwinClassField())
-                .setI18nId(twinFieldEntity.getI18nId());
+                .setI18nId(twinFieldEntity.getI18nId())
+                .setI18nTranslations(i18nEntity != null ? i18nEntity.getTranslations() : null);
     }
 
 
     protected TwinFieldI18nEntity convertToTwinFieldEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
         twinService.loadTwinFields(twinEntity);
-        return twinEntity.getTwinFieldI18nKit().get(twinClassFieldEntity.getId());
+
+        TwinFieldI18nEntity twinFieldEntity = twinEntity.getTwinFieldI18nKit().get(twinClassFieldEntity.getId());
+
+        if (twinFieldEntity != null && twinFieldEntity.getI18n() == null) {
+            I18nEntity i18nEntity = i18nService.findEntitySafe(twinFieldEntity.getI18nId());
+            twinFieldEntity.setI18n(i18nEntity);
+        }
+
+        return twinFieldEntity;
     }
 
 }
