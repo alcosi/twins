@@ -14,9 +14,9 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.i18n.dao.I18nEntity;
-import org.cambium.i18n.dao.I18nType;
-import org.cambium.i18n.service.I18nService;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -318,7 +318,11 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
         dbTwinflowTransitionEntity = updateSafe(dbTwinflowTransitionEntity, changesHelper);
         if (changesHelper.hasChanges()) {
-            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbTwinflowTransitionEntity.getTwinflow().getTwinClassId());
+            Map<String, List<Object>> cacheEntries = Map.of(
+                    TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(dbTwinflowTransitionEntity.getTwinflow().getTwinClassId()),
+                    TwinClassEntity.class.getSimpleName(), List.of(dbTwinflowTransitionEntity.getTwinflow().getTwinClassId())
+            );
+            evictCache(cacheManager, cacheEntries);
         }
         return dbTwinflowTransitionEntity;
     }

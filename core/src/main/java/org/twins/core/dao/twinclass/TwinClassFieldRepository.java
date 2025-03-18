@@ -20,6 +20,8 @@ public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldE
     @Query(value = "select field from TwinClassFieldEntity field where field.twinClassId = :twinClassId and field.fieldTyperFeaturerId in (:fieldTyperIds) and cast(field.fieldTyperParams as string) like :params")
     TwinClassFieldEntity findByTwinClassIdAndFieldTyperIdInAndFieldTyperParamsLike(@Param("twinClassId") UUID twinClassId, @Param("fieldTyperIds") Collection<Integer> fieldTyperIds, @Param("params") String params);
 
+    String CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN = "TwinClassFieldRepository.findByTwinClassIdIn";
+    @Cacheable(value = CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN, key = "T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#twinClassIdList)")
     List<TwinClassFieldEntity> findByTwinClassIdIn(Set<UUID> twinClassIdList);
 
     List<TwinClassFieldEntity> findByTwinClassIdOrTwinClassId(UUID twinClassId, UUID parentTwinClassId);
@@ -28,6 +30,9 @@ public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldE
     @Cacheable(value = CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_KEY, key = "#twinClassId + '' + #key")
     TwinClassFieldEntity findByTwinClassIdAndKey(UUID twinClassId, String key);
 
+
+    String CACHE_TWIN_CLASS_FIELD_BY_KEY_AND_TWIN_CLASS_ID_IN = "TwinClassFieldRepository.findByKeyAndTwinClassIdIn";
+    @Cacheable(value = CACHE_TWIN_CLASS_FIELD_BY_KEY_AND_TWIN_CLASS_ID_IN, key = "#key + '' + T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#twinClassIds)")
     TwinClassFieldEntity findByKeyAndTwinClassIdIn(String key, Collection<UUID> twinClassIds);
 
     TwinClassFieldEntity findByTwinClass_KeyAndKey(String twinClassKey, String key);

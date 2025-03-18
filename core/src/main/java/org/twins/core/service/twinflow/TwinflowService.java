@@ -12,9 +12,9 @@ import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.i18n.dao.I18nEntity;
-import org.cambium.i18n.dao.I18nType;
-import org.cambium.i18n.service.I18nService;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +50,7 @@ import java.util.*;
 import java.util.function.Function;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
-import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.springframework.data.jpa.domain.Specification.where;
 import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkSchemas;
 import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkUuidIn;
@@ -290,8 +290,13 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         updateTwinflowDescription(dbTwinflowEntity, descriptionI18n, changesHelper);
         updateTwinflowInitStatus(dbTwinflowEntity, twinflowEntity.getInitialTwinStatusId(), changesHelper);
         dbTwinflowEntity = updateSafe(dbTwinflowEntity, changesHelper);
-        if (changesHelper.hasChanges())
-            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbTwinflowEntity.getTwinClassId());
+        if (changesHelper.hasChanges()) {
+            Map<String, List<Object>> cacheEntries = Map.of(
+                    TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(dbTwinflowEntity.getTwinClassId()),
+                    TwinClassEntity.class.getSimpleName(), List.of(dbTwinflowEntity.getTwinClassId())
+            );
+            evictCache(cacheManager, cacheEntries);
+        }
         return dbTwinflowEntity;
     }
 

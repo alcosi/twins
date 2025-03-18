@@ -12,7 +12,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.i18n.dao.I18nLocaleRepository;
+import org.twins.core.dao.i18n.I18nLocaleRepository;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;

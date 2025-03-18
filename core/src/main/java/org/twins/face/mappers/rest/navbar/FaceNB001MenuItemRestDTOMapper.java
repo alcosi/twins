@@ -1,12 +1,12 @@
 package org.twins.face.mappers.rest.navbar;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.resource.ResourceService;
 import org.twins.face.dao.navbar.FaceNB001MenuItemEntity;
 import org.twins.face.dto.rest.navbar.FaceNB001MenuItemDTOv1;

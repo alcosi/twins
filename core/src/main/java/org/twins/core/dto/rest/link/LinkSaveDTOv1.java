@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.i18n.dto.I18nDTOv1;
+import org.twins.core.dto.rest.i18n.I18nDTOv1;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkStrength;
 import org.twins.core.dto.rest.Request;
