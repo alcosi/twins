@@ -1,13 +1,13 @@
 package org.twins.face.mappers.rest.page;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.face.dao.page.FacePG001Entity;
 import org.twins.face.dto.rest.page.FacePG001DTOv1;
 import org.twins.face.service.page.FacePG001Service;
