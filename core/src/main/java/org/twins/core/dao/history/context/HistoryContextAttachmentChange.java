@@ -24,7 +24,7 @@ public class HistoryContextAttachmentChange extends HistoryContextAttachment {
     protected HashMap<String, String> extractTemplateVars() {
         HashMap<String, String> vars = super.extractTemplateVars();
         if (newStorageLink != null)
-            vars.put("attachment.newStorageLinksMap", newStorageLink);
+            vars.put("attachment.newStorageLink", newStorageLink);
         if (newExternalId != null)
             vars.put("attachment.newExternalId", newExternalId);
         if (newTitle != null)
