@@ -233,39 +233,36 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             attachmentActionService.checkAllowed(dbAttachmentEntity, TwinAttachmentAction.EDIT);
             HistoryItem<HistoryContextAttachmentChange> historyItem = historyService.attachmentUpdate(attachmentEntity);
 
-            updateEntityField(tierUpdate, dbTierEntity, TierEntity::getName,
-                    TierEntity::setName, TierEntity.Fields.name, changesHelper);
-
-            if (twinChangesCollector.collectIfChanged(attachmentEntity, TwinAttachmentEntity.Fields.twinId, dbAttachmentEntity.getTwinId(), attachmentEntity.getTwinId())) {
+            if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.twinId, dbAttachmentEntity.getTwinId(), attachmentEntity.getTwinId())) {
                 // twin relink is not security safe, so it's currently denied. perhaps we can move it to permissions
                 throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_CAN_NOT_BE_RELINKED, "This attachment belongs to another twin");
             }
-            if (twinChangesCollector.collectIfChanged(attachmentEntity, TwinAttachmentEntity.Fields.twinCommentId, dbAttachmentEntity.getTwinCommentId(), attachmentEntity.getTwinCommentId())) {
+            if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.twinCommentId, dbAttachmentEntity.getTwinCommentId(), attachmentEntity.getTwinCommentId())) {
                 // comment relink is not security safe, so it's currently denied. perhaps we can move it to permissions
                 throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_INCORRECT_COMMENT, "This attachment belongs to another comment");
             }
-            if (twinChangesCollector.collectIfChanged(attachmentEntity, TwinAttachmentEntity.Fields.description, dbAttachmentEntity.getDescription(), attachmentEntity.getDescription())) {
+            if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.description, dbAttachmentEntity.getDescription(), attachmentEntity.getDescription())) {
                 historyItem.getContext().setNewDescription(attachmentEntity.getDescription());
                 dbAttachmentEntity.setDescription(attachmentEntity.getDescription());
             }
-            if (twinChangesCollector.collectIfChanged(attachmentEntity, TwinAttachmentEntity.Fields.title, dbAttachmentEntity.getTitle(), attachmentEntity.getTitle())) {
+            if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.title, dbAttachmentEntity.getTitle(), attachmentEntity.getTitle())) {
                 historyItem.getContext().setNewTitle(attachmentEntity.getTitle());
                 dbAttachmentEntity.setTitle(attachmentEntity.getTitle());
             }
-            //TODO updateEntityField
-            if (twinChangesCollector.collectIfChanged(attachmentEntity, "storageLink", dbAttachmentEntity.getStorageLink(), attachmentEntity.getStorageLink())) {
+            if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.storageLink, dbAttachmentEntity.getStorageLink(), attachmentEntity.getStorageLink())) {
                 historyItem.getContext().setNewStorageLink(attachmentEntity.getStorageLink());
                 dbAttachmentEntity.setStorageLink(attachmentEntity.getStorageLink());
             }
-            if (twinChangesCollector.collectIfChanged(attachmentEntity, TwinAttachmentEntity.Fields.modificationLinks, dbAttachmentEntity.getModificationLinks(), attachmentEntity.getModificationLinks())) {
+            if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.modificationLinks, dbAttachmentEntity.getModificationLinks(), attachmentEntity.getModificationLinks())) {
+                //TODO history item
                 dbAttachmentEntity.setModificationLinks(attachmentEntity.getModificationLinks());
             }
-            if (twinChangesCollector.collectIfChanged(attachmentEntity, TwinAttachmentEntity.Fields.externalId, dbAttachmentEntity.getExternalId(), attachmentEntity.getExternalId())) {
+            if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.externalId, dbAttachmentEntity.getExternalId(), attachmentEntity.getExternalId())) {
                 historyItem.getContext().setNewExternalId(attachmentEntity.getExternalId());
                 dbAttachmentEntity.setExternalId(attachmentEntity.getExternalId());
             }
-            if (twinChangesCollector.hasChanges(attachmentEntity) && twinChangesCollector.isHistoryCollectorEnabled()) {
-                twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyItem);
+            if (twinChangesCollector.hasChanges(dbAttachmentEntity) && twinChangesCollector.isHistoryCollectorEnabled()) {
+                twinChangesCollector.getHistoryCollector(dbAttachmentEntity.getTwin()).add(historyItem);
             }
         }
     }
