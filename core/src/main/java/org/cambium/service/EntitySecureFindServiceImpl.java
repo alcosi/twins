@@ -7,9 +7,18 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
 
-import java.util.*;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -17,6 +26,9 @@ import java.util.function.Function;
 public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFindService<T> {
     @Autowired
     public EntitySmartService entitySmartService;
+
+    @Autowired
+    private CacheManager cacheManager;
 
     @Override
     public UUID checkId(UUID id, EntitySmartService.CheckMode checkMode) throws ServiceException {
@@ -66,9 +78,9 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
 
     @Override
     public Kit<T, UUID> findEntities(Collection<UUID> entityIds,
-                                EntitySmartService.ListFindMode findMode,
-                                EntitySmartService.ReadPermissionCheckMode permissionCheckMode,
-                                EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+                                     EntitySmartService.ListFindMode findMode,
+                                     EntitySmartService.ReadPermissionCheckMode permissionCheckMode,
+                                     EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         Kit<T, UUID> kit = entitySmartService.findByIdIn(entityIds, entityRepository(), entityGetIdFunction(), findMode);
         Iterator<T> iterator = kit.iterator();
         while (iterator.hasNext()) {
@@ -89,7 +101,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             return "entity of class[" + entity.getClass().getSimpleName() + "] is invalid";
     }
 
-    public T findEntitySafe(UUID entityId) throws ServiceException {
+    public T findEntitySafeUncached(UUID entityId) throws ServiceException {
         return findEntity(entityId,
                 EntitySmartService.FindMode.ifEmptyThrows,
                 EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows,
@@ -102,6 +114,62 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
                 EntitySmartService.ReadPermissionCheckMode.none,
                 EntitySmartService.EntityValidateMode.afterRead);
     }
+
+    @SuppressWarnings("unchecked")
+    public T findEntitySafe(UUID entityId) throws ServiceException {
+        T entity = null;
+        switch (getCacheSupportType()) {
+            case GLOBAL -> {
+                Class<T> clazz = getEntityClass();
+                String cacheKey = clazz.getSimpleName();
+                Cache cache = cacheManager.getCache(cacheKey);
+                if (cache != null) {
+                    entity = cache.get(entityId, clazz);
+                    if (entity == null) {
+                        entity = findEntitySafeUncached(entityId);
+                        if (entity != null) cache.put(entityId, entity);
+                    }
+                }
+            }
+            case REQUEST -> {
+                Class<T> clazz = getEntityClass();
+                String cacheKey = clazz.getSimpleName();
+                RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+                if (requestAttributes != null) {
+                    String requestCacheKey = cacheKey + "_" + entityId;
+                    entity = (T) requestAttributes.getAttribute(requestCacheKey, RequestAttributes.SCOPE_REQUEST);
+                    if (entity == null) {
+                        entity = findEntitySafeUncached(entityId);
+                        if (entity != null) requestAttributes.setAttribute(requestCacheKey, entity, RequestAttributes.SCOPE_REQUEST);
+                    }
+                }
+            }
+            case NONE -> entity = findEntitySafeUncached(entityId);
+
+        }
+        return entity;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Class<T> getEntityClass() {
+        Type genericSuperclass = getClass().getGenericSuperclass();
+        if (genericSuperclass instanceof ParameterizedType) {
+            Type[] actualTypeArguments = ((ParameterizedType) genericSuperclass).getActualTypeArguments();
+            if (actualTypeArguments.length > 0) {
+                return (Class<T>) actualTypeArguments[0];
+            }
+        }
+        throw new IllegalStateException("Cannot determine entity class");
+    }
+
+    public static enum CacheSupportType {
+        GLOBAL, REQUEST, NONE
+    }
+
+    public CacheSupportType getCacheSupportType() {
+        return CacheSupportType.NONE;
+    }
+
 
     public T findEntitySafe(String entityKey) throws ServiceException {
         return findEntity(entityKey,

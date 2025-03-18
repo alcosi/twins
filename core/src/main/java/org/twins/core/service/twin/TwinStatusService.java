@@ -72,6 +72,11 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         return true;
     }
 
+    @Override
+    public CacheSupportType getCacheSupportType() {
+        return CacheSupportType.REQUEST;
+    }
+
     public Kit<TwinStatusEntity, UUID> loadStatusesForTwinClasses(TwinClassEntity twinClassEntity) {
         if (twinClassEntity.getTwinStatusKit() != null)
             return twinClassEntity.getTwinStatusKit();
@@ -151,12 +156,12 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
 
     private void evictClassesCache(TwinClassEntity twinClassEntity) throws ServiceException {
         evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassEntity.getId());
+        evictCache(cacheManager, TwinClassEntity.class.getSimpleName(), List.of(twinClassEntity.getId()));
         twinClassService.loadExtendsHierarchyChildClasses(twinClassEntity);
         if (KitUtils.isEmpty(twinClassEntity.getExtendsHierarchyChildClassKit()))
             return;
-        for (var childClass : twinClassEntity.getExtendsHierarchyChildClassKit()) {
-            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, childClass.getId());
-        }
+        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassEntity.getExtendsHierarchyChildClassKit().getIdSetSafe());
+        evictCache(cacheManager, TwinClassEntity.class.getSimpleName(), twinClassEntity.getExtendsHierarchyChildClassKit().getIdSetSafe());
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -187,9 +192,10 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         }
         dbEntity = updateSafe(dbEntity, changesHelper);
         if (changesHelper.hasChanges()) {
-            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbEntity.getTwinClassId()); //todo also inherited
+            evictClassesCache(dbEntity.getTwinClass());
         }
         return dbEntity;
     }
+
 
 }
