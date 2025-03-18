@@ -49,7 +49,7 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
     }
 
     public FieldValueText createValueByTwinClassFieldId(UUID twinClassFieldId, String fieldValue) throws ServiceException {
-        TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findEntitySafeCached(twinClassFieldId);
+        TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findEntitySafe(twinClassFieldId);
         if (twinClassFieldEntity == null)
             return null;
         return new FieldValueText(twinClassFieldEntity)

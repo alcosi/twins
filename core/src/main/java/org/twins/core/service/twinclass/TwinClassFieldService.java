@@ -110,8 +110,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     @Override
-    public boolean requestCacheSupport() {
-        return true;
+    public CacheSupportType getCacheSupportType() {
+        return CacheSupportType.REQUEST;
     }
 
     // only direct fields

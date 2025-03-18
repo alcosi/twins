@@ -67,9 +67,14 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
             case beforeSave:
                 //todo validate that status is uniq in class
                 if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getTwinClassId()))
-                    entity.setTwinClass(twinClassService.findEntitySafeCached(entity.getTwinClassId()));
+                    entity.setTwinClass(twinClassService.findEntitySafe(entity.getTwinClassId()));
         }
         return true;
+    }
+
+    @Override
+    public CacheSupportType getCacheSupportType() {
+        return CacheSupportType.REQUEST;
     }
 
     public Kit<TwinStatusEntity, UUID> loadStatusesForTwinClasses(TwinClassEntity twinClassEntity) {
@@ -151,12 +156,12 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
 
     private void evictClassesCache(TwinClassEntity twinClassEntity) throws ServiceException {
         evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassEntity.getId());
+        evictCache(cacheManager, TwinClassEntity.class.getSimpleName(), List.of(twinClassEntity.getId()));
         twinClassService.loadExtendsHierarchyChildClasses(twinClassEntity);
         if (KitUtils.isEmpty(twinClassEntity.getExtendsHierarchyChildClassKit()))
             return;
-        for (var childClass : twinClassEntity.getExtendsHierarchyChildClassKit()) {
-            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, childClass.getId());
-        }
+        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassEntity.getExtendsHierarchyChildClassKit().getIdSetSafe());
+        evictCache(cacheManager, TwinClassEntity.class.getSimpleName(), twinClassEntity.getExtendsHierarchyChildClassKit().getIdSetSafe());
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -187,17 +192,9 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         }
         dbEntity = updateSafe(dbEntity, changesHelper);
         if (changesHelper.hasChanges()) {
-            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbEntity.getTwinClassId()); //todo also inherited
+            evictClassesCache(dbEntity.getTwinClass());
         }
         return dbEntity;
-    }
-
-    private void evictCache(TwinStatusEntity status) throws ServiceException {
-        Map<String, List<Object>> cacheEntries = Map.of(
-                TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(status.getTwinClassId()),
-                TwinClassEntity.class.getSimpleName(), List.of(status.getTwinClassId())
-        );
-        CacheUtils.evictCache(cacheManager, cacheEntries);
     }
 
 

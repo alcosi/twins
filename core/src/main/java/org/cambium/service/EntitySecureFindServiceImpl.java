@@ -101,7 +101,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             return "entity of class[" + entity.getClass().getSimpleName() + "] is invalid";
     }
 
-    public T findEntitySafe(UUID entityId) throws ServiceException {
+    public T findEntitySafeUncached(UUID entityId) throws ServiceException {
         return findEntity(entityId,
                 EntitySmartService.FindMode.ifEmptyThrows,
                 EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows,
@@ -116,36 +116,38 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     }
 
     @SuppressWarnings("unchecked")
-    public T findEntitySafeCached(UUID entityId) throws ServiceException {
-        if (requestCacheSupport()) {
-            T entity;
-            Class<T> clazz = getEntityClass();
-            String cacheKey = clazz.getSimpleName();
-            RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
-            if (requestAttributes != null) {
-                String requestCacheKey = cacheKey + "_" + entityId;
-                entity = (T) requestAttributes.getAttribute(requestCacheKey, RequestAttributes.SCOPE_REQUEST);
-                if (entity != null) return entity;
-                entity = findEntitySafe(entityId);
-                if (entity != null)
-                    requestAttributes.setAttribute(requestCacheKey, entity, RequestAttributes.SCOPE_REQUEST);
-                return entity;
+    public T findEntitySafe(UUID entityId) throws ServiceException {
+        T entity = null;
+        switch (getCacheSupportType()) {
+            case GLOBAL -> {
+                Class<T> clazz = getEntityClass();
+                String cacheKey = clazz.getSimpleName();
+                Cache cache = cacheManager.getCache(cacheKey);
+                if (cache != null) {
+                    entity = cache.get(entityId, clazz);
+                    if (entity == null) {
+                        entity = findEntitySafeUncached(entityId);
+                        if (entity != null) cache.put(entityId, entity);
+                    }
+                }
             }
-        }
-        if (globalCacheSupport()) {
-            T entity;
-            Class<T> clazz = getEntityClass();
-            String cacheKey = clazz.getSimpleName();
-            Cache cache = cacheManager.getCache(cacheKey);
-            if (cache != null) {
-                entity = cache.get(entityId, clazz);
-                if (entity != null) return entity;
-                entity = findEntitySafe(entityId);
-                if (entity != null) cache.put(entityId, entity);
-                return entity;
+            case REQUEST -> {
+                Class<T> clazz = getEntityClass();
+                String cacheKey = clazz.getSimpleName();
+                RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+                if (requestAttributes != null) {
+                    String requestCacheKey = cacheKey + "_" + entityId;
+                    entity = (T) requestAttributes.getAttribute(requestCacheKey, RequestAttributes.SCOPE_REQUEST);
+                    if (entity == null) {
+                        entity = findEntitySafeUncached(entityId);
+                        if (entity != null) requestAttributes.setAttribute(requestCacheKey, entity, RequestAttributes.SCOPE_REQUEST);
+                    }
+                }
             }
+            case NONE -> entity = findEntitySafeUncached(entityId);
+
         }
-        return findEntitySafe(entityId);
+        return entity;
     }
 
     @SuppressWarnings("unchecked")
@@ -160,14 +162,12 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         throw new IllegalStateException("Cannot determine entity class");
     }
 
-    //prevails over the global if both support is true.
-    public boolean requestCacheSupport() {
-        return false;
+    public static enum CacheSupportType {
+        GLOBAL, REQUEST, NONE
     }
 
-    //don't forget evict cache if necessary
-    public boolean globalCacheSupport() {
-        return false;
+    public CacheSupportType getCacheSupportType() {
+        return CacheSupportType.NONE;
     }
 
 
