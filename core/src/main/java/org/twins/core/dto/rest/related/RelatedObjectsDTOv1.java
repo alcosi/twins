@@ -16,6 +16,7 @@ import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
@@ -86,8 +87,7 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related face map", example = "{face map}")
     public Map<UUID, FaceDTOv1> faceMap;
+
+    @Schema(description = "related class field map", example = "{class field map}")
+    public Map<UUID, TwinClassFieldDTOv1> twinClassFieldMap;
 }
-
-
-
-

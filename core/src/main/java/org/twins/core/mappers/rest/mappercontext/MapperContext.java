@@ -17,6 +17,7 @@ import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -68,6 +69,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<FaceEntity>> relatedFaceMap = new LinkedHashMap<>();
     @Getter
     private Map<Integer, RelatedObject<FeaturerEntity>> relatedFeaturerMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinClassFieldEntity>> relatedTwinClassFieldMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
@@ -197,6 +200,8 @@ public class MapperContext {
             smartPut(relatedFaceMap, face, face.getId());
         else if (relatedObject instanceof FeaturerEntity featurer)
             smartPut(relatedFeaturerMap, featurer, featurer.getId());
+        else if (relatedObject instanceof TwinClassFieldEntity twinClassField)
+            smartPut(relatedTwinClassFieldMap, twinClassField, twinClassField.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -389,6 +394,7 @@ public class MapperContext {
         dstMapperContext.relatedFactoryPipelineMap = srcMapperContext.relatedFactoryPipelineMap;
         dstMapperContext.relatedFaceMap = srcMapperContext.relatedFaceMap;
         dstMapperContext.relatedFeaturerMap = srcMapperContext.relatedFeaturerMap;
+        dstMapperContext.relatedTwinClassFieldMap = srcMapperContext.relatedTwinClassFieldMap;
     }
 
     public MapperContext cloneWithIsolatedModes(MapperModeCollection mapperModeCollection) {
