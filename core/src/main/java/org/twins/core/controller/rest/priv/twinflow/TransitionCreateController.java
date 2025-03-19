@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,11 +16,12 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinflow.TransitionCreateRqDTOv1;
 import org.twins.core.dto.rest.twinflow.TransitionCreateRsDTOv1;
-import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
+import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TransitionCreateRestDTOReverseMapper;
@@ -35,7 +35,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TransitionCreateController extends ApiController {
     private final TransitionCreateRestDTOReverseMapper transitionCreateRestDTOReverseMapper;
-    private final I18nRestDTOReverseMapper i18nRestDTOReverseMapper;
+    private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
     private final TwinflowTransitionService twinflowTransitionService;
     private final TransitionBaseV2RestDTOMapper transitionBaseV2RestDTOMapper;
 
@@ -54,8 +54,8 @@ public class TransitionCreateController extends ApiController {
         TransitionCreateRsDTOv1 rs = new TransitionCreateRsDTOv1();
         try {
             request.setTwinflowId(twinflowId);
-            I18nEntity nameI18n = i18nRestDTOReverseMapper.convert(request.getNameI18n());
-            I18nEntity descriptionsI18n = i18nRestDTOReverseMapper.convert(request.getDescriptionI18n());
+            I18nEntity nameI18n = i18NSaveRestDTOReverseMapper.convert(request.getNameI18n());
+            I18nEntity descriptionsI18n = i18NSaveRestDTOReverseMapper.convert(request.getDescriptionI18n());
 
             TwinflowTransitionEntity twinflowTransitionEntity = transitionCreateRestDTOReverseMapper.convert(request);
             twinflowTransitionEntity = twinflowTransitionService.createTwinflowTransition(twinflowTransitionEntity, nameI18n, descriptionsI18n);

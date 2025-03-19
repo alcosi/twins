@@ -53,6 +53,11 @@ public class I18nTranslationEntity implements EasyLoggable {
     private List<I18nTranslationStyleEntity> styles;
 
     @Transient
+    public String getKitKey() {
+        return i18nId + "." + locale.getLanguage();
+    }
+
+    @Transient
     public void addStyle(I18nTranslationStyleEntity style) {
         if (styles == null)
             styles = new ArrayList<>();
@@ -103,7 +108,8 @@ public class I18nTranslationEntity implements EasyLoggable {
 
     @Override
     public String easyLog(Level level) {
-        return "i18nTranslation from i18nId[" + i18nId + "]";}
+        return "i18nTranslation[i18nId:" + i18nId + ", locale:" + locale + "]";
+    }
 
     @Data
     protected static class PK implements Serializable {

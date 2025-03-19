@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,11 +16,12 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldRsDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldUpdateRqDTOv1;
-import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
+import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapperV2;
@@ -39,7 +39,7 @@ public class TwinClassFieldUpdateController extends ApiController {
     private final TwinClassFieldService twinClassFieldService;
     private final TwinClassFieldRestDTOMapperV2 twinClassFieldRestDTOMapperV2;
     private final TwinClassFieldSaveRestDTOReverseMapper twinClassFieldSaveRestDTOReverseMapper;
-    private final I18nRestDTOReverseMapper i18nRestDTOReverseMapper;
+    private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassFieldUpdateV1", summary = "Update twin class field")
@@ -56,8 +56,8 @@ public class TwinClassFieldUpdateController extends ApiController {
         TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();
         try {
             TwinClassFieldEntity twinClassFieldEntity = twinClassFieldSaveRestDTOReverseMapper.convert(request).setId(twinClassFieldId);
-            I18nEntity nameI18n = i18nRestDTOReverseMapper.convert(request.getNameI18n());
-            I18nEntity descriptionsI18n = i18nRestDTOReverseMapper.convert(request.getDescriptionI18n());
+            I18nEntity nameI18n = i18NSaveRestDTOReverseMapper.convert(request.getNameI18n());
+            I18nEntity descriptionsI18n = i18NSaveRestDTOReverseMapper.convert(request.getDescriptionI18n());
             twinClassFieldEntity = twinClassFieldService.updateField(twinClassFieldEntity, nameI18n, descriptionsI18n);
             rs
                     .field(twinClassFieldRestDTOMapperV2.convert(twinClassFieldEntity, mapperContext))

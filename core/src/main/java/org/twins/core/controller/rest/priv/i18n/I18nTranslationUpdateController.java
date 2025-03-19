@@ -17,7 +17,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
-import org.twins.core.domain.i18n.I18nTranslation;
+import org.twins.core.domain.i18n.I18nSave;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.i18n.I18nTranslationDTOv1;
 import org.twins.core.dto.rest.i18n.I18nTranslationSaveRsDTOv1;
@@ -28,6 +28,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.i18n.I18nTranslationService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -53,17 +54,12 @@ public class I18nTranslationUpdateController extends ApiController {
             @MapperContextBinding(roots = I18nTranslationRestDTOMapper.class, response = I18nTranslationSaveRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.I18N_ID) @PathVariable UUID i18nId,
             @RequestBody I18nTranslationUpdateRqDTOv1 request) {
-
         I18nTranslationSaveRsDTOv1 rs = new I18nTranslationSaveRsDTOv1();
-
         try {
             request.getI18nTranslations().setI18nId(i18nId);
-            List<I18nTranslation> i18nTranslations = i18nTranslationUpdateDTOReverseMapper.convert(request.getI18nTranslations());
-
-            List<I18nTranslationEntity> i18nTranslationEntities = i18nTranslationService.updateI18nTranslations(i18nTranslations);
-
+            I18nSave i18NSaves = i18nTranslationUpdateDTOReverseMapper.convert(request.getI18nTranslations());
+            List<I18nTranslationEntity> i18nTranslationEntities = i18nTranslationService.updateI18nTranslations(Collections.singletonList(i18NSaves));
             List<I18nTranslationDTOv1> translationDTOs = i18nTranslationRestDTOMapper.convertCollection(i18nTranslationEntities);
-
             rs
                     .setI18nTranslations(translationDTOs)
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

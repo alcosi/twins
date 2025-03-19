@@ -28,7 +28,7 @@ public class I18nTranslationSearchService {
     private final I18nTranslationRepository repository;
     private final AuthService authService;
 
-    public List<I18nTranslationEntity> viewI18nTranslations(I18nTranslationSearch search) throws ServiceException {
+    public List<I18nTranslationEntity> findI18nTranslations(I18nTranslationSearch search) throws ServiceException {
         Specification<I18nTranslationEntity> spec = createI18nTranslationSpecification(search);
         return repository.findAll(spec);
     }
