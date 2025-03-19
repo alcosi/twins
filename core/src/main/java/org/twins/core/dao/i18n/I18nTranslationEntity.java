@@ -53,6 +53,11 @@ public class I18nTranslationEntity implements EasyLoggable {
     private List<I18nTranslationStyleEntity> styles;
 
     @Transient
+    public String getKitKey() {
+        return i18nId + "." + locale.getLanguage();
+    }
+
+    @Transient
     public void addStyle(I18nTranslationStyleEntity style) {
         if (styles == null)
             styles = new ArrayList<>();

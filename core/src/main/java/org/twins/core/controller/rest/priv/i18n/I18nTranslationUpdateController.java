@@ -28,6 +28,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.i18n.I18nTranslationService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -56,8 +57,8 @@ public class I18nTranslationUpdateController extends ApiController {
         I18nTranslationSaveRsDTOv1 rs = new I18nTranslationSaveRsDTOv1();
         try {
             request.getI18nTranslations().setI18nId(i18nId);
-            List<I18nSave> i18NSaves = i18nTranslationUpdateDTOReverseMapper.convert(request.getI18nTranslations());
-            List<I18nTranslationEntity> i18nTranslationEntities = i18nTranslationService.updateI18nTranslations(i18NSaves);
+            I18nSave i18NSaves = i18nTranslationUpdateDTOReverseMapper.convert(request.getI18nTranslations());
+            List<I18nTranslationEntity> i18nTranslationEntities = i18nTranslationService.updateI18nTranslations(Collections.singletonList(i18NSaves));
             List<I18nTranslationDTOv1> translationDTOs = i18nTranslationRestDTOMapper.convertCollection(i18nTranslationEntities);
             rs
                     .setI18nTranslations(translationDTOs)
