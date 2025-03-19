@@ -5,27 +5,27 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.comment.TwinCommentAction;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
-@Schema(name = "CommentBaseDTOv2")
-public class CommentBaseDTOv2 extends CommentBaseDTOv1 {
-
+@EqualsAndHashCode(callSuper = false)
+@Schema(name = "CommentV1")
+public class CommentDTOv1 {
     @Schema(description = "id", example = DTOExamples.TWIN_COMMENT_ID)
     public UUID id;
 
+    @Schema(name = "text")
+    public String text;
+
     @Schema(description = "author id", example = DTOExamples.USER_ID)
     public UUID authorUserId;
-
-    @Schema(description = "current author")
-    public UserDTOv1 authorUser;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)
@@ -35,4 +35,9 @@ public class CommentBaseDTOv2 extends CommentBaseDTOv1 {
     @Schema(description = "changed at", example = DTOExamples.INSTANT)
     public LocalDateTime changedAt;
 
+    @Schema(description = "attachment ids")
+    public Set<UUID> attachmentIds;
+
+    @Schema(description = "comment actions")
+    public Set<TwinCommentAction> commentActions;
 }
