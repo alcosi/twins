@@ -60,7 +60,12 @@ public class I18nTranslationService extends EntitySecureFindServiceImpl<I18nTran
 
     @Transactional
     public List<I18nTranslationEntity> updateI18nTranslations(List<I18nSave> updates) throws ServiceException {
-        KitGrouped<I18nTranslationEntity, String, UUID> translationUpdateKit = convertToKit(updates);
+        return updateTranslations(convertToList(updates));
+    }
+
+    @Transactional
+    public List<I18nTranslationEntity> updateTranslations(List<I18nTranslationEntity> updates) throws ServiceException {
+        KitGrouped<I18nTranslationEntity, String, UUID> translationUpdateKit = new KitGrouped<>(updates, I18nTranslationEntity::getKitKey, I18nTranslationEntity::getI18nId);
         List<I18nTranslationEntity> dbEntities = repository.findByI18nIdIn(translationUpdateKit.getGroupedMap().keySet());
         KitGrouped<I18nTranslationEntity, String, UUID> translationDbKit = new KitGrouped<>(dbEntities, I18nTranslationEntity::getKitKey, I18nTranslationEntity::getI18nId);
 
@@ -84,16 +89,16 @@ public class I18nTranslationService extends EntitySecureFindServiceImpl<I18nTran
     }
 
     @NotNull
-    private static KitGrouped<I18nTranslationEntity, String, UUID> convertToKit(List<I18nSave> updates) {
-        KitGrouped<I18nTranslationEntity, String, UUID> translationUpdateKit = new KitGrouped<>(I18nTranslationEntity::getKitKey, I18nTranslationEntity::getI18nId);
+    private static List<I18nTranslationEntity> convertToList(List<I18nSave> updates) {
+        List<I18nTranslationEntity> ret = new ArrayList<>();
         for (var update : updates) {
             for (Map.Entry<Locale, String> entry : update.getTranslations().entrySet()) {
-                translationUpdateKit.add(new I18nTranslationEntity()
+                ret.add(new I18nTranslationEntity()
                         .setI18nId(update.i18nId)
                         .setLocale(entry.getKey())
                         .setTranslation(entry.getValue()));
             }
         }
-        return translationUpdateKit;
+        return ret;
     }
 }

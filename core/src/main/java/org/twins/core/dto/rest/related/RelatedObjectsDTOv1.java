@@ -10,6 +10,7 @@ import org.twins.core.dto.rest.face.FaceDTOv1;
 import org.twins.core.dto.rest.factory.FactoryDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
+import org.twins.core.dto.rest.i18n.I18nDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
@@ -86,6 +87,9 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related face map", example = "{face map}")
     public Map<UUID, FaceDTOv1> faceMap;
+
+    @Schema(description = "related i18n map", example = "{face map}")
+    public Map<UUID, I18nDTOv1> i18nMap;
 }
 
 

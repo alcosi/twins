@@ -14,15 +14,14 @@ import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.config.i18n.I18nProperties;
 import org.twins.core.dao.i18n.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.i18n.ErrorCodeI18n;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
@@ -136,6 +135,29 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
                 }
             }
         }
+    }
+
+    public void loadTranslations(I18nEntity i18nEntity) {
+        loadTranslations(Collections.singletonList(i18nEntity));
+    }
+
+    public void loadTranslations(Collection<I18nEntity> i18nEntityList) {
+        Kit<I18nEntity, UUID> needLoad = new Kit<>(I18nEntity::getId);
+        for (var i18nEntity : i18nEntityList) {
+            if (i18nEntity.getTranslationsKit() != null)
+                continue;
+            i18nEntity.setTranslationsKit(new Kit<>(I18nTranslationEntity::getLocale));
+            needLoad.add(i18nEntity);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        List<I18nTranslationEntity> translations = i18nTranslationRepository.findByI18nIdIn(needLoad.getIdSet());
+        if (CollectionUtils.isEmpty(translations))
+            return;
+        for (var translation : translations) {
+            needLoad.get(translation.getI18nId()).addTranslation(translation);
+        }
+        //todo load styles
     }
 
     public void loadStyles(I18nTranslationEntity translation) {

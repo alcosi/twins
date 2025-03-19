@@ -9,6 +9,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
@@ -27,6 +28,7 @@ import org.twins.core.dto.rest.face.FaceDTOv1;
 import org.twins.core.dto.rest.factory.FactoryDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
+import org.twins.core.dto.rest.i18n.I18nDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
@@ -47,6 +49,7 @@ import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryPipelineRestDTOMapperV2;
 import org.twins.core.mappers.rest.factory.FactoryRestDTOMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.i18n.I18nRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.RelatedObject;
 import org.twins.core.mappers.rest.permission.PermissionGroupRestDTOMapper;
@@ -90,6 +93,7 @@ public class RelatedObjectsRestDTOConverter {
     private final FactoryPipelineRestDTOMapperV2 factoryPipelineRestDTOMapperV2;
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
     private final FaceRestDTOMapper faceRestDTOMapper;
+    private final I18nRestDTOMapper i18nRestDTOMapper;
 
     public RelatedObjectsDTOv1 convert(MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())
@@ -112,6 +116,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, FactoryDTOv1> factoryMap = new HashMap<>();
         Map<UUID, FactoryPipelineDTOv1> factoryPipelineMap = new HashMap<>();
         Map<UUID, FaceDTOv1> faceMap = new HashMap<>();
+        Map<UUID, I18nDTOv1> i18nMap = new HashMap<>();
         Map<Integer, FeaturerDTOv1> featurerMap = new HashMap<>();
 
         MapperContext mapperContextLevel2 = mapperContext.cloneIgnoreRelatedObjects();
@@ -149,6 +154,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContext.getRelatedFactoryPipelineMap(), factoryPipelineRestDTOMapperV2, mapperContextLevel2, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
         if (!mapperContext.getRelatedFaceMap().isEmpty())
             convertAndPut(mapperContext.getRelatedFaceMap(), faceRestDTOMapper, mapperContextLevel2, faceMap, FaceEntity::getId);
+        if (!mapperContext.getRelatedI18nMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedI18nMap(), i18nRestDTOMapper, mapperContextLevel2, i18nMap, I18nEntity::getId);
         if (!mapperContext.getRelatedFeaturerMap().isEmpty())
             convertAndPut(mapperContext.getRelatedFeaturerMap(), featurerRestDTOMapper, mapperContextLevel2, featurerMap, FeaturerEntity::getId);
 
@@ -188,6 +195,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel2.getRelatedFactoryPipelineMap(), factoryPipelineRestDTOMapperV2, mapperContextLevel3, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
         if (!mapperContext.getRelatedFaceMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedFaceMap(), faceRestDTOMapper, mapperContextLevel3, faceMap, FaceEntity::getId);
+        if (!mapperContext.getRelatedI18nMap().isEmpty())
+            convertAndPut(mapperContextLevel2.getRelatedI18nMap(), i18nRestDTOMapper, mapperContextLevel3, i18nMap, I18nEntity::getId);
         if (!mapperContextLevel2.getRelatedFeaturerMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedFeaturerMap(), featurerRestDTOMapper, mapperContextLevel3, featurerMap, FeaturerEntity::getId);
 
@@ -228,6 +237,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedFactoryPipelineMap(), factoryPipelineRestDTOMapperV2, mapperContextLevel3, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
         if (!mapperContext.getRelatedFaceMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedFaceMap(), faceRestDTOMapper, mapperContextLevel3, faceMap, FaceEntity::getId);
+        if (!mapperContext.getRelatedI18nMap().isEmpty())
+            convertAndPut(mapperContextLevel3.getRelatedI18nMap(), i18nRestDTOMapper, mapperContextLevel3, i18nMap, I18nEntity::getId);
         if (!mapperContextLevel3.getRelatedFeaturerMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedFeaturerMap(), featurerRestDTOMapper, mapperContextLevel3, featurerMap, FeaturerEntity::getId);
 
@@ -250,6 +261,7 @@ public class RelatedObjectsRestDTOConverter {
                 .setFactoryPipelineMap(factoryPipelineMap.isEmpty() ? null : factoryPipelineMap)
                 .setFeaturerMap(featurerMap.isEmpty() ? null : featurerMap)
                 .setFaceMap(faceMap.isEmpty() ? null : faceMap)
+                .setI18nMap(i18nMap.isEmpty() ? null : i18nMap)
         ;
         return ret;
     }

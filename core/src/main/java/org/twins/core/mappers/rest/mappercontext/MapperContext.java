@@ -10,6 +10,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
@@ -66,6 +67,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<TwinFactoryPipelineEntity>> relatedFactoryPipelineMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<FaceEntity>> relatedFaceMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<I18nEntity>> relatedI18nMap = new LinkedHashMap<>();
     @Getter
     private Map<Integer, RelatedObject<FeaturerEntity>> relatedFeaturerMap = new LinkedHashMap<>();
 
