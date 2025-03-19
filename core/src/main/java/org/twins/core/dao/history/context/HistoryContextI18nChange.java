@@ -3,8 +3,8 @@ package org.twins.core.dao.history.context;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.history.context.snapshot.I18nSnapshot;
+import org.twins.core.dao.i18n.I18nEntity;
 
 import java.util.HashMap;
 

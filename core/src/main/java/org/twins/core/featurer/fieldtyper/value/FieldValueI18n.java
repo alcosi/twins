@@ -4,7 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.cambium.i18n.dao.I18nTranslationEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.List;

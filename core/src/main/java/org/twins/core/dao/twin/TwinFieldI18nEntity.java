@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.cambium.i18n.dao.I18nEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 

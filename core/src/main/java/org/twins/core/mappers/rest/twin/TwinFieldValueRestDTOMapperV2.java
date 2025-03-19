@@ -7,6 +7,7 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -14,10 +15,9 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
+import org.twins.core.mappers.rest.i18n.I18nTranslationRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
-import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
+import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
 import java.util.Collection;
@@ -36,6 +36,9 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
 
     @MapperModePointerBinding(modes = TwinMode.TwinField2TwinMode.class)
     private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
+
+    @MapperModePointerBinding(modes = I18nTranslationMode.TwinField2I18nTranslationMode.class)
+    private final I18nTranslationRestDTOMapper i18nTranslationRestDTOMapper;
 
     @Override
     public FieldValueText convert(FieldValue src, MapperContext mapperContext) throws Exception {
@@ -79,6 +82,16 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
                 stringJoiner.add(linkedTwin.getId().toString());
                 if (mapperContext.hasModeButNot(TwinMode.TwinField2TwinMode.HIDE)) {
                     twinBaseRestDTOMapper.postpone(linkedTwin, mapperContext.forkOnPoint(UserMode.TwinField2UserMode.HIDE));
+                }
+            }
+            dst.setValue(stringJoiner.toString());
+        } else if (src instanceof FieldValueI18n i18nField) {
+            StringJoiner stringJoiner = new StringJoiner(",");
+            stringJoiner.add(i18nField.getI18nId().toString());
+            for (I18nTranslationEntity i18nTranslation : i18nField.getI18nTranslations()) {
+                stringJoiner.add(i18nTranslation.getLocale().toString()).add(i18nTranslation.getTranslation());
+                if (mapperContext.hasModeButNot(I18nTranslationMode.TwinField2I18nTranslationMode.HIDE)) {
+                    i18nTranslationRestDTOMapper.postpone(i18nTranslation, mapperContext.forkOnPoint(I18nTranslationMode.TwinField2I18nTranslationMode.HIDE));
                 }
             }
             dst.setValue(stringJoiner.toString());

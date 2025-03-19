@@ -15,7 +15,6 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,6 +75,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinFieldSimpleRepository twinFieldSimpleRepository;
     private final TwinFieldUserRepository twinFieldUserRepository;
     private final TwinFieldDataListRepository twinFieldDataListRepository;
+    private final TwinFieldI18nRepository twinFieldI18nRepository;
     private final TwinClassFieldService twinClassFieldService;
     private final EntitySmartService entitySmartService;
     private final TwinflowService twinflowService;

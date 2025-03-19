@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldI18nEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -16,7 +18,6 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorI18n;
 import org.twins.core.featurer.fieldtyper.value.FieldValueI18n;
 import org.twins.core.service.twin.TwinService;
-import org.cambium.i18n.dao.I18nEntity;
 
 import java.util.Properties;
 
@@ -26,7 +27,8 @@ import java.util.Properties;
         name = "i18n",
         description = "")
 public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI18n, TwinFieldI18nEntity, TwinFieldSearchNotImplemented> {
-    private TwinService twinService;
+    @Lazy
+    private final TwinService twinService;
 
     @Override
     protected FieldDescriptorI18n getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {

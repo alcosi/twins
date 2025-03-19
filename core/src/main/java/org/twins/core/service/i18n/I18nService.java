@@ -34,15 +34,15 @@ import static org.cambium.common.util.CacheUtils.evictCache;
 @Slf4j
 @RequiredArgsConstructor
 public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
-    private I18nRepository i18nRepository;
-    private I18nTranslationRepository i18nTranslationRepository;
-    private I18nTranslationBinRepository i18nTranslationBinRepository;
-    private I18nTranslationStyleRepository i18nTranslationStyleRepository;
-    private I18nProperties i18nProperties;
+    private final I18nRepository i18nRepository;
+    private final I18nTranslationRepository i18nTranslationRepository;
+    private final I18nTranslationBinRepository i18nTranslationBinRepository;
+    private final I18nTranslationStyleRepository i18nTranslationStyleRepository;
+    private final I18nProperties i18nProperties;
     @PersistenceContext
-    private EntityManager entityManager;
-    private CacheManager cacheManager;
-    private AuthService authService;
+    private final EntityManager entityManager;
+    private final CacheManager cacheManager;
+    private final AuthService authService;
 
     public String translateToLocale(I18nEntity i18NEntity, Locale locale) {
         return translateToLocale(i18NEntity, locale, null);
