@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class I18nTranslation {
+public class I18nSave {
     public UUID i18nId;
-    public Map<Locale, String> entities;
+    public Map<Locale, String> translations;
 }

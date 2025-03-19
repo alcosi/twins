@@ -103,7 +103,8 @@ public class I18nTranslationEntity implements EasyLoggable {
 
     @Override
     public String easyLog(Level level) {
-        return "i18nTranslation from i18nId[" + i18nId + "]";}
+        return "i18nTranslation[i18nId:" + i18nId + ", locale:" + locale + "]";
+    }
 
     @Data
     protected static class PK implements Serializable {

@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.i18n.I18nTranslationRepository;
+import org.twins.core.domain.i18n.I18nSave;
 import org.twins.core.service.domain.DomainService;
-import org.twins.core.domain.i18n.I18nTranslation;
 
 import java.util.*;
 import java.util.function.Function;
@@ -57,7 +57,7 @@ public class I18nTranslationService extends EntitySecureFindServiceImpl<I18nTran
     }
 
     @Transactional
-    public List<I18nTranslationEntity> updateI18nTranslations(List<I18nTranslation> updates) throws ServiceException {
+    public List<I18nTranslationEntity> updateI18nTranslations(List<I18nSave> updates) throws ServiceException {
         UUID i18nId = updates.getFirst().getI18nId();
         List<I18nTranslationEntity> dbEntities = repository.findByI18nId(i18nId);
         ChangesHelper changesHelper = new ChangesHelper();
@@ -67,8 +67,8 @@ public class I18nTranslationService extends EntitySecureFindServiceImpl<I18nTran
 
         List<I18nTranslationEntity> updatedEntities = new ArrayList<>();
 
-        for (I18nTranslation update : updates) {
-            for (Map.Entry<Locale, String> entry : update.getEntities().entrySet()) {
+        for (I18nSave update : updates) {
+            for (Map.Entry<Locale, String> entry : update.getTranslations().entrySet()) {
                 Locale locale = entry.getKey();
                 String newTranslation = entry.getValue();
 
