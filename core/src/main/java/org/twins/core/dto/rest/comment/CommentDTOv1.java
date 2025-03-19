@@ -8,7 +8,6 @@ import lombok.experimental.Accessors;
 import org.twins.core.dao.comment.TwinCommentAction;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Request;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -18,7 +17,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "CommentV1")
-public class CommentDTOv1 extends Request {
+public class CommentDTOv1 {
     @Schema(description = "id", example = DTOExamples.TWIN_COMMENT_ID)
     public UUID id;
 
