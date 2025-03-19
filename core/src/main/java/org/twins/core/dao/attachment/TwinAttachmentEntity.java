@@ -7,7 +7,9 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
+import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CreationTimestamp;
+import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
@@ -15,6 +17,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
 import java.sql.Timestamp;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -42,6 +45,17 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
 
     @Column(name = "storage_link")
     private String storageLink;
+
+    @ElementCollection
+    @CollectionTable(
+            name = "twin_attachment_modification_links",
+            joinColumns = @JoinColumn(name = "twin_attachment_id"),
+            foreignKey = @ForeignKey(name = "FK_twin_attachment_mod_links_twin_attachment_id")
+    )
+    @MapKeyColumn(name = "mod_key")
+    @Column(name = "mod_link")
+    @Cascade(org.hibernate.annotations.CascadeType.ALL)
+    private Map<String, String> modificationLinks;
 
     @Column(name = "external_id")
     private String externalId;
@@ -88,6 +102,10 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUser;
 
+    @ManyToOne
+    @JoinColumn(name = "twin_comment_id", insertable = false, updatable = false)
+    private TwinCommentEntity comment;
+
     @Transient
     @EqualsAndHashCode.Exclude
     private Set<TwinAttachmentAction> attachmentActions;
@@ -103,6 +121,7 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
                 .setTitle(title)
                 .setDescription(description)
                 .setStorageLink(storageLink)
+                .setModificationLinks(modificationLinks)
                 .setCreatedAt(createdAt)
                 .setTwinCommentId(twinCommentId)
                 .setTwinflowTransition(twinflowTransition)
@@ -116,7 +135,7 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
         return switch (level) {
             case SHORT -> "attachment[" + id + "]";
             case NORMAL -> "attachment[id:" + id + ", twinId:" + twinId + "]";
-            default -> "attachment[id:" + id + ", twinId:" + twinId + ", storageLink:" + storageLink + "]";
+            default -> "attachment[id:" + id + ", twinId:" + twinId + ", storageLinks:" + storageLink + "]";
         };
 
     }

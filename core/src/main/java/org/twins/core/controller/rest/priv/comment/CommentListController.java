@@ -22,7 +22,7 @@ import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.comment.CommentListRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.comment.CommentViewRestDTOMapper;
+import org.twins.core.mappers.rest.comment.CommentRestDTOMapper;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.comment.CommentService;
@@ -36,7 +36,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CommentListController extends ApiController {
     private final CommentService commentService;
-    private final CommentViewRestDTOMapper commentViewRestDTOMapper;
+    private final CommentRestDTOMapper commentRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;
 
@@ -49,14 +49,14 @@ public class CommentListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/comment/twin/{twinId}/v1")
     public ResponseEntity<?> twinCommentListV1(
-            @MapperContextBinding(roots = CommentViewRestDTOMapper.class, response = CommentListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = CommentRestDTOMapper.class, response = CommentListRsDTOv1.class) MapperContext mapperContext,
             @SimplePaginationParams(sortAsc = false, sortField = TwinCommentEntity.Fields.createdAt) SimplePagination pagination,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         CommentListRsDTOv1 rs = new CommentListRsDTOv1();
         try {
             PaginationResult<TwinCommentEntity> commentList = commentService.findComment(twinId, pagination);
             rs
-                    .setComments(commentViewRestDTOMapper.convertCollection(commentList.getList(), mapperContext))
+                    .setComments(commentRestDTOMapper.convertCollection(commentList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(commentList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
