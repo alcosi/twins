@@ -14,7 +14,6 @@ import org.twins.core.service.rabbit.AmpqManager;
 
 import java.util.Map;
 import java.util.Properties;
-import java.util.UUID;
 
 @Service
 @Slf4j
@@ -22,7 +21,7 @@ import java.util.UUID;
         name = "RabbitMqSendTwin",
         description = "Trigger for sending event to rabbit")
 @RequiredArgsConstructor
-public class TransitionTriggerRabbitMqSendTwinIdAndDstTwinStatusId extends TransitionTriggerRabbitMqConnection {
+public class TransitionTriggerRabbitMqSendTwinIdAndDstTwinStatusIdAndOperation extends TransitionTriggerRabbitMqConnection {
 
     private final AmpqManager ampqManager;
 
@@ -32,6 +31,9 @@ public class TransitionTriggerRabbitMqSendTwinIdAndDstTwinStatusId extends Trans
     @FeaturerParam(name = "Queue", description = "Name of queue")
     public static final FeaturerParamString QUEUE = new FeaturerParamString("queue");
 
+    @FeaturerParam(name = "Operation", description = "Name of operation")
+    public static final FeaturerParamString OPERATION = new FeaturerParamString("operation");
+
 
     @Override
     public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) {
@@ -39,7 +41,7 @@ public class TransitionTriggerRabbitMqSendTwinIdAndDstTwinStatusId extends Trans
         ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(
                 TransitionTriggerRabbitMqConnection.URL.extract(properties));
 
-        Map<String, UUID> eventMap = Map.of( "twinId" ,twinEntity.getId(), "statusId", dstTwinStatus.getId());
+        Map<String, String> eventMap = Map.of( "twinId" ,twinEntity.getId().toString(), "statusId", dstTwinStatus.getId().toString(), "operation", OPERATION.extract(properties));
         ampqManager.sendMessage(factory, EXCHANGE.extract(properties), QUEUE.extract(properties), eventMap);
         log.debug("Done sending to Rabbit");
     }

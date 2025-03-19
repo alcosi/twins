@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.comment.TwinCommentEntity;
-import org.twins.core.dto.rest.comment.CommentViewDTOv1;
+import org.twins.core.dto.rest.comment.CommentDTOv1;
 import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapper;
@@ -20,8 +20,8 @@ import static org.cambium.common.util.DateUtils.convertOrNull;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = {CommentMode.class, TwinCommentActionMode.class})
-public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEntity, CommentViewDTOv1> {
+@MapperModeBinding(modes = {CommentMode.class, CommentActionMode.class})
+public class CommentRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEntity, CommentDTOv1> {
 
     @MapperModePointerBinding(modes = UserMode.Comment2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
@@ -33,31 +33,32 @@ public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEnt
     private final CommentActionService commentActionService;
 
     @Override
-    public void map(TwinCommentEntity src, CommentViewDTOv1 dst, MapperContext mapperContext) throws Exception {
+    public void map(TwinCommentEntity src, CommentDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(CommentMode.SHORT)) {
-            case SHORT:
+            case SHORT ->
                 dst
                         .setId(src.getId())
                         .setText(src.getText());
-                break;
-            case DETAILED:
+            case DETAILED ->
                 dst
                         .setId(src.getId())
+                        .setText(src.getText())
                         .setAuthorUserId(src.getCreatedByUserId())
-                        .setAuthorUser(userRestDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext))
                         .setCreatedAt(convertOrNull(src.getCreatedAt()))
-                        .setText(src.getText());
-                break;
+                        .setChangedAt(convertOrNull(src.getChangedAt()));
         }
-        if (mapperContext.hasModeButNot(UserMode.Comment2UserMode.HIDE))
-            dst
-                    .setAuthorUser(userRestDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext
-                            .forkOnPoint(UserMode.Comment2UserMode.SHORT)));
-        if (mapperContext.hasModeButNot(AttachmentMode.Comment2AttachmentMode.HIDE))
-            dst
-                    .setAttachments(attachmentRestDTOMapper.convertCollection(commentService.loadAttachments(src).getCollection(), mapperContext
-                            .forkOnPoint(AttachmentMode.Comment2AttachmentMode.SHORT).setMode(AttachmentCollectionMode.FROM_COMMENTS)));
-        if (mapperContext.hasModeButNot(TwinCommentActionMode.HIDE)) {
+        if (mapperContext.hasModeButNot(UserMode.Comment2UserMode.HIDE)) {
+            dst.setAuthorUserId(src.getCreatedByUserId());
+            userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.Comment2UserMode.SHORT));
+        }
+        if (mapperContext.hasModeButNot(AttachmentMode.Comment2AttachmentMode.HIDE)) {
+            commentService.loadAttachments(src);
+            dst.setAttachmentIds(attachmentRestDTOMapper.postpone(
+                    src.getAttachmentKit(),
+                    mapperContext.forkOnPoint(AttachmentMode.Comment2AttachmentMode.SHORT).setMode(AttachmentCollectionMode.FROM_COMMENTS))
+            );
+        }
+        if (mapperContext.hasModeButNot(CommentActionMode.HIDE)) {
             commentActionService.loadCommentActions(src);
             dst.setCommentActions(src.getCommentActions());
         }
@@ -68,7 +69,7 @@ public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEnt
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasModeButNot(AttachmentMode.Comment2AttachmentMode.HIDE))
             commentService.loadAttachments(srcCollection);
-        if (mapperContext.hasModeButNot(TwinCommentActionMode.HIDE))
+        if (mapperContext.hasModeButNot(CommentActionMode.HIDE))
             commentActionService.loadCommentActions(srcCollection);
     }
 

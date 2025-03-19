@@ -9,6 +9,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CreationTimestamp;
+import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
@@ -100,6 +101,10 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUser;
+
+    @ManyToOne
+    @JoinColumn(name = "twin_comment_id", insertable = false, updatable = false)
+    private TwinCommentEntity comment;
 
     @Transient
     @EqualsAndHashCode.Exclude
