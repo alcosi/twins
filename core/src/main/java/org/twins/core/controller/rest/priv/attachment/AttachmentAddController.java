@@ -18,9 +18,9 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.attachment.AttachmentAddRqDTOv1;
+import org.twins.core.dto.rest.attachment.AttachmentCreateRqDTOv1;
 import org.twins.core.dto.rest.attachment.AttachmentAddRsDTOv1;
-import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
+import org.twins.core.mappers.rest.attachment.AttachmentCreateRestDTOReverseMapper;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
@@ -35,24 +35,24 @@ public class AttachmentAddController extends ApiController {
     private final AuthService authService;
     private final AttachmentService attachmentService;
     private final TwinService twinService;
-    private final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
+    private final AttachmentCreateRestDTOReverseMapper attachmentCreateRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "attachmentAddV1", summary = "Add attachment to twin")
+    @Operation(operationId = "attachmentCreateV1", summary = "Add attachment to twin")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = AttachmentAddRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/{twinId}/attachment/v1")
-    public ResponseEntity<?> attachmentAddV1(
+    public ResponseEntity<?> attachmentCreateV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @RequestBody AttachmentAddRqDTOv1 request) {
+            @RequestBody AttachmentCreateRqDTOv1 request) {
         AttachmentAddRsDTOv1 rs = new AttachmentAddRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
             rs.setAttachmentIdList(attachmentService.addAttachments(
-                            attachmentAddRestDTOReverseMapper.convertCollection(request.getAttachments()), twinService.findEntitySafe(twinId))
+                            attachmentCreateRestDTOReverseMapper.convertCollection(request.getAttachments()), twinService.findEntitySafe(twinId))
                     .stream().map(TwinAttachmentEntity::getId).toList());
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

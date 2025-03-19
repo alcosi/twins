@@ -12,7 +12,9 @@ import org.twins.core.mappers.rest.comment.CommentRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
+import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.attachment.AttachmentActionService;
@@ -49,6 +51,10 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
     @Autowired
     @MapperModePointerBinding(modes = TwinMode.Attachment2TwinMode.class)
     private TwinRestDTOMapper twinRestDTOMapper;
+    @Autowired
+    private TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
+    @Autowired
+    private PermissionRestDTOMapper permissionRestDTOMapper;
 
     @Override
     public void map(TwinAttachmentEntity src, AttachmentDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -61,6 +67,7 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setTwinClassFieldId(src.getTwinClassFieldId())
                         .setCommentId(src.getTwinCommentId())
+                        .setViewPermissionId(src.getViewPermissionId())
                         .setDescription(src.getDescription())
                         .setTitle(src.getTitle())
                         .setExternalId(src.getExternalId())
@@ -86,6 +93,14 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
         if (mapperContext.hasModeButNot(TwinMode.Attachment2TwinMode.HIDE)) {
             dst.setTwinId(src.getTwinId());
             twinRestDTOMapper.postpone(src.getTwin(), mapperContext.forkOnPoint(TwinMode.Attachment2TwinMode.SHORT));
+        }
+        if (mapperContext.hasModeButNot(TwinClassFieldMode.Attachment2TwinClassFieldMode.HIDE)) {
+            dst.setTwinClassFieldId(src.getTwinClassFieldId());
+            twinClassFieldRestDTOMapper.postpone(src.getTwinClassField(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassFieldMode.Attachment2TwinClassFieldMode.SHORT)));
+        }
+        if (mapperContext.hasModeButNot(PermissionMode.Attachment2PermissionMode.HIDE)) {
+            dst.setViewPermissionId(src.getViewPermissionId());
+            permissionRestDTOMapper.postpone(src.getViewPermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.Attachment2PermissionMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(TwinAttachmentActionMode.HIDE)) {
             attachmentActionService.loadAttachmentActions(src);
