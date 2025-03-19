@@ -86,15 +86,19 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
             }
             dst.setValue(stringJoiner.toString());
         } else if (src instanceof FieldValueI18n i18nField) {
-            StringJoiner stringJoiner = new StringJoiner(",");
-            stringJoiner.add(i18nField.getI18nId().toString());
+            StringBuilder translationsBuilder = new StringBuilder();
             for (I18nTranslationEntity i18nTranslation : i18nField.getI18nTranslations()) {
-                stringJoiner.add(i18nTranslation.getLocale().toString()).add(i18nTranslation.getTranslation());
+                translationsBuilder
+                        .append("<@entryKey>")
+                        .append(i18nTranslation.getLocale())
+                        .append("<@entryValue>")
+                        .append(i18nTranslation.getTranslation())
+                        .append("<@mapEntry>");
                 if (mapperContext.hasModeButNot(I18nTranslationMode.TwinField2I18nTranslationMode.HIDE)) {
                     i18nTranslationRestDTOMapper.postpone(i18nTranslation, mapperContext.forkOnPoint(I18nTranslationMode.TwinField2I18nTranslationMode.HIDE));
                 }
             }
-            dst.setValue(stringJoiner.toString());
+            dst.setValue(translationsBuilder.toString());
         } else
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, src.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " unknown value type");
 

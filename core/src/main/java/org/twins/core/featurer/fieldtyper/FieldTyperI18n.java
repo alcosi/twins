@@ -20,6 +20,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueI18n;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -45,6 +46,10 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
 
         TwinFieldI18nEntity storedField = convertToTwinFieldEntity(twin, value.getTwinClassField());
 
+        String translationsString = value.getI18nTranslations().stream()
+                .map(translation -> "<@entryKey>" + translation.getLocale() + "<@entryValue>" + translation.getTranslation() + "<@mapEntry>")
+                .collect(Collectors.joining());
+
         I18nEntity newI18n = new I18nEntity()
                 .setId(value.getI18nId())
                 .setTranslations(value.getI18nTranslations());
@@ -62,7 +67,8 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
                     .setTwinId(twin.getId())
                     .setTwinClassFieldId(value.getTwinClassField().getId())
                     .setI18nId(value.getI18nId())
-                    .setI18n(newI18n));
+                    .setI18n(newI18n)
+                    .setTranslationsString(translationsString));
             return;
         }
 
@@ -77,7 +83,8 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
             }
             twinChangesCollector.add(storedField
                     .setI18nId(value.getI18nId())
-                    .setI18n(newI18n));
+                    .setI18n(newI18n)
+                    .setTranslationsString(translationsString));
         } else {
             if (!oldI18n.getTranslations().equals(value.getI18nTranslations())) {
                 if (twinChangesCollector.isHistoryCollectorEnabled()) {
@@ -88,6 +95,7 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
                     ));
                 }
                 storedField.getI18n().setTranslations(value.getI18nTranslations());
+                storedField.setTranslationsString(translationsString);
                 twinChangesCollector.add(storedField);
             }
         }
