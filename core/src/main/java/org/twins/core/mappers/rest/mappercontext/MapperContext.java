@@ -198,6 +198,8 @@ public class MapperContext {
             smartPut(relatedFactoryPipelineMap, twinFactoryPipeline, twinFactoryPipeline.getId());
         else if (relatedObject instanceof FaceEntity face)
             smartPut(relatedFaceMap, face, face.getId());
+        else if (relatedObject instanceof I18nEntity i18n)
+            smartPut(relatedI18nMap, i18n, i18n.getId());
         else if (relatedObject instanceof FeaturerEntity featurer)
             smartPut(relatedFeaturerMap, featurer, featurer.getId());
         else {
@@ -391,6 +393,7 @@ public class MapperContext {
         dstMapperContext.relatedFactoryMap = srcMapperContext.relatedFactoryMap;
         dstMapperContext.relatedFactoryPipelineMap = srcMapperContext.relatedFactoryPipelineMap;
         dstMapperContext.relatedFaceMap = srcMapperContext.relatedFaceMap;
+        dstMapperContext.relatedI18nMap = srcMapperContext.relatedI18nMap;
         dstMapperContext.relatedFeaturerMap = srcMapperContext.relatedFeaturerMap;
     }
 
