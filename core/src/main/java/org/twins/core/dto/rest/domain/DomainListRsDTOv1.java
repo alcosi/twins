@@ -16,5 +16,5 @@ public class DomainListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     public PaginationDTOv1 pagination;
 
     @Schema(description = "domain list")
-    List<DomainViewDTOv1> domainList;
+    public List<DomainViewDTOv1> domainList;
 }

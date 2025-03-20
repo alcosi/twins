@@ -6,6 +6,9 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
+import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -15,10 +18,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -230,6 +230,22 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             return entitySmartService.saveAndLogChanges(entity, entityRepository(), changesHelper);
         }
         return entity;
+    }
+
+    public Iterable<T> updateSafe(ChangesHelperMulti<T> changesHelperMulti) throws ServiceException {
+        List<T> entityList = new ArrayList<>();
+        StringBuilder changes = new StringBuilder();
+        for (var entry : changesHelperMulti.entrySet()) {
+            if (entry.getValue().hasChanges()) {
+                validateEntity(entry.getKey(), EntitySmartService.EntityValidateMode.beforeSave);
+                entityList.add(entry.getKey());
+                changes.append(entry.getValue().collectForLog());
+            }
+        }
+        if (CollectionUtils.isNotEmpty(entityList))
+           return entitySmartService.saveAllAndLogChanges(entityList, entityRepository(), changes);
+        else
+            return Collections.emptyList();
     }
 
     public void deleteSafe(UUID id) throws ServiceException {

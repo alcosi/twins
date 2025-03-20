@@ -48,6 +48,7 @@ public interface DTOExamples {
     String USER_GROUP_NAME = "Manager";
     String USER_GROUP_TYPE = "domainScopeDomainManage";
     String DOMAIN_ID = "f67ad556-dd27-4871-9a00-16fb0e8a4102";
+    String DOMAIN_NAME = "alcosi";
     String DOMAIN_KEY = "alcosi";
     String DOMAIN_TYPE = "basic";
     String DOMAIN_DESCRIPTION = "some domain";

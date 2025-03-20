@@ -25,6 +25,7 @@ public class DomainSaveRestDTOReverseMapper extends RestSimpleDTOMapper<DomainSa
     public void map(DomainSaveDTOv1 src, DomainEntity dst, MapperContext mapperContext) throws Exception {
         dst
                 .setKey(src.getKey())
+                .setName(src.getName())
                 .setDescription(src.getDescription())
                 .setDomainType(src.getType())
                 .setResourcesStorageId(src.getResourceStorageId() == null ? defaultResourceStorageId : src.getResourceStorageId())

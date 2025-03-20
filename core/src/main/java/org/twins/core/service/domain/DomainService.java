@@ -7,10 +7,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
-import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.PaginationUtils;
-import org.cambium.common.util.StringUtils;
+import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
 import org.twins.core.dao.i18n.I18nLocaleRepository;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -152,7 +149,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     }
 
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
-    public DomainEntity addDomain(DomainEntity domainEntity, DomainFile lightIcon, DomainFile darkIcon) throws ServiceException {
+    public DomainEntity createDomain(DomainEntity domainEntity, DomainFile lightIcon, DomainFile darkIcon) throws ServiceException {
         if (StringUtils.isBlank(domainEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.DOMAIN_KEY_INCORRECT, "New domain key can not be blank");
         domainEntity.setKey(domainEntity.getKey().trim().replaceAll("\\s", "_").toLowerCase()); //todo replace all unsupported chars
