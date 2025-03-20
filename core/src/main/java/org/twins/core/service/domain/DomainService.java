@@ -169,6 +169,30 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         userGroupService.enterGroup(UserGroup.DOMAIN_ADMIN.uuid);
         return processIcons(domainEntity, lightIcon, darkIcon);
     }
+    
+    @Transactional(rollbackFor = Throwable.class)
+    public List<DomainEntity> updateDomain(List<DomainEntity> updateList) throws ServiceException {
+        List<UUID> entityIds = updateList.stream().map(DomainEntity::getId).collect(Collectors.toList());
+        Kit<DomainEntity, UUID> dbEntities = findEntitiesSafe(entityIds);
+        ChangesHelperMulti<DomainEntity> changesHelperMulti = new ChangesHelperMulti<>();
+
+        List<DomainEntity> updatedDomains = new ArrayList<>();
+        for (DomainEntity updateEntity : updateList) {
+            ChangesHelper changesHelper = new ChangesHelper();
+            DomainEntity dbEntity = dbEntities.get(updateEntity.getId());
+
+            updateEntityField(updateEntity, dbEntity, DomainEntity::getKey, DomainEntity::setKey, DomainEntity.Fields.key, changesHelper);
+            updateEntityField(updateEntity, dbEntity, DomainEntity::getName, DomainEntity::setName, DomainEntity.Fields.name, changesHelper);
+            updateEntityField(updateEntity, dbEntity, DomainEntity::getDescription, DomainEntity::setDescription, DomainEntity.Fields.description, changesHelper);
+            updateEntityField(updateEntity, dbEntity, DomainEntity::getDomainType, DomainEntity::setDomainType, DomainEntity.Fields.domainType, changesHelper);
+            updateEntityField(updateEntity, dbEntity, DomainEntity::getDefaultI18nLocaleId, DomainEntity::setDefaultI18nLocaleId, DomainEntity.Fields.defaultI18nLocaleId, changesHelper);
+            updateEntityField(updateEntity, dbEntity, DomainEntity::getResourcesStorageId, DomainEntity::setResourcesStorageId, DomainEntity.Fields.resourcesStorageId, changesHelper);
+            updateEntityField(updateEntity, dbEntity, DomainEntity::getAttachmentsStorageId, DomainEntity::setAttachmentsStorageId, DomainEntity.Fields.attachmentsStorageId, changesHelper);
+            changesHelperMulti.add(dbEntity, changesHelper);
+        }
+        updateSafe(changesHelperMulti);
+        return updatedDomains;
+    }
 
     protected DomainEntity processIcons(DomainEntity domainEntity, DomainFile lightIcon, DomainFile darkIcon) throws ServiceException {
         var lightIconEntity = saveIconResourceIfExist(domainEntity, lightIcon);
