@@ -14,7 +14,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "CommentCreateRsV1")
 public class CommentCreateRsDTOv1 extends Response {
-    @Schema(description = "New comment id")
+    @Schema(description = "comment id")
     public UUID commentId;
     @Schema(description = "attachment list id")
     public List<UUID> attachmentListId;

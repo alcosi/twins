@@ -60,13 +60,10 @@ public class I18nTranslationSearchController extends ApiController {
         I18nTranslationSearchRsDTOv1 rs = new I18nTranslationSearchRsDTOv1();
         try {
             I18nTranslationSearch i18nTranslationSearch = new I18nTranslationSearch().setI18nIdList(Set.of(i18nId));
-
-            List<I18nTranslationEntity> i18nTranslationsList = i18nTranslationSearchService.viewI18nTranslations(i18nTranslationSearch);
-
+            List<I18nTranslationEntity> i18nTranslationsList = i18nTranslationSearchService.findI18nTranslations(i18nTranslationSearch);
             rs
                     .setI18nTranslations(i18nTranslationRestDTOMapper.convertCollection(i18nTranslationsList, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
-
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -89,16 +86,12 @@ public class I18nTranslationSearchController extends ApiController {
             @RequestBody I18nTranslationSearchRqDTOv1 request,
             @SimplePaginationParams SimplePagination pagination) {
         I18nTranslationSearchRsDTOv1 rs = new I18nTranslationSearchRsDTOv1();
-
         try {
             I18nTranslationSearch i18nTranslationSearch = i18nTranslationSearchDTOReverseMapper.convert(request);
-
             PaginationResult<I18nTranslationEntity> i18nTranslationsList = i18nTranslationSearchService.findI18nTranslations(i18nTranslationSearch, pagination);
-
             rs.setPagination(paginationMapper.convert(i18nTranslationsList))
                     .setI18nTranslations(i18nTranslationRestDTOMapper.convertCollection(i18nTranslationsList.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
-
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

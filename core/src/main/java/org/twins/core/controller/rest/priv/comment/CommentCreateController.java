@@ -21,7 +21,7 @@ import org.twins.core.dto.rest.comment.CommentCreateRqDTOv1;
 import org.twins.core.dto.rest.comment.CommentCreateRsDTOv1;
 import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
 import org.twins.core.mappers.rest.comment.CommentCreateRsRestDTOMapper;
-import org.twins.core.mappers.rest.comment.CommentRestDTOReversedMapper;
+import org.twins.core.mappers.rest.comment.CommentCreateRestDTOReversedMapper;
 import org.twins.core.service.comment.CommentService;
 
 import java.util.UUID;
@@ -30,10 +30,10 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class CommentAddController extends ApiController {
+public class CommentCreateController extends ApiController {
     private final CommentService commentService;
     private final CommentCreateRsRestDTOMapper commentCreateRsRestDTOMapper;
-    private final CommentRestDTOReversedMapper commentRestDTOReverseMapper;
+    private final CommentCreateRestDTOReversedMapper commentRestDTOReverseMapper;
     private final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
@@ -49,10 +49,10 @@ public class CommentAddController extends ApiController {
             @RequestBody CommentCreateRqDTOv1 request) {
         CommentCreateRsDTOv1 rs = new CommentCreateRsDTOv1();
         try {
-            TwinCommentEntity comment = commentRestDTOReverseMapper.convert(request.setTwinId(twinId));
+            TwinCommentEntity comment = commentRestDTOReverseMapper.convert(request.getComment()).setTwinId(twinId);
             rs = commentCreateRsRestDTOMapper.convert(commentService
                     .createComment(comment, attachmentAddRestDTOReverseMapper.
-                            convertCollection(request.attachments)));
+                            convertCollection(request.getComment().getAttachments())));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
