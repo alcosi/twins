@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.attachment.*;
-import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
@@ -41,6 +40,7 @@ import static org.cambium.common.util.InformationVolumeUtils.convertToGb;
 @RequiredArgsConstructor
 public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmentEntity> {
     private final TwinAttachmentRepository twinAttachmentRepository;
+    private final TwinAttachmentModificationRepository twinAttachmentModificationRepository;
     private final HistoryService historyService;
     private final TwinActionService twinActionService;
     private final TwinChangesService twinChangesService;
@@ -80,13 +80,18 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         loadTwins(attachments);
         for (TwinAttachmentEntity attachmentEntity : attachments) {
             twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
+            final UUID uuid = UUID.randomUUID();
             attachmentEntity
-                    .setId(UUID.randomUUID()) // need for history
+                    .setId(uuid) // need for history
                     .setCreatedByUserId(apiUser.getUserId())
                     .setCreatedByUser(apiUser.getUser());
             twinChangesCollector.add(attachmentEntity);
             if (twinChangesCollector.isHistoryCollectorEnabled())
                 twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentCreate(attachmentEntity));
+            if (!CollectionUtils.isEmpty(attachmentEntity.getModifications())) {
+                attachmentEntity.getModifications().forEach(mod -> mod.setTwinAttachmentId(uuid));
+                twinChangesCollector.addAll(attachmentEntity.getModifications());
+            }
         }
     }
 
@@ -188,6 +193,28 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         }
     }
 
+    public void loadAttachmentModifications(Collection<TwinAttachmentEntity> attachmentEntityList) {
+        Map<UUID, TwinAttachmentEntity> needLoad = new HashMap<>();
+        for (TwinAttachmentEntity attachmentEntity : attachmentEntityList)
+            if (attachmentEntity.getModifications() == null) {
+                needLoad.put(attachmentEntity.getId(), attachmentEntity);
+                attachmentEntity.setModifications(new HashSet<>());
+            }
+        if (needLoad.isEmpty())
+            return;
+        List<TwinAttachmentModificationEntity> modifications = twinAttachmentModificationRepository.findAllByTwinAttachmentIdIn(needLoad.keySet());
+        if (CollectionUtils.isEmpty(modifications))
+            return;
+        Map<UUID, List<TwinAttachmentModificationEntity>> resultMap = modifications.stream()
+                .collect(Collectors.groupingBy(TwinAttachmentModificationEntity::getTwinAttachmentId));
+        for (TwinAttachmentEntity attachment : needLoad.values()) {
+            List<TwinAttachmentModificationEntity> innerArray = resultMap.get(attachment.getId());
+            if (innerArray == null)
+                continue;
+            attachment.getModifications().addAll(innerArray);
+        }
+    }
+
     private static int parseInt(Object obj) {
         return ((Long) obj).intValue();
     }
@@ -234,11 +261,9 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             HistoryItem<HistoryContextAttachmentChange> historyItem = historyService.attachmentUpdate(attachmentEntity);
 
             if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.twinId, dbAttachmentEntity.getTwinId(), attachmentEntity.getTwinId())) {
-                // twin relink is not security safe, so it's currently denied. perhaps we can move it to permissions
                 throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_CAN_NOT_BE_RELINKED, "This attachment belongs to another twin");
             }
             if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.twinCommentId, dbAttachmentEntity.getTwinCommentId(), attachmentEntity.getTwinCommentId())) {
-                // comment relink is not security safe, so it's currently denied. perhaps we can move it to permissions
                 throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_INCORRECT_COMMENT, "This attachment belongs to another comment");
             }
             if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.description, dbAttachmentEntity.getDescription(), attachmentEntity.getDescription())) {
@@ -249,13 +274,13 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 historyItem.getContext().setNewTitle(attachmentEntity.getTitle());
                 dbAttachmentEntity.setTitle(attachmentEntity.getTitle());
             }
-            if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.storageLink, dbAttachmentEntity.getStorageLink(), attachmentEntity.getStorageLink())) {
-                historyItem.getContext().setNewStorageLink(attachmentEntity.getStorageLink());
-                dbAttachmentEntity.setStorageLink(attachmentEntity.getStorageLink());
+            if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.storageFileKey, dbAttachmentEntity.getStorageFileKey(), attachmentEntity.getStorageFileKey())) {
+                historyItem.getContext().setNewStorageFileKey(attachmentEntity.getStorageFileKey());
+                dbAttachmentEntity.setStorageFileKey(attachmentEntity.getStorageFileKey());
             }
-            if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.modificationLinks, dbAttachmentEntity.getModificationLinks(), attachmentEntity.getModificationLinks())) {
-                //TODO history item
-                dbAttachmentEntity.setModificationLinks(attachmentEntity.getModificationLinks());
+            if (attachmentEntity.getModifications() != null) {
+                loadAttachmentModifications(List.of(dbAttachmentEntity));
+                updateAttachmentModifications(attachmentEntity, dbAttachmentEntity, twinChangesCollector);
             }
             if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.externalId, dbAttachmentEntity.getExternalId(), attachmentEntity.getExternalId())) {
                 historyItem.getContext().setNewExternalId(attachmentEntity.getExternalId());
@@ -265,6 +290,47 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 twinChangesCollector.getHistoryCollector(dbAttachmentEntity.getTwin()).add(historyItem);
             }
         }
+    }
+
+    private void updateAttachmentModifications(TwinAttachmentEntity attachmentEntity,
+                                               TwinAttachmentEntity dbAttachmentEntity,
+                                               TwinChangesCollector twinChangesCollector) {
+        List<TwinAttachmentModificationEntity> incomingMods = new ArrayList<>(attachmentEntity.getModifications());
+        List<TwinAttachmentModificationEntity> existingMods = !CollectionUtils.isEmpty(dbAttachmentEntity.getModifications()) ?
+                new ArrayList<>(dbAttachmentEntity.getModifications()) : Collections.emptyList();
+
+        Map<String, TwinAttachmentModificationEntity> existingModMap = existingMods.stream()
+                .collect(Collectors.toMap(TwinAttachmentModificationEntity::getModificationType, mod -> mod));
+
+        List<TwinAttachmentModificationEntity> toUpdate = new ArrayList<>();
+        List<TwinAttachmentModificationEntity> toCreate = new ArrayList<>();
+
+        for (TwinAttachmentModificationEntity incomingMod : incomingMods) {
+            String modType = incomingMod.getModificationType();
+            TwinAttachmentModificationEntity existingMod = existingModMap.get(modType);
+            if (existingMod == null) {
+                TwinAttachmentModificationEntity newMod = new TwinAttachmentModificationEntity()
+                        .setTwinAttachmentId(dbAttachmentEntity.getId())
+                        .setModificationType(incomingMod.getModificationType())
+                        .setStorageFileKey(incomingMod.getStorageFileKey());
+                toCreate.add(newMod);
+            } else {
+                if (!Objects.equals(existingMod.getStorageFileKey(), incomingMod.getStorageFileKey())) {
+                    existingMod.setStorageFileKey(incomingMod.getStorageFileKey());
+                    toUpdate.add(existingMod);
+                }
+                existingModMap.remove(modType);
+            }
+        }
+
+        List<TwinAttachmentModificationEntity> toDelete = new ArrayList<>(existingModMap.values());
+        if (!toDelete.isEmpty()) twinChangesCollector.deleteAll(toDelete);
+        if (!toUpdate.isEmpty()) twinChangesCollector.addAll(toUpdate);
+        if (!toCreate.isEmpty()) twinChangesCollector.addAll(toCreate);
+        //invalidation of modifications set
+        if(!toDelete.isEmpty() || !toUpdate.isEmpty() || !toCreate.isEmpty())
+            dbAttachmentEntity.setModifications(null);
+
     }
 
     private String createChangesLogString(String field, String oldValue, String newValue) {
@@ -380,6 +446,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             throw new ServiceException(ErrorCodeTwins.TIER_COUNT_QUOTA_REACHED);
         return result;
     }
+
 
     public enum CommentRelinkMode {
         denied,

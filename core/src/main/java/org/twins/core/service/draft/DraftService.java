@@ -13,6 +13,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.CUD;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
+import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 import org.twins.core.dao.draft.*;
 import org.twins.core.dao.eraseflow.EraseflowEntity;
 import org.twins.core.dao.eraseflow.EraseflowLinkCascadeEntity;
@@ -750,8 +751,8 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 .setExternalId(twinAttachmentEntity.getExternalId())
                 .setTitle(twinAttachmentEntity.getTitle())
                 .setDescription(twinAttachmentEntity.getDescription())
-                .setStorageLink(twinAttachmentEntity.getStorageLink())
-                .setModificationLinks(twinAttachmentEntity.getModificationLinks())
+                .setStorageFileKey(twinAttachmentEntity.getStorageFileKey())
+                .setModifications(convertAttachmentModificationsToString(twinAttachmentEntity.getModifications()))
                 .setViewPermissionId(twinAttachmentEntity.getViewPermissionId())
                 .setTwinClassFieldId(twinAttachmentEntity.getTwinClassFieldId()) // not sure that we should allow this on update
                 .setTwinCommentId(twinAttachmentEntity.getTwinCommentId())
@@ -762,6 +763,13 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
             draftTwinAttachmentEntity.setTwinAttachmentId(twinAttachmentEntity.getId());
         }
         return draftTwinAttachmentEntity;
+    }
+
+    private String convertAttachmentModificationsToString(Set<TwinAttachmentModificationEntity> modifications) {
+        StringBuilder sb = new StringBuilder();
+        for (TwinAttachmentModificationEntity modification : modifications)
+            sb.append(modification.easyLog(EasyLoggable.Level.DETAILED));
+        return sb.toString();
     }
 
     public DraftTwinFieldUserEntity createFieldUserDeleteDraft(DraftEntity draftEntity, TwinFieldUserEntity twinFieldUser) throws ServiceException {

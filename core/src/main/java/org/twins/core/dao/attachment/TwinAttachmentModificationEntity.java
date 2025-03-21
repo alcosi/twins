@@ -1,0 +1,53 @@
+package org.twins.core.dao.attachment;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
+import org.cambium.common.EasyLoggable;
+import org.cambium.common.PublicCloneable;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
+
+import java.util.UUID;
+
+@Entity
+@Data
+@FieldNameConstants
+@Accessors(chain = true)
+@Table(name = "twin_attachment_modification", uniqueConstraints = @UniqueConstraint(
+        name = "UK_twin_attachment_modification",
+        columnNames = {"twin_attachment_id", "modification_type"}
+))
+public class TwinAttachmentModificationEntity implements PublicCloneable<TwinAttachmentModificationEntity>, TwinFieldStorage, EasyLoggable {
+
+    @Id
+    @GeneratedValue(generator = "uuid")
+    @Column(name = "id")
+    private UUID id;
+
+    @Column(name = "twin_attachment_id")
+    private UUID twinAttachmentId;
+
+    @Column(name = "modification_type")
+    private String modificationType;
+
+    @Column(name = "storage_file_key")
+    private String storageFileKey;
+
+    @Override
+    public TwinAttachmentModificationEntity clone() {
+        return new TwinAttachmentModificationEntity()
+                .setTwinAttachmentId(twinAttachmentId)
+                .setModificationType(modificationType)
+                .setStorageFileKey(storageFileKey);
+    }
+
+    public String easyLog(Level level) {
+        return switch (level) {
+            case SHORT -> "attachmentModification[" + id + "]";
+            case NORMAL -> "attachmentModification[id:" + id + ", twinAttachmentId:" + twinAttachmentId + "]";
+            default -> "attachmentModification[id:" + id + ", twinAttachmentId:" + twinAttachmentId + ", modificationType:" + modificationType + ", storageFileKey:" + storageFileKey + "]";
+        };
+
+    }
+}

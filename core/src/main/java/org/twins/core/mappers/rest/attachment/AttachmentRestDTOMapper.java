@@ -1,12 +1,14 @@
 package org.twins.core.mappers.rest.attachment;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
+import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 import org.twins.core.dto.rest.attachment.AttachmentDTOv1;
 import org.twins.core.mappers.rest.comment.CommentRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.*;
@@ -26,6 +28,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {
         AttachmentMode.class,
+        AttachmentModificationMode.class,
         AttachmentCollectionMode.class,
         TwinAttachmentActionMode.class
 })
@@ -64,16 +67,21 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
                         .setDescription(src.getDescription())
                         .setTitle(src.getTitle())
                         .setExternalId(src.getExternalId())
-                        .setStorageLink(src.getStorageLink());
+                        .setStorageLink(src.getStorageFileKey());
             case SHORT ->
                 dst
                         .setId(src.getId())
-                        .setStorageLink(src.getStorageLink())
-                        .setStorageLinksMap(src.getModificationLinks());
+                        .setStorageLink(src.getStorageFileKey());
         }
         if (mapperContext.hasModeButNot(CommentMode.Attachment2CommentModeMode.HIDE)) {
             dst.setCommentId(src.getTwinCommentId());
             commentRestDTOMapper.postpone(src.getComment(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(CommentMode.Attachment2CommentModeMode.SHORT)));
+        }
+        if (mapperContext.hasModeButNot(AttachmentModificationMode.HIDE)) {
+            dst.setModifications(new HashMap<>());
+            if(CollectionUtils.isNotEmpty(src.getModifications()))
+                for (TwinAttachmentModificationEntity mod : src.getModifications())
+                    dst.getModifications().put(mod.getModificationType(), mod.getStorageFileKey());
         }
         if (mapperContext.hasModeButNot(TransitionMode.Attachment2TransitionMode.HIDE)) {
             dst.setTwinflowTransitionId(src.getTwinflowTransitionId());
@@ -116,6 +124,8 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasModeButNot(TwinAttachmentActionMode.HIDE))
             attachmentActionService.loadAttachmentActions(srcCollection);
+        if (mapperContext.hasModeButNot(AttachmentModificationMode.HIDE))
+            attachmentService.loadAttachmentModifications(srcCollection);
     }
 
     @Override
