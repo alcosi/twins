@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.comment;
+package org.twins.core.controller.rest.priv.i18n;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,39 +19,39 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.dao.comment.TwinCommentEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.comment.CommentRsDTOv1;
+import org.twins.core.dto.rest.i18n.I18nViewRsDTOv1;
+import org.twins.core.mappers.rest.i18n.I18nRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.comment.CommentRestDTOMapper;
-import org.twins.core.service.comment.CommentService;
+import org.twins.core.service.i18n.I18nService;
 
 import java.util.UUID;
 
-@Tag(name = ApiTag.COMMENT)
+@Tag(description = "", name = ApiTag.I18N)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class CommentViewController extends ApiController {
-    private final CommentService commentService;
-    private final CommentRestDTOMapper commentRestDTOMapper;
+public class I18nViewController extends ApiController {
+    private final I18nService i18nService;
+    private final I18nRestDTOMapper i18nRestDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinCommentV1", summary = "Returns comment by comment id")
+    @Operation(operationId = "i18nViewV1", summary = "View a list of all i18n translations for the i18n")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = CommentRsDTOv1.class))}),
+                    @Schema(implementation = I18nViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/private/comment/{commentId}/v1")
-    public ResponseEntity<?> twinCommentV1(
-            @MapperContextBinding(roots = CommentRestDTOMapper.class, response = CommentRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.TWIN_COMMENT_ID) @PathVariable UUID commentId) {
-        CommentRsDTOv1 rs = new CommentRsDTOv1();
+    @GetMapping(value = "/private/i18n/{i18nId}/v1")
+    public ResponseEntity<?> i18nViewV1(
+            @MapperContextBinding(roots = I18nRestDTOMapper.class, response = I18nViewRsDTOv1.class) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.I18N_ID) @PathVariable UUID i18nId) {
+        I18nViewRsDTOv1 rs = new I18nViewRsDTOv1();
         try {
-            TwinCommentEntity comment = commentService.findEntitySafe(commentId);
+            I18nEntity i18nEntity = i18nService.findEntitySafe(i18nId);
             rs
-                    .setComment(commentRestDTOMapper.convert(comment, mapperContext));
+                    .setI18n(i18nRestDTOMapper.convert(i18nEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -59,5 +59,4 @@ public class CommentViewController extends ApiController {
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
-
 }

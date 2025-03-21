@@ -12,11 +12,11 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "I18nTranslationSaveRsV1")
-public class I18nTranslationSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+@Schema(name = "I18nTranslationListRsV1")
+public class I18nTranslationListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "pagination")
     public PaginationDTOv1 pagination;
 
-    @Schema(description = "result - i18n translations")
-    public List<I18nTranslationDTOv1> i18nTranslations;
+    @Schema(description = "result - i18n")
+    public List<I18nTranslationDTOv1> translation;
 }

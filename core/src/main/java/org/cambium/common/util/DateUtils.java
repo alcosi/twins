@@ -13,4 +13,8 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
     public static LocalDateTime convertOrNull(Timestamp timestamp) {
         return timestamp == null ? null : timestamp.toLocalDateTime();
     }
+
+    public static Timestamp convertOrNull(LocalDateTime localDateTime) {
+        return localDateTime == null ? null : Timestamp.valueOf(localDateTime);
+    }
 }
