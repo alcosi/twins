@@ -41,7 +41,7 @@ public class I18nTranslationSearchService {
 
     private Specification<I18nTranslationEntity> createI18nTranslationSpecification(I18nTranslationSearch search) throws ServiceException {
         return Specification.allOf(
-                checkUuidIn(Collections.singletonList(authService.getApiUser().getDomainId()), false, false, I18nTranslationEntity.Fields.i18n, I18nEntity.Fields.domainId),
+                checkUuidIn(Collections.singletonList(authService.getApiUser().getDomainId()), false, true, I18nTranslationEntity.Fields.i18n, I18nEntity.Fields.domainId),
                 checkUuidIn(search.getI18nIdList(), false, false, I18nTranslationEntity.Fields.i18nId),
                 checkUuidIn(search.getI18nIdExcludeList(), true, false, I18nTranslationEntity.Fields.i18nId),
                 checkFieldLikeIn(search.getTranslationLikeList(), false, true, I18nTranslationEntity.Fields.translation),

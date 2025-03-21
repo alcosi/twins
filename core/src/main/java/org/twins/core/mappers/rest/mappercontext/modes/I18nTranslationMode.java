@@ -14,4 +14,6 @@ public enum I18nTranslationMode implements MapperMode {
     @FieldNameConstants.Include DETAILED(2);
 
     final int priority;
+
+
 }

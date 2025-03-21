@@ -16,6 +16,12 @@ public class I18nDTOv1 {
     @Schema(description = "i18n id", example = DTOExamples.I18N_ID)
     public UUID i18nId;
 
+    @Schema(description = "key", example = DTOExamples.I18N_KEY)
+    public String key;
+
+    @Schema(description = "key", example = DTOExamples.I18N_NAME)
+    public String name;
+
     @Schema(description = "translations", example = DTOExamples.I18N_ID)
     public Map<Locale, String> translations;
 }
