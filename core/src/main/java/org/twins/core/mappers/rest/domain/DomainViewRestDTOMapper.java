@@ -33,12 +33,23 @@ public class DomainViewRestDTOMapper extends RestSimpleDTOMapper<DomainEntity, D
             case DETAILED ->
                 dst
                         .setType(src.getDomainType())
-                        .setCreatedAt(src.getCreatedAt().toLocalDateTime())
+                        .setBusinessAccountInitiatorFeaturerId(src.getBusinessAccountInitiatorFeaturerId())
+                        .setBusinessAccountInitiatorParams(src.getBusinessAccountInitiatorParams())
+                        .setUserGroupManagerFeaturerId(src.getUserGroupManagerFeaturerId())
+                        .setUserGroupManagerParams(src.getUserGroupManagerParams())
                         .setDefaultLocale(src.getDefaultI18nLocaleId() != null ? src.getDefaultI18nLocaleId().getLanguage() : null)
                         .setTwinflowSchemaId(src.getTwinflowSchemaId())
                         .setPermissionSchemaId(src.getPermissionSchemaId())
                         .setTwinClassSchemaId(src.getTwinClassSchemaId())
                         .setBusinessAccountTemplateTwinId(src.getBusinessAccountTemplateTwinId())
+                        .setAncestorTwinClassId(src.getAncestorTwinClassId())
+                        .setDefaultTierId(src.getDefaultTierId())
+                        .setAttachmentStorageUsedCount(src.getAttachmentsStorageUsedCount())
+                        .setAttachmentStorageUsedSize(src.getAttachmentsStorageUsedSize())
+                        .setDomainUserTemplateTwinId(src.getDomainUserTemplateTwinId())
+                        .setResourceStorageId(src.getResourcesStorageId())
+                        .setAttachmentStorageId(src.getAttachmentsStorageId())
+                        .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setId(src.getId())
                         .setKey(src.getKey());
             case SHORT ->

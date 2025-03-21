@@ -24,7 +24,6 @@ public class DomainSaveRestDTOReverseMapper extends RestSimpleDTOMapper<DomainSa
     @Override
     public void map(DomainSaveDTOv1 src, DomainEntity dst, MapperContext mapperContext) throws Exception {
         dst
-                .setKey(src.getKey())
                 .setName(src.getName())
                 .setDescription(src.getDescription())
                 .setBusinessAccountInitiatorFeaturerId(src.getBusinessAccountInitiatorFeaturerId())
@@ -38,7 +37,6 @@ public class DomainSaveRestDTOReverseMapper extends RestSimpleDTOMapper<DomainSa
                 .setDomainUserTemplateTwinId(src.getDomainUserTemplateTwinId())
                 .setIconDarkResourceId(src.getIconDarkResourceId())
                 .setIconLightResourceId(src.getIconLightResourceId())
-                .setDomainType(src.getType())
                 .setResourcesStorageId(src.getResourceStorageId() == null ? defaultResourceStorageId : src.getResourceStorageId())
                 .setAttachmentsStorageId(src.getAttachmentStorageId() == null ? defaultAttachmentStorageId : src.getAttachmentStorageId())
                 .setNavbarFaceId(src.getNavbarFaceId())

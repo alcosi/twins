@@ -16,5 +16,8 @@ public class DomainCreateRestDTOReverseMapper extends RestSimpleDTOMapper<Domain
     @Override
     public void map(DomainCreateDTOv1 src, DomainEntity dst, MapperContext mapperContext) throws Exception {
         domainSaveRestDTOReverseMapper.map(src, dst, mapperContext);
+        dst
+                .setKey(src.getKey())
+                .setDomainType(src.getType());
     }
 }
