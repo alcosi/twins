@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.MapUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinFieldI18nEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -15,14 +17,10 @@ import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
-import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
+import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.StringJoiner;
+import java.util.*;
 
 
 @Component
@@ -36,6 +34,9 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
 
     @MapperModePointerBinding(modes = TwinMode.TwinField2TwinMode.class)
     private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
+
+    @MapperModePointerBinding(modes = TwinI18nFieldMode.Twin2TwinI18nFieldMode.class)
+    private final TwinFieldI18nRestDTOMapper twinFieldI18nRestDTOMapper;
 
     @Override
     public FieldValueText convert(FieldValue src, MapperContext mapperContext) throws Exception {
@@ -82,6 +83,32 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
                 }
             }
             dst.setValue(stringJoiner.toString());
+        } else if (src instanceof FieldValueI18n i18nField) {
+            StringBuilder translationsBuilder = new StringBuilder();
+
+            if (MapUtils.isNotEmpty(i18nField.getTranslations())) {
+                for (Map.Entry<Locale, String> entry : i18nField.getTranslations().entrySet()) {
+                    Locale locale = entry.getKey();
+                    String translation = entry.getValue();
+
+                    translationsBuilder
+                            .append("<@entryKey>")
+                            .append(locale)
+                            .append("<@entryValue>")
+                            .append(translation)
+                            .append("<@mapEntry>");
+
+                    TwinFieldI18nEntity twinFieldI18nEntity = new TwinFieldI18nEntity()
+                            .setLocale(locale)
+                            .setTranslation(translation);
+
+                    if (mapperContext.hasModeButNot(TwinI18nFieldMode.Twin2TwinI18nFieldMode.HIDE)) {
+                        twinFieldI18nRestDTOMapper.postpone(twinFieldI18nEntity, mapperContext.forkOnPoint(TwinI18nFieldMode.Twin2TwinI18nFieldMode.HIDE));
+                    }
+
+                }
+            }
+            dst.setValue(translationsBuilder.toString());
         } else
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, src.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " unknown value type");
 

@@ -11,6 +11,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -256,6 +257,22 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setFromValue(fromValue)
                 .setToValue(toValue);
         context.shotField(twinClassFieldEntity, i18nService);
+        return new HistoryItem<>(HistoryType.fieldChanged, context);
+    }
+
+    public HistoryItem<HistoryContextI18nChange> fieldChangeI18n(
+            TwinClassFieldEntity twinClassFieldEntity,
+            Locale fromLocale,
+            String fromTranslation,
+            Locale toLocale,
+            String toTranslation
+    ) {
+        HistoryContextI18nChange context = new HistoryContextI18nChange()
+                .shotFrom(fromLocale, fromTranslation)
+                .shotTo(toLocale, toTranslation);
+
+        context.shotField(twinClassFieldEntity, i18nService);
+
         return new HistoryItem<>(HistoryType.fieldChanged, context);
     }
 

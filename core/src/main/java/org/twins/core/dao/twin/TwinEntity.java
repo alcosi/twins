@@ -207,6 +207,10 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @EqualsAndHashCode.Exclude
     private Kit<TwinFieldSimpleEntity, UUID> twinFieldSimpleKit;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinFieldI18nEntity, UUID> twinFieldI18nKit;
+
     /*
      we have to use TwinClassFieldId as key, not id. Also, multiple values supported, that is why kit inside a ki
      */
