@@ -18,7 +18,7 @@ public class FieldValueI18n extends FieldValue {
 
     public FieldValueI18n(TwinClassFieldEntity twinClassField) {
         super(twinClassField);
-        this.translations = new HashMap<>(); // Инициализация пустой карты
+        this.translations = new HashMap<>();
     }
 
     public void addTranslation(Locale locale, String translation) {
