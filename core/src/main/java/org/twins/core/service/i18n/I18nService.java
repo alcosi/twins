@@ -44,6 +44,26 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
     private final CacheManager cacheManager;
     private final AuthService authService;
 
+    @Override
+    public CrudRepository<I18nEntity, UUID> entityRepository() {
+        return i18nRepository;
+    }
+
+    @Override
+    public Function<I18nEntity, UUID> entityGetIdFunction() {
+        return null;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(I18nEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(I18nEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
+    }
+
     public String translateToLocale(I18nEntity i18NEntity, Locale locale) {
         return translateToLocale(i18NEntity, locale, null);
     }
@@ -299,25 +319,5 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
         i18nTranslationRepository.saveAll(entitiesToSave);
 
         return i18nEntity;
-    }
-
-    @Override
-    public CrudRepository<I18nEntity, UUID> entityRepository() {
-        return null;
-    }
-
-    @Override
-    public Function<I18nEntity, UUID> entityGetIdFunction() {
-        return null;
-    }
-
-    @Override
-    public boolean isEntityReadDenied(I18nEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
-    }
-
-    @Override
-    public boolean validateEntity(I18nEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return true;
     }
 }

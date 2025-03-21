@@ -3,30 +3,25 @@ package org.twins.core.dao.history.context.snapshot;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.StringUtils;
-import org.twins.core.dao.i18n.I18nEntity;
 
 import java.util.HashMap;
-import java.util.UUID;
+import java.util.Locale;
 
 @Data
 @Accessors(chain = true)
 public class I18nSnapshot {
-    private UUID id;
-    private String key;
-    private String name;
+    private Locale locale;
+    private String translation;
 
-    public static I18nSnapshot convertEntity(I18nEntity i18nEntity) {
-        if (i18nEntity == null)
-            return null;
+    public static I18nSnapshot of(Locale locale, String translation) {
         return new I18nSnapshot()
-                .setId(i18nEntity.getId())
-                .setName(i18nEntity.getName())
-                .setKey(i18nEntity.getKey());
+                .setLocale(locale)
+                .setTranslation(translation);
     }
 
-    public static void extractTemplateVars(HashMap<String, String> vars, I18nSnapshot i18nSnapshot, String prefix) {
+    public static void extractTemplateVars(HashMap<String, String> vars, I18nSnapshot snapshot, String prefix) {
         prefix = StringUtils.isNotEmpty(prefix) ? prefix + "." : "";
-        vars.put(prefix + "id", i18nSnapshot != null ? i18nSnapshot.id.toString() : "");
-        vars.put(prefix + "name", i18nSnapshot != null ? i18nSnapshot.name : "");
+        vars.put(prefix + "locale", snapshot != null ? snapshot.getLocale().toString() : "");
+        vars.put(prefix + "translation", snapshot != null ? snapshot.getTranslation() : "");
     }
 }

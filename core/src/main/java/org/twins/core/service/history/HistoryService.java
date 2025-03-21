@@ -260,11 +260,19 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return new HistoryItem<>(HistoryType.fieldChanged, context);
     }
 
-    public HistoryItem<HistoryContextI18nChange> fieldChangeI18n(TwinClassFieldEntity twinClassFieldEntity, I18nEntity fromI18n, I18nEntity toI18n) {
+    public HistoryItem<HistoryContextI18nChange> fieldChangeI18n(
+            TwinClassFieldEntity twinClassFieldEntity,
+            Locale fromLocale,
+            String fromTranslation,
+            Locale toLocale,
+            String toTranslation
+    ) {
         HistoryContextI18nChange context = new HistoryContextI18nChange()
-                .shotFromI18n(fromI18n)
-                .shotToI18n(toI18n);
+                .shotFrom(fromLocale, fromTranslation)
+                .shotTo(toLocale, toTranslation);
+
         context.shotField(twinClassFieldEntity, i18nService);
+
         return new HistoryItem<>(HistoryType.fieldChanged, context);
     }
 

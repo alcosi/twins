@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.MapUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -20,9 +21,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.StringJoiner;
+import java.util.*;
 
 
 @Component
@@ -87,17 +86,21 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
             dst.setValue(stringJoiner.toString());
         } else if (src instanceof FieldValueI18n i18nField) {
             StringBuilder translationsBuilder = new StringBuilder();
-            for (I18nTranslationEntity i18nTranslation : i18nField.getI18nTranslations()) {
-                translationsBuilder
-                        .append("<@entryKey>")
-                        .append(i18nTranslation.getLocale())
-                        .append("<@entryValue>")
-                        .append(i18nTranslation.getTranslation())
-                        .append("<@mapEntry>");
-                if (mapperContext.hasModeButNot(I18nTranslationMode.TwinField2I18nTranslationMode.HIDE)) {
-                    i18nTranslationRestDTOMapper.postpone(i18nTranslation, mapperContext.forkOnPoint(I18nTranslationMode.TwinField2I18nTranslationMode.HIDE));
+
+            if (MapUtils.isNotEmpty(i18nField.getTranslations())) {
+                for (Map.Entry<Locale, String> entry : i18nField.getTranslations().entrySet()) {
+                    Locale locale = entry.getKey();
+                    String translation = entry.getValue();
+
+                    translationsBuilder
+                            .append("<@entryKey>")
+                            .append(locale)
+                            .append("<@entryValue>")
+                            .append(translation)
+                            .append("<@mapEntry>");
                 }
             }
+
             dst.setValue(translationsBuilder.toString());
         } else
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, src.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " unknown value type");

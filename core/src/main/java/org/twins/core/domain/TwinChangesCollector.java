@@ -3,6 +3,7 @@ package org.twins.core.domain;
 import lombok.Getter;
 import org.cambium.common.util.ChangesHelper;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twin.*;
 import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
@@ -73,6 +74,9 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         } else if (entity instanceof TwinAttachmentEntity twinAttachmentEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinAttachmentEntity.getTwin(), k -> new HashSet<>());
             invalidates.add(TwinInvalidate.twinAttachments);;
+        } else if (entity instanceof TwinFieldI18nEntity twinFieldI18nEntity) {
+            invalidates = invalidationMap.computeIfAbsent(twinFieldI18nEntity.getTwin(), k -> new HashSet<>());
+            invalidates.add(TwinInvalidate.twinFieldI18nKit);
         }
     }
 
@@ -88,6 +92,7 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         twinFieldSimpleKit,
         twinFieldUserKit,
         twinFieldDatalistKit,
+        twinFieldI18nKit,
         fieldValuesKit,
         twinLinks,
         twinAttachments

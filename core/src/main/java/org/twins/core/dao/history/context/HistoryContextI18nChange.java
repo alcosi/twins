@@ -4,9 +4,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.history.context.snapshot.I18nSnapshot;
-import org.twins.core.dao.i18n.I18nEntity;
 
 import java.util.HashMap;
+import java.util.Locale;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -21,13 +21,13 @@ public class HistoryContextI18nChange extends HistoryContext {
         return DISCRIMINATOR;
     }
 
-    public HistoryContextI18nChange shotFromI18n(I18nEntity i18nEntity) {
-        fromI18n = I18nSnapshot.convertEntity(i18nEntity);
+    public HistoryContextI18nChange shotFrom(Locale locale, String translation) {
+        this.fromI18n = I18nSnapshot.of(locale, translation);
         return this;
     }
 
-    public HistoryContextI18nChange shotToI18n(I18nEntity i18nEntity) {
-        toI18n = I18nSnapshot.convertEntity(i18nEntity);
+    public HistoryContextI18nChange shotTo(Locale locale, String translation) {
+        this.toI18n = I18nSnapshot.of(locale, translation);
         return this;
     }
 
@@ -41,11 +41,11 @@ public class HistoryContextI18nChange extends HistoryContext {
 
     @Override
     public String templateFromValue() {
-        return fromI18n != null ? fromI18n.getName() : "";
+        return fromI18n != null ? fromI18n.getTranslation() : "";
     }
 
     @Override
     public String templateToValue() {
-        return toI18n != null ? toI18n.getName() : "";
+        return toI18n != null ? toI18n.getTranslation() : "";
     }
 }

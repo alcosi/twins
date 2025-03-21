@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
 import org.twins.core.dao.history.HistoryType;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -995,6 +996,23 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 ((FieldValueLink) fieldValue).add(new TwinLinkEntity()
                         .setDstTwinId(dstTwinUUID));
             }
+        }
+        if (fieldValue instanceof FieldValueI18n fieldValueI18n) {
+            String[] entries = value.split("<@mapEntry>");
+            Map<Locale, String> translations = new HashMap<>();
+
+            for (String entry : entries) {
+                String[] parts = entry.split("<@entryKey>|<@entryValue>");
+
+                if (parts.length >= 3) {
+                    Locale locale = Locale.of(parts[1].trim());
+                    String translationText = parts[2].trim();
+
+                    translations.put(locale, translationText);
+                }
+            }
+
+            fieldValueI18n.setTranslations(translations);
         }
     }
 
