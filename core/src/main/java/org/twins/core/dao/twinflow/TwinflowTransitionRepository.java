@@ -19,8 +19,8 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
         Second case has more priority
         This logic can be done with postgres sql "distinct on" operator, but it's not supported in hibernate
         */
-    @Query(value = "select tt from TwinflowTransitionEntity tt where tt.twinflowId = :twinflowId and (tt.srcTwinStatusId = :srcTwinStatusId or tt.srcTwinStatusId is null) " +
-            " and true = function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator) order by tt.dstTwinStatusId, tt.srcTwinStatusId")
+    @Query(value = "select tt from TwinflowTransitionEntity tt where tt.twinflowId = :twinflowId and (tt.srcTwinStatusId = :srcTwinStatusId or (tt.srcTwinStatusId is null and tt.dstTwinStatusId != :srcTwinStatusId)) " +
+            " and true = function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
     List<TwinflowTransitionEntity> findValidTransitions(
             @Param("twinflowId") UUID twinflowId,
             @Param("srcTwinStatusId") UUID srcTwinStatusId,
@@ -47,9 +47,9 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
             @Param("isCreator") boolean isCreator);
 
     @Query(value = "select tt from TwinflowTransitionEntity tt " +
-            "where tt.twinflowId = :twinflowId and (tt.srcTwinStatusId = :srcTwinStatusId or tt.srcTwinStatusId is null) " +
+            "where tt.twinflowId = :twinflowId and (tt.srcTwinStatusId = :srcTwinStatusId or (tt.srcTwinStatusId is null and tt.dstTwinStatusId != :srcTwinStatusId)) " +
             "and tt.twinflowTransitionAlias.alias = :alias " +
-            "and true = function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator) order by tt.srcTwinStatusId limit 1")
+            "and true = function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
     TwinflowTransitionEntity findTransitionByAlias(
             @Param("twinflowId") UUID twinflowId,
             @Param("srcTwinStatusId") UUID srcTwinStatusId,
