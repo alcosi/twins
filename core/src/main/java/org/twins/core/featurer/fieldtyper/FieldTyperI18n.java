@@ -113,7 +113,10 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
 
     @Override
     protected FieldValueI18n deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        Map<Locale, TwinFieldI18nEntity> storedFields = getStoredFieldsForTwinAndField(twinField.getTwin(), twinField.getTwinClassField());
+        TwinEntity twin = twinField.getTwin();
+        twinService.loadTwinFields(twin);
+
+        Map<Locale, TwinFieldI18nEntity> storedFields = getStoredFieldsForTwinAndField(twin, twinField.getTwinClassField());
 
         FieldValueI18n fieldValue = new FieldValueI18n(twinField.getTwinClassField());
         for (TwinFieldI18nEntity storedField : storedFields.values()) {

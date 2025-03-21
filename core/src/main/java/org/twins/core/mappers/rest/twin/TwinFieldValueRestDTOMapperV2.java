@@ -8,15 +8,14 @@ import org.cambium.common.util.MapUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinFieldI18nEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
-import org.twins.core.mappers.rest.i18n.I18nTranslationRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
@@ -36,8 +35,8 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
     @MapperModePointerBinding(modes = TwinMode.TwinField2TwinMode.class)
     private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
 
-    @MapperModePointerBinding(modes = I18nTranslationMode.TwinField2I18nTranslationMode.class)
-    private final I18nTranslationRestDTOMapper i18nTranslationRestDTOMapper;
+    @MapperModePointerBinding(modes = TwinI18nFieldMode.Twin2TwinI18nFieldMode.class)
+    private final TwinFieldI18nRestDTOMapper twinFieldI18nRestDTOMapper;
 
     @Override
     public FieldValueText convert(FieldValue src, MapperContext mapperContext) throws Exception {
@@ -98,9 +97,17 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
                             .append("<@entryValue>")
                             .append(translation)
                             .append("<@mapEntry>");
+
+                    TwinFieldI18nEntity twinFieldI18nEntity = new TwinFieldI18nEntity()
+                            .setLocale(locale)
+                            .setTranslation(translation);
+
+                    if (mapperContext.hasModeButNot(TwinI18nFieldMode.Twin2TwinI18nFieldMode.HIDE)) {
+                        twinFieldI18nRestDTOMapper.postpone(twinFieldI18nEntity, mapperContext.forkOnPoint(TwinI18nFieldMode.Twin2TwinI18nFieldMode.HIDE));
+                    }
+
                 }
             }
-
             dst.setValue(translationsBuilder.toString());
         } else
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, src.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " unknown value type");
