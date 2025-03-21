@@ -10,7 +10,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
-import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.i18n.I18nLocaleRepository;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -35,7 +34,6 @@ import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
-import org.twins.core.featurer.factory.multiplier.Multiplier;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
@@ -175,8 +173,6 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     public DomainEntity updateDomain(DomainEntity updateEntity) throws ServiceException {
         DomainEntity dbEntity = findEntitySafe(authService.getApiUser().getDomainId());
         ChangesHelper changesHelper = new ChangesHelper();
-        updateEntityField(updateEntity, dbEntity, DomainEntity::getKey, DomainEntity::setKey,
-                DomainEntity.Fields.key, changesHelper);
         updateEntityField(updateEntity, dbEntity, DomainEntity::getName, DomainEntity::setName,
                 DomainEntity.Fields.name, changesHelper);
         updateEntityField(updateEntity, dbEntity, DomainEntity::getDescription, DomainEntity::setDescription,
@@ -197,8 +193,6 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                 DomainEntity.Fields.iconLightResourceId, changesHelper);
         updateEntityField(updateEntity, dbEntity, DomainEntity::getDefaultTierId, DomainEntity::setDefaultTierId,
                 DomainEntity.Fields.defaultTierId, changesHelper);
-        updateEntityField(updateEntity, dbEntity, DomainEntity::getDomainType, DomainEntity::setDomainType,
-                DomainEntity.Fields.domainType, changesHelper);
         updateEntityField(updateEntity, dbEntity, DomainEntity::getDefaultI18nLocaleId, DomainEntity::setDefaultI18nLocaleId,
                 DomainEntity.Fields.defaultI18nLocaleId, changesHelper);
         updateEntityField(updateEntity, dbEntity, DomainEntity::getResourcesStorageId, DomainEntity::setResourcesStorageId,

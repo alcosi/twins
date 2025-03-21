@@ -13,10 +13,6 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "DomainSaveV1")
 public class DomainSaveDTOv1 {
-    //todo disable for edit
-    @Schema(description = "will be used for url generation and for twins aliases", example = DTOExamples.DOMAIN_KEY)
-    private String key;
-
     @Schema(description = "name", example = DTOExamples.DOMAIN_NAME)
     public String name;
 
@@ -58,10 +54,6 @@ public class DomainSaveDTOv1 {
 
     @Schema(description = "Icon light resource id", example = DTOExamples.RESOURCE_ID)
     public UUID iconLightResourceId;
-
-    //todo disable for edit
-    @Schema(description = "type [basic/b2b]", example = DTOExamples.DOMAIN_TYPE)
-    private DomainType type;
 
     @Schema(description = "Resource storage type", example = DTOExamples.RESOURCE_STORAGE_ID)
     public UUID resourceStorageId;
