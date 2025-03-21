@@ -21,7 +21,11 @@ public class I18nSnapshot {
 
     public static void extractTemplateVars(HashMap<String, String> vars, I18nSnapshot snapshot, String prefix) {
         prefix = StringUtils.isNotEmpty(prefix) ? prefix + "." : "";
-        vars.put(prefix + "locale", snapshot != null ? snapshot.getLocale().toString() : "");
-        vars.put(prefix + "translation", snapshot != null ? snapshot.getTranslation() : "");
+        vars.put(prefix + "locale", snapshot != null && snapshot.getLocale() != null
+                ? snapshot.getLocale().toString()
+                : "");
+        vars.put(prefix + "translation", snapshot != null && snapshot.getTranslation() != null
+                ? snapshot.getTranslation()
+                : "");
     }
 }

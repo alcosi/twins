@@ -32,7 +32,6 @@ public class TwinFieldI18nEntity implements TwinFieldStorage {
     @Column(name = "twin_class_field_id")
     private UUID twinClassFieldId;
 
-    @Id
     @Column(name = "locale")
     @Convert(converter = LocaleConverter.class)
     private Locale locale;
