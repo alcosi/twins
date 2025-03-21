@@ -109,7 +109,7 @@ public interface DTOExamples {
     String TRIGGER_ID = "9d956a15-6858-40ba-b0aa-b123c54e250d";
     String FACTORY_PIPELINE_ID = "5d956a15-6858-40ba-b0aa-b123c54e250d";
     String FACTORY_PIPELINE_STEP_ID = "99856a15-6858-40ba-b0aa-b123c54e250d";
-    String FACTORY_PARAMS_MAP = "{\"outputTwinClassId\"=>\"da69c441-9c8f-4e73-a07e-b5648f8f4396\",\n\"copyHead\"=>\"true\"}";
+    String FACTORY_PARAMS_MAP = "{\"outputTwinClassId\": \"da69c441-9c8f-4e73-a07e-b5648f8f4396\", \"copyHead\": \"true\"}";
     String MULTIPLIER_ID = "66956a15-6858-40ba-b0aa-b123c54e250d";
     String FACTORY_BRANCH_ID = "99956a15-6858-40ba-b0aa-b123c54e250d";
     String FACTORY_MULTIPLIER_ID = "eb773f30-8f24-4ec7-8f06-9dc71d351177";

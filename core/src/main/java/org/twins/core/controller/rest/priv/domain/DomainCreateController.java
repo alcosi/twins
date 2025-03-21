@@ -93,11 +93,9 @@ public class DomainCreateController extends ApiController {
                     .setUserResolver(userResolverAuthToken)
                     .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified())
                     .setDomainResolver(new DomainResolverNotSpecified())
-                    //todo only one
-                    .setLocaleResolver(new LocaleResolverGivenOrSystemDefault(request.getDomains().getFirst().getDefaultLocale()))
+                    .setLocaleResolver(new LocaleResolverGivenOrSystemDefault(request.getDomain().getDefaultLocale()))
                     .setCheckMembershipMode(false);
-            //todo only one
-            DomainEntity domainEntity = domainService.createDomain(domainCreateRestDTOReverseMapper.convert(request.getDomains().getFirst()), convert(iconLight), convert(iconDark));
+            DomainEntity domainEntity = domainService.createDomain(domainCreateRestDTOReverseMapper.convert(request.getDomain()), convert(iconLight), convert(iconDark));
             rs.setDomain(domainViewRestDTOMapper.convert(domainEntity));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

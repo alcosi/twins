@@ -29,9 +29,8 @@ public class DomainViewRestDTOMapper extends RestSimpleDTOMapper<DomainEntity, D
     @Override
     public void map(DomainEntity src, DomainViewDTOv1 dst, MapperContext mapperContext) throws Exception {
         domainViewPublicRestDTOMapper.map(src, dst, mapperContext);
-
         switch (mapperContext.getModeOrUse(DomainMode.DETAILED)) {
-            case DETAILED:
+            case DETAILED ->
                 dst
                         .setType(src.getDomainType())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
@@ -39,13 +38,13 @@ public class DomainViewRestDTOMapper extends RestSimpleDTOMapper<DomainEntity, D
                         .setTwinflowSchemaId(src.getTwinflowSchemaId())
                         .setPermissionSchemaId(src.getPermissionSchemaId())
                         .setTwinClassSchemaId(src.getTwinClassSchemaId())
-                        .setBusinessAccountTemplateTwinId(src.getBusinessAccountTemplateTwinId());
-                break;
-            case SHORT:
+                        .setBusinessAccountTemplateTwinId(src.getBusinessAccountTemplateTwinId())
+                        .setId(src.getId())
+                        .setKey(src.getKey());
+            case SHORT ->
                 dst
                         .setId(src.getId())
                         .setKey(src.getKey());
-                break;
         }
         if (mapperContext.hasModeButNot(FaceMode.DomainNavbar2FaceMode.HIDE)) {
             faceRestDTOMapper.postpone(src.getNavbarFace(), mapperContext.forkOnPoint(FaceMode.DomainNavbar2FaceMode.SHORT));

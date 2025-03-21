@@ -10,21 +10,23 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dto.rest.domain.DomainListRsDTOv1;
 import org.twins.core.dto.rest.domain.DomainUpdateRqDTOv1;
+import org.twins.core.dto.rest.domain.DomainViewRsDTOv1;
 import org.twins.core.mappers.rest.domain.DomainUpdateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.domain.DomainViewRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.domain.DomainService;
 
-import java.util.List;
 
 @Tag(name = ApiTag.DOMAIN)
 @RestController
@@ -37,22 +39,22 @@ public class DomainUpdateController extends ApiController {
     private final DomainService domainService;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "domainUpdateBatchV1", summary = "Batch domain update")
+    @Operation(operationId = "domainUpdateV1", summary = "Domain update")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "domain was updated successfully", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = DomainListRsDTOv1.class))}),
+                    @Schema(implementation = DomainViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/domain/v1")
-    public ResponseEntity<?> domainUpdateBatchV1(
-            @MapperContextBinding(roots = DomainViewRestDTOMapper.class, response = DomainListRsDTOv1.class) MapperContext mapperContext,
+    public ResponseEntity<?> domainUpdateV1(
+            @MapperContextBinding(roots = DomainViewRestDTOMapper.class, response = DomainViewRsDTOv1.class) MapperContext mapperContext,
             @RequestBody DomainUpdateRqDTOv1 request) {
-        DomainListRsDTOv1 rs = new DomainListRsDTOv1();
+        DomainViewRsDTOv1 rs = new DomainViewRsDTOv1();
         try {
-            List<DomainEntity> domainList = domainUpdateRestDTOReverseMapper.convertCollection(request.getDomains());
-            domainList = domainService.updateDomain(domainList);
+            DomainEntity domain = domainUpdateRestDTOReverseMapper.convert(request.getDomain());
+            domain = domainService.updateDomain(domain);
             rs
-                    .setDomainList(domainViewRestDTOMapper.convertCollection(domainList, mapperContext))
+                    .setDomain(domainViewRestDTOMapper.convert(domain, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

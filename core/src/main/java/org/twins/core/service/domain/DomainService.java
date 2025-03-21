@@ -9,6 +9,8 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.featurer.dao.FeaturerEntity;
+import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.i18n.I18nLocaleRepository;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -33,6 +35,8 @@ import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
+import org.twins.core.featurer.factory.multiplier.Multiplier;
+import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
@@ -168,27 +172,92 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     }
     
     @Transactional(rollbackFor = Throwable.class)
-    public List<DomainEntity> updateDomain(List<DomainEntity> updateList) throws ServiceException {
-        List<UUID> entityIds = updateList.stream().map(DomainEntity::getId).collect(Collectors.toList());
-        Kit<DomainEntity, UUID> dbEntities = findEntitiesSafe(entityIds);
-        ChangesHelperMulti<DomainEntity> changesHelperMulti = new ChangesHelperMulti<>();
+    public DomainEntity updateDomain(DomainEntity updateEntity) throws ServiceException {
+        DomainEntity dbEntity = findEntitySafe(authService.getApiUser().getDomainId());
+        ChangesHelper changesHelper = new ChangesHelper();
+        updateEntityField(updateEntity, dbEntity, DomainEntity::getKey, DomainEntity::setKey,
+                DomainEntity.Fields.key, changesHelper);
+        updateEntityField(updateEntity, dbEntity, DomainEntity::getName, DomainEntity::setName,
+                DomainEntity.Fields.name, changesHelper);
+        updateEntityField(updateEntity, dbEntity, DomainEntity::getDescription, DomainEntity::setDescription,
+                DomainEntity.Fields.description, changesHelper);
+        updateEntityField(updateEntity, dbEntity, DomainEntity::getBusinessAccountInitiatorFeaturerId, DomainEntity::setBusinessAccountInitiatorFeaturerId,
+                DomainEntity.Fields.businessAccountInitiatorFeaturerId, changesHelper);
+        updateEntityField(updateEntity, dbEntity, DomainEntity::getPermissionSchemaId, DomainEntity::setPermissionSchemaId,
+                DomainEntity.Fields.permissionSchemaId, changesHelper);
+        updateEntityField(updateEntity, dbEntity, DomainEntity::getTwinClassSchemaId, DomainEntity::setTwinClassSchemaId,
+                DomainEntity.Fields.twinClassSchemaId, changesHelper);
+        updateEntityField(updateEntity, dbEntity, DomainEntity::getBusinessAccountTemplateTwinId, DomainEntity::setBusinessAccountTemplateTwinId,
+                DomainEntity.Fields.businessAccountTemplateTwinId, changesHelper);
+        updateEntityField(updateEntity, dbEntity, DomainEntity::getDomainUserTemplateTwinId, DomainEntity::setDomainUserTemplateTwinId,
+                DomainEntity.Fields.domainUserTemplateTwinId, changesHelper);
+        updateEntityField(updateEntity, dbEntity, DomainEntity::getIconDarkResourceId, DomainEntity::setIconDarkResourceId,
+                DomainEntity.Fields.iconDarkResourceId, changesHelper);
+        updateEntityField(updateEntity, dbEntity, DomainEntity::getIconLightResourceId, DomainEntity::setIconLightResourceId,
+                DomainEntity.Fields.iconLightResourceId, changesHelper);
+        updateEntityField(updateEntity, dbEntity, DomainEntity::getDefaultTierId, DomainEntity::setDefaultTierId,
+                DomainEntity.Fields.defaultTierId, changesHelper);
+        updateEntityField(updateEntity, dbEntity, DomainEntity::getDomainType, DomainEntity::setDomainType,
+                DomainEntity.Fields.domainType, changesHelper);
+        updateEntityField(updateEntity, dbEntity, DomainEntity::getDefaultI18nLocaleId, DomainEntity::setDefaultI18nLocaleId,
+                DomainEntity.Fields.defaultI18nLocaleId, changesHelper);
+        updateEntityField(updateEntity, dbEntity, DomainEntity::getResourcesStorageId, DomainEntity::setResourcesStorageId,
+                DomainEntity.Fields.resourcesStorageId, changesHelper);
+        updateEntityField(updateEntity, dbEntity, DomainEntity::getAttachmentsStorageId, DomainEntity::setAttachmentsStorageId,
+                DomainEntity.Fields.attachmentsStorageId, changesHelper);
+        updateEntityField(updateEntity, dbEntity, DomainEntity::getNavbarFaceId, DomainEntity::setNavbarFaceId,
+                DomainEntity.Fields.navbarFaceId, changesHelper);
+        updateBusinessAccountInitiatorFeaturerId(dbEntity, updateEntity.getBusinessAccountInitiatorFeaturerId(), updateEntity.getBusinessAccountInitiatorParams(), changesHelper);
+        updateUserGroupManagerFeaturerId(dbEntity, updateEntity.getUserGroupManagerFeaturerId(), updateEntity.getUserGroupManagerParams(), changesHelper);
 
-        List<DomainEntity> updatedDomains = new ArrayList<>();
-        for (DomainEntity updateEntity : updateList) {
-            ChangesHelper changesHelper = new ChangesHelper();
-            DomainEntity dbEntity = dbEntities.get(updateEntity.getId());
+        updateSafe(dbEntity, changesHelper);
+        return dbEntity;
+    }
 
-            updateEntityField(updateEntity, dbEntity, DomainEntity::getKey, DomainEntity::setKey, DomainEntity.Fields.key, changesHelper);
-            updateEntityField(updateEntity, dbEntity, DomainEntity::getName, DomainEntity::setName, DomainEntity.Fields.name, changesHelper);
-            updateEntityField(updateEntity, dbEntity, DomainEntity::getDescription, DomainEntity::setDescription, DomainEntity.Fields.description, changesHelper);
-            updateEntityField(updateEntity, dbEntity, DomainEntity::getDomainType, DomainEntity::setDomainType, DomainEntity.Fields.domainType, changesHelper);
-            updateEntityField(updateEntity, dbEntity, DomainEntity::getDefaultI18nLocaleId, DomainEntity::setDefaultI18nLocaleId, DomainEntity.Fields.defaultI18nLocaleId, changesHelper);
-            updateEntityField(updateEntity, dbEntity, DomainEntity::getResourcesStorageId, DomainEntity::setResourcesStorageId, DomainEntity.Fields.resourcesStorageId, changesHelper);
-            updateEntityField(updateEntity, dbEntity, DomainEntity::getAttachmentsStorageId, DomainEntity::setAttachmentsStorageId, DomainEntity.Fields.attachmentsStorageId, changesHelper);
-            changesHelperMulti.add(dbEntity, changesHelper);
+    public void updateBusinessAccountInitiatorFeaturerId(DomainEntity dbDomainEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
+        FeaturerEntity newBusinessAccountInitiatorFeaturer = null;
+        if (newFeaturerId == null || newFeaturerId == 0) {
+            if (MapUtils.isEmpty(newFeaturerParams))
+                return; //nothing was changed
+            else
+                newFeaturerId = dbDomainEntity.getBusinessAccountInitiatorFeaturerId(); // only params where changed
         }
-        updateSafe(changesHelperMulti);
-        return updatedDomains;
+        if (!MapUtils.areEqual(dbDomainEntity.getBusinessAccountInitiatorParams(), newFeaturerParams)) {
+            newBusinessAccountInitiatorFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, BusinessAccountInitiator.class);
+            changesHelper.add(DomainEntity.Fields.businessAccountInitiatorParams, dbDomainEntity.getBusinessAccountInitiatorParams(), newFeaturerParams);
+            dbDomainEntity
+                    .setBusinessAccountInitiatorParams(newFeaturerParams);
+        }
+        if (changesHelper.isChanged(DomainEntity.Fields.businessAccountInitiatorFeaturerId, dbDomainEntity.getBusinessAccountInitiatorFeaturerId(), newFeaturerId)) {
+            if (newBusinessAccountInitiatorFeaturer == null)
+                newBusinessAccountInitiatorFeaturer = featurerService.getFeaturerEntity(newFeaturerId);
+            dbDomainEntity
+                    .setBusinessAccountInitiatorFeaturerId(newBusinessAccountInitiatorFeaturer.getId())
+                    .setBusinessAccountInitiatorFeaturer(newBusinessAccountInitiatorFeaturer);
+        }
+    }
+
+    public void updateUserGroupManagerFeaturerId(DomainEntity dbDomainEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
+        FeaturerEntity newUserGroupManagerFeaturer = null;
+        if (newFeaturerId == null || newFeaturerId == 0) {
+            if (MapUtils.isEmpty(newFeaturerParams))
+                return; //nothing was changed
+            else
+                newFeaturerId = dbDomainEntity.getUserGroupManagerFeaturerId(); // only params where changed
+        }
+        if (!MapUtils.areEqual(dbDomainEntity.getUserGroupManagerParams(), newFeaturerParams)) {
+            newUserGroupManagerFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, UserGroupManager.class);
+            changesHelper.add(DomainEntity.Fields.userGroupManagerParams, dbDomainEntity.getUserGroupManagerParams(), newFeaturerParams);
+            dbDomainEntity
+                    .setUserGroupManagerParams(newFeaturerParams);
+        }
+        if (changesHelper.isChanged(DomainEntity.Fields.userGroupManagerFeaturerId, dbDomainEntity.getUserGroupManagerFeaturerId(), newFeaturerId)) {
+            if (newUserGroupManagerFeaturer == null)
+                newUserGroupManagerFeaturer = featurerService.getFeaturerEntity(newFeaturerId);
+            dbDomainEntity
+                    .setUserGroupManagerFeaturerId(newUserGroupManagerFeaturer.getId())
+                    .setUserGroupManagerFeaturer(newUserGroupManagerFeaturer);
+        }
     }
 
     protected DomainEntity processIcons(DomainEntity domainEntity, DomainFile lightIcon, DomainFile darkIcon) throws ServiceException {
