@@ -1,4 +1,4 @@
-CREATE TABLE twin_field_i18n
+CREATE TABLE IF NOT EXISTS twin_field_i18n
 (
     id                  UUID PRIMARY KEY,
     twin_id             UUID       NOT NULL REFERENCES twin (id) ON DELETE CASCADE,
