@@ -2,6 +2,7 @@ package org.twins.core.dao.attachment;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -33,6 +34,10 @@ public class TwinAttachmentModificationEntity implements PublicCloneable<TwinAtt
 
     @Column(name = "storage_file_key")
     private String storageFileKey;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private TwinAttachmentEntity twinAttachment;
 
     @Override
     public TwinAttachmentModificationEntity clone() {

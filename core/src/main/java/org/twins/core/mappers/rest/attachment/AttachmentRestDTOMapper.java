@@ -78,6 +78,8 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
             commentRestDTOMapper.postpone(src.getComment(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(CommentMode.Attachment2CommentModeMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(AttachmentModificationMode.HIDE)) {
+            if(src.getModifications() == null)
+                attachmentService.loadAttachmentModifications(List.of(src));
             dst.setModifications(new HashMap<>());
             if(CollectionUtils.isNotEmpty(src.getModifications()))
                 for (TwinAttachmentModificationEntity mod : src.getModifications())

@@ -3,6 +3,7 @@ package org.twins.core.domain;
 import lombok.Getter;
 import org.cambium.common.util.ChangesHelper;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
+import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 import org.twins.core.dao.twin.*;
 import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
@@ -73,6 +74,9 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         } else if (entity instanceof TwinAttachmentEntity twinAttachmentEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinAttachmentEntity.getTwin(), k -> new HashSet<>());
             invalidates.add(TwinInvalidate.twinAttachments);;
+        } else if (entity instanceof TwinAttachmentModificationEntity twinAttachmentModificationEntity) {
+            invalidates = invalidationMap.computeIfAbsent(twinAttachmentModificationEntity.getTwinAttachment().getTwin(), k -> new HashSet<>());
+            invalidates.add(TwinInvalidate.twinAttachmentModifications);;
         }
     }
 
@@ -83,13 +87,21 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
     }
 
     public enum TwinInvalidate {
-        markersKit,
-        tagsKit,
-        twinFieldSimpleKit,
-        twinFieldUserKit,
-        twinFieldDatalistKit,
-        fieldValuesKit,
-        twinLinks,
-        twinAttachments
+        twinAttachmentModifications(1),
+        twinAttachments(2),
+        tagsKit(3),
+        markersKit(4),
+        twinFieldSimpleKit(5),
+        twinFieldUserKit(6),
+        twinFieldDatalistKit(7),
+        twinLinks(8),
+        fieldValuesKit(9);
+
+        @Getter
+        private final int order;
+
+        TwinInvalidate(int order) {
+            this.order = order;
+        }
     }
 }

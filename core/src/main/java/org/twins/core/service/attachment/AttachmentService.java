@@ -89,7 +89,10 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             if (twinChangesCollector.isHistoryCollectorEnabled())
                 twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentCreate(attachmentEntity));
             if (!CollectionUtils.isEmpty(attachmentEntity.getModifications())) {
-                attachmentEntity.getModifications().forEach(mod -> mod.setTwinAttachmentId(uuid));
+                attachmentEntity.getModifications().forEach(mod -> {
+                    mod.setTwinAttachment(attachmentEntity);
+                    mod.setTwinAttachmentId(uuid);
+                });
                 twinChangesCollector.addAll(attachmentEntity.getModifications());
             }
         }
@@ -193,22 +196,22 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         }
     }
 
-    public void loadAttachmentModifications(Collection<TwinAttachmentEntity> attachmentEntityList) {
-        Map<UUID, TwinAttachmentEntity> needLoad = new HashMap<>();
-        for (TwinAttachmentEntity attachmentEntity : attachmentEntityList)
+    public void loadAttachmentModifications(Collection<TwinAttachmentEntity> collection) throws ServiceException {
+        Kit<TwinAttachmentEntity, UUID> needLoad = new Kit<>(TwinAttachmentEntity::getId);
+        for (TwinAttachmentEntity attachmentEntity : collection)
             if (attachmentEntity.getModifications() == null) {
-                needLoad.put(attachmentEntity.getId(), attachmentEntity);
+                needLoad.add(attachmentEntity);
                 attachmentEntity.setModifications(new HashSet<>());
             }
         if (needLoad.isEmpty())
             return;
-        List<TwinAttachmentModificationEntity> modifications = twinAttachmentModificationRepository.findAllByTwinAttachmentIdIn(needLoad.keySet());
+        List<TwinAttachmentModificationEntity> modifications = twinAttachmentModificationRepository.findAllByTwinAttachmentIdIn(needLoad.getIdSet());
         if (CollectionUtils.isEmpty(modifications))
             return;
-        Map<UUID, List<TwinAttachmentModificationEntity>> resultMap = modifications.stream()
-                .collect(Collectors.groupingBy(TwinAttachmentModificationEntity::getTwinAttachmentId));
-        for (TwinAttachmentEntity attachment : needLoad.values()) {
-            List<TwinAttachmentModificationEntity> innerArray = resultMap.get(attachment.getId());
+        KitGrouped<TwinAttachmentModificationEntity, UUID, UUID> modificationsKit =
+                new KitGrouped<>(modifications, TwinAttachmentModificationEntity::getId, TwinAttachmentModificationEntity::getTwinAttachmentId);
+        for (TwinAttachmentEntity attachment : needLoad.getCollection()) {
+            List<TwinAttachmentModificationEntity> innerArray = modificationsKit.getGrouped(attachment.getId());
             if (innerArray == null)
                 continue;
             attachment.getModifications().addAll(innerArray);
@@ -295,6 +298,8 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     private void updateAttachmentModifications(TwinAttachmentEntity attachmentEntity,
                                                TwinAttachmentEntity dbAttachmentEntity,
                                                TwinChangesCollector twinChangesCollector) {
+        //TODO ???
+        loadAttachments(dbAttachmentEntity.getTwin());
         List<TwinAttachmentModificationEntity> incomingMods = new ArrayList<>(attachmentEntity.getModifications());
         List<TwinAttachmentModificationEntity> existingMods = !CollectionUtils.isEmpty(dbAttachmentEntity.getModifications()) ?
                 new ArrayList<>(dbAttachmentEntity.getModifications()) : Collections.emptyList();
@@ -312,25 +317,25 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 TwinAttachmentModificationEntity newMod = new TwinAttachmentModificationEntity()
                         .setTwinAttachmentId(dbAttachmentEntity.getId())
                         .setModificationType(incomingMod.getModificationType())
-                        .setStorageFileKey(incomingMod.getStorageFileKey());
+                        .setStorageFileKey(incomingMod.getStorageFileKey())
+                        .setTwinAttachment(dbAttachmentEntity);
                 toCreate.add(newMod);
             } else {
                 if (!Objects.equals(existingMod.getStorageFileKey(), incomingMod.getStorageFileKey())) {
-                    existingMod.setStorageFileKey(incomingMod.getStorageFileKey());
+                    existingMod.setStorageFileKey(incomingMod.getStorageFileKey())
+                            .setTwinAttachment(dbAttachmentEntity);
                     toUpdate.add(existingMod);
                 }
                 existingModMap.remove(modType);
             }
         }
-
         List<TwinAttachmentModificationEntity> toDelete = new ArrayList<>(existingModMap.values());
-        if (!toDelete.isEmpty()) twinChangesCollector.deleteAll(toDelete);
+        if (!toDelete.isEmpty()) {
+            toDelete.forEach(x -> x.setTwinAttachment(dbAttachmentEntity));
+            twinChangesCollector.deleteAll(toDelete);
+        }
         if (!toUpdate.isEmpty()) twinChangesCollector.addAll(toUpdate);
         if (!toCreate.isEmpty()) twinChangesCollector.addAll(toCreate);
-        //invalidation of modifications set
-        if(!toDelete.isEmpty() || !toUpdate.isEmpty() || !toCreate.isEmpty())
-            dbAttachmentEntity.setModifications(null);
-
     }
 
     private String createChangesLogString(String field, String oldValue, String newValue) {

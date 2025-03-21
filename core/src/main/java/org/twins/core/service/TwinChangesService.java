@@ -18,9 +18,7 @@ import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.service.history.HistoryService;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -78,32 +76,39 @@ public class TwinChangesService {
     }
 
     private void invalidate(Map<TwinEntity, Set<TwinChangesCollector.TwinInvalidate>> invalidationMap) {
-        for (var entry : invalidationMap.entrySet()) {
-            for (TwinChangesCollector.TwinInvalidate invalidation : entry.getValue()) {
+        for (Map.Entry<TwinEntity, Set<TwinChangesCollector.TwinInvalidate>> entry : invalidationMap.entrySet()) {
+            TwinEntity twin = entry.getKey();
+            List<TwinChangesCollector.TwinInvalidate> sortedInvalidations = entry.getValue().stream()
+                    .sorted(Comparator.comparing(TwinChangesCollector.TwinInvalidate::getOrder)).toList();
+            for (TwinChangesCollector.TwinInvalidate invalidation : sortedInvalidations) {
                 switch (invalidation) {
                     case tagsKit:
-                        entry.getKey().setTwinTagKit(null);
+                        twin.setTwinTagKit(null);
                         break;
                     case markersKit:
-                        entry.getKey().setTwinMarkerKit(null);
+                        twin.setTwinMarkerKit(null);
                         break;
                     case twinFieldSimpleKit:
-                        entry.getKey().setTwinFieldSimpleKit(null);
+                        twin.setTwinFieldSimpleKit(null);
                         break;
                     case twinFieldUserKit:
-                        entry.getKey().setTwinFieldUserKit(null);
+                        twin.setTwinFieldUserKit(null);
                         break;
                     case twinFieldDatalistKit:
-                        entry.getKey().setTwinFieldDatalistKit(null);
+                        twin.setTwinFieldDatalistKit(null);
                         break;
                     case twinLinks:
-                        entry.getKey().setTwinLinks(null);
+                        twin.setTwinLinks(null);
                         break;
                     case fieldValuesKit:
-                        entry.getKey().setFieldValuesKit(null);
+                        twin.setFieldValuesKit(null);
+                        break;
+                    case twinAttachmentModifications:
+                        if (twin.getAttachmentKit() != null)
+                            twin.getAttachmentKit().forEach(x -> x.setModifications(null));
                         break;
                     case twinAttachments:
-                        entry.getKey().setAttachmentKit(null);
+                        twin.setAttachmentKit(null);
                         break;
                 }
             }
