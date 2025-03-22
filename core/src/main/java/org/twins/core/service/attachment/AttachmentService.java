@@ -132,13 +132,8 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         return twinAttachmentRepository.findByTwinId(twinId);
     }
 
-    public Kit<TwinAttachmentEntity, UUID> loadAttachments(TwinEntity twinEntity) {
-        if (twinEntity.getAttachmentKit() != null)
-            return twinEntity.getAttachmentKit();
-        List<TwinAttachmentEntity> attachmentEntityList = twinAttachmentRepository.findByTwinId(twinEntity.getId());
-        if (attachmentEntityList != null)
-            twinEntity.setAttachmentKit(new Kit<>(attachmentEntityList, TwinAttachmentEntity::getId));
-        return twinEntity.getAttachmentKit();
+    public void loadAttachments(TwinEntity twinEntity) {
+        loadAttachments(Collections.singletonList(twinEntity));
     }
 
     public void loadAttachments(Collection<TwinEntity> twinEntityList) {
@@ -194,6 +189,10 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                     parseInt(innerArray[4]))
             );
         }
+    }
+
+    public void loadAttachmentModifications(TwinAttachmentEntity attachmentEntity) throws ServiceException {
+        loadAttachmentModifications(Collections.singletonList(attachmentEntity));
     }
 
     public void loadAttachmentModifications(Collection<TwinAttachmentEntity> collection) throws ServiceException {
