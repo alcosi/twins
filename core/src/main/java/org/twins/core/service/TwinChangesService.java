@@ -18,7 +18,9 @@ import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.service.history.HistoryService;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -75,43 +77,48 @@ public class TwinChangesService {
         return changesApplyResult;
     }
 
-    private void invalidate(Map<TwinEntity, Set<TwinChangesCollector.TwinInvalidate>> invalidationMap) {
-        for (Map.Entry<TwinEntity, Set<TwinChangesCollector.TwinInvalidate>> entry : invalidationMap.entrySet()) {
-            TwinEntity twin = entry.getKey();
-            List<TwinChangesCollector.TwinInvalidate> sortedInvalidations = entry.getValue().stream()
-                    .sorted(Comparator.comparing(TwinChangesCollector.TwinInvalidate::getOrder)).toList();
-            for (TwinChangesCollector.TwinInvalidate invalidation : sortedInvalidations) {
-                switch (invalidation) {
-                    case tagsKit:
-                        twin.setTwinTagKit(null);
-                        break;
-                    case markersKit:
-                        twin.setTwinMarkerKit(null);
-                        break;
-                    case twinFieldSimpleKit:
-                        twin.setTwinFieldSimpleKit(null);
-                        break;
-                    case twinFieldUserKit:
-                        twin.setTwinFieldUserKit(null);
-                        break;
-                    case twinFieldDatalistKit:
-                        twin.setTwinFieldDatalistKit(null);
-                        break;
-                    case twinLinks:
-                        twin.setTwinLinks(null);
-                        break;
-                    case fieldValuesKit:
-                        twin.setFieldValuesKit(null);
-                        break;
-                    case twinAttachmentModifications:
-                        if (twin.getAttachmentKit() != null)
-                            twin.getAttachmentKit().forEach(x -> x.setModifications(null));
-                        break;
-                    case twinAttachments:
-                        twin.setAttachmentKit(null);
-                        break;
+    private void invalidate(Map<Object, Set<TwinChangesCollector.TwinInvalidate>> invalidationMap) {
+        for (var entry : invalidationMap.entrySet()) {
+            if (entry.getKey() instanceof TwinEntity twinEntity) {
+                for (TwinChangesCollector.TwinInvalidate invalidation : entry.getValue()) {
+                    switch (invalidation) {
+                        case tagsKit:
+                            twinEntity.setTwinTagKit(null);
+                            break;
+                        case markersKit:
+                            twinEntity.setTwinMarkerKit(null);
+                            break;
+                        case twinFieldSimpleKit:
+                            twinEntity.setTwinFieldSimpleKit(null);
+                            break;
+                        case twinFieldUserKit:
+                            twinEntity.setTwinFieldUserKit(null);
+                            break;
+                        case twinFieldDatalistKit:
+                            twinEntity.setTwinFieldDatalistKit(null);
+                            break;
+                        case twinLinks:
+                            twinEntity.setTwinLinks(null);
+                            break;
+                        case fieldValuesKit:
+                            twinEntity.setFieldValuesKit(null);
+                            break;
+                        case twinAttachments:
+                            twinEntity.setAttachmentKit(null);
+                            break;
+                    }
+                }
+                continue;
+            } else if (entry.getKey() instanceof TwinAttachmentEntity twinAttachmentEntity) {
+                for (TwinChangesCollector.TwinInvalidate invalidation : entry.getValue()) {
+                    switch (invalidation) {
+                        case twinAttachmentModifications:
+                            twinAttachmentEntity.setModifications(null);
+                            break;
+                    }
                 }
             }
+
         }
     }
 

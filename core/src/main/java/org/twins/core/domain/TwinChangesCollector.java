@@ -17,7 +17,7 @@ import java.util.Set;
 public class TwinChangesCollector extends EntitiesChangesCollector {
     private final HistoryCollectorMultiTwin historyCollector = new HistoryCollectorMultiTwin();
     private boolean historyCollectorEnabled = true; // in some cases we do not need to collect history changes (before drafting for example, currently we do not collect history, only after )
-    private final Map<TwinEntity, Set<TwinInvalidate>> invalidationMap = new HashMap<>();
+    private final Map<Object, Set<TwinInvalidate>> invalidationMap = new HashMap<>();
 
     public TwinChangesCollector() {
         super();
@@ -75,8 +75,8 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
             invalidates = invalidationMap.computeIfAbsent(twinAttachmentEntity.getTwin(), k -> new HashSet<>());
             invalidates.add(TwinInvalidate.twinAttachments);;
         } else if (entity instanceof TwinAttachmentModificationEntity twinAttachmentModificationEntity) {
-            invalidates = invalidationMap.computeIfAbsent(twinAttachmentModificationEntity.getTwinAttachment().getTwin(), k -> new HashSet<>());
-            invalidates.add(TwinInvalidate.twinAttachmentModifications);;
+            invalidates = invalidationMap.computeIfAbsent(twinAttachmentModificationEntity.getTwinAttachment(), k -> new HashSet<>());
+            invalidates.add(TwinInvalidate.twinAttachmentModifications);
         }
     }
 

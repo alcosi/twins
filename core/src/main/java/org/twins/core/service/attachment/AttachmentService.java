@@ -197,11 +197,12 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
     public void loadAttachmentModifications(Collection<TwinAttachmentEntity> collection) throws ServiceException {
         Kit<TwinAttachmentEntity, UUID> needLoad = new Kit<>(TwinAttachmentEntity::getId);
-        for (TwinAttachmentEntity attachmentEntity : collection)
-            if (attachmentEntity.getModifications() == null) {
-                needLoad.add(attachmentEntity);
-                attachmentEntity.setModifications(new HashSet<>());
-            }
+        for (TwinAttachmentEntity attachmentEntity : collection) {
+            if (attachmentEntity.getModifications() != null)
+                continue;
+            needLoad.add(attachmentEntity);
+            attachmentEntity.setModifications(new Kit<>(TwinAttachmentModificationEntity::getModificationType));
+        }
         if (needLoad.isEmpty())
             return;
         List<TwinAttachmentModificationEntity> modifications = twinAttachmentModificationRepository.findAllByTwinAttachmentIdIn(needLoad.getIdSet());
@@ -296,43 +297,33 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
     private void updateAttachmentModifications(TwinAttachmentEntity attachmentEntity,
                                                TwinAttachmentEntity dbAttachmentEntity,
-                                               TwinChangesCollector twinChangesCollector) {
-        //TODO ???
-        loadAttachments(dbAttachmentEntity.getTwin());
+                                               TwinChangesCollector twinChangesCollector) throws ServiceException {
+        loadAttachmentModifications(dbAttachmentEntity);
         List<TwinAttachmentModificationEntity> incomingMods = new ArrayList<>(attachmentEntity.getModifications());
-        List<TwinAttachmentModificationEntity> existingMods = !CollectionUtils.isEmpty(dbAttachmentEntity.getModifications()) ?
-                new ArrayList<>(dbAttachmentEntity.getModifications()) : Collections.emptyList();
-
-        Map<String, TwinAttachmentModificationEntity> existingModMap = existingMods.stream()
-                .collect(Collectors.toMap(TwinAttachmentModificationEntity::getModificationType, mod -> mod));
 
         List<TwinAttachmentModificationEntity> toUpdate = new ArrayList<>();
         List<TwinAttachmentModificationEntity> toCreate = new ArrayList<>();
 
         for (TwinAttachmentModificationEntity incomingMod : incomingMods) {
+            incomingMod
+                    .setTwinAttachmentId(dbAttachmentEntity.getId())
+                    .setTwinAttachment(dbAttachmentEntity); // for sure
             String modType = incomingMod.getModificationType();
-            TwinAttachmentModificationEntity existingMod = existingModMap.get(modType);
+            TwinAttachmentModificationEntity existingMod = dbAttachmentEntity.getModifications().get(modType);
             if (existingMod == null) {
-                TwinAttachmentModificationEntity newMod = new TwinAttachmentModificationEntity()
-                        .setTwinAttachmentId(dbAttachmentEntity.getId())
-                        .setModificationType(incomingMod.getModificationType())
-                        .setStorageFileKey(incomingMod.getStorageFileKey())
-                        .setTwinAttachment(dbAttachmentEntity);
-                toCreate.add(newMod);
+                toCreate.add(incomingMod);
             } else {
                 if (!Objects.equals(existingMod.getStorageFileKey(), incomingMod.getStorageFileKey())) {
-                    existingMod.setStorageFileKey(incomingMod.getStorageFileKey())
+                    existingMod
+                            .setStorageFileKey(incomingMod.getStorageFileKey())
                             .setTwinAttachment(dbAttachmentEntity);
                     toUpdate.add(existingMod);
                 }
-                existingModMap.remove(modType);
+                dbAttachmentEntity.getModifications().remove(existingMod);
             }
         }
-        List<TwinAttachmentModificationEntity> toDelete = new ArrayList<>(existingModMap.values());
-        if (!toDelete.isEmpty()) {
-            toDelete.forEach(x -> x.setTwinAttachment(dbAttachmentEntity));
-            twinChangesCollector.deleteAll(toDelete);
-        }
+        Collection<TwinAttachmentModificationEntity> toDelete = dbAttachmentEntity.getModifications().getCollection();
+        if (!toDelete.isEmpty()) twinChangesCollector.deleteAll(toDelete);
         if (!toUpdate.isEmpty()) twinChangesCollector.addAll(toUpdate);
         if (!toCreate.isEmpty()) twinChangesCollector.addAll(toCreate);
     }

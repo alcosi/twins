@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
+import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.permission.PermissionEntity;
@@ -99,7 +100,7 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Set<TwinAttachmentModificationEntity> modifications;
+    private Kit<TwinAttachmentModificationEntity, String> modifications;
 
     @Override
     public TwinAttachmentEntity clone() {

@@ -765,7 +765,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         return draftTwinAttachmentEntity;
     }
 
-    private String convertAttachmentModificationsToString(Set<TwinAttachmentModificationEntity> modifications) {
+    private String convertAttachmentModificationsToString(Collection<TwinAttachmentModificationEntity> modifications) {
         StringBuilder sb = new StringBuilder();
         for (TwinAttachmentModificationEntity modification : modifications)
             sb.append(modification.easyLog(EasyLoggable.Level.DETAILED));

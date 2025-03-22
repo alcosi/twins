@@ -7,9 +7,9 @@ import org.cambium.common.util.StringUtils;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -28,13 +28,13 @@ public class AttachmentSnapshot {
         return new AttachmentSnapshot()
                 .setId(attachmentEntity.getId())
                 .setStorageFileKey(attachmentEntity.getStorageFileKey())
-                .setModifications(convertModificationsToMap(attachmentEntity.getModifications()))
+                .setModifications(convertModificationsToMap(attachmentEntity.getModifications().getCollection()))
                 .setExternalId(attachmentEntity.getExternalId())
                 .setTitle(attachmentEntity.getTitle())
                 .setDescription(attachmentEntity.getDescription());
     }
 
-    private static Map<String, String> convertModificationsToMap(Set<TwinAttachmentModificationEntity> modifications) {
+    private static Map<String, String> convertModificationsToMap(Collection<TwinAttachmentModificationEntity> modifications) {
         Map<String, String> mods = new HashMap<>();
         if (!CollectionUtils.isEmpty(modifications)) {
             for (TwinAttachmentModificationEntity mod : modifications)
