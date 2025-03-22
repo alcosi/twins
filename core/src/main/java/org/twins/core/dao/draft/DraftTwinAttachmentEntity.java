@@ -3,11 +3,9 @@ package org.twins.core.dao.draft;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.hibernate.annotations.Cascade;
 import org.twins.core.dao.CUD;
 import org.twins.core.dao.CUDConverter;
 
-import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -40,19 +38,11 @@ public class DraftTwinAttachmentEntity {
     @Column(name = "twinflow_transition_id")
     private UUID twinflowTransitionId;
 
-    @Column(name = "storage_link")
-    private String storageLink;
+    @Column(name = "storage_file_key")
+    private String storageFileKey;
 
-    @ElementCollection
-    @CollectionTable(
-            name = "draft_twin_attachment_modification_links",
-            joinColumns = @JoinColumn(name = "draft_twin_attachment_id"),
-            foreignKey = @ForeignKey(name = "FK_draft_twin_attachment_mod_links_draft_twin_attachment_id")
-    )
-    @MapKeyColumn(name = "mod_key")
-    @Column(name = "mod_link")
-    @Cascade(org.hibernate.annotations.CascadeType.ALL)
-    private Map<String, String> modificationLinks;
+    @Column(name = "modifications")
+    private String modifications;
 
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
