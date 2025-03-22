@@ -246,6 +246,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         Map<TransitionDetectKey, List<TwinEntity>> triples = new HashMap<>();
         TransitionDetectKey triple;
         for (TwinEntity twinEntity : twinEntities) {
+            //twinflow can be inherited from extended class, that is why twin.getTwinClassId is not always equal to twinflow.twinClassId here
             triple = new TransitionDetectKey(
                     twinEntity.getTwinflow().getId(),
                     twinEntity.getTwinStatusId(),

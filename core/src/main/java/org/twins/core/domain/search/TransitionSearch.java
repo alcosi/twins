@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -17,8 +18,8 @@ public class TransitionSearch {
     private Set<String> nameNotLikeList;
     private Set<String> descriptionLikeList;
     private Set<String> descriptionNotLikeList;
-    private Set<UUID> twinClassIdList;
-    private Set<UUID> twinClassIdExcludeList;
+    private Map<UUID, Boolean> twinClassIdMap;
+    private Map<UUID, Boolean> twinClassIdExcludeMap;
     private Set<UUID> twinflowIdList;
     private Set<UUID> twinflowIdExcludeList;
     private Set<UUID> srcStatusIdList;

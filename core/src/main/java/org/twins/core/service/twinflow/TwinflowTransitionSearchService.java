@@ -9,17 +9,18 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
 import org.twins.core.domain.search.TransitionSearch;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Locale;
 
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.twinflow.TransitionSpecification.checkAliasLikeIn;
-import static org.twins.core.dao.specifications.twinflow.TransitionSpecification.checkUuidTwinClassIn;
 
 
 @Service
@@ -28,6 +29,7 @@ import static org.twins.core.dao.specifications.twinflow.TransitionSpecification
 public class TwinflowTransitionSearchService {
     private final TwinflowTransitionRepository twinflowTransitionRepository;
     private final AuthService authService;
+    private final TwinClassService twinClassService;
 
     private Specification<TwinflowTransitionEntity> createTwinflowTransitionEntitySearchSpecification(TransitionSearch search) throws ServiceException {
         Locale locale = authService.getApiUser().getLocale();
@@ -38,8 +40,8 @@ public class TwinflowTransitionSearchService {
                 joinAndSearchByI18NField(TwinflowTransitionEntity.Fields.nameI18n, search.getNameNotLikeList(), locale, true, true),
                 joinAndSearchByI18NField(TwinflowTransitionEntity.Fields.descriptionI18n, search.getDescriptionLikeList(), locale, true, false),
                 joinAndSearchByI18NField(TwinflowTransitionEntity.Fields.descriptionI18n, search.getDescriptionNotLikeList(), locale, true, true),
-                checkUuidTwinClassIn(search.getTwinClassIdList(), false),
-                checkUuidTwinClassIn(search.getTwinClassIdExcludeList(), true),
+                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdMap()), false, false, TwinflowTransitionEntity.Fields.twinflow, TwinflowEntity.Fields.twinClassId),
+                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdExcludeMap()), true, false, TwinflowTransitionEntity.Fields.twinflow, TwinflowEntity.Fields.twinClassId),
                 checkUuidIn(search.getTwinflowIdList(), false, false, TwinflowTransitionEntity.Fields.twinflowId),
                 checkUuidIn(search.getTwinflowIdExcludeList(), true, false, TwinflowTransitionEntity.Fields.twinflowId),
                 checkUuidIn(search.getSrcStatusIdList(), false, false, TwinflowTransitionEntity.Fields.srcTwinStatusId),

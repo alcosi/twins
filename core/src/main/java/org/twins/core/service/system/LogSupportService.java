@@ -45,7 +45,7 @@ public class LogSupportService {
         twinStatusService.loadStatusesForTwinClasses(twinClasses);
         twinClassFieldService.loadTwinClassFields(twinClasses);
         linkService.loadLinksForTwinClasses(twinClasses);
-        twinflowService.loadTwinflowsForTwinClasses(twinClasses);
+        twinflowService.loadTwinflows(twinClasses);
         twinflowTransitionService.loadAllTransitions(twinClasses);
 
         StringBuilder sb = new StringBuilder();

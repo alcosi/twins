@@ -10,13 +10,14 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
@@ -28,16 +29,14 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinflow.TwinflowBaseV3RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowSearchRestDTOReverseMapper;
-import org.twins.core.service.twinflow.TwinflowService;
-
-import static org.cambium.common.util.PaginationUtils.*;
+import org.twins.core.service.twinflow.TwinflowSearchService;
 
 @Tag(name = ApiTag.TWINFLOW)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinflowListController extends ApiController {
-    private final TwinflowService twinflowService;
+    private final TwinflowSearchService twinflowSearchService;
     private final TwinflowBaseV3RestDTOMapper twinflowBaseV3RestDTOMapper;
     private final TwinflowSearchRestDTOReverseMapper twinflowSearchRestDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
@@ -57,7 +56,7 @@ public class TwinflowListController extends ApiController {
             @RequestBody TwinflowSearchRqDTOv1 request) {
         TwinflowSearchRsDTOv1 rs = new TwinflowSearchRsDTOv1();
         try {
-            PaginationResult<TwinflowEntity> twinflowList = twinflowService
+            PaginationResult<TwinflowEntity> twinflowList = twinflowSearchService
                     .search(twinflowSearchRestDTOReverseMapper.convert(request), pagination);
             rs
                     .setTwinflowList(twinflowBaseV3RestDTOMapper

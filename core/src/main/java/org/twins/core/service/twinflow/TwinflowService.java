@@ -6,27 +6,23 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.MapUtils;
-import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
-import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
-import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
@@ -35,11 +31,11 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.search.TwinflowSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -50,10 +46,6 @@ import java.util.*;
 import java.util.function.Function;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
-import static org.springframework.data.jpa.domain.Specification.where;
-import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkSchemas;
-import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkUuidIn;
 
 @Slf4j
 @Service
@@ -163,6 +155,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         }
         TwinflowEntity twinflowEntity = null;
         for (TwinEntity twinEntity : needLoad.values()) {
+            //twinflow can be inherited from extended class, that is why twin.getTwinClassId is not always equal to twinflow.twinClassId here
             twinflowEntity = twinflowMap.get(twinEntity.getTwinClassId().toString() + (twinEntity.getTwinflowSchemaSpaceId() != null ? twinEntity.getTwinflowSchemaSpaceId() : ""));
             if (twinflowEntity == null)
                 throw new ServiceException(ErrorCodeTwins.TWINFLOW_SCHEMA_NOT_CONFIGURED, twinEntity.logNormal() + " can not detect twinflow");
@@ -170,15 +163,30 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         }
     }
 
-    public void loadTwinflowsForTwinClasses(List<TwinClassEntity> twinClasses) {
-        for (TwinClassEntity twinClass : twinClasses) {
-            loadTwinflows(twinClass);
-        }
+    public void loadTwinflows(TwinClassEntity twinClass) {
+        loadTwinflows(Collections.singletonList(twinClass));
     }
 
-    public void loadTwinflows(TwinClassEntity twinClass) {
-        if (twinClass.getTwinflowKit() == null) {
-            twinClass.setTwinflowKit(new Kit<>(twinflowRepository.findByTwinClassId(twinClass.getId()), TwinflowEntity::getId));
+    public void loadTwinflows(List<TwinClassEntity> twinClasses) {
+        Kit<TwinClassEntity, UUID> needLoad = new Kit<>(TwinClassEntity::getId);
+        Set<UUID> needLoadClassesIds = new HashSet<>();
+        for (var twinClass : twinClasses) {
+            if (twinClass.getTwinflowKit() != null)
+                continue;
+            twinClass.setTwinflowKit(new Kit<>(TwinflowEntity::getId));
+            needLoad.add(twinClass);
+            needLoadClassesIds.addAll(twinClass.getExtendedClassIdSet()); //current class id is already in this set
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        List<TwinflowEntity> twinflows = twinflowRepository.findByTwinClassIdIn(needLoadClassesIds);
+        if (CollectionUtils.isEmpty(twinflows))
+            return;
+        KitGrouped<TwinflowEntity, UUID, UUID> loaded = new KitGrouped<>(twinflows, TwinflowEntity::getId, TwinflowEntity::getTwinClassId);
+        for (var twinClass : needLoad.getCollection()) {
+            for (var extendedTwinClassId : twinClass.getExtendedClassIdSet()) {
+                twinClass.getTwinflowKit().addAll(loaded.getGrouped(extendedTwinClassId));
+            }
         }
     }
 
@@ -251,35 +259,6 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
                 .setTwinflowId(twinflowEntity.getId())
                 .setTwinflow(twinflowEntity);
         return entitySmartService.save(twinflowSchemaMapEntity, twinflowSchemaMapRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-    }
-
-    public PaginationResult<TwinflowEntity> search(TwinflowSearch twinflowSearch, SimplePagination pagination) throws ServiceException {
-        if (twinflowSearch == null)
-            twinflowSearch = new TwinflowSearch(); //no filters
-        Page<TwinflowEntity> twinflowList = twinflowRepository.findAll(
-                createTwinflowEntitySearchSpecification(twinflowSearch),
-                PaginationUtils.pageableOffset(pagination));
-        return PaginationUtils.convertInPaginationResult(twinflowList, pagination);
-    }
-
-    private Specification<TwinflowEntity> createTwinflowEntitySearchSpecification(TwinflowSearch twinflowSearch) throws ServiceException {
-        Locale locale = authService.getApiUser().getLocale();
-        return where(checkSchemas(TwinflowEntity.Fields.schemaMappings, twinflowSearch.getTwinflowSchemaIdList(), true, false)
-                .and(checkSchemas(TwinflowEntity.Fields.schemaMappings, twinflowSearch.getTwinflowSchemaIdExcludeList(), true, true))
-                .and(checkUuidIn(twinflowSearch.getIdList(), false, false, TwinflowEntity.Fields.id))
-                .and(checkUuidIn(twinflowSearch.getIdExcludeList(), false, false, TwinflowEntity.Fields.id))
-                .and(checkUuidIn(twinflowSearch.getTwinClassIdList(), false, false, TwinflowEntity.Fields.twinClassId))
-                .and(checkUuidIn(twinflowSearch.getTwinClassIdExcludeList(), true, false, TwinflowEntity.Fields.twinClassId))
-                .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinflowSearch.getNameI18nLikeList(), locale, false, false))
-                .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinflowSearch.getNameI18nNotLikeList(), locale, true, true))
-                .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinflowSearch.getDescriptionI18nLikeList(), locale, false, false))
-                .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinflowSearch.getDescriptionI18nNotLikeList(), locale, false, true))
-                .and(checkUuidIn(twinflowSearch.getInitialStatusIdList(), false, false, TwinflowEntity.Fields.initialTwinStatusId))
-                .and(checkUuidIn(twinflowSearch.getInitialStatusIdExcludeList(), true, false, TwinflowEntity.Fields.initialTwinStatusId))
-                .and(checkUuidIn(twinflowSearch.getCreatedByUserIdList(), false, false, TwinflowEntity.Fields.createdByUserId))
-                .and(checkUuidIn(twinflowSearch.getCreatedByUserIdExcludeList(), true, true, TwinflowEntity.Fields.createdByUserId))
-
-        );
     }
 
     @Transactional(rollbackFor = Throwable.class)
