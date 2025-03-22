@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -32,11 +33,11 @@ public class TransitionSearchRqDTOv1 extends Request {
     @Schema(description = "description not like list")
     public Set<String> descriptionNotLikeList;
 
-    @Schema(description = "twin class id list")
-    public Set<UUID> twinClassIdList;
+    @Schema(description = "twin class id map")
+    public Map<UUID, Boolean> twinClassIdMap;
 
-    @Schema(description = "twin class id exclude list")
-    public Set<UUID> twinClassIdExcludeList;
+    @Schema(description = "twin class id exclude map")
+    public Map<UUID, Boolean> twinClassIdExcludeMap;
 
     @Schema(description = "twinflow id list")
     public Set<UUID> twinflowIdList;
