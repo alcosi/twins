@@ -1,6 +1,7 @@
 package org.twins.core.mappers.rest.attachment;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.kit.Kit;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
@@ -21,7 +22,7 @@ public class AttachmentBaseRestDTOReverseMapper extends RestSimpleDTOMapper<Atta
     public void map(AttachmentBaseDTOv1 src, TwinAttachmentEntity dst, MapperContext mapperContext) throws Exception {
         dst
                 .setStorageFileKey(src.getStorageLink())
-                .setModifications(new HashSet<>())
+                .setModifications(new Kit<>(TwinAttachmentModificationEntity::getModificationType))
                 .setTitle(src.getTitle())
                 //TODO set size as is.
                 .setSize(src.getSize() == null ? 0 : src.getSize())

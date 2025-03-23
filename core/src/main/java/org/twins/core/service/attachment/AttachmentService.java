@@ -282,7 +282,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 dbAttachmentEntity.setStorageFileKey(attachmentEntity.getStorageFileKey());
             }
             if (attachmentEntity.getModifications() != null) {
-                loadAttachmentModifications(List.of(dbAttachmentEntity));
                 updateAttachmentModifications(attachmentEntity, dbAttachmentEntity, twinChangesCollector);
             }
             if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.externalId, dbAttachmentEntity.getExternalId(), attachmentEntity.getExternalId())) {
@@ -345,6 +344,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         if (CollectionUtils.isEmpty(attachmentDeleteList))
             return;
         loadTwins(attachmentDeleteList);
+        loadAttachmentModifications(attachmentDeleteList);
         for (TwinAttachmentEntity attachmentEntity : attachmentDeleteList) {
             if (!attachmentActionService.isAllowed(attachmentEntity, TwinAttachmentAction.DELETE)) {// N+1
                 log.info("{} cannot be deleted because it is not allowed", attachmentEntity.logShort());

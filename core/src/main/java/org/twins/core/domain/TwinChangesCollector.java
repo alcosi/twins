@@ -87,21 +87,14 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
     }
 
     public enum TwinInvalidate {
-        twinAttachmentModifications(1),
-        twinAttachments(2),
-        tagsKit(3),
-        markersKit(4),
-        twinFieldSimpleKit(5),
-        twinFieldUserKit(6),
-        twinFieldDatalistKit(7),
-        twinLinks(8),
-        fieldValuesKit(9);
-
-        @Getter
-        private final int order;
-
-        TwinInvalidate(int order) {
-            this.order = order;
-        }
+        twinAttachmentModifications,
+        twinAttachments,
+        tagsKit,
+        markersKit,
+        twinFieldSimpleKit,
+        twinFieldUserKit,
+        twinFieldDatalistKit,
+        twinLinks,
+        fieldValuesKit;
     }
 }
