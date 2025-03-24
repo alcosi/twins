@@ -10,7 +10,8 @@ import lombok.experimental.Accessors;
 public class TwinFieldSearchNumericDTOv1 implements TwinFieldSearchDTOv1 {
 
     public static final String KEY = "searchNumberValueV1";
-    public String type = KEY;
+    
+    private String type = KEY;
 
     @Schema(description = "Twin field numeric value less then given")
     public String lessThen;

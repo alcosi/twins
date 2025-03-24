@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "fieldType")
+//not used in jackson serialization(reverse mappers)
+//be sure that polymorph classes do not has the same-named fields.
+@JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorTextDTOv1.class, name = TwinClassFieldDescriptorTextDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorDateScrollDTOv1.class, name = TwinClassFieldDescriptorDateScrollDTOv1.KEY),
@@ -23,23 +25,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorNumericDTOv1.class, name = TwinClassFieldDescriptorNumericDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorImmutableDTOv1.class, name = TwinClassFieldDescriptorImmutableDTOv1.KEY),
 })
-@Schema(description = "One of values", example = "", oneOf = {
-        TwinClassFieldDescriptorTextDTOv1.class,
-        TwinClassFieldDescriptorColorHexDTOv1.class,
-        TwinClassFieldDescriptorUrlDTOv1.class,
-        TwinClassFieldDescriptorDateScrollDTOv1.class,
-        TwinClassFieldDescriptorListDTOv1.class,
-        TwinClassFieldDescriptorListLongDTOv1.class,
-        TwinClassFieldDescriptorListSharedInHeadDTOv1.class,
-        TwinClassFieldDescriptorLinkDTOv1.class,
-        TwinClassFieldDescriptorLinkLongDTOv1.class,
-        TwinClassFieldDescriptorI18nDTOv1.class,
-        TwinClassFieldDescriptorUserDTOv1.class,
-        TwinClassFieldDescriptorUserLongDTOv1.class,
-        TwinClassFieldDescriptorAttachmentDTOv1.class,
-        TwinClassFieldDescriptorNumericDTOv1.class,
-        TwinClassFieldDescriptorImmutableDTOv1.class
-}, discriminatorProperty = "fieldType", discriminatorMapping = {
+@Schema(description = "One of values", example = "", discriminatorProperty = "fieldType", discriminatorMapping = {
         @DiscriminatorMapping(value = TwinClassFieldDescriptorTextDTOv1.KEY, schema = TwinClassFieldDescriptorTextDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorDateScrollDTOv1.KEY, schema = TwinClassFieldDescriptorDateScrollDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorColorHexDTOv1.KEY, schema = TwinClassFieldDescriptorColorHexDTOv1.class),
