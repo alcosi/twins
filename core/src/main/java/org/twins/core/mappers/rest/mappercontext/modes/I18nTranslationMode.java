@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldNameConstants;
 import org.twins.core.mappers.rest.mappercontext.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 
 @Getter
 @AllArgsConstructor
@@ -14,6 +15,4 @@ public enum I18nTranslationMode implements MapperMode {
     @FieldNameConstants.Include DETAILED(2);
 
     final int priority;
-
-
 }

@@ -13,6 +13,10 @@ import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationRepository;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nRepository;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
+import org.twins.core.dao.i18n.I18nTranslationRepository;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
@@ -35,6 +39,7 @@ public class TwinChangesService {
     private final TwinMarkerRepository twinMarkerRepository;
     private final TwinTagRepository twinTagRepository;
     private final TwinAttachmentRepository twinAttachmentRepository;
+    private final TwinFieldI18nRepository twinFieldI18nRepository;
     private final TwinAttachmentModificationRepository twinAttachmentModificationRepository;
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
@@ -54,6 +59,7 @@ public class TwinChangesService {
         saveEntities(twinChangesCollector, TwinTagEntity.class, twinTagRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinAttachmentEntity.class, twinAttachmentRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinAttachmentModificationEntity.class, twinAttachmentModificationRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, TwinFieldI18nEntity.class, twinFieldI18nRepository, changesApplyResult);
         if (!twinChangesCollector.getSaveEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Map<Object, ChangesHelper>> classChanges : twinChangesCollector.getSaveEntityMap().entrySet()) {
                 log.warn("Unsupported entity class[{}] for saving", classChanges.getKey().getSimpleName());
@@ -66,6 +72,7 @@ public class TwinChangesService {
         deleteEntities(twinChangesCollector, TwinMarkerEntity.class, twinMarkerRepository);
         deleteEntities(twinChangesCollector, TwinTagEntity.class, twinTagRepository);
         deleteEntities(twinChangesCollector, TwinAttachmentEntity.class, twinAttachmentRepository);
+        deleteEntities(twinChangesCollector, TwinFieldI18nEntity.class, twinFieldI18nRepository);
         deleteEntities(twinChangesCollector, TwinAttachmentModificationEntity.class, twinAttachmentModificationRepository);
         if (!twinChangesCollector.getDeleteEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Set<Object>> classChanges : twinChangesCollector.getDeleteEntityMap().entrySet()) {
@@ -106,6 +113,10 @@ public class TwinChangesService {
                         case twinAttachments:
                             twinEntity.setAttachmentKit(null);
                             break;
+                        case twinFieldI18nKit:
+                            twinEntity.setTwinFieldI18nKit(null);
+                            break;
+
                     }
                 }
                 continue;
