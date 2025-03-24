@@ -10,6 +10,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
+import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
+import org.twins.core.dao.attachment.TwinAttachmentModificationRepository;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nRepository;
@@ -38,6 +40,7 @@ public class TwinChangesService {
     private final TwinTagRepository twinTagRepository;
     private final TwinAttachmentRepository twinAttachmentRepository;
     private final TwinFieldI18nRepository twinFieldI18nRepository;
+    private final TwinAttachmentModificationRepository twinAttachmentModificationRepository;
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
 
@@ -55,6 +58,7 @@ public class TwinChangesService {
         saveEntities(twinChangesCollector, TwinMarkerEntity.class, twinMarkerRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinTagEntity.class, twinTagRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinAttachmentEntity.class, twinAttachmentRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, TwinAttachmentModificationEntity.class, twinAttachmentModificationRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldI18nEntity.class, twinFieldI18nRepository, changesApplyResult);
         if (!twinChangesCollector.getSaveEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Map<Object, ChangesHelper>> classChanges : twinChangesCollector.getSaveEntityMap().entrySet()) {
@@ -69,6 +73,7 @@ public class TwinChangesService {
         deleteEntities(twinChangesCollector, TwinTagEntity.class, twinTagRepository);
         deleteEntities(twinChangesCollector, TwinAttachmentEntity.class, twinAttachmentRepository);
         deleteEntities(twinChangesCollector, TwinFieldI18nEntity.class, twinFieldI18nRepository);
+        deleteEntities(twinChangesCollector, TwinAttachmentModificationEntity.class, twinAttachmentModificationRepository);
         if (!twinChangesCollector.getDeleteEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Set<Object>> classChanges : twinChangesCollector.getDeleteEntityMap().entrySet()) {
                 log.warn("Unsupported entity class[{}] for deletion", classChanges.getKey().getSimpleName());
@@ -79,8 +84,45 @@ public class TwinChangesService {
         return changesApplyResult;
     }
 
-    private void invalidate(Map<TwinEntity, Set<TwinChangesCollector.TwinInvalidate>> invalidationMap) {
+    private void invalidate(Map<Object, Set<TwinChangesCollector.TwinInvalidate>> invalidationMap) {
         for (var entry : invalidationMap.entrySet()) {
+            if (entry.getKey() instanceof TwinEntity twinEntity) {
+                for (TwinChangesCollector.TwinInvalidate invalidation : entry.getValue()) {
+                    switch (invalidation) {
+                        case tagsKit:
+                            twinEntity.setTwinTagKit(null);
+                            break;
+                        case markersKit:
+                            twinEntity.setTwinMarkerKit(null);
+                            break;
+                        case twinFieldSimpleKit:
+                            twinEntity.setTwinFieldSimpleKit(null);
+                            break;
+                        case twinFieldUserKit:
+                            twinEntity.setTwinFieldUserKit(null);
+                            break;
+                        case twinFieldDatalistKit:
+                            twinEntity.setTwinFieldDatalistKit(null);
+                            break;
+                        case twinLinks:
+                            twinEntity.setTwinLinks(null);
+                            break;
+                        case fieldValuesKit:
+                            twinEntity.setFieldValuesKit(null);
+                            break;
+                        case twinAttachments:
+                            twinEntity.setAttachmentKit(null);
+                            break;
+                    }
+                }
+                continue;
+            } else if (entry.getKey() instanceof TwinAttachmentEntity twinAttachmentEntity) {
+                for (TwinChangesCollector.TwinInvalidate invalidation : entry.getValue()) {
+                    switch (invalidation) {
+                        case twinAttachmentModifications:
+                            twinAttachmentEntity.setModifications(null);
+                            break;
+                    }
             for (TwinChangesCollector.TwinInvalidate invalidation : entry.getValue()) {
                 switch (invalidation) {
                     case tagsKit:
@@ -112,6 +154,7 @@ public class TwinChangesService {
                         break;
                 }
             }
+
         }
     }
 

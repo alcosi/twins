@@ -3,7 +3,7 @@ package org.twins.core.domain;
 import lombok.Getter;
 import org.cambium.common.util.ChangesHelper;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
-import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 import org.twins.core.dao.twin.*;
 import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
@@ -17,7 +17,7 @@ import java.util.Set;
 public class TwinChangesCollector extends EntitiesChangesCollector {
     private final HistoryCollectorMultiTwin historyCollector = new HistoryCollectorMultiTwin();
     private boolean historyCollectorEnabled = true; // in some cases we do not need to collect history changes (before drafting for example, currently we do not collect history, only after )
-    private final Map<TwinEntity, Set<TwinInvalidate>> invalidationMap = new HashMap<>();
+    private final Map<Object, Set<TwinInvalidate>> invalidationMap = new HashMap<>();
 
     public TwinChangesCollector() {
         super();
@@ -77,6 +77,9 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         } else if (entity instanceof TwinFieldI18nEntity twinFieldI18nEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinFieldI18nEntity.getTwin(), k -> new HashSet<>());
             invalidates.add(TwinInvalidate.twinFieldI18nKit);
+        } else if (entity instanceof TwinAttachmentModificationEntity twinAttachmentModificationEntity) {
+            invalidates = invalidationMap.computeIfAbsent(twinAttachmentModificationEntity.getTwinAttachment(), k -> new HashSet<>());
+            invalidates.add(TwinInvalidate.twinAttachmentModifications);
         }
     }
 
@@ -87,14 +90,16 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
     }
 
     public enum TwinInvalidate {
-        markersKit,
+        twinAttachmentModifications,
+        twinAttachments,
         tagsKit,
+        markersKit,
         twinFieldSimpleKit,
         twinFieldUserKit,
         twinFieldDatalistKit,
         twinFieldI18nKit,
         fieldValuesKit,
         twinLinks,
-        twinAttachments
+        fieldValuesKit;
     }
 }

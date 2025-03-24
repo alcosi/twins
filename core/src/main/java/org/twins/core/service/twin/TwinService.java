@@ -68,7 +68,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
-    // resolve AOP problem: one-service self-invocation methodss
+    // resolve AOP problem: one-service self-invocation methods
     @Autowired
     private TwinService self;
 
