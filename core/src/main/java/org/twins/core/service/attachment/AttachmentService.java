@@ -139,8 +139,10 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     public void loadAttachments(Collection<TwinEntity> twinEntityList) {
         Map<UUID, TwinEntity> needLoad = new HashMap<>();
         for (TwinEntity twinEntity : twinEntityList)
-            if (twinEntity.getAttachmentKit() == null)
+            if (twinEntity.getAttachmentKit() == null) {
+                twinEntity.setAttachmentKit(new Kit<>(new ArrayList<>(), TwinAttachmentEntity::getId));
                 needLoad.put(twinEntity.getId(), twinEntity);
+            }
         if (needLoad.isEmpty())
             return;
         List<TwinAttachmentEntity> attachmentEntityList = twinAttachmentRepository.findByTwinIdIn(needLoad.keySet());
@@ -151,13 +153,8 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             attachmentMap.computeIfAbsent(attachmentEntity.getTwinId(), k -> new ArrayList<>());
             attachmentMap.get(attachmentEntity.getTwinId()).add(attachmentEntity);
         }
-        TwinEntity twinEntity;
-        List<TwinAttachmentEntity> twinAttachmentList;
-        for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet()) {
-            twinEntity = entry.getValue();
-            twinAttachmentList = attachmentMap.get(entry.getKey());
-            twinEntity.setAttachmentKit(new Kit<>(twinAttachmentList, TwinAttachmentEntity::getId));
-        }
+        for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet())
+            entry.getValue().getAttachmentKit().addAll(attachmentMap.get(entry.getKey()));
     }
 
     public void loadAttachmentsCount(TwinEntity twinEntity) {
