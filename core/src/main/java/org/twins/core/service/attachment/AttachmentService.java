@@ -153,8 +153,11 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             attachmentMap.computeIfAbsent(attachmentEntity.getTwinId(), k -> new ArrayList<>());
             attachmentMap.get(attachmentEntity.getTwinId()).add(attachmentEntity);
         }
-        for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet())
-            entry.getValue().getAttachmentKit().addAll(attachmentMap.get(entry.getKey()));
+        for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet()) {
+            List<TwinAttachmentEntity> twinAttachmentsList = attachmentMap.get(entry.getKey());
+            if(!CollectionUtils.isEmpty(twinAttachmentsList))
+                entry.getValue().getAttachmentKit().addAll(twinAttachmentsList);
+        }
     }
 
     public void loadAttachmentsCount(TwinEntity twinEntity) {
