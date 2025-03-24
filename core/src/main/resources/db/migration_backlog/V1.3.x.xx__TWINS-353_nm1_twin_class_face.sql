@@ -14,14 +14,33 @@ create table if not exists face_widget_wt003
         references face
             on update cascade on delete restrict,
     key                     varchar not null,
-    label_i18n_id               uuid not null
+    label_i18n_id               uuid
         constraint face_widget_wt003_label_i18n_id_fk
             references i18n
             on update cascade,
-    images_twin_class_field_id               uuid not null
-        constraint face_widget_wt003_twin_class_id_fk
+    images_twin_class_field_id               uuid
+        constraint face_widget_wt003_images_twin_class_field_id_fk
+            references twin_class_field
+            on update cascade
+);
+
+create table if not exists face_widget_wt004
+(
+    face_id                     uuid    not null
+        constraint face_widget_wt004_face_id_fk
+            primary key
+        references face
+            on update cascade on delete restrict,
+    key                     varchar not null,
+    label_i18n_id               uuid
+        constraint face_widget_wt004_label_i18n_id_fk
+            references i18n
+            on update cascade,
+    i18n_twin_class_field_id               uuid not null
+        constraint face_widget_wt004_i18n_twin_class_field_id_fk
             references twin_class_field
             on update cascade
 );
 
 insert into face_component values ('WT003', 'WIDGET', 'Twins image gallery')  on conflict do nothing ;
+insert into face_component values ('WT004', 'WIDGET', 'Twins i18n field accordion')  on conflict do nothing ;

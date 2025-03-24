@@ -13,8 +13,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "face_widget_wt003")
-public class FaceWT003Entity implements EasyLoggable{
+@Table(name = "face_widget_wt004")
+public class FaceWT004Entity implements EasyLoggable{
     @Id
     @Column(name = "face_id")
     private UUID faceId;
@@ -29,24 +29,24 @@ public class FaceWT003Entity implements EasyLoggable{
     @Column(name = "label_i18n_id")
     private UUID labelI18nId;
 
-    @Column(name = "images_twin_class_field_id")
-    private UUID imagesTwinClassFieldId;
+    @Column(name = "i18n_twin_class_field_id")
+    private UUID i18nTwinClassFieldId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "label_i18n_id", nullable = false, insertable = false, updatable = false)
     private I18nEntity labelI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "images_twin_class_field_id", nullable = false, insertable = false, updatable = false)
+    @JoinColumn(name = "i18n_twin_class_field_id", nullable = false, insertable = false, updatable = false)
     private TwinClassFieldEntity twinClassField;
 
     @Override
     public String easyLog(Level level) {
         switch (level) {
             case SHORT:
-                return "faceWT003[" + faceId + "]";
+                return "faceWT004[" + faceId + "]";
             default:
-                return "faceWT003[id:" + faceId + ", componentId:" + face.getFaceComponentId() + "]";
+                return "faceWT004[id:" + faceId + ", componentId:" + face.getFaceComponentId() + "]";
         }
     }
 }

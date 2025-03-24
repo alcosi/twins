@@ -9,14 +9,14 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "FaceWT003v1", description = "Twin images simple gallery widget")
-public class FaceWT003DTOv1 extends FaceDTOv1 {
+@Schema(name = "FaceWT004v1", description = "Twin i18n field accordion widget")
+public class FaceWT004DTOv1 extends FaceDTOv1 {
     @Schema(description = "uniq key")
     public String key;
 
-    @Schema(description = "some label for widget")
+    @Schema(description = "label for widget")
     public String label;
 
-    @Schema(description = "only images from given field should be taken, if empty - then all twins images")
-    public UUID imagesTwinClassFieldId;
+    @Schema(description = "widget should display an accordion with translations for given field")
+    public UUID i18nTwinClassFieldId;
 }
