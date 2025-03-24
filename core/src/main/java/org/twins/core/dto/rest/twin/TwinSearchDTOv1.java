@@ -56,6 +56,12 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Reporter id exclude list")
     public Set<UUID> createdByUserIdExcludeList;
 
+    @Schema(description = "External id list")
+    public Set<String> externalIdList;
+
+    @Schema(description = "External id exclude list")
+    public Set<String> externalIdExcludeList;
+
     @Schema(description = "Include dst twins with given links. OR join")
     public List<TwinSearchByLinkDTOv1> linksAnyOfList;
 

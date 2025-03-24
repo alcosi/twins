@@ -653,6 +653,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         updateTwinHead(changesRecorder);
         updateTwinName(changesRecorder);
         updateTwinDescription(changesRecorder);
+        updateTwinExternalId(changesRecorder);
         updateTwinAssignee(changesRecorder);
         updateTwinStatus(changesRecorder);
     }
@@ -701,6 +702,19 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             if (changesRecorder.getRecorder() instanceof TwinEntity twinEntity)
                 twinEntity
                         .setDescription(changesRecorder.getUpdateEntity().getDescription());
+        }
+    }
+
+    public void updateTwinExternalId(ChangesRecorder<TwinEntity, ?> changesRecorder) {
+        if (changesRecorder.isChanged(TwinEntity.Fields.externalId, changesRecorder.getDbEntity().getExternalId(), changesRecorder.getUpdateEntity().getExternalId())) {
+            if (changesRecorder.isHistoryCollectorEnabled())
+                changesRecorder.getHistoryCollector().add(historyService.externalIdChanged(changesRecorder.getDbEntity().getExternalId(), changesRecorder.getUpdateEntity().getExternalId()));
+            if (changesRecorder.getRecorder() instanceof DraftTwinPersistEntity draftTwinPersistEntity)
+                draftTwinPersistEntity
+                        .setExternalId(changesRecorder.getUpdateEntity().getExternalId());
+            if (changesRecorder.getRecorder() instanceof TwinEntity twinEntity)
+                twinEntity
+                        .setExternalId(changesRecorder.getUpdateEntity().getExternalId());
         }
     }
 

@@ -30,6 +30,9 @@ public class TwinUpdateDTOv1 extends Request {
     @Schema(description = "assigner user id", example = DTOExamples.USER_ID)
     public UUID assignerUserId;
 
+    @Schema(description = "external id")
+    public String externalId;
+
     @Schema(description = "description", example = "The biggest tree")
     public String description;
 
