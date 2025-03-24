@@ -56,6 +56,8 @@ public class TwinSearch {
                 CollectionUtils.isEmpty(twinNameNotLikeList) &&
                 CollectionUtils.isEmpty(twinDescriptionLikeList) &&
                 CollectionUtils.isEmpty(twinDescriptionNotLikeList) &&
+                CollectionUtils.isEmpty(externalIdList) &&
+                CollectionUtils.isEmpty(externalIdExcludeList) &&
                 CollectionUtils.isEmpty(twinIdExcludeList) &&
                 CollectionUtils.isEmpty(twinClassIdList) &&
                 CollectionUtils.isEmpty(twinClassIdExcludeList) &&
