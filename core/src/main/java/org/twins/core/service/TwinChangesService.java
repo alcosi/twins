@@ -113,6 +113,10 @@ public class TwinChangesService {
                         case twinAttachments:
                             twinEntity.setAttachmentKit(null);
                             break;
+                        case twinFieldI18nKit:
+                            twinEntity.setTwinFieldI18nKit(null);
+                            break;
+
                     }
                 }
                 continue;
@@ -123,35 +127,6 @@ public class TwinChangesService {
                             twinAttachmentEntity.setModifications(null);
                             break;
                     }
-            for (TwinChangesCollector.TwinInvalidate invalidation : entry.getValue()) {
-                switch (invalidation) {
-                    case tagsKit:
-                        entry.getKey().setTwinTagKit(null);
-                        break;
-                    case markersKit:
-                        entry.getKey().setTwinMarkerKit(null);
-                        break;
-                    case twinFieldSimpleKit:
-                        entry.getKey().setTwinFieldSimpleKit(null);
-                        break;
-                    case twinFieldUserKit:
-                        entry.getKey().setTwinFieldUserKit(null);
-                        break;
-                    case twinFieldDatalistKit:
-                        entry.getKey().setTwinFieldDatalistKit(null);
-                        break;
-                    case twinLinks:
-                        entry.getKey().setTwinLinks(null);
-                        break;
-                    case fieldValuesKit:
-                        entry.getKey().setFieldValuesKit(null);
-                        break;
-                    case twinAttachments:
-                        entry.getKey().setAttachmentKit(null);
-                        break;
-                    case twinFieldI18nKit:
-                        entry.getKey().setTwinFieldI18nKit(null);
-                        break;
                 }
             }
 

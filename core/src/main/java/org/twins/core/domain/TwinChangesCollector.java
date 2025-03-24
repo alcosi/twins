@@ -99,7 +99,6 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         twinFieldDatalistKit,
         twinFieldI18nKit,
         fieldValuesKit,
-        twinLinks,
-        fieldValuesKit;
+        twinLinks;
     }
 }
