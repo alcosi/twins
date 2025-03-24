@@ -27,7 +27,7 @@ public class DraftTwinAttachmentEntity {
     @Column(name = "cud_id")
     @Convert(converter = CUDConverter.class)
     private CUD cud;
-    
+
     @Column(name = "twin_attachment_id")
     private UUID twinAttachmentId;
 
@@ -38,8 +38,11 @@ public class DraftTwinAttachmentEntity {
     @Column(name = "twinflow_transition_id")
     private UUID twinflowTransitionId;
 
-    @Column(name = "storage_link")
-    private String storageLink;
+    @Column(name = "storage_file_key")
+    private String storageFileKey;
+
+    @Column(name = "modifications")
+    private String modifications;
 
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;

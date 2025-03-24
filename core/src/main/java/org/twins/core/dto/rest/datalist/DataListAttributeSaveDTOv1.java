@@ -3,8 +3,8 @@ package org.twins.core.dto.rest.datalist;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.i18n.dto.I18nDTOv1;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 @Data
 @Accessors(chain = true)
@@ -14,5 +14,5 @@ public class DataListAttributeSaveDTOv1 {
     public String key;
 
     @Schema(description = "name", example = DTOExamples.NAME)
-    public I18nDTOv1 nameI18n;
+    public I18nSaveDTOv1 nameI18n;
 }

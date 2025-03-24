@@ -9,12 +9,16 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.twinclass.*;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.service.auth.AuthService;
 
-import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+
+
 import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecification.*;
 
 
@@ -24,7 +28,6 @@ import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecific
 public class TwinClassFieldSearchService {
     private final AuthService authService;
     private final TwinClassFieldRepository twinClassFieldRepository;
-    private final TwinClassRepository twinClassRepository;
     private final TwinClassService twinClassService;
 
     public PaginationResult<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search, SimplePagination pagination) throws ServiceException {

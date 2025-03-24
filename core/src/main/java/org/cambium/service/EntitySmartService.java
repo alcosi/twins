@@ -183,6 +183,7 @@ public class EntitySmartService {
         return checkOptional(optional, uuid, repository, mode);
     }
 
+
     public <T> T checkOptional(Optional<T> optional, Object keyObj, CrudRepository<T, UUID> repository, FindMode mode) throws ServiceException {
         String key = (keyObj instanceof UUID ? "id[" : "key[") + keyObj + "]";
         switch (mode) {

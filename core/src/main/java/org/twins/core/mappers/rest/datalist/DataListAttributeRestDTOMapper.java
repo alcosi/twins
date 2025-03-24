@@ -2,7 +2,7 @@ package org.twins.core.mappers.rest.datalist;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.cambium.i18n.service.I18nService;
+import org.twins.core.service.i18n.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dto.rest.datalist.DataListAttributeDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;

@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "DomainViewRsv1")
+@Schema(name = "DomainViewV1")
 public class DomainViewDTOv1 extends DomainViewPublicDTOv1 {
     @Schema(description = "type [basic/b2b]")
     public DomainType type;

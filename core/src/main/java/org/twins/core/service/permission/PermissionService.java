@@ -11,10 +11,10 @@ import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KeyUtils;
-import org.cambium.i18n.dao.I18nEntity;
-import org.cambium.i18n.dao.I18nTranslationEntity;
-import org.cambium.i18n.dao.I18nType;
-import org.cambium.i18n.service.I18nService;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
+import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -47,6 +47,8 @@ import org.twins.core.service.user.UserService;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+
+import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
 
 @Slf4j
 @Service
@@ -448,23 +450,16 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         loadUserPermissions(apiUser.getUser());
     }
 
-    //todo create load for collection
     public void loadUserPermissions(UserEntity user) throws ServiceException {
         if (user.getPermissions() != null)
             return;
         UUID permissionSchemaId = detectPermissionSchemaId(authService.getApiUser());
         userGroupService.loadGroups(user);
-        List<UUID> permissionList = permissionGrantUserRepository
-                .findPermissionIdByPermissionSchemaIdAndUserId(permissionSchemaId, user.getId());
-        Set<UUID> permissionSet = new HashSet<>(permissionList);
-        permissionList = permissionGrantUserGroupRepository
-                .findPermissionIdByPermissionSchemaIdAndUserGroupIdIn(permissionSchemaId, user.getUserGroups().getIdSetSafe());
-        permissionSet.addAll(permissionList);
-        permissionList = permissionGrantGlobalRepository
-                .findPermissionIdByUserGroupIdIn(user.getUserGroups().getIdSetSafe());
-        permissionSet.addAll(permissionList);
-        user.setPermissions(permissionSet);
+        Set<UUID> userGroupIds = user.getUserGroups().getIdSetSafe();
+        List<UUID> permissionList = permissionGrantUserRepository.findAllPermissionsForUser(permissionSchemaId, user.getId(), collectionUuidsToSqlArray(userGroupIds));
+        user.setPermissions(new HashSet<>(permissionList));
     }
+
 
     public void forceDeleteSchemas(UUID businessAccountId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();

@@ -14,9 +14,9 @@ import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.featurer.dao.FeaturerRepository;
-import org.cambium.i18n.dao.I18nEntity;
-import org.cambium.i18n.dao.I18nType;
-import org.cambium.i18n.service.I18nService;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,6 +107,11 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             default:
         }
         return true;
+    }
+
+    @Override
+    public CacheSupportType getCacheSupportType() {
+        return CacheSupportType.REQUEST;
     }
 
     // only direct fields
@@ -257,7 +262,11 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
         validateEntityAndThrow(twinClassFieldEntity, EntitySmartService.EntityValidateMode.beforeSave);
         twinClassFieldEntity = entitySmartService.save(twinClassFieldEntity, twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassFieldEntity.getTwinClassId());
+        Map<String, List<Object>> cacheEntries = Map.of(
+                TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(twinClassFieldEntity.getTwinClassId()),
+                TwinClassEntity.class.getSimpleName(), List.of(twinClassFieldEntity.getTwinClassId())
+        );
+        evictCache(cacheManager, cacheEntries);
         return twinClassFieldEntity;
     }
 
@@ -291,7 +300,10 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         if (changesHelper.hasChanges()) {
             Map<String, List<Object>> cacheEntries = Map.of(
                     TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(dbTwinClassFieldEntity.getTwinClassId()),
+                    TwinClassEntity.class.getSimpleName(), List.of(dbTwinClassFieldEntity.getTwinClassId()),
                     TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_ID_IN, Collections.emptyList(),
+                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN, Collections.emptyList(),
+                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_KEY_AND_TWIN_CLASS_ID_IN, Collections.emptyList(),
                     CACHE_TWIN_CLASS_FIELD_FOR_LINK, Collections.emptyList(),
                     TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_KEY, Collections.emptyList(),
                     TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_PARENT_KEY, Collections.emptyList()

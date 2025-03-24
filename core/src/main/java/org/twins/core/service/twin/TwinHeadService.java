@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinHeadRepository;
 import org.twins.core.dao.twin.TwinRepository;
@@ -69,7 +68,7 @@ public class TwinHeadService {
         basicSearch.addTwinClassId(headTwinClassEntity.getExtendsHierarchyChildClassKit().getIdSet(), false);
         if (twinClassEntity.getHeadHunterFeaturer() != null) {//headhunter should not be empty if head twin is specified and head class is not USER and BA
             HeadHunter headHunter = featurerService.getFeaturer(twinClassEntity.getHeadHunterFeaturer(), HeadHunter.class);
-            headHunter.expandValidHeadSearch(headTwinClassEntity.getHeadHunterParams(), headTwinClassEntity, basicSearch);
+            headHunter.expandValidHeadSearch(twinClassEntity.getHeadHunterParams(), twinClassEntity, basicSearch);
         }
         return twinSearchService.findTwins(basicSearch, pagination);
     }
@@ -84,18 +83,17 @@ public class TwinHeadService {
         return findValidHeads(twinEntity.getTwinClass(), basicSearch, pagination);
     }
 
-    @Transactional
-    public UUID checkHeadTwinAllowedForClass(UUID headTwinId, TwinClassEntity subClass) throws ServiceException {
-        if (subClass.getHeadTwinClassId() != null)
-            if (headTwinId != null) {
-                TwinEntity headTwinEntity = entitySmartService.findById(headTwinId, twinRepository, EntitySmartService.FindMode.ifEmptyThrows);
-                if (!headTwinEntity.getTwinClassId().equals(subClass.getHeadTwinClassId()))
-                    throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, headTwinEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for twinClass[" + subClass.getId() + "]");
-                return headTwinId;
-            } else {
-                throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, subClass.easyLog(EasyLoggable.Level.NORMAL) + " should be linked to head");
-            }
-        return headTwinId;
+    public TwinEntity checkValidHeadForClass(UUID headTwinId, TwinClassEntity subClass) throws ServiceException {
+        if (subClass.getHeadTwinClassId() == null)
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, "No head class configured for " + subClass.logShort());
+        if (headTwinId == null)
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, subClass.easyLog(EasyLoggable.Level.NORMAL) + " should be linked to head");
+        BasicSearch basicSearch = new BasicSearch();
+        basicSearch.addTwinId(headTwinId, false);
+        PaginationResult<TwinEntity> validHead = findValidHeads(subClass, basicSearch, SimplePagination.SINGLE);
+        if (validHead.getTotal() == 0)
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, "twin[" + headTwinId + "] is not allowed for twinClass[" + subClass.getId() + "]");
+        return validHead.getList().getFirst();
     }
 
     public Page<TwinEntity> getValidUserTwinListByTwinClass(TwinClassEntity twinClassEntity, SimplePagination pagination) throws ServiceException {
