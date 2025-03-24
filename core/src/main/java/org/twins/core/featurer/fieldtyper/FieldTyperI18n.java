@@ -19,6 +19,7 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorI18n;
 import org.twins.core.featurer.fieldtyper.value.FieldValueI18n;
 import org.twins.core.service.twin.TwinService;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Map;
@@ -31,6 +32,9 @@ import java.util.stream.Collectors;
         name = "i18n",
         description = "")
 public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI18n, TwinFieldI18nEntity, TwinFieldSearchNotImplemented> {
+    public static final String ENTRY_SPLITTER = "<@2@>";
+    public static final String KEY_VALUE_SPLITTER = "<@3@>";
+
     @Lazy
     private final TwinService twinService;
 
@@ -127,9 +131,11 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
     }
 
     private Map<Locale, TwinFieldI18nEntity> getStoredFieldsForTwinAndField(TwinEntity twin, TwinClassFieldEntity twinClassField) {
-        return twin.getTwinFieldI18nKit().getMap().values().stream()
-                .filter(field -> field.getTwinClassFieldId().equals(twinClassField.getId()))
-                .collect(Collectors.toMap(TwinFieldI18nEntity::getLocale, Function.identity()));
+        return twin.getTwinFieldI18nKit().getGrouped(twinClassField.getId()).stream()
+                .collect(Collectors.toMap(
+                        TwinFieldI18nEntity::getLocale,
+                        Function.identity()
+                ));
     }
 }
 

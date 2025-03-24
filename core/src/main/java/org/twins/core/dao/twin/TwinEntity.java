@@ -23,6 +23,7 @@ import org.twins.core.service.link.TwinLinkService;
 
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
@@ -209,7 +210,7 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinFieldI18nEntity, UUID> twinFieldI18nKit;
+    KitGrouped<TwinFieldI18nEntity, UUID, UUID> twinFieldI18nKit;
 
     /*
      we have to use TwinClassFieldId as key, not id. Also, multiple values supported, that is why kit inside a ki

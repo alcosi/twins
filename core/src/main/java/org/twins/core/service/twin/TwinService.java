@@ -39,6 +39,7 @@ import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.featurer.fieldtyper.FieldTyperI18n;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.service.SystemEntityService;
@@ -998,15 +999,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
         }
         if (fieldValue instanceof FieldValueI18n fieldValueI18n) {
-            String[] entries = value.split("<@mapEntry>");
+            String[] entries = value.split(FieldTyperI18n.ENTRY_SPLITTER);
             Map<Locale, String> translations = new HashMap<>();
 
             for (String entry : entries) {
-                String[] parts = entry.split("<@entryKey>|<@entryValue>");
+                String[] parts = entry.split(FieldTyperI18n.KEY_VALUE_SPLITTER);
 
-                if (parts.length >= 3) {
-                    Locale locale = Locale.of(parts[1].trim());
-                    String translationText = parts[2].trim();
+                if (parts.length >= 2) {
+                    Locale locale = Locale.of(parts[0].trim());
+                    String translationText = parts[1].trim();
 
                     translations.put(locale, translationText);
                 }
@@ -1083,13 +1084,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             inheritedTwinClassFieldIds.addAll(twinFieldSimpleRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedSimpleTwinClassFieldIds));
         }
         if (!inheritedUserTwinClassFieldIds.isEmpty()) {
-            inheritedTwinClassFieldIds.addAll(twinFieldUserRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedSimpleTwinClassFieldIds));
+            inheritedTwinClassFieldIds.addAll(twinFieldUserRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedUserTwinClassFieldIds));
         }
         if (!inheritedDatalistTwinClassFieldIds.isEmpty()) {
-            inheritedTwinClassFieldIds.addAll(twinFieldDataListRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedSimpleTwinClassFieldIds));
+            inheritedTwinClassFieldIds.addAll(twinFieldDataListRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedDatalistTwinClassFieldIds));
         }
         if (!inheritedI18nTwinClassFieldIds.isEmpty()) {
-            inheritedTwinClassFieldIds.addAll(twinFieldI18nRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedSimpleTwinClassFieldIds));
+            inheritedTwinClassFieldIds.addAll(twinFieldI18nRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedI18nTwinClassFieldIds));
         }
         if (CollectionUtils.isEmpty(inheritedTwinClassFieldIds))
             return result;
