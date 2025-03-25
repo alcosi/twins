@@ -104,7 +104,7 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Twin touch exclude list ids")
     public List<TwinTouchEntity.Touch> touchExcludeList;
 
-    @Schema(description = "Twin Field Search. Key TwinClassField id.")
+    @Schema(description = "Twin Field Search. Key TwinClassField id.", type = "object", additionalPropertiesSchema = TwinFieldSearchDTOv1.class)
     public Map<UUID, TwinFieldSearchDTOv1> fields;
 
 }

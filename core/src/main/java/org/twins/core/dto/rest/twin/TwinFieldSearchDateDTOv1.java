@@ -10,13 +10,13 @@ import java.time.LocalDateTime;
 
 import static org.twins.core.dto.rest.twin.TwinFieldSearchDateDTOv1.KEY;
 
-@EqualsAndHashCode(callSuper = false)
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Accessors(fluent = true)
 @Schema(name = KEY, description = "(less & more connected with AND) and after connected to equals with OR and to emty with OR")
 public class TwinFieldSearchDateDTOv1 extends TwinFieldSearchDTOv1 {
 
-    public static final String KEY = "searchDateValueV1";
+    public static final String KEY = "TwinFieldSearchDateV1";
 
     @JsonProperty("type")
     public String type = KEY;

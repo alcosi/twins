@@ -14,7 +14,7 @@ import static org.twins.core.dto.rest.twin.TwinFieldSearchNumericDTOv1.KEY;
 @Schema(name = KEY, description = "(less & more connected with AND) and after connected to equals with OR")
 public class TwinFieldSearchNumericDTOv1 extends TwinFieldSearchDTOv1 {
 
-    public static final String KEY = "searchNumericValueV1";
+    public static final String KEY = "TwinFieldSearchNumericV1";
 
     @JsonProperty("type")
     public String type = KEY;

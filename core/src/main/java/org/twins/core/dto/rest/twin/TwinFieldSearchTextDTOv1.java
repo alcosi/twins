@@ -10,13 +10,13 @@ import java.util.Set;
 
 import static org.twins.core.dto.rest.twin.TwinFieldSearchTextDTOv1.KEY;
 
-@EqualsAndHashCode(callSuper = false)
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Accessors(fluent = true)
 @Schema(name = KEY)
 public class TwinFieldSearchTextDTOv1 extends TwinFieldSearchDTOv1 {
 
-    public static final String KEY = "searchTextValueV1";
+    public static final String KEY = "TwinFieldSearchTextV1";
 
     @JsonProperty("type")
     public String type = KEY;
