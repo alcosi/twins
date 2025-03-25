@@ -23,6 +23,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] idFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.id);
         String[] nameFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.name);
         String[] descriptionFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.description);
+        String[] externalIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.externalId);
         String[] assignerUserIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.assignerUserId);
         String[] createdByUserIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.createdByUserId);
         String[] twinStatusIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.twinStatusId);
@@ -44,6 +45,8 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkFieldLikeIn(twinSearch.getTwinNameNotLikeList(), true, true, nameFieldPath),
                 checkFieldLikeIn(twinSearch.getTwinDescriptionLikeList(), false, true, descriptionFieldPath),
                 checkFieldLikeIn(twinSearch.getTwinDescriptionNotLikeList(), true, true, descriptionFieldPath),
+                checkFieldLikeIn(twinSearch.getExternalIdList(), false, true, externalIdFieldPath),
+                checkFieldLikeIn(twinSearch.getExternalIdExcludeList(), true, true, externalIdFieldPath),
                 checkUuidIn(twinSearch.getAssigneeUserIdList(), false, false, assignerUserIdFieldPath),
                 checkUuidIn(twinSearch.getAssigneeUserIdExcludeList(), true, true, assignerUserIdFieldPath),
                 checkUuidIn(twinSearch.getCreatedByUserIdList(), false, false, createdByUserIdFieldPath),

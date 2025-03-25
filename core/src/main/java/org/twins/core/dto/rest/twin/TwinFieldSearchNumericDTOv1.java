@@ -6,11 +6,12 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name = "TwinFieldSearchNumberV1", description = "(less & more connected with AND) and after connected to equals with OR")
+@Schema(name = "TwinFieldSearchNumericV1", description = "(less & more connected with AND) and after connected to equals with OR")
 public class TwinFieldSearchNumericDTOv1 implements TwinFieldSearchDTOv1 {
 
     public static final String KEY = "searchNumberValueV1";
-    public String type = KEY;
+
+    private String type = KEY;
 
     @Schema(description = "Twin field numeric value less then given")
     public String lessThen;

@@ -1,7 +1,3 @@
-INSERT INTO i18n_locale (locale, name)
-VALUES ('be', 'Belarusian')
-ON CONFLICT (locale) DO NOTHING;
-
 DO $$
     BEGIN
         IF NOT EXISTS (
