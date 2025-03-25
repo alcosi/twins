@@ -13,7 +13,7 @@ public class TwinFieldSearchTextDTOv1 implements TwinFieldSearchDTOv1 {
 
     public static final String KEY = "searchTextValueV1";
 
-    private String type = KEY;
+    public String type = KEY;
 
     @Schema(description = "Include like given strings. AND join. Add % symbols manual to use LIKE features.")
     public Set<String> valueLikeAllOfList;

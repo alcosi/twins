@@ -13,18 +13,18 @@ public class TwinFieldSearchDateDTOv1 implements TwinFieldSearchDTOv1 {
 
     public static final String KEY = "searchDateValueV1";
 
-    private String type = KEY;
+    public String type = KEY;
 
     @Schema(description = "Twin field date less then given date")
-    public LocalDateTime dateLessThen;
+    public LocalDateTime lessThen;
 
     @Schema(description = "Twin field date greater then given date")
-    public LocalDateTime dateMoreThen;
+    public LocalDateTime moreThen;
 
     @Schema(description = "Twin field date equals to given date")
-    public LocalDateTime dateEquals;
+    public LocalDateTime equals;
 
     @Schema(description = "include entities with empty or null values to result")
-    public boolean includeEmptyDates;
+    public boolean empty;
 
 }
