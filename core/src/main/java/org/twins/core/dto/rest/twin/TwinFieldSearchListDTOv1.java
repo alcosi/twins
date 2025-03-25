@@ -8,12 +8,12 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name = "TwinFieldSearchDataListOptionsV1")
+@Schema(name = "TwinFieldSearchListV1")
 public class TwinFieldSearchListDTOv1 implements TwinFieldSearchDTOv1 {
 
     public static final String KEY = "searchListOptionsV1";
 
-    public String type = KEY;
+    private String type = KEY;
 
     @Schema(description = "Include options with given ids. AND join")
     public Set<UUID> optionsAllOfList;

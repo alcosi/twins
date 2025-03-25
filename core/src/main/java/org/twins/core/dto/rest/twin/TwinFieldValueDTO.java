@@ -12,7 +12,9 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "valueType")
+//USED! in jackson serialization(reverse mappers) - but deprecated controller only
+//be sure that polymorph classes do not has the same-named fields.
+@JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION)
 @JsonSubTypes({
                 @JsonSubTypes.Type(value = TwinFieldValueTextDTOv1.class, name = TwinFieldValueTextDTOv1.KEY),
                 @JsonSubTypes.Type(value = TwinFieldValueDateDTOv1.class, name = TwinFieldValueDateDTOv1.KEY),
