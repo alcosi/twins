@@ -45,7 +45,7 @@ public class FaceWT001Entity implements EasyLoggable{
     private TwinClassEntity twinClass;
 
     @Column(name = "hide_columns")
-    private Set<String> hideColumns;
+    private Set<String> showColumns;
 
     @Override
     public String easyLog(EasyLoggable.Level level) {
