@@ -162,6 +162,7 @@ public class TwinClassEntity implements EasyLoggable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "page_face_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
     private FaceEntity pageFace;
 
 //    @ManyToOne
