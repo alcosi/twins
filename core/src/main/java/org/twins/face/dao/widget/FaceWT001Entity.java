@@ -44,7 +44,7 @@ public class FaceWT001Entity implements EasyLoggable{
     @JoinColumn(name = "twin_class_id", nullable = false, insertable = false, updatable = false)
     private TwinClassEntity twinClass;
 
-    @Column(name = "hide_columns")
+    @Column(name = "show_columns")
     private Set<String> showColumns;
 
     @Override
