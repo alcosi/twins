@@ -16,9 +16,9 @@ public class TwinClassFieldDescriptorDateScrollDTOv1 implements TwinClassFieldDe
     @Schema(description = "Date pattern (default: yyyy-MM-ddTHH:mm:ss)")
     public String pattern;
 
-    @Schema(description = "Minimum allowed date (format: yyyy-MM-ddTHH:mm:ss). Null means no lower limit")
-    public LocalDateTime fromDate;
+    @Schema(description = "[option] Maximum number of days from current date in the past for a valid date range", example = "30")
+    public Integer daysPast;
 
-    @Schema(description = "Maximum allowed date (format: yyyy-MM-ddTHH:mm:ss). Null means no upper limit")
-    public LocalDateTime toDate;
+    @Schema(description = "[option] The maximum number of days from the current date in the future for a valid date range", example = "365")
+    public Integer daysFuture;
 }

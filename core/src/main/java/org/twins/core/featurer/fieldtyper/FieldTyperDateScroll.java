@@ -7,7 +7,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamDateTime;
+import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -38,10 +38,12 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
 
     @FeaturerParam(name = "Pattern", description = "pattern for date value")
     public static final FeaturerParamString pattern = new FeaturerParamString("pattern");
-    @FeaturerParam(name = "From date", description = "pattern for date value")
-    public static final FeaturerParamDateTime fromDate = new FeaturerParamDateTime("fromDate");
-    @FeaturerParam(name = "To date", description = "pattern for date value")
-    public static final FeaturerParamDateTime toDate = new FeaturerParamDateTime("toDate");
+    @FeaturerParam(name = "DaysPast", description = "number of days in the past", optional = true, defaultValue = "0")
+    public static final FeaturerParamInt daysPast = new FeaturerParamInt("daysPast");
+    @FeaturerParam(name = "DaysFuture", description = "number of days in the futures", optional = true, defaultValue = "0")
+    public static final FeaturerParamInt daysFuture = new FeaturerParamInt("daysFuture");
+
+    public static final String DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 
     @Override
     public FieldDescriptorDate getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -83,25 +85,31 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     public void validateValue(String value, Properties params) throws ServiceException {
         LocalDateTime dateValue = parseDateTime(value);
 
-        LocalDateTime fromDate = FieldTyperDateScroll.fromDate.extract(params);
-        if (fromDate != null && dateValue.isBefore(fromDate)) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
-                    "Date value [" + dateValue + "] is before allowed minimum date [" + fromDate + "]");
+        Integer minDays = FieldTyperDateScroll.daysPast.extract(params);
+        if (minDays != null) {
+            LocalDateTime minDate = LocalDateTime.now().minusDays(minDays);
+            if (dateValue.isBefore(minDate)) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
+                        "Date value [" + dateValue + "] is more than " + minDays + " days in the past");
+            }
         }
 
-        LocalDateTime toDate = FieldTyperDateScroll.toDate.extract(params);
-        if (toDate != null && dateValue.isAfter(toDate)) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
-                    "Date value [" + dateValue + "] is after allowed maximum date [" + toDate + "]");
+        Integer maxDays = FieldTyperDateScroll.daysFuture.extract(params);
+        if (maxDays != null) {
+            LocalDateTime maxDate = LocalDateTime.now().plusDays(maxDays);
+            if (dateValue.isAfter(maxDate)) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
+                        "Date value [" + dateValue + "] is more than " + maxDays + " days in the future");
+            }
         }
     }
 
     private LocalDateTime parseDateTime(String value) throws ServiceException {
         try {
-            return LocalDateTime.parse(value, DateTimeFormatter.ofPattern(FeaturerParamDateTime.DATETIME_PATTERN));
+            return LocalDateTime.parse(value, DateTimeFormatter.ofPattern(DATETIME_PATTERN));
         } catch (DateTimeParseException e) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
-                    "Value [" + value + "] is not a valid datetime in format " + FeaturerParamDateTime.DATETIME_PATTERN);
+                    "Value [" + value + "] is not a valid datetime in format " + DATETIME_PATTERN);
         }
     }
 }
