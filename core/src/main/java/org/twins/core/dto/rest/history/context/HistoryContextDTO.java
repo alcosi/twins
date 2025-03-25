@@ -6,7 +6,9 @@ import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDescriptorUserLongDTOv1;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "contextType")
+//not used in jackson serialization(reverse mappers)
+//be sure that polymorph classes do not has the same-named fields.
+@JsonTypeInfo(use = JsonTypeInfo.Id.DEDUCTION)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = HistoryContextUserDTOv1.class, name = HistoryContextUserDTOv1.KEY),
         @JsonSubTypes.Type(value = HistoryContextUserMultiDTOv1.class, name = HistoryContextUserMultiDTOv1.KEY),
