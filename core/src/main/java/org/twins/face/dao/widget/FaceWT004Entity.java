@@ -1,9 +1,12 @@
 package org.twins.face.dao.widget;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -49,4 +52,9 @@ public class FaceWT004Entity implements EasyLoggable{
                 return "faceWT004[id:" + faceId + ", componentId:" + face.getFaceComponentId() + "]";
         }
     }
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    Kit<FaceWT004AccordionItemEntity, UUID> accordionItems;
 }

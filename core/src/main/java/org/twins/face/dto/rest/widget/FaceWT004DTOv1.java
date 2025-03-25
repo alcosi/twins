@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.face.FaceDTOv1;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -19,4 +20,7 @@ public class FaceWT004DTOv1 extends FaceDTOv1 {
 
     @Schema(description = "widget should display an accordion with translations for given field")
     public UUID i18nTwinClassFieldId;
+
+    @Schema(description = "")
+    public List<FaceWT004AccordionItemDTOv1> accordionItems;
 }

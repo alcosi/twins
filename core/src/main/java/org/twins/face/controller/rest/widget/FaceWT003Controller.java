@@ -39,7 +39,7 @@ public class FaceWT003Controller extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "faceWT003ViewV1", summary = "Returns wt003 navigation bar details")
+    @Operation(operationId = "faceWT003ViewV1", summary = "Returns WT003 widget config: image gallery")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "WT003 face config", content = {
                     @Content(mediaType = "application/json", schema =

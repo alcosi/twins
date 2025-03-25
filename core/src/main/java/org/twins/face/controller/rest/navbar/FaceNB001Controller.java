@@ -39,7 +39,7 @@ public class FaceNB001Controller extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "faceNB001ViewV1", summary = "Returns nb001 navigation bar details")
+    @Operation(operationId = "faceNB001ViewV1", summary = "Returns NB001 navbar config")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "NB001 face config", content = {
                     @Content(mediaType = "application/json", schema =

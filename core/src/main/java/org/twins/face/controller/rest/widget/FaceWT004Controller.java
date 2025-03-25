@@ -39,7 +39,7 @@ public class FaceWT004Controller extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "faceWT004ViewV1", summary = "Returns wt004 navigation bar details")
+    @Operation(operationId = "faceWT004ViewV1", summary = "Returns WT004 widget config: i18n field accordion")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "WT004 face config", content = {
                     @Content(mediaType = "application/json", schema =

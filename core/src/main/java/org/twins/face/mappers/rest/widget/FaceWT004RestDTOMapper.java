@@ -9,13 +9,16 @@ import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.face.dao.widget.FaceWT004Entity;
 import org.twins.face.dto.rest.widget.FaceWT004DTOv1;
+import org.twins.face.service.widget.FaceWT004Service;
 
 
 @Component
 @RequiredArgsConstructor
 public class FaceWT004RestDTOMapper extends RestSimpleDTOMapper<FaceWT004Entity, FaceWT004DTOv1> {
     protected final FaceRestDTOMapper faceRestDTOMapper;
+    private final FaceWT004Service faceWT004Service;
     private final I18nService i18nService;
+    private final FaceWT004AccordionItemRestDTOMapper faceWT004AccordionItemRestDTOMapper;
 
 
     @Override
@@ -29,6 +32,10 @@ public class FaceWT004RestDTOMapper extends RestSimpleDTOMapper<FaceWT004Entity,
                     .setLabel(i18nService.translateToLocale(src.getLabelI18nId() != null ?
                             src.getLabelI18nId() : src.getTwinClassField().getNameI18nId()))
                     .setI18nTwinClassFieldId(src.getI18nTwinClassFieldId());
+        }
+        if (mapperContext.hasModeButNot(FaceWT001Modes.FaceWT001AccordionItemCollectionMode.HIDE)) {
+            faceWT004Service.loadAccordionItems(src);
+            dst.setAccordionItems(faceWT004AccordionItemRestDTOMapper.convertCollection(src.getAccordionItems(), mapperContext));
         }
     }
 }
