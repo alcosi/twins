@@ -246,6 +246,12 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setToValue(toValue));
     }
 
+    public HistoryItem<HistoryContextStringChange> externalIdChanged(String fromValue, String toValue) {
+        return new HistoryItem<>(HistoryType.externalIdChanged, new HistoryContextStringChange()
+                .setFromValue(fromValue)
+                .setToValue(toValue));
+    }
+
     public HistoryItem<HistoryContextStatusChange> statusChanged(TwinStatusEntity fromStatus, TwinStatusEntity toStatus) {
         return new HistoryItem<>(HistoryType.statusChanged, new HistoryContextStatusChange()
                 .shotFromStatus(fromStatus, i18nService)

@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Schema(name =  "TwinCreateRqV1")
 public class TwinCreateRqDTOv1 extends Request {
     @Schema(description = "Class Id", example = DTOExamples.TWIN_CLASS_ID)
@@ -32,6 +32,9 @@ public class TwinCreateRqDTOv1 extends Request {
 
     @Schema(description = "description", example = "The biggest tree")
     public String description;
+
+    @Schema(description = "external id")
+    public String externalId;
 
     @Schema(description = "fields")
     public Map<String, TwinFieldValueDTO> fields;
