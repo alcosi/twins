@@ -10,9 +10,9 @@ import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
-import org.cambium.i18n.dao.I18nEntity;
-import org.cambium.i18n.dao.I18nType;
-import org.cambium.i18n.service.I18nService;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -158,6 +158,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             default:
         }
         return true;
+    }
+
+    @Override
+    public CacheSupportType getCacheSupportType() {
+        return CacheSupportType.GLOBAL;
     }
 
     public UUID checkTwinClassSchemaAllowed(UUID domainId, UUID twinClassSchemaId) throws ServiceException {
@@ -470,7 +475,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
         updateSafe(dbTwinClassEntity, changesHelper);
         if (changesHelper.hasChanges()) {
-            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassUpdate.getDbTwinClassEntity().getId());
+            Map<String, List<Object>> cacheEntries = Map.of(
+                    TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(twinClassUpdate.getDbTwinClassEntity().getId()),
+                    TwinClassEntity.class.getSimpleName(), List.of(twinClassUpdate.getDbTwinClassEntity().getId())
+            );
+            evictCache(cacheManager, cacheEntries);
         }
     }
 

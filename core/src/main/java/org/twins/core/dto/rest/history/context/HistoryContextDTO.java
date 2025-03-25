@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDescriptorUserLongDTOv1;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "changeType")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "contextType")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = HistoryContextUserDTOv1.class, name = HistoryContextUserDTOv1.KEY),
         @JsonSubTypes.Type(value = HistoryContextUserMultiDTOv1.class, name = HistoryContextUserMultiDTOv1.KEY),
@@ -21,20 +21,7 @@ import org.twins.core.dto.rest.twinclass.TwinClassFieldDescriptorUserLongDTOv1;
         @JsonSubTypes.Type(value = HistoryContextListMultiDTOv1.class, name = HistoryContextListMultiDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorUserLongDTOv1.class, name = TwinClassFieldDescriptorUserLongDTOv1.KEY),
 })
-@Schema(description = "On of values", example = "", oneOf = {
-        HistoryContextUserDTOv1.class,
-        HistoryContextUserMultiDTOv1.class,
-        HistoryContextStatusDTOv1.class,
-        HistoryContextTwinDTOv1.class,
-        HistoryContextTwinMultiDTOv1.class,
-        HistoryContextAttachmentDTOv1.class,
-        HistoryContextAttachmentUpdateDTOv1.class,
-        HistoryContextLinkDTOv1.class,
-        HistoryContextLinkUpdateDTOv1.class,
-        HistoryContextListDTOv1.class,
-        HistoryContextListMultiDTOv1.class,
-        TwinClassFieldDescriptorUserLongDTOv1.class
-}, discriminatorProperty = "changeType", discriminatorMapping = {
+@Schema(description = "On of values", example = "", discriminatorProperty = "changeType", discriminatorMapping = {
         @DiscriminatorMapping(value = HistoryContextUserDTOv1.KEY, schema = HistoryContextUserDTOv1.class),
         @DiscriminatorMapping(value = HistoryContextUserMultiDTOv1.KEY, schema = HistoryContextUserMultiDTOv1.class),
         @DiscriminatorMapping(value = HistoryContextStatusDTOv1.KEY, schema = HistoryContextStatusDTOv1.class),

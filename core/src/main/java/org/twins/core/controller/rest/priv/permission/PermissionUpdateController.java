@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.i18n.dao.I18nEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,10 +16,11 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionUpdateRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionUpdateRsDTOv1;
-import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
+import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionUpdateRestReverseDTOMapper;
@@ -36,7 +36,7 @@ public class PermissionUpdateController extends ApiController {
 
     private final PermissionRestDTOMapper permissionRestDTOMapper;
     private final PermissionUpdateRestReverseDTOMapper permissionUpdateRestReverseDTOMapper;
-    private final I18nRestDTOReverseMapper i18NRestDTOReverseMapper;
+    private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
     private final PermissionService permissionService;
 
     @ParametersApiUserHeaders
@@ -53,8 +53,8 @@ public class PermissionUpdateController extends ApiController {
             @RequestBody PermissionUpdateRqDTOv1 request) {
         PermissionUpdateRsDTOv1 rs = new PermissionUpdateRsDTOv1();
         try {
-            I18nEntity nameI18n = i18NRestDTOReverseMapper.convert(request.getNameI18n());
-            I18nEntity descriptionI18n = i18NRestDTOReverseMapper.convert(request.getDescriptionI18n());
+            I18nEntity nameI18n = i18NSaveRestDTOReverseMapper.convert(request.getNameI18n());
+            I18nEntity descriptionI18n = i18NSaveRestDTOReverseMapper.convert(request.getDescriptionI18n());
             rs.setPermission(permissionRestDTOMapper
                     .convert(permissionService.updatePermission(permissionUpdateRestReverseDTOMapper
                             .convert(request.setId(permissionId)), nameI18n, descriptionI18n), mapperContext));

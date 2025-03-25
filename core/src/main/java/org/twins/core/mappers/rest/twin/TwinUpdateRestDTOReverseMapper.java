@@ -31,6 +31,7 @@ public class TwinUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Pair<Twi
                     .setId(dbTwinEntity.getId())
                     .setName(twinUpdateDTO.getName())
                     .setHeadTwinId(twinUpdateDTO.getHeadTwinId())
+                    .setExternalId(twinUpdateDTO.getExternalId())
                     .setDescription(twinUpdateDTO.getDescription());
             dst
                     .setFields(twinFieldValueRestDTOReverseMapperV2.mapFields(dbTwinEntity.getTwinClassId(), twinUpdateDTO.getFields()))

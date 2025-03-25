@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.i18n.dao.I18nEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,11 +16,13 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.domain.LinkUpdate;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.link.*;
-import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
+import org.twins.core.dto.rest.link.LinkUpdateDTOv1;
+import org.twins.core.dto.rest.link.LinkUpdateRsDTOv1;
+import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.LinkForwardRestDTOV3Mapper;
 import org.twins.core.mappers.rest.link.LinkUpdateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -38,7 +39,7 @@ import java.util.UUID;
 public class LinkUpdateController extends ApiController {
     private final LinkService linkService;
     private final LinkUpdateRestDTOReverseMapper linkUpdateRestDTOReverseMapper;
-    private final I18nRestDTOReverseMapper i18NRestDTOReverseMapper;
+    private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
     private final LinkForwardRestDTOV3Mapper linkForwardRestDTOV3Mapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
@@ -56,8 +57,8 @@ public class LinkUpdateController extends ApiController {
             @RequestBody LinkUpdateDTOv1 request) {
         LinkUpdateRsDTOv1 rs = new LinkUpdateRsDTOv1();
         try {
-            I18nEntity forwardNameI18n = i18NRestDTOReverseMapper.convert(request.getForwardNameI18n());
-            I18nEntity backwardNameI18n = i18NRestDTOReverseMapper.convert(request.getBackwardNameI18n());
+            I18nEntity forwardNameI18n = i18NSaveRestDTOReverseMapper.convert(request.getForwardNameI18n());
+            I18nEntity backwardNameI18n = i18NSaveRestDTOReverseMapper.convert(request.getBackwardNameI18n());
             LinkUpdate linkUpdate = linkUpdateRestDTOReverseMapper.convert(request).setId(linkId);
             LinkEntity linkEntity = linkService.updateLink(linkUpdate, forwardNameI18n, backwardNameI18n);
             rs

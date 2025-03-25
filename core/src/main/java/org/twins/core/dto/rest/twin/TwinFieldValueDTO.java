@@ -19,11 +19,7 @@ import java.util.UUID;
                 @JsonSubTypes.Type(value = TwinFieldValueColorHexDTOv1.class, name = TwinFieldValueColorHexDTOv1.KEY),
                 @JsonSubTypes.Type(value = TwinFieldValueListDTOv1.class, name = TwinFieldValueListDTOv1.KEY),
 })
-@Schema(description = "One of values", example = "", oneOf = {
-        TwinFieldValueTextDTOv1.class,
-        TwinFieldValueColorHexDTOv1.class,
-        TwinFieldValueDateDTOv1.class,
-        TwinFieldValueListDTOv1.class}, discriminatorProperty = "valueType" , discriminatorMapping = {
+@Schema(description = "One of values", example = "", discriminatorProperty = "valueType" , discriminatorMapping = {
         @DiscriminatorMapping(value = TwinFieldValueTextDTOv1.KEY, schema = TwinFieldValueTextDTOv1.class),
         @DiscriminatorMapping(value = TwinFieldValueDateDTOv1.KEY, schema = TwinFieldValueDateDTOv1.class),
         @DiscriminatorMapping(value = TwinFieldValueColorHexDTOv1.KEY, schema = TwinFieldValueColorHexDTOv1.class),

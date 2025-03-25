@@ -11,6 +11,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
@@ -67,6 +68,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<TwinFactoryPipelineEntity>> relatedFactoryPipelineMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<FaceEntity>> relatedFaceMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<I18nEntity>> relatedI18nMap = new LinkedHashMap<>();
     @Getter
     private Map<Integer, RelatedObject<FeaturerEntity>> relatedFeaturerMap = new LinkedHashMap<>();
     @Getter
@@ -198,6 +201,8 @@ public class MapperContext {
             smartPut(relatedFactoryPipelineMap, twinFactoryPipeline, twinFactoryPipeline.getId());
         else if (relatedObject instanceof FaceEntity face)
             smartPut(relatedFaceMap, face, face.getId());
+        else if (relatedObject instanceof I18nEntity i18n)
+            smartPut(relatedI18nMap, i18n, i18n.getId());
         else if (relatedObject instanceof FeaturerEntity featurer)
             smartPut(relatedFeaturerMap, featurer, featurer.getId());
         else if (relatedObject instanceof TwinCommentEntity entity)
@@ -393,6 +398,7 @@ public class MapperContext {
         dstMapperContext.relatedFactoryMap = srcMapperContext.relatedFactoryMap;
         dstMapperContext.relatedFactoryPipelineMap = srcMapperContext.relatedFactoryPipelineMap;
         dstMapperContext.relatedFaceMap = srcMapperContext.relatedFaceMap;
+        dstMapperContext.relatedI18nMap = srcMapperContext.relatedI18nMap;
         dstMapperContext.relatedFeaturerMap = srcMapperContext.relatedFeaturerMap;
         dstMapperContext.relatedCommentMap = srcMapperContext.relatedCommentMap;
     }

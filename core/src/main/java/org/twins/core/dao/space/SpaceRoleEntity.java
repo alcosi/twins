@@ -5,8 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.FieldNameConstants;
-import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.UUID;

@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class TwinFieldSearchDateDTOv1 implements TwinFieldSearchDTOv1 {
 
     public static final String KEY = "searchDateValueV1";
+
     public String type = KEY;
 
     @Schema(description = "Twin field date less then given date")

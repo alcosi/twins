@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.i18n.dto.I18nDTOv1;
 import org.twins.core.dto.rest.Request;
+import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.Map;
 
@@ -18,7 +18,7 @@ public class DataListOptionSaveRqDTOv1 extends Request {
     public String icon;
 
     @Schema(description = "option")
-    public I18nDTOv1 optionI18n;
+    public I18nSaveDTOv1 optionI18n;
 
     @Schema(description = "attributes map")
     public Map<String, String> attributesMap;

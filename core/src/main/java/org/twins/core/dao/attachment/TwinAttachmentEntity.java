@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
+import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.permission.PermissionEntity;
@@ -41,8 +42,8 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
     @Column(name = "twinflow_transition_id")
     private UUID twinflowTransitionId;
 
-    @Column(name = "storage_link")
-    private String storageLink;
+    @Column(name = "storage_file_key")
+    private String storageFileKey;
 
     @Column(name = "external_id")
     private String externalId;
@@ -97,6 +98,10 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
     @EqualsAndHashCode.Exclude
     private Set<TwinAttachmentAction> attachmentActions;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinAttachmentModificationEntity, String> modifications;
+
     @Override
     public TwinAttachmentEntity clone() {
         return new TwinAttachmentEntity()
@@ -107,7 +112,8 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
                 .setExternalId(externalId)
                 .setTitle(title)
                 .setDescription(description)
-                .setStorageLink(storageLink)
+                .setStorageFileKey(storageFileKey)
+                .setModifications(modifications)
                 .setCreatedAt(createdAt)
                 .setTwinCommentId(twinCommentId)
                 .setTwinflowTransition(twinflowTransition)
@@ -121,7 +127,7 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
         return switch (level) {
             case SHORT -> "attachment[" + id + "]";
             case NORMAL -> "attachment[id:" + id + ", twinId:" + twinId + "]";
-            default -> "attachment[id:" + id + ", twinId:" + twinId + ", storageLink:" + storageLink + "]";
+            default -> "attachment[id:" + id + ", twinId:" + twinId + ", storageLinks:" + storageFileKey + "]";
         };
 
     }

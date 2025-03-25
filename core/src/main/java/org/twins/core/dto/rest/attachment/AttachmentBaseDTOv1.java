@@ -5,8 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Request;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -19,6 +19,9 @@ public class AttachmentBaseDTOv1 {
 
     @Schema(description = "External storage link", example = DTOExamples.ATTACHMENT_STORAGE_LINK)
     public String storageLink;
+
+    @Schema(description = "External storage links map by key", example = DTOExamples.ATTACHMENT_STORAGE_LINKS_MAP)
+    public Map<String, String> modifications;
 
     @Schema(description = "External id", example = DTOExamples.ATTACHMENT_EXTERNAL_ID)
     public String externalId;

@@ -11,6 +11,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
+import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkBackwardRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkForwardRestDTOMapper;
@@ -62,6 +63,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
 
     @MapperModePointerBinding(modes = FeaturerMode.TwinClass2FeaturerMode.class)
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
+
+    @MapperModePointerBinding(modes = FaceMode.TwinClassPage2FaceMode.class)
+    private final FaceRestDTOMapper faceRestDTOMapper;
 
     private final TwinClassFieldService twinClassFieldService;
     private final TwinClassService twinClassService;
@@ -153,6 +157,10 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             dst
                     .setHeadHunterFeaturer(featurerRestDTOMapper.convertOrPostpone(src.getHeadHunterFeaturer(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.TwinClass2FeaturerMode.SHORT))))
                     .setHeadHunterFeaturerId(src.getHeadHunterFeaturerId());
+        }
+        if (mapperContext.hasModeButNot(FaceMode.TwinClassPage2FaceMode.HIDE)) {
+            faceRestDTOMapper.postpone(src.getPageFace(), mapperContext.forkOnPoint(FaceMode.TwinClassPage2FaceMode.SHORT));
+            dst.setPageFaceId(src.getPageFaceId());
         }
     }
 
