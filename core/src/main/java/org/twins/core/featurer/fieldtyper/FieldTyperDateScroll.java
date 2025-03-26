@@ -43,7 +43,7 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     @FeaturerParam(name = "DaysFuture", description = "number of days in the futures", optional = true, defaultValue = "0")
     public static final FeaturerParamInt daysFuture = new FeaturerParamInt("daysFuture");
 
-    public static final String DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
+    private static final String DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 
     @Override
     public FieldDescriptorDate getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -84,10 +84,11 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
 
     public void validateValue(String value, Properties params) throws ServiceException {
         LocalDateTime dateValue = parseDateTime(value);
+        LocalDateTime now = LocalDateTime.now();
 
         Integer minDays = FieldTyperDateScroll.daysPast.extract(params);
         if (minDays != null) {
-            LocalDateTime minDate = LocalDateTime.now().minusDays(minDays);
+            LocalDateTime minDate = now.minusDays(minDays);
             if (dateValue.isBefore(minDate)) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
                         "Date value [" + dateValue + "] is more than " + minDays + " days in the past");
@@ -96,7 +97,7 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
 
         Integer maxDays = FieldTyperDateScroll.daysFuture.extract(params);
         if (maxDays != null) {
-            LocalDateTime maxDate = LocalDateTime.now().plusDays(maxDays);
+            LocalDateTime maxDate = now.plusDays(maxDays);
             if (dateValue.isAfter(maxDate)) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
                         "Date value [" + dateValue + "] is more than " + maxDays + " days in the future");
