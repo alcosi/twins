@@ -1,4 +1,4 @@
-package org.twins.face.dto.rest.widget;
+package org.twins.face.dto.rest.twidget;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -9,8 +9,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "FaceWT004AccordionItemV1")
-public class FaceWT004AccordionItemDTOv1 {
+@Schema(name = "FaceTW002AccordionItemV1")
+public class FaceTW002AccordionItemDTOv1 {
     @Schema(description = "item id", example = DTOExamples.FACE_ID)
     public UUID id;
 
