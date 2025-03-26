@@ -103,5 +103,21 @@ FROM
     i18n_translation en ON en.i18n_id = tc.name_i18n_id AND en.locale = 'en'
         LEFT JOIN
     i18n_translation pl ON pl.i18n_id = tc.name_i18n_id AND pl.locale = 'pl'
-WHERE tc.domain_id = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
+WHERE tc.domain_id = 'ffffffff-ffff-ffff-ffff-ffffffffffff'
+
+UNION ALL
+
+SELECT DISTINCT ON (ug.name_i18n_id)
+    ug.name_i18n_id AS i18n_id,
+    CONCAT('user_group[', ug.id, ']') AS reference,
+    COALESCE(en.translation, '—') AS english_translation,
+    COALESCE(pl.translation, '—') AS polish_translation,
+    'user_group' AS source
+FROM
+    user_group ug
+        LEFT JOIN
+    i18n_translation en ON en.i18n_id = ug.name_i18n_id AND en.locale = 'en'
+        LEFT JOIN
+    i18n_translation pl ON pl.i18n_id = ug.name_i18n_id AND pl.locale = 'pl'
+WHERE ug.domain_id = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
 

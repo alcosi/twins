@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.Set;
 import java.util.UUID;
@@ -41,10 +42,10 @@ public class FaceWT001Entity implements EasyLoggable{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_class_id", nullable = false, insertable = false, updatable = false)
-    private I18nEntity twinClass;
+    private TwinClassEntity twinClass;
 
-    @Column(name = "hide_columns")
-    private Set<String> hideColumns;
+    @Column(name = "show_columns")
+    private Set<String> showColumns;
 
     @Override
     public String easyLog(EasyLoggable.Level level) {

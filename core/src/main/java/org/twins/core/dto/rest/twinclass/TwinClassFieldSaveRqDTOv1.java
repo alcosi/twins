@@ -4,9 +4,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.i18n.I18nDTOv1;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
+import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -27,10 +27,10 @@ public abstract class TwinClassFieldSaveRqDTOv1 extends Request {
     public UUID editPermissionId;
 
     @Schema(description = "I18n name", example = "")
-    public I18nDTOv1 nameI18n;
+    public I18nSaveDTOv1 nameI18n;
 
     @Schema(description = "I18n description", example = "")
-    public I18nDTOv1 descriptionI18n;
+    public I18nSaveDTOv1 descriptionI18n;
 
     @Schema(description = "Required field", example = "true")
     public Boolean required;

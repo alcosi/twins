@@ -21,9 +21,15 @@ import java.util.UUID;
 @FieldNameConstants
 public class I18nEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
     @Column(name = "id")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UUID.randomUUID();
+        }
+    }
 
     @Column(name = "domain_id")
     private UUID domainId;

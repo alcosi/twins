@@ -24,6 +24,6 @@ public class FaceWT001DTOv1 extends FaceDTOv1 {
     @Schema(description = "searchId")
     public UUID searchId;
 
-    @Schema(description = "hide given basic columns from table and filter")
-    public Set<String> hideColumns;
+    @Schema(description = "show given basic columns from table and filter")
+    public Set<String> showColumns;
 }

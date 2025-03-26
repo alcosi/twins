@@ -16,37 +16,39 @@ import java.util.function.Function;
 @Accessors(chain = true)
 @FieldNameConstants
 public class TwinSearch {
-    Set<UUID> twinIdList;
-    Set<String> twinNameLikeList;
-    Set<String> twinNameNotLikeList;
-    Set<String> twinDescriptionLikeList;
-    Set<String> twinDescriptionNotLikeList;
-    Set<UUID> twinIdExcludeList;
-    Set<UUID> twinClassIdList;
-    Set<UUID> twinClassIdExcludeList;
-    Set<UUID> headTwinClassIdList;
-    Set<UUID> twinClassExtendsHierarchyContainsIdList;
-    Set<UUID> headTwinIdList;
-    Set<UUID> statusIdList;
-    Set<UUID> assigneeUserIdList;
-    Set<UUID> assigneeUserIdExcludeList;
-    Set<UUID> createdByUserIdList;
-    Set<UUID> createdByUserIdExcludeList;
-    Set<UUID> ownerUserIdList;
-    Set<UUID> ownerBusinessAccountIdList;
-    Map<UUID, Set<UUID>> linksAnyOfList;
-    Map<UUID, Set<UUID>> linksNoAnyOfList;
-    Map<UUID, Set<UUID>> linksAllOfList;
-    Map<UUID, Set<UUID>> linksNoAllOfList;
-    Set<UUID> hierarchyTreeContainsIdList;
-    Set<UUID> statusIdExcludeList;
-    Set<UUID> tagDataListOptionIdList;
-    Set<UUID> tagDataListOptionIdExcludeList;
-    Set<UUID> markerDataListOptionIdList;
-    Set<UUID> markerDataListOptionIdExcludeList;
-    Set<TwinTouchEntity.Touch> touchList;
-    Set<TwinTouchEntity.Touch> touchExcludeList;
-    List<TwinFieldSearch> fields;
+    private Set<UUID> twinIdList;
+    private Set<String> twinNameLikeList;
+    private Set<String> twinNameNotLikeList;
+    private Set<String> twinDescriptionLikeList;
+    private Set<String> twinDescriptionNotLikeList;
+    private Set<String> externalIdList;
+    private Set<String> externalIdExcludeList;
+    private Set<UUID> twinIdExcludeList;
+    private Set<UUID> twinClassIdList;
+    private Set<UUID> twinClassIdExcludeList;
+    private Set<UUID> headTwinClassIdList;
+    private Set<UUID> twinClassExtendsHierarchyContainsIdList;
+    private Set<UUID> headTwinIdList;
+    private Set<UUID> statusIdList;
+    private Set<UUID> assigneeUserIdList;
+    private Set<UUID> assigneeUserIdExcludeList;
+    private Set<UUID> createdByUserIdList;
+    private Set<UUID> createdByUserIdExcludeList;
+    private Set<UUID> ownerUserIdList;
+    private Set<UUID> ownerBusinessAccountIdList;
+    private Map<UUID, Set<UUID>> linksAnyOfList;
+    private Map<UUID, Set<UUID>> linksNoAnyOfList;
+    private Map<UUID, Set<UUID>> linksAllOfList;
+    private Map<UUID, Set<UUID>> linksNoAllOfList;
+    private Set<UUID> hierarchyTreeContainsIdList;
+    private Set<UUID> statusIdExcludeList;
+    private Set<UUID> tagDataListOptionIdList;
+    private Set<UUID> tagDataListOptionIdExcludeList;
+    private Set<UUID> markerDataListOptionIdList;
+    private Set<UUID> markerDataListOptionIdExcludeList;
+    private Set<TwinTouchEntity.Touch> touchList;
+    private Set<TwinTouchEntity.Touch> touchExcludeList;
+    private List<TwinFieldSearch> fields;
 
     public boolean isEmpty() {
         return CollectionUtils.isEmpty(twinIdList) &&
@@ -54,6 +56,8 @@ public class TwinSearch {
                 CollectionUtils.isEmpty(twinNameNotLikeList) &&
                 CollectionUtils.isEmpty(twinDescriptionLikeList) &&
                 CollectionUtils.isEmpty(twinDescriptionNotLikeList) &&
+                CollectionUtils.isEmpty(externalIdList) &&
+                CollectionUtils.isEmpty(externalIdExcludeList) &&
                 CollectionUtils.isEmpty(twinIdExcludeList) &&
                 CollectionUtils.isEmpty(twinClassIdList) &&
                 CollectionUtils.isEmpty(twinClassIdExcludeList) &&

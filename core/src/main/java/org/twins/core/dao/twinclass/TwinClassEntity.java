@@ -12,7 +12,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinAction;
@@ -23,6 +22,8 @@ import org.twins.core.dao.comment.TwinCommentAction;
 import org.twins.core.dao.comment.TwinCommentActionAlienPermissionEntity;
 import org.twins.core.dao.comment.TwinCommentActionSelfEntity;
 import org.twins.core.dao.datalist.DataListEntity;
+import org.twins.core.dao.face.FaceEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -140,6 +141,9 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "head_hunter_featurer_params", columnDefinition = "hstore")
     private HashMap<String, String> headHunterParams;
 
+    @Column(name = "page_face_id")
+    private UUID pageFaceId;
+
 //    @ManyToOne
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
 //    private DomainEntity domain;
@@ -155,6 +159,11 @@ public class TwinClassEntity implements EasyLoggable {
     @Deprecated //for specification only
     @EqualsAndHashCode.Exclude
     private I18nEntity descriptionI18n;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "page_face_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private FaceEntity pageFace;
 
 //    @ManyToOne
 //    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)

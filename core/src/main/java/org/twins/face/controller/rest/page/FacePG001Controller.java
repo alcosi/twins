@@ -39,7 +39,7 @@ public class FacePG001Controller extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "facePG001ViewV1", summary = "Returns pg001 navigation bar details")
+    @Operation(operationId = "facePG001ViewV1", summary = "Returns PG001 page config: single column layout")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "PG001 face config", content = {
                     @Content(mediaType = "application/json", schema =
