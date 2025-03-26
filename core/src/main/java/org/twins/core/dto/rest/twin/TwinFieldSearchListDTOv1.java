@@ -1,19 +1,25 @@
 package org.twins.core.dto.rest.twin;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import java.util.Set;
 import java.util.UUID;
 
-@Data
-@Accessors(fluent = true)
-@Schema(name = "TwinFieldSearchDataListOptionsV1")
-public class TwinFieldSearchListDTOv1 implements TwinFieldSearchDTOv1 {
+import static org.twins.core.dto.rest.twin.TwinFieldSearchListDTOv1.KEY;
 
-    public static final String KEY = "searchListOptionsV1";
-    
-    private String type = KEY;
+@Data
+@EqualsAndHashCode(callSuper = false)
+@Accessors(fluent = true)
+@Schema(name = KEY)
+public class TwinFieldSearchListDTOv1 extends TwinFieldSearchDTOv1 {
+
+    public static final String KEY = "TwinFieldSearchListV1";
+
+    @JsonProperty("type")
+    public String type = KEY;
 
     @Schema(description = "Include options with given ids. AND join")
     public Set<UUID> optionsAllOfList;
