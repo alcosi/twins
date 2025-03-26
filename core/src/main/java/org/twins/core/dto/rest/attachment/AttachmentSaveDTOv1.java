@@ -12,8 +12,8 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "AttachmentBaseV1")
-public class AttachmentBaseDTOv1 {
+@Schema(name = "AttachmentSaveV1")
+public class AttachmentSaveDTOv1 {
     @Schema(description = "twin id", example = DTOExamples.TWIN_ID)
     public UUID twinId;
 

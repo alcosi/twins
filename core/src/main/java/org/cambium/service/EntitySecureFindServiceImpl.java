@@ -6,6 +6,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -15,10 +16,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -222,6 +220,16 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     public T saveSafe(T entity) throws ServiceException {
         validateEntityAndThrow(entity, EntitySmartService.EntityValidateMode.beforeSave);
         return entityRepository().save(entity);
+    }
+
+    public List<T> saveSafe(List<T> entities) throws ServiceException {
+        if (CollectionUtils.isEmpty(entities)) {
+            return Collections.emptyList();
+        }
+        for (T entity : entities) {
+            validateEntityAndThrow(entity, EntitySmartService.EntityValidateMode.beforeSave);
+        }
+        return new ArrayList<T>((Collection<T>) entityRepository().saveAll(entities));
     }
 
     public T updateSafe(T entity, ChangesHelper changesHelper) throws ServiceException {

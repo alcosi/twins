@@ -62,6 +62,18 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     }
 
     @Transactional
+    public List<TwinAttachmentEntity> addAttachments(Map<UUID, List<TwinAttachmentEntity>> twinIdAttachmentMap) throws ServiceException {
+        Kit<TwinEntity, UUID> twinEntityUUIDKit = twinService.findEntitiesSafe(twinIdAttachmentMap.keySet());
+        List<TwinAttachmentEntity> needSaveAttachments = new ArrayList<>();
+        for (var entry : twinIdAttachmentMap.entrySet()) {
+            checkAndSetAttachmentTwin(entry.getValue(), twinEntityUUIDKit.get(entry.getKey()));
+            needSaveAttachments.addAll(entry.getValue());
+        }
+        //todo need optimize for batch query
+        return addAttachments(needSaveAttachments);
+    }
+
+    @Transactional
     public List<TwinAttachmentEntity> addAttachments(List<TwinAttachmentEntity> attachments, TwinEntity twinEntity) throws ServiceException {
         checkAndSetAttachmentTwin(attachments, twinEntity);
         return addAttachments(attachments);

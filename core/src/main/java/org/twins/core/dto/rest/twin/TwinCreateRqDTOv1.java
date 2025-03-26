@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
-import org.twins.core.dto.rest.attachment.AttachmentAddDTOv1;
+import org.twins.core.dto.rest.attachment.AttachmentCreateDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkAddDTOv1;
 
 import java.util.List;
@@ -24,23 +24,23 @@ public class TwinCreateRqDTOv1 extends Request {
     @Schema(description = "Head twin id, if selected class had to be linked to some head twin", example = DTOExamples.HEAD_TWIN_ID)
     public UUID headTwinId;
 
-    @Schema(description = "name", example = "Oak")
+    @Schema(description = "name", example = DTOExamples.NAME)
     public String name;
 
     @Schema(description = "assigner user id", example = DTOExamples.USER_ID)
     public UUID assignerUserId;
 
-    @Schema(description = "description", example = "The biggest tree")
+    @Schema(description = "description", example = DTOExamples.DESCRIPTION)
     public String description;
 
-    @Schema(description = "external id")
+    @Schema(description = "external id", example = DTOExamples.ATTACHMENT_EXTERNAL_ID)
     public String externalId;
 
     @Schema(description = "fields")
     public Map<String, TwinFieldValueDTO> fields;
 
     @Schema(description = "Attachments")
-    public List<AttachmentAddDTOv1> attachments;
+    public List<AttachmentCreateDTOv1> attachments;
 
     @Schema(description = "Links list")
     public List<TwinLinkAddDTOv1> links;

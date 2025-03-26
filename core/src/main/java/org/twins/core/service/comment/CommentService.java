@@ -10,6 +10,8 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.KitUtils;
+import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -30,6 +32,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.search.CommentSearch;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.factory.conditioner.ConditionerApiUserIsMemberOfGroup;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionService;
@@ -41,6 +44,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.comment.CommentSpecification.*;
@@ -60,6 +64,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     final TwinAttachmentRepository attachmentRepository;
     final CommentActionService commentActionService;
     final UserGroupService userGroupService;
+    private final ConditionerApiUserIsMemberOfGroup conditionerApiUserIsMemberOfGroup;
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinCommentEntity createComment(TwinCommentEntity comment, List<TwinAttachmentEntity> attachmentList) throws ServiceException {
@@ -79,6 +84,42 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         addCommentIdInAttachments(comment.getId(), attachmentList);
         attachmentService.addAttachments(attachmentList, twinEntity);
         return comment.setAttachmentKit(new Kit<>(attachmentList, TwinAttachmentEntity::getId));
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinCommentEntity> createComment(List<TwinCommentEntity> comments) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        UUID userId = apiUser.getUser().getId();
+        Set<UUID> twinIdSet = comments.stream().map(TwinCommentEntity::getTwinId).collect(Collectors.toSet());
+        Kit<TwinEntity, UUID> twinMap = twinService.findEntities(
+                twinIdSet, EntitySmartService.ListFindMode.ifMissedThrows,
+                EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows,
+                EntitySmartService.EntityValidateMode.afterRead);
+        List<TwinCommentEntity> needSave = new ArrayList<>();
+        Map<UUID, Collection<TwinAttachmentEntity>> commentIdsAndAttachments = new HashMap<>();
+        Map<Collection<TwinAttachmentEntity>, TwinEntity> listAttachmentsAndTwinMap = new HashMap<>();
+        for (TwinCommentEntity comment : comments) {
+            if (comment.getText() != null) {
+                comment
+                        .setId(UUID.randomUUID())
+                        .setTwin(twinMap.get(comment.getTwinId()))
+                        .setCreatedAt(Timestamp.from(Instant.now()))
+                        .setCreatedByUserId(userId)
+                        .setCreatedByUser(apiUser.getUser());
+            }
+            if (KitUtils.isNotEmpty(comment.getAttachmentKit())) {
+                needSave.add(comment);
+                commentIdsAndAttachments.put(comment.getId(), comment.getAttachmentKit().getCollection());
+                listAttachmentsAndTwinMap.put(comment.getAttachmentKit().getCollection(), comment.getTwin());
+            }
+        }
+        List<TwinCommentEntity> savedComments = saveSafe(needSave);
+        addCommentIdInAttachments(commentIdsAndAttachments);
+        //todo need optimization
+        for (var entry : listAttachmentsAndTwinMap.entrySet()) {
+            attachmentService.addAttachments((List<TwinAttachmentEntity>) entry.getKey(), entry.getValue());
+        }
+        return savedComments;
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -116,6 +157,16 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
             return;
         attachmentList.forEach(attachment -> {
             attachment.setTwinCommentId(commentId);
+        });
+    }
+
+    private void addCommentIdInAttachments(Map<UUID, Collection<TwinAttachmentEntity>> comments) {
+        if (MapUtils.isEmpty(comments))
+            return;
+        comments.forEach((commentId, attachments) -> {
+            attachments.forEach(attachment -> {
+                attachment.setTwinCommentId(commentId);
+            });
         });
     }
 

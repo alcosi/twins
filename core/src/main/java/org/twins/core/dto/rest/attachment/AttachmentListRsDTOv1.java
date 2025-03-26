@@ -7,13 +7,12 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Response;
 
 import java.util.List;
-import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
-@Schema(name =  "AttachmentAddRsV1")
-public class AttachmentAddRsDTOv1 extends Response {
-    @Schema(description = "id")
-    public List<UUID> attachmentIdList;
+@EqualsAndHashCode(callSuper = false)
+@Schema(name =  "AttachmentListRsV1")
+public class AttachmentListRsDTOv1 extends Response {
+    @Schema(description = "attachment list")
+    public List<AttachmentDTOv1> attachments;
 }

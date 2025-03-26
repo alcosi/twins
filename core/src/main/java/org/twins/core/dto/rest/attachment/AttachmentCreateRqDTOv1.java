@@ -10,9 +10,9 @@ import java.util.List;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
-@Schema(name =  "AttachmentAddRqV1")
-public class AttachmentAddRqDTOv1 extends Request {
-    @Schema(description = "Attachments list")
-    public List<AttachmentAddDTOv1> attachments;
+@EqualsAndHashCode(callSuper = false)
+@Schema(name =  "AttachmentCreateRqV1")
+public class AttachmentCreateRqDTOv1 extends Request {
+    @Schema(description = "attachments list")
+    public List<AttachmentCreateDTOv1> attachments;
 }
