@@ -20,9 +20,6 @@ public class FaceTW002DTOv1 extends FaceTwidgetDTOv1 {
     @Schema(description = "widget should display an accordion with translations for given field [by id]")
     public UUID i18nTwinClassFieldId;
 
-    @Schema(description = "widget should display an accordion with translations for given field [by key]")
-    public String i18nTwinClassFieldKey;
-
     @Schema(description = "")
     public List<FaceTW002AccordionItemDTOv1> accordionItems;
 }

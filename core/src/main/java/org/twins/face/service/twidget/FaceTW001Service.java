@@ -3,13 +3,14 @@ package org.twins.face.service.twidget;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.face.TwidgetConfig;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.face.FaceTwidgetService;
 import org.twins.face.dao.twiget.FaceTW001Entity;
 import org.twins.face.dao.twiget.FaceTW001Repository;
 
@@ -20,7 +21,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceTW001Service extends EntitySecureFindServiceImpl<FaceTW001Entity> {
+public class FaceTW001Service extends FaceTwidgetService<FaceTW001Entity> {
     private final FaceTW001Repository faceTW001Repository;
     @Lazy
     private final AuthService authService;
@@ -49,5 +50,14 @@ public class FaceTW001Service extends EntitySecureFindServiceImpl<FaceTW001Entit
     @Override
     public boolean validateEntity(FaceTW001Entity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
+    }
+
+    @Override
+    public TwidgetConfig<FaceTW001Entity> getConfig(UUID faceId, UUID currentTwinId) throws ServiceException {
+        TwidgetConfig<FaceTW001Entity> ret = new TwidgetConfig<>();
+        ret
+                .setTargetTwinId(currentTwinId) //should be replaced in future
+                .setConfig(findEntitySafe(faceId));
+        return ret;
     }
 }

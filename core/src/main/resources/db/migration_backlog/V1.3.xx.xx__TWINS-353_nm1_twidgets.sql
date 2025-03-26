@@ -2,16 +2,16 @@ drop table if exists face_widget_wt003;
 drop table if exists face_widget_wt004_accordion_item;
 drop table if exists face_widget_wt004;
 
-create table if not exists twin_pointer
-(
-    id                     varchar    not null
-        constraint fk_twin_pointer_id
-            primary key
-);
-
-insert into twin_pointer values ('current_twin');
-insert into twin_pointer values ('current_twin.head_twin');
-insert into twin_pointer values ('current_twin.linked_twin');
+-- create table if not exists twin_pointer
+-- (
+--     id                     varchar    not null
+--         constraint fk_twin_pointer_id
+--             primary key
+-- );
+--
+-- insert into twin_pointer values ('current_twin');
+-- insert into twin_pointer values ('current_twin.head_twin');
+-- insert into twin_pointer values ('current_twin.linked_twin');
 
 create table if not exists face_twidget_tw001
 (
@@ -66,3 +66,7 @@ create table if not exists face_twidget_tw002_accordion_item
             references i18n
             on update cascade
 );
+
+INSERT INTO face_component_type (id, name, description) VALUES ('TWIDGET', 'Twin widget', null) on conflict do nothing ;
+UPDATE face_component SET id = 'TW001', face_component_type_id = 'TWIDGET' WHERE id LIKE 'WT003' and name like 'Twins image gallery';
+UPDATE face_component SET id = 'TW002', face_component_type_id = 'TWIDGET' WHERE id LIKE 'WT004' and name like 'Twins i18n field accordion';

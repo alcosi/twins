@@ -6,13 +6,14 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.face.TwidgetConfig;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.face.FaceTwidgetService;
 import org.twins.face.dao.twiget.FaceTW002AccordionItemEntity;
 import org.twins.face.dao.twiget.FaceTW002AccordionItemRepository;
 import org.twins.face.dao.twiget.FaceTW002Entity;
@@ -27,7 +28,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceTW002Service extends EntitySecureFindServiceImpl<FaceTW002Entity> {
+public class FaceTW002Service extends FaceTwidgetService<FaceTW002Entity> {
     private final FaceTW002Repository faceTW002Repository;
     private final FaceTW002AccordionItemRepository faceTW002AccordionItemRepository;
     @Lazy
@@ -79,5 +80,14 @@ public class FaceTW002Service extends EntitySecureFindServiceImpl<FaceTW002Entit
         for (var entry : loadedKit.getGroupedMap().entrySet()) {
             needLoad.get(entry.getKey()).getAccordionItems().addAll(entry.getValue());
         }
+    }
+
+    @Override
+    public TwidgetConfig<FaceTW002Entity> getConfig(UUID faceId, UUID currentTwinId) throws ServiceException {
+        TwidgetConfig<FaceTW002Entity> ret = new TwidgetConfig<>();
+        ret
+                .setTargetTwinId(currentTwinId) //should be replaced in future
+                .setConfig(findEntitySafe(faceId));
+        return ret;
     }
 }

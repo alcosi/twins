@@ -18,7 +18,4 @@ public class FaceTW001DTOv1 extends FaceTwidgetDTOv1 {
 
     @Schema(description = "only images from given field [by id] should be taken, if empty - then all twins images")
     public UUID imagesTwinClassFieldId;
-
-    @Schema(description = "only images from given field [by key] should be taken, if empty - then all twins images")
-    public String imagesTwinClassFieldKey;
 }

@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.domain.face.TwidgetConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -49,9 +50,9 @@ public class FaceTW001Controller extends ApiController {
             @RequestParam UUID twinId) {
         FaceTW001ViewRsDTOv1 rs = new FaceTW001ViewRsDTOv1();
         try {
-            FaceTW001Entity faceTW001Entity = faceTW001Service.findEntitySafe(faceId);
+            TwidgetConfig<FaceTW001Entity> config = faceTW001Service.getConfig(faceId, twinId);
             rs
-                    .setWidget(faceTW001RestDTOMapper.convert(faceTW001Entity, mapperContext))
+                    .setWidget(faceTW001RestDTOMapper.convert(config, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
