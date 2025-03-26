@@ -1,4 +1,4 @@
-package org.twins.face.service.widget;
+package org.twins.face.service.twidget;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,10 +13,10 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
-import org.twins.face.dao.widget.FaceWT004AccordionItemEntity;
-import org.twins.face.dao.widget.FaceWT004AccordionItemRepository;
-import org.twins.face.dao.widget.FaceWT004Entity;
-import org.twins.face.dao.widget.FaceWT004Repository;
+import org.twins.face.dao.twiget.FaceTW002AccordionItemEntity;
+import org.twins.face.dao.twiget.FaceTW002AccordionItemRepository;
+import org.twins.face.dao.twiget.FaceTW002Entity;
+import org.twins.face.dao.twiget.FaceTW002Repository;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -27,25 +27,25 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceWT004Service extends EntitySecureFindServiceImpl<FaceWT004Entity> {
-    private final FaceWT004Repository faceWT004Repository;
-    private final FaceWT004AccordionItemRepository faceWT004AccordionItemRepository;
+public class FaceTW002Service extends EntitySecureFindServiceImpl<FaceTW002Entity> {
+    private final FaceTW002Repository faceTW002Repository;
+    private final FaceTW002AccordionItemRepository faceTW002AccordionItemRepository;
     @Lazy
     private final AuthService authService;
 
 
     @Override
-    public CrudRepository<FaceWT004Entity, UUID> entityRepository() {
-        return faceWT004Repository;
+    public CrudRepository<FaceTW002Entity, UUID> entityRepository() {
+        return faceTW002Repository;
     }
 
     @Override
-    public Function<FaceWT004Entity, UUID> entityGetIdFunction() {
-        return FaceWT004Entity::getFaceId;
+    public Function<FaceTW002Entity, UUID> entityGetIdFunction() {
+        return FaceTW002Entity::getFaceId;
     }
 
     @Override
-    public boolean isEntityReadDenied(FaceWT004Entity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+    public boolean isEntityReadDenied(FaceTW002Entity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if (!entity.getFace().getDomainId().equals(authService.getApiUser().getDomainId())) {
             EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allows in domain[" + apiUser.getDomainId() + "]");
@@ -55,27 +55,27 @@ public class FaceWT004Service extends EntitySecureFindServiceImpl<FaceWT004Entit
     }
 
     @Override
-    public boolean validateEntity(FaceWT004Entity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+    public boolean validateEntity(FaceTW002Entity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
     }
 
-    public void loadAccordionItems(FaceWT004Entity src) {
+    public void loadAccordionItems(FaceTW002Entity src) {
         loadAccordionItems(Collections.singletonList(src));
     }
 
-    public void loadAccordionItems(Collection<FaceWT004Entity> srcList) {
+    public void loadAccordionItems(Collection<FaceTW002Entity> srcList) {
         if (CollectionUtils.isEmpty(srcList))
             return;
-        Kit<FaceWT004Entity, UUID> needLoad = new Kit<>(FaceWT004Entity::getFaceId);
+        Kit<FaceTW002Entity, UUID> needLoad = new Kit<>(FaceTW002Entity::getFaceId);
         for (var faceNB001Entity : srcList)
             if (faceNB001Entity.getAccordionItems() == null) {
-                faceNB001Entity.setAccordionItems(new Kit<>(FaceWT004AccordionItemEntity::getId));
+                faceNB001Entity.setAccordionItems(new Kit<>(FaceTW002AccordionItemEntity::getId));
                 needLoad.add(faceNB001Entity);
             }
         if (needLoad.isEmpty())
             return;
-        KitGrouped<FaceWT004AccordionItemEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                faceWT004AccordionItemRepository.findByFaceIdIn(needLoad.getIdSet()), FaceWT004AccordionItemEntity::getId, FaceWT004AccordionItemEntity::getFaceId);
+        KitGrouped<FaceTW002AccordionItemEntity, UUID, UUID> loadedKit = new KitGrouped<>(
+                faceTW002AccordionItemRepository.findByFaceIdIn(needLoad.getIdSet()), FaceTW002AccordionItemEntity::getId, FaceTW002AccordionItemEntity::getFaceId);
         for (var entry : loadedKit.getGroupedMap().entrySet()) {
             needLoad.get(entry.getKey()).getAccordionItems().addAll(entry.getValue());
         }

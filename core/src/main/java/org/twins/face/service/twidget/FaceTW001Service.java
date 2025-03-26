@@ -1,4 +1,4 @@
-package org.twins.face.service.widget;
+package org.twins.face.service.twidget;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,8 +10,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
-import org.twins.face.dao.widget.FaceWT003Entity;
-import org.twins.face.dao.widget.FaceWT003Repository;
+import org.twins.face.dao.twiget.FaceTW001Entity;
+import org.twins.face.dao.twiget.FaceTW001Repository;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -20,24 +20,24 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceWT003Service extends EntitySecureFindServiceImpl<FaceWT003Entity> {
-    private final FaceWT003Repository faceWT003Repository;
+public class FaceTW001Service extends EntitySecureFindServiceImpl<FaceTW001Entity> {
+    private final FaceTW001Repository faceTW001Repository;
     @Lazy
     private final AuthService authService;
 
 
     @Override
-    public CrudRepository<FaceWT003Entity, UUID> entityRepository() {
-        return faceWT003Repository;
+    public CrudRepository<FaceTW001Entity, UUID> entityRepository() {
+        return faceTW001Repository;
     }
 
     @Override
-    public Function<FaceWT003Entity, UUID> entityGetIdFunction() {
-        return FaceWT003Entity::getFaceId;
+    public Function<FaceTW001Entity, UUID> entityGetIdFunction() {
+        return FaceTW001Entity::getFaceId;
     }
 
     @Override
-    public boolean isEntityReadDenied(FaceWT003Entity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+    public boolean isEntityReadDenied(FaceTW001Entity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if (!entity.getFace().getDomainId().equals(authService.getApiUser().getDomainId())) {
             EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allows in domain[" + apiUser.getDomainId() + "]");
@@ -47,7 +47,7 @@ public class FaceWT003Service extends EntitySecureFindServiceImpl<FaceWT003Entit
     }
 
     @Override
-    public boolean validateEntity(FaceWT003Entity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+    public boolean validateEntity(FaceTW001Entity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
     }
 }

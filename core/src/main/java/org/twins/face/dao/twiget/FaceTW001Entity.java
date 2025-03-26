@@ -1,4 +1,4 @@
-package org.twins.face.dao.widget;
+package org.twins.face.dao.twiget;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -13,8 +13,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "face_widget_wt003")
-public class FaceWT003Entity implements EasyLoggable{
+@Table(name = "face_twidget_tw001")
+public class FaceTW001Entity implements EasyLoggable{
     @Id
     @Column(name = "face_id")
     private UUID faceId;
@@ -38,15 +38,15 @@ public class FaceWT003Entity implements EasyLoggable{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "images_twin_class_field_id", nullable = false, insertable = false, updatable = false)
-    private TwinClassFieldEntity twinClassField;
+    private TwinClassFieldEntity imagesTwinClassField;
 
     @Override
     public String easyLog(Level level) {
         switch (level) {
             case SHORT:
-                return "faceWT003[" + faceId + "]";
+                return "faceTW001[" + faceId + "]";
             default:
-                return "faceWT003[id:" + faceId + ", componentId:" + face.getFaceComponentId() + "]";
+                return "faceTW001[id:" + faceId + ", componentId:" + face.getFaceComponentId() + "]";
         }
     }
 }

@@ -1,4 +1,4 @@
-package org.twins.face.dto.rest.widget;
+package org.twins.face.dto.rest.twidget;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -9,8 +9,8 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "FaceWT004ViewRsV1")
-public class FaceWT004ViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+@Schema(name = "FaceTW002ViewRsV1")
+public class FaceTW002ViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "results - widget details")
-    public FaceWT004DTOv1 widget;
+    public FaceTW002DTOv1 widget;
 }
