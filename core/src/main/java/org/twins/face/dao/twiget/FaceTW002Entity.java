@@ -1,4 +1,4 @@
-package org.twins.face.dao.widget;
+package org.twins.face.dao.twiget;
 
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
@@ -8,6 +8,7 @@ import lombok.ToString;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.face.FaceEntity;
+import org.twins.core.dao.face.FaceTwidgetEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
@@ -16,8 +17,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "face_widget_wt004")
-public class FaceWT004Entity implements EasyLoggable{
+@Table(name = "face_twidget_TW002")
+public class FaceTW002Entity implements EasyLoggable, FaceTwidgetEntity {
     @Id
     @Column(name = "face_id")
     private UUID faceId;
@@ -41,20 +42,20 @@ public class FaceWT004Entity implements EasyLoggable{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_twin_class_field_id", nullable = false, insertable = false, updatable = false)
-    private TwinClassFieldEntity twinClassField;
+    private TwinClassFieldEntity i18nTwinClassField;
 
     @Override
     public String easyLog(Level level) {
         switch (level) {
             case SHORT:
-                return "faceWT004[" + faceId + "]";
+                return "faceTW002[" + faceId + "]";
             default:
-                return "faceWT004[id:" + faceId + ", componentId:" + face.getFaceComponentId() + "]";
+                return "faceTW002[id:" + faceId + ", componentId:" + face.getFaceComponentId() + "]";
         }
     }
 
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    Kit<FaceWT004AccordionItemEntity, UUID> accordionItems;
+    Kit<FaceTW002AccordionItemEntity, UUID> accordionItems;
 }

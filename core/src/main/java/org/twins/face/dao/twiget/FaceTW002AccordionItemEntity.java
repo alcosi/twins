@@ -1,4 +1,4 @@
-package org.twins.face.dao.widget;
+package org.twins.face.dao.twiget;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -15,8 +15,8 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Entity
-@Table(name = "face_widget_wt004_accordion_item")
-public class FaceWT004AccordionItemEntity {
+@Table(name = "face_twidget_TW002_accordion_item")
+public class FaceTW002AccordionItemEntity {
     @Id
     @Column(name = "id")
     private UUID id;

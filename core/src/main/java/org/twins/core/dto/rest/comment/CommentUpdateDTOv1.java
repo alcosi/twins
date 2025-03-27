@@ -11,6 +11,6 @@ import org.twins.core.dto.rest.attachment.AttachmentCudDTOv1;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "CommentUpdateV1")
 public class CommentUpdateDTOv1 extends CommentSaveDTOv1 {
-    @Schema(description = "AttachmentCudV1")
+    @Schema(description = "attachments")
     public AttachmentCudDTOv1 attachments;
 }
