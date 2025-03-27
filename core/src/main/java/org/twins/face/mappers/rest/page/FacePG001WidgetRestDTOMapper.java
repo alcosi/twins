@@ -22,7 +22,9 @@ public class FacePG001WidgetRestDTOMapper extends RestSimpleDTOMapper<FacePG001W
         dst
                 .setId(src.getId())
                 .setWidgetFaceId(src.getWidgetFaceId())
-                .setOrder(src.getWidgetOrder());
+                .setColumn(src.getColumn())
+                .setRow(src.getRow())
+                .setActive(src.isActive());
         if (mapperContext.hasModeButNot(FacePG001Modes.FacePG001Widget2FaceMode.HIDE)) {
             faceRestDTOMapper.postpone(src.getWidgetFace(), mapperContext.forkOnPoint(FacePG001Modes.FacePG001Widget2FaceMode.SHORT));
         }

@@ -28,7 +28,10 @@ public class FacePG001RestDTOMapper extends RestSimpleDTOMapper<FacePG001Entity,
     public void map(FacePG001Entity src, FacePG001DTOv1 dst, MapperContext mapperContext) throws Exception {
         faceRestDTOMapper.map(src.getFace(), dst, mapperContext);
         switch (mapperContext.getModeOrUse(FaceMode.SHORT)) { // perhaps we need some separate mode
-            case SHORT, DETAILED -> dst
+            case SHORT -> dst
+                    .setTitle(i18nService.translateToLocale(src.getTitleI18nId()));
+            case DETAILED -> dst
+                    .setLayout(src.getLayout())
                     .setTitle(i18nService.translateToLocale(src.getTitleI18nId()));
         }
         if (mapperContext.hasModeButNot(FacePG001Modes.FacePG001WidgetCollectionMode.HIDE)) {

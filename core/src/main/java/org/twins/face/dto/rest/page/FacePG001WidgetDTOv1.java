@@ -14,8 +14,14 @@ public class FacePG001WidgetDTOv1 {
     @Schema(description = "uniq id", example = DTOExamples.FACE_ID)
     public UUID id;
 
-    @Schema(description = "uniq menu item key")
-    public Integer order;
+    @Schema(description = "column id")
+    public Integer column;
+
+    @Schema(description = "row id")
+    public Integer row;
+
+    @Schema(description = "is widget active")
+    public Boolean active;
 
     @Schema(description = "widget face pointer")
     public UUID widgetFaceId;
