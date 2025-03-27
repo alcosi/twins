@@ -34,12 +34,12 @@ import java.util.Properties;
         name = "Date",
         description = "")
 public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, FieldValueDate, TwinFieldSearchDate> {
-    public static final Integer ID = 1302;
-
     @FeaturerParam(name = "Pattern", description = "pattern for date value")
     public static final FeaturerParamString pattern = new FeaturerParamString("pattern");
+
     @FeaturerParam(name = "DaysPast", description = "number of days in the past", optional = true, defaultValue = "0")
     public static final FeaturerParamInt daysPast = new FeaturerParamInt("daysPast");
+
     @FeaturerParam(name = "DaysFuture", description = "number of days in the futures", optional = true, defaultValue = "0")
     public static final FeaturerParamInt daysFuture = new FeaturerParamInt("daysFuture");
 
