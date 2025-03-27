@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.cambium.common.EasyLoggable;
-import org.hibernate.annotations.ColumnDefault;
 import org.twins.core.dao.face.FaceEntity;
 
 import java.util.UUID;
@@ -28,9 +27,14 @@ public class FacePG001WidgetEntity implements EasyLoggable {
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     private FaceEntity face;
 
-    @ColumnDefault("0")
-    @Column(name = "widget_order", nullable = false)
-    private Integer widgetOrder;
+    @Column(name = "column", nullable = false)
+    private Integer column;
+
+    @Column(name = "row", nullable = false)
+    private Integer row;
+
+    @Column(name = "active", nullable = false)
+    private boolean active;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "widget_face_id", nullable = false, insertable = false, updatable = false)
