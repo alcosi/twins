@@ -30,4 +30,4 @@ alter table public.face_page_pg001_widget
     add if not exists row integer default 1 not null;
 
 alter table public.face_page_pg001_widget
-    add if not exists active boolean default true not null
+    add if not exists active boolean default true not null;
