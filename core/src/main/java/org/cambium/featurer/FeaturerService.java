@@ -263,9 +263,6 @@ public class FeaturerService {
         int paramsCount = params != null ? (int) params.values().stream().filter(Objects::nonNull).count() : 0;
         int notOptionalParamsCountSetting = (int) paramsAnnotationsMap.values().stream().filter(it -> !it.optional()).count();
         int totalParamsCountSetting = paramsAnnotationsMap.values().size();
-        if (paramsCount != paramsAnnotationsMap.size())
-            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION,
-                    String.format("Incorrect params count for featurer[%s]. Expected %s, got %s", featurerId, paramsAnnotationsMap.size(), paramsCount));
         if (paramsCount < notOptionalParamsCountSetting) {
             throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, String.format("Incorrect params count for featurer[%s]. Expected (%s,%s), got %s", featurerId, notOptionalParamsCountSetting, totalParamsCountSetting, paramsCount));
         }
