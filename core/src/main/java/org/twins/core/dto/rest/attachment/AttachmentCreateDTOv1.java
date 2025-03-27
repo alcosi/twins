@@ -10,12 +10,11 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "AttachmentAddV1")
-public class AttachmentAddDTOv1 extends AttachmentBaseDTOv1 {
+@Schema(name = "AttachmentCreateV1")
+public class AttachmentCreateDTOv1 extends AttachmentSaveDTOv1 {
     @Schema(description = "link to the field to which attachment was added (if any)")
     public UUID twinClassFieldId;
 
     @Schema(description = "link to the comment to which attachment was added (if any)")
     public UUID commentId;
-
 }

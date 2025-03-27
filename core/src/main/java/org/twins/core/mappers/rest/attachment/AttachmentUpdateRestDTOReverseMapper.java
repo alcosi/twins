@@ -12,11 +12,11 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 @RequiredArgsConstructor
 public class AttachmentUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<AttachmentUpdateDTOv1, TwinAttachmentEntity> {
 
-    private final AttachmentBaseRestDTOReverseMapper attachmentBaseRestDTOReverseMapper;
+    private final AttachmentSaveRestDTOReverseMapper attachmentSaveRestDTOReverseMapper;
 
     @Override
     public void map(AttachmentUpdateDTOv1 src, TwinAttachmentEntity dst, MapperContext mapperContext) throws Exception {
-        attachmentBaseRestDTOReverseMapper.map(src, dst, mapperContext);
+        attachmentSaveRestDTOReverseMapper.map(src, dst, mapperContext);
         dst.setId(src.getId());
     }
 }

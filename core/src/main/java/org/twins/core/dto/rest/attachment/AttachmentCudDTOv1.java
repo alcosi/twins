@@ -13,7 +13,7 @@ import java.util.UUID;
 @Schema(name =  "AttachmentCudV1")
 public class AttachmentCudDTOv1 {
     @Schema(description = "Attachments for adding")
-    public List<AttachmentAddDTOv1> create;
+    public List<AttachmentCreateDTOv1> create;
 
     @Schema(description = "Attachments for updating")
     public List<AttachmentUpdateDTOv1> update;

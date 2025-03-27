@@ -15,21 +15,21 @@ import org.twins.core.service.attachment.AttachmentService;
 public class AttachmentCUDRestDTOReverseMapper extends RestSimpleDTOMapper<TwinUpdateDTOv1, EntityCUD<TwinAttachmentEntity>> {
     private final AttachmentService attachmentService;
     private final AttachmentUpdateRestDTOReverseMapper attachmentUpdateRestDTOReverseMapper;
-    private final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
+    private final AttachmentCreateRestDTOReverseMapper attachmentCreateRestDTOReverseMapper;
 
     @Override
     public void map(TwinUpdateDTOv1 src, EntityCUD<TwinAttachmentEntity> dst, MapperContext mapperContext) throws Exception {
         if (null == src.getAttachments())
             return;
 
-        if(null != src.getAttachments().getCreate())
+        if (null != src.getAttachments().getCreate())
             src.getAttachments().getCreate().forEach(ta -> ta.setTwinId(src.getTwinId()));
-        if(null != src.getAttachments().getUpdate())
+        if (null != src.getAttachments().getUpdate())
             src.getAttachments().getUpdate().forEach(ta -> ta.setTwinId(src.getTwinId()));
 
         dst
                 .setUpdateList(attachmentUpdateRestDTOReverseMapper.convertCollection(src.getAttachments().getUpdate()))
-                .setCreateList(attachmentAddRestDTOReverseMapper.convertCollection(src.getAttachments().getCreate()))
+                .setCreateList(attachmentCreateRestDTOReverseMapper.convertCollection(src.getAttachments().getCreate()))
                 .setDeleteList(attachmentService.findEntitiesSafe(src.getAttachments().getDelete()).getList());
     }
 }
