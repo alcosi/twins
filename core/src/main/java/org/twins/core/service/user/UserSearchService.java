@@ -64,7 +64,7 @@ public class UserSearchService {
                 Subquery<Long> countSubquery = query.subquery(Long.class);
                 Root<TwinEntity> twinRoot = countSubquery.from(TwinEntity.class);
 
-                Predicate parentCondition = cb.equal(twinRoot.get("headTwinId"), userIdPath);
+                Predicate parentCondition = cb.equal(twinRoot.get(TwinEntity.Fields.headTwinId), userIdPath);
                 Predicate searchConditions = twinSearchService
                         .createTwinEntitySearchSpecification(childTwinsSearch)
                         .toPredicate(twinRoot, query, cb);
