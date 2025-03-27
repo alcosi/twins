@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.face.FaceDTOv1;
 
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -25,5 +25,5 @@ public class FaceWT001DTOv1 extends FaceDTOv1 {
     public UUID searchId;
 
     @Schema(description = "show given basic columns from table and filter")
-    public Set<String> showColumns;
+    public List<String> showColumns;
 }
