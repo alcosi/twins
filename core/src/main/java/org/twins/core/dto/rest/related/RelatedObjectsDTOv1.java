@@ -95,7 +95,6 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related i18n map", example = "{face map}")
     public Map<UUID, I18nDTOv1> i18nMap;
-}
 
     @Schema(description = "related class field map", example = "{class field map}")
     public Map<UUID, TwinClassFieldDTOv1> twinClassFieldMap;

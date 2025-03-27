@@ -27,7 +27,7 @@ public class AttachmentDTOv1 {
     public String storageLink;
 
     @Schema(description = "External storage links map by key", example = DTOExamples.ATTACHMENT_STORAGE_LINKS_MAP)
-    public Map<String, String> storageLinksMap;
+    public Map<String, String> modifications;
 
     @Schema(description = "External id", example = DTOExamples.ATTACHMENT_EXTERNAL_ID)
     public String externalId;
