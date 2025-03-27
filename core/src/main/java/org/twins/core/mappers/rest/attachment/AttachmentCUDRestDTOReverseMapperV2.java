@@ -15,13 +15,13 @@ import org.twins.core.service.attachment.AttachmentService;
 public class AttachmentCUDRestDTOReverseMapperV2 extends RestSimpleDTOMapper<AttachmentCudDTOv1, EntityCUD<TwinAttachmentEntity>> {
     private final AttachmentService attachmentService;
     private final AttachmentUpdateRestDTOReverseMapper attachmentUpdateRestDTOReverseMapper;
-    private final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
+    private final AttachmentCreateRestDTOReverseMapper attachmentCreateRestDTOReverseMapper;
 
     @Override
     public void map(AttachmentCudDTOv1 src, EntityCUD<TwinAttachmentEntity> dst, MapperContext mapperContext) throws Exception {
         dst
                 .setUpdateList(attachmentUpdateRestDTOReverseMapper.convertCollection(src.getUpdate()))
-                .setCreateList(attachmentAddRestDTOReverseMapper.convertCollection(src.getCreate()))
+                .setCreateList(attachmentCreateRestDTOReverseMapper.convertCollection(src.getCreate()))
                 .setDeleteList(attachmentService.findEntitiesSafe(src.getDelete()).getList());
     }
 }
