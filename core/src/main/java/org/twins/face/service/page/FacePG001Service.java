@@ -13,10 +13,10 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
-import org.twins.face.dao.page.FacePG001Entity;
-import org.twins.face.dao.page.FacePG001Repository;
-import org.twins.face.dao.page.FacePG001WidgetEntity;
-import org.twins.face.dao.page.FacePG001WidgetRepository;
+import org.twins.face.dao.page.pg001.FacePG001Entity;
+import org.twins.face.dao.page.pg001.FacePG001Repository;
+import org.twins.face.dao.page.pg001.FacePG001WidgetEntity;
+import org.twins.face.dao.page.pg001.FacePG001WidgetRepository;
 
 import java.util.Collection;
 import java.util.Collections;

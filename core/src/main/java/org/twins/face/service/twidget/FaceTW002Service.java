@@ -14,10 +14,10 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.face.TwidgetConfig;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.face.FaceTwidgetService;
-import org.twins.face.dao.twiget.FaceTW002AccordionItemEntity;
-import org.twins.face.dao.twiget.FaceTW002AccordionItemRepository;
-import org.twins.face.dao.twiget.FaceTW002Entity;
-import org.twins.face.dao.twiget.FaceTW002Repository;
+import org.twins.face.dao.twiget.tw002.FaceTW002AccordionItemEntity;
+import org.twins.face.dao.twiget.tw002.FaceTW002AccordionItemRepository;
+import org.twins.face.dao.twiget.tw002.FaceTW002Entity;
+import org.twins.face.dao.twiget.tw002.FaceTW002Repository;
 
 import java.util.Collection;
 import java.util.Collections;

@@ -13,10 +13,10 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
-import org.twins.face.dao.navbar.FaceNB001Entity;
-import org.twins.face.dao.navbar.FaceNB001MenuItemEntity;
-import org.twins.face.dao.navbar.FaceNB001MenuItemRepository;
-import org.twins.face.dao.navbar.FaceNB001Repository;
+import org.twins.face.dao.navbar.nb001.FaceNB001Entity;
+import org.twins.face.dao.navbar.nb001.FaceNB001MenuItemEntity;
+import org.twins.face.dao.navbar.nb001.FaceNB001MenuItemRepository;
+import org.twins.face.dao.navbar.nb001.FaceNB001Repository;
 
 import java.util.Collection;
 import java.util.Collections;
