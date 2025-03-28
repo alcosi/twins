@@ -21,7 +21,7 @@ import java.util.Properties;
         name = "RabbitMqSendTwin",
         description = "Trigger for sending event to rabbit")
 @RequiredArgsConstructor
-public class TransitionTriggerRabbitMqSendTwinIdAndDstTwinStatusIdAndOperation extends TransitionTriggerRabbitMqConnection {
+public class TransitionTriggerRabbitMqSendTwinForOperation extends TransitionTriggerRabbitMqConnection {
 
     private final AmpqManager ampqManager;
 
@@ -41,7 +41,7 @@ public class TransitionTriggerRabbitMqSendTwinIdAndDstTwinStatusIdAndOperation e
         ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(
                 TransitionTriggerRabbitMqConnection.URL.extract(properties));
 
-        Map<String, String> eventMap = Map.of( "twinId" ,twinEntity.getId().toString(), "statusId", dstTwinStatus.getId().toString(), "operation", OPERATION.extract(properties));
+        Map<String, String> eventMap = Map.of( "twinId" ,twinEntity.getId().toString(), "operation", OPERATION.extract(properties));
         ampqManager.sendMessage(factory, EXCHANGE.extract(properties), QUEUE.extract(properties), eventMap);
         log.debug("Done sending to Rabbit");
     }
