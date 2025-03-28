@@ -1,4 +1,4 @@
-package org.twins.face.dao.page.pg001;
+package org.twins.face.dao.page.pg002;
 
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
@@ -15,8 +15,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "face_page_pg001")
-public class FacePG001Entity implements EasyLoggable {
+@Table(name = "face_page_pg002")
+public class FacePG002Entity implements EasyLoggable {
     @Id
     @Column(name = "face_id")
     private UUID faceId;
@@ -24,7 +24,7 @@ public class FacePG001Entity implements EasyLoggable {
     @Column(name = "title_i18n_id")
     private UUID titleI18nId;
 
-    @Column(name = "face_page_pg001_layout_id")
+    @Column(name = "face_page_pg002_layout_id")
     @Enumerated(EnumType.STRING)
     private Layout layout;
     
@@ -39,19 +39,19 @@ public class FacePG001Entity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    Kit<FacePG001WidgetEntity, UUID> widgets;
+    Kit<FacePG002TabEntity, UUID> tabs;
 
     @Override
     public String easyLog(Level level) {
         switch (level) {
             case SHORT:
-                return "facePG001[" + faceId + "]";
+                return "facePG002[" + faceId + "]";
             default:
-                return "facePG001[id:" + faceId + ", componentId:" + face.getFaceComponentId() + "]";
+                return "facePG002[id:" + faceId + ", componentId:" + face.getFaceComponentId() + "]";
         }
     }
 
     public enum Layout {
-        ONE_COLUMN, TWO_COLUMNS, THREE_COLUMNS
+        TOP, BOTTOM, LEFT, RIGHT
     }
 }

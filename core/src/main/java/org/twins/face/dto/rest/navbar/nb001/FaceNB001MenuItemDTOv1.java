@@ -26,7 +26,7 @@ public class FaceNB001MenuItemDTOv1 {
     @Schema(description = "item is not selectable")
     public boolean disabled;
 
-    @Schema(description = "Icon light uri. Might be relative")
+    @Schema(description = "Icon url. Might be relative")
     public String icon;
 
     @Schema(description = "domain navigation bar pointer")
