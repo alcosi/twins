@@ -18,7 +18,7 @@ public class RabbitManager implements AmpqManager {
     public void sendMessage(ConnectionFactory connectionFactory, String exchangeName, String routingKey, Object message) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter(new ObjectMapper()));
-        rabbitTemplate.convertAndSend(exchangeName, routingKey, message);
+        rabbitTemplate.convertAndSend(exchangeName, routingKey, message, new MessagePostProcessorCustom());
         log.debug("Sent message {}", message);
     }
 }
