@@ -6,20 +6,24 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.i18n.I18nLocaleEntity;
 import org.twins.core.dao.i18n.I18nLocaleRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.rabbit.AmpqManager;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.*;
 
@@ -32,7 +36,12 @@ import java.util.*;
 public class TransitionTriggerRabbitMqSendI18nFieldValueWithLocaleForOperation extends TransitionTriggerRabbitMqConnection {
 
     private final AmpqManager ampqManager;
+
     private final I18nLocaleRepository i18nLocaleRepository;
+
+    @Autowired
+    private TwinClassFieldService twinClassFieldService;
+
     private final AuthService authService;
 
     @FeaturerParam(name = "Exchange", description = "Name of exchange")
@@ -59,9 +68,10 @@ public class TransitionTriggerRabbitMqSendI18nFieldValueWithLocaleForOperation e
 
         List<String> targetLanguages = activeLocales.stream().map(I18nLocaleEntity::getLocale).filter(locale -> !locale.equals(sourceLanguage)).toList();
 
+        Kit<TwinClassFieldEntity, UUID> fieldEntities = twinClassFieldService.findEntitiesSafe(FIELDS.extract(properties));
         List<FieldTranslationInfo> fieldsToTranslate = new ArrayList<>();
-        for (UUID fieldKey : FIELDS.extract(properties))
-            fieldsToTranslate.add(new FieldTranslationInfo(fieldKey.toString(), sourceLanguage, new ArrayList<>(targetLanguages)));
+        for (TwinClassFieldEntity field : fieldEntities)
+            fieldsToTranslate.add(new FieldTranslationInfo(field.getKey(), sourceLanguage, new ArrayList<>(targetLanguages)));
 
         RabbitMqMessagePayload payload = new RabbitMqMessagePayload()
                 .setTwinsId(twinEntity.getId())

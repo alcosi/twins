@@ -59,6 +59,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     private final TwinService twinService;
     @Lazy
     private final TwinClassService twinClassService;
+    @Lazy
     private final FeaturerService featurerService;
     @Lazy
     private final AuthService authService;
