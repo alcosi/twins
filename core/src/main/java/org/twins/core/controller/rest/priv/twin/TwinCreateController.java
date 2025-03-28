@@ -98,7 +98,7 @@ public class TwinCreateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinCreateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/v2", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/v2")
     public ResponseEntity<?> twinCreateV2(
             @RequestBody TwinCreateRqDTOv2 request) {
         TwinCreateRsDTOv1 rs = new TwinCreateRsDTOv1();

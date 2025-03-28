@@ -8,7 +8,7 @@ import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -45,7 +45,7 @@ public class FaceWT001Entity implements EasyLoggable{
     private TwinClassEntity twinClass;
 
     @Column(name = "show_columns")
-    private Set<String> showColumns;
+    private List<String> showColumns;
 
     @Override
     public String easyLog(EasyLoggable.Level level) {
