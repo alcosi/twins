@@ -37,7 +37,9 @@ public class UserSearchService {
     private final TwinSearchDTOReverseMapper twinSearchDTOReverseMapper;
 
     public PaginationResult<UserEntity> findUsers(UserSearch search, SimplePagination pagination) throws ServiceException {
-        Specification<UserEntity> userSpec = createUserSpecification(search);
+        UUID domainId = authService.getApiUser().getDomainId();
+        UUID businessAccountId = authService.getApiUser().getBusinessAccountId();
+        Specification<UserEntity> userSpec = createUserSpecification(search, domainId, businessAccountId);
 
         if (search.getChildTwins() != null) {
             Specification<UserEntity> combinedSpec = userSpec.and(createTwinSpecification(search.getChildTwins()));
@@ -81,9 +83,9 @@ public class UserSearchService {
         };
     }
 
-    public Specification<UserEntity> createUserSpecification(UserSearch search) throws ServiceException {
+    public Specification<UserEntity> createUserSpecification(UserSearch search, UUID domainId, UUID businessAccountId) throws ServiceException {
         return Specification.allOf(
-                checkUserDomain(authService.getApiUser().getDomainId()),
+                checkUserDomain(domainId),
                 checkUuidIn(search.getUserIdList(), false, false, UserEntity.Fields.id),
                 checkUuidIn(search.getUserIdExcludeList(), true, false, UserEntity.Fields.id),
                 checkFieldLikeIn(search.getUserNameLikeList(), false, true, UserEntity.Fields.name),
@@ -91,7 +93,9 @@ public class UserSearchService {
                 checkStatusLikeIn(search.getStatusIdList(), false),
                 checkStatusLikeIn(search.getStatusIdExcludeList(), true),
                 checkSpaceRoleLikeIn(search.getSpaceList(), false),
-                checkSpaceRoleLikeIn(search.getSpaceExcludeList(), true)
+                checkSpaceRoleLikeIn(search.getSpaceExcludeList(), true),
+                checkSpaceRoleGroupLikeIn(search.getSpaceGroupList(), domainId, businessAccountId, false),
+                checkSpaceRoleGroupLikeIn(search.getSpaceGroupExcludeList(), domainId, businessAccountId, true)
         );
     }
 }

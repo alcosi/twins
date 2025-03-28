@@ -7,6 +7,7 @@ import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserGroupEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
+import org.twins.core.dto.rest.user.SpaceGroupSearchDTOv1;
 import org.twins.core.dto.rest.user.SpaceSearchDTOv1;
 
 import java.util.List;
@@ -107,6 +108,80 @@ public class UserSpecification extends CommonSpecification<UserEntity> {
             return exclude
                     ? cb.not(cb.exists(subquery))
                     : cb.exists(subquery);
+        };
+    }
+
+    public static Specification<UserEntity> checkSpaceRoleGroupLikeIn(
+            List<SpaceGroupSearchDTOv1> spaceGroupRoles,
+            UUID domainId,
+            UUID businessAccountId,
+            boolean exclude
+    ) {
+        return (root, query, cb) -> {
+            if (query == null || CollectionUtils.isEmpty(spaceGroupRoles)) {
+                return cb.conjunction();
+            }
+
+            Subquery<SpaceRoleUserGroupEntity> groupSubquery = query.subquery(SpaceRoleUserGroupEntity.class);
+            Root<SpaceRoleUserGroupEntity> groupRoleRoot = groupSubquery.from(SpaceRoleUserGroupEntity.class);
+
+            Expression<UUID> functionCall = cb.function(
+                    "get_users_by_groups",
+                    UUID.class,
+                    cb.literal(groupRoleRoot.get(SpaceRoleUserGroupEntity.Fields.userGroupId)),
+                    cb.literal(domainId),
+                    cb.literal(businessAccountId)
+            );
+
+            Predicate userInGroups = cb.in(root.get(UserEntity.Fields.id)).value(functionCall);
+
+            Predicate[] rolePredicates = spaceGroupRoles.stream()
+                    .filter(Objects::nonNull)
+                    .map(spaceGroupRole -> {
+                        Predicate conditions = cb.conjunction();
+
+                        if (spaceGroupRole.getSpaceId() != null) {
+                            conditions = cb.and(
+                                    conditions,
+                                    cb.equal(
+                                            groupRoleRoot.get(SpaceRoleUserGroupEntity.Fields.twinId),
+                                            spaceGroupRole.getSpaceId()
+                                    )
+                            );
+                        }
+
+                        if (spaceGroupRole.getRoleId() != null) {
+                            conditions = cb.and(
+                                    conditions,
+                                    cb.equal(
+                                            groupRoleRoot.get(SpaceRoleUserGroupEntity.Fields.spaceRoleId),
+                                            spaceGroupRole.getRoleId()
+                                    )
+                            );
+                        }
+
+                        if (!CollectionUtils.isEmpty(spaceGroupRole.getUserGroupIds())) {
+                            conditions = cb.and(
+                                    conditions,
+                                    groupRoleRoot.get(SpaceRoleUserGroupEntity.Fields.userGroupId)
+                                            .in(spaceGroupRole.getUserGroupIds())
+                            );
+                        }
+
+                        return conditions;
+                    })
+                    .toArray(Predicate[]::new);
+
+            if (rolePredicates.length == 0) {
+                return cb.conjunction();
+            }
+
+            groupSubquery.select(groupRoleRoot)
+                    .where(cb.and(cb.or(rolePredicates)));
+
+            return exclude
+                    ? cb.not(cb.and(cb.exists(groupSubquery), userInGroups))
+                    : cb.and(cb.exists(groupSubquery), userInGroups);
         };
     }
 }

@@ -5,6 +5,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.twins.core.dao.user.UserStatus;
 import org.twins.core.dto.rest.twin.TwinSearchDTOv1;
+import org.twins.core.dto.rest.user.SpaceGroupSearchDTOv1;
 import org.twins.core.dto.rest.user.SpaceSearchDTOv1;
 
 import java.util.List;
@@ -23,5 +24,7 @@ public class UserSearch {
     private Set<UserStatus> statusIdExcludeList;
     private List<SpaceSearchDTOv1> spaceList;
     private List<SpaceSearchDTOv1> spaceExcludeList;
+    private List<SpaceGroupSearchDTOv1> spaceGroupList;
+    private List<SpaceGroupSearchDTOv1> spaceGroupExcludeList;
     private TwinSearchDTOv1 childTwins;
 }
