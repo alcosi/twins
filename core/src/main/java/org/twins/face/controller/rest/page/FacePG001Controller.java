@@ -22,9 +22,9 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.face.dao.page.FacePG001Entity;
-import org.twins.face.dto.rest.page.FacePG001ViewRsDTOv1;
-import org.twins.face.mappers.rest.page.FacePG001RestDTOMapper;
+import org.twins.face.dao.page.pg001.FacePG001Entity;
+import org.twins.face.dto.rest.page.pg001.FacePG001ViewRsDTOv1;
+import org.twins.face.mappers.rest.page.pg001.FacePG001RestDTOMapper;
 import org.twins.face.service.page.FacePG001Service;
 
 import java.util.UUID;
