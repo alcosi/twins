@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.MapUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -19,10 +20,7 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorI18n;
 import org.twins.core.featurer.fieldtyper.value.FieldValueI18n;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -51,7 +49,6 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
         }
 
         twinService.loadTwinFields(twin);
-
         Map<Locale, TwinFieldI18nEntity> storedFields = getStoredFieldsForTwinAndField(twin, value.getTwinClassField());
 
         for (Map.Entry<Locale, String> entry : value.getTranslations().entrySet()) {
@@ -59,6 +56,23 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
             String translation = entry.getValue();
 
             TwinFieldI18nEntity storedField = storedFields.get(locale);
+
+            if (UuidUtils.NULLIFY_MARKER.toString().equals(translation)) {
+                if (storedField != null) {
+                    if (twinChangesCollector.isHistoryCollectorEnabled()) {
+                        twinChangesCollector.getHistoryCollector(twin).add(historyService.fieldChangeI18n(
+                                value.getTwinClassField(),
+                                locale,
+                                storedField.getTranslation(),
+                                null,
+                                null
+                        ));
+                    }
+                    twinChangesCollector.delete(storedField);
+                    storedFields.remove(locale);
+                }
+                continue;
+            }
 
             if (storedField == null) {
                 TwinFieldI18nEntity newTwinFieldI18n = new TwinFieldI18nEntity()
@@ -77,39 +91,19 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
                             translation
                     ));
                 }
-
                 twinChangesCollector.add(newTwinFieldI18n);
-            } else {
-                if (!storedField.getTranslation().equals(translation)) {
-                    if (twinChangesCollector.isHistoryCollectorEnabled()) {
-                        twinChangesCollector.getHistoryCollector(twin).add(historyService.fieldChangeI18n(
-                                value.getTwinClassField(),
-                                storedField.getLocale(),
-                                storedField.getTranslation(),
-                                locale,
-                                translation
-                        ));
-                    }
-
-                    storedField.setTranslation(translation);
-                    twinChangesCollector.add(storedField);
-                }
-            }
-        }
-
-        for (Map.Entry<Locale, TwinFieldI18nEntity> entry : storedFields.entrySet()) {
-            if (!value.getTranslations().containsKey(entry.getKey())) {
+            } else if (!storedField.getTranslation().equals(translation)) {
                 if (twinChangesCollector.isHistoryCollectorEnabled()) {
                     twinChangesCollector.getHistoryCollector(twin).add(historyService.fieldChangeI18n(
                             value.getTwinClassField(),
-                            entry.getKey(),
-                            entry.getValue().getTranslation(),
-                            null,
-                            null
+                            storedField.getLocale(),
+                            storedField.getTranslation(),
+                            locale,
+                            translation
                     ));
                 }
-
-                twinChangesCollector.delete(entry.getValue());
+                storedField.setTranslation(translation);
+                twinChangesCollector.add(storedField);
             }
         }
     }

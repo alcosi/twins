@@ -37,10 +37,10 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     @FeaturerParam(name = "Pattern", description = "pattern for date value")
     public static final FeaturerParamString pattern = new FeaturerParamString("pattern");
 
-    @FeaturerParam(name = "DaysPast", description = "number of days in the past", optional = true, defaultValue = "0")
+    @FeaturerParam(name = "DaysPast", description = "number of days in the past", optional = true, defaultValue = "-1")
     public static final FeaturerParamInt daysPast = new FeaturerParamInt("daysPast");
 
-    @FeaturerParam(name = "DaysFuture", description = "number of days in the futures", optional = true, defaultValue = "0")
+    @FeaturerParam(name = "DaysFuture", description = "number of days in the futures", optional = true, defaultValue = "-1")
     public static final FeaturerParamInt daysFuture = new FeaturerParamInt("daysFuture");
 
     private static final String DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
@@ -87,7 +87,7 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
         LocalDateTime now = LocalDateTime.now();
 
         Integer minDays = FieldTyperDateScroll.daysPast.extract(params);
-        if (minDays != null) {
+        if (minDays != null && minDays >= 0) {
             LocalDateTime minDate = now.minusDays(minDays);
             if (dateValue.isBefore(minDate)) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
@@ -96,7 +96,7 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
         }
 
         Integer maxDays = FieldTyperDateScroll.daysFuture.extract(params);
-        if (maxDays != null) {
+        if (maxDays != null && maxDays >= 0) {
             LocalDateTime maxDate = now.plusDays(maxDays);
             if (dateValue.isAfter(maxDate)) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
