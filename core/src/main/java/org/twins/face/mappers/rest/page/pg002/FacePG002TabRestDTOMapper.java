@@ -26,11 +26,12 @@ public class FacePG002TabRestDTOMapper extends RestSimpleDTOMapper<FacePG002TabE
 
     @Override
     public void map(FacePG002TabEntity src, FacePG002TabDTOv1 dst, MapperContext mapperContext) throws Exception {
-        faceRestDTOMapper.map(src.getFace(), dst, mapperContext);
         switch (mapperContext.getModeOrUse(FaceMode.SHORT)) { // perhaps we need some separate mode
             case SHORT -> dst
+                    .setId(src.getId())
                     .setTitle(i18nService.translateToLocale(src.getTitleI18nId()));
             case DETAILED -> dst
+                    .setId(src.getId())
                     .setLayout(src.getLayout())
                     .setTitle(i18nService.translateToLocale(src.getTitleI18nId()));
         }
