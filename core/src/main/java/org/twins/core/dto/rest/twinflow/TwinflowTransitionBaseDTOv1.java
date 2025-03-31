@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.twinflow;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.twinflow.TwinflowTransitionType;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 
@@ -29,6 +30,9 @@ public class TwinflowTransitionBaseDTOv1 {
 
     @Schema(description = "alias", example = DTOExamples.TWINFLOW_TRANSITION_ALIAS)
     public String alias;
+
+    @Schema(description = "transition type", example = DTOExamples.TWINFLOW_TRANSITION_ID)
+    public TwinflowTransitionType type;
 
     @Schema()
     public boolean allowComment;

@@ -74,7 +74,6 @@ import static org.twins.core.dao.specifications.twinflow.TransitionAliasSpecific
 @Service
 @RequiredArgsConstructor
 public class TwinflowTransitionService extends EntitySecureFindServiceImpl<TwinflowTransitionEntity> {
-    private static final String DEFAULT_TRANSITION_TYPE_ID = "STATUS_CHANGE";
 
     private final TwinflowTransitionRepository twinflowTransitionRepository;
     private final TwinflowTransitionValidatorRuleRepository twinflowTransitionValidatorRuleRepository;
@@ -140,8 +139,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     entity.setPermission(permissionService.findEntitySafe(entity.getPermissionId()));
                 if (entity.getCreatedByUser() == null || !entity.getCreatedByUser().getId().equals(entity.getCreatedByUserId()))
                     entity.setCreatedByUser(userService.findEntitySafe(entity.getCreatedByUserId()));
-                if (entity.getTwinflowTransitionType() == null || !entity.getTwinflowTransitionType().getId().equals(entity.getTwinflowTransitionTypeId()))
-                    entity.setTwinflowTransitionType(twinflowTransitionTypeService.findEntitySafe(entity.getTwinflowTransitionTypeId()));
             default:
                 if (entity.getSrcTwinStatusId() != null
                         && (!twinClassService.isInstanceOf(entity.getSrcTwinStatus().getTwinClass(), entity.getDstTwinStatus().getTwinClassId())
@@ -278,8 +275,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 .setTwinflowTransitionAliasId(twinflowTransitionAlias.getId())
                 .setTwinflowTransitionAlias(twinflowTransitionAlias);
 
-        if (twinflowTransitionEntity.getTwinflowTransitionTypeId().isEmpty())
-            twinflowTransitionEntity.setTwinflowTransitionTypeId(DEFAULT_TRANSITION_TYPE_ID);
+        if (twinflowTransitionEntity.getTwinflowTransitionTypeId() == null)
+            twinflowTransitionEntity.setTwinflowTransitionTypeId(TwinflowTransitionType.STATUS_CHANGE);
 
         validateEntityAndThrow(twinflowTransitionEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return entitySmartService.save(twinflowTransitionEntity, twinflowTransitionRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
