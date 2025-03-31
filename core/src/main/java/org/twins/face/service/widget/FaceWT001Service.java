@@ -10,8 +10,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
-import org.twins.face.dao.widget.FaceWT001Entity;
-import org.twins.face.dao.widget.FaceWT001Repository;
+import org.twins.face.dao.widget.wt001.FaceWT001Entity;
+import org.twins.face.dao.widget.wt001.FaceWT001Repository;
 
 import java.util.UUID;
 import java.util.function.Function;
