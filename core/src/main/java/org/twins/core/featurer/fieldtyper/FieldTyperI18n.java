@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI18n, TwinFieldI18nEntity, TwinFieldSearchNotImplemented> {
     public static final String ENTRY_SPLITTER = "<@2@>";
     public static final String KEY_VALUE_SPLITTER = "<@3@>";
+    public static final String DELETE_TRANSLATION_MARKER = "##DELETE##";
 
     @Lazy
     private final TwinService twinService;
@@ -51,7 +52,6 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
         }
 
         twinService.loadTwinFields(twin);
-
         Map<Locale, TwinFieldI18nEntity> storedFields = getStoredFieldsForTwinAndField(twin, value.getTwinClassField());
 
         for (Map.Entry<Locale, String> entry : value.getTranslations().entrySet()) {
@@ -59,6 +59,23 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
             String translation = entry.getValue();
 
             TwinFieldI18nEntity storedField = storedFields.get(locale);
+
+            if (DELETE_TRANSLATION_MARKER.equals(translation)) {
+                if (storedField != null) {
+                    if (twinChangesCollector.isHistoryCollectorEnabled()) {
+                        twinChangesCollector.getHistoryCollector(twin).add(historyService.fieldChangeI18n(
+                                value.getTwinClassField(),
+                                locale,
+                                storedField.getTranslation(),
+                                null,
+                                null
+                        ));
+                    }
+                    twinChangesCollector.delete(storedField);
+                    storedFields.remove(locale);
+                }
+                continue;
+            }
 
             if (storedField == null) {
                 TwinFieldI18nEntity newTwinFieldI18n = new TwinFieldI18nEntity()
@@ -77,39 +94,19 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
                             translation
                     ));
                 }
-
                 twinChangesCollector.add(newTwinFieldI18n);
-            } else {
-                if (!storedField.getTranslation().equals(translation)) {
-                    if (twinChangesCollector.isHistoryCollectorEnabled()) {
-                        twinChangesCollector.getHistoryCollector(twin).add(historyService.fieldChangeI18n(
-                                value.getTwinClassField(),
-                                storedField.getLocale(),
-                                storedField.getTranslation(),
-                                locale,
-                                translation
-                        ));
-                    }
-
-                    storedField.setTranslation(translation);
-                    twinChangesCollector.add(storedField);
-                }
-            }
-        }
-
-        for (Map.Entry<Locale, TwinFieldI18nEntity> entry : storedFields.entrySet()) {
-            if (!value.getTranslations().containsKey(entry.getKey())) {
+            } else if (!storedField.getTranslation().equals(translation)) {
                 if (twinChangesCollector.isHistoryCollectorEnabled()) {
                     twinChangesCollector.getHistoryCollector(twin).add(historyService.fieldChangeI18n(
                             value.getTwinClassField(),
-                            entry.getKey(),
-                            entry.getValue().getTranslation(),
-                            null,
-                            null
+                            storedField.getLocale(),
+                            storedField.getTranslation(),
+                            locale,
+                            translation
                     ));
                 }
-
-                twinChangesCollector.delete(entry.getValue());
+                storedField.setTranslation(translation);
+                twinChangesCollector.add(storedField);
             }
         }
     }
