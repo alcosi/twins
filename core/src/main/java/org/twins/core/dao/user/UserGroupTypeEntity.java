@@ -40,7 +40,8 @@ public class UserGroupTypeEntity {
         domainScopeDomainManage,
         domainScopeBusinessAccountManage,
         businessAccountScopeBusinessAccountManage,
-        domainAndBusinessAccountScopeBusinessAccountManage
+        domainAndBusinessAccountScopeBusinessAccountManage,
+        systemScopeDomainManage
     }
 
 }
