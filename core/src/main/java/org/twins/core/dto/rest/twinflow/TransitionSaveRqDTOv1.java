@@ -39,6 +39,9 @@ public class TransitionSaveRqDTOv1 extends Request {
     @Schema(description = "Drafting TwinFactory Id", example = "")
     public UUID draftingTwinFactoryId;
 
+    @Schema(description = "twinflow transition type id", example = DTOExamples.TWINFLOW_TRANSITION_TYPE_ID)
+    public String twinflowTransitionTypeId;
+
     @JsonIgnore
     public UUID twinflowId;
 

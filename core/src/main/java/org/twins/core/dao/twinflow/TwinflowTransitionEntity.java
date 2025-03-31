@@ -49,6 +49,9 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @Column(name = "permission_id")
     private UUID permissionId;
 
+    @Column(name = "twinflow_transition_type_id")
+    private String twinflowTransitionTypeId = "STATUS_CHANGE";
+
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
@@ -101,6 +104,10 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @ManyToOne
     @JoinColumn(name = "src_twin_status_id", insertable = false, updatable = false)
     private TwinStatusEntity srcTwinStatus;
+
+    @ManyToOne
+    @JoinColumn(name = "twinflow_transition_type_id", insertable = false, updatable = false)
+    private TwinflowTransitionTypeEntity twinflowTransitionType;
 
     @ManyToOne
     @JoinColumn(name = "dst_twin_status_id", insertable = false, updatable = false, nullable = false)

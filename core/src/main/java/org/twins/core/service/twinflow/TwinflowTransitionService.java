@@ -74,6 +74,8 @@ import static org.twins.core.dao.specifications.twinflow.TransitionAliasSpecific
 @Service
 @RequiredArgsConstructor
 public class TwinflowTransitionService extends EntitySecureFindServiceImpl<TwinflowTransitionEntity> {
+    private static final String DEFAULT_TRANSITION_TYPE_ID = "STATUS_CHANGE";
+
     private final TwinflowTransitionRepository twinflowTransitionRepository;
     private final TwinflowTransitionValidatorRuleRepository twinflowTransitionValidatorRuleRepository;
     private final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
@@ -82,6 +84,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     private final TwinFactoryService twinFactoryService;
     private final TwinStatusService twinStatusService;
     private final TwinflowTransitionSearchService twinflowTransitionSearchService;
+    private final TwinflowTransitionTypeService twinflowTransitionTypeService;
     @Lazy
     private final TwinService twinService;
     private final TwinflowService twinflowService;
@@ -122,6 +125,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinFlowId");
         if (entity.getDstTwinStatusId() == null)
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty dstTwinStatusId");
+        if (entity.getTwinflowTransitionTypeId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinFlowTransitionTypeId");
 
         switch (entityValidateMode) {
             case beforeSave:
@@ -135,6 +140,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     entity.setPermission(permissionService.findEntitySafe(entity.getPermissionId()));
                 if (entity.getCreatedByUser() == null || !entity.getCreatedByUser().getId().equals(entity.getCreatedByUserId()))
                     entity.setCreatedByUser(userService.findEntitySafe(entity.getCreatedByUserId()));
+                if (entity.getTwinflowTransitionType() == null || !entity.getTwinflowTransitionType().getId().equals(entity.getTwinflowTransitionTypeId()))
+                    entity.setTwinflowTransitionType(twinflowTransitionTypeService.findEntitySafe(entity.getTwinflowTransitionTypeId()));
             default:
                 if (entity.getSrcTwinStatusId() != null
                         && (!twinClassService.isInstanceOf(entity.getSrcTwinStatus().getTwinClass(), entity.getDstTwinStatus().getTwinClassId())
@@ -270,6 +277,9 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 .setCreatedByUserId(apiUser.getUserId())
                 .setTwinflowTransitionAliasId(twinflowTransitionAlias.getId())
                 .setTwinflowTransitionAlias(twinflowTransitionAlias);
+
+        if (twinflowTransitionEntity.getTwinflowTransitionTypeId().isEmpty())
+            twinflowTransitionEntity.setTwinflowTransitionTypeId(DEFAULT_TRANSITION_TYPE_ID);
 
         validateEntityAndThrow(twinflowTransitionEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return entitySmartService.save(twinflowTransitionEntity, twinflowTransitionRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
