@@ -19,10 +19,7 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorI18n;
 import org.twins.core.featurer.fieldtyper.value.FieldValueI18n;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -34,7 +31,7 @@ import java.util.stream.Collectors;
 public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI18n, TwinFieldI18nEntity, TwinFieldSearchNotImplemented> {
     public static final String ENTRY_SPLITTER = "<@2@>";
     public static final String KEY_VALUE_SPLITTER = "<@3@>";
-    public static final String DELETE_TRANSLATION_MARKER = "##DELETE##";
+    public static final UUID NULLIFY_MARKER = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
 
     @Lazy
     private final TwinService twinService;
@@ -60,7 +57,7 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
 
             TwinFieldI18nEntity storedField = storedFields.get(locale);
 
-            if (DELETE_TRANSLATION_MARKER.equals(translation)) {
+            if (NULLIFY_MARKER.toString().equals(translation)) {
                 if (storedField != null) {
                     if (twinChangesCollector.isHistoryCollectorEnabled()) {
                         twinChangesCollector.getHistoryCollector(twin).add(historyService.fieldChangeI18n(
