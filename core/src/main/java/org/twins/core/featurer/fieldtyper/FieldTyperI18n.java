@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.MapUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -31,7 +32,6 @@ import java.util.stream.Collectors;
 public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI18n, TwinFieldI18nEntity, TwinFieldSearchNotImplemented> {
     public static final String ENTRY_SPLITTER = "<@2@>";
     public static final String KEY_VALUE_SPLITTER = "<@3@>";
-    public static final UUID NULLIFY_MARKER = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
 
     @Lazy
     private final TwinService twinService;
@@ -57,7 +57,7 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
 
             TwinFieldI18nEntity storedField = storedFields.get(locale);
 
-            if (NULLIFY_MARKER.toString().equals(translation)) {
+            if (UuidUtils.NULLIFY_MARKER.toString().equals(translation)) {
                 if (storedField != null) {
                     if (twinChangesCollector.isHistoryCollectorEnabled()) {
                         twinChangesCollector.getHistoryCollector(twin).add(historyService.fieldChangeI18n(
