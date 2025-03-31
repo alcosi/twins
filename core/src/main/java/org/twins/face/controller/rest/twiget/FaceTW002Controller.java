@@ -20,9 +20,9 @@ import org.twins.core.domain.face.TwidgetConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.face.dao.twiget.FaceTW002Entity;
-import org.twins.face.dto.rest.twidget.FaceTW002ViewRsDTOv1;
-import org.twins.face.mappers.rest.twidget.FaceTW002RestDTOMapper;
+import org.twins.face.dao.twiget.tw002.FaceTW002Entity;
+import org.twins.face.dto.rest.twidget.tw002.FaceTW002ViewRsDTOv1;
+import org.twins.face.mappers.rest.twidget.tw002.FaceTW002RestDTOMapper;
 import org.twins.face.service.twidget.FaceTW002Service;
 
 import java.util.UUID;
