@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -15,4 +16,7 @@ public class FactoryMultiplierFilterDTOv2 extends FactoryMultiplierFilterDTOv1 {
 
     @Schema(description = "factory condition set")
     public FactoryConditionSetDTOv1 factoryConditionSet;
+
+    @Schema(description = "input twin class")
+    public TwinClassBaseDTOv1 inputTwinClass;
 }
