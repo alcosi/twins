@@ -83,7 +83,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     private final TwinFactoryService twinFactoryService;
     private final TwinStatusService twinStatusService;
     private final TwinflowTransitionSearchService twinflowTransitionSearchService;
-    private final TwinflowTransitionTypeService twinflowTransitionTypeService;
     @Lazy
     private final TwinService twinService;
     private final TwinflowService twinflowService;
