@@ -74,6 +74,7 @@ import static org.twins.core.dao.specifications.twinflow.TransitionAliasSpecific
 @Service
 @RequiredArgsConstructor
 public class TwinflowTransitionService extends EntitySecureFindServiceImpl<TwinflowTransitionEntity> {
+
     private final TwinflowTransitionRepository twinflowTransitionRepository;
     private final TwinflowTransitionValidatorRuleRepository twinflowTransitionValidatorRuleRepository;
     private final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
@@ -122,6 +123,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinFlowId");
         if (entity.getDstTwinStatusId() == null)
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty dstTwinStatusId");
+        if (entity.getTwinflowTransitionTypeId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinFlowTransitionTypeId");
 
         switch (entityValidateMode) {
             case beforeSave:
@@ -270,6 +273,9 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 .setCreatedByUserId(apiUser.getUserId())
                 .setTwinflowTransitionAliasId(twinflowTransitionAlias.getId())
                 .setTwinflowTransitionAlias(twinflowTransitionAlias);
+
+        if (twinflowTransitionEntity.getTwinflowTransitionTypeId() == null)
+            twinflowTransitionEntity.setTwinflowTransitionTypeId(TwinflowTransitionType.STATUS_CHANGE);
 
         validateEntityAndThrow(twinflowTransitionEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return entitySmartService.save(twinflowTransitionEntity, twinflowTransitionRepository, EntitySmartService.SaveMode.saveAndThrowOnException);

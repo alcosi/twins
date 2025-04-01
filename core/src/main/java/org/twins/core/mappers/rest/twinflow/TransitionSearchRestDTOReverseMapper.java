@@ -35,6 +35,8 @@ public class TransitionSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Tr
                 .setInbuiltTwinFactoryIdExcludeList(src.getInbuiltTwinFactoryIdExcludeList())
                 .setDraftingTwinFactoryIdList(src.getDraftingTwinFactoryIdList())
                 .setDraftingTwinFactoryIdExcludeList(src.getDraftingTwinFactoryIdExcludeList())
+                .setTwinflowTransitionTypeList(src.getTwinflowTransitionTypeList())
+                .setTwinflowTransitionTypeExcludeList(src.getTwinflowTransitionTypeExcludeList())
         ;
     }
 }

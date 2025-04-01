@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.twinflow.TwinflowTransitionType;
 import org.twins.core.dto.rest.Request;
 
 import java.util.Map;
@@ -77,4 +78,9 @@ public class TransitionSearchRqDTOv1 extends Request {
 
     @Schema(description = "drafting twin factory id exclude list")
     public Set<UUID> draftingTwinFactoryIdExcludeList;
-}
+
+    @Schema(description = "twinflow transition type id list")
+    public Set<TwinflowTransitionType> twinflowTransitionTypeList;
+
+    @Schema(description = "twinflow transition type id exclude list")
+    public Set<TwinflowTransitionType> twinflowTransitionTypeExcludeList;}

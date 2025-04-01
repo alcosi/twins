@@ -3,6 +3,8 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
+import org.twins.core.dao.twinflow.TwinflowTransitionType;
 
 import java.util.Map;
 import java.util.Set;
@@ -33,4 +35,6 @@ public class TransitionSearch {
     private Set<UUID> inbuiltTwinFactoryIdExcludeList;
     private Set<UUID> draftingTwinFactoryIdList;
     private Set<UUID> draftingTwinFactoryIdExcludeList;
+    private Set<TwinflowTransitionType> twinflowTransitionTypeList;
+    private Set<TwinflowTransitionType> twinflowTransitionTypeExcludeList;
 }

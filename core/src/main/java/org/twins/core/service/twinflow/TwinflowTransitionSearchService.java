@@ -21,6 +21,7 @@ import java.util.Locale;
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.twinflow.TransitionSpecification.checkAliasLikeIn;
+import static org.twins.core.dao.specifications.twinflow.TransitionSpecification.checkTransitionTypeLikeIn;
 
 
 @Service
@@ -54,7 +55,9 @@ public class TwinflowTransitionSearchService {
                 checkUuidIn(search.getInbuiltTwinFactoryIdList(), false, false, TwinflowTransitionEntity.Fields.inbuiltTwinFactoryId),
                 checkUuidIn(search.getInbuiltTwinFactoryIdExcludeList(), true, true, TwinflowTransitionEntity.Fields.inbuiltTwinFactoryId),
                 checkUuidIn(search.getDraftingTwinFactoryIdList(), false, false, TwinflowTransitionEntity.Fields.draftingTwinFactoryId),
-                checkUuidIn(search.getDraftingTwinFactoryIdExcludeList(), true, true, TwinflowTransitionEntity.Fields.draftingTwinFactoryId)
+                checkUuidIn(search.getDraftingTwinFactoryIdExcludeList(), true, true, TwinflowTransitionEntity.Fields.draftingTwinFactoryId),
+                checkTransitionTypeLikeIn(search.getTwinflowTransitionTypeList(), false),
+                checkTransitionTypeLikeIn(search.getTwinflowTransitionTypeExcludeList(), true)
         );
     }
 
