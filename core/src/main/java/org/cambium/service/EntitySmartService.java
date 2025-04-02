@@ -325,6 +325,12 @@ public class EntitySmartService {
         return result;
     }
 
+    public <T> Iterable<T> saveAllAndLogChanges(Iterable<T> entities, CrudRepository<T, UUID> repository, StringBuilder changes) {
+        Iterable<T> result = repository.saveAll(entities);
+        log.info("Changes: " + changes);
+        return result;
+    }
+
     public <T, K> Iterable<T>  saveAllAndLogChanges(Map<T, ChangesHelper> entityChangesMap, CrudRepository<T, K> repository) {
         return saveAllAndLog(entityChangesMap.keySet(), repository);
         //todo collect an log changes

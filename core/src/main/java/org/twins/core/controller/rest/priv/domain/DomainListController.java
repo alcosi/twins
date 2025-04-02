@@ -48,7 +48,7 @@ public class DomainListController extends ApiController {
     @ParametersApiUserNoDomainHeaders
     @Operation(operationId = "domainListV1", summary = "Return a list of domains for current user")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", content = {
+            @ApiResponse(responseCode = "200", description = "domain data list", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = DomainListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
@@ -66,7 +66,7 @@ public class DomainListController extends ApiController {
             PaginationResult<DomainEntity> domainList = domainService
                     .findDomainListByUser(pagination);
             rs
-                    .setDomainList(domainViewRestDTOMapper.convertCollection(domainList.getList(), mapperContext))
+                    .setDomains(domainViewRestDTOMapper.convertCollection(domainList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(domainList))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
