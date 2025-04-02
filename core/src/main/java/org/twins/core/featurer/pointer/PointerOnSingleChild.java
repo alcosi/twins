@@ -7,6 +7,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
@@ -28,6 +29,7 @@ public class PointerOnSingleChild extends Pointer {
     @FeaturerParam(name = "Child twin class", description = "", order = 1)
     public static final FeaturerParamUUID twinClassId = new FeaturerParamUUIDTwinsTwinClassId("childTwinClassId");
 
+    @Lazy
     private final TwinSearchService twinSearchService;
 
     @Override

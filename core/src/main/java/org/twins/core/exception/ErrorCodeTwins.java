@@ -124,7 +124,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     TIER_SIZE_QUOTA_REACHED(12501, "common attachments size exceeds tier quota"),
     TIER_COUNT_QUOTA_REACHED(12502, "common attachments count exceeds tier quota"),
     ATTACHMENTS_NOT_VALID(12503, "attachment not valid"),
-    POINTER_NON_SINGLE(12601, "twin pointer is not single");
+    POINTER_NON_SINGLE(12601, "twin pointer is not single"),
+    POINTER_ON_NULL(12602, "twin pointer is null");
 
 
     private final int code;

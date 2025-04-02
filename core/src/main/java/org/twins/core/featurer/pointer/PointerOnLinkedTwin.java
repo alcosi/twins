@@ -7,6 +7,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
@@ -29,6 +30,7 @@ public class PointerOnLinkedTwin extends Pointer {
     @FeaturerParam(name = "Link", description = "", order = 1)
     public static final FeaturerParamUUID linkId = new FeaturerParamUUIDTwinsLinkId("linkId");
 
+    @Lazy
     private final TwinLinkService twinLinkService;
 
     @Override

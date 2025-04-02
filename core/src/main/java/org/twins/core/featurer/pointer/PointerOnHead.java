@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.FeaturerTwins;
@@ -18,6 +19,7 @@ import java.util.Properties;
         description = "")
 @RequiredArgsConstructor
 public class PointerOnHead extends Pointer {
+    @Lazy
     private final TwinService twinService;
 
     @Override

@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.service.face.FaceService;
 import org.twins.core.service.face.FaceTwidgetService;
-import org.twins.face.dao.twiget.tw001.FaceTW001Entity;
-import org.twins.face.dao.twiget.tw001.FaceTW001Repository;
+import org.twins.face.dao.twiget.tw004.FaceTW004Entity;
+import org.twins.face.dao.twiget.tw004.FaceTW004Repository;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -20,32 +20,33 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceTW001Service extends FaceTwidgetService<FaceTW001Entity> {
-    private final FaceTW001Repository faceTW001Repository;
+public class FaceTW004Service extends FaceTwidgetService<FaceTW004Entity> {
+    private final FaceTW004Repository faceTW004Repository;
     private final FaceService faceService;
 
+
     @Override
-    public CrudRepository<FaceTW001Entity, UUID> entityRepository() {
-        return faceTW001Repository;
+    public CrudRepository<FaceTW004Entity, UUID> entityRepository() {
+        return faceTW004Repository;
     }
 
     @Override
-    public Function<FaceTW001Entity, UUID> entityGetIdFunction() {
-        return FaceTW001Entity::getFaceId;
+    public Function<FaceTW004Entity, UUID> entityGetIdFunction() {
+        return FaceTW004Entity::getFaceId;
     }
 
     @Override
-    public boolean isEntityReadDenied(FaceTW001Entity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+    public boolean isEntityReadDenied(FaceTW004Entity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         return faceService.isEntityReadDenied(entity.getFace());
     }
 
     @Override
-    public boolean validateEntity(FaceTW001Entity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+    public boolean validateEntity(FaceTW004Entity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
     }
 
     @Override
-    public FaceTW001Entity getConfig(UUID faceId, TwinEntity currentTwin, TwinEntity targetTwin) throws ServiceException {
+    public FaceTW004Entity getConfig(UUID faceId, TwinEntity currentTwin, TwinEntity targetTwin) throws ServiceException {
         return findEntitySafe(faceId);
     }
 }

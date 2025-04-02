@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.HashMap;
@@ -17,7 +18,10 @@ public abstract class Pointer extends FeaturerTwins {
     public TwinEntity point(HashMap<String, String> linkerParams, TwinEntity srcTwinEntity) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, linkerParams, new HashMap<>());
         log.info("Running featurer[{}].point with params: {}", this.getClass().getSimpleName(), properties.toString());
-        return point(properties, srcTwinEntity);
+        TwinEntity pointedTwin = point(properties, srcTwinEntity);
+        if (pointedTwin == null)
+            throw new ServiceException(ErrorCodeTwins.POINTER_ON_NULL);
+        return pointedTwin;
     }
 
     protected abstract TwinEntity point(Properties properties, TwinEntity srcTwinEntity) throws ServiceException;
