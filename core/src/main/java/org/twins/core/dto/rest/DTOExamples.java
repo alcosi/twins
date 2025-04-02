@@ -66,6 +66,7 @@ public interface DTOExamples {
     String DRAFT_ID = "34618b09-e8dc-4712-a433-2e18915ee70d";
     String TWINFLOW_NAME = "Default twinflow";
     String TWINFLOW_TRANSITION_ID = "f6606fa2-c047-4ba9-a92c-84051df681ab";
+    String TWINFLOW_TRANSITION_TYPE_ID = "STATUS_CHANGE";
     String TWINFLOW_TRANSITION_ALIAS = "start";
     String TWINFLOW_TRANSITION_ALIAS_ID = "da755c8a-248f-4e4f-978a-6474e41c8dca";
     String TWIN_CLASS_SCHEMA_ID = "8b9ea6ad-2b9b-4a4a-8ea9-1b17da4d603b";

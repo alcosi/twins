@@ -11,8 +11,8 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.face.TwidgetConfig;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.face.FaceTwidgetService;
-import org.twins.face.dao.twiget.FaceTW001Entity;
-import org.twins.face.dao.twiget.FaceTW001Repository;
+import org.twins.face.dao.twiget.tw001.FaceTW001Entity;
+import org.twins.face.dao.twiget.tw001.FaceTW001Repository;
 
 import java.util.UUID;
 import java.util.function.Function;
