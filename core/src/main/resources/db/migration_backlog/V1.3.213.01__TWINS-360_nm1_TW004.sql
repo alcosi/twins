@@ -55,7 +55,7 @@ alter table public.face_navbar_nb001_menu_items
             on update cascade on delete cascade;
 
 alter table public.face_navbar_nb001_menu_items
-    drop constraint face_navbar_nb001_menu_items_page_face_id_fk;
+    drop constraint face_navbar_nb001_menu_items_target_page_face_id_fk;
 alter table public.face_navbar_nb001_menu_items
     add constraint face_navbar_nb001_menu_items_target_page_face_id_fk
         foreign key (target_page_face_id) references public.face
