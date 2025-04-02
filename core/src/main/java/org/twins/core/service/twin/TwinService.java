@@ -1,6 +1,7 @@
 package org.twins.core.service.twin;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
@@ -8,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
@@ -16,6 +16,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
+import org.cambium.common.util.StringUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -978,7 +979,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             fieldValueDate.setDate(value);
         if (fieldValue instanceof FieldValueSelect fieldValueSelect) {
             for (String dataListOption : value.split(FieldTyperList.LIST_SPLITTER)) {
-                if (org.cambium.common.util.StringUtils.isEmpty(dataListOption)) continue;
+                if (StringUtils.isEmpty(dataListOption)) continue;
                 DataListOptionEntity dataListOptionEntity = new DataListOptionEntity();
                 if (UuidUtils.isUUID(dataListOption)) dataListOptionEntity.setId(UUID.fromString(dataListOption));
                 else dataListOptionEntity.setOption(dataListOption);
@@ -987,7 +988,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         if (fieldValue instanceof FieldValueUser fieldValueUser) {
             for (String userId : value.split(FieldTyperList.LIST_SPLITTER)) {
-                if (org.cambium.common.util.StringUtils.isEmpty(userId))
+                if (StringUtils.isEmpty(userId))
                     continue;
                 UUID userUUID;
                 try {
@@ -1001,7 +1002,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         if (fieldValue instanceof FieldValueLink fieldValueLink) {
             for (String dstTwinId : value.split(FieldTyperList.LIST_SPLITTER)) {
-                if (org.cambium.common.util.StringUtils.isEmpty(dstTwinId))
+                if (StringUtils.isEmpty(dstTwinId))
                     continue;
                 UUID dstTwinUUID;
                 try {
@@ -1015,15 +1016,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         if (fieldValue instanceof FieldValueI18n fieldValueI18n) {
             try {
-                String fixedJson = value
-                        .replace("\\\"", "\"")
-                        .replace("\\\\", "\\");
+                ObjectMapper mapper = new ObjectMapper()
+                        .configure(JsonReadFeature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER.mappedFeature(), true)
+                        .configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature(), true);
 
-                Map<String, String> rawTranslations = new ObjectMapper().readValue(
-                        fixedJson,
-                        new TypeReference<Map<String, String>>() {
-                        }
-                );
+                Map<String, String> rawTranslations = mapper.readValue(value, new TypeReference<>() {});
 
                 Map<Locale, String> result = rawTranslations.entrySet()
                         .stream()
