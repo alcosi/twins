@@ -21,7 +21,7 @@ public class AttachmentCUDValidateRestDTOMapper extends RestSimpleDTOMapper<Atta
     @Override
     public void map(AttachmentCUDValidateResult src, AttachmentCUDValidateRsDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
-                .setAttachmentsForUD(attachmentRestDTOMapper.convertCollection(src.getAttachmentsForUD()))
+                .setAttachmentsForUD(attachmentRestDTOMapper.convertCollection(src.getAttachmentsForUD(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(AttachmentMode.AttachmentCUDValidate2AttachmentMode.SHORT))))
                 .setCudProblems(attachmentProblemsRestDTOMapper.convert(src.getCudProblems(), mapperContext));
     }
 }
