@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-@Schema(name = "FactoryV2")
+@Schema(name = "FactoryMultiplierFilterV2")
 public class FactoryMultiplierFilterDTOv2 extends FactoryMultiplierFilterDTOv1 {
     @Schema(description = "multiplier")
     public FactoryMultiplierDTOv2 multiplier;
