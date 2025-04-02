@@ -41,41 +41,41 @@ insert into face_component values ('TW004', 'TWIDGET', 'Twidget to display singl
 
 -- cascade deletion for face
 alter table public.face_navbar_nb001
-    drop constraint face_navbar_nb001_face_id_fk;
+    drop constraint if exists face_navbar_nb001_face_id_fk;
 alter table public.face_navbar_nb001
     add constraint face_navbar_nb001_face_id_fk
         foreign key (face_id) references public.face
             on update cascade on delete cascade;
 
 alter table public.face_navbar_nb001_menu_items
-    drop constraint face_navbar_nb001_menu_items_face_id_fk;
+    drop constraint if exists face_navbar_nb001_menu_items_face_id_fk;
 alter table public.face_navbar_nb001_menu_items
     add constraint face_navbar_nb001_menu_items_face_id_fk
         foreign key (face_id) references public.face
             on update cascade on delete cascade;
 
 alter table public.face_navbar_nb001_menu_items
-    drop constraint face_navbar_nb001_menu_items_target_page_face_id_fk;
+    drop constraint if exists face_navbar_nb001_menu_items_target_page_face_id_fk;
 alter table public.face_navbar_nb001_menu_items
     add constraint face_navbar_nb001_menu_items_target_page_face_id_fk
         foreign key (target_page_face_id) references public.face
             on update cascade on delete cascade;
 
 alter table public.face_page_pg001
-    drop constraint face_page_pg001_face_id_fkey;
+    drop constraint if exists face_page_pg001_face_id_fkey;
 alter table public.face_page_pg001
     add foreign key (face_id) references public.face
         on update cascade on delete cascade;
 
 alter table public.face_page_pg001_widget
-    drop constraint face_page_pg001_widget_widget_face_id_fk;
+    drop constraint if exists face_page_pg001_widget_widget_face_id_fk;
 alter table public.face_page_pg001_widget
     add constraint face_page_pg001_widget_widget_face_id_fk
         foreign key (widget_face_id) references public.face
             on update cascade on delete cascade;
 
 alter table public.face_page_pg002_widget
-    drop constraint face_page_pg002_widget_widget_face_id_fk;
+    drop constraint if exists face_page_pg002_widget_widget_face_id_fk;
 alter table public.face_page_pg002_widget
     add constraint face_page_pg002_widget_widget_face_id_fk
         foreign key (widget_face_id) references public.face
