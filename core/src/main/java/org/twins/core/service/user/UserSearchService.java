@@ -92,10 +92,8 @@ public class UserSearchService {
                 checkFieldLikeIn(search.getUserNameLikeExcludeList(), true, false, UserEntity.Fields.name),
                 checkStatusLikeIn(search.getStatusIdList(), false),
                 checkStatusLikeIn(search.getStatusIdExcludeList(), true),
-                checkSpaceRoleLikeIn(search.getSpaceList(), false),
-                checkSpaceRoleLikeIn(search.getSpaceExcludeList(), true),
-                checkSpaceRoleGroupLikeIn(search.getSpaceGroupList(), domainId, businessAccountId, false),
-                checkSpaceRoleGroupLikeIn(search.getSpaceGroupExcludeList(), domainId, businessAccountId, true)
+                checkSpaceRoleLikeIn(search.getSpaceList(), domainId, businessAccountId, false),
+                checkSpaceRoleLikeIn(search.getSpaceExcludeList(), domainId, businessAccountId, true)
         );
     }
 }

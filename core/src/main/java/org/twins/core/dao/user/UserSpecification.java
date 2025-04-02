@@ -7,7 +7,7 @@ import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserGroupEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
-import org.twins.core.dto.rest.user.SpaceGroupSearchDTOv1;
+import org.twins.core.domain.search.SpaceSearch;
 import org.twins.core.dto.rest.user.SpaceSearchDTOv1;
 
 import java.util.List;
@@ -54,73 +54,24 @@ public class UserSpecification extends CommonSpecification<UserEntity> {
         };
     }
 
-    public static Specification<UserEntity> checkSpaceRoleLikeIn(List<SpaceSearchDTOv1> spaceRoles, boolean exclude) {
-        return (root, query, cb) -> {
-            if (query == null || CollectionUtils.isEmpty(spaceRoles)) {
-                return cb.conjunction();
-            }
-
-            Subquery<SpaceRoleUserEntity> subquery = query.subquery(SpaceRoleUserEntity.class);
-            Root<SpaceRoleUserEntity> spaceRoleRoot = subquery.from(SpaceRoleUserEntity.class);
-
-            Predicate userMatch = cb.equal(
-                    spaceRoleRoot.get(SpaceRoleUserEntity.Fields.userId),
-                    root.get(UserEntity.Fields.id)
-            );
-
-            Predicate[] rolePredicates = spaceRoles.stream()
-                    .filter(Objects::nonNull)
-                    .map(spaceRole -> {
-                        Predicate conditions = cb.conjunction();
-
-                        if (spaceRole.getSpaceId() != null) {
-                            conditions = cb.and(
-                                    conditions,
-                                    cb.equal(
-                                            spaceRoleRoot.get(SpaceRoleUserEntity.Fields.twinId),
-                                            spaceRole.getSpaceId()
-                                    )
-                            );
-                        }
-
-                        if (spaceRole.getRoleId() != null) {
-                            conditions = cb.and(
-                                    conditions,
-                                    cb.equal(
-                                            spaceRoleRoot.get(SpaceRoleUserEntity.Fields.spaceRoleId),
-                                            spaceRole.getRoleId()
-                                    )
-                            );
-                        }
-
-                        return conditions;
-                    })
-                    .filter(p -> !p.equals(cb.conjunction()))
-                    .toArray(Predicate[]::new);
-
-            if (rolePredicates.length == 0) {
-                return cb.conjunction();
-            }
-
-            subquery.select(spaceRoleRoot)
-                    .where(cb.and(userMatch, cb.or(rolePredicates)));
-
-            return exclude
-                    ? cb.not(cb.exists(subquery))
-                    : cb.exists(subquery);
-        };
-    }
-
-    public static Specification<UserEntity> checkSpaceRoleGroupLikeIn(
-            List<SpaceGroupSearchDTOv1> spaceGroupRoles,
+    public static Specification<UserEntity> checkSpaceRoleLikeIn(
+            List<SpaceSearch> spaceRoles,
             UUID domainId,
             UUID businessAccountId,
             boolean exclude
     ) {
         return (root, query, cb) -> {
-            if (query == null || CollectionUtils.isEmpty(spaceGroupRoles)) {
+            if (query == null || CollectionUtils.isEmpty(spaceRoles)) {
                 return cb.conjunction();
             }
+
+            Subquery<SpaceRoleUserEntity> userSubquery = query.subquery(SpaceRoleUserEntity.class);
+            Root<SpaceRoleUserEntity> userRoleRoot = userSubquery.from(SpaceRoleUserEntity.class);
+
+            Predicate userMatch = cb.equal(
+                    userRoleRoot.get(SpaceRoleUserEntity.Fields.userId),
+                    root.get(UserEntity.Fields.id)
+            );
 
             Subquery<SpaceRoleUserGroupEntity> groupSubquery = query.subquery(SpaceRoleUserGroupEntity.class);
             Root<SpaceRoleUserGroupEntity> groupRoleRoot = groupSubquery.from(SpaceRoleUserGroupEntity.class);
@@ -135,53 +86,60 @@ public class UserSpecification extends CommonSpecification<UserEntity> {
 
             Predicate userInGroups = cb.in(root.get(UserEntity.Fields.id)).value(functionCall);
 
-            Predicate[] rolePredicates = spaceGroupRoles.stream()
+            Predicate[] rolePredicates = spaceRoles.stream()
                     .filter(Objects::nonNull)
-                    .map(spaceGroupRole -> {
+                    .map(spaceRole -> {
                         Predicate conditions = cb.conjunction();
 
-                        if (spaceGroupRole.getSpaceId() != null) {
-                            conditions = cb.and(
-                                    conditions,
-                                    cb.equal(
-                                            groupRoleRoot.get(SpaceRoleUserGroupEntity.Fields.twinId),
-                                            spaceGroupRole.getSpaceId()
-                                    )
+                        if (spaceRole.getSpaceId() != null) {
+                            Predicate userSpaceMatch = cb.equal(
+                                    userRoleRoot.get(SpaceRoleUserEntity.Fields.twinId),
+                                    spaceRole.getSpaceId()
                             );
+
+                            Predicate groupSpaceMatch = cb.equal(
+                                    groupRoleRoot.get(SpaceRoleUserGroupEntity.Fields.twinId),
+                                    spaceRole.getSpaceId()
+                            );
+
+                            conditions = cb.and(conditions, cb.or(userSpaceMatch, groupSpaceMatch));
                         }
 
-                        if (spaceGroupRole.getRoleId() != null) {
-                            conditions = cb.and(
-                                    conditions,
-                                    cb.equal(
-                                            groupRoleRoot.get(SpaceRoleUserGroupEntity.Fields.spaceRoleId),
-                                            spaceGroupRole.getRoleId()
-                                    )
+                        if (spaceRole.getRoleId() != null) {
+                            Predicate userRoleMatch = cb.equal(
+                                    userRoleRoot.get(SpaceRoleUserEntity.Fields.spaceRoleId),
+                                    spaceRole.getRoleId()
                             );
-                        }
 
-                        if (!CollectionUtils.isEmpty(spaceGroupRole.getUserGroupIds())) {
-                            conditions = cb.and(
-                                    conditions,
-                                    groupRoleRoot.get(SpaceRoleUserGroupEntity.Fields.userGroupId)
-                                            .in(spaceGroupRole.getUserGroupIds())
+                            Predicate groupRoleMatch = cb.equal(
+                                    groupRoleRoot.get(SpaceRoleUserGroupEntity.Fields.spaceRoleId),
+                                    spaceRole.getRoleId()
                             );
+
+                            conditions = cb.and(conditions, cb.or(userRoleMatch, groupRoleMatch));
                         }
 
                         return conditions;
                     })
+                    .filter(p -> !p.equals(cb.conjunction()))
                     .toArray(Predicate[]::new);
 
             if (rolePredicates.length == 0) {
                 return cb.conjunction();
             }
 
+            userSubquery.select(userRoleRoot)
+                    .where(cb.and(userMatch, cb.or(rolePredicates)));
+
             groupSubquery.select(groupRoleRoot)
                     .where(cb.and(cb.or(rolePredicates)));
 
-            return exclude
-                    ? cb.not(cb.and(cb.exists(groupSubquery), userInGroups))
-                    : cb.and(cb.exists(groupSubquery), userInGroups);
+            Predicate combinedCondition = cb.or(
+                    cb.exists(userSubquery),
+                    cb.and(cb.exists(groupSubquery), userInGroups)
+            );
+
+            return exclude ? cb.not(combinedCondition) : combinedCondition;
         };
     }
 }
