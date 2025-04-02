@@ -115,12 +115,12 @@ public class TwinSearch {
         return this;
     }
 
-    public TwinSearch addHeaderTwinId(UUID headerTwinId) {
+    public TwinSearch addHeadTwinId(UUID headerTwinId) {
         headTwinIdList = CollectionUtils.safeAdd(headTwinIdList, headerTwinId);
         return this;
     }
 
-    public TwinSearch addHeaderTwinId(List<UUID> headerTwinIds) {
+    public TwinSearch addHeadTwinId(List<UUID> headerTwinIds) {
         headTwinIdList = CollectionUtils.safeAdd(headTwinIdList, headerTwinIds);
         return this;
     }
