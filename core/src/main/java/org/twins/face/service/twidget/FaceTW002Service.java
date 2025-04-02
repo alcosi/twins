@@ -10,9 +10,8 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.face.TwidgetConfig;
-import org.twins.core.service.auth.AuthService;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.service.face.FaceService;
 import org.twins.core.service.face.FaceTwidgetService;
 import org.twins.face.dao.twiget.tw002.FaceTW002AccordionItemEntity;
 import org.twins.face.dao.twiget.tw002.FaceTW002AccordionItemRepository;
@@ -31,9 +30,7 @@ import java.util.function.Function;
 public class FaceTW002Service extends FaceTwidgetService<FaceTW002Entity> {
     private final FaceTW002Repository faceTW002Repository;
     private final FaceTW002AccordionItemRepository faceTW002AccordionItemRepository;
-    @Lazy
-    private final AuthService authService;
-
+    private final FaceService faceService;
 
     @Override
     public CrudRepository<FaceTW002Entity, UUID> entityRepository() {
@@ -47,12 +44,7 @@ public class FaceTW002Service extends FaceTwidgetService<FaceTW002Entity> {
 
     @Override
     public boolean isEntityReadDenied(FaceTW002Entity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (!entity.getFace().getDomainId().equals(authService.getApiUser().getDomainId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allows in domain[" + apiUser.getDomainId() + "]");
-            return true;
-        }
-        return false;
+        return faceService.isEntityReadDenied(entity.getFace());
     }
 
     @Override
@@ -83,11 +75,7 @@ public class FaceTW002Service extends FaceTwidgetService<FaceTW002Entity> {
     }
 
     @Override
-    public TwidgetConfig<FaceTW002Entity> getConfig(UUID faceId, UUID currentTwinId) throws ServiceException {
-        TwidgetConfig<FaceTW002Entity> ret = new TwidgetConfig<>();
-        ret
-                .setTargetTwinId(currentTwinId) //should be replaced in future
-                .setConfig(findEntitySafe(faceId));
-        return ret;
+    public FaceTW002Entity getConfig(UUID faceId, TwinEntity currentTwin, TwinEntity targetTwin) throws ServiceException {
+        return findEntitySafe(faceId);
     }
 }

@@ -11,7 +11,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceRepository;
-import org.twins.core.dao.face.FaceTwidgetEntity;
+import org.twins.core.dao.face.FaceTwidget;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.face.TwidgetConfig;
@@ -56,11 +56,11 @@ public class FaceService extends EntitySecureFindServiceImpl<FaceEntity> {
         return true;
     }
 
-    public void loadTwin(TwidgetConfig<? extends FaceTwidgetEntity> src) throws ServiceException {
+    public void loadTwin(TwidgetConfig<? extends FaceTwidget> src) throws ServiceException {
         loadTwin(Collections.singletonList(src));
     }
 
-    public void loadTwin(Collection<TwidgetConfig<? extends FaceTwidgetEntity>> srcCollection) throws ServiceException {
+    public void loadTwin(Collection<TwidgetConfig<? extends FaceTwidget>> srcCollection) throws ServiceException {
         Set<UUID> needLoad = new HashSet<>();
         for (var config : srcCollection) {
             if (config.getTargetTwin() == null || !config.getTargetTwinId().equals(config.getTargetTwin().getId())) {

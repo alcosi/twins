@@ -1,4 +1,4 @@
-package org.twins.face.dao.twiget.tw001;
+package org.twins.face.dao.twiget.tw004;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -14,40 +14,40 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "face_twidget_tw001")
-public class FaceTW001Entity implements EasyLoggable, FaceTwidget {
+@Table(name = "face_twidget_tw004")
+public class FaceTW004Entity implements EasyLoggable, FaceTwidget {
     @Id
     @Column(name = "face_id")
     private UUID faceId;
-
+    
     @Column(name = "key", nullable = false)
     private String key;
 
     @Column(name = "label_i18n_id")
     private UUID labelI18nId;
 
-    @Column(name = "images_twin_class_field_id")
-    private UUID imagesTwinClassFieldId;
+    @Column(name = "twin_class_field_id")
+    private UUID twinClassFieldId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     private FaceEntity face;
-
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "label_i18n_id", nullable = false, insertable = false, updatable = false)
     private I18nEntity labelI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "images_twin_class_field_id", nullable = false, insertable = false, updatable = false)
-    private TwinClassFieldEntity imagesTwinClassField;
+    @JoinColumn(name = "twin_class_field_id", nullable = false, insertable = false, updatable = false)
+    private TwinClassFieldEntity twinClassField;
 
     @Override
     public String easyLog(Level level) {
         switch (level) {
             case SHORT:
-                return "faceTW001[" + faceId + "]";
+                return "faceTW004[" + faceId + "]";
             default:
-                return "faceTW001[id:" + faceId + ", componentId:" + face.getFaceComponentId() + "]";
+                return "faceTW004[id:" + faceId + ", componentId:" + face.getFaceComponentId() + "]";
         }
     }
 }

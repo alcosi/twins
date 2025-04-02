@@ -8,7 +8,7 @@ import lombok.ToString;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.face.FaceEntity;
-import org.twins.core.dao.face.FaceTwidgetEntity;
+import org.twins.core.dao.face.FaceTwidget;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
@@ -18,14 +18,10 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "face_twidget_TW002")
-public class FaceTW002Entity implements EasyLoggable, FaceTwidgetEntity {
+public class FaceTW002Entity implements EasyLoggable, FaceTwidget {
     @Id
     @Column(name = "face_id")
     private UUID faceId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
-    private FaceEntity face;
 
     @Column(name = "key", nullable = false)
     private String key;
@@ -35,6 +31,10 @@ public class FaceTW002Entity implements EasyLoggable, FaceTwidgetEntity {
 
     @Column(name = "i18n_twin_class_field_id")
     private UUID i18nTwinClassFieldId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
+    private FaceEntity face;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "label_i18n_id", nullable = false, insertable = false, updatable = false)

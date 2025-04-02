@@ -35,7 +35,7 @@ public class TwinValidatorTwinHasChildrenInStatuses extends TwinValidator {
         Set<UUID> statusIdSet = statusIds.extract(properties);
         BasicSearch search = new BasicSearch();
         search
-                .addHeaderTwinId(twinEntity.getId())
+                .addHeadTwinId(twinEntity.getId())
                 .addStatusId(statusIdSet, false);
         long count = twinSearchService.count(search);
         boolean isValid = count > 0;
