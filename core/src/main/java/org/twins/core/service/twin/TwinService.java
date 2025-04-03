@@ -419,7 +419,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
         if (twinEntity.getTwinClass() == null)
             twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
-        checkAssigneeRequired(twinEntity);
         setHeadSafe(twinEntity);
         if (twinCreate.isCheckCreatePermission())
             checkCreatePermission(twinEntity, authService.getApiUser());
@@ -435,17 +434,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             twinMarkerService.addMarkers(twinEntity, twinCreate.getMarkersAdd(), twinChangesCollector);
         if (CollectionUtils.isNotEmpty(twinCreate.getTagsAddNew()) || CollectionUtils.isNotEmpty(twinCreate.getTagsAddExisted())) {
             twinTagService.createTags(twinEntity, twinCreate.getTagsAddNew(), twinCreate.getTagsAddExisted(), twinChangesCollector);
-        }
-    }
-
-    private void checkAssigneeRequired(TwinEntity twinEntity) throws ServiceException {
-        if (twinEntity.getTwinClass().getAssigneeRequired() != null &&
-                twinEntity.getTwinClass().getAssigneeRequired() &&
-                twinEntity.getAssignerUserId() == null) {
-            throw new ServiceException(
-                    ErrorCodeTwins.TWIN_ASSIGNEE_REQUIRED,
-                    "Assignee is required for twin class: " + twinEntity.getTwinClass().logShort()
-            );
         }
     }
 
@@ -552,6 +540,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void checkAssignee(TwinEntity twinEntity, UUID userId) throws ServiceException {
+        if (twinEntity.getTwinClass().getAssigneeRequired() != null &&
+                twinEntity.getTwinClass().getAssigneeRequired() &&
+                userId == null) {
+            throw new ServiceException(
+                    ErrorCodeTwins.TWIN_ASSIGNEE_REQUIRED,
+                    "Assignee is required for twin class: " + twinEntity.getTwinClass().logShort()
+            );
+        }
+
         if (null == userId)
             return;
         TwinClassEntity twinClassEntity = twinEntity.getTwinClass();
@@ -664,8 +661,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void updateTwinBasics(ChangesRecorder<TwinEntity, ?> changesRecorder) throws ServiceException {
-        checkAssigneeRequired(changesRecorder.getDbEntity());
-
         updateTwinHead(changesRecorder);
         updateTwinName(changesRecorder);
         updateTwinDescription(changesRecorder);
