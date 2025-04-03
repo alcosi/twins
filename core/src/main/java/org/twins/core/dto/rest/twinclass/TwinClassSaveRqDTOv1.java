@@ -52,13 +52,19 @@ public class TwinClassSaveRqDTOv1 extends Request {
 
     @Schema(description = "[optional] this field helps to set extra permission, needed by users to view twins of given class. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
     public UUID viewPermissionId;
+
     @Schema(description = "[optional] this field helps to set extra permission, needed by users to create twins of given class. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
     public UUID createPermissionId;
+
     @Schema(description = "[optional] this field helps to set extra permission, needed by users to edit twins of given class. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
     public UUID editPermissionId;
+
     @Schema(description = "[optional] this field helps to set extra permission, needed by users to delete twins of given class. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
     public UUID deletePermissionId;
 
     @Schema(description = "[optional] owner typ of class")
     public TwinClassEntity.OwnerType ownerType;
+
+    @Schema(description = "[optional] is assignee required")
+    public Boolean assigneeRequired;
 }
