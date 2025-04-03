@@ -1,11 +1,11 @@
 package org.twins.core.mappers.rest.twin;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.JsonUtils;
 import org.cambium.common.util.MapUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
@@ -22,7 +22,6 @@ import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 @Component
@@ -85,15 +84,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
         } else if (src instanceof FieldValueI18n i18nField) {
             try {
                 if (MapUtils.isNotEmpty(i18nField.getTranslations())) {
-                    Map<String, String> translationsMap = i18nField.getTranslations()
-                            .entrySet()
-                            .stream()
-                            .collect(Collectors.toMap(
-                                    entry -> entry.getKey().toString(),
-                                    Map.Entry::getValue
-                            ));
-
-                    String jsonStr = new ObjectMapper().writeValueAsString(translationsMap);
+                    String jsonStr = JsonUtils.translationsMapToJson(i18nField.getTranslations());
                     dst.setValue(jsonStr);
                 }
             } catch (JsonProcessingException e) {

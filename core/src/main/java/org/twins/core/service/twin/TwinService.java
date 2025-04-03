@@ -14,10 +14,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.KitUtils;
-import org.cambium.common.util.StringUtils;
-import org.cambium.common.util.UuidUtils;
+import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -1016,20 +1013,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         if (fieldValue instanceof FieldValueI18n fieldValueI18n) {
             try {
-                ObjectMapper mapper = new ObjectMapper()
-                        .configure(JsonReadFeature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER.mappedFeature(), true)
-                        .configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature(), true);
-
-                Map<String, String> rawTranslations = mapper.readValue(value, new TypeReference<>() {});
-
-                Map<Locale, String> result = rawTranslations.entrySet()
-                        .stream()
-                        .collect(Collectors.toMap(
-                                entry -> Locale.of(entry.getKey()),
-                                Map.Entry::getValue
-                        ));
-
-                fieldValueI18n.setTranslations(result);
+                Map<Locale, String> translations = JsonUtils.jsonToTranslationsMap(value);
+                fieldValueI18n.setTranslations(translations);
 
             } catch (JsonProcessingException e) {
                 throw new ServiceException(
