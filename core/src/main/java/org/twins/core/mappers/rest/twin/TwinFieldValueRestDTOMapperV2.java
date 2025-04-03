@@ -1,11 +1,10 @@
 package org.twins.core.mappers.rest.twin;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.JsonUtils;
 import org.cambium.common.util.MapUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
@@ -18,11 +17,14 @@ import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.*;
+import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
+import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.List;
+import java.util.StringJoiner;
 
 
 @Component
@@ -83,24 +85,13 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
             }
             dst.setValue(stringJoiner.toString());
         } else if (src instanceof FieldValueI18n i18nField) {
-            try {
-                if (MapUtils.isNotEmpty(i18nField.getTranslations())) {
-                    Map<String, String> translationsMap = i18nField.getTranslations()
-                            .entrySet()
-                            .stream()
-                            .collect(Collectors.toMap(
-                                    entry -> entry.getKey().toString(),
-                                    Map.Entry::getValue
-                            ));
-
-                    String jsonStr = new ObjectMapper().writeValueAsString(translationsMap);
-                    dst.setValue(jsonStr);
-                }
-            } catch (JsonProcessingException e) {
-                throw new ServiceException(
-                        ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT,
-                        src.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " can't serialize i18n"
-                );
+            if (MapUtils.isNotEmpty(i18nField.getTranslations())) {
+                String jsonStr = JsonUtils.translationsMapToJson(i18nField.getTranslations());
+                if (jsonStr == null)
+                    throw new ServiceException(
+                            ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT,
+                            src.getTwinClassField().logNormal() + " can't serialize i18n");
+                dst.setValue(jsonStr);
             }
         } else
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, src.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " unknown value type");
