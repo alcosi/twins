@@ -35,7 +35,7 @@ public abstract class SearchCriteriaBuilderSingleUUID extends SearchCriteriaBuil
                 twinSearch.addTwinClassId(id, searchPredicateEntity.isExclude());
                 break;
             case headTwinId:
-                twinSearch.addHeaderTwinId(id);  //todo add exclude
+                twinSearch.addHeadTwinId(id);  //todo add exclude
                 break;
             case markerDataListOptionId:
                 twinSearch.addMarkerDataListOptionId(id, searchPredicateEntity.isExclude());
