@@ -16,10 +16,13 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.HashSet;
+
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 
 
 import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecification.*;
+import static org.twins.core.service.SystemEntityService.TWIN_CLASS_FIELDS_SYSTEM_SET;
 
 
 @Slf4j
@@ -37,6 +40,7 @@ public class TwinClassFieldSearchService {
     }
 
     private Specification<TwinClassFieldEntity> createTwinClassFieldSearchSpecification(TwinClassFieldSearch search) throws ServiceException {
+        excludeSystemFields(search);
         ApiUser apiUser = authService.getApiUser();
         return Specification.allOf(
                 checkFieldUuid(apiUser.getDomainId(), TwinClassFieldEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
@@ -58,4 +62,13 @@ public class TwinClassFieldSearchService {
                 checkUuidIn(search.getViewPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.editPermissionId),
                 checkTernary(search.getRequired()));
     }
+
+    private void excludeSystemFields(TwinClassFieldSearch search) {
+        if (search.getIdExcludeList() == null) {
+            search.setIdExcludeList(new HashSet<>(TWIN_CLASS_FIELDS_SYSTEM_SET));
+        } else {
+            search.getIdExcludeList().addAll(TWIN_CLASS_FIELDS_SYSTEM_SET);
+        }
+    }
+
 }

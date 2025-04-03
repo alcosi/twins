@@ -12,13 +12,14 @@ import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -34,9 +35,37 @@ public class SystemEntityService {
     public static final UUID USER_SYSTEM = UUID.fromString("00000000-0000-0000-0000-000000000000");
     public static final UUID TWIN_CLASS_USER = UUID.fromString("00000000-0000-0000-0001-000000000001");
     public static final UUID TWIN_CLASS_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0001-000000000003");
+    public static final UUID TWIN_CLASS_GLOBAL_ANCESTOR = UUID.fromString("00000000-0000-0000-0001-000000000004");
+
+    public static final UUID TWIN_CLASS_FIELD_USER_EMAIL = UUID.fromString("00000000-0000-0000-0011-000000000001");
+    public static final UUID TWIN_CLASS_FIELD_USER_AVATAR = UUID.fromString("00000000-0000-0000-0011-000000000002");
+
+    public static final UUID TWIN_CLASS_FIELD_TWIN_NAME =           UUID.fromString("00000000-0000-0000-0011-000000000003");
+    public static final UUID TWIN_CLASS_FIELD_TWIN_DESCRIPTION =    UUID.fromString("00000000-0000-0000-0011-000000000004");
+    public static final UUID TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID =    UUID.fromString("00000000-0000-0000-0011-000000000005");
+    public static final UUID TWIN_CLASS_FIELD_TWIN_OWNER_USER =     UUID.fromString("00000000-0000-0000-0011-000000000006");
+    public static final UUID TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER =  UUID.fromString("00000000-0000-0000-0011-000000000007");
+    public static final UUID TWIN_CLASS_FIELD_TWIN_CREATOR_USER =   UUID.fromString("00000000-0000-0000-0011-000000000008");
+    public static final UUID TWIN_CLASS_FIELD_TWIN_HEAD =           UUID.fromString("00000000-0000-0000-0011-000000000009");
+    public static final UUID TWIN_CLASS_FIELD_TWIN_STATUS =         UUID.fromString("00000000-0000-0000-0011-000000000010");
+    public static final UUID TWIN_CLASS_FIELD_TWIN_CREATED_AT =     UUID.fromString("00000000-0000-0000-0011-000000000011");
+    public static final Set<UUID> TWIN_CLASS_FIELDS_SYSTEM_SET = Set.of(
+            TWIN_CLASS_FIELD_USER_EMAIL,
+            TWIN_CLASS_FIELD_USER_AVATAR,
+            TWIN_CLASS_FIELD_TWIN_NAME,
+            TWIN_CLASS_FIELD_TWIN_DESCRIPTION,
+            TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID,
+            TWIN_CLASS_FIELD_TWIN_OWNER_USER,
+            TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER,
+            TWIN_CLASS_FIELD_TWIN_CREATOR_USER,
+            TWIN_CLASS_FIELD_TWIN_HEAD,
+            TWIN_CLASS_FIELD_TWIN_STATUS,
+            TWIN_CLASS_FIELD_TWIN_CREATED_AT
+    );
 
     public static final UUID TWIN_STATUS_USER = UUID.fromString("00000000-0000-0000-0003-000000000001");
     public static final UUID TWIN_STATUS_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0003-000000000003");
+    public static final UUID TWIN_STATUS_GLOBAL_ANCESTOR = UUID.fromString("00000000-0000-0000-0003-000000000004");
 
     public static final UUID TWIN_TEMPLATE_USER = UUID.fromString("00000000-0000-0000-0002-000000000001");
     public static final UUID TWIN_TEMPLATE_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0002-000000000003");
@@ -64,6 +93,13 @@ public class SystemEntityService {
                 .setCreatedByUserId(USER_SYSTEM)
                 .setCreatedAt(Timestamp.from(Instant.now()));
         entitySmartService.save(twinClassEntity.getId(), twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
+        twinClassEntity = new TwinClassEntity()
+                .setId(TWIN_CLASS_GLOBAL_ANCESTOR)
+                .setKey("GLOBAL_ANCESTOR")
+                .setOwnerType(TwinClassEntity.OwnerType.SYSTEM)
+                .setCreatedByUserId(USER_SYSTEM)
+                .setCreatedAt(Timestamp.from(Instant.now()));
+        entitySmartService.save(twinClassEntity.getId(), twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
 
         TwinStatusEntity twinStatusEntity;
         twinStatusEntity = new TwinStatusEntity()
@@ -73,6 +109,10 @@ public class SystemEntityService {
         twinStatusEntity = new TwinStatusEntity()
                 .setId(TWIN_STATUS_BUSINESS_ACCOUNT)
                 .setTwinClassId(TWIN_CLASS_BUSINESS_ACCOUNT);
+        entitySmartService.save(twinStatusEntity.getId(), twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
+        twinStatusEntity = new TwinStatusEntity()
+                .setId(TWIN_STATUS_GLOBAL_ANCESTOR)
+                .setTwinClassId(TWIN_CLASS_GLOBAL_ANCESTOR);
         entitySmartService.save(twinStatusEntity.getId(), twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
 
         TwinEntity twinEntity;
