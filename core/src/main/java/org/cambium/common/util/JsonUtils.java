@@ -39,33 +39,40 @@ public class JsonUtils {
         return message;
     }
 
-    public static String translationsMapToJson(Map<Locale, String> translations) throws JsonProcessingException {
+    public static String translationsMapToJson(Map<Locale, String> translations) {
         if (translations == null || translations.isEmpty()) {
             return null;
         }
 
-        Map<String, String> stringKeyMap = translations.entrySet()
-                .stream()
-                .collect(Collectors.toMap(
-                        entry -> entry.getKey().toString(),
-                        Map.Entry::getValue
-                ));
+        try {
+            Map<String, String> stringKeyMap = translations.entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            entry -> entry.getKey().toString(),
+                            Map.Entry::getValue
+                    ));
 
-        return DEFAULT_MAPPER.writeValueAsString(stringKeyMap);
+            return DEFAULT_MAPPER.writeValueAsString(stringKeyMap);
+        } catch (JsonProcessingException e) {
+            return null;
+        }
     }
 
-    public static Map<Locale, String> jsonToTranslationsMap(String json) throws JsonProcessingException {
+    public static Map<Locale, String> jsonToTranslationsMap(String json) {
         if (json == null || json.isEmpty()) {
             return Map.of();
         }
 
-        Map<String, String> rawTranslations = LENIENT_MAPPER.readValue(json, new TypeReference<>() {});
-
-        return rawTranslations.entrySet()
-                .stream()
-                .collect(Collectors.toMap(
-                        entry -> Locale.of(entry.getKey()),
-                        Map.Entry::getValue
-                ));
+        try {
+            Map<String, String> rawTranslations = LENIENT_MAPPER.readValue(json, new TypeReference<>() {});
+            return rawTranslations.entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            entry -> Locale.of(entry.getKey()),
+                            Map.Entry::getValue
+                    ));
+        } catch (JsonProcessingException e) {
+            return null;
+        }
     }
 }

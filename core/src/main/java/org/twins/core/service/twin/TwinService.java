@@ -1012,15 +1012,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
         }
         if (fieldValue instanceof FieldValueI18n fieldValueI18n) {
-            try {
-                Map<Locale, String> translations = JsonUtils.jsonToTranslationsMap(value);
-                fieldValueI18n.setTranslations(translations);
-
-            } catch (JsonProcessingException e) {
+            Map<Locale, String> translations = JsonUtils.jsonToTranslationsMap(value);
+            if (translations == null) {
                 throw new ServiceException(
                         ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
                         fieldValueI18n.getTwinClassField().logShort() + " can't deserialize i18n");
             }
+            fieldValueI18n.setTranslations(translations);
         }
     }
 

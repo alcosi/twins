@@ -82,16 +82,15 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
             }
             dst.setValue(stringJoiner.toString());
         } else if (src instanceof FieldValueI18n i18nField) {
-            try {
-                if (MapUtils.isNotEmpty(i18nField.getTranslations())) {
-                    String jsonStr = JsonUtils.translationsMapToJson(i18nField.getTranslations());
-                    dst.setValue(jsonStr);
+            if (MapUtils.isNotEmpty(i18nField.getTranslations())) {
+                String jsonStr = JsonUtils.translationsMapToJson(i18nField.getTranslations());
+                if (jsonStr == null) {
+                    throw new ServiceException(
+                            ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT,
+                            src.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " can't serialize i18n"
+                    );
                 }
-            } catch (JsonProcessingException e) {
-                throw new ServiceException(
-                        ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT,
-                        src.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " can't serialize i18n"
-                );
+                dst.setValue(jsonStr);
             }
         } else
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, src.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " unknown value type");
