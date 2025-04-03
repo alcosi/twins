@@ -540,12 +540,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void checkAssignee(TwinEntity twinEntity, UUID userId) throws ServiceException {
-        if (twinEntity.getTwinClass().getAssigneeRequired() != null &&
-                twinEntity.getTwinClass().getAssigneeRequired() &&
-                userId == null) {
+        if (Boolean.TRUE.equals(twinEntity.getTwinClass().getAssigneeRequired()) && userId == null) {
             throw new ServiceException(
                     ErrorCodeTwins.TWIN_ASSIGNEE_REQUIRED,
-                    "Assignee is required for twin class: " + twinEntity.getTwinClass().logShort()
+                    "Assignee is required for " + twinEntity.getTwinClass().logShort()
             );
         }
 
