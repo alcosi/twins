@@ -36,6 +36,7 @@ public class TwinClassUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
                 .setEditPermissionId(src.getEditPermissionId())
                 .setCreatePermissionId(src.getCreatePermissionId())
                 .setDeletePermissionId(src.getDeletePermissionId())
+                .setAssigneeRequired(src.getAssigneeRequired())
 
                 .setNameI18n(i18NSaveRestDTOReverseMapper.convert(src.getNameI18n(), mapperContext))
                 .setDescriptionI18n(i18NSaveRestDTOReverseMapper.convert(src.getDescriptionI18n(), mapperContext))

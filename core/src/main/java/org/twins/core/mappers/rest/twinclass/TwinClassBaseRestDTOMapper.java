@@ -53,7 +53,8 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setPermissionSchemaSpace(src.isPermissionSchemaSpace())
                         .setAliasSpace(src.isAliasSpace())
                         .setOwnerType(src.getOwnerType())
-                        .setPageFaceId(src.getPageFaceId());
+                        .setPageFaceId(src.getPageFaceId())
+                        .setAssigneeRequired(src.getAssigneeRequired());
                 break;
             case DETAILED:
                 dst

@@ -537,6 +537,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void checkAssignee(TwinEntity twinEntity, UUID userId) throws ServiceException {
+        if (Boolean.TRUE.equals(twinEntity.getTwinClass().getAssigneeRequired()) && userId == null) {
+            throw new ServiceException(
+                    ErrorCodeTwins.TWIN_ASSIGNEE_REQUIRED,
+                    "Assignee is required for " + twinEntity.getTwinClass().logShort()
+            );
+        }
+
         if (null == userId)
             return;
         TwinClassEntity twinClassEntity = twinEntity.getTwinClass();
@@ -659,6 +666,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public void updateTwinAssignee(ChangesRecorder<TwinEntity, ?> changesRecorder) throws ServiceException {
         if (changesRecorder.isChanged("assignerUser", changesRecorder.getDbEntity().getAssignerUserId(), changesRecorder.getUpdateEntity().getAssignerUserId())) {
+            checkAssignee(changesRecorder.getDbEntity(), changesRecorder.getUpdateEntity().getAssignerUserId());
             UserEntity newAssignee = null;
             if (!UuidUtils.isNullifyMarker(changesRecorder.getUpdateEntity().getAssignerUserId())) {
                 checkAssignee(changesRecorder.getDbEntity(), changesRecorder.getUpdateEntity().getAssignerUserId());
