@@ -40,18 +40,16 @@ public class JsonUtils {
     }
 
     public static String translationsMapToJson(Map<Locale, String> translations) {
-        if (translations == null || translations.isEmpty()) {
+        if (CollectionUtils.isEmpty(translations))
             return null;
-        }
 
+        Map<String, String> stringKeyMap = translations.entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        entry -> entry.getKey().toString(),
+                        Map.Entry::getValue
+                ));
         try {
-            Map<String, String> stringKeyMap = translations.entrySet()
-                    .stream()
-                    .collect(Collectors.toMap(
-                            entry -> entry.getKey().toString(),
-                            Map.Entry::getValue
-                    ));
-
             return DEFAULT_MAPPER.writeValueAsString(stringKeyMap);
         } catch (JsonProcessingException e) {
             return null;
@@ -59,12 +57,10 @@ public class JsonUtils {
     }
 
     public static Map<Locale, String> jsonToTranslationsMap(String json) {
-        if (json == null || json.isEmpty()) {
+        if (StringUtils.isEmpty(json))
             return Map.of();
-        }
-
         try {
-            Map<String, String> rawTranslations = LENIENT_MAPPER.readValue(json, new TypeReference<>() {});
+            Map<String, String> rawTranslations = LENIENT_MAPPER.readValue(json, new TypeReference<>(){});
             return rawTranslations.entrySet()
                     .stream()
                     .collect(Collectors.toMap(
