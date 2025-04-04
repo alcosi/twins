@@ -30,6 +30,7 @@ public enum I18nType  {
     DATA_LIST_NAME("dataListName", "Data list name", Category.TEXT),
     DATA_LIST_DESCRIPTION("dataListDescription", "Data list description", Category.TEXT),
     DATA_LIST_OPTION_VALUE("dataListOptionValue", "Data list option value", Category.TEXT),
+    DATA_LIST_ATTRIBUTE_NAME("dataListAttributeName", "Data list attribute name", Category.TEXT),
     ERROR("error","Error", Category.TEXT);
 
     private final String id;

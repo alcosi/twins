@@ -275,3 +275,96 @@ SET domain_id = f.domain_id
 FROM face_page_pg002_tab fpt
          JOIN face f ON f.id = fpt.face_id
 WHERE i18n.id = fpt.title_i18n_id;
+
+-- data_list attribute names
+UPDATE i18n
+SET domain_id = dl.domain_id
+    FROM (
+    SELECT attribute_1_name_i18n_id AS i18n_id, domain_id
+    FROM data_list
+    WHERE attribute_1_name_i18n_id IS NOT NULL
+
+    UNION ALL
+
+    SELECT attribute_2_name_i18n_id AS i18n_id, domain_id
+    FROM data_list
+    WHERE attribute_2_name_i18n_id IS NOT NULL
+
+    UNION ALL
+
+    SELECT attribute_3_name_i18n_id AS i18n_id, domain_id
+    FROM data_list
+    WHERE attribute_3_name_i18n_id IS NOT NULL
+
+    UNION ALL
+
+    SELECT attribute_4_name_i18n_id AS i18n_id, domain_id
+    FROM data_list
+    WHERE attribute_4_name_i18n_id IS NOT NULL
+) dl
+WHERE i18n.id = dl.i18n_id;
+
+
+-- add fk to data_list i18n
+DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+            WHERE conrelid = 'data_list'::regclass
+              AND conname = 'fk_data_list_attribute_1_i18n'
+        ) THEN
+            EXECUTE 'ALTER TABLE data_list ADD CONSTRAINT fk_data_list_attribute_1_i18n
+                FOREIGN KEY (attribute_1_name_i18n_id) REFERENCES i18n(id)
+                ON DELETE SET NULL ON UPDATE CASCADE';
+        END IF;
+
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+            WHERE conrelid = 'data_list'::regclass
+              AND conname = 'fk_data_list_attribute_2_i18n'
+        ) THEN
+            EXECUTE 'ALTER TABLE data_list ADD CONSTRAINT fk_data_list_attribute_2_i18n
+                FOREIGN KEY (attribute_2_name_i18n_id) REFERENCES i18n(id)
+                ON DELETE SET NULL ON UPDATE CASCADE';
+        END IF;
+
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+            WHERE conrelid = 'data_list'::regclass
+              AND conname = 'fk_data_list_attribute_3_i18n'
+        ) THEN
+            EXECUTE 'ALTER TABLE data_list ADD CONSTRAINT fk_data_list_attribute_3_i18n
+                FOREIGN KEY (attribute_3_name_i18n_id) REFERENCES i18n(id)
+                ON DELETE SET NULL ON UPDATE CASCADE';
+        END IF;
+
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+            WHERE conrelid = 'data_list'::regclass
+              AND conname = 'fk_data_list_attribute_4_i18n'
+        ) THEN
+            EXECUTE 'ALTER TABLE data_list ADD CONSTRAINT fk_data_list_attribute_4_i18n
+                FOREIGN KEY (attribute_4_name_i18n_id) REFERENCES i18n(id)
+                ON DELETE SET NULL ON UPDATE CASCADE';
+        END IF;
+
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+            WHERE conrelid = 'data_list'::regclass
+              AND conname = 'fk_data_list_name_i18n'
+        ) THEN
+            EXECUTE 'ALTER TABLE data_list ADD CONSTRAINT fk_data_list_name_i18n
+                FOREIGN KEY (name_i18n_id) REFERENCES i18n(id)
+                ON DELETE SET NULL ON UPDATE CASCADE';
+        END IF;
+
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+            WHERE conrelid = 'data_list'::regclass
+              AND conname = 'fk_data_list_description_i18n'
+        ) THEN
+            EXECUTE 'ALTER TABLE data_list ADD CONSTRAINT fk_data_list_description_i18n
+                FOREIGN KEY (description_i18n_id) REFERENCES i18n(id)
+                ON DELETE SET NULL ON UPDATE CASCADE';
+        END IF;
+    END $$;
