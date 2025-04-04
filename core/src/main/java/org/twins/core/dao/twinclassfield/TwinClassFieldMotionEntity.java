@@ -11,9 +11,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
+import org.twins.core.dao.validator.TwinClassFieldMotionValidatorRuleEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -74,13 +74,17 @@ public class TwinClassFieldMotionEntity implements EasyLoggable {
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
 
-    @Transient
-    @EqualsAndHashCode.Exclude
-    private Kit<TwinflowTransitionValidatorRuleEntity, UUID> validatorRulesKit;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_class_field_id", insertable = false, updatable = false, nullable = false)
+    private TwinClassFieldEntity twinClassField;
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinflowTransitionTriggerEntity, UUID> triggersKit;
+    private Kit<TwinClassFieldMotionValidatorRuleEntity, UUID> validatorRulesKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinClassFieldMotionTriggerEntity, UUID> triggersKit;
 
     @Transient // because field can be useful only in admin panel
     @EqualsAndHashCode.Exclude

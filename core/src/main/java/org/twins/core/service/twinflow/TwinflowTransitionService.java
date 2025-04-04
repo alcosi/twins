@@ -647,12 +647,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         return new TransitionContextBatch(transitionContextMap.values());
     }
 
-    public Kit<TwinflowTransitionValidatorRuleEntity, UUID> loadValidators(TwinflowTransitionEntity transition) {
-        if (transition.getValidatorRulesKit() != null)
-            return transition.getValidatorRulesKit();
-        List<TwinflowTransitionValidatorRuleEntity> validators = twinflowTransitionValidatorRuleRepository.findByTwinflowTransitionIdOrderByOrder(transition.getId());
-        transition.setValidatorRulesKit(new Kit<>(validators, TwinflowTransitionValidatorRuleEntity::getId));
-        return transition.getValidatorRulesKit();
+    public void loadValidators(TwinflowTransitionEntity transition) {
+        loadValidators(Collections.singleton(transition));
     }
 
     public void loadValidators(Collection<TwinflowTransitionEntity> transitions) {
@@ -667,12 +663,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             entry.getValue().setValidatorRulesKit(new Kit<>(validatorsKit.getGrouped(entry.getKey()), TwinflowTransitionValidatorRuleEntity::getId));
     }
 
-    public Kit<TwinflowTransitionTriggerEntity, UUID> loadTriggers(TwinflowTransitionEntity transition) {
-        if (transition.getTriggersKit() != null)
-            return transition.getTriggersKit();
-        List<TwinflowTransitionTriggerEntity> triggers = twinflowTransitionTriggerRepository.findByTwinflowTransitionIdOrderByOrder(transition.getId());
-        transition.setTriggersKit(new Kit<>(triggers, TwinflowTransitionTriggerEntity::getId));
-        return transition.getTriggersKit();
+    public void loadTriggers(TwinflowTransitionEntity transition) {
+        loadTriggers(Collections.singleton(transition));
     }
 
     public void loadTriggers(Collection<TwinflowTransitionEntity> transitions) {
@@ -710,14 +702,14 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         for (TwinflowTransitionValidatorRuleEntity transitionValidatorRuleEntity : transitionValidatorEntityList) {
             validationResultOfRule = true;
             if (!transitionValidatorRuleEntity.isActive()) {
-                log.info(transitionValidatorRuleEntity.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
+                log.info("{} will not be used, since it is inactive. ", transitionValidatorRuleEntity.logDetailed());
                 continue;
             }
             List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(transitionValidatorRuleEntity.getTwinValidators());
             sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
             for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
                 if (!twinValidatorEntity.isActive()) {
-                    log.info(twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL) + " from " + transitionValidatorRuleEntity.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
+                    log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.logNormal(), transitionValidatorRuleEntity.logNormal());
                     continue;
                 }
 
@@ -725,7 +717,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 TwinValidator.ValidationResult validationResult = transitionValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
                 validationResultOfRule = validationResult.isValid();
                 if (!validationResultOfRule) {
-                    log.info(twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL) + " from " + transitionValidatorRuleEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not valid. " + validationResult.getMessage());
+                    log.info("{} from {} is not valid. {}", twinValidatorEntity.logNormal(), transitionValidatorRuleEntity.logNormal(), validationResult.getMessage());
                     break;
                 }
             }
@@ -920,16 +912,15 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     @Transactional
     public void runTriggers(TransitionContext transitionContext) throws ServiceException {
         TwinflowTransitionEntity transitionEntity = transitionContext.getTransitionEntity();
-        List<TwinflowTransitionTriggerEntity> transitionTriggerEntityList = twinflowTransitionTriggerRepository.findByTwinflowTransitionIdOrderByOrder(transitionEntity.getId());
+        loadTriggers(transitionEntity);
         //todo run status input/output triggers
         for (TwinEntity targetTwin : transitionContext.getTargetTwinList().values())
-            for (TwinflowTransitionTriggerEntity triggerEntity : transitionTriggerEntityList) {
+            for (TwinflowTransitionTriggerEntity triggerEntity : transitionEntity.getTriggersKit()) {
                 if (!triggerEntity.isActive()) {
-                    log.info(triggerEntity.easyLog(EasyLoggable.Level.DETAILED) + " will not be triggered, since it is inactive");
+                    log.info("{} will not be triggered, since it is inactive", triggerEntity.logDetailed());
                     continue;
                 }
-
-                log.info(triggerEntity.easyLog(EasyLoggable.Level.DETAILED) + " will be triggered");
+                log.info("{} will be triggered", triggerEntity.logDetailed());
                 TransitionTrigger transitionTrigger = featurerService.getFeaturer(triggerEntity.getTransitionTriggerFeaturer(), TransitionTrigger.class);
                 transitionTrigger.run(triggerEntity.getTransitionTriggerParams(), targetTwin, transitionEntity.getSrcTwinStatus(), transitionEntity.getDstTwinStatus());
             }
