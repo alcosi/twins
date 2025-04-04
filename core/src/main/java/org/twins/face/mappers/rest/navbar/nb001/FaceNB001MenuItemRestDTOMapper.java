@@ -30,7 +30,8 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
                 .setDescription(i18nService.translateToLocale(src.getDescriptionI18nId()))
                 .setDisabled(src.getStatus() == FaceNB001MenuItemEntity.Status.DISABLED) //todo
                 .setIcon(resourceService.getResourceUri(src.getIconResource()))
-                .setTargetPageFaceId(src.getTargetPageFaceId());
+                .setTargetPageFaceId(src.getTargetPageFaceId())
+                .setPermissionId(src.getPermissionId());
         if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItem2FaceMode.HIDE)) {
             faceRestDTOMapper.postpone(src.getTargetPageFace(), mapperContext.forkOnPoint(FaceNB001Modes.FaceNB001MenuItem2FaceMode.SHORT));
         }
