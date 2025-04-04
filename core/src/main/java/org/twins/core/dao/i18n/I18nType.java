@@ -14,6 +14,8 @@ public enum I18nType  {
     TWIN_STATUS_DESCRIPTION("twinStatusDescription", "Twin status description", Category.TEXT),
     TWIN_CLASS_FIELD_NAME("twinClassFieldName", "Twin class field name", Category.TEXT),
     TWIN_CLASS_FIELD_DESCRIPTION("twinClassFieldDescription", "Twin class field description", Category.TEXT),
+    TWIN_CLASS_OWNER_TYPE_NAME("twinClassOwnerTypeName", "Twin class owner type name", Category.TEXT),
+    TWIN_CLASS_OWNER_TYPE_DESCRIPTION("twinClassOwnerTypeDescription", "Twin class owner type description", Category.TEXT),
     CARD_NAME("cardName", "Twin card name", Category.TEXT),
     UNKNOWN("unknown", "Unknown", Category.TEXT),
     LINK_FORWARD_NAME("linkForwardName", "Twin link forward name", Category.TEXT),
@@ -31,6 +33,9 @@ public enum I18nType  {
     DATA_LIST_DESCRIPTION("dataListDescription", "Data list description", Category.TEXT),
     DATA_LIST_OPTION_VALUE("dataListOptionValue", "Data list option value", Category.TEXT),
     DATA_LIST_ATTRIBUTE_NAME("dataListAttributeName", "Data list attribute name", Category.TEXT),
+    USER_GROUP_NAME("userGroupName", "User group name", Category.TEXT),
+    USER_GROUP_DESCRIPTION("userGroupDescription", "User group description", Category.TEXT),
+    FACE_ELEMENT("faceElement", "Face element", Category.TEXT),
     ERROR("error","Error", Category.TEXT);
 
     private final String id;
