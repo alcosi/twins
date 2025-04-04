@@ -22,7 +22,7 @@ import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSe
 
 
 import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecification.*;
-import static org.twins.core.service.SystemEntityService.TWIN_CLASS_FIELDS_SYSTEM_SET;
+import static org.twins.core.service.SystemEntityService.getSystemFieldsIds;
 
 
 @Slf4j
@@ -65,9 +65,9 @@ public class TwinClassFieldSearchService {
 
     private void excludeSystemFields(TwinClassFieldSearch search) {
         if (search.getIdExcludeList() == null) {
-            search.setIdExcludeList(new HashSet<>(TWIN_CLASS_FIELDS_SYSTEM_SET));
+            search.setIdExcludeList(new HashSet<>(getSystemFieldsIds()));
         } else {
-            search.getIdExcludeList().addAll(TWIN_CLASS_FIELDS_SYSTEM_SET);
+            search.getIdExcludeList().addAll(getSystemFieldsIds());
         }
     }
 
