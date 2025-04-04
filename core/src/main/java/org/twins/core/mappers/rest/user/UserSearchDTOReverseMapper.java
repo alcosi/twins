@@ -1,10 +1,15 @@
 package org.twins.core.mappers.rest.user;
 
 import org.springframework.stereotype.Component;
+import org.twins.core.domain.search.SpaceSearch;
 import org.twins.core.domain.search.UserSearch;
+import org.twins.core.dto.rest.user.SpaceSearchDTOv1;
 import org.twins.core.dto.rest.user.UserSearchDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class UserSearchDTOReverseMapper extends RestSimpleDTOMapper<UserSearchDTOv1, UserSearch> {
@@ -17,8 +22,19 @@ public class UserSearchDTOReverseMapper extends RestSimpleDTOMapper<UserSearchDT
                 .setUserNameLikeExcludeList(src.getUserNameLikeExcludeList())
                 .setStatusIdList(src.getStatusIdList())
                 .setStatusIdExcludeList(src.getStatusIdExcludeList())
-                .setSpaceList(src.getSpaceList())
-                .setSpaceExcludeList(src.getSpaceExcludeList())
+                .setSpaceList(mapSpaceList(src.getSpaceList()))
+                .setSpaceExcludeList(mapSpaceList(src.getSpaceExcludeList()))
                 .setChildTwins(src.getChildTwins());
+    }
+
+    private List<SpaceSearch> mapSpaceList(List<SpaceSearchDTOv1> spaceDTOs) {
+        if (spaceDTOs == null) {
+            return null;
+        }
+        return spaceDTOs.stream()
+                .map(dto -> new SpaceSearch()
+                        .setSpaceId(dto.getSpaceId())
+                        .setRoleId(dto.getRoleId()))
+                .collect(Collectors.toList());
     }
 }
