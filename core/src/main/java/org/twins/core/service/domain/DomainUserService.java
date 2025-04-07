@@ -50,4 +50,13 @@ public class DomainUserService extends EntitySecureFindServiceImpl<DomainUserEnt
     public boolean validateEntity(DomainUserEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
     }
+
+    public DomainUserEntity findByUserId(UUID userId) {
+        DomainUserEntity entity = repository.findByUserId(userId);
+        if (entity == null)
+            return null;
+        if (isEntityReadDenied(entity))
+            return null;
+        return entity;
+    }
 }
