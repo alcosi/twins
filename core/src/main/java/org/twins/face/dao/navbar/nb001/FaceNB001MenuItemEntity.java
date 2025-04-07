@@ -2,9 +2,12 @@ package org.twins.face.dao.navbar.nb001;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
@@ -73,6 +76,11 @@ public class FaceNB001MenuItemEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "permission_id", insertable = false, updatable = false)
     private PermissionEntity permission;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    Kit<FaceNB001MenuItemEntity, UUID> childs;
 
     @Override
     public String easyLog(Level level) {

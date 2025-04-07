@@ -1,8 +1,8 @@
 package org.twins.face.mappers.rest.navbar.nb001;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.EasyLoggable;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
@@ -11,20 +11,20 @@ import org.twins.core.mappers.rest.permission.PermissionRestDTOMapperV2;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.resource.ResourceService;
 import org.twins.face.dao.navbar.nb001.FaceNB001MenuItemEntity;
-import org.twins.face.dao.navbar.nb001.FaceNB001MenuItemRepository;
 import org.twins.face.dto.rest.navbar.nb001.FaceNB001MenuItemDTOv1;
+import org.twins.face.service.navbar.FaceNB001MenuItemService;
 
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.Collection;
 
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = {FaceNB001Modes.FaceNB001MenuItemCollectionMode.class})
 public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB001MenuItemEntity, FaceNB001MenuItemDTOv1> {
     private final ResourceService resourceService;
     private final I18nService i18nService;
-    private final FaceNB001MenuItemRepository faceNB001MenuItemRepository;
+    private final FaceNB001MenuItemService faceNB001MenuItemService;
+    private final FaceNB001MenuItemRestDTOMapper faceNB001MenuItemRestDTOMapper;
 
     @MapperModePointerBinding(modes = FaceNB001Modes.FaceNB001MenuItem2FaceMode.class)
     protected final FaceRestDTOMapper faceRestDTOMapper;
@@ -43,8 +43,12 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
                 .setIcon(resourceService.getResourceUri(src.getIconResource()))
                 .setTargetPageFaceId(src.getTargetPageFaceId())
                 .setPermissionId(src.getPermissionId())
-                .setParentFaceMenuItemId(src.getParentFaceMenuItemId())
-                .setChilds(mapChildren(src.getId(), mapperContext));
+                .setParentFaceMenuItemId(src.getParentFaceMenuItemId());
+
+        if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItemCollectionMode.HIDE)) {
+            faceNB001MenuItemService.loadChilds(src);
+            dst.setChilds(faceNB001MenuItemRestDTOMapper.convertCollection(src.getChilds()));
+        }
 
         if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItem2FaceMode.HIDE)) {
             faceRestDTOMapper.postpone(src.getTargetPageFace(), mapperContext.forkOnPoint(FaceNB001Modes.FaceNB001MenuItem2FaceMode.SHORT));
@@ -55,18 +59,12 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
         }
     }
 
-    public List<FaceNB001MenuItemDTOv1> mapChildren(UUID parentMenuItemId, MapperContext mapperContext) {
-        return faceNB001MenuItemRepository.findByParentFaceMenuItemId(parentMenuItemId)
-                .stream()
-                .map(childEntity -> {
-                    FaceNB001MenuItemDTOv1 dto = new FaceNB001MenuItemDTOv1();
-                    try {
-                        this.map(childEntity, dto, mapperContext);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Failed to map child menu item: " + childEntity.easyLog(EasyLoggable.Level.NORMAL), e);
-                    }
-                    return dto;
-                })
-                .collect(Collectors.toList());
+    @Override
+    public void beforeCollectionConversion(Collection<FaceNB001MenuItemEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItemCollectionMode.HIDE)) {
+            faceNB001MenuItemService.loadChilds(srcCollection);
+        }
     }
+
 }
