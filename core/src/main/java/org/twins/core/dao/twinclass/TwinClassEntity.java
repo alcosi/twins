@@ -132,6 +132,9 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "head_hunter_featurer_id")
     private Integer headHunterFeaturerId;
 
+    @Column(name = "assignee_required")
+    private Boolean assigneeRequired;
+
     @FeaturerList(type = HeadHunter.class)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "head_hunter_featurer_id", insertable = false, updatable = false)
