@@ -15,7 +15,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Entity
-@Table(name = "face_navbar_nb001_menu_item")
+@Table(name = "face_navbar_nb001_menu_items")
 public class FaceNB001MenuItemEntity {
     @Id
     @Column(name = "id")
