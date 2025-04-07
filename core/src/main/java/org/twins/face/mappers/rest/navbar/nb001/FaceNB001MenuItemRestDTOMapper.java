@@ -1,6 +1,7 @@
 package org.twins.face.mappers.rest.navbar.nb001;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
@@ -24,7 +25,6 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
     private final ResourceService resourceService;
     private final I18nService i18nService;
     private final FaceNB001MenuItemService faceNB001MenuItemService;
-    private final FaceNB001MenuItemRestDTOMapper faceNB001MenuItemRestDTOMapper;
 
     @MapperModePointerBinding(modes = FaceNB001Modes.FaceNB001MenuItem2FaceMode.class)
     protected final FaceRestDTOMapper faceRestDTOMapper;
@@ -47,7 +47,7 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
 
         if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItemCollectionMode.HIDE)) {
             faceNB001MenuItemService.loadChilds(src);
-            dst.setChilds(faceNB001MenuItemRestDTOMapper.convertCollection(src.getChilds()));
+            dst.setChilds(convertCollection(src.getChilds()));
         }
 
         if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItem2FaceMode.HIDE)) {
