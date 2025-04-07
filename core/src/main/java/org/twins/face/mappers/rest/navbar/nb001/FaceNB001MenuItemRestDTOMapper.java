@@ -23,7 +23,7 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
     @MapperModePointerBinding(modes = FaceNB001Modes.FaceNB001MenuItem2FaceMode.class)
     protected final FaceRestDTOMapper faceRestDTOMapper;
 
-    @MapperModePointerBinding(modes = PermissionMode.FaceNB001MenuItem2PermissionMode.class)
+    @MapperModePointerBinding(modes = FaceNB001Modes.FaceNB001MenuItem2PermissionMode.class)
     private final PermissionRestDTOMapperV2 permissionRestDTOMapper;
 
     @Override
@@ -41,8 +41,8 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
             faceRestDTOMapper.postpone(src.getTargetPageFace(), mapperContext.forkOnPoint(FaceNB001Modes.FaceNB001MenuItem2FaceMode.SHORT));
         }
 
-        if (mapperContext.hasModeButNot(PermissionMode.FaceNB001MenuItem2PermissionMode.HIDE)) {
-            permissionRestDTOMapper.postpone(src.getPermission(), mapperContext.forkOnPoint(PermissionMode.FaceNB001MenuItem2PermissionMode.SHORT));
+        if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItem2PermissionMode.HIDE)) {
+            permissionRestDTOMapper.postpone(src.getPermission(), mapperContext.forkOnPoint(FaceNB001Modes.FaceNB001MenuItem2PermissionMode.SHORT));
         }
     }
 }
