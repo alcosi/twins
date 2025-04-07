@@ -18,11 +18,10 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dto.rest.domain.DomainSearchRqDTOv1;
-import org.twins.core.dto.rest.domain.DomainSearchRsDTOv1;
+import org.twins.core.dto.rest.domain.DomainPublicSearchRqDTOv1;
+import org.twins.core.dto.rest.domain.DomainPublicSearchRsDTOv1;
 import org.twins.core.mappers.rest.domain.DomainSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.domain.DomainViewPublicRestDTOMapper;
-import org.twins.core.mappers.rest.domain.DomainViewRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.domain.DomainSearchService;
@@ -33,26 +32,26 @@ import org.twins.core.service.domain.DomainSearchService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainSearchPublicController extends ApiController {
-    private final DomainSearchService domainSearchService;
+    private final DomainSearchService domainPublicSearchService;
     private final DomainSearchDTOReverseMapper domainSearchDTOReverseMapper;
-    private final DomainViewRestDTOMapper domainViewRestDTOMapper;
+    private final DomainViewPublicRestDTOMapper domainViewRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @Operation(operationId = "domainSearchPublicV1", summary = "Search public domain data by key")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Public domain details prepared", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = DomainSearchRsDTOv1.class))}),
+                    @Schema(implementation = DomainPublicSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/public/domain/search/v1")
     public ResponseEntity<?> domainSearchPublicV1(
-            @MapperContextBinding(roots = DomainViewPublicRestDTOMapper.class, response = DomainSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DomainViewPublicRestDTOMapper.class, response = DomainPublicSearchRsDTOv1.class) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
-            @RequestBody DomainSearchRqDTOv1 request) {
-        DomainSearchRsDTOv1 rs = new DomainSearchRsDTOv1();
+            @RequestBody DomainPublicSearchRqDTOv1 request) {
+        DomainPublicSearchRsDTOv1 rs = new DomainPublicSearchRsDTOv1();
         try {
-            PaginationResult<DomainEntity> domainList = domainSearchService
-                    .findDomainsByKey(domainSearchDTOReverseMapper.convert(request), pagination);
+            PaginationResult<DomainEntity> domainList = domainPublicSearchService
+                    .findDomains(domainSearchDTOReverseMapper.convert(request.getDomainPublicSearch()), pagination);
 
             rs
                     .setDomains(domainViewRestDTOMapper.convertCollection(domainList.getList(), mapperContext))

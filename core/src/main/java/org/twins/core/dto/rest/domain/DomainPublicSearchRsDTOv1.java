@@ -13,10 +13,10 @@ import java.util.List;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "DomainSearchRsV1")
-public class DomainSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+public class DomainPublicSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 
     @Schema(description = "domains")
-    private List<DomainViewDTOv1> domains;
+    private List<DomainViewPublicDTOv1> domains;
 }

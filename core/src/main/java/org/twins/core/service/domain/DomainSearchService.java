@@ -21,7 +21,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLi
 public class DomainSearchService {
     private final DomainRepository domainRepository;
 
-    public PaginationResult<DomainEntity> findDomainsByKey(DomainSearch search, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<DomainEntity> findDomains(DomainSearch search, SimplePagination pagination) throws ServiceException {
         Specification<DomainEntity> spec = createDomainSearchSpecification(search);
         Page<DomainEntity> ret = domainRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
