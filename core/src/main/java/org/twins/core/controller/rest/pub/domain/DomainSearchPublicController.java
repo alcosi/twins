@@ -12,7 +12,10 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -32,7 +35,7 @@ import org.twins.core.service.domain.DomainSearchService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainSearchPublicController extends ApiController {
-    private final DomainSearchService domainPublicSearchService;
+    private final DomainSearchService domainSearchService;
     private final DomainSearchDTOReverseMapper domainSearchDTOReverseMapper;
     private final DomainViewPublicRestDTOMapper domainViewRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -50,8 +53,8 @@ public class DomainSearchPublicController extends ApiController {
             @RequestBody DomainPublicSearchRqDTOv1 request) {
         DomainPublicSearchRsDTOv1 rs = new DomainPublicSearchRsDTOv1();
         try {
-            PaginationResult<DomainEntity> domainList = domainPublicSearchService
-                    .findDomains(domainSearchDTOReverseMapper.convert(request.getDomainPublicSearch()), pagination);
+            PaginationResult<DomainEntity> domainList = domainSearchService
+                    .findDomains(domainSearchDTOReverseMapper.convert(request.getSearch()), pagination);
 
             rs
                     .setDomains(domainViewRestDTOMapper.convertCollection(domainList.getList(), mapperContext))

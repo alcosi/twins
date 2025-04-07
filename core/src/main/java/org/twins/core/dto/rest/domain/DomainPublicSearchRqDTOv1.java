@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.Request;
 @Schema(name = "DomainSearchRqV1")
 public class DomainPublicSearchRqDTOv1  extends Request {
     @Schema(description = "domain public search")
-    public DomainPublicSearchDTOv1 domainPublicSearch;
+    public DomainPublicSearchDTOv1 search;
 }
