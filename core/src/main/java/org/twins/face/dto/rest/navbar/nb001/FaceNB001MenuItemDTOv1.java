@@ -31,4 +31,7 @@ public class FaceNB001MenuItemDTOv1 {
 
     @Schema(description = "domain navigation bar pointer")
     public UUID targetPageFaceId;
+
+    @Schema(description = "permission id")
+    public UUID permissionId;
 }
