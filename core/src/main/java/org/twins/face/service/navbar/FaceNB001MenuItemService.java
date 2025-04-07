@@ -82,7 +82,7 @@ public class FaceNB001MenuItemService extends EntitySecureFindServiceImpl<FaceNB
     public void loadChilds(Collection<FaceNB001MenuItemEntity> srcList) {
         if (CollectionUtils.isEmpty(srcList))
             return;
-        Kit<FaceNB001MenuItemEntity, UUID> needLoad = new Kit<>(FaceNB001MenuItemEntity::getFaceId);
+        Kit<FaceNB001MenuItemEntity, UUID> needLoad = new Kit<>(FaceNB001MenuItemEntity::getId);
         for (var faceNB001MenuItemEntity : srcList)
             if (faceNB001MenuItemEntity.getChilds() == null) {
                 faceNB001MenuItemEntity.setChilds(new Kit<>(FaceNB001MenuItemEntity::getId));
@@ -91,7 +91,7 @@ public class FaceNB001MenuItemService extends EntitySecureFindServiceImpl<FaceNB
         if (needLoad.isEmpty())
             return;
         KitGrouped<FaceNB001MenuItemEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                repository.findByFaceIdIn(needLoad.getIdSet()), FaceNB001MenuItemEntity::getId, FaceNB001MenuItemEntity::getFaceId);
+                repository.findByParentFaceMenuItemIdIn(needLoad.getIdSet()), FaceNB001MenuItemEntity::getId, FaceNB001MenuItemEntity::getParentFaceMenuItemId);
         for (var entry : loadedKit.getGroupedMap().entrySet()) {
             needLoad.get(entry.getKey()).getChilds().addAll(entry.getValue());
         }

@@ -34,6 +34,8 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
 
     @Override
     public void map(FaceNB001MenuItemEntity src, FaceNB001MenuItemDTOv1 dst, MapperContext mapperContext) throws Exception {
+        faceNB001MenuItemService.loadChilds(src);
+
         dst
                 .setId(src.getId())
                 .setKey(src.getKey())
@@ -43,12 +45,9 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
                 .setIcon(resourceService.getResourceUri(src.getIconResource()))
                 .setTargetPageFaceId(src.getTargetPageFaceId())
                 .setPermissionId(src.getPermissionId())
-                .setParentFaceMenuItemId(src.getParentFaceMenuItemId());
+                .setParentFaceMenuItemId(src.getParentFaceMenuItemId())
+                .setChilds(convertCollection(src.getChilds())); //be afraid of endless looping!
 
-        if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItemCollectionMode.HIDE)) {
-            faceNB001MenuItemService.loadChilds(src);
-            dst.setChilds(convertCollection(src.getChilds()));
-        }
 
         if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItem2FaceMode.HIDE)) {
             faceRestDTOMapper.postpone(src.getTargetPageFace(), mapperContext.forkOnPoint(FaceNB001Modes.FaceNB001MenuItem2FaceMode.SHORT));
