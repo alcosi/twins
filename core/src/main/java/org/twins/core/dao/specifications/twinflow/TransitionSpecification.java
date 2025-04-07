@@ -9,9 +9,13 @@ import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twinflow.TwinflowTransitionAliasEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
+import org.twins.core.dao.twinflow.TwinflowTransitionType;
+import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.user.UserStatus;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Set;
 
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
@@ -28,6 +32,18 @@ public class TransitionSpecification extends CommonSpecification<TwinflowTransit
                     predicates.add(predicate);
                 }
             return getPredicate(cb, predicates, or);
+        };
+    }
+
+    public static Specification<TwinflowTransitionEntity> checkTransitionTypeLikeIn(Set<TwinflowTransitionType> types, boolean exclude) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(types)) {
+                return cb.conjunction();
+            }
+
+            return exclude
+                    ? cb.not(root.get(TwinflowTransitionEntity.Fields.twinflowTransitionTypeId).in(types))
+                    : root.get(TwinflowTransitionEntity.Fields.twinflowTransitionTypeId).in(types);
         };
     }
 }

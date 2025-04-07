@@ -13,7 +13,6 @@ import java.util.Map;
 
 
 @Component
-@RequiredArgsConstructor
 public class AttachmentSaveRestDTOReverseMapper extends RestSimpleDTOMapper<AttachmentSaveDTOv1, TwinAttachmentEntity> {
 
     @Override

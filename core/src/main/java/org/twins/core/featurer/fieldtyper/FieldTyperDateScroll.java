@@ -7,6 +7,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -22,6 +23,9 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorDate;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Properties;
 
 @Component
@@ -32,6 +36,14 @@ import java.util.Properties;
 public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, FieldValueDate, TwinFieldSearchDate> {
     @FeaturerParam(name = "Pattern", description = "pattern for date value")
     public static final FeaturerParamString pattern = new FeaturerParamString("pattern");
+
+    @FeaturerParam(name = "DaysPast", description = "number of days in the past", optional = true, defaultValue = "-1")
+    public static final FeaturerParamInt daysPast = new FeaturerParamInt("daysPast");
+
+    @FeaturerParam(name = "DaysFuture", description = "number of days in the futures", optional = true, defaultValue = "-1")
+    public static final FeaturerParamInt daysFuture = new FeaturerParamInt("daysFuture");
+
+    private static final String DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 
     @Override
     public FieldDescriptorDate getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -47,13 +59,12 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
         boolean clearedValue = !twinFieldEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(value.getDate());
         if (!GenericValidator.isDate(value.getDate(), datePatter, false) && !clearedValue)
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " date[" + value.getDate() + "] does not match pattern[" + datePatter + "]");
+        validateValue(value.getDate(), properties);
         detectValueChange(twinFieldEntity, twinChangesCollector, value.getDate());
-
     }
 
     @Override
     protected FieldValueDate deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
-
         return new FieldValueDate(twinField.getTwinClassField())
                 .setDate(twinFieldEntity != null && !StringUtils.isEmpty(twinFieldEntity.getValue()) ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : null);
     }
@@ -71,4 +82,35 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
         return Specification.where(TwinSpecification.checkFieldDate(search));
     }
 
+    public void validateValue(String value, Properties params) throws ServiceException {
+        LocalDateTime dateValue = parseDateTime(value);
+        LocalDateTime now = LocalDateTime.now();
+
+        Integer minDays = FieldTyperDateScroll.daysPast.extract(params);
+        if (minDays != null && minDays >= 0) {
+            LocalDateTime minDate = now.minusDays(minDays);
+            if (dateValue.isBefore(minDate)) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
+                        "Date value [" + dateValue + "] is more than " + minDays + " days in the past");
+            }
+        }
+
+        Integer maxDays = FieldTyperDateScroll.daysFuture.extract(params);
+        if (maxDays != null && maxDays >= 0) {
+            LocalDateTime maxDate = now.plusDays(maxDays);
+            if (dateValue.isAfter(maxDate)) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
+                        "Date value [" + dateValue + "] is more than " + maxDays + " days in the future");
+            }
+        }
+    }
+
+    private LocalDateTime parseDateTime(String value) throws ServiceException {
+        try {
+            return LocalDateTime.parse(value, DateTimeFormatter.ofPattern(DATETIME_PATTERN));
+        } catch (DateTimeParseException e) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
+                    "Value [" + value + "] is not a valid datetime in format " + DATETIME_PATTERN);
+        }
+    }
 }

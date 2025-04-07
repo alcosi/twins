@@ -28,7 +28,7 @@ public class TwinClassUpdate {
     private String logo;
     private Integer headHunterFeaturerId;
     private HashMap<String, String> headHunterParams;
-
+    private Boolean assigneeRequired;
     private TwinClassEntity dbTwinClassEntity;
     private EntityRelinkOperation markerDataListUpdate;
     private EntityRelinkOperation tagDataListUpdate;

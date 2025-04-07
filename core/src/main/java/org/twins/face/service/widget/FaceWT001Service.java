@@ -8,10 +8,9 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.domain.ApiUser;
-import org.twins.core.service.auth.AuthService;
-import org.twins.face.dao.widget.FaceWT001Entity;
-import org.twins.face.dao.widget.FaceWT001Repository;
+import org.twins.core.service.face.FaceService;
+import org.twins.face.dao.widget.wt001.FaceWT001Entity;
+import org.twins.face.dao.widget.wt001.FaceWT001Repository;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -22,9 +21,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class FaceWT001Service extends EntitySecureFindServiceImpl<FaceWT001Entity> {
     private final FaceWT001Repository faceWT001Repository;
-    @Lazy
-    private final AuthService authService;
-
+    private final FaceService faceService;
 
     @Override
     public CrudRepository<FaceWT001Entity, UUID> entityRepository() {
@@ -38,12 +35,7 @@ public class FaceWT001Service extends EntitySecureFindServiceImpl<FaceWT001Entit
 
     @Override
     public boolean isEntityReadDenied(FaceWT001Entity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (!entity.getFace().getDomainId().equals(authService.getApiUser().getDomainId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allows in domain[" + apiUser.getDomainId() + "]");
-            return true;
-        }
-        return false;
+        return faceService.isEntityReadDenied(entity.getFace());
     }
 
     @Override

@@ -23,18 +23,6 @@ public class AttachmentDTOv1 {
     @Schema(description = "twin id", example = DTOExamples.TWIN_ID)
     public UUID twinId;
 
-    @Schema(description = "twinflow transition id")
-    public UUID twinflowTransitionId;
-
-    @Schema(description = "author id", example = DTOExamples.USER_ID)
-    public UUID authorUserId;
-
-    @Schema(description = "comment id", example = DTOExamples.TWIN_COMMENT_ID)
-    public UUID commentId;
-
-    @Schema(description = "twin class field id", example = DTOExamples.TWIN_CLASS_FIELD_ID)
-    public UUID twinClassFieldId;
-
     @Schema(description = "External storage link", example = DTOExamples.ATTACHMENT_STORAGE_LINK)
     public String storageLink;
 
@@ -50,8 +38,23 @@ public class AttachmentDTOv1 {
     @Schema(description = "Description", example = DTOExamples.ATTACHMENT_TITLE)
     public String description;
 
-    @Schema(description = "File size in bytes")
+    @Schema(description = "File size in bytes", example = DTOExamples.INTEGER)
     public Long size;
+
+    @Schema(description = "view permission id")
+    public UUID viewPermissionId;
+
+    @Schema(description = "author id", example = DTOExamples.USER_ID)
+    public UUID authorUserId;
+
+    @Schema(description = "comment id", example = DTOExamples.TWIN_COMMENT_ID)
+    public UUID commentId;
+
+    @Schema(description = "twin class field id", example = DTOExamples.TWIN_CLASS_FIELD_ID)
+    public UUID twinClassFieldId;
+
+    @Schema(description = "twinflow transition id", example = DTOExamples.TWINFLOW_TRANSITION_ID)
+    public UUID twinflowTransitionId;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)

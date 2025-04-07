@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.UUID;
 
@@ -44,6 +45,10 @@ public class TwinFactoryMultiplierFilterEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
     private TwinFactoryConditionSetEntity conditionSet;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "input_twin_class_id", insertable = false, updatable = false)
+    private TwinClassEntity inputTwinClass;
 
     public String easyLog(Level level) {
         return switch (level) {

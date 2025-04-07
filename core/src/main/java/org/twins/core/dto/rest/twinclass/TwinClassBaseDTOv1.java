@@ -91,4 +91,7 @@ public class TwinClassBaseDTOv1 {
 
     @Schema(description = "twin display page pointer")
     public UUID pageFaceId;
+
+    @Schema(description = "assignee required")
+    public Boolean assigneeRequired;
 }

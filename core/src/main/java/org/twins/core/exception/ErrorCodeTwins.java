@@ -79,6 +79,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_LINK_INCORRECT(10901, "twins can not be linkend"),
     TWIN_FIELD_VALUE_INCORRECT(10902, "twins field value can not be converted"),
     TWIN_BASIC_FIELD_UNKNOWN(10903, "unknown twin basic field"),
+    TWIN_ASSIGNEE_REQUIRED(10904,"twin assignee is required for this twin class"),
     FACTORY_INCORRECT(11001, "twin factory config is incorrect"),
     FACTORY_PIPELINE_STEP_ERROR(11002, "twin factory pipeline step error"),
     FACTORY_MULTIPLIER_ERROR(11003, "twin factory multiplier error"),
@@ -123,7 +124,9 @@ public enum ErrorCodeTwins implements ErrorCode {
     LINK_UPDATE_RESTRICTED(12402, "link can not be updated"),
     TIER_SIZE_QUOTA_REACHED(12501, "common attachments size exceeds tier quota"),
     TIER_COUNT_QUOTA_REACHED(12502, "common attachments count exceeds tier quota"),
-    ATTACHMENTS_NOT_VALID(12503, "attachment not valid");
+    ATTACHMENTS_NOT_VALID(12503, "attachment not valid"),
+    POINTER_NON_SINGLE(12601, "twin pointer is not single"),
+    POINTER_ON_NULL(12602, "twin pointer is null");
 
 
     private final int code;

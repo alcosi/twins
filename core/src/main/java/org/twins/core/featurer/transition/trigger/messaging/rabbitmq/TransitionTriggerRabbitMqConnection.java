@@ -47,6 +47,6 @@ public abstract class TransitionTriggerRabbitMqConnection extends TransitionTrig
         });
     }
 
-    public abstract void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus);
+    public abstract void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException;
 
 }
