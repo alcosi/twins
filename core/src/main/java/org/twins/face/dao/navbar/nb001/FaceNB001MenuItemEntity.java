@@ -15,7 +15,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Entity
-@Table(name = "face_navbar_nb001_menu_items")
+@Table(name = "face_navbar_nb001_menu_item")
 public class FaceNB001MenuItemEntity {
     @Id
     @Column(name = "id")
@@ -67,7 +67,7 @@ public class FaceNB001MenuItemEntity {
     private FaceEntity targetPageFace;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "permission_id", nullable = false, insertable = false, updatable = false)
+    @JoinColumn(name = "permission_id", insertable = false, updatable = false)
     private PermissionEntity permission;
 
     public enum Status {
