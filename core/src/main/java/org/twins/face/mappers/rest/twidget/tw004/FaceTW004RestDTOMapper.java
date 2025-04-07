@@ -30,7 +30,8 @@ public class FaceTW004RestDTOMapper extends RestSimpleDTOMapper<TwidgetConfig<Fa
                     .setKey(src.getConfig().getKey());
             case DETAILED -> dst
                     .setKey(src.getConfig().getKey())
-                    .setLabel(i18nService.translateToLocale(src.getConfig().getLabelI18nId()))
+                    .setLabel(i18nService.translateToLocale(src.getConfig().getLabelI18nId() != null ?
+                            src.getConfig().getLabelI18nId() : src.getConfig().getTwinClassField().getNameI18nId()))
                     .setTwinClassFieldId(src.getConfig().getTwinClassFieldId());
         }
         if (mapperContext.hasModeButNot(FaceTW004Modes.FaceTW0042TwinClassFieldMode.HIDE)) {
