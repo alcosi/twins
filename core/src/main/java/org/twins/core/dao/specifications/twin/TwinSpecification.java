@@ -99,7 +99,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         };
     }
 
-    public static Specification<TwinEntity> checkFieldDate(final TwinFieldSearchDate search) {
+    public static Specification<TwinEntity> checkFieldDate(final TwinFieldSearchDate search, final String... fieldPath) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
@@ -146,20 +146,44 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         };
     }
 
-
-    public static Specification<TwinEntity> checkFieldText(final TwinFieldSearchText search) {
+    public static Specification<TwinEntity> checkFieldUuidIn(final TwinFieldSearchBaseUuid search, final String... fieldPath) {
         return (root, query, cb) -> {
-            Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
-            twinFieldSimpleJoin.on(cb.equal(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
+            Path<UUID> fieldExpression = getFieldPath(root, JoinType.INNER, fieldPath);
+
+            Predicate include;
+            if (CollectionUtils.isNotEmpty(search.getIdList())) include = fieldExpression.in(search.getIdList());
+            else include = cb.conjunction();
+
+            Predicate exclude;
+            if (CollectionUtils.isNotEmpty(search.getIdExcludeList())) exclude = cb.not(fieldExpression.in(search.getIdExcludeList()));
+            else exclude = cb.conjunction();
+
+            return cb.and(include, exclude);
+        };
+    }
+
+    public static Specification<TwinEntity> checkFieldText(final TwinFieldSearchText search, final String... fieldPath) {
+        return (root, query, cb) -> {
+
+            Path<String> fieldExpression;
+            if (fieldPath.length > 0 && TwinEntity.Fields.fieldsSimple.equals(fieldPath[0])) {
+                Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(fieldPath[0], JoinType.INNER);
+                twinFieldSimpleJoin.on(cb.equal(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
+                fieldExpression = twinFieldSimpleJoin.get(fieldPath[1]);
+            } else if(fieldPath.length > 0) {
+                fieldExpression = getFieldPath(root, JoinType.INNER, fieldPath);
+            } else {
+                return cb.conjunction();
+            }
 
             List<Predicate> predicatesAny = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search.getValueLikeAnyOfList()))
                 for (String value : search.getValueLikeAnyOfList())
-                    predicatesAny.add(cb.like(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value), value));
+                    predicatesAny.add(cb.like(fieldExpression, value));
             List<Predicate> predicatesAll = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search.getValueLikeAllOfList()))
                 for (String value : search.getValueLikeAllOfList())
-                    predicatesAll.add(cb.like(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value), value));
+                    predicatesAll.add(cb.like(fieldExpression, value));
 
             Predicate include;
             if (!predicatesAny.isEmpty() && !predicatesAll.isEmpty())
@@ -175,11 +199,11 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
             List<Predicate> excludePredicatesAny = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search.getValueLikeNoAnyOfList()))
                 for (String value : search.getValueLikeNoAnyOfList())
-                    excludePredicatesAny.add(cb.notLike(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value), value));
+                    excludePredicatesAny.add(cb.notLike(fieldExpression, value));
             List<Predicate> excludePredicatesAll = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search.getValueLikeNoAllOfList()))
                 for (String value : search.getValueLikeNoAllOfList())
-                    excludePredicatesAll.add(cb.notLike(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value), value));
+                    excludePredicatesAll.add(cb.notLike(fieldExpression, value));
 
             Predicate exclude;
             if (!excludePredicatesAny.isEmpty() && !excludePredicatesAll.isEmpty())

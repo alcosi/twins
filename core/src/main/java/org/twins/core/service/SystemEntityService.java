@@ -19,6 +19,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
+import org.twins.core.featurer.FeaturerTwins;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -85,15 +86,15 @@ public class SystemEntityService {
                         "GLOBAL_ANCESTOR",
                         List.of(new SystemStatus(TWIN_STATUS_GLOBAL_ANCESTOR, TWIN_CLASS_GLOBAL_ANCESTOR)),
                         List.of(
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_NAME, TWIN_CLASS_GLOBAL_ANCESTOR, 1321, "base_name"),
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_DESCRIPTION, TWIN_CLASS_GLOBAL_ANCESTOR, 1321, "base_description"),
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID, TWIN_CLASS_GLOBAL_ANCESTOR, 1321, "base_external_id"),
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_OWNER_USER, TWIN_CLASS_GLOBAL_ANCESTOR, 1321, "base_owner_user"),
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER, TWIN_CLASS_GLOBAL_ANCESTOR, 1321, "base_assignee_user"),
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_CREATOR_USER, TWIN_CLASS_GLOBAL_ANCESTOR, 1321, "base_creator_user"),
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_HEAD, TWIN_CLASS_GLOBAL_ANCESTOR, 1321, "base_head"),
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_STATUS, TWIN_CLASS_GLOBAL_ANCESTOR, 1321, "base_status"),
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_CREATED_AT, TWIN_CLASS_GLOBAL_ANCESTOR, 1321, "base_created_at")
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_NAME, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1321, "base_name"),
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_DESCRIPTION, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1321, "base_description"),
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1321, "base_external_id"),
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_OWNER_USER, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1321, "base_owner_user"),
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1322, "base_assignee_user"),
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_CREATOR_USER, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1322, "base_creator_user"),
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_HEAD, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1323, "base_head"),
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_STATUS, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1324, "base_status"),
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_CREATED_AT, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1325, "base_created_at")
                         )
                 )
         ));

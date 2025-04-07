@@ -206,8 +206,8 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return historyEntity.getSnapshotMessage(); //todo
     }
 
-    public HistoryItem<HistoryContextUserChange> assigneeChanged(UserEntity fromUser, UserEntity toUser) {
-        return new HistoryItem<>(HistoryType.assigneeChanged, new HistoryContextUserChange()
+    public HistoryItem<HistoryContextUserChange> userChanged(UserEntity fromUser, UserEntity toUser, HistoryType type) {
+        return new HistoryItem<>(type, new HistoryContextUserChange()
                 .shotFromUser(fromUser)
                 .shotToUser(toUser));
     }

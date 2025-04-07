@@ -24,7 +24,6 @@ import org.twins.core.service.link.TwinLinkService;
 
 import java.sql.Timestamp;
 import java.util.Collection;
-import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
@@ -109,10 +108,6 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
 //    @JoinColumn(name = "owner_business_account_id", insertable = false, updatable = false)
 //    private BusinessAccountEntity ownerBusinessAccount;
 
-//    @ManyToOne
-//    @JoinColumn(name = "owner_user_id", insertable = false, updatable = false)
-//    private UserEntity ownerUser;
-
     @ManyToOne
     @JoinColumn(name = "twin_status_id", insertable = false, updatable = false, nullable = false)
     @EqualsAndHashCode.Exclude
@@ -126,6 +121,12 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
     @JoinColumn(name = "assigner_user_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     private UserEntity assignerUser;
+
+    @ManyToOne
+    @JoinColumn(name = "owner_user_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private UserEntity ownerUser;
+
 
     //needed for specification
 //    @Deprecated
