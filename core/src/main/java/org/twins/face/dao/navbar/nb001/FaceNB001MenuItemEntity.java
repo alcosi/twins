@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "face_navbar_nb001_menu_item")
-public class FaceNB001MenuItemEntity {
+public class FaceNB001MenuItemEntity implements EasyLoggable {
     @Id
     @Column(name = "id")
     private UUID id;
@@ -46,6 +47,9 @@ public class FaceNB001MenuItemEntity {
     @Column(name = "target_page_face_id")
     private UUID targetPageFaceId;
 
+    @Column(name = "parent_face_navbar_nb001_menu_item_id")
+    private UUID parentFaceMenuItemId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     private FaceEntity face;
@@ -69,6 +73,11 @@ public class FaceNB001MenuItemEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "permission_id", insertable = false, updatable = false)
     private PermissionEntity permission;
+
+    @Override
+    public String easyLog(Level level) {
+        return "faceNB001MenuItem[id:" + id + "]";
+    }
 
     public enum Status {
         ACTIVE,

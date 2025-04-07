@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -34,4 +35,10 @@ public class FaceNB001MenuItemDTOv1 {
 
     @Schema(description = "permission id")
     public UUID permissionId;
+
+    @Schema(description = "parent face menu item id")
+    public UUID parentFaceMenuItemId;
+
+    @Schema(description = "childs")
+    public List<FaceNB001MenuItemDTOv1> childs;
 }
