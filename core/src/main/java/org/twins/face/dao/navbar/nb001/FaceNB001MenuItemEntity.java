@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 
 import java.util.UUID;
@@ -35,6 +36,9 @@ public class FaceNB001MenuItemEntity {
     @Column(name = "icon_resource_id")
     private UUID iconResourceId;
 
+    @Column(name = "permission_id")
+    private UUID permissionId;
+
     @Column(name = "face_navbar_nb001_status_id")
     @Enumerated(EnumType.STRING)
     private Status status;
@@ -61,6 +65,10 @@ public class FaceNB001MenuItemEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "target_page_face_id", nullable = false, insertable = false, updatable = false)
     private FaceEntity targetPageFace;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "permission_id", insertable = false, updatable = false)
+    private PermissionEntity permission;
 
     public enum Status {
         ACTIVE,
