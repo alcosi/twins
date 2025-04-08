@@ -5,8 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.springframework.util.ObjectUtils;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.user.UserEntity;
 
 import java.util.UUID;
 
@@ -14,22 +14,22 @@ import java.util.UUID;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FieldValueBaseHead extends FieldValue {
-    private TwinEntity head;
+public class FieldValueUserSingle extends FieldValue {
+    private UserEntity user;
 
-    public FieldValueBaseHead(TwinClassFieldEntity twinClassField) {
+    public FieldValueUserSingle(TwinClassFieldEntity twinClassField) {
         super(twinClassField);
     }
 
     @Override
     public boolean isFilled() {
-        return !ObjectUtils.isEmpty(head);
+        return !ObjectUtils.isEmpty(user);
     }
 
     @Override
     public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        FieldValueBaseHead clone = new FieldValueBaseHead(newTwinClassFieldEntity);
-        clone.setHead(this.getHead());
+        FieldValueUserSingle clone = new FieldValueUserSingle(newTwinClassFieldEntity);
+        clone.setUser(this.getUser());
         return clone;
     }
 
@@ -41,11 +41,11 @@ public class FieldValueBaseHead extends FieldValue {
         } catch (Exception e) {
             return false;
         }
-        return head.getId() != null && head.getId().equals(valueUUID);
+        return user.getId() != null && user.getId().equals(valueUUID);
     }
 
     @Override
     public void nullify() {
-        head = null;
+        user = null;
     }
 }

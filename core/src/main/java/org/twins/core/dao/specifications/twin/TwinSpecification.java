@@ -146,7 +146,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         };
     }
 
-    public static Specification<TwinEntity> checkFieldUuidIn(final TwinFieldSearchBaseUuid search, final String... fieldPath) {
+    public static Specification<TwinEntity> checkFieldUuidIn(final TwinFieldSearchId search, final String... fieldPath) {
         return (root, query, cb) -> {
             Path<UUID> fieldExpression = getFieldPath(root, JoinType.INNER, fieldPath);
 

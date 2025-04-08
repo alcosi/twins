@@ -14,10 +14,10 @@ import java.util.UUID;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FieldValueBaseStatus extends FieldValue {
+public class FieldValueStatusSingle extends FieldValue {
     private TwinStatusEntity status;
 
-    public FieldValueBaseStatus(TwinClassFieldEntity twinClassField) {
+    public FieldValueStatusSingle(TwinClassFieldEntity twinClassField) {
         super(twinClassField);
     }
 
@@ -28,7 +28,7 @@ public class FieldValueBaseStatus extends FieldValue {
 
     @Override
     public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        FieldValueBaseStatus clone = new FieldValueBaseStatus(newTwinClassFieldEntity);
+        FieldValueStatusSingle clone = new FieldValueStatusSingle(newTwinClassFieldEntity);
         clone.setStatus(this.getStatus());
         return clone;
     }

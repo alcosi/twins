@@ -15,9 +15,9 @@ import static org.twins.core.dto.rest.twin.TwinFieldSearchTextDTOv1.KEY;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(fluent = true)
 @Schema(name = KEY)
-public class TwinFieldSearchBaseUuidDTOv1 extends TwinFieldSearchDTOv1 {
+public class TwinFieldSearchIdDTOv1 extends TwinFieldSearchDTOv1 {
 
-    public static final String KEY = "TwinFieldSearchBaseUuidV1";
+    public static final String KEY = "TwinFieldSearchIdV1";
 
     @JsonProperty("type")
     public String type = KEY;

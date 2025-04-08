@@ -8,9 +8,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class TwinFieldSearchBaseUuid extends TwinFieldSearch {
-
+public class TwinFieldSearchId extends TwinFieldSearch {
     public Set<UUID> idList;
     public Set<UUID> idExcludeList;
-
 }
