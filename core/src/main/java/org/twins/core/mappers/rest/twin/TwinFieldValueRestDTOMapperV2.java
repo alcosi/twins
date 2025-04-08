@@ -81,7 +81,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
             }
             dst.setValue(userField.getUser().getId().toString());
         } else if (src instanceof FieldValueStatusSingle statusField) {
-            if (mapperContext.hasModeButNot(UserMode.TwinField2UserMode.HIDE)) {
+            if (mapperContext.hasModeButNot(StatusMode.TwinField2StatusMode.HIDE)) {
                 twinStatusRestDTOMapper.postpone(statusField.getStatus(), mapperContext.forkOnPoint(StatusMode.TwinField2StatusMode.HIDE));
             }
             dst.setValue(statusField.getStatus().getId().toString());

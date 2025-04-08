@@ -1,6 +1,5 @@
 package org.twins.core.featurer.fieldtyper;
 
-import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.data.jpa.domain.Specification;
@@ -15,13 +14,12 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.service.history.ChangesRecorder;
 
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.twins.core.service.SystemEntityService.TWIN_CLASS_FIELD_TWIN_DESCRIPTION;
-import static org.twins.core.service.SystemEntityService.TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID;
-import static org.twins.core.service.SystemEntityService.TWIN_CLASS_FIELD_TWIN_NAME;
+import static org.twins.core.service.SystemEntityService.*;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1321,
@@ -36,40 +34,27 @@ public class FieldTyperBaseTextField extends FieldTyper<FieldDescriptorText, Fie
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        ChangesRecorder<TwinEntity, TwinEntity> changesRecorder = new ChangesRecorder<>(
+                twin,
+                new TwinEntity(),
+                twin, //todo fix me for draft, it should be another recorder
+                twinChangesCollector.getHistoryCollector(twin));
+
         UUID fieldId = value.getTwinClassField().getId();
         String newValue = value.getValue();
 
         if (fieldId.equals(TWIN_CLASS_FIELD_TWIN_NAME)) {
-            if (twinChangesCollector.collectIfChanged(twin, TwinEntity.Fields.name, twin.getName(), newValue)) {
-                if (twinChangesCollector.isHistoryCollectorEnabled()) {
-                    twinChangesCollector.getHistoryCollector(twin).add(
-                            historyService.nameChanged(twin.getName(), newValue));
-                }
-                twin.setName(newValue);
-            }
+            changesRecorder.getUpdateEntity().setName(newValue);
+            twinService.updateTwinName(changesRecorder);
         } else if (fieldId.equals(TWIN_CLASS_FIELD_TWIN_DESCRIPTION)) {
-            if (twinChangesCollector.collectIfChanged(twin, TwinEntity.Fields.description, twin.getDescription(), newValue)) {
-                if (twinChangesCollector.isHistoryCollectorEnabled()) {
-                    twinChangesCollector.getHistoryCollector(twin).add(
-                            historyService.descriptionChanged(twin.getDescription(), newValue));
-                }
-                twin.setDescription(newValue);
-            }
+            changesRecorder.getUpdateEntity().setDescription(newValue);
+            twinService.updateTwinDescription(changesRecorder);
         } else if (fieldId.equals(TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID)) {
-            if (twinChangesCollector.collectIfChanged(twin, TwinEntity.Fields.externalId, twin.getExternalId(), newValue)) {
-                if (twinChangesCollector.isHistoryCollectorEnabled()) {
-                    twinChangesCollector.getHistoryCollector(twin).add(
-                            historyService.externalIdChanged(twin.getExternalId(), newValue));
-                }
-                twin.setExternalId(newValue);
-            }
+            changesRecorder.getUpdateEntity().setExternalId(newValue);
+            twinService.updateTwinExternalId(changesRecorder);
         } else {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
                     value.getTwinClassField().logShort() + " is not a supported base field for " + twin.logNormal());
-        }
-        if (value.getTwinClassField().getRequired() && StringUtils.isEmpty(newValue)) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED,
-                    value.getTwinClassField().logShort() + " is required");
         }
     }
 

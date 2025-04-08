@@ -89,7 +89,7 @@ public class SystemEntityService {
                                 new SystemField(TWIN_CLASS_FIELD_TWIN_NAME, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1321, "base_name"),
                                 new SystemField(TWIN_CLASS_FIELD_TWIN_DESCRIPTION, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1321, "base_description"),
                                 new SystemField(TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1321, "base_external_id"),
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_OWNER_USER, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1321, "base_owner_user"),
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_OWNER_USER, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1322, "base_owner_user"),
                                 new SystemField(TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1322, "base_assignee_user"),
                                 new SystemField(TWIN_CLASS_FIELD_TWIN_CREATOR_USER, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1322, "base_creator_user"),
                                 new SystemField(TWIN_CLASS_FIELD_TWIN_HEAD, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1323, "base_head"),
@@ -170,6 +170,10 @@ public class SystemEntityService {
             for(SystemField systemField : systemClass.getFields())
                 SYSTEM_TWIN_CLASS_FIELDS_UUIDS.add(systemField.getId());
         return SYSTEM_TWIN_CLASS_FIELDS_UUIDS;
+    }
+
+    public static boolean isSystemField(UUID fieldId) {
+        return getSystemFieldsIds().contains(fieldId);
     }
 
     public static boolean isTwinClassForBusinessAccount(UUID twinClassId) {
