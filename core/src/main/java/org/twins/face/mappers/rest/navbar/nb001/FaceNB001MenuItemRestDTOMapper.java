@@ -20,7 +20,6 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = {FaceNB001Modes.FaceNB001MenuItemCollectionMode.class})
 public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB001MenuItemEntity, FaceNB001MenuItemDTOv1> {
     private final ResourceService resourceService;
     private final I18nService i18nService;
@@ -61,9 +60,8 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
     @Override
     public void beforeCollectionConversion(Collection<FaceNB001MenuItemEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItemCollectionMode.HIDE)) {
-            faceNB001MenuItemService.loadChilds(srcCollection);
-        }
+        faceNB001MenuItemService.loadChilds(srcCollection);
+
     }
 
 }
