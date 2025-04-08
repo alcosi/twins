@@ -11,4 +11,6 @@ import java.util.UUID;
 @Repository
 public interface FaceNB001MenuItemRepository extends CrudRepository<FaceNB001MenuItemEntity, UUID>, JpaSpecificationExecutor<FaceNB001MenuItemEntity> {
     Collection<FaceNB001MenuItemEntity> findByFaceIdIn(Set<UUID> idSet);
+
+    Collection<FaceNB001MenuItemEntity> findByParentFaceMenuItemIdIn(Set<UUID> idSet);
 }
