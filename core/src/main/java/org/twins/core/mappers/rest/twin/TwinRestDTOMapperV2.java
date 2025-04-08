@@ -9,6 +9,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinFieldCollectionMapMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinFieldCollectionMode;
 import org.twins.core.service.twin.TwinService;
 
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = {TwinFieldCollectionMode.class})
+@MapperModeBinding(modes = {TwinFieldCollectionMode.class, TwinFieldCollectionMapMode.class})
 public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTOv2> {
 
     private final TwinBaseV3RestDTOMapper twinBaseV3RestDTOMapper;
@@ -32,24 +33,29 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
     public void map(TwinEntity src, TwinDTOv2 dst, MapperContext mapperContext) throws Exception {
         twinBaseV3RestDTOMapper.map(src, dst, mapperContext);
         switch (mapperContext.getModeOrUse(TwinFieldCollectionMode.NO_FIELDS)) {
-            case NO_FIELDS:
-                break;
-            case ALL_FIELDS:
+            case NO_FIELDS -> {}
+            case ALL_FIELDS -> {
                 twinService.loadFieldsValues(src);
-                dst.fields(twinFieldValueRestDTOMapperV2.convertCollection(src.getFieldValuesKit().getCollection(), mapperContext).stream().collect(Collectors
-                        .toMap(
-                                fieldValueText -> fieldValueText.getTwinClassField().getKey(),
-                                FieldValueText::getValue)));
-                break;
-            case NOT_EMPTY_FIELDS:
+                mapFieldsToDto(dst, mapperContext, src.getFieldValuesKit().getCollection());
+            }
+            case NOT_EMPTY_FIELDS -> {
                 twinService.loadFieldsValues(src);
-                List<FieldValue> notEmptyFields = src.getFieldValuesKit().getCollection().stream().filter(FieldValue::isFilled).toList();
-                dst.fields(twinFieldValueRestDTOMapperV2.convertCollection(notEmptyFields, mapperContext).stream().collect(Collectors
-                        .toMap(
-                                fieldValueText -> fieldValueText.getTwinClassField().getKey(),
-                                FieldValueText::getValue)));
-                break;
+                List<FieldValue> notEmptyFields = src.getFieldValuesKit().getCollection().stream()
+                        .filter(FieldValue::isFilled)
+                        .toList();
+                mapFieldsToDto(dst, mapperContext, notEmptyFields);
+            }
         }
+    }
+
+    private void mapFieldsToDto(TwinDTOv2 dst, MapperContext mapperContext, Collection<FieldValue> fields) throws Exception {
+        TwinFieldCollectionMapMode mapMode = mapperContext.getModeOrUse(TwinFieldCollectionMapMode.KEY);
+        dst.fields(twinFieldValueRestDTOMapperV2.convertCollection(fields, mapperContext).stream()
+                .collect(Collectors.toMap(
+                        fieldValueText -> mapMode == TwinFieldCollectionMapMode.KEY ?
+                                fieldValueText.getTwinClassField().getKey() :
+                                fieldValueText.getTwinClassField().getId().toString(),
+                        FieldValueText::getValue)));
     }
 
     @Override

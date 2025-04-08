@@ -173,6 +173,34 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         return twinClassFieldEntity;
     }
 
+    public List<TwinClassFieldEntity> findByTwinClassIdAndKeysIncludeParents(UUID twinClassId, Set<String> setKeys) {
+        TwinClassEntity twinClass = twinClassRepository.findById(twinClassId).orElse(null);
+        return findByTwinClassIdAndKeysIncludeParents(twinClass, setKeys);
+    }
+
+    public List<TwinClassFieldEntity> findByTwinClassIdAndKeysIncludeParents(TwinClassEntity twinClass, Set<String> setKeys) {
+        List<TwinClassFieldEntity> twinClassFieldList = null;
+        if (twinClass != null) {
+            Set<UUID> extendedClassIds = twinClass.getExtendedClassIdSet();
+            twinClassFieldList = twinClassFieldRepository.findByKeyInAndTwinClassIdIn(setKeys, extendedClassIds);
+        }
+        return twinClassFieldList;
+    }
+
+    public List<TwinClassFieldEntity> findByTwinClassIdAndIdsIncludeParents(UUID twinClassId, Set<UUID> setIds) {
+        TwinClassEntity twinClass = twinClassRepository.findById(twinClassId).orElse(null);
+        return findByTwinClassIdAndIdsIncludeParents(twinClass, setIds);
+    }
+
+    public List<TwinClassFieldEntity> findByTwinClassIdAndIdsIncludeParents(TwinClassEntity twinClass, Set<UUID> setIds) {
+        List<TwinClassFieldEntity> twinClassFieldList = null;
+        if (twinClass != null) {
+            Set<UUID> extendedClassIds = twinClass.getExtendedClassIdSet();
+            twinClassFieldList = twinClassFieldRepository.findByIdInAndTwinClassIdIn(setIds, extendedClassIds); 
+        }
+        return twinClassFieldList;
+    }
+
     @Transactional
     public void duplicateFieldsForClass(ApiUser apiUser, UUID srcTwinClassId, UUID duplicateTwinClassId) throws ServiceException {
         List<TwinClassFieldEntity> fieldEntityList = findTwinClassFields(srcTwinClassId);
