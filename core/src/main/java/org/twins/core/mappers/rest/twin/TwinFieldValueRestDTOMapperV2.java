@@ -18,8 +18,10 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
+import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
 import java.util.Collection;
@@ -35,6 +37,9 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
 
     @MapperModePointerBinding(modes = UserMode.TwinField2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
+
+    @MapperModePointerBinding(modes = StatusMode.TwinField2StatusMode.class)
+    private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
 
     @MapperModePointerBinding(modes = TwinMode.TwinField2TwinMode.class)
     private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
@@ -70,6 +75,16 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
                 }
             }
             dst.setValue(stringJoiner.toString());
+        } else if (src instanceof FieldValueUserSingle userField) {
+            if (mapperContext.hasModeButNot(UserMode.TwinField2UserMode.HIDE)) {
+                userRestDTOMapper.postpone(userField.getUser(), mapperContext.forkOnPoint(UserMode.TwinField2UserMode.HIDE));
+            }
+            dst.setValue(userField.getUser().getId().toString());
+        } else if (src instanceof FieldValueStatusSingle statusField) {
+            if (mapperContext.hasModeButNot(StatusMode.TwinField2StatusMode.HIDE)) {
+                twinStatusRestDTOMapper.postpone(statusField.getStatus(), mapperContext.forkOnPoint(StatusMode.TwinField2StatusMode.HIDE));
+            }
+            dst.setValue(statusField.getStatus().getId().toString());
         } else if (src instanceof FieldValueLink link) {
             StringJoiner stringJoiner = new StringJoiner(",");
             TwinEntity linkedTwin;
@@ -84,6 +99,11 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
                 }
             }
             dst.setValue(stringJoiner.toString());
+        } else if (src instanceof FieldValueLinkSingle link) {
+            if (mapperContext.hasModeButNot(TwinMode.TwinField2TwinMode.HIDE)) {
+                twinBaseRestDTOMapper.postpone(link.getDstTwin(), mapperContext.forkOnPoint(UserMode.TwinField2UserMode.HIDE));
+            }
+            dst.setValue(link.getDstTwin().getId().toString());
         } else if (src instanceof FieldValueI18n i18nField) {
             if (MapUtils.isNotEmpty(i18nField.getTranslations())) {
                 String jsonStr = JsonUtils.translationsMapToJson(i18nField.getTranslations());
