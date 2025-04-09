@@ -9,7 +9,6 @@ import org.twins.core.dto.rest.attachment.AttachmentSaveDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
-import java.util.HashSet;
 import java.util.Map;
 
 
