@@ -22,9 +22,9 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.face.dao.widget.FaceWT001Entity;
-import org.twins.face.dto.rest.widget.FaceWT001ViewRsDTOv1;
-import org.twins.face.mappers.rest.widget.FaceWT001RestDTOMapper;
+import org.twins.face.dao.widget.wt001.FaceWT001Entity;
+import org.twins.face.dto.rest.widget.wt001.FaceWT001ViewRsDTOv1;
+import org.twins.face.mappers.rest.widget.wt001.FaceWT001RestDTOMapper;
 import org.twins.face.service.widget.FaceWT001Service;
 
 import java.util.UUID;
@@ -39,7 +39,7 @@ public class FaceWT001Controller extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "faceWT001ViewV1", summary = "Returns wt001 navigation bar details")
+    @Operation(operationId = "faceWT001ViewV1", summary = "Returns WT001 widget config: table of twins of given class")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "WT001 face config", content = {
                     @Content(mediaType = "application/json", schema =

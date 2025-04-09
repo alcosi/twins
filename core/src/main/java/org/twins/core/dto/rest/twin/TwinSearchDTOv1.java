@@ -56,6 +56,12 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Reporter id exclude list")
     public Set<UUID> createdByUserIdExcludeList;
 
+    @Schema(description = "External id list")
+    public Set<String> externalIdList;
+
+    @Schema(description = "External id exclude list")
+    public Set<String> externalIdExcludeList;
+
     @Schema(description = "Include dst twins with given links. OR join")
     public List<TwinSearchByLinkDTOv1> linksAnyOfList;
 
@@ -98,7 +104,22 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Twin touch exclude list ids")
     public List<TwinTouchEntity.Touch> touchExcludeList;
 
-    @Schema(description = "Twin Field Search. Key TwinClassField id.")
+    @Schema(description = "Twin Field Search. Key TwinClassField id.", type = "object", additionalPropertiesSchema = TwinFieldSearchDTOv1.class,
+            example = """
+                    {
+                        "550e8400-e29b-41d4-a716-446655440000": {
+                            "type": "TwinFieldSearchNumericV1",
+                            "lessThen": "10",
+                            "moreThen": "5",
+                            "equals": "7"
+                        },
+                        "550e8400-e29b-41d4-a716-446655440001": {
+                            "type": "TwinFieldSearchTextV1",
+                            "valueLikeAllOfList": ["test%"]
+                        }
+                    }
+                    """
+    )
     public Map<UUID, TwinFieldSearchDTOv1> fields;
 
 }

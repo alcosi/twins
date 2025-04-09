@@ -45,6 +45,7 @@ public class DomainUserSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final DomainUserService domainUserService;
+
     @ParametersApiUserHeaders
     @Operation(operationId = "domainUserSearchListV1", summary = "Return a list of users by current domain")
     @ApiResponses(value = {
@@ -72,6 +73,7 @@ public class DomainUserSearchController extends ApiController {
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
+
     @ParametersApiUserHeaders
     @Operation(operationId = "domainUserViewV1", summary = "Return the user by id")
     @ApiResponses(value = {
@@ -85,8 +87,7 @@ public class DomainUserSearchController extends ApiController {
             @Parameter(example = DTOExamples.USER_ID) @PathVariable("userId") UUID userId) {
         DomainUserViewRsDTOv1 rs = new DomainUserViewRsDTOv1();
         try {
-            DomainUserEntity domainUser = domainUserService
-                    .findEntitySafe(userId);
+            DomainUserEntity domainUser = domainUserService.findByUserId(userId);
             rs
                     .setUser(domainUserRestDTOMapperV2.convert(domainUser, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

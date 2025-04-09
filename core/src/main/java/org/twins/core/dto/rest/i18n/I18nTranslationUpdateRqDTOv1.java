@@ -6,11 +6,13 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
+import java.util.List;
+
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "I18nTranslationUpdateRqV1")
+@Schema(name = "I18nUpdateRqV1")
 public class I18nTranslationUpdateRqDTOv1 extends Request {
-    @Schema(description = "i18n translation update")
-    public I18nTranslationUpdateDTOv1 i18nTranslations;
+    @Schema(description = "i18n translations update")
+    public List<I18nTranslationUpdateDTOv1> translations;
 }

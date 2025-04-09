@@ -22,9 +22,9 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.face.dao.navbar.FaceNB001Entity;
-import org.twins.face.dto.rest.navbar.FaceNB001ViewRsDTOv1;
-import org.twins.face.mappers.rest.navbar.FaceNB001RestDTOMapper;
+import org.twins.face.dao.navbar.nb001.FaceNB001Entity;
+import org.twins.face.dto.rest.navbar.nb001.FaceNB001ViewRsDTOv1;
+import org.twins.face.mappers.rest.navbar.nb001.FaceNB001RestDTOMapper;
 import org.twins.face.service.navbar.FaceNB001Service;
 
 import java.util.UUID;
@@ -39,7 +39,7 @@ public class FaceNB001Controller extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "faceNB001ViewV1", summary = "Returns nb001 navigation bar details")
+    @Operation(operationId = "faceNB001ViewV1", summary = "Returns NB001 navbar config")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "NB001 face config", content = {
                     @Content(mediaType = "application/json", schema =

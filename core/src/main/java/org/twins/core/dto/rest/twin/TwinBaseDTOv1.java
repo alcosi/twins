@@ -44,4 +44,10 @@ public class TwinBaseDTOv1 {
 
     @Schema(description = "author")
     public UUID authorUserId;
+
+    @Schema(description = "owner business account id", example = DTOExamples.BUSINESS_ACCOUNT_ID)
+    public UUID ownerBusinessAccountId;
+
+    @Schema(description = "owner user id", example = DTOExamples.USER_ID)
+    public UUID ownerUserId;
 }

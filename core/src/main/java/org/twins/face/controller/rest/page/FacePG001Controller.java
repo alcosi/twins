@@ -22,14 +22,14 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.face.dao.page.FacePG001Entity;
-import org.twins.face.dto.rest.page.FacePG001ViewRsDTOv1;
-import org.twins.face.mappers.rest.page.FacePG001RestDTOMapper;
+import org.twins.face.dao.page.pg001.FacePG001Entity;
+import org.twins.face.dto.rest.page.pg001.FacePG001ViewRsDTOv1;
+import org.twins.face.mappers.rest.page.pg001.FacePG001RestDTOMapper;
 import org.twins.face.service.page.FacePG001Service;
 
 import java.util.UUID;
 
-@Tag(description = "Get face by id", name = ApiTag.FACE)
+@Tag(description = "Get PG001 face config by id", name = ApiTag.FACE)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -39,7 +39,7 @@ public class FacePG001Controller extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "facePG001ViewV1", summary = "Returns pg001 navigation bar details")
+    @Operation(operationId = "facePG001ViewV1", summary = "Returns PG001 page config: single column layout")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "PG001 face config", content = {
                     @Content(mediaType = "application/json", schema =

@@ -66,7 +66,7 @@ public class TwinSearchService {
     private final EntitySmartService entitySmartService;
 
 
-    private Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {
+    public Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         userGroupService.loadGroupsForCurrentUser();
         UUID domainId = apiUser.getDomainId();

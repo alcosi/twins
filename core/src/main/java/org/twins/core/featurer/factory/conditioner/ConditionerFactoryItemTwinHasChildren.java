@@ -39,7 +39,7 @@ public class ConditionerFactoryItemTwinHasChildren extends Conditioner {
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
         BasicSearch search = new BasicSearch();
         search
-                .addHeaderTwinId(factoryItem.getOutput().getTwinEntity().getId())
+                .addHeadTwinId(factoryItem.getOutput().getTwinEntity().getId())
                 .addStatusId(statusIds.extract(properties), false);
         if (excludeFactoryInput.extract(properties))
             search.setTwinIdExcludeList(factoryItem.getFactoryContext().getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()));

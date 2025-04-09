@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.twinclass.TwinClassUpdate;
 import org.twins.core.dto.rest.twinclass.TwinClassUpdateRqDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.common.BasicUpdateOperationRestDTOReverseMapper;
-import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
+import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.twinclass.TwinClassService;
 
 
@@ -16,7 +16,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 public class TwinClassUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassUpdateRqDTOv1, TwinClassUpdate> {
 
     private final BasicUpdateOperationRestDTOReverseMapper basicUpdateOperationRestDTOReverseMapper;
-    private final I18nRestDTOReverseMapper i18nRestDTOReverseMapper;
+    private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
 
     private final TwinClassService twinClassService;
 
@@ -36,9 +36,10 @@ public class TwinClassUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
                 .setEditPermissionId(src.getEditPermissionId())
                 .setCreatePermissionId(src.getCreatePermissionId())
                 .setDeletePermissionId(src.getDeletePermissionId())
+                .setAssigneeRequired(src.getAssigneeRequired())
 
-                .setNameI18n(i18nRestDTOReverseMapper.convert(src.getNameI18n(), mapperContext))
-                .setDescriptionI18n(i18nRestDTOReverseMapper.convert(src.getDescriptionI18n(), mapperContext))
+                .setNameI18n(i18NSaveRestDTOReverseMapper.convert(src.getNameI18n(), mapperContext))
+                .setDescriptionI18n(i18NSaveRestDTOReverseMapper.convert(src.getDescriptionI18n(), mapperContext))
 
                 .setDbTwinClassEntity(twinClassService.findEntitySafe(src.getTwinClassId()))
                 .setMarkerDataListUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getMarkerDataListUpdate()))

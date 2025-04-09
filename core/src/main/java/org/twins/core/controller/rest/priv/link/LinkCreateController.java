@@ -8,18 +8,21 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dto.rest.link.LinkCreateDTOv1;
 import org.twins.core.dto.rest.link.LinkCreateRsDTOv1;
-import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
+import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.LinkCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.LinkForwardRestDTOV3Mapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -34,7 +37,7 @@ import org.twins.core.service.link.LinkService;
 public class LinkCreateController extends ApiController {
     private final LinkService linkService;
     private final LinkCreateRestDTOReverseMapper linkCreateRestDTOReverseMapper;
-    private final I18nRestDTOReverseMapper i18NRestDTOReverseMapper;
+    private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
     private final LinkForwardRestDTOV3Mapper linkForwardRestDTOV3Mapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
@@ -51,8 +54,8 @@ public class LinkCreateController extends ApiController {
             @RequestBody LinkCreateDTOv1 request) {
         LinkCreateRsDTOv1 rs = new LinkCreateRsDTOv1();
         try {
-            I18nEntity forwardNameI18n = i18NRestDTOReverseMapper.convert(request.getForwardNameI18n());
-            I18nEntity backwardNameI18n = i18NRestDTOReverseMapper.convert(request.getBackwardNameI18n());
+            I18nEntity forwardNameI18n = i18NSaveRestDTOReverseMapper.convert(request.getForwardNameI18n());
+            I18nEntity backwardNameI18n = i18NSaveRestDTOReverseMapper.convert(request.getBackwardNameI18n());
             LinkEntity linkEntity = linkCreateRestDTOReverseMapper.convert(request);
             linkEntity = linkService.createLink(linkEntity, forwardNameI18n, backwardNameI18n);
             rs

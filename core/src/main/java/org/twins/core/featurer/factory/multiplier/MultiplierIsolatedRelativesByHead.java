@@ -52,7 +52,7 @@ public class MultiplierIsolatedRelativesByHead extends Multiplier {
             BasicSearch search = new BasicSearch();
             search
                     .addTwinClassId(inputTwin.getTwinClassId(), false)
-                    .addHeaderTwinId(inputTwin.getHeadTwinId())
+                    .addHeadTwinId(inputTwin.getHeadTwinId())
                     .addStatusId(statusIds.extract(properties), false);
             List<TwinEntity> relativesTwinEntityList = twinSearchService.findTwins(search);
             if (CollectionUtils.isEmpty(relativesTwinEntityList)) {

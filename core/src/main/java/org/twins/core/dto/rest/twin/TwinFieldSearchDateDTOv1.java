@@ -1,17 +1,24 @@
 package org.twins.core.dto.rest.twin;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
 
-@Data
-@Accessors(fluent = true)
-@Schema(name = "TwinFieldSearchDateV1", description = "(less & more connected with AND) and after connected to equals with OR and to emty with OR")
-public class TwinFieldSearchDateDTOv1 implements TwinFieldSearchDTOv1 {
+import static org.twins.core.dto.rest.twin.TwinFieldSearchDateDTOv1.KEY;
 
-    public static final String KEY = "searchDateValueV1";
+@Data
+@EqualsAndHashCode(callSuper = false)
+@Accessors(fluent = true)
+@Schema(name = KEY, description = "(less & more connected with AND) and after connected to equals with OR and to emty with OR")
+public class TwinFieldSearchDateDTOv1 extends TwinFieldSearchDTOv1 {
+
+    public static final String KEY = "TwinFieldSearchDateV1";
+
+    @JsonProperty("type")
     public String type = KEY;
 
     @Schema(description = "Twin field date less then given date")
