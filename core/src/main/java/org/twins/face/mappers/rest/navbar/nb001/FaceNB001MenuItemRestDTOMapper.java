@@ -41,7 +41,7 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
                 .setDisabled(src.getStatus() == FaceNB001MenuItemEntity.Status.DISABLED) //todo
                 .setIcon(resourceService.getResourceUri(src.getIconResource()))
                 .setTargetPageFaceId(src.getTargetPageFaceId())
-                .setPermissionId(src.getPermissionId())
+                .setGuardedByPermissionId(src.getPermissionId())
                 .setParentFaceMenuItemId(src.getParentFaceMenuItemId())
                 .setChildren(convertCollection(src.getChilds())); //be afraid of endless looping!
 

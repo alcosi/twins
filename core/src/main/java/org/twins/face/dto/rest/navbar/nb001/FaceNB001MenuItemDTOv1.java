@@ -34,7 +34,7 @@ public class FaceNB001MenuItemDTOv1 {
     public UUID targetPageFaceId;
 
     @Schema(description = "permission id")
-    public UUID permissionId;
+    public UUID guardedByPermissionId;
 
     @Schema(description = "parent face menu item id")
     public UUID parentFaceMenuItemId;
