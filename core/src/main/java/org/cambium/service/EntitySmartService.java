@@ -321,13 +321,13 @@ public class EntitySmartService {
 
     public <T> Iterable<T> saveAllAndLogChanges(Iterable<T> entities, CrudRepository<T, UUID> repository, ChangesHelper changesHelper) {
         Iterable<T> result = repository.saveAll(entities);
-        log.info("Changes: " + changesHelper.collectForLog());
+        log.info("Changes: {}", changesHelper.collectForLog());
         return result;
     }
 
     public <T> Iterable<T> saveAllAndLogChanges(Iterable<T> entities, CrudRepository<T, UUID> repository, StringBuilder changes) {
         Iterable<T> result = repository.saveAll(entities);
-        log.info("Changes: " + changes);
+        log.info("Changes: {}", changes);
         return result;
     }
 
