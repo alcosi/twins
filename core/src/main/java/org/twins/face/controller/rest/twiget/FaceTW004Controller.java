@@ -20,14 +20,14 @@ import org.twins.core.domain.face.TwidgetConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.face.dao.twiget.tw004.FaceTW004Entity;
+import org.twins.face.dao.twidget.tw004.FaceTW004Entity;
 import org.twins.face.dto.rest.twidget.tw004.FaceTW004ViewRsDTOv1;
 import org.twins.face.mappers.rest.twidget.tw004.FaceTW004RestDTOMapper;
 import org.twins.face.service.twidget.FaceTW004Service;
 
 import java.util.UUID;
 
-@Tag(description = "Get TW0001 config by id", name = ApiTag.FACE)
+@Tag(description = "Get TW0004 config by id", name = ApiTag.FACE)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor

@@ -10,7 +10,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.service.i18n.I18nService;
-import org.twins.face.dao.twiget.tw001.FaceTW001Entity;
+import org.twins.face.dao.twidget.tw001.FaceTW001Entity;
 import org.twins.face.dto.rest.twidget.tw001.FaceTW001DTOv1;
 
 
