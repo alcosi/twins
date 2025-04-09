@@ -57,6 +57,7 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
     @Autowired
     private TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
     @Autowired
+    @MapperModePointerBinding(modes = PermissionMode.Attachment2PermissionMode.class)
     private PermissionRestDTOMapper permissionRestDTOMapper;
 
     @Override

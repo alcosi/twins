@@ -80,6 +80,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_FIELD_VALUE_INCORRECT(10902, "twins field value can not be converted"),
     TWIN_BASIC_FIELD_UNKNOWN(10903, "unknown twin basic field"),
     TWIN_ASSIGNEE_REQUIRED(10904,"twin assignee is required for this twin class"),
+    TWIN_FIELD_IMMUTABLE(10905,"twin field is immutable"),
     FACTORY_INCORRECT(11001, "twin factory config is incorrect"),
     FACTORY_PIPELINE_STEP_ERROR(11002, "twin factory pipeline step error"),
     FACTORY_MULTIPLIER_ERROR(11003, "twin factory multiplier error"),

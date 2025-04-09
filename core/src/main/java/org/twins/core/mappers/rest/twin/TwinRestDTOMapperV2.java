@@ -7,8 +7,8 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinFieldCollectionMapMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinFieldCollectionMode;
 import org.twins.core.service.twin.TwinService;
@@ -16,6 +16,8 @@ import org.twins.core.service.twin.TwinService;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static java.util.function.Predicate.not;
 
 
 @Component
@@ -36,12 +38,16 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
             case NO_FIELDS -> {}
             case ALL_FIELDS -> {
                 twinService.loadFieldsValues(src);
-                mapFieldsToDto(dst, mapperContext, src.getFieldValuesKit().getCollection());
+                List<FieldValue> fields = src.getFieldValuesKit().getCollection().stream()
+                        .filter(not(FieldValue::isBaseField))
+                        .toList();
+                mapFieldsToDto(dst, mapperContext, fields);
             }
             case NOT_EMPTY_FIELDS -> {
                 twinService.loadFieldsValues(src);
                 List<FieldValue> notEmptyFields = src.getFieldValuesKit().getCollection().stream()
                         .filter(FieldValue::isFilled)
+                        .filter(not(FieldValue::isBaseField))
                         .toList();
                 mapFieldsToDto(dst, mapperContext, notEmptyFields);
             }

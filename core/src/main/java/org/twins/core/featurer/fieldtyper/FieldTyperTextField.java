@@ -53,7 +53,7 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
     }
 
     @Override
-    public Specification<TwinEntity> searchBy(TwinFieldSearchText search) throws ServiceException {
-        return Specification.where(TwinSpecification.checkFieldText(search));
+    public Specification<TwinEntity> searchBy(TwinFieldSearchText search) {
+        return Specification.where(TwinSpecification.checkFieldText(search, TwinEntity.Fields.fieldsSimple, TwinFieldSimpleEntity.Fields.value));
     }
 }
