@@ -23,7 +23,7 @@ public abstract class FieldValue implements Cloneable {
     public abstract boolean isFilled();
 
     public boolean isBaseField() {
-        return SystemEntityService.isSystemField(twinClassField.getId());
+        return twinClassField.isBaseField();
     }
 
     public UUID getTwinClassFieldId() {
