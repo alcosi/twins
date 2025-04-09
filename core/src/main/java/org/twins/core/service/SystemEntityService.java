@@ -56,7 +56,6 @@ public class SystemEntityService {
 
     public static final UUID TWIN_STATUS_USER = UUID.fromString("00000000-0000-0000-0003-000000000001");
     public static final UUID TWIN_STATUS_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0003-000000000003");
-    public static final UUID TWIN_STATUS_GLOBAL_ANCESTOR = UUID.fromString("00000000-0000-0000-0003-000000000004");
 
     public static final UUID TWIN_TEMPLATE_USER = UUID.fromString("00000000-0000-0000-0002-000000000001");
     public static final UUID TWIN_TEMPLATE_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0002-000000000003");
@@ -84,7 +83,7 @@ public class SystemEntityService {
                 new SystemClass(
                         TWIN_CLASS_GLOBAL_ANCESTOR,
                         "GLOBAL_ANCESTOR",
-                        List.of(new SystemStatus(TWIN_STATUS_GLOBAL_ANCESTOR, TWIN_CLASS_GLOBAL_ANCESTOR)),
+                        Collections.emptyList(),
                         List.of(
                                 new SystemField(TWIN_CLASS_FIELD_TWIN_NAME, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1321, "base_name"),
                                 new SystemField(TWIN_CLASS_FIELD_TWIN_DESCRIPTION, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1321, "base_description"),
