@@ -19,11 +19,13 @@ public class FaceWT001ColumnRestDTOMapper extends RestSimpleDTOMapper<FaceWT001C
     public void map(FaceWT001ColumnEntity src, FaceWT001ColumnDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
                 .setId(src.getId())
-                .setLabel(i18nService.translateToLocale(src.getLabelI18nId() != null ? src.getLabelI18nId() : src.getTwinClassField().getNameI18nId()));
+                .setLabel(i18nService.translateToLocale(src.getLabelI18nId() != null ? src.getLabelI18nId() : src.getTwinClassField().getNameI18nId()))
+                .setOrder(src.getOrder())
+                .setShowByDefault(src.getShowByDefault())
+                .setTwinClassFieldId(src.getTwinClassFieldId());
 
         if (mapperContext.hasModeButNot(FaceWT001Modes.FaceWT001Column2TwinClassFieldMode.HIDE)) {
-            dst.setTwinClassFieldId(src.getTwinClassFieldId());
-            twinClassFieldRestDTOMapper.postpone(src.getTwinClassField(), mapperContext.forkOnPoint(FaceWT001Modes.FaceWT001Column2TwinClassFieldMode.SHOW));
+            twinClassFieldRestDTOMapper.postpone(src.getTwinClassField(), mapperContext.forkOnPoint(FaceWT001Modes.FaceWT001Column2TwinClassFieldMode.SHORT));
         }
     }
 }

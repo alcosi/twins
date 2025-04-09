@@ -18,4 +18,10 @@ public class FaceWT001ColumnDTOv1 {
 
     @Schema(description = "twin class field id")
     public UUID twinClassFieldId;
+
+    @Schema(description = "order")
+    public Integer order;
+
+    @Schema(description = "show by default")
+    public Boolean showByDefault;
 }

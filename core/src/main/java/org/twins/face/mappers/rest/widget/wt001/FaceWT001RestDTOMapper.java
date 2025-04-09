@@ -39,7 +39,7 @@ public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<FaceWT001Entity,
                     .setLabel(i18nService.translateToLocale(src.getLabelI18nId()))
                     .setTwinClassId(src.getTwinClassId())
                     .setSearchId(src.getSearchId())
-                    .setShowColumns(faceWT001ColumnRestDTOMapper.convertCollection(src.getColumns(), mapperContext));}
+                    .setColumns(faceWT001ColumnRestDTOMapper.convertCollection(src.getColumns(), mapperContext));}
         }
     }
 

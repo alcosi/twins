@@ -22,14 +22,18 @@ public class FaceWT001Modes {
     @FieldNameConstants(onlyExplicitlyIncluded = true)
     public enum FaceWT001Column2TwinClassFieldMode implements MapperModePointer<TwinClassFieldMode> {
         @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHOW(1);
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2),
+        @FieldNameConstants.Include MANAGED(3);
         final int priority;
 
         @Override
         public TwinClassFieldMode point() {
             return switch (this) {
                 case HIDE -> TwinClassFieldMode.HIDE;
-                case SHOW -> TwinClassFieldMode.SHORT;
+                case SHORT -> TwinClassFieldMode.SHORT;
+                case DETAILED -> TwinClassFieldMode.DETAILED;
+                case MANAGED -> TwinClassFieldMode.MANAGED;
             };
         }
     }

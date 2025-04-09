@@ -30,6 +30,9 @@ public class FaceWT001ColumnEntity {
     @Column(name = "label_i18n_id")
     private UUID labelI18nId;
 
+    @Column(name = "show_by_default")
+    private Boolean showByDefault;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     private FaceEntity face;
@@ -39,6 +42,6 @@ public class FaceWT001ColumnEntity {
     private TwinClassFieldEntity twinClassField;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "label_i18n_id", nullable = false, insertable = false, updatable = false)
+    @JoinColumn(name = "label_i18n_id", insertable = false, updatable = false)
     private I18nEntity labelI18n;
 }
