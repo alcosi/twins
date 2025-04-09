@@ -1,4 +1,4 @@
-package org.twins.face.dao.twiget.tw004;
+package org.twins.face.dao.twidget.tw004;
 
 import jakarta.persistence.*;
 import lombok.Getter;
