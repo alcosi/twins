@@ -8,12 +8,9 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-
 public class TwinFieldSearchList extends TwinFieldSearch {
-
     public Set<UUID> optionsAllOfList;
     public Set<UUID> optionsAnyOfList;
     public Set<UUID> optionsNoAllOfList;
     public Set<UUID> optionsNoAnyOfList;
-
 }

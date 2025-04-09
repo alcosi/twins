@@ -1,9 +1,5 @@
 package org.twins.core.service.twin;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.json.JsonReadFeature;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -1005,6 +1001,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                         .setId(userUUID));
             }
         }
+        if (fieldValue instanceof FieldValueUserSingle fieldValueUser) {
+            UUID userId = UuidUtils.fromString(value);
+            fieldValueUser.setUser(new UserEntity().setId(userId));
+        }
+        if (fieldValue instanceof FieldValueStatusSingle fieldValueStatus) {
+            UUID statusId = UuidUtils.fromString(value);
+            fieldValueStatus.setStatus(new TwinStatusEntity().setId(statusId));
+        }
         if (fieldValue instanceof FieldValueLink fieldValueLink) {
             for (String dstTwinId : value.split(FieldTyperList.LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(dstTwinId))
@@ -1018,6 +1022,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 ((FieldValueLink) fieldValue).add(new TwinLinkEntity()
                         .setDstTwinId(dstTwinUUID));
             }
+        }
+        if (fieldValue instanceof FieldValueLinkSingle fieldValueLink) {
+            UUID twinId = UuidUtils.fromString(value);
+            fieldValueLink.setDstTwin(new TwinEntity().setId(twinId));
         }
         if (fieldValue instanceof FieldValueI18n fieldValueI18n) {
             Map<Locale, String> translations = JsonUtils.jsonToTranslationsMap(value);
