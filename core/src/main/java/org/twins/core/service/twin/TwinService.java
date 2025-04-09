@@ -479,6 +479,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void checkCreatePermission(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {
+        if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_CREATE_ANY))
+            return;
         UUID createPermissionId = detectCreatePermissionId(twinEntity);
         if (null == createPermissionId)
             return;
@@ -494,6 +496,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void checkUpdatePermission(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {
+        if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_CREATE_ANY))
+            return;
         UUID updatePermissionId = detectUpdatePermissionId(twinEntity);
         if (null == updatePermissionId)
             return;
