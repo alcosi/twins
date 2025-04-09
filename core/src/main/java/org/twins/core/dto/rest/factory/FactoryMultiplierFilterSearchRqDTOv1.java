@@ -54,4 +54,7 @@ public class FactoryMultiplierFilterSearchRqDTOv1 extends Request {
 
     @Schema(description = "active", example = DTOExamples.TERNARY)
     public Ternary active;
+
+    @Schema(description = "factory condition invert", example = DTOExamples.TERNARY)
+    public Ternary factoryConditionInvert;
 }

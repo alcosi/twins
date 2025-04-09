@@ -115,4 +115,24 @@ public enum TwinMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum FaceTwidget2TwinMode implements MapperModePointer<TwinMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public TwinMode point() {
+            return switch (this) {
+                case HIDE -> TwinMode.HIDE;
+                case SHORT -> TwinMode.SHORT;
+                case DETAILED -> TwinMode.DETAILED;
+            };
+        }
+    }
 }

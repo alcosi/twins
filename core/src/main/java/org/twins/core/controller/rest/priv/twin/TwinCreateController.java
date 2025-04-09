@@ -20,7 +20,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.twin.*;
-import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
+import org.twins.core.mappers.rest.attachment.AttachmentCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.TwinLinkAddRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinCreateRqRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinCreateRsRestDTOMapper;
@@ -43,7 +43,7 @@ public class TwinCreateController extends ApiController {
     private final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
     private final UserService userService;
     private final TwinCreateRsRestDTOMapper twinCreateRsRestDTOMapper;
-    private final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
+    private final AttachmentCreateRestDTOReverseMapper attachmentCreateRestDTOReverseMapper;
     private final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
     private final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
 
@@ -77,7 +77,7 @@ public class TwinCreateController extends ApiController {
                             .setAssignerUserId(userService.checkId(request.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
                             .setDescription(request.getDescription()));
             twinCreate
-                    .setAttachmentEntityList(attachmentAddRestDTOReverseMapper.convertCollection(request.getAttachments()))
+                    .setAttachmentEntityList(attachmentCreateRestDTOReverseMapper.convertCollection(request.getAttachments()))
                     .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertCollection(request.getLinks()))
                     .setCheckCreatePermission(true);
             rs = twinCreateRsRestDTOMapper
@@ -98,7 +98,7 @@ public class TwinCreateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinCreateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/v2", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/v2")
     public ResponseEntity<?> twinCreateV2(
             @RequestBody TwinCreateRqDTOv2 request) {
         TwinCreateRsDTOv1 rs = new TwinCreateRsDTOv1();

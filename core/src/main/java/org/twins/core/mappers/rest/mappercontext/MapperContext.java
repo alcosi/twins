@@ -19,6 +19,7 @@ import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -72,6 +73,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<I18nEntity>> relatedI18nMap = new LinkedHashMap<>();
     @Getter
     private Map<Integer, RelatedObject<FeaturerEntity>> relatedFeaturerMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinClassFieldEntity>> relatedTwinClassFieldMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinCommentEntity>> relatedCommentMap = new LinkedHashMap<>();
 
@@ -205,6 +208,8 @@ public class MapperContext {
             smartPut(relatedI18nMap, i18n, i18n.getId());
         else if (relatedObject instanceof FeaturerEntity featurer)
             smartPut(relatedFeaturerMap, featurer, featurer.getId());
+        else if (relatedObject instanceof TwinClassFieldEntity twinClassField)
+            smartPut(relatedTwinClassFieldMap, twinClassField, twinClassField.getId());
         else if (relatedObject instanceof TwinCommentEntity entity)
             smartPut(relatedCommentMap, entity, entity.getId());
         else {
@@ -400,6 +405,7 @@ public class MapperContext {
         dstMapperContext.relatedFaceMap = srcMapperContext.relatedFaceMap;
         dstMapperContext.relatedI18nMap = srcMapperContext.relatedI18nMap;
         dstMapperContext.relatedFeaturerMap = srcMapperContext.relatedFeaturerMap;
+        dstMapperContext.relatedTwinClassFieldMap = srcMapperContext.relatedTwinClassFieldMap;
         dstMapperContext.relatedCommentMap = srcMapperContext.relatedCommentMap;
     }
 

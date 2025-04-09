@@ -19,7 +19,7 @@ import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.comment.CommentCreateRqDTOv1;
 import org.twins.core.dto.rest.comment.CommentCreateRsDTOv1;
-import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
+import org.twins.core.mappers.rest.attachment.AttachmentCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.comment.CommentCreateRsRestDTOMapper;
 import org.twins.core.mappers.rest.comment.CommentCreateRestDTOReversedMapper;
 import org.twins.core.service.comment.CommentService;
@@ -34,7 +34,7 @@ public class CommentCreateController extends ApiController {
     private final CommentService commentService;
     private final CommentCreateRsRestDTOMapper commentCreateRsRestDTOMapper;
     private final CommentCreateRestDTOReversedMapper commentRestDTOReverseMapper;
-    private final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
+    private final AttachmentCreateRestDTOReverseMapper attachmentCreateRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinCommentAddV1", summary = "Add comment and it's attachments by twin")
@@ -51,7 +51,7 @@ public class CommentCreateController extends ApiController {
         try {
             TwinCommentEntity comment = commentRestDTOReverseMapper.convert(request.getComment()).setTwinId(twinId);
             rs = commentCreateRsRestDTOMapper.convert(commentService
-                    .createComment(comment, attachmentAddRestDTOReverseMapper.
+                    .createComment(comment, attachmentCreateRestDTOReverseMapper.
                             convertCollection(request.getComment().getAttachments())));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

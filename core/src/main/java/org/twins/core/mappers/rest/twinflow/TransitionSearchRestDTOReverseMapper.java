@@ -20,8 +20,8 @@ public class TransitionSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Tr
                 .setNameNotLikeList(src.getNameNotLikeList())
                 .setDescriptionLikeList(src.getDescriptionLikeList())
                 .setDescriptionNotLikeList(src.getDescriptionNotLikeList())
-                .setTwinClassIdList(src.getTwinClassIdList())
-                .setTwinClassIdExcludeList(src.getTwinClassIdExcludeList())
+                .setTwinClassIdMap(src.getTwinClassIdMap())
+                .setTwinClassIdExcludeMap(src.getTwinClassIdExcludeMap())
                 .setTwinflowIdList(src.getTwinflowIdList())
                 .setTwinflowIdExcludeList(src.getTwinflowIdExcludeList())
                 .setSrcStatusIdList(src.getSrcStatusIdList())
@@ -35,6 +35,8 @@ public class TransitionSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Tr
                 .setInbuiltTwinFactoryIdExcludeList(src.getInbuiltTwinFactoryIdExcludeList())
                 .setDraftingTwinFactoryIdList(src.getDraftingTwinFactoryIdList())
                 .setDraftingTwinFactoryIdExcludeList(src.getDraftingTwinFactoryIdExcludeList())
+                .setTwinflowTransitionTypeList(src.getTwinflowTransitionTypeList())
+                .setTwinflowTransitionTypeExcludeList(src.getTwinflowTransitionTypeExcludeList())
         ;
     }
 }

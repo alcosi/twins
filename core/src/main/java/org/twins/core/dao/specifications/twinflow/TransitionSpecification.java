@@ -7,27 +7,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.specifications.CommonSpecification;
-import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionAliasEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
+import org.twins.core.dao.twinflow.TwinflowTransitionType;
+import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.user.UserStatus;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.UUID;
+import java.util.Set;
 
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
 @Slf4j
 public class TransitionSpecification extends CommonSpecification<TwinflowTransitionEntity> {
-
-    public static Specification<TwinflowTransitionEntity> checkUuidTwinClassIn(final Collection<UUID> uuids, boolean not) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
-            Join<TwinflowTransitionEntity, TwinflowEntity> twinflowJoin = root.join(TwinflowTransitionEntity.Fields.twinflow, JoinType.INNER);
-            return not ? cb.not(twinflowJoin.get(TwinflowEntity.Fields.twinClassId).in(uuids))
-                    : twinflowJoin.get(TwinflowEntity.Fields.twinClassId).in(uuids);
-        };
-    }
 
     public static Specification<TwinflowTransitionEntity> checkAliasLikeIn(final Collection<String> search, final boolean or) {
         return (root, query, cb) -> {
@@ -39,6 +32,18 @@ public class TransitionSpecification extends CommonSpecification<TwinflowTransit
                     predicates.add(predicate);
                 }
             return getPredicate(cb, predicates, or);
+        };
+    }
+
+    public static Specification<TwinflowTransitionEntity> checkTransitionTypeLikeIn(Set<TwinflowTransitionType> types, boolean exclude) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(types)) {
+                return cb.conjunction();
+            }
+
+            return exclude
+                    ? cb.not(root.get(TwinflowTransitionEntity.Fields.twinflowTransitionTypeId).in(types))
+                    : root.get(TwinflowTransitionEntity.Fields.twinflowTransitionTypeId).in(types);
         };
     }
 }

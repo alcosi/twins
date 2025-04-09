@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.twins.core.dao.twinflow.TwinflowTransitionType;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
@@ -38,6 +39,9 @@ public class TransitionSaveRqDTOv1 extends Request {
 
     @Schema(description = "Drafting TwinFactory Id", example = "")
     public UUID draftingTwinFactoryId;
+
+    @Schema(description = "twinflow transition type id", example = DTOExamples.TWINFLOW_TRANSITION_TYPE_ID)
+    public TwinflowTransitionType twinflowTransitionTypeId;
 
     @JsonIgnore
     public UUID twinflowId;

@@ -35,6 +35,7 @@ public class TwinClassSearch {
     private Ternary twinClassSchemaSpace;
     private Ternary permissionSchemaSpace;
     private Ternary aliasSpace;
+    private Ternary assigneeRequired;
     private Set<UUID> viewPermissionIdList;
     private Set<UUID> viewPermissionIdExcludeList;
     private Set<UUID> createPermissionIdList;

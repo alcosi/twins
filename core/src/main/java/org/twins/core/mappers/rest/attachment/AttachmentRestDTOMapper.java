@@ -1,18 +1,22 @@
 package org.twins.core.mappers.rest.attachment;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
+import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 import org.twins.core.dto.rest.attachment.AttachmentDTOv1;
-import org.twins.core.mappers.rest.comment.CommentRestDTOMapper;
-import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.comment.CommentRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
+import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.attachment.AttachmentActionService;
@@ -26,6 +30,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {
         AttachmentMode.class,
+        AttachmentModificationMode.class,
         AttachmentCollectionMode.class,
         TwinAttachmentActionMode.class
 })
@@ -49,31 +54,40 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
     @Autowired
     @MapperModePointerBinding(modes = TwinMode.Attachment2TwinMode.class)
     private TwinRestDTOMapper twinRestDTOMapper;
+    @Autowired
+    private TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
+    @Autowired
+    private PermissionRestDTOMapper permissionRestDTOMapper;
 
     @Override
     public void map(TwinAttachmentEntity src, AttachmentDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(AttachmentMode.DETAILED)) {
-            case DETAILED ->
-                dst
-                        .setId(src.getId())
-                        .setAuthorUserId(src.getCreatedByUserId())
-                        .setTwinflowTransitionId(src.getTwinflowTransitionId())
-                        .setCreatedAt(src.getCreatedAt().toLocalDateTime())
-                        .setTwinClassFieldId(src.getTwinClassFieldId())
-                        .setCommentId(src.getTwinCommentId())
-                        .setDescription(src.getDescription())
-                        .setTitle(src.getTitle())
-                        .setExternalId(src.getExternalId())
-                        .setStorageLink(src.getStorageLink());
-            case SHORT ->
-                dst
-                        .setId(src.getId())
-                        .setStorageLink(src.getStorageLink())
-                        .setStorageLinksMap(src.getModificationLinks());
+            case DETAILED -> dst
+                    .setId(src.getId())
+                    .setAuthorUserId(src.getCreatedByUserId())
+                    .setTwinflowTransitionId(src.getTwinflowTransitionId())
+                    .setCreatedAt(src.getCreatedAt().toLocalDateTime())
+                    .setTwinClassFieldId(src.getTwinClassFieldId())
+                    .setCommentId(src.getTwinCommentId())
+                    .setViewPermissionId(src.getViewPermissionId())
+                    .setDescription(src.getDescription())
+                    .setTitle(src.getTitle())
+                    .setExternalId(src.getExternalId())
+                    .setStorageLink(src.getStorageFileKey());
+            case SHORT -> dst
+                    .setId(src.getId())
+                    .setStorageLink(src.getStorageFileKey());
         }
         if (mapperContext.hasModeButNot(CommentMode.Attachment2CommentModeMode.HIDE)) {
             dst.setCommentId(src.getTwinCommentId());
             commentRestDTOMapper.postpone(src.getComment(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(CommentMode.Attachment2CommentModeMode.SHORT)));
+        }
+        if (mapperContext.hasModeButNot(AttachmentModificationMode.HIDE)) {
+            attachmentService.loadAttachmentModifications(src);
+            dst.setModifications(new HashMap<>());
+            if (CollectionUtils.isNotEmpty(src.getModifications()))
+                for (TwinAttachmentModificationEntity mod : src.getModifications())
+                    dst.getModifications().put(mod.getModificationType(), mod.getStorageFileKey());
         }
         if (mapperContext.hasModeButNot(TransitionMode.Attachment2TransitionMode.HIDE)) {
             dst.setTwinflowTransitionId(src.getTwinflowTransitionId());
@@ -87,6 +101,14 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
             dst.setTwinId(src.getTwinId());
             twinRestDTOMapper.postpone(src.getTwin(), mapperContext.forkOnPoint(TwinMode.Attachment2TwinMode.SHORT));
         }
+        if (mapperContext.hasModeButNot(TwinClassFieldMode.Attachment2TwinClassFieldMode.HIDE)) {
+            dst.setTwinClassFieldId(src.getTwinClassFieldId());
+            twinClassFieldRestDTOMapper.postpone(src.getTwinClassField(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassFieldMode.Attachment2TwinClassFieldMode.SHORT)));
+        }
+        if (mapperContext.hasModeButNot(PermissionMode.Attachment2PermissionMode.HIDE)) {
+            dst.setViewPermissionId(src.getViewPermissionId());
+            permissionRestDTOMapper.postpone(src.getViewPermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.Attachment2PermissionMode.SHORT)));
+        }
         if (mapperContext.hasModeButNot(TwinAttachmentActionMode.HIDE)) {
             attachmentActionService.loadAttachmentActions(src);
             dst.setAttachmentActions(src.getAttachmentActions());
@@ -98,15 +120,14 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
         Collection<TwinAttachmentEntity> newList = new ArrayList<>();
         switch (mapperContext.getModeOrUse(AttachmentCollectionMode.ALL)) {
             case DIRECT ->
-                newList = srcList.stream().filter(attachmentService::checkOnDirect).collect(Collectors.toList());
+                    newList = srcList.stream().filter(attachmentService::checkOnDirect).collect(Collectors.toList());
             case FROM_TRANSITIONS ->
-                newList = srcList.stream().filter(el -> el.getTwinflowTransitionId() != null).collect(Collectors.toList());
+                    newList = srcList.stream().filter(el -> el.getTwinflowTransitionId() != null).collect(Collectors.toList());
             case FROM_COMMENTS ->
-                newList = srcList.stream().filter(el -> el.getTwinCommentId() != null).collect(Collectors.toList());
+                    newList = srcList.stream().filter(el -> el.getTwinCommentId() != null).collect(Collectors.toList());
             case FROM_FIELDS ->
-                newList = srcList.stream().filter(el -> el.getTwinClassFieldId() != null).collect(Collectors.toList());
-            case ALL ->
-                newList = srcList;
+                    newList = srcList.stream().filter(el -> el.getTwinClassFieldId() != null).collect(Collectors.toList());
+            case ALL -> newList = srcList;
         }
         return super.convertCollection(newList, mapperContext);
     }
@@ -116,6 +137,8 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasModeButNot(TwinAttachmentActionMode.HIDE))
             attachmentActionService.loadAttachmentActions(srcCollection);
+        if (mapperContext.hasModeButNot(AttachmentModificationMode.HIDE))
+            attachmentService.loadAttachmentModifications(srcCollection);
     }
 
     @Override

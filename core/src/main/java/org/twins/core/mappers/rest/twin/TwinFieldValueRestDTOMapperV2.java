@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.JsonUtils;
+import org.cambium.common.util.MapUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -82,11 +84,21 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
                 }
             }
             dst.setValue(stringJoiner.toString());
+        } else if (src instanceof FieldValueI18n i18nField) {
+            if (MapUtils.isNotEmpty(i18nField.getTranslations())) {
+                String jsonStr = JsonUtils.translationsMapToJson(i18nField.getTranslations());
+                if (jsonStr == null)
+                    throw new ServiceException(
+                            ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT,
+                            src.getTwinClassField().logNormal() + " can't serialize i18n");
+                dst.setValue(jsonStr);
+            }
         } else
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, src.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " unknown value type");
 
         return dst;
     }
+
 
     @Override
     public List<FieldValueText> convertCollection(Collection<FieldValue> srcList, MapperContext mapperContext) throws Exception {

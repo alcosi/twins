@@ -190,6 +190,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 .setTwinflowSchemaSpace(srcTwinClassEntity.isTwinflowSchemaSpace())
                 .setTwinClassSchemaSpace(srcTwinClassEntity.isTwinClassSchemaSpace())
                 .setAliasSpace(srcTwinClassEntity.isAliasSpace())
+                .setAssigneeRequired(srcTwinClassEntity.getAssigneeRequired())
                 .setAbstractt(srcTwinClassEntity.isAbstractt())
                 .setExtendsTwinClassId(srcTwinClassEntity.getExtendsTwinClassId())
                 .setHeadTwinClassId(srcTwinClassEntity.getHeadTwinClassId())
@@ -463,6 +464,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         updateTwinClassTwinClassSchemaSpaceFlag(dbTwinClassEntity, twinClassUpdate.getTwinClassSchemaSpace(), changesHelper);
         updateTwinClassTwinflowSchemaSpaceFlag(dbTwinClassEntity, twinClassUpdate.getTwinflowSchemaSpace(), changesHelper);
         updateTwinClassAliasSpaceFlag(dbTwinClassEntity, twinClassUpdate.getAliasSpace(), changesHelper);
+        updateTwinClassAssigneeRequiredFlag(dbTwinClassEntity,twinClassUpdate.getAssigneeRequired(), changesHelper);
         updateTwinClassPermissionSchemaSpaceFlag(dbTwinClassEntity, twinClassUpdate.getPermissionSchemaSpace(), changesHelper);
         updateTwinClassViewPermission(dbTwinClassEntity, twinClassUpdate.getViewPermissionId(), changesHelper);
         updateTwinClassEditPermission(dbTwinClassEntity, twinClassUpdate.getEditPermissionId(), changesHelper);
@@ -577,6 +579,13 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         //we have db trigger which will update twin.alias_space_id column for twins of given class
         dbTwinClassEntity
                 .setAliasSpace(newTwinClassAliasSpaceFlag);
+    }
+
+    public void updateTwinClassAssigneeRequiredFlag(TwinClassEntity dbTwinClassEntity, Boolean newTwinClassAssigneeRequiredFlag, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(TwinClassEntity.Fields.assigneeRequired, dbTwinClassEntity.getAssigneeRequired(), newTwinClassAssigneeRequiredFlag))
+            return;
+        dbTwinClassEntity
+                .setAssigneeRequired(newTwinClassAssigneeRequiredFlag);
     }
 
     public void updateTwinClassTwinflowSchemaSpaceFlag(TwinClassEntity dbTwinClassEntity, Boolean newTwinClassTwinflowSchemaSpaceFlag, ChangesHelper changesHelper) {

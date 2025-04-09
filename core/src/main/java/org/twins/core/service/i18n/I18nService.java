@@ -15,6 +15,7 @@ import org.cambium.common.util.StringUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.cache.CacheManager;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ import org.twins.core.dao.i18n.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.i18n.ErrorCodeI18n;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.domain.DomainService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -42,6 +44,34 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
     private final EntityManager entityManager;
     private final CacheManager cacheManager;
     private final AuthService authService;
+    @Lazy
+    private final DomainService domainService;
+
+    @Override
+    public CrudRepository<I18nEntity, UUID> entityRepository() {
+        return i18nRepository;
+    }
+
+    @Override
+    public Function<I18nEntity, UUID> entityGetIdFunction() {
+        return I18nEntity::getId;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(I18nEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        //todo think over domainId validation, some i18n with filled domainId should be accessible from public controllers (datalists)
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(I18nEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        switch (entityValidateMode) {
+            case beforeSave:
+                if (entity.getDomainId() != null && (entity.getDomain() == null || !entity.getDomainId().equals(entity.getDomain().getId())))
+                    entity.setDomain(domainService.findEntitySafe(entity.getDomainId()));
+        }
+        return true;
+    }
 
     public String translateToLocale(I18nEntity i18NEntity, Locale locale) {
         return translateToLocale(i18NEntity, locale, null);
@@ -323,23 +353,5 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
         return i18nEntity;
     }
 
-    @Override
-    public CrudRepository<I18nEntity, UUID> entityRepository() {
-        return null;
-    }
 
-    @Override
-    public Function<I18nEntity, UUID> entityGetIdFunction() {
-        return null;
-    }
-
-    @Override
-    public boolean isEntityReadDenied(I18nEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
-    }
-
-    @Override
-    public boolean validateEntity(I18nEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return true;
-    }
 }

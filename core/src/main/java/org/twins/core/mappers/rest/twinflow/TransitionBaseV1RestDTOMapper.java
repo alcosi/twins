@@ -33,7 +33,8 @@ public class TransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
                         .setAllowComment(src.isAllowComment())
                         .setAllowAttachments(src.isAllowAttachment())
                         .setAllowLinks(src.isAllowLinks())
-                        .setAlias(src.getTwinflowTransitionAlias().getAlias());
+                        .setAlias(src.getTwinflowTransitionAlias().getAlias())
+                        .setType(src.getTwinflowTransitionTypeId());
             case SHORT ->
                 dst
                         .setName(i18nService.translateToLocale(src.getNameI18NId()))

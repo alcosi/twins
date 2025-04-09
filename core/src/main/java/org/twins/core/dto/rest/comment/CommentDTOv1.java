@@ -15,7 +15,6 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = false)
 @Schema(name = "CommentV1")
 public class CommentDTOv1 {
     @Schema(description = "id", example = DTOExamples.TWIN_COMMENT_ID)
