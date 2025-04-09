@@ -13,6 +13,7 @@ import org.twins.core.dao.i18n.I18nEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.service.SystemEntityService;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -93,5 +94,9 @@ public class TwinClassFieldEntity implements EasyLoggable {
 
     public String easyLog(Level level) {
         return "twinClassField[id:" + id + ", key:" + key + "]";
+    }
+
+    public boolean isBaseField() {
+        return SystemEntityService.isSystemField(id);
     }
 }
