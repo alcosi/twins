@@ -43,7 +43,7 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueI18n value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (value.getTwinClassField().isRequired() && MapUtils.isEmpty(value.getTranslations())) {
+        if (value.getTwinClassField().getRequired() && MapUtils.isEmpty(value.getTranslations())) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED,
                     value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         }

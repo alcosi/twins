@@ -60,7 +60,7 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (twinFieldEntity.getTwinClassField().isRequired() && StringUtils.isEmpty(value.getValue()))
+        if (twinFieldEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(value.getValue()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         Double minValue = min.extract(properties);
         Double maxValue = max.extract(properties);

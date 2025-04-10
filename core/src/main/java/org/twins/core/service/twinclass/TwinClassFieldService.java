@@ -218,7 +218,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 .setFieldTyperParams(srcFieldEntity.getFieldTyperParams())
                 .setViewPermissionId(srcFieldEntity.getViewPermissionId())
                 .setEditPermissionId(srcFieldEntity.getEditPermissionId())
-                .setRequired(srcFieldEntity.isRequired());
+                .setRequired(srcFieldEntity.getRequired());
         I18nEntity i18nEntity;
         if (srcFieldEntity.getNameI18nId() != null) {
             i18nEntity = i18nService.duplicateI18n(srcFieldEntity.getNameI18nId());
@@ -318,7 +318,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         updateTwinClassFieldDescription(dbTwinClassFieldEntity, descriptionI18n, changesHelper);
         updateTwinClassFieldViewPermission(dbTwinClassFieldEntity, twinClassFieldEntity.getViewPermissionId(), changesHelper);
         updateTwinClassFieldEditPermission(dbTwinClassFieldEntity, twinClassFieldEntity.getEditPermissionId(), changesHelper);
-        updateTwinClassFieldRequiredFlag(dbTwinClassFieldEntity, twinClassFieldEntity.isRequired(), changesHelper);
+        updateTwinClassFieldRequiredFlag(dbTwinClassFieldEntity, twinClassFieldEntity.getRequired(), changesHelper);
 
         dbTwinClassFieldEntity = updateSafe(dbTwinClassFieldEntity, changesHelper);
         if (changesHelper.hasChanges()) {
@@ -407,7 +407,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     public void updateTwinClassFieldRequiredFlag(TwinClassFieldEntity dbTwinClassFieldEntity, Boolean newRequiredFlag, ChangesHelper changesHelper) throws ServiceException {
-        if (newRequiredFlag == null || !changesHelper.isChanged(TwinClassFieldEntity.Fields.required, dbTwinClassFieldEntity.isRequired(), newRequiredFlag))
+        if (newRequiredFlag == null || !changesHelper.isChanged(TwinClassFieldEntity.Fields.required, dbTwinClassFieldEntity.getRequired(), newRequiredFlag))
             return;
         dbTwinClassFieldEntity.setRequired(newRequiredFlag);
     }
