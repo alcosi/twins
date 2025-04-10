@@ -1,14 +1,14 @@
 package org.twins.core.service;
 
 import jakarta.annotation.PostConstruct;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.i18n.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -54,6 +54,51 @@ public class SystemEntityService {
     public static final UUID TWIN_CLASS_FIELD_TWIN_STATUS = UUID.fromString("00000000-0000-0000-0011-000000000010");
     public static final UUID TWIN_CLASS_FIELD_TWIN_CREATED_AT = UUID.fromString("00000000-0000-0000-0011-000000000011");
 
+    public static final ImmutablePair<UUID, UUID> TWIN_CLASS_FIELD_I18N_USER_EMAIL = ImmutablePair.of(
+            UUID.fromString("00000000-0000-0000-0012-000000000001"),
+            UUID.fromString("00000000-0000-0000-0013-000000000001")
+    );
+    public static final ImmutablePair<UUID, UUID> TWIN_CLASS_FIELD_I18N_USER_AVATAR = ImmutablePair.of(
+            UUID.fromString("00000000-0000-0000-0012-000000000002"),
+            UUID.fromString("00000000-0000-0000-0013-000000000002")
+    );
+    public static final ImmutablePair<UUID, UUID> TWIN_CLASS_FIELD_I18N_TWIN_NAME = ImmutablePair.of(
+            UUID.fromString("00000000-0000-0000-0012-000000000003"),
+            UUID.fromString("00000000-0000-0000-0013-000000000003")
+    );
+    public static final ImmutablePair<UUID, UUID> TWIN_CLASS_FIELD_I18N_DESCRIPTION = ImmutablePair.of(
+            UUID.fromString("00000000-0000-0000-0012-000000000004"),
+            UUID.fromString("00000000-0000-0000-0013-000000000004")
+    );
+    public static final ImmutablePair<UUID, UUID> TWIN_CLASS_FIELD_I18N_EXTERNAL_ID = ImmutablePair.of(
+            UUID.fromString("00000000-0000-0000-0012-000000000005"),
+            UUID.fromString("00000000-0000-0000-0013-000000000005")
+    );
+    public static final ImmutablePair<UUID, UUID> TWIN_CLASS_FIELD_I18N_OWNER_USER = ImmutablePair.of(
+            UUID.fromString("00000000-0000-0000-0012-000000000006"),
+            UUID.fromString("00000000-0000-0000-0013-000000000006")
+    );
+    public static final ImmutablePair<UUID, UUID> TWIN_CLASS_FIELD_I18N_ASSIGNEE_USER = ImmutablePair.of(
+            UUID.fromString("00000000-0000-0000-0012-000000000007"),
+            UUID.fromString("00000000-0000-0000-0013-000000000007")
+    );
+    public static final ImmutablePair<UUID, UUID> TWIN_CLASS_FIELD_I18N_CREATOR_USER = ImmutablePair.of(
+            UUID.fromString("00000000-0000-0000-0012-000000000008"),
+            UUID.fromString("00000000-0000-0000-0013-000000000008")
+    );
+    public static final ImmutablePair<UUID, UUID> TWIN_CLASS_FIELD_I18N_HEAD = ImmutablePair.of(
+            UUID.fromString("00000000-0000-0000-0012-000000000009"),
+            UUID.fromString("00000000-0000-0000-0013-000000000009")
+    );
+    public static final ImmutablePair<UUID, UUID> TWIN_CLASS_FIELD_I18N_STATUS = ImmutablePair.of(
+            UUID.fromString("00000000-0000-0000-0012-000000000010"),
+            UUID.fromString("00000000-0000-0000-0013-000000000010")
+    );
+    public static final ImmutablePair<UUID, UUID> TWIN_CLASS_FIELD_I18N_CREATED_AT = ImmutablePair.of(
+            UUID.fromString("00000000-0000-0000-0012-000000000011"),
+            UUID.fromString("00000000-0000-0000-0013-000000000011")
+    );
+
     public static final UUID TWIN_STATUS_USER = UUID.fromString("00000000-0000-0000-0003-000000000001");
     public static final UUID TWIN_STATUS_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0003-000000000003");
 
@@ -70,8 +115,8 @@ public class SystemEntityService {
                         "USER",
                         List.of(new SystemStatus(TWIN_STATUS_USER, TWIN_CLASS_USER)),
                         List.of(
-                                new SystemField(TWIN_CLASS_FIELD_USER_EMAIL, TWIN_CLASS_USER, 1318, "email", false),
-                                new SystemField(TWIN_CLASS_FIELD_USER_AVATAR, TWIN_CLASS_USER, 1319, "avatar", false)
+                                new SystemField(TWIN_CLASS_FIELD_USER_EMAIL, TWIN_CLASS_USER, TWIN_CLASS_FIELD_I18N_USER_EMAIL, 1318, "Email", "User email address", "email", false),
+                                new SystemField(TWIN_CLASS_FIELD_USER_AVATAR, TWIN_CLASS_USER, TWIN_CLASS_FIELD_I18N_USER_AVATAR, 1319, "Avatar", "User avatar image", "avatar", false)
                         )
                 ),
                 new SystemClass(
@@ -85,19 +130,22 @@ public class SystemEntityService {
                         "GLOBAL_ANCESTOR",
                         Collections.emptyList(),
                         List.of(
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_NAME, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1321, "base_name", false),
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_DESCRIPTION, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1321, "base_description", false),
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1321, "base_external_id", false),
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_OWNER_USER, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1322, "base_owner_user", false),
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1322, "base_assignee_user", false),
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_CREATOR_USER, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1322, "base_creator_user", false),
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_HEAD, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1323, "base_head", false),
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_STATUS, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1324, "base_status", false),
-                                new SystemField(TWIN_CLASS_FIELD_TWIN_CREATED_AT, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1325, "base_created_at", false)
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_NAME, TWIN_CLASS_GLOBAL_ANCESTOR, TWIN_CLASS_FIELD_I18N_TWIN_NAME, FeaturerTwins.ID_1321, "Name", "Twin name", "base_name", false),
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_DESCRIPTION, TWIN_CLASS_GLOBAL_ANCESTOR, TWIN_CLASS_FIELD_I18N_DESCRIPTION, FeaturerTwins.ID_1321, "Description", "Twin description", "base_description", false),
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID, TWIN_CLASS_GLOBAL_ANCESTOR, TWIN_CLASS_FIELD_I18N_EXTERNAL_ID, FeaturerTwins.ID_1321, "External ID", "External identifier", "base_external_id", false),
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_OWNER_USER, TWIN_CLASS_GLOBAL_ANCESTOR, TWIN_CLASS_FIELD_I18N_OWNER_USER, FeaturerTwins.ID_1322, "Owner", "Twin owner", "base_owner_user", false),
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER, TWIN_CLASS_GLOBAL_ANCESTOR, TWIN_CLASS_FIELD_I18N_ASSIGNEE_USER, FeaturerTwins.ID_1322, "Assignee", "Assigned user", "base_assignee_user", false),
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_CREATOR_USER, TWIN_CLASS_GLOBAL_ANCESTOR, TWIN_CLASS_FIELD_I18N_CREATOR_USER, FeaturerTwins.ID_1322, "Creator", "User who created the twin", "base_creator_user", false),
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_HEAD, TWIN_CLASS_GLOBAL_ANCESTOR, TWIN_CLASS_FIELD_I18N_HEAD, FeaturerTwins.ID_1323, "Head", "Head twin", "base_head", false),
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_STATUS, TWIN_CLASS_GLOBAL_ANCESTOR, TWIN_CLASS_FIELD_I18N_STATUS, FeaturerTwins.ID_1324, "Status", "Twin status", "base_status", false),
+                                new SystemField(TWIN_CLASS_FIELD_TWIN_CREATED_AT, TWIN_CLASS_GLOBAL_ANCESTOR, TWIN_CLASS_FIELD_I18N_CREATED_AT, FeaturerTwins.ID_1325, "Created At", "Creation timestamp", "base_created_at", false)
                         )
                 )
         ));
     }
+
+    private final I18nRepository i18nRepository;
+    private final I18nTranslationRepository i18nTranslationRepository;
 
     @PostConstruct
     public void postConstruct() throws ServiceException {
@@ -109,31 +157,50 @@ public class SystemEntityService {
 
         for (SystemClass systemClass : SYSTEM_CLASSES) {
             TwinClassEntity twinClassEntity = new TwinClassEntity()
-                    .setId(systemClass.getId())
-                    .setKey(systemClass.getKey())
+                    .setId(systemClass.id())
+                    .setKey(systemClass.key())
                     .setOwnerType(TwinClassEntity.OwnerType.SYSTEM)
                     .setCreatedByUserId(USER_SYSTEM)
                     .setCreatedAt(Timestamp.from(Instant.now()));
             entitySmartService.save(twinClassEntity.getId(), twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
 
             List<TwinStatusEntity> statusEntities = new ArrayList<>();
-            for (SystemStatus status : systemClass.getStatuses()) {
+            for (SystemStatus status : systemClass.statuses()) {
                 TwinStatusEntity statusEntity = new TwinStatusEntity()
-                        .setId(status.getId())
-                        .setTwinClassId(status.getTwinClassId());
+                        .setId(status.id())
+                        .setTwinClassId(status.twinClassId());
                 statusEntities.add(statusEntity);
             }
             entitySmartService.saveAllAndLog(statusEntities, twinStatusRepository);
 
+            List<I18nEntity> i18nEntities = new ArrayList<>();
+            List<I18nTranslationEntity> i18nTranslationEntities = new ArrayList<>();
             List<TwinClassFieldEntity> fieldEntities = new ArrayList<>();
-            for (SystemField field : systemClass.getFields()) {
+            for (SystemField field : systemClass.fields()) {
+                I18nEntity i18nName = new I18nEntity().setId(field.nameAndDescriptionI18nId().left).setType(I18nType.TWIN_CLASS_FIELD_NAME);
+                I18nTranslationEntity nameTranslation = new I18nTranslationEntity()
+                        .setLocale(Locale.forLanguageTag("en"))
+                        .setTranslation(field.translationName());
+                I18nEntity i18nDescription = new I18nEntity().setId(field.nameAndDescriptionI18nId().right).setType(I18nType.TWIN_CLASS_FIELD_DESCRIPTION);
+                I18nTranslationEntity descriptionTranslation = new I18nTranslationEntity()
+                        .setLocale(Locale.forLanguageTag("en"))
+                        .setTranslation(field.translationDescription());
                 TwinClassFieldEntity fieldEntity = new TwinClassFieldEntity()
-                        .setId(field.getId())
-                        .setTwinClassId(field.getTwinClassId())
-                        .setKey(field.getFieldKey())
-                                .setFieldTyperFeaturerId(field.fieldTyperId);
+                        .setId(field.id())
+                        .setTwinClassId(field.twinClassId())
+                        .setKey(field.fieldKey())
+                        .setNameI18nId(i18nName.getId())
+                        .setDescriptionI18nId(i18nDescription.getId())
+                        .setFieldTyperFeaturerId(field.fieldTyperId())
+                        .setRequired(field.required());
+                i18nEntities.add(i18nName);
+                i18nEntities.add(i18nDescription);
+                i18nTranslationEntities.add(nameTranslation);
+                i18nTranslationEntities.add(descriptionTranslation);
                 fieldEntities.add(fieldEntity);
             }
+            entitySmartService.saveAllAndLog(i18nEntities, i18nRepository);
+            entitySmartService.saveAllAndLog(i18nTranslationEntities, i18nTranslationRepository);
             entitySmartService.saveAllAndLog(fieldEntities, twinClassFieldRepository);
         }
 
@@ -166,8 +233,8 @@ public class SystemEntityService {
         if(!SYSTEM_TWIN_CLASS_FIELDS_UUIDS.isEmpty())
             return SYSTEM_TWIN_CLASS_FIELDS_UUIDS;
         for (SystemClass systemClass : SYSTEM_CLASSES)
-            for(SystemField systemField : systemClass.getFields())
-                SYSTEM_TWIN_CLASS_FIELDS_UUIDS.add(systemField.getId());
+            for(SystemField systemField : systemClass.fields())
+                SYSTEM_TWIN_CLASS_FIELDS_UUIDS.add(systemField.id());
         return SYSTEM_TWIN_CLASS_FIELDS_UUIDS;
     }
 
@@ -211,29 +278,9 @@ public class SystemEntityService {
         return twinEntity;
     }
 
-    @Data
-    @AllArgsConstructor
-    public static class SystemClass {
-        private UUID id;
-        private String key;
-        private List<SystemStatus> statuses;
-        private List<SystemField> fields;
-    }
+    public record SystemClass(UUID id, String key, List<SystemStatus> statuses, List<SystemField> fields) {}
 
-    @Data
-    @AllArgsConstructor
-    public static class SystemStatus {
-        private UUID id;
-        private UUID twinClassId;
-    }
+    public record SystemStatus(UUID id, UUID twinClassId) {}
 
-    @Data
-    @AllArgsConstructor
-    public static class SystemField {
-        private UUID id;
-        private UUID twinClassId;
-        private Integer fieldTyperId;
-        private String fieldKey;
-        private Boolean required;
-    }
+    public record SystemField(UUID id, UUID twinClassId, ImmutablePair<UUID, UUID> nameAndDescriptionI18nId, Integer fieldTyperId, String translationName, String translationDescription, String fieldKey, Boolean required) {}
 }
