@@ -60,8 +60,8 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Column(name = "edit_permission_id")
     private UUID editPermissionId;
 
-    @Column(name = "required")
-    private Boolean required;
+    @Column(name = "required", nullable = false)
+    private Boolean required; //not a primitive type because the update logic will break
 
     @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
