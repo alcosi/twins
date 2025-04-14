@@ -26,23 +26,23 @@ public class TransitionTriggerRabbitMqSendTwinForOperation extends TransitionTri
     private final AmpqManager ampqManager;
 
     @FeaturerParam(name = "Exchange", description = "Name of exchange")
-    public static final FeaturerParamString EXCHANGE = new FeaturerParamString("exchange");
+    public static final FeaturerParamString exchange = new FeaturerParamString("exchange");
 
     @FeaturerParam(name = "Queue", description = "Name of queue")
-    public static final FeaturerParamString QUEUE = new FeaturerParamString("queue");
+    public static final FeaturerParamString queue = new FeaturerParamString("queue");
 
     @FeaturerParam(name = "Operation", description = "Name of operation")
-    public static final FeaturerParamString OPERATION = new FeaturerParamString("operation");
+    public static final FeaturerParamString operation = new FeaturerParamString("operation");
 
 
     @Override
     public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) {
         log.debug("Sending to Rabbit");
         ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(
-                TransitionTriggerRabbitMqConnection.URL.extract(properties));
+                TransitionTriggerRabbitMqConnection.url.extract(properties));
 
-        Map<String, String> eventMap = Map.of( "twinId" ,twinEntity.getId().toString(), "operation", OPERATION.extract(properties));
-        ampqManager.sendMessage(factory, EXCHANGE.extract(properties), QUEUE.extract(properties), eventMap);
+        Map<String, String> eventMap = Map.of( "twinId" ,twinEntity.getId().toString(), "operation", operation.extract(properties));
+        ampqManager.sendMessage(factory, exchange.extract(properties), queue.extract(properties), eventMap);
         log.debug("Done sending to Rabbit");
     }
 }
