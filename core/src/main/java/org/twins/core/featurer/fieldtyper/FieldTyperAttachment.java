@@ -7,7 +7,7 @@ import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.twins.core.dao.attachment.TwinAttachmentEntity;
+import org.twins.core.dao.attachment.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
@@ -17,9 +17,11 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorAttachment;
 import org.twins.core.featurer.fieldtyper.value.FieldValueInvisible;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Properties;
+import java.util.*;
+
+import static org.twins.core.dao.attachment.AttachmentFileCreateUpdateProblem.*;
+import static org.twins.core.dao.attachment.AttachmentGlobalCreateDeleteProblem.MAX_COUNT_EXCEEDED;
+import static org.twins.core.dao.attachment.AttachmentGlobalCreateDeleteProblem.MIN_COUNT_NOT_REACHED;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1316,
@@ -58,5 +60,58 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
     @Override
     protected FieldValueInvisible deserializeValue(Properties properties, TwinField twinField) {
         return new FieldValueInvisible(twinField.getTwinClassField());
+    }
+
+    public void validate(TwinAttachmentEntity entity, AttachmentCUDValidateResult result, int totalCount, boolean alreadyExists) throws ServiceException {
+        FieldDescriptorAttachment descriptor = getFieldDescriptor(entity.getTwinClassField());
+
+        int minCountVal = descriptor.minCount();
+        int maxCountVal = descriptor.maxCount();
+        long fileSizeMbLimitVal = descriptor.fileSizeMbLimit();
+        String fileNameRegexpVal = descriptor.filenameRegExp();
+        String fileName = entity.getTitle();
+        String fileExtension = getFileExtension(fileName).toLowerCase();
+        List<String> allowedExtensions = descriptor.extensions();
+
+        if (minCountVal > 0 && minCountVal > totalCount) {
+            result.getCudProblems().getGlobalProblems().add(new AttachmentGlobalProblem().setProblem(MIN_COUNT_NOT_REACHED));
+        }
+
+        if (maxCountVal > 0 && maxCountVal < totalCount) {
+            result.getCudProblems().getGlobalProblems().add(new AttachmentGlobalProblem().setProblem(MAX_COUNT_EXCEEDED));
+        }
+
+        if (fileSizeMbLimitVal > 0 && entity.getSize() > fileSizeMbLimitVal) {
+            if (alreadyExists) {
+                result.getCudProblems().getUpdateProblems().add(new AttachmentUpdateProblem().setProblem(INVALID_SIZE));
+            } else {
+                result.getCudProblems().getCreateProblems().add(new AttachmentCreateProblem().setProblem(INVALID_SIZE));
+            }
+        }
+
+        if (!allowedExtensions.contains(fileExtension)) {
+            if (alreadyExists) {
+                result.getCudProblems().getUpdateProblems().add(new AttachmentUpdateProblem().setProblem(INVALID_TYPE));
+            } else {
+                result.getCudProblems().getCreateProblems().add(new AttachmentCreateProblem().setProblem(INVALID_TYPE));
+            }
+        }
+
+        if (!fileName.matches(fileNameRegexpVal)) {
+            if (alreadyExists) {
+                result.getCudProblems().getUpdateProblems().add(new AttachmentUpdateProblem().setProblem(INVALID_NAME));
+            } else {
+                result.getCudProblems().getCreateProblems().add(new AttachmentCreateProblem().setProblem(INVALID_NAME));
+            }
+        }
+    }
+
+
+    private String getFileExtension(String filename) {
+        if (filename == null) {
+            return "";
+        }
+        int lastDotIndex = filename.lastIndexOf('.');
+        return lastDotIndex == -1 ? "" : filename.substring(lastDotIndex + 1);
     }
 }
