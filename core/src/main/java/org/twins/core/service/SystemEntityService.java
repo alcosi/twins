@@ -99,13 +99,17 @@ public class SystemEntityService {
                         List.of(
                                 new SystemField(TWIN_CLASS_FIELD_USER_EMAIL, TWIN_CLASS_USER, 1318, new I18n(I18N_4CLASS_USER_FIELD_EMAIL_NAME, "Email"), new I18n(I18N_4CLASS_USER_FIELD_EMAIL_DESCRIPTION, "User email address"), "email", false),
                                 new SystemField(TWIN_CLASS_FIELD_USER_AVATAR, TWIN_CLASS_USER, 1319, new I18n(I18N_4CLASS_USER_FIELD_AVATAR_NAME, "Avatar"), new I18n(I18N_4CLASS_USER_FIELD_AVATAR_DESCRIPTION, "User avatar image"),  "avatar", false)
-                        )
+                        ),
+                        false,
+                        true
                 ),
                 new SystemClass(
                         TWIN_CLASS_BUSINESS_ACCOUNT,
                         "BUSINESS_ACCOUNT",
                         List.of(new SystemStatus(TWIN_STATUS_BUSINESS_ACCOUNT, TWIN_CLASS_BUSINESS_ACCOUNT, new I18n(I18N_4CLASS_BUSINESS_ACCOUNT_STATUS_NAME, "Business Account"), new I18n(I18N_4CLASS_BUSINESS_ACCOUNT_STATUS_DESCRIPTION, "Business Account status"))),
-                        List.of()
+                        List.of(),
+                        false,
+                        false
                 ),
                 new SystemClass(
                         TWIN_CLASS_GLOBAL_ANCESTOR,
@@ -121,7 +125,9 @@ public class SystemEntityService {
                                 new SystemField(TWIN_CLASS_FIELD_TWIN_HEAD, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1323, new I18n(I18N_4CLASS_GLOBAL_ANCESTOR_FIELD_HEAD_NAME, "Head"), new I18n(I18N_4CLASS_GLOBAL_ANCESTOR_FIELD_HEAD_DESCRIPTION, "Head twin"), "base_head", false),
                                 new SystemField(TWIN_CLASS_FIELD_TWIN_STATUS, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1324, new I18n(I18N_4CLASS_GLOBAL_ANCESTOR_FIELD_STATUS_NAME, "Status"), new I18n(I18N_4CLASS_GLOBAL_ANCESTOR_FIELD_STATUS_DESCRIPTION, "Twin status"), "base_status", false),
                                 new SystemField(TWIN_CLASS_FIELD_TWIN_CREATED_AT, TWIN_CLASS_GLOBAL_ANCESTOR, FeaturerTwins.ID_1325, new I18n(I18N_4CLASS_GLOBAL_ANCESTOR_FIELD_CREATED_AT_NAME, "Created At"), new I18n(I18N_4CLASS_GLOBAL_ANCESTOR_FIELD_CREATED_AT_DESCRIPTION, "Creation timestamp"), "base_created_at", false)
-                        )
+                        ),
+                        true,
+                        false
                 )
         ));
     }
@@ -147,8 +153,10 @@ public class SystemEntityService {
                     .setKey(systemClass.key())
                     .setOwnerType(TwinClassEntity.OwnerType.SYSTEM)
                     .setCreatedByUserId(USER_SYSTEM)
+                    .setAbstractt(systemClass.abstractt())
+                    .setAssigneeRequired(systemClass.assigneeRequired)
                     .setCreatedAt(Timestamp.from(Instant.now()));
-            entitySmartService.save(twinClassEntity.getId(), twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
+            entitySmartService.save(twinClassEntity.getId(), twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndLogOnException);
 
 
             for (SystemStatus status : systemClass.statuses()) {
@@ -277,7 +285,7 @@ public class SystemEntityService {
         return twinEntity;
     }
 
-    public record SystemClass(UUID id, String key, List<SystemStatus> statuses, List<SystemField> fields) {}
+    public record SystemClass(UUID id, String key, List<SystemStatus> statuses, List<SystemField> fields, boolean abstractt, boolean assigneeRequired) {}
 
     public record SystemStatus(UUID id, UUID twinClassId, I18n name, I18n description) {}
 
