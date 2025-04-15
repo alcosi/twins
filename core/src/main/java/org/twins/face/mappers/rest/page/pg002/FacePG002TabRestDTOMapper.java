@@ -1,6 +1,7 @@
 package org.twins.face.mappers.rest.page.pg002;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.util.StringUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -32,7 +33,7 @@ public class FacePG002TabRestDTOMapper extends RestSimpleDTOMapper<FacePG002TabE
                     .setTitle(i18nService.translateToLocale(src.getTitleI18nId()));
             case DETAILED -> dst
                     .setId(src.getId())
-                    .setLayout(src.getLayoutContainer())
+                    .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "))
                     .setTitle(i18nService.translateToLocale(src.getTitleI18nId()));
         }
         if (mapperContext.hasModeButNot(FacePG002Modes.FacePG002TabWidgetCollectionMode.HIDE)) {

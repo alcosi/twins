@@ -27,6 +27,9 @@ public class FacePG002Entity implements EasyLoggable {
     @Column(name = "face_page_pg002_layout_id")
     @Enumerated(EnumType.STRING)
     private Layout layout;
+
+    @Column(name = "style_classes")
+    private String styleClasses;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)

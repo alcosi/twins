@@ -3,10 +3,9 @@ package org.twins.face.dto.rest.page.pg002;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.face.ContainerLayout;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -23,10 +22,7 @@ public class FacePG002TabDTOv1 {
     public String icon;
 
     @Schema(description = "page layout")
-    public ContainerLayout layoutContainer;
-
-    @Schema(description = "page layout")
-    public Map<String, String> layoutContainerAttributes;
+    public Set<String> styleClasses;
 
     @Deprecated
     @Schema(description = "tab layout")

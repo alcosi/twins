@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 
-import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -16,7 +16,7 @@ public class FacePG002WidgetDTOv1 {
     public UUID id;
 
     @Schema(description = "page layout")
-    public Map<String, String> containerItemAttributes;
+    public Set<String> styleClasses;
 
     @Deprecated
     @Schema(description = "column id")

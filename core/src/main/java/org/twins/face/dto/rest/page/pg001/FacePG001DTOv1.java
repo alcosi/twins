@@ -3,11 +3,10 @@ package org.twins.face.dto.rest.page.pg001;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.face.ContainerLayout;
 import org.twins.core.dto.rest.face.FaceDTOv1;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 @Data
 @Accessors(chain = true)
@@ -17,10 +16,7 @@ public class FacePG001DTOv1 extends FaceDTOv1 {
     public String title;
 
     @Schema(description = "page layout")
-    public ContainerLayout layoutContainer;
-
-    @Schema(description = "page layout")
-    public Map<String, String> layoutContainerAttributes;
+    public Set<String> styleClasses;
 
     @Deprecated
     @Schema(description = "page layout")
