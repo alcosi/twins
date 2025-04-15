@@ -23,15 +23,8 @@ public class FacePG001WidgetEntity implements EasyLoggable {
     @Column(name = "widget_face_id")
     private UUID widgetFaceId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
-    private FaceEntity face;
-
-    @Column(name = "column", nullable = false)
-    private Integer column;
-
-    @Column(name = "row", nullable = false)
-    private Integer row;
+    @Column(name = "style_classes")
+    private String styleClasses;
 
     @Column(name = "active", nullable = false)
     private boolean active;

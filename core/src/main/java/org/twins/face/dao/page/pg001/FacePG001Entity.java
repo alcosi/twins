@@ -24,9 +24,8 @@ public class FacePG001Entity implements EasyLoggable {
     @Column(name = "title_i18n_id")
     private UUID titleI18nId;
 
-    @Column(name = "face_page_pg001_layout_id")
-    @Enumerated(EnumType.STRING)
-    private Layout layout;
+    @Column(name = "style_classes")
+    private String styleClasses;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
@@ -51,7 +50,4 @@ public class FacePG001Entity implements EasyLoggable {
         }
     }
 
-    public enum Layout {
-        ONE_COLUMN, TWO_COLUMNS, THREE_COLUMNS
-    }
 }

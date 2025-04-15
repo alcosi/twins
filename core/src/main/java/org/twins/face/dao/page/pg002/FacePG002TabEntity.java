@@ -28,9 +28,8 @@ public class FacePG002TabEntity implements EasyLoggable {
     @Column(name = "title_i18n_id")
     private UUID titleI18nId;
 
-    @Column(name = "face_page_pg002_tab_layout_id")
-    @Enumerated(EnumType.STRING)
-    private Layout layout;
+    @Column(name = "style_classes")
+    private String styleClasses;
 
     @Column(name = "active", nullable = false)
     private boolean active;
@@ -63,9 +62,5 @@ public class FacePG002TabEntity implements EasyLoggable {
             default:
                 return "facePG002Tab[id:" + faceId + ", componentId:" + face.getFaceComponentId() + "]";
         }
-    }
-
-    public enum Layout {
-        ONE_COLUMN, TWO_COLUMNS, THREE_COLUMNS
     }
 }
