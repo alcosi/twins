@@ -1,11 +1,14 @@
 package org.twins.face.dao.page.pg002;
 
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.Type;
 import org.twins.core.dao.face.FaceEntity;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 @Getter
@@ -27,11 +30,9 @@ public class FacePG002WidgetEntity implements EasyLoggable {
     @JoinColumn(name = "face_page_pg002_tab_id", nullable = false, insertable = false, updatable = false)
     private FacePG002TabEntity facePagePG002Tab;
 
-    @Column(name = "column", nullable = false)
-    private Integer column;
-
-    @Column(name = "row", nullable = false)
-    private Integer row;
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "layout_container_item_attributes", columnDefinition = "hstore")
+    private HashMap<String, String> containerItemAttributes;
 
     @Column(name = "active", nullable = false)
     private boolean active;

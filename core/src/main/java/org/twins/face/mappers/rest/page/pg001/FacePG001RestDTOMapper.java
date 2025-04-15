@@ -31,7 +31,8 @@ public class FacePG001RestDTOMapper extends RestSimpleDTOMapper<FacePG001Entity,
             case SHORT -> dst
                     .setTitle(i18nService.translateToLocale(src.getTitleI18nId()));
             case DETAILED -> dst
-                    .setLayout(src.getLayout())
+                    .setLayoutContainer(src.getLayoutContainer())
+                    .setLayoutContainerAttributes(src.getLayoutContainerAttributes())
                     .setTitle(i18nService.translateToLocale(src.getTitleI18nId()));
         }
         if (mapperContext.hasModeButNot(FacePG001Modes.FacePG001WidgetCollectionMode.HIDE)) {

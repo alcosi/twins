@@ -22,6 +22,7 @@ public class FacePG002WidgetRestDTOMapper extends RestSimpleDTOMapper<FacePG002W
         dst
                 .setId(src.getId())
                 .setWidgetFaceId(src.getWidgetFaceId())
+                .setContainerItemAttributes(src.getContainerItemAttributes())
                 .setColumn(src.getColumn())
                 .setRow(src.getRow())
                 .setActive(src.isActive());
