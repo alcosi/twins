@@ -39,6 +39,6 @@ public class FaceNB001MenuItemDTOv1 {
     @Schema(description = "parent face menu item id")
     public UUID parentFaceMenuItemId;
 
-    @Schema(description = "childs")
+    @Schema(description = "children")
     public List<FaceNB001MenuItemDTOv1> children;
 }
