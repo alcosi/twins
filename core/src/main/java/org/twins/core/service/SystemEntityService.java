@@ -153,7 +153,7 @@ public class SystemEntityService {
                     .setKey(systemClass.key())
                     .setOwnerType(TwinClassEntity.OwnerType.SYSTEM)
                     .setCreatedByUserId(USER_SYSTEM)
-                    .setAbstractt(systemClass.abstractt())
+                    .setAbstractt(systemClass.abstractt)
                     .setAssigneeRequired(systemClass.assigneeRequired)
                     .setCreatedAt(Timestamp.from(Instant.now()));
             entitySmartService.save(twinClassEntity.getId(), twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndLogOnException);
