@@ -35,6 +35,14 @@ public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldE
     @Cacheable(value = CACHE_TWIN_CLASS_FIELD_BY_KEY_AND_TWIN_CLASS_ID_IN, key = "#key + '' + T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#twinClassIds)")
     TwinClassFieldEntity findByKeyAndTwinClassIdIn(String key, Collection<UUID> twinClassIds);
 
+    String CACHE_TWIN_CLASS_FIELD_BY_KEYS_AND_TWIN_CLASS_ID_IN = "TwinClassFieldRepository.findByKeyInAndTwinClassIdIn";
+    @Cacheable(value = CACHE_TWIN_CLASS_FIELD_BY_KEYS_AND_TWIN_CLASS_ID_IN, key = "T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#keys) + '' + T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#twinClassIds)")
+    List<TwinClassFieldEntity> findByKeyInAndTwinClassIdIn(Collection<String> keys, Collection<UUID> twinClassIds);
+
+    String CACHE_TWIN_CLASS_FIELD_BY_IDS_AND_TWIN_CLASS_ID_IN = "TwinClassFieldRepository.findByIdInAndTwinClassIdIn";
+    @Cacheable(value = CACHE_TWIN_CLASS_FIELD_BY_IDS_AND_TWIN_CLASS_ID_IN, key = "T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#ids) + '' + T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#twinClassIds)")
+    List<TwinClassFieldEntity> findByIdInAndTwinClassIdIn(Collection<UUID> ids, Collection<UUID> twinClassIds);
+
     TwinClassFieldEntity findByTwinClass_KeyAndKey(String twinClassKey, String key);
 
     String CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_PARENT_KEY = "TwinClassFieldRepository.findByTwinClassIdAndParentKey";

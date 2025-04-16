@@ -23,6 +23,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorDate;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -42,8 +43,6 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
 
     @FeaturerParam(name = "DaysFuture", description = "number of days in the futures", optional = true, defaultValue = "-1")
     public static final FeaturerParamInt daysFuture = new FeaturerParamInt("daysFuture");
-
-    private static final String DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 
     @Override
     public FieldDescriptorDate getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -82,22 +81,22 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
         return Specification.where(TwinSpecification.checkFieldDate(search));
     }
 
-    public void validateValue(String value, Properties params) throws ServiceException {
-        LocalDateTime dateValue = parseDateTime(value);
-        LocalDateTime now = LocalDateTime.now();
+    public void validateValue(String value, Properties properties) throws ServiceException {
+        LocalDate dateValue = parseDateTime(value, properties);
+        LocalDate now = LocalDate.now();
 
-        Integer minDays = FieldTyperDateScroll.daysPast.extract(params);
+        Integer minDays = FieldTyperDateScroll.daysPast.extract(properties);
         if (minDays != null && minDays >= 0) {
-            LocalDateTime minDate = now.minusDays(minDays);
+            LocalDate minDate = now.minusDays(minDays);
             if (dateValue.isBefore(minDate)) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
                         "Date value [" + dateValue + "] is more than " + minDays + " days in the past");
             }
         }
 
-        Integer maxDays = FieldTyperDateScroll.daysFuture.extract(params);
+        Integer maxDays = FieldTyperDateScroll.daysFuture.extract(properties);
         if (maxDays != null && maxDays >= 0) {
-            LocalDateTime maxDate = now.plusDays(maxDays);
+            LocalDate maxDate = now.plusDays(maxDays);
             if (dateValue.isAfter(maxDate)) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
                         "Date value [" + dateValue + "] is more than " + maxDays + " days in the future");
@@ -105,12 +104,12 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
         }
     }
 
-    private LocalDateTime parseDateTime(String value) throws ServiceException {
+    private LocalDate parseDateTime(String value, Properties properties) throws ServiceException {
         try {
-            return LocalDateTime.parse(value, DateTimeFormatter.ofPattern(DATETIME_PATTERN));
+            return LocalDate.parse(value, DateTimeFormatter.ofPattern(pattern.extract(properties)));
         } catch (DateTimeParseException e) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
-                    "Value [" + value + "] is not a valid datetime in format " + DATETIME_PATTERN);
+                    "Value [" + value + "] is not a valid datetime in format " + pattern.extract(properties));
         }
     }
 }

@@ -1,14 +1,16 @@
 package org.twins.face.dao.widget.wt001;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
-import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -44,8 +46,10 @@ public class FaceWT001Entity implements EasyLoggable{
     @JoinColumn(name = "twin_class_id", nullable = false, insertable = false, updatable = false)
     private TwinClassEntity twinClass;
 
-    @Column(name = "show_columns")
-    private List<String> showColumns;
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    Kit<FaceWT001ColumnEntity, UUID> columns;
 
     @Override
     public String easyLog(EasyLoggable.Level level) {

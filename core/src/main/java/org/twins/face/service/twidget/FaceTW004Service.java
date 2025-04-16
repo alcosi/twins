@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.service.face.FaceService;
 import org.twins.core.service.face.FaceTwidgetService;
-import org.twins.face.dao.twiget.tw004.FaceTW004Entity;
-import org.twins.face.dao.twiget.tw004.FaceTW004Repository;
+import org.twins.face.dao.twidget.tw004.FaceTW004Entity;
+import org.twins.face.dao.twidget.tw004.FaceTW004Repository;
 
 import java.util.UUID;
 import java.util.function.Function;

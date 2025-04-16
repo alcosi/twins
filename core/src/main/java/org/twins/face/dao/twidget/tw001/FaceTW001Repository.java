@@ -1,4 +1,4 @@
-package org.twins.face.dao.twiget.tw001;
+package org.twins.face.dao.twidget.tw001;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;

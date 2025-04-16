@@ -3,7 +3,7 @@ package org.cambium.common.util;
 import org.apache.commons.lang3.text.StrLookup;
 import org.apache.commons.lang3.text.StrSubstitutor;
 
-import java.util.Map;
+import java.util.*;
 
 public class StringUtils extends org.apache.commons.lang3.StringUtils {
     public static String replaceVariables(String str, Map<String, String> map) {
@@ -43,5 +43,11 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
             default:
                 return "\t\t\t\t\t\t";
         }
+    }
+
+    public static Set<String> splitToSet(String str, String delimiter) {
+        if (isEmpty(str))
+            return Collections.EMPTY_SET;
+        return new HashSet<>(Arrays.asList(str.split(delimiter)));
     }
 }

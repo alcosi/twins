@@ -1,5 +1,8 @@
 package org.cambium.common.util;
 
+import org.cambium.common.exception.ServiceException;
+import org.twins.core.exception.ErrorCodeTwins;
+
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -8,6 +11,16 @@ public class UuidUtils {
 
     public static String toString(UUID uuid) {
         return uuid == null ? "" : uuid.toString();
+    }
+
+    public static UUID fromString(String uuidStr) throws ServiceException {
+        UUID uuid;
+        try {
+            uuid = UUID.fromString(uuidStr);
+        } catch (Exception e) {
+            throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "incorrect UUID[" + uuidStr + "]");
+        }
+        return uuid;
     }
 
     public static final Pattern UUID_REGEX =

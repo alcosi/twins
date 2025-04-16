@@ -20,7 +20,7 @@ import org.twins.core.domain.face.TwidgetConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.face.dao.twiget.tw001.FaceTW001Entity;
+import org.twins.face.dao.twidget.tw001.FaceTW001Entity;
 import org.twins.face.dto.rest.twidget.tw001.FaceTW001ViewRsDTOv1;
 import org.twins.face.mappers.rest.twidget.tw001.FaceTW001RestDTOMapper;
 import org.twins.face.service.twidget.FaceTW001Service;
