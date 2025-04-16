@@ -43,8 +43,6 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     @FeaturerParam(name = "DaysFuture", description = "number of days in the futures", optional = true, defaultValue = "-1")
     public static final FeaturerParamInt daysFuture = new FeaturerParamInt("daysFuture");
 
-    private static final String DATETIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
-
     @Override
     public FieldDescriptorDate getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new FieldDescriptorDate()
@@ -82,11 +80,11 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
         return Specification.where(TwinSpecification.checkFieldDate(search));
     }
 
-    public void validateValue(String value, Properties params) throws ServiceException {
-        LocalDateTime dateValue = parseDateTime(value);
+    public void validateValue(String value, Properties properties) throws ServiceException {
+        LocalDateTime dateValue = parseDateTime(value, properties);
         LocalDateTime now = LocalDateTime.now();
 
-        Integer minDays = FieldTyperDateScroll.daysPast.extract(params);
+        Integer minDays = FieldTyperDateScroll.daysPast.extract(properties);
         if (minDays != null && minDays >= 0) {
             LocalDateTime minDate = now.minusDays(minDays);
             if (dateValue.isBefore(minDate)) {
@@ -95,7 +93,7 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
             }
         }
 
-        Integer maxDays = FieldTyperDateScroll.daysFuture.extract(params);
+        Integer maxDays = FieldTyperDateScroll.daysFuture.extract(properties);
         if (maxDays != null && maxDays >= 0) {
             LocalDateTime maxDate = now.plusDays(maxDays);
             if (dateValue.isAfter(maxDate)) {
@@ -105,12 +103,12 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
         }
     }
 
-    private LocalDateTime parseDateTime(String value) throws ServiceException {
+    private LocalDateTime parseDateTime(String value, Properties properties) throws ServiceException {
         try {
-            return LocalDateTime.parse(value, DateTimeFormatter.ofPattern(DATETIME_PATTERN));
+            return LocalDateTime.parse(value, DateTimeFormatter.ofPattern(pattern.extract(properties)));
         } catch (DateTimeParseException e) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
-                    "Value [" + value + "] is not a valid datetime in format " + DATETIME_PATTERN);
+                    "Value [" + value + "] is not a valid datetime in format " + pattern.extract(properties));
         }
     }
 }
