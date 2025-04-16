@@ -35,6 +35,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     }
 
     public abstract CrudRepository<T, UUID> entityRepository();
+
     public abstract Function<T, UUID> entityGetIdFunction();
 
     public Optional<T> findByKey(String key) throws ServiceException {
@@ -139,7 +140,8 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
                     entity = (T) requestAttributes.getAttribute(requestCacheKey, RequestAttributes.SCOPE_REQUEST);
                     if (entity == null) {
                         entity = findEntitySafeUncached(entityId);
-                        if (entity != null) requestAttributes.setAttribute(requestCacheKey, entity, RequestAttributes.SCOPE_REQUEST);
+                        if (entity != null)
+                            requestAttributes.setAttribute(requestCacheKey, entity, RequestAttributes.SCOPE_REQUEST);
                     }
                 }
             }
@@ -242,7 +244,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             }
         }
         if (CollectionUtils.isNotEmpty(entityList))
-           return entitySmartService.saveAllAndLogChanges(entityList, entityRepository(), changes);
+            return entitySmartService.saveAllAndLogChanges(entityList, entityRepository(), changes);
         else
             return Collections.emptyList();
     }
