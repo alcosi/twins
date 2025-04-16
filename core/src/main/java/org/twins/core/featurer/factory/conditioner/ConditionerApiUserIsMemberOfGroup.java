@@ -31,6 +31,7 @@ public class ConditionerApiUserIsMemberOfGroup extends Conditioner {
     @Autowired
     AuthService authService;
 
+    @Lazy
     @Autowired
     private UserGroupService userGroupService;
 

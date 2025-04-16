@@ -31,6 +31,7 @@ public class TwinValidatorApiUserIsMemberOfGroup extends TwinValidator {
     @Autowired
     AuthService authService;
 
+    @Lazy
     @Autowired
     private UserGroupService userGroupService;
 
