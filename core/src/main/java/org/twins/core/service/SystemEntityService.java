@@ -24,6 +24,8 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 
+import static org.cambium.common.util.LTreeUtils.convertToLTreeFormat;
+
 @Service
 @Slf4j
 @Lazy
@@ -154,6 +156,7 @@ public class SystemEntityService {
                     .setOwnerType(TwinClassEntity.OwnerType.SYSTEM)
                     .setCreatedByUserId(USER_SYSTEM)
                     .setAbstractt(systemClass.abstractt)
+                    .setExtendsHierarchyTree(convertToLTreeFormat(systemClass.id))
                     .setAssigneeRequired(systemClass.assigneeRequired)
                     .setCreatedAt(Timestamp.from(Instant.now()));
             entitySmartService.save(twinClassEntity.getId(), twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndLogOnException);
