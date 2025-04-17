@@ -16,5 +16,18 @@ public class DomainUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Domain
     @Override
     public void map(DomainUpdateDTOv1 src, DomainEntity dst, MapperContext mapperContext) throws Exception {
         domainSaveRestDTOReverseMapper.map(src, dst, mapperContext);
+        dst
+                .setBusinessAccountInitiatorFeaturerId(src.getBusinessAccountInitiatorFeaturerId())
+                .setBusinessAccountInitiatorParams(src.getBusinessAccountInitiatorParams())
+                .setUserGroupManagerFeaturerId(src.getUserGroupManagerFeaturerId())
+                .setUserGroupManagerParams(src.getUserGroupManagerParams())
+                .setPermissionSchemaId(src.getPermissionSchemaId())
+                .setTwinClassSchemaId(src.getTwinClassSchemaId())
+                .setBusinessAccountTemplateTwinId(src.getBusinessAccountTemplateTwinId())
+                .setDefaultTierId(src.getDefaultTierId())
+                .setDomainUserTemplateTwinId(src.getDomainUserTemplateTwinId())
+                .setIconDarkResourceId(src.getIconDarkResourceId())
+                .setIconLightResourceId(src.getIconLightResourceId())
+                .setNavbarFaceId(src.getNavbarFaceId());
     }
 }

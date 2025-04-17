@@ -26,20 +26,8 @@ public class DomainSaveRestDTOReverseMapper extends RestSimpleDTOMapper<DomainSa
         dst
                 .setName(src.getName())
                 .setDescription(src.getDescription())
-                .setBusinessAccountInitiatorFeaturerId(src.getBusinessAccountInitiatorFeaturerId())
-                .setBusinessAccountInitiatorParams(src.getBusinessAccountInitiatorParams())
-                .setUserGroupManagerFeaturerId(src.getUserGroupManagerFeaturerId())
-                .setUserGroupManagerParams(src.getUserGroupManagerParams())
-                .setPermissionSchemaId(src.getPermissionSchemaId())
-                .setTwinClassSchemaId(src.getTwinClassSchemaId())
-                .setBusinessAccountTemplateTwinId(src.getBusinessAccountTemplateTwinId())
-                .setDefaultTierId(src.getDefaultTierId())
-                .setDomainUserTemplateTwinId(src.getDomainUserTemplateTwinId())
-                .setIconDarkResourceId(src.getIconDarkResourceId())
-                .setIconLightResourceId(src.getIconLightResourceId())
                 .setResourcesStorageId(src.getResourceStorageId() == null ? defaultResourceStorageId : src.getResourceStorageId())
                 .setAttachmentsStorageId(src.getAttachmentStorageId() == null ? defaultAttachmentStorageId : src.getAttachmentStorageId())
-                .setNavbarFaceId(src.getNavbarFaceId())
                 .setDefaultI18nLocaleId(i18nService.localeFromTagOrSystemDefault(src.getDefaultLocale()));
     }
 }
