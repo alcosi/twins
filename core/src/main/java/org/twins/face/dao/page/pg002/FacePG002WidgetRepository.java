@@ -10,5 +10,5 @@ import java.util.UUID;
 
 @Repository
 public interface FacePG002WidgetRepository extends CrudRepository<FacePG002WidgetEntity, UUID>, JpaSpecificationExecutor<FacePG002WidgetEntity> {
-    Collection<FacePG002WidgetEntity> findByFacePagePG002TabIdIn(Set<UUID> idSet);
+    Collection<FacePG002WidgetEntity> findByFacePagePG002TabIdInAndActiveTrue(Set<UUID> idSet);
 }

@@ -4,9 +4,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.face.FaceDTOv1;
-import org.twins.face.dao.page.pg001.FacePG001Entity;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 @Accessors(chain = true)
@@ -16,7 +16,11 @@ public class FacePG001DTOv1 extends FaceDTOv1 {
     public String title;
 
     @Schema(description = "page layout")
-    public FacePG001Entity.Layout layout;
+    public Set<String> styleClasses;
+
+    @Deprecated
+    @Schema(description = "page layout")
+    public String layout = "TWO_COLUMNS"; //todo delete me after UI update
 
     @Schema(description = "page widgets list")
     public List<FacePG001WidgetDTOv1> widgets;

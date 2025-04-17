@@ -13,10 +13,10 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.service.face.FaceService;
 import org.twins.core.service.face.FaceTwidgetService;
-import org.twins.face.dao.twiget.tw002.FaceTW002AccordionItemEntity;
-import org.twins.face.dao.twiget.tw002.FaceTW002AccordionItemRepository;
-import org.twins.face.dao.twiget.tw002.FaceTW002Entity;
-import org.twins.face.dao.twiget.tw002.FaceTW002Repository;
+import org.twins.face.dao.twidget.tw002.FaceTW002AccordionItemEntity;
+import org.twins.face.dao.twidget.tw002.FaceTW002AccordionItemRepository;
+import org.twins.face.dao.twidget.tw002.FaceTW002Entity;
+import org.twins.face.dao.twidget.tw002.FaceTW002Repository;
 
 import java.util.Collection;
 import java.util.Collections;

@@ -1,9 +1,5 @@
 package org.twins.core.service.twin;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.json.JsonReadFeature;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -483,6 +479,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void checkCreatePermission(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {
+        if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_CREATE_ANY))
+            return;
         UUID createPermissionId = detectCreatePermissionId(twinEntity);
         if (null == createPermissionId)
             return;
@@ -498,6 +496,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void checkUpdatePermission(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {
+        if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_CREATE_ANY))
+            return;
         UUID updatePermissionId = detectUpdatePermissionId(twinEntity);
         if (null == updatePermissionId)
             return;
@@ -666,12 +666,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public void updateTwinAssignee(ChangesRecorder<TwinEntity, ?> changesRecorder) throws ServiceException {
         if (changesRecorder.isChanged("assignerUser", changesRecorder.getDbEntity().getAssignerUserId(), changesRecorder.getUpdateEntity().getAssignerUserId())) {
-            checkAssignee(changesRecorder.getDbEntity(), changesRecorder.getUpdateEntity().getAssignerUserId());
             UserEntity newAssignee = null;
             if (!UuidUtils.isNullifyMarker(changesRecorder.getUpdateEntity().getAssignerUserId())) {
-                checkAssignee(changesRecorder.getDbEntity(), changesRecorder.getUpdateEntity().getAssignerUserId());
                 newAssignee = changesRecorder.getUpdateEntity().getAssignerUser();
             }
+            checkAssignee(changesRecorder.getDbEntity(), newAssignee != null ? newAssignee.getId() : null);
             if (changesRecorder.isHistoryCollectorEnabled())
                 changesRecorder.getHistoryCollector().add(historyService.assigneeChanged(changesRecorder.getDbEntity().getAssignerUser(), newAssignee));
             if (changesRecorder.getRecorder() instanceof DraftTwinPersistEntity draftTwinPersistEntity)
@@ -1005,6 +1004,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                         .setId(userUUID));
             }
         }
+        if (fieldValue instanceof FieldValueUserSingle fieldValueUser) {
+            UUID userId = UuidUtils.fromString(value);
+            fieldValueUser.setUser(new UserEntity().setId(userId));
+        }
+        if (fieldValue instanceof FieldValueStatusSingle fieldValueStatus) {
+            UUID statusId = UuidUtils.fromString(value);
+            fieldValueStatus.setStatus(new TwinStatusEntity().setId(statusId));
+        }
         if (fieldValue instanceof FieldValueLink fieldValueLink) {
             for (String dstTwinId : value.split(FieldTyperList.LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(dstTwinId))
@@ -1018,6 +1025,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 ((FieldValueLink) fieldValue).add(new TwinLinkEntity()
                         .setDstTwinId(dstTwinUUID));
             }
+        }
+        if (fieldValue instanceof FieldValueLinkSingle fieldValueLink) {
+            UUID twinId = UuidUtils.fromString(value);
+            fieldValueLink.setDstTwin(new TwinEntity().setId(twinId));
         }
         if (fieldValue instanceof FieldValueI18n fieldValueI18n) {
             Map<Locale, String> translations = JsonUtils.jsonToTranslationsMap(value);

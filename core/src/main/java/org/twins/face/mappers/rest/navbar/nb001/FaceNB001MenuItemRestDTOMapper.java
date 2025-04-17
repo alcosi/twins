@@ -1,9 +1,7 @@
 package org.twins.face.mappers.rest.navbar.nb001;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
@@ -43,9 +41,9 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
                 .setDisabled(src.getStatus() == FaceNB001MenuItemEntity.Status.DISABLED) //todo
                 .setIcon(resourceService.getResourceUri(src.getIconResource()))
                 .setTargetPageFaceId(src.getTargetPageFaceId())
-                .setPermissionId(src.getPermissionId())
+                .setGuardedByPermissionId(src.getPermissionId())
                 .setParentFaceMenuItemId(src.getParentFaceMenuItemId())
-                .setChilds(convertCollection(src.getChilds())); //be afraid of endless looping!
+                .setChildren(convertCollection(src.getChilds())); //be afraid of endless looping!
 
 
         if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItem2FaceMode.HIDE)) {
@@ -61,7 +59,5 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
     public void beforeCollectionConversion(Collection<FaceNB001MenuItemEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
         faceNB001MenuItemService.loadChilds(srcCollection);
-
     }
-
 }

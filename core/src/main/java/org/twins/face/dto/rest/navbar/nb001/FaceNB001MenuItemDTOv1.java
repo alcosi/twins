@@ -34,11 +34,11 @@ public class FaceNB001MenuItemDTOv1 {
     public UUID targetPageFaceId;
 
     @Schema(description = "permission id")
-    public UUID permissionId;
+    public UUID guardedByPermissionId;
 
     @Schema(description = "parent face menu item id")
     public UUID parentFaceMenuItemId;
 
-    @Schema(description = "childs")
-    public List<FaceNB001MenuItemDTOv1> childs;
+    @Schema(description = "children")
+    public List<FaceNB001MenuItemDTOv1> children;
 }

@@ -67,7 +67,7 @@ public class FaceNB001Service extends EntitySecureFindServiceImpl<FaceNB001Entit
         if (needLoad.isEmpty())
             return;
         KitGrouped<FaceNB001MenuItemEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                faceNB001MenuItemRepository.findByFaceIdIn(needLoad.getIdSet()), FaceNB001MenuItemEntity::getId, FaceNB001MenuItemEntity::getFaceId);
+                faceNB001MenuItemRepository.findByFaceIdInAndParentFaceMenuItemIdIsNull(needLoad.getIdSet()), FaceNB001MenuItemEntity::getId, FaceNB001MenuItemEntity::getFaceId);
         for (var entry : loadedKit.getGroupedMap().entrySet()) {
             needLoad.get(entry.getKey()).getMenuItems().addAll(entry.getValue());
         }

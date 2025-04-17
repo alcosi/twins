@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.i18n.I18nService;
-import org.twins.face.dao.twiget.tw002.FaceTW002AccordionItemEntity;
+import org.twins.face.dao.twidget.tw002.FaceTW002AccordionItemEntity;
 import org.twins.face.dto.rest.twidget.tw002.FaceTW002AccordionItemDTOv1;
 
 
