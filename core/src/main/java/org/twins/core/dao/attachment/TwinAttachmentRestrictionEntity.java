@@ -23,6 +23,9 @@ public class TwinAttachmentRestrictionEntity {
         }
     }
 
+    @Column(name = "domain_id")
+    private UUID domainId;
+
     @Column(name = "min_count")
     private int minCount;
 
