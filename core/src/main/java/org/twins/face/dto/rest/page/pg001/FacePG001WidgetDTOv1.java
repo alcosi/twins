@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -14,11 +15,16 @@ public class FacePG001WidgetDTOv1 {
     @Schema(description = "uniq id", example = DTOExamples.FACE_ID)
     public UUID id;
 
-    @Schema(description = "column id")
-    public Integer column;
+    @Schema(description = "page layout")
+    public Set<String> styleClasses;
 
+    @Deprecated
+    @Schema(description = "column id")
+    public Integer column; //todo delete me after UI update
+
+    @Deprecated
     @Schema(description = "row id")
-    public Integer row;
+    public Integer row; //todo delete me after UI update
 
     @Schema(description = "is widget active")
     public Boolean active;
