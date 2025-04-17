@@ -50,13 +50,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
     UserFilterService userFilterService;
 
     @Autowired
-    UserRepository userRepository;
-
-    @Autowired
     UserService userService;
-
-    @Autowired
-    TwinFieldUserRepository twinFieldUserRepository;
 
     @FeaturerParam(name = "User filter UUID", description = "", order = 1)
     public static final FeaturerParamUUID userFilterUUID = new FeaturerParamUUID("userFilterUUID"); //todo change type

@@ -5,15 +5,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.KitUtils;
-import org.cambium.common.util.UuidUtils;
+import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -25,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
 import org.twins.core.dao.history.HistoryType;
-import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -39,7 +35,6 @@ import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
-import org.twins.core.featurer.fieldtyper.FieldTyperI18n;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.service.SystemEntityService;
@@ -369,7 +364,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return result;
     }
 
-    public void createTwinsAsyncBatch(List<TwinCreate> twinCreates) throws ServiceException{
+    public void createTwinsAsyncBatch(List<TwinCreate> twinCreates) throws ServiceException {
         List<TwinEntity> twins = self.createTwinsAsync(twinCreates);
         generateTwinAliasesAndMakeCreationResult(twins);
     }
@@ -401,7 +396,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             log.error(e.getMessage(), e);
             throw new ServiceException(ErrorCodeTwins.ERROR_TWIN_ALIASES_CREATION, "failed to create aliases for twins: " + twins.stream().map(TwinEntity::logShort).collect(Collectors.joining(", ")));
         }
-        for(TwinEntity twin : twins)
+        for (TwinEntity twin : twins)
             twinBatchCreateResult.getTwinCreateResultList().add(
                     new TwinCreateResult()
                             .setCreatedTwin(twin)
@@ -484,6 +479,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void checkCreatePermission(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {
+        if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_CREATE_ANY))
+            return;
         UUID createPermissionId = detectCreatePermissionId(twinEntity);
         if (null == createPermissionId)
             return;
@@ -499,6 +496,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void checkUpdatePermission(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {
+        if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_CREATE_ANY))
+            return;
         UUID updatePermissionId = detectUpdatePermissionId(twinEntity);
         if (null == updatePermissionId)
             return;
@@ -538,6 +537,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void checkAssignee(TwinEntity twinEntity, UUID userId) throws ServiceException {
+        if (Boolean.TRUE.equals(twinEntity.getTwinClass().getAssigneeRequired()) && userId == null) {
+            throw new ServiceException(
+                    ErrorCodeTwins.TWIN_ASSIGNEE_REQUIRED,
+                    "Assignee is required for " + twinEntity.getTwinClass().logShort()
+            );
+        }
+
         if (null == userId)
             return;
         TwinClassEntity twinClassEntity = twinEntity.getTwinClass();
@@ -662,9 +668,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (changesRecorder.isChanged("assignerUser", changesRecorder.getDbEntity().getAssignerUserId(), changesRecorder.getUpdateEntity().getAssignerUserId())) {
             UserEntity newAssignee = null;
             if (!UuidUtils.isNullifyMarker(changesRecorder.getUpdateEntity().getAssignerUserId())) {
-                checkAssignee(changesRecorder.getDbEntity(), changesRecorder.getUpdateEntity().getAssignerUserId());
                 newAssignee = changesRecorder.getUpdateEntity().getAssignerUser();
             }
+            checkAssignee(changesRecorder.getDbEntity(), newAssignee != null ? newAssignee.getId() : null);
             if (changesRecorder.isHistoryCollectorEnabled())
                 changesRecorder.getHistoryCollector().add(historyService.assigneeChanged(changesRecorder.getDbEntity().getAssignerUser(), newAssignee));
             if (changesRecorder.getRecorder() instanceof DraftTwinPersistEntity draftTwinPersistEntity)
@@ -977,7 +983,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             fieldValueDate.setDate(value);
         if (fieldValue instanceof FieldValueSelect fieldValueSelect) {
             for (String dataListOption : value.split(FieldTyperList.LIST_SPLITTER)) {
-                if (org.cambium.common.util.StringUtils.isEmpty(dataListOption)) continue;
+                if (StringUtils.isEmpty(dataListOption)) continue;
                 DataListOptionEntity dataListOptionEntity = new DataListOptionEntity();
                 if (UuidUtils.isUUID(dataListOption)) dataListOptionEntity.setId(UUID.fromString(dataListOption));
                 else dataListOptionEntity.setOption(dataListOption);
@@ -986,7 +992,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         if (fieldValue instanceof FieldValueUser fieldValueUser) {
             for (String userId : value.split(FieldTyperList.LIST_SPLITTER)) {
-                if (org.cambium.common.util.StringUtils.isEmpty(userId))
+                if (StringUtils.isEmpty(userId))
                     continue;
                 UUID userUUID;
                 try {
@@ -998,9 +1004,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                         .setId(userUUID));
             }
         }
+        if (fieldValue instanceof FieldValueUserSingle fieldValueUser) {
+            UUID userId = UuidUtils.fromString(value);
+            fieldValueUser.setUser(new UserEntity().setId(userId));
+        }
+        if (fieldValue instanceof FieldValueStatusSingle fieldValueStatus) {
+            UUID statusId = UuidUtils.fromString(value);
+            fieldValueStatus.setStatus(new TwinStatusEntity().setId(statusId));
+        }
         if (fieldValue instanceof FieldValueLink fieldValueLink) {
             for (String dstTwinId : value.split(FieldTyperList.LIST_SPLITTER)) {
-                if (org.cambium.common.util.StringUtils.isEmpty(dstTwinId))
+                if (StringUtils.isEmpty(dstTwinId))
                     continue;
                 UUID dstTwinUUID;
                 try {
@@ -1012,25 +1026,20 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                         .setDstTwinId(dstTwinUUID));
             }
         }
+        if (fieldValue instanceof FieldValueLinkSingle fieldValueLink) {
+            UUID twinId = UuidUtils.fromString(value);
+            fieldValueLink.setDstTwin(new TwinEntity().setId(twinId));
+        }
         if (fieldValue instanceof FieldValueI18n fieldValueI18n) {
-            String[] entries = value.split(FieldTyperI18n.ENTRY_SPLITTER);
-            Map<Locale, String> translations = new HashMap<>();
-
-            for (String entry : entries) {
-                String[] parts = entry.split(FieldTyperI18n.KEY_VALUE_SPLITTER);
-
-                if (parts.length >= 2) {
-                    Locale locale = Locale.of(parts[0].trim());
-                    String translationText = parts[1].trim();
-
-                    translations.put(locale, translationText);
-                }
+            Map<Locale, String> translations = JsonUtils.jsonToTranslationsMap(value);
+            if (translations == null) {
+                throw new ServiceException(
+                        ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
+                        fieldValueI18n.getTwinClassField().logShort() + " can't deserialize i18n");
             }
-
             fieldValueI18n.setTranslations(translations);
         }
     }
-
 
     public FieldValue copyToField(FieldValue src, UUID dstTwinClassFieldId) throws ServiceException {
         TwinClassFieldEntity dstTwinClassField = twinClassFieldService.findEntitySafe(dstTwinClassFieldId);

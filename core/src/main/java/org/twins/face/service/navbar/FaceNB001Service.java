@@ -11,12 +11,11 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.domain.ApiUser;
-import org.twins.core.service.auth.AuthService;
-import org.twins.face.dao.navbar.FaceNB001Entity;
-import org.twins.face.dao.navbar.FaceNB001MenuItemEntity;
-import org.twins.face.dao.navbar.FaceNB001MenuItemRepository;
-import org.twins.face.dao.navbar.FaceNB001Repository;
+import org.twins.core.service.face.FaceService;
+import org.twins.face.dao.navbar.nb001.FaceNB001Entity;
+import org.twins.face.dao.navbar.nb001.FaceNB001MenuItemEntity;
+import org.twins.face.dao.navbar.nb001.FaceNB001MenuItemRepository;
+import org.twins.face.dao.navbar.nb001.FaceNB001Repository;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -30,9 +29,7 @@ import java.util.function.Function;
 public class FaceNB001Service extends EntitySecureFindServiceImpl<FaceNB001Entity> {
     private final FaceNB001Repository faceNB001Repository;
     private final FaceNB001MenuItemRepository faceNB001MenuItemRepository;
-    @Lazy
-    private final AuthService authService;
-
+    private final FaceService faceService;
 
     @Override
     public CrudRepository<FaceNB001Entity, UUID> entityRepository() {
@@ -46,12 +43,7 @@ public class FaceNB001Service extends EntitySecureFindServiceImpl<FaceNB001Entit
 
     @Override
     public boolean isEntityReadDenied(FaceNB001Entity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (!entity.getFace().getDomainId().equals(authService.getApiUser().getDomainId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allows in domain[" + apiUser.getDomainId() + "]");
-            return true;
-        }
-        return false;
+        return faceService.isEntityReadDenied(entity.getFace());
     }
 
     @Override
@@ -75,7 +67,7 @@ public class FaceNB001Service extends EntitySecureFindServiceImpl<FaceNB001Entit
         if (needLoad.isEmpty())
             return;
         KitGrouped<FaceNB001MenuItemEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                faceNB001MenuItemRepository.findByFaceIdIn(needLoad.getIdSet()), FaceNB001MenuItemEntity::getId, FaceNB001MenuItemEntity::getFaceId);
+                faceNB001MenuItemRepository.findByFaceIdInAndParentFaceMenuItemIdIsNull(needLoad.getIdSet()), FaceNB001MenuItemEntity::getId, FaceNB001MenuItemEntity::getFaceId);
         for (var entry : loadedKit.getGroupedMap().entrySet()) {
             needLoad.get(entry.getKey()).getMenuItems().addAll(entry.getValue());
         }

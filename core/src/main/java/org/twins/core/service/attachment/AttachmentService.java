@@ -397,9 +397,9 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         AttachmentCUDValidateResult result = new AttachmentCUDValidateResult();
         AttachmentQuotas tierQuotas = domainService.getTierQuotas();
 
-        List<TwinAttachmentEntity> deletes = cud.getDeleteList();
-        List<TwinAttachmentEntity> updates = cud.getUpdateList();
-        List<TwinAttachmentEntity> creates = cud.getCreateList();
+        List<TwinAttachmentEntity> deletes = Optional.ofNullable(cud.getDeleteList()).orElse(Collections.emptyList());
+        List<TwinAttachmentEntity> updates = Optional.ofNullable(cud.getUpdateList()).orElse(Collections.emptyList());
+        List<TwinAttachmentEntity> creates = Optional.ofNullable(cud.getCreateList()).orElse(Collections.emptyList());
 
         long size = tierQuotas.getUsedSize();
         long count = tierQuotas.getUsedCount();

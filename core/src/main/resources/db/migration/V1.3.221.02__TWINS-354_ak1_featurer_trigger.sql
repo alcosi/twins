@@ -1,0 +1,1 @@
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1506::integer, 15::integer, 'org.twins.core.featurer.factory.conditioner.TransitionTriggerRabbitMqSendFieldsForOperation'::varchar, 'x'::varchar, 'x'::varchar(255), false::boolean) on conflict (id) do nothing;

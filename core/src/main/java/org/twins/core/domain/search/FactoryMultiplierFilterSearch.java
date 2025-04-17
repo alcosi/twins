@@ -23,4 +23,5 @@ public class FactoryMultiplierFilterSearch {
     private Set<String> descriptionLikeList;
     private Set<String> descriptionNotLikeList;
     private Ternary active;
+    private Ternary factoryConditionInvert;
 }

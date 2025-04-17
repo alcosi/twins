@@ -8,6 +8,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
@@ -26,7 +27,10 @@ import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 
 @Component
@@ -78,10 +82,14 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     @Override
     public void map(TwinClassEntity src, TwinClassDTOv1 dst, MapperContext mapperContext) throws Exception {
         twinClassBaseRestDTOMapper.map(src, dst, mapperContext);
-        if (mapperContext.hasModeButNot(TwinClassFieldMode.TwinClass2TwinClassFieldMode.HIDE))
-            dst.setFields(
-                    twinClassFieldRestDTOMapper.convertCollectionPostpone(
-                            twinClassFieldService.loadTwinClassFields(src).getCollection(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassFieldMode.TwinClass2TwinClassFieldMode.SHORT)))); //todo only required
+        if (mapperContext.hasModeButNot(TwinClassFieldMode.TwinClass2TwinClassFieldMode.HIDE)) {
+            twinClassFieldService.loadTwinClassFields(src);
+            Set<TwinClassFieldEntity> collect = src.getTwinClassFieldKit().getCollection().stream()
+                    .filter(Predicate.not(TwinClassFieldEntity::isBaseField)).collect(Collectors.toSet());
+            dst
+                    .setFieldIds(collect.stream().map(TwinClassFieldEntity::getId).collect(Collectors.toSet()))
+                    .setFields(twinClassFieldRestDTOMapper.convertCollectionPostpone(collect, mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassFieldMode.TwinClass2TwinClassFieldMode.SHORT)))); //todo only required
+        }
         if (mapperContext.hasModeButNot(LinkMode.TwinClass2LinkMode.HIDE)) {
             //todo think over beforeCollectionConversion optimization
             LinkService.FindTwinClassLinksResult findTwinClassLinksResult = linkService.findLinks(src.getId());

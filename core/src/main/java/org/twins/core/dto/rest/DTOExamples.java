@@ -6,6 +6,7 @@ public interface DTOExamples {
     String NAME = "Some name";
     String DESCRIPTION = "Some description";
     String COUNT = "3";
+    String INTEGER = "123456";
     String UUID_COLLECTION = "[\"11a4c3f8-c780-4421-9aee-9e7eec20c67d\", \"83050c4b-ef17-4d7d-8792-6e5a86557ab9\"]";
     String STRING_COLLECTION = "[\"String 1\", \"String 2\"]";
     String TRANSLATION = "translation";
@@ -48,6 +49,7 @@ public interface DTOExamples {
     String USER_GROUP_NAME = "Manager";
     String USER_GROUP_TYPE = "domainScopeDomainManage";
     String DOMAIN_ID = "f67ad556-dd27-4871-9a00-16fb0e8a4102";
+    String DOMAIN_NAME = "alcosi";
     String DOMAIN_KEY = "alcosi";
     String DOMAIN_TYPE = "basic";
     String DOMAIN_DESCRIPTION = "some domain";
@@ -65,6 +67,7 @@ public interface DTOExamples {
     String DRAFT_ID = "34618b09-e8dc-4712-a433-2e18915ee70d";
     String TWINFLOW_NAME = "Default twinflow";
     String TWINFLOW_TRANSITION_ID = "f6606fa2-c047-4ba9-a92c-84051df681ab";
+    String TWINFLOW_TRANSITION_TYPE_ID = "STATUS_CHANGE";
     String TWINFLOW_TRANSITION_ALIAS = "start";
     String TWINFLOW_TRANSITION_ALIAS_ID = "da755c8a-248f-4e4f-978a-6474e41c8dca";
     String TWIN_CLASS_SCHEMA_ID = "8b9ea6ad-2b9b-4a4a-8ea9-1b17da4d603b";
@@ -108,7 +111,7 @@ public interface DTOExamples {
     String TRIGGER_ID = "9d956a15-6858-40ba-b0aa-b123c54e250d";
     String FACTORY_PIPELINE_ID = "5d956a15-6858-40ba-b0aa-b123c54e250d";
     String FACTORY_PIPELINE_STEP_ID = "99856a15-6858-40ba-b0aa-b123c54e250d";
-    String FACTORY_PARAMS_MAP = "{\"outputTwinClassId\"=>\"da69c441-9c8f-4e73-a07e-b5648f8f4396\",\n\"copyHead\"=>\"true\"}";
+    String FACTORY_PARAMS_MAP = "{\"outputTwinClassId\": \"da69c441-9c8f-4e73-a07e-b5648f8f4396\", \"copyHead\": \"true\"}";
     String MULTIPLIER_ID = "66956a15-6858-40ba-b0aa-b123c54e250d";
     String FACTORY_BRANCH_ID = "99956a15-6858-40ba-b0aa-b123c54e250d";
     String FACTORY_MULTIPLIER_ID = "eb773f30-8f24-4ec7-8f06-9dc71d351177";

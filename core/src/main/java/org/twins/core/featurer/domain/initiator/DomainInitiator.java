@@ -3,8 +3,6 @@ package org.twins.core.featurer.domain.initiator;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
-import org.twins.core.dao.i18n.I18nType;
-import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -13,6 +11,7 @@ import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.DomainRepository;
 import org.twins.core.dao.domain.DomainTypeEntity;
 import org.twins.core.dao.domain.TierRepository;
+import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaRepository;
 import org.twins.core.dao.twin.TwinEntity;
@@ -28,6 +27,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
@@ -185,6 +185,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setKey(domainEntity.getKey().toUpperCase())
                 .setOwnerType(TwinClassEntity.OwnerType.DOMAIN)
                 .setCreatedAt(Timestamp.from(Instant.now()))
+                .setExtendsTwinClassId(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR)
                 .setCreatedByUserId(systemEntityService.getUserIdSystem());
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         return twinClassEntity.getId();

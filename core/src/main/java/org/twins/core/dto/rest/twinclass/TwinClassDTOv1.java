@@ -13,6 +13,7 @@ import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -24,7 +25,7 @@ public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
     public List<TwinClassFieldDTOv1> fields;
 
     @Schema(description = "Class fields id list")
-    public List<UUID> fieldIds;
+    public Set<UUID> fieldIds;
 
     @Schema(description = "List of status id." + DTOExamples.LAZY_RELATION_MODE_OFF)
     public List<UUID> statusList;

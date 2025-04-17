@@ -49,6 +49,10 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @Column(name = "permission_id")
     private UUID permissionId;
 
+    @Column(name = "twinflow_transition_type_id")
+    @Enumerated(EnumType.STRING)
+    private TwinflowTransitionType twinflowTransitionTypeId;
+
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")

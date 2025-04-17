@@ -24,6 +24,8 @@ public interface DomainUserRepository extends CrudRepository<DomainUserEntity, U
 
     DomainUserEntity findByDomainIdAndUserId(UUID uuid, UUID userId);
 
+    DomainUserEntity findByUserId(UUID userId);
+
     boolean existsByDomainIdAndUserId(UUID uuid, UUID userId);
 
     @Modifying

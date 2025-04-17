@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class TransitionTriggerRabbitMqConnection extends TransitionTrigger {
 
     @FeaturerParam(name = "url", description = "rabbit server url")
-    public static final FeaturerParamString URL = new FeaturerParamString("url");
+    public static final FeaturerParamString url = new FeaturerParamString("url");
 
     protected static final Cache<String, CachingConnectionFactory> rabbitConnectionCache = new Cache2kBuilder<String, CachingConnectionFactory>() {
     }
@@ -35,7 +35,7 @@ public abstract class TransitionTriggerRabbitMqConnection extends TransitionTrig
     }
 
     public void connect(Properties properties) {
-        String connectionUrl = URL.extract(properties);
+        String connectionUrl = url.extract(properties);
         rabbitConnectionCache.computeIfAbsent(connectionUrl, key -> {
             log.info("Creat new connectionFactory URL: {}", key);
             CachingConnectionFactory connectionFactory = new CachingConnectionFactory();
@@ -47,6 +47,6 @@ public abstract class TransitionTriggerRabbitMqConnection extends TransitionTrig
         });
     }
 
-    public abstract void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus);
+    public abstract void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException;
 
 }

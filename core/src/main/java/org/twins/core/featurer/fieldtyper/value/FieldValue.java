@@ -3,6 +3,7 @@ package org.twins.core.featurer.fieldtyper.value;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.service.SystemEntityService;
 
 import java.util.UUID;
 
@@ -20,6 +21,10 @@ public abstract class FieldValue implements Cloneable {
     }
 
     public abstract boolean isFilled();
+
+    public boolean isBaseField() {
+        return twinClassField.isBaseField();
+    }
 
     public UUID getTwinClassFieldId() {
         return twinClassField.getId();
