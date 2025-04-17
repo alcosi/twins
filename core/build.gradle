@@ -1,6 +1,7 @@
 plugins {
     // id 'war'
     id 'java'
+    id 'checkstyle'
     id 'io.spring.dependency-management' version '1.1.4'
     id 'org.springframework.boot' version '3.4.3'
     id 'net.nemerosa.versioning' version '3.1.0'
@@ -32,9 +33,29 @@ repositories {
 
 }
 
+checkstyle {
+    toolVersion = '10.23.0'
+    configFile = file("${rootProject.projectDir}/checkstyle.xml")
+    showViolations = true
+    ignoreFailures = false
+}
+
 docker {
     registryCredentials {
         url = "https://${dockerHost}/"
+    }
+}
+
+tasks.withType(Checkstyle).configureEach {
+
+    conventionMapping.map("configProperties") {
+        ["basedir": rootDir]
+    }
+
+    reports {
+        xml.required = false
+        html.required = true
+        html.outputLocation = layout.buildDirectory.file("/reports/checkstyle/checkstyleReport.html")
     }
 }
 
@@ -154,7 +175,7 @@ task createManifest { //task for manifest.mf file creation on local run from IDE
             manifestDir.mkdirs()
         }
         manifestFile.text =
-"""Main-Class: org.twins.core.Application
+                """Main-Class: org.twins.core.Application
 Built-By: ${System.properties['user.name']}
 Build-Timestamp: ${new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date())}
 Build-Revision: ${versioning.info.commit}
