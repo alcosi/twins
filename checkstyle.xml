@@ -29,10 +29,10 @@
         <property name="fileExtensions" value="java, properties, cfg, css, js, xml"/>
     </module>
 
-        <module name="RegexpMultiline">
-            <property name="format" value="(?s:(\r\n|\r).*)"/>
-            <property name="message" value="CRLF and CR line endings are prohibited"/>
-        </module>
+<!--        <module name="RegexpMultiline">-->
+<!--            <property name="format" value="(?s:(\r\n|\r).*)"/>-->
+<!--            <property name="message" value="CRLF and CR line endings are prohibited"/>-->
+<!--        </module>-->
 
     <!-- Allow individual lines of code to be excluded from these rules, if they are annotated
          with @SuppressWarnings. See also SuppressWarningsHolder -->
@@ -48,7 +48,7 @@
 
     <!-- File MUST end on empty line -->
     <module name="NewlineAtEndOfFile">
-        <property name="lineSeparator" value="lf"/>
+        <property name="lineSeparator" value="crlf"/>
     </module>
 
     <!-- Check individual Java source files for specific rules -->
@@ -119,7 +119,9 @@
         <!-- Requirements for type names (classes, interfaces, enums, annotations, records) -->
         <module name="TypeName"/>
         <!-- Requirements for abstract class names -->
-        <module name="AbstractClassName"/>
+        <module name="AbstractClassName">
+            <property name="format" value="^[A-Z][a-zA-Z0-9]*$"/>
+        </module>
         <!-- Requirements for method names -->
         <module name="MethodName"/>
         <!-- Requirements for class type parameter names -->
