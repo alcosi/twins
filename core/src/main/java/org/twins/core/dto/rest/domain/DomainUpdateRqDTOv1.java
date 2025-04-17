@@ -8,10 +8,10 @@ import org.twins.core.dto.rest.Request;
 
 
 @Data
-@Accessors(chain = true)
+@Accessors(chain  = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "DomainCreateRqV1")
-public class DomainCreateRqDTOv1 extends Request {
+@Schema(name = "DomainUpdateRqV1")
+public class DomainUpdateRqDTOv1 extends Request {
     @Schema(description = "domain")
-    public DomainCreateDTOv1 domain;
+    public DomainUpdateDTOv1 domain;
 }
