@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC
+        "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+        "https://checkstyle.org/dtds/configuration_1_3.dtd">
+
+<module name="Checker">
+    <!-- Configure checker to use UTF-8 encoding -->
+    <property name="charset" value="UTF-8"/>
+    <!-- Configure checker to run on files with these extensions -->
+    <property name="fileExtensions" value="java, properties, xml, yml, yaml"/>
+
+    <property name="severity" value="error"/>
+
+    <!-- Suppression configurations in checkstyle-suppressions.xml in same directory -->
+    <module name="SuppressionFilter">
+        <property name="file" value="${basedir}/checkstyle-suppressions.xml" default="checkstyle-suppressions.xml"/>
+        <property name="optional" value="false"/>
+    </module>
+
+    <!-- Tab characters are NOT ALLOWED in the source code -->
+    <module name="FileTabCharacter">
+        <property name="eachLine" value="true"/>
+    </module>
+
+    <!-- No Trailing Whitespace, except on lines that only have an asterisk (e.g. Javadoc comments) -->
+    <module name="RegexpSingleline">
+        <property name="format" value="(?&lt;!\*)\s+$|\*\s\s+$"/>
+        <property name="message" value="Line has trailing whitespace"/>
+        <property name="fileExtensions" value="java, properties, cfg, css, js, xml"/>
+    </module>
+
+        <module name="RegexpMultiline">
+            <property name="format" value="(?s:(\r\n|\r).*)"/>
+            <property name="message" value="CRLF and CR line endings are prohibited"/>
+        </module>
+
+    <!-- Allow individual lines of code to be excluded from these rules, if they are annotated
+         with @SuppressWarnings. See also SuppressWarningsHolder -->
+    <module name="SuppressWarningsFilter"/>
+
+    <!-- Maximum line length is 120 characters -->
+    <module name="LineLength">
+        <property name="fileExtensions" value="java"/>
+        <property name="max" value="120"/>
+        <!-- Only exceptions for packages, imports, URLs, and JavaDoc {@link} tags -->
+        <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://|@link"/>
+    </module>
+
+    <!-- File MUST end on empty line -->
+    <module name="NewlineAtEndOfFile">
+        <property name="lineSeparator" value="lf"/>
+    </module>
+
+    <!-- Check individual Java source files for specific rules -->
+    <module name="TreeWalker">
+        <!-- Highlight any TODO or FIXME comments in info messages -->
+        <module name="TodoComment">
+            <property name="severity" value="info"/>
+            <property name="format" value="(TODO)|(FIXME)"/>
+        </module>
+
+        <!-- Do not report errors on any lines annotated with @SuppressWarnings -->
+        <module name="SuppressWarnings"/>
+        <module name="SuppressWarningsHolder"/>
+
+        <!-- Star imports (e.g. import java.util.*) are NOT ALLOWED -->
+        <module name="AvoidStarImport"/>
+        <!-- Static imports are NOT ALLOWED -->
+        <module name="AvoidStaticImport">
+            <property name="excludes" value="org.assertj.core.api.Assertions.*,
+                org.junit.Assert.*,
+                org.mockito.ArgumentMatchers.*,
+                org.mockito.Mockito.*,
+                org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*,
+                org.springframework.test.web.servlet.result.MockMvcResultHandlers.*,
+                org.springframework.test.web.servlet.result.MockMvcResultMatchers.*"/>
+        </module>
+        <!-- Redundant import statements are NOT ALLOWED -->
+        <module name="RedundantImport"/>
+        <!-- Unused import statements are NOT ALLOWED -->
+        <module name="UnusedImports"/>
+        <!-- Ensure imports appear alphabetically and grouped -->
+        <module name="CustomImportOrder">
+            <property name="specialImportsRegExp" value="org\.twins|org\.cambium"/>
+            <property name="sortImportsInGroupAlphabetically" value="true"/>
+            <property name="separateLineBetweenGroups" value="true"/>
+            <property name="customImportOrderRules"
+                      value="THIRD_PARTY_PACKAGE###SPECIAL_IMPORTS###STANDARD_JAVA_PACKAGE###STATIC"/>
+        </module>
+        <!-- Control what can be imported in each package and file -->
+        <module name="ImportControl">
+            <property name="file" value="${basedir}/import-control.xml"/>
+        </module>
+
+        <!-- Highlight any TODO or FIXME comments in info messages -->
+        <!-- Requirements for Javadocs for classes/interfaces -->
+        <!--        <module name="JavadocType">-->
+        <!--            <property name="allowMissingPropertyJavadoc" value="true"/>-->
+        <!--            &lt;!&ndash; All public classes/interfaces MUST HAVE Javadocs &ndash;&gt;-->
+        <!--            <property name="scope" value="public"/>-->
+        <!--            &lt;!&ndash; Add an exception for anonymous inner classes &ndash;&gt;-->
+        <!--            <property name="excludeScope" value="anoninner"/>-->
+        <!--            &lt;!&ndash; Ignore errors related to unknown tags &ndash;&gt;-->
+        <!--            <property name="allowUnknownTags" value="true"/>-->
+        <!--            &lt;!&ndash; Allow params tags to be optional &ndash;&gt;-->
+        <!--            <property name="allowMissingParamTags" value="false"/>-->
+        <!--        </module>-->
+        <!--        &lt;!&ndash; Requirements for Javadocs for methods &ndash;&gt;-->
+        <!--        <module name="JavadocMethod">-->
+        <!--            <property name="scope" value="nothing"/>-->
+        <!--            &lt;!&ndash; Allow params, throws and return tags to be optional &ndash;&gt;-->
+        <!--            <property name="allowMissingPropertyJavadoc" value="true"/>-->
+        <!--            <property name="allowMissingParamTags" value="true"/>-->
+        <!--            <property name="allowMissingReturnTag" value="true"/>-->
+        <!--        </module>-->
+
+        <!-- Requirements for package names -->
+        <module name="PackageName"/>
+        <!-- Requirements for type names (classes, interfaces, enums, annotations, records) -->
+        <module name="TypeName"/>
+        <!-- Requirements for abstract class names -->
+        <module name="AbstractClassName"/>
+        <!-- Requirements for method names -->
+        <module name="MethodName"/>
+        <!-- Requirements for class type parameter names -->
+        <module name="ClassTypeParameterName">
+            <property name="format" value="^[A-Z]+"/>
+        </module>
+        <!-- Requirements for interface type parameter names -->
+        <module name="InterfaceTypeParameterName">
+            <property name="format" value="^[A-Z]+"/>
+        </module>
+        <!-- Requirements for method type parameter names -->
+        <module name="MethodTypeParameterName">
+            <property name="format" value="^[A-Z]+"/>
+        </module>
+        <!-- Requirements for constant names (static final fields) -->
+        <module name="ConstantName">
+            <property name="format" value="^[A-Z][A-Z0-9_]*$"/>
+            <property name="applyToPublic" value="true"/>
+            <property name="applyToProtected" value="true"/>
+            <property name="applyToPackage" value="true"/>
+            <property name="applyToPrivate" value="true"/>
+        </module>
+        <!-- Requirements for field names -->
+        <module name="MemberName"/>
+        <!-- Requirements for method parameter names -->
+        <module name="ParameterName"/>
+        <!-- Requirements for local non-final variable names -->
+        <module name="LocalVariableName"/>
+        <!-- Requirements for local final variable names -->
+        <module name="LocalFinalVariableName"/>
+        <!-- Requirements for static non-final variable names -->
+        <module name="StaticVariableName"/>
+        <!-- Requirements for lambda parameter names -->
+        <module name="LambdaParameterName"/>
+        <!-- Requirements for parameter names in "catch" statements -->
+        <module name="CatchParameterName"/>
+
+        <!-- Code blocks MUST HAVE braces, even single line statements (if, while, etc.) -->
+        <module name="NeedBraces"/>
+        <!-- Left braces should be at the end of current line (default value)-->
+        <module name="LeftCurly"/>
+        <!-- Right braces should be on start of a new line (default value) -->
+        <module name="RightCurly"/>
+
+        <!-- Require 4-space indentation (default value) -->
+        <module name="Indentation"/>
+        <!-- No whitespace should follow after tokens (array, increment, decrement, etc.) -->
+        <module name="NoWhitespaceAfter"/>
+        <!-- No whitespace should follow before tokens (comma, semicolon, etc.) -->
+        <module name="NoWhitespaceBefore"/>
+        <!-- Whitespace should follow after tokens (comma, semicolon, etc.) -->
+        <module name="WhitespaceAfter"/>
+        <!-- Whitespace should exist around all major tokens -->
+        <module name="WhitespaceAround">
+            <property name="allowEmptyConstructors" value="true"/>
+            <property name="allowEmptyMethods" value="true"/>
+            <property name="allowEmptyTypes" value="true"/>
+            <property name="allowEmptyLoops" value="true"/>
+        </module>
+        <!-- Validate whitespace around Generics (angle brackets) per typical conventions
+             http://checkstyle.sourceforge.net/config_whitespace.html#GenericWhitespace -->
+        <module name="GenericWhitespace"/>
+        <!-- Indentation between comments and surrounding code -->
+        <module name="CommentsIndentation"/>
+        <!-- Require 1 whitespace between non-whitespace characters -->
+        <module name="SingleSpaceSeparator"/>
+        <!-- No whitespace should follow after left and right parentheses -->
+        <module name="ParenPad"/>
+
+        <!-- Overloaded methods MUST be grouped together -->
+        <module name="OverloadMethodsDeclarationOrder"/>
+        <!-- Require padding between the identifier of a method definition, constructor definition, method call,
+             or constructor invocation; and the left parenthesis of the parameter list -->
+        <module name="MethodParamPad"/>
+
+        <!-- "switch" statements MUST have a "default" clause -->
+        <module name="MissingSwitchDefault"/>
+        <!-- "case" clauses in switch statements MUST include break, return, throw or continue -->
+        <module name="FallThrough"/>
+
+        <!-- Require empty line separators between tokens -->
+        <module name="EmptyLineSeparator">
+            <property name="allowMultipleEmptyLines" value="false"/>
+            <property name="allowMultipleEmptyLinesInsideClassMembers" value="false"/>
+            <property name="allowNoEmptyLineBetweenFields" value="true"/>
+        </module>
+
+        <!-- Require utility classes do not have a public constructor -->
+        <module name="HideUtilityClassConstructor"/>
+        <!-- Require classes with only private constructors are final -->
+        <module name="FinalClass"/>
+        <!-- Require nested classes/interfaces are declared at the bottom of the top-level class
+             after all init blocks, method, constructor and field declarations -->
+        <module name="InnerTypeLast"/>
+        <!-- Require each variable declaration is its own statement on its own line -->
+        <module name="MultipleVariableDeclarations"/>
+        <!-- Each line of code can only include one statement -->
+        <module name="OneStatementPerLine"/>
+        <!-- Require that "catch" statements are not empty (must at least contain a comment) -->
+        <module name="EmptyCatchBlock"/>
+    </module>
+</module>

@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!DOCTYPE import-control PUBLIC
+        "-//Checkstyle//DTD ImportControl Configuration 1.4//EN"
+        "https://checkstyle.org/dtds/import_control_1_4.dtd">
+
+<import-control pkg="org" strategyOnMismatch="allowed">
+    <disallow pkg="org.testcontainers.shaded"/>
+    <disallow class="java.sql.Date"/>
+    <disallow class="java.sql.Time"/>
+    <disallow class="java.sql.Timestamp"/>
+</import-control>
