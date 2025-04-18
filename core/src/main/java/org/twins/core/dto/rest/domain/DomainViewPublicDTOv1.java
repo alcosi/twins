@@ -25,5 +25,4 @@ public class DomainViewPublicDTOv1 {
 
     @Schema(description = "Icon light uri. Might be relative")
     public String iconLight;
-
 }

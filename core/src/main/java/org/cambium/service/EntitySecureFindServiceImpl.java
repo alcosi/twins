@@ -6,6 +6,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
@@ -34,6 +35,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     }
 
     public abstract CrudRepository<T, UUID> entityRepository();
+
     public abstract Function<T, UUID> entityGetIdFunction();
 
     public Optional<T> findByKey(String key) throws ServiceException {
@@ -138,7 +140,8 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
                     entity = (T) requestAttributes.getAttribute(requestCacheKey, RequestAttributes.SCOPE_REQUEST);
                     if (entity == null) {
                         entity = findEntitySafeUncached(entityId);
-                        if (entity != null) requestAttributes.setAttribute(requestCacheKey, entity, RequestAttributes.SCOPE_REQUEST);
+                        if (entity != null)
+                            requestAttributes.setAttribute(requestCacheKey, entity, RequestAttributes.SCOPE_REQUEST);
                     }
                 }
             }
@@ -222,22 +225,28 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         return entityRepository().save(entity);
     }
 
-    public List<T> saveSafe(List<T> entities) throws ServiceException {
-        if (CollectionUtils.isEmpty(entities)) {
-            return Collections.emptyList();
-        }
-        for (T entity : entities) {
-            validateEntityAndThrow(entity, EntitySmartService.EntityValidateMode.beforeSave);
-        }
-        return new ArrayList<T>((Collection<T>) entityRepository().saveAll(entities));
-    }
-
     public T updateSafe(T entity, ChangesHelper changesHelper) throws ServiceException {
         if (changesHelper.hasChanges()) {
             validateEntity(entity, EntitySmartService.EntityValidateMode.beforeSave);
             return entitySmartService.saveAndLogChanges(entity, entityRepository(), changesHelper);
         }
         return entity;
+    }
+
+    public Iterable<T> updateSafe(ChangesHelperMulti<T> changesHelperMulti) throws ServiceException {
+        List<T> entityList = new ArrayList<>();
+        StringBuilder changes = new StringBuilder();
+        for (var entry : changesHelperMulti.entrySet()) {
+            if (entry.getValue().hasChanges()) {
+                validateEntity(entry.getKey(), EntitySmartService.EntityValidateMode.beforeSave);
+                entityList.add(entry.getKey());
+                changes.append(entry.getValue().collectForLog());
+            }
+        }
+        if (CollectionUtils.isNotEmpty(entityList))
+            return entitySmartService.saveAllAndLogChanges(entityList, entityRepository(), changes);
+        else
+            return Collections.emptyList();
     }
 
     public void deleteSafe(UUID id) throws ServiceException {
