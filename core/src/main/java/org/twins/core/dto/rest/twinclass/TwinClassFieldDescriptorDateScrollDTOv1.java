@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.DTOExamples;
 
 import java.time.LocalDateTime;
 
@@ -16,9 +17,9 @@ public class TwinClassFieldDescriptorDateScrollDTOv1 implements TwinClassFieldDe
     @Schema(description = "Date pattern (default: yyyy-MM-ddTHH:mm:ss)")
     public String pattern;
 
-    @Schema(description = "[option] Maximum number of days from current date in the past for a valid date range", example = "30")
-    public Integer daysPast;
+    @Schema(description = "[option] Acceptable minimum date value")
+    public LocalDateTime beforeDate;
 
-    @Schema(description = "[option] The maximum number of days from the current date in the future for a valid date range", example = "365")
-    public Integer daysFuture;
+    @Schema(description = "[option] Acceptable maximum date value")
+    public LocalDateTime afterDate;
 }

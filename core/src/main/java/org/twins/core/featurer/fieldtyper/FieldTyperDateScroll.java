@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.GenericValidator;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
@@ -38,29 +39,29 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     @FeaturerParam(name = "Pattern", description = "pattern for date value")
     public static final FeaturerParamString pattern = new FeaturerParamString("pattern");
 
-    @FeaturerParam(name = "DaysPast", description = "number of days in the past", optional = true, defaultValue = "-1")
-    public static final FeaturerParamInt daysPast = new FeaturerParamInt("daysPast");
+    @FeaturerParam(name = "HoursPast", description = "number of hours in the past", optional = true, defaultValue = "-1")
+    public static final FeaturerParamInt hoursPast = new FeaturerParamInt("hoursPast");
 
-    @FeaturerParam(name = "DaysFuture", description = "number of days in the futures", optional = true, defaultValue = "-1")
-    public static final FeaturerParamInt daysFuture = new FeaturerParamInt("daysFuture");
+    @FeaturerParam(name = "HoursFuture", description = "number of hours in the futures", optional = true, defaultValue = "-1")
+    public static final FeaturerParamInt hoursFuture = new FeaturerParamInt("hoursFuture");
 
     private static final String DATE_PATTERN = "yyyy-MM-dd";
     private static final String DATE_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss";
 
     @Override
     public FieldDescriptorDate getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
+        LocalDateTime now = LocalDateTime.now();
         return new FieldDescriptorDate()
                 .pattern(pattern.extract(properties))
-                .daysPast(daysPast.extract(properties))
-                .daysFuture(daysFuture.extract(properties));
+                .beforeDate(now.minusHours(hoursPast.extract(properties)))
+                .afterDate(now.plusHours(hoursFuture.extract(properties)));
     }
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinFieldEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(value.getDate()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
-        Object dateValue = validateValue(twinFieldEntity, value.getDate(), properties);
-        value.setDate(dateValue.toString());
+        value.setDate(value.hasValue("") ? value.getDate() : validateValue(twinFieldEntity, value.getDate(), properties).toString());
         detectValueChange(twinFieldEntity, twinChangesCollector, value.getDate());
     }
 
@@ -112,23 +113,23 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " date[" + value + "] does not match pattern[" + datePattern + "]");
 
         Object dateValue = parseDateTime(value, properties);
-        LocalDate localDate = dateValue instanceof LocalDateTime ? ((LocalDateTime) dateValue).toLocalDate() : (LocalDate) dateValue;
+        LocalDateTime localDateTime = dateValue instanceof LocalDateTime ? (LocalDateTime) dateValue : ((LocalDate) dateValue).atStartOfDay();
         
-        LocalDate now = LocalDate.now();
-        Integer minDays = FieldTyperDateScroll.daysPast.extract(properties);
-        if (minDays != null && minDays >= 0) {
-            LocalDate minDate = now.minusDays(minDays);
-            if (localDate.isBefore(minDate)) {
+        LocalDateTime now = LocalDateTime.now();
+        Integer minHours = FieldTyperDateScroll.hoursPast.extract(properties);
+        if (minHours != null && minHours >= 0) {
+            LocalDateTime minDate = now.minusHours(minHours);
+            if (localDateTime.isBefore(minDate)) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
-                        "Date value [" + localDate + "] is more than " + minDays + " days in the past");
+                        "Date value [" + localDateTime + "] is more than " + minHours + " hours in the past");
             }
         }
-        Integer maxDays = FieldTyperDateScroll.daysFuture.extract(properties);
-        if (maxDays != null && maxDays >= 0) {
-            LocalDate maxDate = now.plusDays(maxDays);
-            if (localDate.isAfter(maxDate)) {
+        Integer maxHours = FieldTyperDateScroll.hoursFuture.extract(properties);
+        if (maxHours != null && maxHours >= 0) {
+            LocalDateTime maxDate = now.plusHours(maxHours);
+            if (localDateTime.isAfter(maxDate)) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
-                        "Date value [" + localDate + "] is more than " + maxDays + " days in the future");
+                        "Date value [" + localDateTime + "] is more than " + maxHours + " hours in the future");
             }
         }
         return dateValue;
