@@ -370,8 +370,19 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         }
     }
 
-    public int countByTwinAndField(UUID twinId, UUID twinClassFieldId) {
-        return twinAttachmentRepository.findByTwinIdAndTwinClassFieldId(twinId, twinClassFieldId).size();
+    public Map<UUID, Integer> countByTwinAndFields(UUID twinId, Collection<UUID> twinClassFieldIds) {
+        if (twinClassFieldIds == null || twinClassFieldIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<TwinAttachmentEntity> attachments = twinAttachmentRepository
+                .findByTwinIdAndTwinClassFieldIdIn(twinId, twinClassFieldIds);
+
+        return attachments.stream()
+                .collect(Collectors.groupingBy(
+                        TwinAttachmentEntity::getTwinClassFieldId,
+                        Collectors.summingInt(e -> 1)
+                ));
     }
 
     @Override

@@ -80,7 +80,11 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
             }
         else if (fieldDescriptor instanceof FieldDescriptorAttachment attachmentDescriptor)
             return new TwinClassFieldDescriptorAttachmentDTOv1()
-                    .restrictionId(attachmentDescriptor.restrictionId());
+                    .minCount(attachmentDescriptor.minCount())
+                    .maxCount(attachmentDescriptor.maxCount())
+                    .extensions(attachmentDescriptor.extensions())
+                    .fileSizeMbLimit(attachmentDescriptor.fileSizeMbLimit())
+                    .filenameRegExp(attachmentDescriptor.filenameRegExp());
         else if (fieldDescriptor instanceof FieldDescriptorNumeric numericDescriptor)
             return new TwinClassFieldDescriptorNumericDTOv1()
                     .min(numericDescriptor.min())

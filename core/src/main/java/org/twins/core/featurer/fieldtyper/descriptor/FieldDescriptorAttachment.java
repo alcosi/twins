@@ -11,5 +11,10 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(fluent = true)
 public class FieldDescriptorAttachment extends FieldDescriptor {
-    private UUID restrictionId;
+    private Integer minCount;
+    private Integer maxCount;
+    private String extensions;
+    private String filenameRegExp;
+    private Integer fileSizeMbLimit;
 }
+
