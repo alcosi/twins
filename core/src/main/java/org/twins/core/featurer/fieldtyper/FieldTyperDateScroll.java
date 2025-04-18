@@ -87,9 +87,13 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
         String patternStr = pattern.extract(properties);
         try {
             if (DATE_PATTERN.equals(patternStr)) {
-                return LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                if (value.contains("T")) {
+                    return LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                } else {
+                    return LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);
+                }
             } else if (DATE_TIME_PATTERN.equals(patternStr)) {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATE_TIME_PATTERN);
                 return LocalDateTime.parse(value, formatter);
             }
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
@@ -99,6 +103,7 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
                     "Value [" + value + "] is not a valid datetime in format " + patternStr);
         }
     }
+
 
     public Object validateValue(TwinFieldSimpleEntity twinFieldEntity, String value, Properties properties) throws ServiceException {
         String datePattern = pattern.extract(properties);
