@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -12,7 +13,8 @@ import java.util.List;
 public class FieldDescriptorAttachment extends FieldDescriptor {
     private Integer minCount;
     private Integer maxCount;
-    private List<String> extensions;
+    private String extensions;
     private String filenameRegExp;
     private Integer fileSizeMbLimit;
 }
+
