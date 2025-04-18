@@ -48,4 +48,9 @@ public class FieldValueLinkSingle extends FieldValue {
     public void nullify() {
         dstTwin = null;
     }
+
+    @Override
+    public boolean isNullified() {
+        return dstTwin == null; //not sure that this is correct
+    }
 }
