@@ -9,4 +9,6 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 public class FieldDescriptorDate extends FieldDescriptor {
     private String pattern;
+    private Integer daysPast;
+    private Integer daysFuture;
 }

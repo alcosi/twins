@@ -49,7 +49,9 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
             return new TwinClassFieldDescriptorColorHexDTOv1();
         else if (fieldDescriptor instanceof FieldDescriptorDate dateDescriptor)
             return new TwinClassFieldDescriptorDateScrollDTOv1()
-                    .pattern(dateDescriptor.pattern());
+                    .pattern(dateDescriptor.pattern())
+                    .daysPast(dateDescriptor.daysPast())
+                    .daysFuture(dateDescriptor.daysFuture());
         else if (fieldDescriptor instanceof FieldDescriptorList listDescriptor)
             if (listDescriptor.dataListId() != null) {
                 return new TwinClassFieldDescriptorListLongDTOv1()
