@@ -17,9 +17,6 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "CommentCreateV1")
 public class CommentCreateDTOv1 extends CommentSaveDTOv1 {
-    @Schema(description = "twin id", example = DTOExamples.TWIN_ID)
-    public UUID twinId;
-
     @Schema(description = "attachments")
     public List<AttachmentCreateDTOv1> attachments;
 

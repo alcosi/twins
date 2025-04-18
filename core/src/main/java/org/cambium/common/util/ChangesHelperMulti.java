@@ -7,7 +7,6 @@ import java.util.Set;
 public class ChangesHelperMulti<T> {
     Map<T, ChangesHelper> changesHelpers = new HashMap<>();
 
-
     public void add(T entry, ChangesHelper changesHelper) {
         changesHelpers.put(entry, changesHelper);
     }

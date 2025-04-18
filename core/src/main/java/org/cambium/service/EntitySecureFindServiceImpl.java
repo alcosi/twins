@@ -233,7 +233,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         return entity;
     }
 
-    public Iterable<T> updateSafe(ChangesHelperMulti<T> changesHelperMulti) throws ServiceException {
+    public List<T> updateSafe(ChangesHelperMulti<T> changesHelperMulti) throws ServiceException {
         List<T> entityList = new ArrayList<>();
         StringBuilder changes = new StringBuilder();
         for (var entry : changesHelperMulti.entrySet()) {
@@ -244,7 +244,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             }
         }
         if (CollectionUtils.isNotEmpty(entityList))
-            return entitySmartService.saveAllAndLogChanges(entityList, entityRepository(), changes);
+            return (List<T>) entitySmartService.saveAllAndLogChanges(entityList, entityRepository(), changes);
         else
             return Collections.emptyList();
     }

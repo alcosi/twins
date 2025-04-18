@@ -25,6 +25,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionService;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Lazy
 @Slf4j
@@ -206,6 +207,14 @@ public class CommentActionService {
 
     public boolean isAllowed(TwinCommentEntity twinCommentEntity, TwinCommentAction action) throws ServiceException {
         loadCommentActions(twinCommentEntity);
-        return twinCommentEntity.getCommentActions().contains(action);
+        return checkAction(twinCommentEntity, action);
+    }
+
+    public List<TwinCommentEntity> isAllowed(List<TwinCommentEntity> comments, TwinCommentAction action) throws ServiceException {
+        return comments.stream().filter(e -> checkAction(e, action)).toList();
+    }
+
+    private static boolean checkAction(TwinCommentEntity twinComment, TwinCommentAction action) {
+        return twinComment.getCommentActions().contains(action);
     }
 }

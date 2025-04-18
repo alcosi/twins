@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -41,14 +42,14 @@ public class CommentCreateController extends ApiController {
 
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinCommentCreateV1", summary = "Add comments and their attachments")
+    @Operation(operationId = "commentCreateV1", summary = "Add comments and their attachments")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "list comments", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = CommentListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/comment/twin/v1")
-    public ResponseEntity<?> twinCommentCreateV1(
+    @PostMapping(value = "/private/comment/v1")
+    public ResponseEntity<?> commentCreateV1(
             @MapperContextBinding(roots = CommentRestDTOMapper.class, response = CommentListRsDTOv1.class) MapperContext mapperContext,
             @RequestBody CommentCreateRqDTOv1 request) {
         CommentListRsDTOv1 rs = new CommentListRsDTOv1();

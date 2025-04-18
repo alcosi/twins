@@ -92,6 +92,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     PAGINATION_LIMIT_ERROR(11202, "pagination value limit cannot be less than 1"),
     TWIN_COMMENT_FIELD_TEXT_IS_NULL(11301, "twin comment field is null"),
     TWIN_COMMENT_EDIT_ACCESS_DENIED(11302, "Comment editing access denied"),
+    TWIN_NOT_FOUND(11303, "Twin not found"),
     TWIN_ATTACHMENT_INCORRECT_COMMENT(11402, "This attachment belongs to another comment"),
     TWIN_ATTACHMENT_DELETE_ACCESS_DENIED(11403, "This attachment does not belong to the commenter"),
     TWIN_ATTACHMENT_EMPTY_TWIN_ID(11404, "Attachment does not have twinId"),
