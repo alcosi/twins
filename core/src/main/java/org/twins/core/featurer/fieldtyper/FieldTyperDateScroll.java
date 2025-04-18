@@ -27,7 +27,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.Properties;
 
@@ -52,7 +51,7 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinFieldEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(value.getDate()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
-        if (!value.hasValue("")) {
+        if (!value.isNullified()) {
             LocalDateTime localDateTime = validateValue(twinFieldEntity, value.getDate(), properties);
             value.setDate(formatDate(localDateTime, properties));
         }
@@ -65,8 +64,10 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     }
 
     public String validDateOrEmpty(String dateStr, Properties properties) {
-        if (GenericValidator.isDate(dateStr, pattern.extract(properties), false)) return dateStr;
-        else log.warn("Value[ " + dateStr + "] does not match expected format[" + pattern.extract(properties) + "]");
+        if (GenericValidator.isDate(dateStr, pattern.extract(properties), false)) {
+            return dateStr;
+        }
+        log.warn("Value[ {}] does not match expected format[{}]", dateStr, pattern.extract(properties));
         return "";
     }
 
@@ -101,15 +102,11 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
 
     private LocalDateTime parseDateTime(String value, Properties properties) throws ServiceException {
         String patternStr = pattern.extract(properties);
+        SimpleDateFormat formatter = new SimpleDateFormat(patternStr);
+        formatter.setLenient(false);
         try {
-            SimpleDateFormat formatter = new SimpleDateFormat(patternStr);
-            formatter.setLenient(false);
-            try {
-                return formatter.parse(value).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-            } catch (ParseException var6) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Unsupported date pattern: " + patternStr);
-            }
-        } catch (DateTimeParseException e) {
+            return formatter.parse(value).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        } catch (ParseException var6) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Value [" + value + "] is not a valid datetime in format " + patternStr);
         }
     }

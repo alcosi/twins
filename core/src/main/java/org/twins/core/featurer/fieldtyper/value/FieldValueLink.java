@@ -9,6 +9,7 @@ import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -60,7 +61,12 @@ public class FieldValueLink extends FieldValue {
     }
 
     public void nullify() {
-        twinLinks = new ArrayList<>();
+        twinLinks = Collections.EMPTY_LIST;
+    }
+
+    @Override
+    public boolean isNullified() {
+        return twinLinks != null && twinLinks.isEmpty();
     }
 
 }
