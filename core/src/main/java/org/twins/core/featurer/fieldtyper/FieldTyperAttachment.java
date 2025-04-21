@@ -53,4 +53,10 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
     protected FieldValueInvisible deserializeValue(Properties properties, TwinField twinField) {
         return new FieldValueInvisible(twinField.getTwinClassField());
     }
+
+    public UUID getRestrictionId(HashMap<String, String> fieldTyperParams) throws ServiceException {
+        Properties properties = featurerService.extractProperties(FeaturerTwins.ID_1316, fieldTyperParams, new HashMap<>());
+        return restrictionId.extract(properties);
+    }
+
 }

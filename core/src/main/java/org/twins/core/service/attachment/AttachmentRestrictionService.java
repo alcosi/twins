@@ -2,8 +2,10 @@ package org.twins.core.service.attachment;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -11,11 +13,16 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.attachment.*;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.attachment.AttachmentQuotas;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.featurer.fieldtyper.FieldTyperAttachment;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
@@ -41,6 +48,8 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
     private final TwinClassService twinClassService;
     private final TwinClassFieldService twinClassFieldService;
     private final AttachmentService attachmentService;
+    private final FeaturerService featurerService;
+    private final AuthService authService;
 
     @Override
     public CrudRepository<TwinAttachmentRestrictionEntity, UUID> entityRepository() {
@@ -54,6 +63,12 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
 
     @Override
     public boolean isEntityReadDenied(TwinAttachmentRestrictionEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (entity.getDomainId() != null
+                && !entity.getDomainId().equals(apiUser.getDomain().getId())) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
+            return true;
+        }
         return false;
     }
 
@@ -191,9 +206,19 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         Set<UUID> fieldIds = fieldCudMap.keySet();
         Kit<TwinClassFieldEntity, UUID> fieldsKit = twinClassFieldService.findEntitiesSafe(fieldIds);
 
-        Set<UUID> restrictionIds = fieldsKit.getCollection().stream()
-                .map(field -> UUID.fromString(field.getFieldTyperParams().get("restrictionId")))
-                .collect(Collectors.toSet());
+        Map<UUID, UUID> fieldToRestrictionMap = new HashMap<>();
+        Set<UUID> restrictionIds = new HashSet<>();
+
+        for (TwinClassFieldEntity field : fieldsKit.getCollection()) {
+            FieldTyper<?, ?, ?, ?> fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturer(), FieldTyper.class);
+
+            if (fieldTyper.getStorageType() != TwinAttachmentEntity.class)
+                throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Wrong fieldTyper for [" + field.getId() + "]");
+
+            UUID restrictionId = ((FieldTyperAttachment)fieldTyper).getRestrictionId(field.getFieldTyperParams());
+            fieldToRestrictionMap.put(field.getId(), restrictionId);
+            restrictionIds.add(restrictionId);
+        }
 
         Kit<TwinAttachmentRestrictionEntity, UUID> restrictionsKit = findEntitiesSafe(restrictionIds);
 
@@ -201,9 +226,8 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
 
         for (Map.Entry<UUID, EntityCUD<TwinAttachmentEntity>> entry : fieldCudMap.entrySet()) {
             UUID fieldId = entry.getKey();
-            TwinClassFieldEntity field = fieldsKit.get(fieldId);
 
-            UUID restrictionId = UUID.fromString(field.getFieldTyperParams().get("restrictionId"));
+            UUID restrictionId = fieldToRestrictionMap.get(fieldId);
             TwinAttachmentRestrictionEntity restriction = restrictionsKit.get(restrictionId);
 
             int currentCount = currentCounts.getOrDefault(fieldId, 0);

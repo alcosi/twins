@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.EasyLoggable;
 
 import java.util.UUID;
 
@@ -12,7 +13,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Accessors(chain = true)
 @Table(name = "twin_attachment_restriction")
-public class TwinAttachmentRestrictionEntity {
+public class TwinAttachmentRestrictionEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -40,4 +41,9 @@ public class TwinAttachmentRestrictionEntity {
 
     @Column(name = "file_name_regexp")
     private String fileNameRegexp;
+
+    @Override
+    public String easyLog(Level level) {
+        return "twinAttachmentRestriction[" + id + "]";
+    }
 }

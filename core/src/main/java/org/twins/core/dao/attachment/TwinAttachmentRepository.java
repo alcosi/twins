@@ -50,4 +50,14 @@ public interface TwinAttachmentRepository extends CrudRepository<TwinAttachmentE
     @Query("SELECT twin.twinId, COUNT(twin) FROM TwinAttachmentEntity twin WHERE twin.twinId IN :twinIds GROUP BY twin.twinId")
     List<Object[]> countByTwinIds(@Param("twinIds") List<UUID> twinIds);
 
+    @Query("""
+        SELECT a.twinClassFieldId, COUNT(a)
+        FROM TwinAttachmentEntity a
+        WHERE a.twinId = :twinId AND a.twinClassFieldId IN :fieldIds
+        GROUP BY a.twinClassFieldId
+        """)
+    List<Object[]> countAttachmentsGroupByField(
+            @Param("twinId") UUID twinId,
+            @Param("fieldIds") Collection<UUID> fieldIds);
+
 }
