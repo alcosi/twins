@@ -5,7 +5,8 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.attachment.*;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
+import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
@@ -17,7 +18,9 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueInvisible;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsAttachmentRestrictionId;
 import org.twins.core.service.attachment.AttachmentRestrictionService;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Properties;
+import java.util.UUID;
 
 
 @Component
@@ -55,7 +58,7 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
     }
 
     public UUID getRestrictionId(HashMap<String, String> fieldTyperParams) throws ServiceException {
-        Properties properties = featurerService.extractProperties(FeaturerTwins.ID_1316, fieldTyperParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, fieldTyperParams, new HashMap<>());
         return restrictionId.extract(properties);
     }
 
