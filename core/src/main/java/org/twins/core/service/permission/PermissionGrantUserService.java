@@ -90,7 +90,7 @@ public class PermissionGrantUserService extends EntitySecureFindServiceImpl<Perm
         createEntity
                 .setGrantedByUserId(apiUser.getUserId())
                 .setDomainId(apiUser.getDomainId())
-                .setBusinessAccountId(apiUser.isBusinessAccountSpecified() ? apiUser.getBusinessAccountId() : null)
+                .setBusinessAccountId(createEntity.getBusinessAccountId())
                 .setGrantedAt(Timestamp.from(Instant.now()));
         return saveSafe(createEntity);
     }
