@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "FaceWT001ColumnV1")
+@Schema(name = "FaceTW005ButtonV1")
 public class FaceTW005ButtonDTOv1 {
     @Schema(description = "id")
     public UUID id;
