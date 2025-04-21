@@ -21,6 +21,12 @@ public class PermissionGrantUserEntity implements EasyLoggable {
     @GeneratedValue(generator = "uuid")
     private UUID id;
 
+    @Column(name = "domain_id", nullable = false)
+    private UUID domainId;
+
+    @Column(name = "business_account_id")
+    private UUID businessAccountId;
+
     @Column(name = "permission_schema_id")
     private UUID permissionSchemaId;
 

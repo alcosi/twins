@@ -16,6 +16,8 @@ public class PermissionGrantUserSaveDTOv1 {
     public UUID permissionSchemaId;
     @Schema(description = "permission id", example = DTOExamples.PERMISSION_ID)
     public UUID permissionId;
+    @Schema(description = "business account id", example = DTOExamples.USER_ID)
+    public UUID businessAccountId;
     @Schema(description = "user id", example = DTOExamples.USER_ID)
     public UUID userId;
 }
