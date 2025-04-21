@@ -10,6 +10,7 @@ public class AttachmentCUDProblems {
     private List<AttachmentCreateProblem> createProblems = new ArrayList<>();
     private List<AttachmentUpdateProblem> updateProblems = new ArrayList<>();
     private List<AttachmentDeleteProblem> deleteProblems = new ArrayList<>();
+    private List<AttachmentGlobalProblem> globalProblems = new ArrayList<>();
     private List<AttachmentFieldProblem> fieldAttachmentProblems = new ArrayList<>();
     private List<AttachmentCommentProblem> commentAttachmentProblems = new ArrayList<>();
 
@@ -18,6 +19,7 @@ public class AttachmentCUDProblems {
                 !updateProblems.isEmpty() ||
                 !deleteProblems.isEmpty() ||
                 !fieldAttachmentProblems.isEmpty() ||
-                !commentAttachmentProblems.isEmpty();
+                !commentAttachmentProblems.isEmpty() ||
+                !globalProblems.isEmpty();
     }
 }

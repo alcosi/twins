@@ -1,13 +1,12 @@
 package org.twins.core.featurer.fieldtyper;
 
+import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamInt;
-import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
+import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
@@ -16,37 +15,35 @@ import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorAttachment;
 import org.twins.core.featurer.fieldtyper.value.FieldValueInvisible;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsAttachmentRestrictionId;
+import org.twins.core.service.attachment.AttachmentRestrictionService;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Properties;
+import java.util.UUID;
+
 
 @Component
+@RequiredArgsConstructor
 @Featurer(id = FeaturerTwins.ID_1316,
         name = "Attachment",
         description = "Allow the field to have an attachment")
 public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, FieldValueInvisible, TwinAttachmentEntity, TwinFieldSearchNotImplemented> {
+    private final AttachmentRestrictionService attachmentRestrictionService;
 
-    @FeaturerParam(name = "Min count", description = "Min count of attachments to field", order = 1)
-    public static final FeaturerParamInt minCount = new FeaturerParamInt("minCount");
-    @FeaturerParam(name = "Max count", description = "Max count of attachments to field", order = 2)
-    public static final FeaturerParamInt maxCount = new FeaturerParamInt("maxCount");
-    @FeaturerParam(name = "File size MB limit", description = "Max size per file for attachment", order = 3)
-    public static final FeaturerParamInt fileSizeMbLimit = new FeaturerParamInt("fileSizeMbLimit");
-    @FeaturerParam(name = "File extension list", description = "Allowed extensions for attachment(ex: jpg,jpeg,png)", order = 4)
-    public static final FeaturerParamString fileExtensionList = new FeaturerParamString("fileExtensionList");
-    @FeaturerParam(name = "File name regexp", description = "File name must match this pattern", order = 5)
-    public static final FeaturerParamString fileNameRegexp = new FeaturerParamString("fileNameRegexp");
+    @FeaturerParam(name = "Restriction Id", description = "Id of field typer restrictions", order = 1)
+    public static final FeaturerParamUUIDTwinsAttachmentRestrictionId restrictionId = new FeaturerParamUUIDTwinsAttachmentRestrictionId("restrictionId");
 
     @Override
-    public FieldDescriptorAttachment getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
-        String extensions = fileExtensionList.extract(properties);
+    public FieldDescriptorAttachment getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
+        TwinAttachmentRestrictionEntity restriction = attachmentRestrictionService.findEntitySafe(restrictionId.extract(properties));
+
         return new FieldDescriptorAttachment()
-                .minCount(minCount.extract(properties))
-                .maxCount(maxCount.extract(properties))
-                .fileSizeMbLimit(fileSizeMbLimit.extract(properties))
-                .filenameRegExp(fileNameRegexp.extract(properties))
-                .extensions(ObjectUtils.isEmpty(extensions) ? new ArrayList<>() : Arrays.asList(extensions.split(",")));
+                .minCount(restriction.getMinCount())
+                .maxCount(restriction.getMaxCount())
+                .extensions(restriction.getFileExtensionLimit())
+                .fileSizeMbLimit(restriction.getFileSizeMbLimit())
+                .filenameRegExp(restriction.getFileNameRegexp());
     }
 
     @Deprecated
@@ -59,4 +56,10 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
     protected FieldValueInvisible deserializeValue(Properties properties, TwinField twinField) {
         return new FieldValueInvisible(twinField.getTwinClassField());
     }
+
+    public UUID getRestrictionId(HashMap<String, String> fieldTyperParams) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, fieldTyperParams, new HashMap<>());
+        return restrictionId.extract(properties);
+    }
+
 }

@@ -15,10 +15,11 @@ public interface TwinAttachmentRepository extends CrudRepository<TwinAttachmentE
     TwinAttachmentEntity getById(UUID twinId);
     List<TwinAttachmentEntity> findByTwinId(UUID twinId);
     List<TwinAttachmentEntity> findByTwinCommentId(UUID twinId);
+    List<TwinAttachmentEntity> findByTwinIdAndTwinClassFieldId(UUID twinId, UUID fieldId);
     List<TwinAttachmentEntity> findByIdIn(Collection<UUID> attachmentIdList);
     List<TwinAttachmentEntity> findByTwinIdIn(Collection<UUID> twinIdList);
     List<TwinAttachmentEntity> findByTwinCommentIdIn(Collection<UUID> twinCommentIdList);
-
+    List<TwinAttachmentEntity> findByTwinIdAndTwinClassFieldIdIn(UUID twinId, Collection<UUID> twinClassFieldIds);
     List<TwinAttachmentEntity> findByTwinIdAndIdIn(UUID twinId, Collection<UUID> idList);
 
     void deleteAllByTwinIdAndIdIn(UUID twinId, Collection<UUID> idList);
@@ -48,5 +49,15 @@ public interface TwinAttachmentRepository extends CrudRepository<TwinAttachmentE
 
     @Query("SELECT twin.twinId, COUNT(twin) FROM TwinAttachmentEntity twin WHERE twin.twinId IN :twinIds GROUP BY twin.twinId")
     List<Object[]> countByTwinIds(@Param("twinIds") List<UUID> twinIds);
+
+    @Query("""
+        SELECT a.twinClassFieldId, COUNT(a)
+        FROM TwinAttachmentEntity a
+        WHERE a.twinId = :twinId AND a.twinClassFieldId IN :fieldIds
+        GROUP BY a.twinClassFieldId
+        """)
+    List<Object[]> countAttachmentsGroupByField(
+            @Param("twinId") UUID twinId,
+            @Param("fieldIds") Collection<UUID> fieldIds);
 
 }
