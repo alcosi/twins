@@ -10,7 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -18,14 +21,12 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.domain.comment.CommentUpdate;
 import org.twins.core.dto.rest.comment.CommentListRsDTOv1;
-import org.twins.core.dto.rest.comment.CommentUpdateDTOv1;
 import org.twins.core.dto.rest.comment.CommentUpdateRqDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.comment.CommentRestDTOMapper;
+import org.twins.core.mappers.rest.comment.CommentUpdateRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.comment.CommentService;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Tag(name = ApiTag.COMMENT)
@@ -35,7 +36,7 @@ import java.util.List;
 public class CommentUpdateController extends ApiController {
     private final CommentService commentService;
     private final CommentRestDTOMapper commentRestDTOMapper;
-    private final AttachmentCUDRestDTOReverseMapperV2 attachmentCUDRestDTOReverseMapperV2;
+    private final CommentUpdateRestDTOMapper commentUpdateRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "commentUpdateV1", summary = "Update comment and it's attachments")
@@ -50,15 +51,8 @@ public class CommentUpdateController extends ApiController {
             @RequestBody CommentUpdateRqDTOv1 request) {
         CommentListRsDTOv1 rs = new CommentListRsDTOv1();
         try {
-            List<CommentUpdate> comments = new ArrayList<>();
-            for (CommentUpdateDTOv1 comment : request.getComments()) {
-                comments.add(new CommentUpdate()
-                        .setId(comment.getId())
-                        .setTwinId(comment.getTwinId())
-                        .setComment(comment.getText())
-                        .setCudAttachments(attachmentCUDRestDTOReverseMapperV2.convert(comment.getAttachments())));
-            }
-            List<TwinCommentEntity> twinCommentEntities = commentService.updateComment(comments);
+            List<CommentUpdate> commentList = commentUpdateRestDTOMapper.convertCollection(request.getComments());
+            List<TwinCommentEntity> twinCommentEntities = commentService.updateComment(commentList);
             rs
                     .setComments(commentRestDTOMapper.convertCollection(twinCommentEntities, mapperContext));
         } catch (ServiceException se) {

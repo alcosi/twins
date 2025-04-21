@@ -45,10 +45,9 @@ public class AttachmentCreateController extends ApiController {
             @RequestBody AttachmentCreateRqDTOv1 request) {
         AttachmentListRsDTOv1 rs = new AttachmentListRsDTOv1();
         try {
-            List<TwinAttachmentEntity> attachments = attachmentService.addAttachments(attachmentCreateRestDTOReverseMapper.convertCollection(request.getAttachments()).stream()
-                    .collect(Collectors.groupingBy(
-                            TwinAttachmentEntity::getTwinId
-                    )));
+
+            List<TwinAttachmentEntity> attachments = attachmentService.addAttachments(
+                    attachmentCreateRestDTOReverseMapper.convertCollection(request.getAttachments()));
             rs
                     .setAttachments(attachmentRestDTOMapper.convertCollection(attachments));
         } catch (ServiceException se) {

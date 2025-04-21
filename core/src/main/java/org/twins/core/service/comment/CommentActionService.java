@@ -35,7 +35,6 @@ public class CommentActionService {
     final TwinCommentActionAlienPermissionRepository twinCommentActionAlienPermissionRepository;
     final TwinCommentActionAlienValidatorRuleRepository twinCommentActionAlienValidatorRuleRepository;
     private final TwinCommentActionSelfRepository twinCommentActionSelfRepository;
-    final TwinRepository twinRepository;
     @Lazy
     final PermissionService permissionService;
     @Lazy
@@ -176,8 +175,7 @@ public class CommentActionService {
         List<TwinCommentEntity> needLoad = new ArrayList<>();
         Set<TwinClassEntity> needLoadCommentActionsAlienProtected = new HashSet<>();
         Set<TwinClassEntity> needLoadCommentActionsSelfRestrict = new HashSet<>();
-        TwinEntity twinEntity = null;
-        TwinClassEntity twinClassEntity = null;
+        TwinClassEntity twinClassEntity;
         UUID currentUserId = authService.getApiUser().getUserId();
         for (TwinCommentEntity twinComment : twinComments) {
             if (twinComment.getCommentActions() != null)
@@ -198,23 +196,5 @@ public class CommentActionService {
         for (TwinCommentEntity twinComment : needLoad) { //now it's N+1 safe to do it loop because TwinClassEntities are already loaded with all necessary data
             loadCommentActions(twinComment);
         }
-    }
-
-    public void checkAllowed(TwinCommentEntity twinCommentEntity, TwinCommentAction action) throws ServiceException {
-        if (!isAllowed(twinCommentEntity, action))
-            throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + action.name() + "] not available for comment[" + twinCommentEntity.getId() + "] on " + twinCommentEntity.getTwin().logNormal());
-    }
-
-    public boolean isAllowed(TwinCommentEntity twinCommentEntity, TwinCommentAction action) throws ServiceException {
-        loadCommentActions(twinCommentEntity);
-        return checkAction(twinCommentEntity, action);
-    }
-
-    public List<TwinCommentEntity> isAllowed(List<TwinCommentEntity> comments, TwinCommentAction action) throws ServiceException {
-        return comments.stream().filter(e -> checkAction(e, action)).toList();
-    }
-
-    private static boolean checkAction(TwinCommentEntity twinComment, TwinCommentAction action) {
-        return twinComment.getCommentActions().contains(action);
     }
 }
