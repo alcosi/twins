@@ -9,6 +9,9 @@ CREATE TABLE IF NOT EXISTS twin_attachment_restriction
     file_name_regexp    TEXT
 );
 
+CREATE INDEX IF NOT EXISTS idx_twin_attachment_restriction_domain_id
+    ON twin_attachment_restriction (domain_id);
+
 ALTER TABLE twin_class
     ADD COLUMN IF NOT EXISTS general_attachment_restriction_id UUID,
     ADD COLUMN IF NOT EXISTS comment_attachment_restriction_id UUID;
