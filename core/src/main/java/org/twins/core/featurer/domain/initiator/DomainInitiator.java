@@ -136,7 +136,8 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setHeadTwinClassId(TWIN_CLASS_USER)
                 .setOwnerType(TwinClassEntity.OwnerType.DOMAIN_USER)
                 .setCreatedAt(Timestamp.from(Instant.now()))
-                .setCreatedByUserId(systemEntityService.getUserIdSystem());
+                .setCreatedByUserId(systemEntityService.getUserIdSystem())
+                .setAssigneeRequired(false);
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
@@ -186,7 +187,8 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setOwnerType(TwinClassEntity.OwnerType.DOMAIN)
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setExtendsTwinClassId(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR)
-                .setCreatedByUserId(systemEntityService.getUserIdSystem());
+                .setCreatedByUserId(systemEntityService.getUserIdSystem())
+                .setAssigneeRequired(false);
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         return twinClassEntity.getId();
     }
