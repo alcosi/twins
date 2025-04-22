@@ -284,7 +284,7 @@ public class FeaturerService {
                     log.error("error getting value[" + entry.getValue() + "] injected by key[" + entry.getKey() + "]", e);
                     ret.put(entry.getKey(), value);
                 }
-            } else {
+            } else if (value != null) {
                 ret.put(entry.getKey(), value);
             }
         }
