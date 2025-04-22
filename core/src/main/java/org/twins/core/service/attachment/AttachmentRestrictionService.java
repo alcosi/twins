@@ -220,40 +220,32 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         Set<UUID> restrictionIds = new HashSet<>();
 
         for (TwinClassFieldEntity field : fieldsKit.getCollection()) {
-
-                FieldTyper<?, ?, ?, ?> fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturer(), FieldTyper.class);
-
-                if (fieldTyper.getStorageType() != TwinAttachmentEntity.class) {
-                    throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Wrong fieldTyper for [" + field.getId() + "]");
-                }
-
-                UUID restrictionId = null;
-                try {
-                    restrictionId = ((FieldTyperAttachment)fieldTyper).getRestrictionId(field.getFieldTyperParams());
-                } catch (ServiceException e) {
-                    log.info("cant find restrictionId for field [{}]", field.getId());
-                }
-
-                if (restrictionId != null) {
-                    fieldToRestrictionMap.put(field.getId(), restrictionId);
-                    restrictionIds.add(restrictionId);
-                }
+            FieldTyper<?, ?, ?, ?> fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturer(), FieldTyper.class);
+            if (fieldTyper.getStorageType() != TwinAttachmentEntity.class) {
+                throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Wrong fieldTyper for [" + field.getId() + "]");
+            }
+            UUID restrictionId = ((FieldTyperAttachment) fieldTyper).getRestrictionId(field.getFieldTyperParams());
+            if (restrictionId == null) {
+                continue;
+            }
+            fieldToRestrictionMap.put(field.getId(), restrictionId);
+            restrictionIds.add(restrictionId);
         }
 
         if (!restrictionIds.isEmpty()) {
             Kit<TwinAttachmentRestrictionEntity, UUID> restrictionsKit = findEntitiesSafe(restrictionIds);
-
-            for (Map.Entry<UUID, EntityCUD<TwinAttachmentEntity>> entry : fieldCudMap.entrySet()) {
+            for (var entry : fieldCudMap.entrySet()) {
                 UUID fieldId = entry.getKey();
                 UUID restrictionId = fieldToRestrictionMap.get(fieldId);
-
-                if (restrictionId != null) {
-                    TwinAttachmentRestrictionEntity restriction = restrictionsKit.get(restrictionId);
-                    if (restriction != null) {
-                        int currentCount = currentCounts.getOrDefault(fieldId, 0);
-                        validateAttachmentRestrictions(currentCount, restriction, entry.getValue(), result);
-                    }
+                if (restrictionId == null) {
+                    continue;
                 }
+                TwinAttachmentRestrictionEntity restriction = restrictionsKit.get(restrictionId);
+                if (restriction == null) {
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "incorrect restriction id[" + restrictionId + "]");
+                }
+                int currentCount = currentCounts.getOrDefault(fieldId, 0);
+                validateAttachmentRestrictions(currentCount, restriction, entry.getValue(), result);
             }
         }
     }
