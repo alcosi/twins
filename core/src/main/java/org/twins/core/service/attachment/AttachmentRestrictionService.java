@@ -231,7 +231,7 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
                 try {
                     restrictionId = ((FieldTyperAttachment)fieldTyper).getRestrictionId(field.getFieldTyperParams());
                 } catch (ServiceException e) {
-                    log.info("cant find fieldTyper for featurer [{}]", field.getFieldTyperFeaturer());
+                    log.info("cant find restrictionId for field [{}]", field.getId());
                 }
 
                 if (restrictionId != null) {
