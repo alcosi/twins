@@ -6,6 +6,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -278,7 +279,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 historyItem.getContext().setNewStorageFileKey(attachmentEntity.getStorageFileKey());
                 dbAttachmentEntity.setStorageFileKey(attachmentEntity.getStorageFileKey());
             }
-            if (attachmentEntity.getModifications() != null) {
+            if (KitUtils.isNotEmpty(attachmentEntity.getModifications())) {
                 updateAttachmentModifications(attachmentEntity, dbAttachmentEntity, twinChangesCollector);
             }
             if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.externalId, dbAttachmentEntity.getExternalId(), attachmentEntity.getExternalId())) {
