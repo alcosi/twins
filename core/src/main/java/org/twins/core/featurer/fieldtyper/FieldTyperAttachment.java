@@ -37,14 +37,17 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
 
     @Override
     public FieldDescriptorAttachment getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
-        TwinAttachmentRestrictionEntity restriction = attachmentRestrictionService.findEntitySafe(restrictionId.extract(properties));
+        if (restrictionId.extract(properties) != null) {
+            TwinAttachmentRestrictionEntity restriction = attachmentRestrictionService.findEntitySafe(restrictionId.extract(properties));
 
-        return new FieldDescriptorAttachment()
-                .minCount(restriction.getMinCount())
-                .maxCount(restriction.getMaxCount())
-                .extensions(restriction.getFileExtensionLimit())
-                .fileSizeMbLimit(restriction.getFileSizeMbLimit())
-                .filenameRegExp(restriction.getFileNameRegexp());
+            return new FieldDescriptorAttachment()
+                    .minCount(restriction.getMinCount())
+                    .maxCount(restriction.getMaxCount())
+                    .extensions(restriction.getFileExtensionLimit())
+                    .fileSizeMbLimit(restriction.getFileSizeMbLimit())
+                    .filenameRegExp(restriction.getFileNameRegexp());
+        }
+        return new FieldDescriptorAttachment();
     }
 
     @Deprecated
