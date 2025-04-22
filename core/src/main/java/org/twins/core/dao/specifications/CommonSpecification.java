@@ -79,7 +79,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(ids))
                 return cb.conjunction();
-            var preparedDepthLimit = depthLimit == null ? 1 : depthLimit;
+            var preparedDepthLimit = depthLimit == 0 ? null : depthLimit;
             Path<UUID> classIdPath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, concatArray(ltreeRootPath, ltreeRootIdFiled));
             Subquery<UUID> subquery = query.subquery(UUID.class);
             var subqueryRoot = subquery.from(ltreeRootClass);
