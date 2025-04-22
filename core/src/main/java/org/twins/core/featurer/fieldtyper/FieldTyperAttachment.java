@@ -32,7 +32,7 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
 
     private final AttachmentRestrictionService attachmentRestrictionService;
 
-    @FeaturerParam(name = "Restriction Id", description = "Id of field typer restrictions", order = 1)
+    @FeaturerParam(name = "Restriction Id", description = "Id of field typer restrictions", order = 1, optional = true)
     public static final FeaturerParamUUIDTwinsAttachmentRestrictionId restrictionId = new FeaturerParamUUIDTwinsAttachmentRestrictionId("restrictionId");
 
     @Override
