@@ -29,6 +29,7 @@ import java.util.UUID;
         name = "Attachment",
         description = "Allow the field to have an attachment")
 public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, FieldValueInvisible, TwinAttachmentEntity, TwinFieldSearchNotImplemented> {
+
     private final AttachmentRestrictionService attachmentRestrictionService;
 
     @FeaturerParam(name = "Restriction Id", description = "Id of field typer restrictions", order = 1)
