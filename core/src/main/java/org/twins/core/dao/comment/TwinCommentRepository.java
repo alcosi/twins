@@ -9,11 +9,14 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
+import java.util.*;
 
 @Repository
 public interface TwinCommentRepository extends CrudRepository<TwinCommentEntity, UUID>, JpaSpecificationExecutor<TwinCommentEntity> {
 
    Page<TwinCommentEntity> findAllByTwinId(UUID id, Pageable pageable);
 
+   Optional<TwinCommentEntity> findByTwinIdAndCreatedByUserId(UUID twinId, UUID createdByUserId);
+
+   List<TwinCommentEntity> findByIdIn(Collection<UUID> ids);
 }

@@ -6,6 +6,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.MapUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.attachment.*;
+import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
@@ -59,8 +61,12 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     }
 
     @Transactional
-    public List<TwinAttachmentEntity> addAttachments(List<TwinAttachmentEntity> attachments, TwinEntity twinEntity) throws ServiceException {
-        checkAndSetAttachmentTwin(attachments, twinEntity);
+    public List<TwinAttachmentEntity> addAttachments(Map<TwinEntity, List<TwinAttachmentEntity>> attachmentMap) throws ServiceException {
+        List<TwinAttachmentEntity> attachments = new ArrayList<>();
+        for (var entry : attachmentMap.entrySet()) {
+            checkAndSetAttachmentTwin(entry.getValue(), entry.getKey());
+            attachments.addAll(entry.getValue());
+        }
         return addAttachments(attachments);
     }
 
@@ -238,6 +244,16 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     }
 
     @Transactional
+    public void updateAttachments(Map<TwinEntity, List<TwinAttachmentEntity>> attachmentMap) throws ServiceException {
+        List<TwinAttachmentEntity> attachments = new ArrayList<>();
+        for (var entry : attachmentMap.entrySet()) {
+            checkAndSetAttachmentTwin(entry.getValue(), entry.getKey());
+            attachments.addAll(entry.getValue());
+        }
+        updateAttachments(attachments);
+    }
+
+    @Transactional
     public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentEntityList))
             return;
@@ -328,7 +344,21 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         return field + " was changed from[" + oldValue + "] to[" + newValue + "]";
     }
 
-    public void deleteAttachments(TwinEntity twinEntity, List<TwinAttachmentEntity> attachmentDeleteList) throws ServiceException {
+    public void deleteAttachments(Map<TwinEntity, List<TwinAttachmentEntity>> attachmentMap) throws ServiceException {
+        if (MapUtils.isEmpty(attachmentMap)) {
+            return;
+        }
+        List<TwinAttachmentEntity> attachments = new ArrayList<>();
+        for (var entry : attachmentMap.entrySet()) {
+            checkAndSetAttachmentTwin(entry.getValue(), entry.getKey());
+            attachments.addAll(entry.getValue());
+        }
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        deleteAttachments(attachments, twinChangesCollector);
+        twinChangesService.applyChanges(twinChangesCollector);
+    }
+
+    public void deleteAttachments(List<TwinAttachmentEntity> attachmentDeleteList, TwinEntity twinEntity) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentDeleteList))
             return;
         checkAndSetAttachmentTwin(attachmentDeleteList, twinEntity);

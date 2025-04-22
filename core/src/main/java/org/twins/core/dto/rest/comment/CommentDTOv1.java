@@ -3,7 +3,6 @@ package org.twins.core.dto.rest.comment;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.comment.TwinCommentAction;
 import org.twins.core.dto.rest.DTOConfig;
@@ -17,7 +16,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "CommentV1")
 public class CommentDTOv1 {
-    @Schema(description = "id", example = DTOExamples.TWIN_COMMENT_ID)
+    @Schema(description = "id", example = DTOExamples.COMMENT_ID)
     public UUID id;
 
     @Schema(name = "text")

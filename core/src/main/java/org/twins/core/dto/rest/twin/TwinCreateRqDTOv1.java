@@ -24,16 +24,16 @@ public class TwinCreateRqDTOv1 extends Request {
     @Schema(description = "Head twin id, if selected class had to be linked to some head twin", example = DTOExamples.HEAD_TWIN_ID)
     public UUID headTwinId;
 
-    @Schema(description = "name", example = "Oak")
+    @Schema(description = "name", example = DTOExamples.NAME)
     public String name;
 
     @Schema(description = "assigner user id", example = DTOExamples.USER_ID)
     public UUID assignerUserId;
 
-    @Schema(description = "description", example = "The biggest tree")
+    @Schema(description = "description", example = DTOExamples.DESCRIPTION)
     public String description;
 
-    @Schema(description = "external id")
+    @Schema(description = "external id", example = DTOExamples.ATTACHMENT_EXTERNAL_ID)
     public String externalId;
 
     @Schema(description = "fields")

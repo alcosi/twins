@@ -90,6 +90,10 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
                 for (TwinAttachmentModificationEntity mod : src.getModifications())
                     dst.getModifications().put(mod.getModificationType(), mod.getStorageFileKey());
         }
+        if (mapperContext.hasModeButNot(CommentMode.Attachment2CommentModeMode.HIDE)) {
+            dst.setCommentId(src.getTwinCommentId());
+            commentRestDTOMapper.postpone(src.getComment(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(CommentMode.Attachment2CommentModeMode.SHORT)));
+        }
         if (mapperContext.hasModeButNot(TransitionMode.Attachment2TransitionMode.HIDE)) {
             dst.setTwinflowTransitionId(src.getTwinflowTransitionId());
             transitionRestDTOMapper.postpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TransitionMode.Attachment2TransitionMode.SHORT)));

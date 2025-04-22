@@ -9,8 +9,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
-import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.PaginationUtils;
+import org.cambium.common.util.*;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -28,6 +27,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
+import org.twins.core.domain.comment.CommentUpdate;
 import org.twins.core.domain.search.CommentSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.attachment.AttachmentService;
@@ -41,6 +41,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.comment.CommentSpecification.*;
@@ -51,54 +52,89 @@ import static org.twins.core.dao.specifications.comment.CommentSpecification.*;
 @Lazy
 @RequiredArgsConstructor
 public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntity> {
-    final AuthService authService;
-    final EntitySmartService entitySmartService;
-    final AttachmentService attachmentService;
-    final TwinService twinService;
-    final PermissionService permissionService;
-    final TwinCommentRepository commentRepository;
-    final TwinAttachmentRepository attachmentRepository;
-    final CommentActionService commentActionService;
-    final UserGroupService userGroupService;
+    private final AuthService authService;
+    private final EntitySmartService entitySmartService;
+    private final AttachmentService attachmentService;
+    private final TwinService twinService;
+    private final PermissionService permissionService;
+    private final TwinCommentRepository commentRepository;
+    private final TwinAttachmentRepository attachmentRepository;
+    private final CommentActionService commentActionService;
+    private final UserGroupService userGroupService;
+    private final TwinCommentRepository twinCommentRepository;
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinCommentEntity createComment(TwinCommentEntity comment, List<TwinAttachmentEntity> attachmentList) throws ServiceException {
-        if (comment.getText() == null)
-            throw new ServiceException(ErrorCodeTwins.TWIN_COMMENT_FIELD_TEXT_IS_NULL);
+    public List<TwinCommentEntity> createComment(List<TwinCommentEntity> comments) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         UUID userId = apiUser.getUser().getId();
-        comment
-                .setCreatedAt(Timestamp.from(Instant.now()))
-                .setCreatedByUserId(userId)
-                .setCreatedByUser(apiUser.getUser());
-        TwinEntity twinEntity = twinService.findEntitySafe(comment.getTwinId());
-        comment.setTwin(twinEntity);
-        saveSafe(comment);
-        if (CollectionUtils.isEmpty(attachmentList))
-            return comment;
-        addCommentIdInAttachments(comment.getId(), attachmentList);
-        attachmentService.addAttachments(attachmentList, twinEntity);
-        return comment.setAttachmentKit(new Kit<>(attachmentList, TwinAttachmentEntity::getId));
+        Set<UUID> twinIdSet = comments.stream().map(TwinCommentEntity::getTwinId).collect(Collectors.toUnmodifiableSet());
+        Kit<TwinEntity, UUID> twinMap = twinService.findEntities(
+                twinIdSet, EntitySmartService.ListFindMode.ifMissedThrows,
+                EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows,
+                EntitySmartService.EntityValidateMode.afterRead);
+        List<TwinCommentEntity> needSave = new ArrayList<>();
+        Map<UUID, Collection<TwinAttachmentEntity>> commentIdsAndAttachments = new HashMap<>();
+        Map<TwinEntity, List<TwinAttachmentEntity>> listAttachmentsAndTwinMap = new HashMap<>();
+        for (TwinCommentEntity comment : comments) {
+            if (StringUtils.isNotBlank(comment.getText())) {
+                comment
+                        .setId(UUID.randomUUID())
+                        .setTwin(twinMap.get(comment.getTwinId()))
+                        .setCreatedAt(Timestamp.from(Instant.now()))
+                        .setCreatedByUserId(userId)
+                        .setCreatedByUser(apiUser.getUser());
+                if (KitUtils.isNotEmpty(comment.getAttachmentKit())) {
+                    commentIdsAndAttachments.put(comment.getId(), comment.getAttachmentKit().getCollection());
+                    listAttachmentsAndTwinMap.put(comment.getTwin(), comment.getAttachmentKit().getCollection().stream().toList());
+                }
+                needSave.add(comment);
+            }
+        }
+        if (CollectionUtils.isEmpty(needSave))
+            return Collections.emptyList();
+        List<TwinCommentEntity> savedComments = (List<TwinCommentEntity>) commentRepository.saveAll(needSave);
+        addCommentIdInAttachments(commentIdsAndAttachments);
+        attachmentService.addAttachments(listAttachmentsAndTwinMap);
+        return savedComments;
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinCommentEntity updateComment(UUID commentId, String commentText, EntityCUD<TwinAttachmentEntity> attachmentCUD) throws ServiceException {
-        TwinCommentEntity currentComment = findEntitySafe(commentId);
-        commentActionService.checkAllowed(currentComment, TwinCommentAction.EDIT);
-        ChangesHelper changesHelper = new ChangesHelper();
-        if (changesHelper.isChanged("text", currentComment.getText(), commentText)) {
-            currentComment
-                    .setText(commentText)
-                    .setChangedAt(Timestamp.from(Instant.now()));
+    public List<TwinCommentEntity> updateComment(List<CommentUpdate> comments) throws ServiceException {
+        Kit<CommentUpdate, UUID> updateKit = new Kit<>(comments, CommentUpdate::getId);
+        List<TwinCommentEntity> dbComments = twinCommentRepository.findByIdIn(updateKit.getIdSet());
+        Kit<TwinCommentEntity, UUID> allowedCommentKit = new Kit<>(dbComments, TwinCommentEntity::getId);
+        commentActionService.loadCommentActions(dbComments);
+        ChangesHelperMulti<TwinCommentEntity> changesHelperMulti = new ChangesHelperMulti<>();
+        Map<TwinEntity, List<TwinAttachmentEntity>> attachmentsToCreate = new HashMap<>();
+        Map<TwinEntity, List<TwinAttachmentEntity>> attachmentsToUpdate = new HashMap<>();
+        Map<TwinEntity, List<TwinAttachmentEntity>> attachmentsToDelete = new HashMap<>();
+
+        for (TwinCommentEntity comment : allowedCommentKit) {
+            if (!comment.getCommentActions().contains(TwinCommentAction.EDIT))
+                throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + TwinCommentAction.EDIT.name() + "] not available for comment[" + comment.getId() + "] on " + comment.getTwin().logNormal());
+            CommentUpdate commentUpdate = updateKit.get(comment.getId());
+            ChangesHelper changesHelper = new ChangesHelper();
+            if (changesHelper.isChanged("text", comment.getText(), commentUpdate.getComment())) {
+                comment
+                        .setText(commentUpdate.getComment())
+                        .setChangedAt(Timestamp.from(Instant.now()));
+            }
+            if (commentUpdate.getCudAttachments().isEmpty())
+                continue;
+            EntityCUD<TwinAttachmentEntity> attachmentCUD = commentUpdate.getCudAttachments();
+            addCommentIdInAttachments(comment.getId(), attachmentCUD.getCreateList());
+            addCommentIdInAttachments(comment.getId(), attachmentCUD.getUpdateList());
+
+            attachmentsToCreate.computeIfAbsent(comment.getTwin(), k -> new ArrayList<>()).addAll(attachmentCUD.getCreateList());
+            attachmentsToUpdate.computeIfAbsent(comment.getTwin(), k -> new ArrayList<>()).addAll(attachmentCUD.getUpdateList());
+            attachmentsToDelete.computeIfAbsent(comment.getTwin(), k -> new ArrayList<>()).addAll(attachmentCUD.getDeleteList());
+
+            changesHelperMulti.add(comment, changesHelper);
         }
-        if (attachmentCUD != null) {
-            addCommentIdInAttachments(commentId, attachmentCUD.getCreateList());
-            addCommentIdInAttachments(commentId, attachmentCUD.getUpdateList());
-            attachmentService.addAttachments(attachmentCUD.getCreateList(), currentComment.getTwin());
-            attachmentService.updateAttachments(attachmentCUD.getUpdateList(), currentComment.getTwin());
-            attachmentService.deleteAttachments(currentComment.getTwin(), attachmentCUD.getDeleteList());
-        }
-        return updateSafe(currentComment, changesHelper);
+        attachmentService.addAttachments(attachmentsToCreate);
+        attachmentService.updateAttachments(attachmentsToUpdate);
+        attachmentService.deleteAttachments(attachmentsToDelete);
+        return updateSafe(changesHelperMulti);
     }
 
     public PaginationResult<TwinCommentEntity> findComment(UUID twinId, SimplePagination pagination) throws ServiceException {
@@ -116,6 +152,16 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
             return;
         attachmentList.forEach(attachment -> {
             attachment.setTwinCommentId(commentId);
+        });
+    }
+
+    private void addCommentIdInAttachments(Map<UUID, Collection<TwinAttachmentEntity>> comments) {
+        if (MapUtils.isEmpty(comments))
+            return;
+        comments.forEach((commentId, attachments) -> {
+            attachments.forEach(attachment -> {
+                attachment.setTwinCommentId(commentId);
+            });
         });
     }
 

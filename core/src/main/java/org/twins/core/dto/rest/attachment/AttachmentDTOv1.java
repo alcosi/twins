@@ -47,7 +47,7 @@ public class AttachmentDTOv1 {
     @Schema(description = "author id", example = DTOExamples.USER_ID)
     public UUID authorUserId;
 
-    @Schema(description = "comment id", example = DTOExamples.TWIN_COMMENT_ID)
+    @Schema(description = "comment id", example = DTOExamples.COMMENT_ID)
     public UUID commentId;
 
     @Schema(description = "twin class field id", example = DTOExamples.TWIN_CLASS_FIELD_ID)

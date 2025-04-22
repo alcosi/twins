@@ -21,8 +21,14 @@ import java.util.UUID;
 @FieldNameConstants
 public class TwinCommentEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UUID.randomUUID();
+        }
+    }
 
     @Column(name = "twin_id")
     private UUID twinId;

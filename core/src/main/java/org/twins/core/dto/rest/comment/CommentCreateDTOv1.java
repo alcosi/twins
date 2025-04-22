@@ -1,12 +1,16 @@
 package org.twins.core.dto.rest.comment;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
+import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.attachment.AttachmentCreateDTOv1;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
@@ -15,4 +19,7 @@ import java.util.List;
 public class CommentCreateDTOv1 extends CommentSaveDTOv1 {
     @Schema(description = "attachments")
     public List<AttachmentCreateDTOv1> attachments;
+
+    @JsonIgnore
+    private List<TwinAttachmentEntity> attachmentEntities;
 }
