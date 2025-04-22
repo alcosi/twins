@@ -1,0 +1,1 @@
+ALTER TABLE twin_class ALTER COLUMN assignee_required SET DEFAULT false;

@@ -368,6 +368,10 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 .setOwnerType(domainService.checkDomainSupportedTwinClassOwnerType(apiUser.getDomain(), twinClassEntity.getOwnerType()))
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
+        if (twinClassEntity.getAssigneeRequired() == null) {
+            twinClassEntity.setAssigneeRequired(false);
+        }
+
         validateEntityAndThrow(twinClassEntity, EntitySmartService.EntityValidateMode.beforeSave);
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
