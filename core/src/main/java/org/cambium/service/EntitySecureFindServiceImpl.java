@@ -119,7 +119,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     @SuppressWarnings("unchecked")
     public T findEntitySafe(UUID entityId) throws ServiceException {
         if (entityId == null)
-            throw new ServiceException(ErrorCodeTwins.UUID_IS_NULL);
+            throw new ServiceException(ErrorCodeTwins.UUID_IS_NULL, "no " + entitySmartService.entityShortName(entityRepository()) + " can be found by null id");
 
         T entity = null;
         switch (getCacheSupportType()) {
