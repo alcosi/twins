@@ -9,4 +9,5 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 public class FieldDescriptorText extends FieldDescriptor {
     private String regExp;
+    private String editorType;
 }

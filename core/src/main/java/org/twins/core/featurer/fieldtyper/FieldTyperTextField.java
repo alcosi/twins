@@ -6,6 +6,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.cambium.featurer.params.FeaturerParamStringTwinsEditorType;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
@@ -29,11 +30,14 @@ import java.util.Properties;
 public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, FieldValueText, TwinFieldSearchText> {
     @FeaturerParam(name = "Regexp", description = "", order = 2)
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
+    @FeaturerParam(name = "contentType", description = "", order = 3, optional = true, defaultValue = "PLAIN")
+    public static final FeaturerParamStringTwinsEditorType contentType = new FeaturerParamStringTwinsEditorType("contentType");
 
     @Override
     public FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new FieldDescriptorText()
-                .regExp(regexp.extract(properties));
+                .regExp(regexp.extract(properties))
+                .editorType(contentType.extract(properties).toString());
     }
 
     @Override
@@ -55,5 +59,16 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldSearchText search) {
         return Specification.where(TwinSpecification.checkFieldText(search, TwinEntity.Fields.fieldsSimple, TwinFieldSimpleEntity.Fields.value));
+    }
+
+    public enum TextEditorType {
+        PLAIN,
+        MARKDOWN_GITHUB,
+        MARKDOWN_BASIC;
+
+        @Override
+        public String toString() {
+            return name();
+        }
     }
 }
