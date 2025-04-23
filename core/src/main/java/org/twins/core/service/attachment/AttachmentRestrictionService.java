@@ -17,7 +17,6 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
-import org.twins.core.domain.EntityCUDHelper;
 import org.twins.core.domain.attachment.AttachmentQuotas;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
@@ -108,9 +107,9 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
     }
 
     private void validateTierQuotas(UUID twinId, AttachmentQuotas tierQuotas, EntityCUD<TwinAttachmentEntity> cud, AttachmentCUDValidateResult result) throws ServiceException {
-        List<TwinAttachmentEntity> deletes = EntityCUDHelper.getOrInitDeleteList(cud);
-        List<TwinAttachmentEntity> updates = EntityCUDHelper.getOrInitUpdateList(cud);
-        List<TwinAttachmentEntity> creates = EntityCUDHelper.getOrInitCreateList(cud);
+        List<TwinAttachmentEntity> deletes = cud.getOrInitDeleteList();
+        List<TwinAttachmentEntity> updates = cud.getOrInitUpdateList();
+        List<TwinAttachmentEntity> creates = cud.getOrInitCreateList();
 
         long size = tierQuotas.getUsedSize();
         long count = tierQuotas.getUsedCount();
@@ -151,15 +150,15 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         if (source.getCreateList() != null) {
             for (TwinAttachmentEntity attachment : source.getCreateList()) {
                 if (attachment.getTwinCommentId() != null) {
-                    EntityCUDHelper.getOrInitCreateList(commentCud).add(attachment);
+                    commentCud.getOrInitCreateList().add(attachment);
                 } else if (attachment.getTwinClassFieldId() != null) {
                     EntityCUD<TwinAttachmentEntity> fieldCud = fieldCudMap.computeIfAbsent(
                             attachment.getTwinClassFieldId(),
                             k -> new EntityCUD<>()
                     );
-                    EntityCUDHelper.getOrInitCreateList(fieldCud).add(attachment);
+                    fieldCud.getOrInitCreateList().add(attachment);
                 } else {
-                    EntityCUDHelper.getOrInitCreateList(generalCud).add(attachment);
+                    generalCud.getOrInitCreateList().add(attachment);
                 }
             }
         }
@@ -167,15 +166,15 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         if (source.getUpdateList() != null) {
             for (TwinAttachmentEntity attachment : source.getUpdateList()) {
                 if (attachment.getTwinCommentId() != null) {
-                    EntityCUDHelper.getOrInitUpdateList(commentCud).add(attachment);
+                    commentCud.getOrInitUpdateList().add(attachment);
                 } else if (attachment.getTwinClassFieldId() != null) {
                     EntityCUD<TwinAttachmentEntity> fieldCud = fieldCudMap.computeIfAbsent(
                             attachment.getTwinClassFieldId(),
                             k -> new EntityCUD<>()
                     );
-                    EntityCUDHelper.getOrInitUpdateList(fieldCud).add(attachment);
+                    fieldCud.getOrInitUpdateList().add(attachment);
                 } else {
-                    EntityCUDHelper.getOrInitUpdateList(generalCud).add(attachment);
+                    generalCud.getOrInitUpdateList().add(attachment);
                 }
             }
         }
@@ -183,15 +182,15 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         if (source.getDeleteList() != null) {
             for (TwinAttachmentEntity attachment : source.getDeleteList()) {
                 if (attachment.getTwinCommentId() != null) {
-                    EntityCUDHelper.getOrInitDeleteList(commentCud).add(attachment);
+                    commentCud.getOrInitDeleteList().add(attachment);
                 } else if (attachment.getTwinClassFieldId() != null) {
                     EntityCUD<TwinAttachmentEntity> fieldCud = fieldCudMap.computeIfAbsent(
                             attachment.getTwinClassFieldId(),
                             k -> new EntityCUD<>()
                     );
-                    EntityCUDHelper.getOrInitDeleteList(fieldCud).add(attachment);
+                    fieldCud.getOrInitDeleteList().add(attachment);
                 } else {
-                    EntityCUDHelper.getOrInitDeleteList(generalCud).add(attachment);
+                    generalCud.getOrInitDeleteList().add(attachment);
                 }
             }
         }
