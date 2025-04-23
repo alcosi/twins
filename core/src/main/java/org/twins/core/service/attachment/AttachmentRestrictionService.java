@@ -2,7 +2,6 @@ package org.twins.core.service.attachment;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.featurer.FeaturerService;
@@ -65,7 +64,7 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         ApiUser apiUser = authService.getApiUser();
         if (entity.getDomainId() != null
                 && !entity.getDomainId().equals(apiUser.getDomain().getId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logNormal() + " is not allowed in " + apiUser.getDomain().logNormal());
             return true;
         }
         return false;
@@ -81,7 +80,8 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
 
         AttachmentQuotas tierQuotas = domainService.getTierQuotas();
         validateTierQuotas(twinId, tierQuotas, cud, result);
-
+        if (twinId == null) //todo delete me when twin validation will be implemented
+            return result;
         TwinEntity twin = twinService.findEntitySafe(twinId);
         attachmentService.loadAttachmentsCount(twin);
 
