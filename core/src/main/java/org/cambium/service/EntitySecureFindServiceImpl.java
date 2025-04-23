@@ -14,6 +14,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
+import org.twins.core.exception.ErrorCodeTwins;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -117,6 +118,9 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
 
     @SuppressWarnings("unchecked")
     public T findEntitySafe(UUID entityId) throws ServiceException {
+        if (entityId == null)
+            throw new ServiceException(ErrorCodeTwins.UUID_IS_NULL);
+
         T entity = null;
         switch (getCacheSupportType()) {
             case GLOBAL -> {
