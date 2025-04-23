@@ -6,8 +6,6 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
-import java.util.ArrayList;
-
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
@@ -36,4 +34,9 @@ public class FieldValueInvisible extends FieldValue {
 
     @Override
     public void nullify() {}
+
+    @Override
+    public boolean isNullified() {
+        return false;
+    }
 }

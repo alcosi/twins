@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.MapUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
@@ -43,6 +44,11 @@ public class FieldValueI18n extends FieldValue {
     @Override
     public void nullify() {
         translations = null;
+    }
+
+    @Override
+    public boolean isNullified() {
+        return CollectionUtils.isEmpty(translations);
     }
 
     @Override

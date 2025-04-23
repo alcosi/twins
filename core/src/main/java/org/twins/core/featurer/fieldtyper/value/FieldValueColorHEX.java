@@ -39,4 +39,9 @@ public class FieldValueColorHEX extends FieldValue {
     public void nullify() {
         hex = "";
     }
+
+    @Override
+    public boolean isNullified() {
+        return "".equals(hex);
+    }
 }

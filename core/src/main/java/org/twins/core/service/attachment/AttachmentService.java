@@ -6,6 +6,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -19,7 +20,6 @@ import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.*;
-import org.twins.core.domain.attachment.AttachmentQuotas;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
@@ -32,8 +32,6 @@ import org.twins.core.service.twin.TwinService;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static org.cambium.common.util.InformationVolumeUtils.convertToGb;
 
 @Slf4j
 @Service
@@ -281,7 +279,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 historyItem.getContext().setNewStorageFileKey(attachmentEntity.getStorageFileKey());
                 dbAttachmentEntity.setStorageFileKey(attachmentEntity.getStorageFileKey());
             }
-            if (attachmentEntity.getModifications() != null) {
+            if (KitUtils.isNotEmpty(attachmentEntity.getModifications())) {
                 updateAttachmentModifications(attachmentEntity, dbAttachmentEntity, twinChangesCollector);
             }
             if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.externalId, dbAttachmentEntity.getExternalId(), attachmentEntity.getExternalId())) {
@@ -373,6 +371,19 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         }
     }
 
+    public Map<UUID, Integer> countByTwinAndFields(UUID twinId, Collection<UUID> twinClassFieldIds) {
+        if (CollectionUtils.isEmpty(twinClassFieldIds)) {
+            return Collections.emptyMap();
+        }
+
+        return twinAttachmentRepository.countAttachmentsGroupByField(twinId, twinClassFieldIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        result -> (UUID) result[0],
+                        result -> ((Number) result[1]).intValue()
+                ));
+    }
+
     @Override
     public CrudRepository<TwinAttachmentEntity, UUID> entityRepository() {
         return twinAttachmentRepository;
@@ -392,56 +403,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     public boolean validateEntity(TwinAttachmentEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
     }
-
-    public AttachmentCUDValidateResult validateCUD(UUID twinId, EntityCUD<TwinAttachmentEntity> cud) throws ServiceException {
-        AttachmentCUDValidateResult result = new AttachmentCUDValidateResult();
-        AttachmentQuotas tierQuotas = domainService.getTierQuotas();
-
-        List<TwinAttachmentEntity> deletes = Optional.ofNullable(cud.getDeleteList()).orElse(Collections.emptyList());
-        List<TwinAttachmentEntity> updates = Optional.ofNullable(cud.getUpdateList()).orElse(Collections.emptyList());
-        List<TwinAttachmentEntity> creates = Optional.ofNullable(cud.getCreateList()).orElse(Collections.emptyList());
-
-        long size = tierQuotas.getUsedSize();
-        long count = tierQuotas.getUsedCount();
-
-        for (TwinAttachmentEntity delete : deletes) {
-            if (!delete.getTwinId().equals(twinId))
-                throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Deletable attachment [" + delete.getId() + "] is not added to twin[" + twinId + "]");
-            size -= delete.getSize();
-            count--;
-            result.getAttachmentsForUD().add(delete);
-        }
-        List<UUID> updateIds = updates.stream().map(TwinAttachmentEntity::getId).collect(Collectors.toList());
-        Kit<TwinAttachmentEntity, UUID> existingEntities = findEntitiesSafe(updateIds);
-
-        for (TwinAttachmentEntity update : updates) {
-            TwinAttachmentEntity existingEntity = existingEntities.get(update.getId());
-            if (null == existingEntity)
-                throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Updatable attachment [" + update.getId() + "] is not exists");
-            if (!existingEntity.getTwinId().equals(twinId))
-                throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Deletable attachment [" + update.getId() + "] is not added to twin[" + twinId + "]");
-            updates.add(existingEntity);
-            result.getAttachmentsForUD().add(existingEntity);
-            size = size - existingEntity.getSize() + update.getSize();
-//            if (size > tierQuotas.getQuotaSize()) {
-//                result.getCudProblems().getUpdateProblems().add(new AttachmentUpdateProblem()
-//                        .setId(existingEntity.getId().toString())
-//                        .setProblem(AttachmentFileCreateUpdateProblem.INVALID_SIZE));
-//            }
-        }
-        for (TwinAttachmentEntity create : creates) {
-            size += create.getSize();
-            count++;
-        }
-        if (tierQuotas.getQuotaSize() > 0 && size > tierQuotas.getQuotaSize())
-            throw new ServiceException(ErrorCodeTwins.TIER_SIZE_QUOTA_REACHED)
-                    .addContext("size", convertToGb(size))
-                    .addContext("quotaSize", convertToGb(tierQuotas.getQuotaSize()));
-        if (tierQuotas.getQuotaCount() > 0 && count > tierQuotas.getQuotaCount())
-            throw new ServiceException(ErrorCodeTwins.TIER_COUNT_QUOTA_REACHED);
-        return result;
-    }
-
 
     public enum CommentRelinkMode {
         denied,

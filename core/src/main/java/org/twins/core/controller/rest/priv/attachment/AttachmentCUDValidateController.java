@@ -26,7 +26,7 @@ import org.twins.core.mappers.rest.attachment.AttachmentCUDValidateRestDTOMapper
 import org.twins.core.mappers.rest.attachment.AttachmentCUDValidateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.attachment.AttachmentService;
+import org.twins.core.service.attachment.AttachmentRestrictionService;
 
 @Tag(description = "", name = ApiTag.ATTACHMENT)
 @RestController
@@ -36,7 +36,7 @@ public class AttachmentCUDValidateController extends ApiController {
 
     private final AttachmentCUDValidateRestDTOReverseMapper attachmentCUDValidateRestDTOReverseMapper;
     private final AttachmentCUDValidateRestDTOMapper attachmentCUDValidateRestDTOMapper;
-    private final AttachmentService attachmentService;
+    private final AttachmentRestrictionService attachmentRestrictionService;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
@@ -52,7 +52,7 @@ public class AttachmentCUDValidateController extends ApiController {
             @RequestBody AttachmentCUDValidateRqDTOv1 request) {
         AttachmentCUDValidateRsDTOv1 rs = new AttachmentCUDValidateRsDTOv1();
         try {
-            AttachmentCUDValidateResult result = attachmentService.validateCUD(request.getTwinId(), attachmentCUDValidateRestDTOReverseMapper.convert(request, mapperContext));
+            AttachmentCUDValidateResult result = attachmentRestrictionService.validateAttachments(request.getTwinId(), attachmentCUDValidateRestDTOReverseMapper.convert(request, mapperContext));
             rs = attachmentCUDValidateRestDTOMapper.convert(result, mapperContext);
             rs
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

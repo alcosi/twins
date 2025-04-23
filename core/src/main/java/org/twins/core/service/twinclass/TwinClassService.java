@@ -197,7 +197,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 .setLogo(srcTwinClassEntity.getLogo())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setDomainId(srcTwinClassEntity.getDomainId())
-                .setOwnerType(srcTwinClassEntity.getOwnerType());
+                .setOwnerType(srcTwinClassEntity.getOwnerType())
+                .setAssigneeRequired(srcTwinClassEntity.getAssigneeRequired());
         I18nEntity i18nDuplicate;
         if (srcTwinClassEntity.getNameI18NId() != null) {
             i18nDuplicate = i18nService.duplicateI18n(srcTwinClassEntity.getNameI18NId());
@@ -367,6 +368,10 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 .setOwnerType(domainService.checkDomainSupportedTwinClassOwnerType(apiUser.getDomain(), twinClassEntity.getOwnerType()))
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
+        if (twinClassEntity.getAssigneeRequired() == null) {
+            twinClassEntity.setAssigneeRequired(false);
+        }
+
         validateEntityAndThrow(twinClassEntity, EntitySmartService.EntityValidateMode.beforeSave);
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 

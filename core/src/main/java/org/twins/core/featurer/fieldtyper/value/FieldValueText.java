@@ -39,4 +39,9 @@ public class FieldValueText extends FieldValue {
         value = "";
     }
 
+    @Override
+    public boolean isNullified() {
+        return "".equals(value);
+    }
+
 }

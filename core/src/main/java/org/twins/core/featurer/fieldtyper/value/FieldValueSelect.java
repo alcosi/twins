@@ -9,6 +9,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,6 +43,9 @@ public class FieldValueSelect extends FieldValue {
 
     @Override
     public boolean hasValue(String value) {
+        if (CollectionUtils.isEmpty(options)) {
+            return false;
+        }
         UUID valueUUID;
         try {
             valueUUID = UUID.fromString(value);
@@ -49,14 +53,19 @@ public class FieldValueSelect extends FieldValue {
             return false;
         }
         for (DataListOptionEntity dataListOptionEntity : options) {
-            if (dataListOptionEntity.getId() != null &&dataListOptionEntity.getId().equals(valueUUID))
+            if (dataListOptionEntity.getId() != null && dataListOptionEntity.getId().equals(valueUUID))
                 return true;
         }
         return false;
     }
 
     public void nullify() {
-        options = new ArrayList<>();
+        options = Collections.EMPTY_LIST;
+    }
+
+    @Override
+    public boolean isNullified() {
+        return options != null && options.isEmpty();
     }
 
 }

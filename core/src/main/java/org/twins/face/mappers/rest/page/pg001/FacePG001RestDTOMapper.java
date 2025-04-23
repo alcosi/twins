@@ -11,9 +11,12 @@ import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.face.dao.page.pg001.FacePG001Entity;
 import org.twins.face.dto.rest.page.pg001.FacePG001DTOv1;
+import org.twins.face.dto.rest.page.pg001.FacePG001WidgetDTOv1;
 import org.twins.face.service.page.FacePG001Service;
 
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 
 @Component
@@ -38,6 +41,10 @@ public class FacePG001RestDTOMapper extends RestSimpleDTOMapper<FacePG001Entity,
         if (mapperContext.hasModeButNot(FacePG001Modes.FacePG001WidgetCollectionMode.HIDE)) {
             facePG001Service.loadWidgets(src);
             dst.setWidgets(facePG001WidgetRestDTOMapper.convertCollection(src.getWidgets(), mapperContext));
+            //todo delete me after layout support
+            dst.setWidgets(dst.getWidgets().stream()
+                    .sorted(Comparator.comparingInt(FacePG001WidgetDTOv1::getRow))
+                    .collect(Collectors.toList()));
         }
     }
 

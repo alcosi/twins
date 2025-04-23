@@ -39,4 +39,9 @@ public class FieldValueDate extends FieldValue {
     public void nullify() {
         date = "";
     }
+
+    @Override
+    public boolean isNullified() {
+        return "".equals(date);
+    }
 }

@@ -48,4 +48,9 @@ public class FieldValueStatusSingle extends FieldValue {
     public void nullify() {
         status = null;
     }
+
+    @Override
+    public boolean isNullified() {
+        return status == null;
+    }
 }

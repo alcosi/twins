@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.permission.PermissionGrantUserEntity;
 import org.twins.core.dao.permission.PermissionGrantUserRepository;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserService;
@@ -85,8 +86,11 @@ public class PermissionGrantUserService extends EntitySecureFindServiceImpl<Perm
 
     @Transactional(rollbackFor = Throwable.class)
     public PermissionGrantUserEntity createPermissionGrantUser(PermissionGrantUserEntity createEntity) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
         createEntity
-                .setGrantedByUserId(authService.getApiUser().getUserId())
+                .setGrantedByUserId(apiUser.getUserId())
+                .setDomainId(apiUser.getDomainId())
+                .setBusinessAccountId(createEntity.getBusinessAccountId())
                 .setGrantedAt(Timestamp.from(Instant.now()));
         return saveSafe(createEntity);
     }

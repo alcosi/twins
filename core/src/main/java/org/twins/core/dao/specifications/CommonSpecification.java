@@ -43,7 +43,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return (root, query, cb) -> {
             if (org.cambium.common.util.CollectionUtils.isEmpty(ids))
                 return cb.conjunction();
-            var preparedDepthLimit = depthLimit == null ? 1 : depthLimit;
+            var preparedDepthLimit = depthLimit == 0 ? null : depthLimit;
             var preparedIds = LTreeUtils.findChildsLQuery(ids.stream().map(UUID::toString).collect(Collectors.toList()), Range.of(1, preparedDepthLimit));
             Path<String> ltreePath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, ltreeFieldPath);
             Predicate idPredicate;
@@ -79,7 +79,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(ids))
                 return cb.conjunction();
-            var preparedDepthLimit = depthLimit == null ? 1 : depthLimit;
+            var preparedDepthLimit = depthLimit == 0 ? null : depthLimit;
             Path<UUID> classIdPath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, concatArray(ltreeRootPath, ltreeRootIdFiled));
             Subquery<UUID> subquery = query.subquery(UUID.class);
             var subqueryRoot = subquery.from(ltreeRootClass);
