@@ -108,9 +108,9 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
     }
 
     private void validateTierQuotas(UUID twinId, AttachmentQuotas tierQuotas, EntityCUD<TwinAttachmentEntity> cud, AttachmentCUDValidateResult result) throws ServiceException {
-        List<TwinAttachmentEntity> deletes = Optional.ofNullable(cud.getDeleteList()).orElse(Collections.emptyList());
-        List<TwinAttachmentEntity> updates = Optional.ofNullable(cud.getUpdateList()).orElse(Collections.emptyList());
-        List<TwinAttachmentEntity> creates = Optional.ofNullable(cud.getCreateList()).orElse(Collections.emptyList());
+        List<TwinAttachmentEntity> deletes = EntityCUDHelper.getOrInitDeleteList(cud);
+        List<TwinAttachmentEntity> updates = EntityCUDHelper.getOrInitUpdateList(cud);
+        List<TwinAttachmentEntity> creates = EntityCUDHelper.getOrInitCreateList(cud);
 
         long size = tierQuotas.getUsedSize();
         long count = tierQuotas.getUsedCount();
