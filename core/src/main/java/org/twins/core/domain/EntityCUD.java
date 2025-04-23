@@ -16,7 +16,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class EntityCUD<T extends PublicCloneable<T>> extends EntityCD<T> {
-    private List<T> updateList = new ArrayList<>();
+    private List<T> updateList;
 
     public boolean isEmpty() {
         return super.isEmpty() && CollectionUtils.isEmpty(updateList);

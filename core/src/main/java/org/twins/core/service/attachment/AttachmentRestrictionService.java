@@ -17,6 +17,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
+import org.twins.core.domain.EntityCUDHelper;
 import org.twins.core.domain.attachment.AttachmentQuotas;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
@@ -150,12 +151,15 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         if (source.getCreateList() != null) {
             for (TwinAttachmentEntity attachment : source.getCreateList()) {
                 if (attachment.getTwinCommentId() != null) {
-                    commentCud.getCreateList().add(attachment);
+                    EntityCUDHelper.getOrInitCreateList(commentCud).add(attachment);
                 } else if (attachment.getTwinClassFieldId() != null) {
-                    fieldCudMap.computeIfAbsent(attachment.getTwinClassFieldId(), k -> new EntityCUD<>())
-                            .getCreateList().add(attachment);
+                    EntityCUD<TwinAttachmentEntity> fieldCud = fieldCudMap.computeIfAbsent(
+                            attachment.getTwinClassFieldId(),
+                            k -> new EntityCUD<>()
+                    );
+                    EntityCUDHelper.getOrInitCreateList(fieldCud).add(attachment);
                 } else {
-                    generalCud.getCreateList().add(attachment);
+                    EntityCUDHelper.getOrInitCreateList(generalCud).add(attachment);
                 }
             }
         }
@@ -163,12 +167,15 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         if (source.getUpdateList() != null) {
             for (TwinAttachmentEntity attachment : source.getUpdateList()) {
                 if (attachment.getTwinCommentId() != null) {
-                    commentCud.getUpdateList().add(attachment);
+                    EntityCUDHelper.getOrInitUpdateList(commentCud).add(attachment);
                 } else if (attachment.getTwinClassFieldId() != null) {
-                    fieldCudMap.computeIfAbsent(attachment.getTwinClassFieldId(), k -> new EntityCUD<>())
-                            .getUpdateList().add(attachment);
+                    EntityCUD<TwinAttachmentEntity> fieldCud = fieldCudMap.computeIfAbsent(
+                            attachment.getTwinClassFieldId(),
+                            k -> new EntityCUD<>()
+                    );
+                    EntityCUDHelper.getOrInitUpdateList(fieldCud).add(attachment);
                 } else {
-                    generalCud.getUpdateList().add(attachment);
+                    EntityCUDHelper.getOrInitUpdateList(generalCud).add(attachment);
                 }
             }
         }
@@ -176,12 +183,15 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         if (source.getDeleteList() != null) {
             for (TwinAttachmentEntity attachment : source.getDeleteList()) {
                 if (attachment.getTwinCommentId() != null) {
-                    commentCud.getDeleteList().add(attachment);
+                    EntityCUDHelper.getOrInitDeleteList(commentCud).add(attachment);
                 } else if (attachment.getTwinClassFieldId() != null) {
-                    fieldCudMap.computeIfAbsent(attachment.getTwinClassFieldId(), k -> new EntityCUD<>())
-                            .getDeleteList().add(attachment);
+                    EntityCUD<TwinAttachmentEntity> fieldCud = fieldCudMap.computeIfAbsent(
+                            attachment.getTwinClassFieldId(),
+                            k -> new EntityCUD<>()
+                    );
+                    EntityCUDHelper.getOrInitDeleteList(fieldCud).add(attachment);
                 } else {
-                    generalCud.getDeleteList().add(attachment);
+                    EntityCUDHelper.getOrInitDeleteList(generalCud).add(attachment);
                 }
             }
         }
@@ -346,5 +356,4 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         int lastDotIndex = filename.lastIndexOf('.');
         return lastDotIndex == -1 ? "" : filename.substring(lastDotIndex + 1);
     }
-
 }

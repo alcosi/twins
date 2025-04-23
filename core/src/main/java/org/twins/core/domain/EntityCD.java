@@ -14,8 +14,8 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 public class EntityCD<T extends PublicCloneable<T>> implements PublicCloneable<EntityCD<T>> {
-    protected List<T> createList = new ArrayList<>();
-    protected List<T> deleteList = new ArrayList<>();
+    protected List<T> createList;
+    protected List<T> deleteList;
 
     public boolean isEmpty() {
         return CollectionUtils.isEmpty(createList) && CollectionUtils.isEmpty(deleteList);
