@@ -22,25 +22,11 @@ public class EntityCUD<T extends PublicCloneable<T>> extends EntityCD<T> {
         return super.isEmpty() && CollectionUtils.isEmpty(updateList);
     }
 
-    public List<T> getOrInitCreateList() {
-        if (this.createList == null) {
-            this.createList = new ArrayList<>();
-        }
-        return this.createList;
-    }
-
-    public List<T> getOrInitUpdateList() {
+    public List<T> getUpdateListSafe() {
         if (this.updateList == null) {
             this.updateList = new ArrayList<>();
         }
         return this.updateList;
-    }
-
-    public List<T> getOrInitDeleteList() {
-        if (this.deleteList == null) {
-            this.deleteList = new ArrayList<>();
-        }
-        return this.deleteList;
     }
 
     @Override
