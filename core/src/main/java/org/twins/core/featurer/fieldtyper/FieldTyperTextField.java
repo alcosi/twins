@@ -37,7 +37,7 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
     public FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new FieldDescriptorText()
                 .regExp(regexp.extract(properties))
-                .editorType(contentType.extract(properties).toString());
+                .editorType(contentType.extract(properties));
     }
 
     @Override
@@ -53,7 +53,9 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
         return new FieldValueText(twinField.getTwinClassField())
-                .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : null);
+                .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ?
+                        twinFieldEntity.getValue() : null)
+                .setEditorType(contentType.extract(properties));
     }
 
     @Override

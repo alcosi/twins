@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.featurer.fieldtyper.FieldTyperTextField;
 
 @Getter
 @Setter
@@ -13,6 +14,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 @Accessors(chain = true)
 public class FieldValueText extends FieldValue {
     private String value;
+    private FieldTyperTextField.TextEditorType editorType;
 
     public FieldValueText(TwinClassFieldEntity twinClassField) {
         super(twinClassField);
@@ -26,7 +28,9 @@ public class FieldValueText extends FieldValue {
     @Override
     public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueText clone = new FieldValueText(newTwinClassFieldEntity);
-        clone.setValue(this.value);
+        clone
+                .setValue(this.value)
+                .setEditorType(this.editorType);
         return clone;
     }
 
@@ -37,11 +41,11 @@ public class FieldValueText extends FieldValue {
 
     public void nullify() {
         value = "";
+        editorType = null;
     }
 
     @Override
     public boolean isNullified() {
-        return "".equals(value);
+        return "".equals(value) && editorType == null;
     }
-
 }
