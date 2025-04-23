@@ -22,6 +22,13 @@ public class EntityCUD<T extends PublicCloneable<T>> extends EntityCD<T> {
         return super.isEmpty() && CollectionUtils.isEmpty(updateList);
     }
 
+    public List<T> getUpdateListSafe() {
+        if (this.updateList == null) {
+            this.updateList = new ArrayList<>();
+        }
+        return this.updateList;
+    }
+
     @Override
     public EntityCUD<T> clone() {
         EntityCUD<T> clone = new EntityCUD<>();
