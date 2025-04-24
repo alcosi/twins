@@ -14,7 +14,6 @@ import org.twins.core.featurer.fieldtyper.FieldTyperTextField;
 @Accessors(chain = true)
 public class FieldValueText extends FieldValue {
     private String value;
-    private FieldTyperTextField.TextEditorType editorType;
 
     public FieldValueText(TwinClassFieldEntity twinClassField) {
         super(twinClassField);
@@ -28,9 +27,7 @@ public class FieldValueText extends FieldValue {
     @Override
     public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueText clone = new FieldValueText(newTwinClassFieldEntity);
-        clone
-                .setValue(this.value)
-                .setEditorType(this.editorType);
+        clone.setValue(this.value);
         return clone;
     }
 
@@ -41,11 +38,10 @@ public class FieldValueText extends FieldValue {
 
     public void nullify() {
         value = "";
-        editorType = null;
     }
 
     @Override
     public boolean isNullified() {
-        return "".equals(value) && editorType == null;
+        return "".equals(value);
     }
 }
