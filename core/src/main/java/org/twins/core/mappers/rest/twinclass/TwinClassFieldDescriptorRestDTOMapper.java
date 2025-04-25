@@ -44,7 +44,8 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
     public TwinClassFieldDescriptorDTO convert(FieldDescriptor fieldDescriptor, MapperContext mapperContext) throws Exception {
         if (fieldDescriptor instanceof FieldDescriptorText textDescriptor)
             return new TwinClassFieldDescriptorTextDTOv1()
-                    .regExp(textDescriptor.regExp());
+                    .regExp(textDescriptor.regExp())
+                    .editorType(textDescriptor.editorType());
         else if (fieldDescriptor instanceof FieldDescriptorColorPicker colorDescriptor)
             return new TwinClassFieldDescriptorColorHexDTOv1();
         else if (fieldDescriptor instanceof FieldDescriptorDate dateDescriptor)
