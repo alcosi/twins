@@ -28,16 +28,16 @@ import java.util.Properties;
         name = "Text",
         description = "")
 public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, FieldValueText, TwinFieldSearchText> {
-    @FeaturerParam(name = "Regexp", description = "", order = 2)
+    @FeaturerParam(name = "Regexp", description = "", order = 1)
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
-    @FeaturerParam(name = "contentType", description = "", order = 3, optional = true, defaultValue = "PLAIN")
-    public static final FeaturerParamStringTwinsEditorType contentType = new FeaturerParamStringTwinsEditorType("contentType");
+    @FeaturerParam(name = "contentType", description = "", order = 2, optional = true, defaultValue = "PLAIN")
+    public static final FeaturerParamStringTwinsEditorType editorType = new FeaturerParamStringTwinsEditorType("contentType");
 
     @Override
     public FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new FieldDescriptorText()
                 .regExp(regexp.extract(properties))
-                .editorType(contentType.extract(properties));
+                .editorType(editorType.extract(properties));
     }
 
     @Override

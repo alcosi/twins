@@ -27,13 +27,9 @@ public class FeaturerParamStringTwinsEditorType extends FeaturerParam<FieldTyper
 
     @Override
     public void validate(String value) throws ServiceException {
-        if (value == null || !value.matches(getPattern())) {
+        if (value == null || !value.matches(EDITOR_TYPE_REGEXP)) {
             throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS,
-                    "param[" + key + "] value[" + value + "] must be one of: PLAIN, MARKDOWN_GITHUB, MARKDOWN_BASIC");
+                    "param[" + key + "] value[" + value + "] must be one of: " + EDITOR_TYPE_REGEXP);
         }
-    }
-
-    private String getPattern() {
-        return this.getClass().getAnnotation(FeaturerParamType.class).regexp();
     }
 }
