@@ -200,7 +200,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
 
     public void loadTwinFields(TwinEntity twinEntity) throws ServiceException {
-        if (twinEntity.getTwinFieldSimpleKit() != null && twinEntity.getTwinFieldUserKit() != null && twinEntity.getTwinFieldDatalistKit() != null)
+        if (twinEntity.getTwinFieldSimpleKit() != null && twinEntity.getTwinFieldUserKit() != null && twinEntity.getTwinFieldDatalistKit() != null && twinEntity.getTwinFieldI18nKit() != null)
             return;
         twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
         boolean hasBasicFields = false, hasUserFields = false, hasDatalistFields = false, hasLinksFields = false,
