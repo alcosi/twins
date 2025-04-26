@@ -32,11 +32,6 @@ public class TransitionTriggerRabbitMqSendFieldsForOperation extends TransitionT
 
     private final AmpqManager ampqManager;
 
-    private final I18nLocaleRepository i18nLocaleRepository;
-
-    @Autowired
-    private TwinClassFieldService twinClassFieldService;
-
     private final AuthService authService;
 
     @FeaturerParam(name = "Exchange", description = "Name of exchange")
@@ -51,6 +46,9 @@ public class TransitionTriggerRabbitMqSendFieldsForOperation extends TransitionT
     @FeaturerParam(name = "Fields", description = "Twin class field ids")
     public static final FeaturerParamUUIDSet fields = new FeaturerParamUUIDSet("fields");
 
+    @FeaturerParam(name = "Excluded info fields", description = "Twin class field ids excluded from summary twin info concat")
+    public static final FeaturerParamUUIDSet excludeInfoFields = new FeaturerParamUUIDSet("excludeInfoFields");
+
     @Override
     public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -62,7 +60,8 @@ public class TransitionTriggerRabbitMqSendFieldsForOperation extends TransitionT
                 apiUser.getBusinessAccountId(),
                 apiUser.getDomainId(),
                 operation.extract(properties),
-                fields.extract(properties)
+                fields.extract(properties),
+                excludeInfoFields.extract(properties)
         );
 
         ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(
