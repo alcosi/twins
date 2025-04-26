@@ -3,6 +3,7 @@ package org.twins.core.service.twin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGroupedObj;
@@ -10,14 +11,12 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinHeadRepository;
-import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
@@ -25,6 +24,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.headhunter.HeadHunter;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.domain.DBUService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
@@ -36,8 +36,6 @@ import java.util.UUID;
 @Lazy
 @RequiredArgsConstructor
 public class TwinHeadService {
-    private final EntitySmartService entitySmartService;
-    private final TwinRepository twinRepository;
     private final TwinHeadRepository twinHeadRepository;
     @Lazy
     private final TwinClassService twinClassService;
@@ -46,26 +44,26 @@ public class TwinHeadService {
     private final AuthService authService;
     private final FeaturerService featurerService;
     private final TwinSearchService twinSearchService;
+    private final DBUService dbuService;
 
     public PaginationResult<TwinEntity> findValidHeads(TwinClassEntity twinClassEntity, BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
         if (twinClassEntity.getHeadTwinClassId() == null)
             return PaginationUtils.convertInPaginationResult(pagination);
         TwinClassEntity headTwinClassEntity = twinClassService.findEntitySafe(twinClassEntity.getHeadTwinClassId());
-        if (headTwinClassEntity.getOwnerType().isSystemLevel()) {// out-of-domain head class. Valid twins list must be limited
-            //todo apply filters from basic search
-            if (SystemEntityService.isTwinClassForUser(headTwinClassEntity.getId())) {// twin.id = user.id
-                Page<TwinEntity> validUserTwinList = getValidUserTwinListByTwinClass(twinClassEntity, pagination);
-                return PaginationUtils.convertInPaginationResult(validUserTwinList, pagination);
-            } else if (SystemEntityService.isTwinClassForBusinessAccount(headTwinClassEntity.getId())) {// twin.id = business_account_id
-                Page<TwinEntity> validBusinessAccountTwinList = getValidBusinessAccountTwinListByTwinClass(twinClassEntity, pagination);
-                return PaginationUtils.convertInPaginationResult(validBusinessAccountTwinList, pagination);
+        if (!headTwinClassEntity.getOwnerType().isSystemLevel()) {// out-of-domain head class. Valid twins list must be limited
+            if (SystemEntityService.isTwinClassForUser(headTwinClassEntity.getId()) // twin.id = user.id
+                    || SystemEntityService.isTwinClassForBusinessAccount(headTwinClassEntity.getId())) { // twin.id = business_account_id
+                basicSearch
+                        .addTwinClassId(headTwinClassEntity.getId(), false)
+                        .setDbuMembershipCheck(dbuService.detectSystemTwinsDBUMembershipCheck(twinClassEntity.getOwnerType()));// DBU check depends on class for which we are searching heads
+            } else {
+                throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, headTwinClassEntity.logShort() + " unknown system twin class for head");
             }
-            log.warn("{} unknown system twin class for head", headTwinClassEntity.logShort());
-            return PaginationUtils.convertInPaginationResult(pagination);
+        } else {
+            //head can be configured as parent class
+            twinClassService.loadExtendsHierarchyChildClasses(headTwinClassEntity);
+            basicSearch.addTwinClassId(headTwinClassEntity.getExtendsHierarchyChildClassKit().getIdSet(), false);
         }
-        //head can be configured as parent class
-        twinClassService.loadExtendsHierarchyChildClasses(headTwinClassEntity);
-        basicSearch.addTwinClassId(headTwinClassEntity.getExtendsHierarchyChildClassKit().getIdSet(), false);
         if (twinClassEntity.getHeadHunterFeaturer() != null) {//headhunter should not be empty if head twin is specified and head class is not USER and BA
             HeadHunter headHunter = featurerService.getFeaturer(twinClassEntity.getHeadHunterFeaturer(), HeadHunter.class);
             headHunter.expandValidHeadSearch(twinClassEntity.getHeadHunterParams(), twinClassEntity, basicSearch);
@@ -96,6 +94,8 @@ public class TwinHeadService {
         return validHead.getList().getFirst();
     }
 
+    //todo delete me
+    @Deprecated
     public Page<TwinEntity> getValidUserTwinListByTwinClass(TwinClassEntity twinClassEntity, SimplePagination pagination) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         Pageable pageable = PaginationUtils.pageableOffset(pagination);
@@ -121,6 +121,8 @@ public class TwinHeadService {
         return userTwinList;
     }
 
+    //todo delete me
+    @Deprecated
     public Page<TwinEntity> getValidBusinessAccountTwinListByTwinClass(TwinClassEntity twinClassEntity, SimplePagination pagination) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         Pageable pageable = PaginationUtils.pageableOffset(pagination);

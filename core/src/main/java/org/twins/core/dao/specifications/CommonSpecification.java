@@ -139,6 +139,9 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             if (!CollectionUtils.isEmpty(twinClassUuids))
                 predicates = twinClassUuids.stream().map(twinClassId -> cb.equal(fromTwin.get(TwinEntity.Fields.twinClassId), twinClassId)).toList();
 
+            // todo if twinClassUuids contains TWIN_CLASS_USER or TWIN_CLASS_BUSINESS_ACCOUNT, then create joins based on TwinSearch.dbuMembershipCheck
+            // todo if TwinSearch.dbuMembershipCheck is empty, then call DBUService.detectSystemTwinsDBUMembershipCheck (for security purpose) and create joins
+            // todo join logic can be taken from TwinHeadService.getValidUserTwinListByTwinClass and getValidBusinessAccountTwinListByTwinClass (depend on twinClassId)
             Predicate joinPredicateSystemLevel = cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), SYSTEM);
             Predicate joinPredicateUserLevel = cb.or(
                     cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), USER),
