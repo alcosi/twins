@@ -70,7 +70,8 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
                         .setLogo(src.getLogo())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
-                        .setPageFaceId(src.getPageFaceId());
+                        .setPageFaceId(src.getPageFaceId())
+                        .setExternalId(src.getExternalId());
                 break;
             case SHORT:
                 dst
