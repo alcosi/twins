@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.featurer.fieldtyper.FieldTyperTextField;
 
 @Data
 @Accessors(fluent = true)
@@ -13,4 +14,7 @@ public class TwinClassFieldDescriptorTextDTOv1 implements TwinClassFieldDescript
 
     @Schema(description = "Some validation regexp", example = ".*")
     public String regExp;
+
+    @Schema(description = "Type of editor", example = "PLAIN")
+    public FieldTyperTextField.TextEditorType editorType;
 }

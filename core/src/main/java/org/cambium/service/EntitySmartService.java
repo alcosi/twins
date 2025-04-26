@@ -130,15 +130,15 @@ public class EntitySmartService {
         return entityClass != null ? entityClass.getSimpleName().replaceAll("Entity", "") : "<unknown>";
     }
 
-    private String entityShortName(Object entity) {
+    public String entityShortName(Object entity) {
         return entityShortName(entity.getClass());
     }
 
-    private <T> String entityShortName(CrudRepository<T, UUID> repository) {
+    public  <T> String entityShortName(CrudRepository<T, UUID> repository) {
         return entityShortName(getRepositoryEntityClass(repository));
     }
 
-    private <T> Class<T> getRepositoryEntityClass(CrudRepository<T, UUID> repository) {
+    public  <T> Class<T> getRepositoryEntityClass(CrudRepository<T, UUID> repository) {
         Type[] interfaces = repository.getClass().getInterfaces();
 
         for (Type t : interfaces) {

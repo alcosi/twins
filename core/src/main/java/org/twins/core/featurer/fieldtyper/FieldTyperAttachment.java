@@ -29,21 +29,25 @@ import java.util.UUID;
         name = "Attachment",
         description = "Allow the field to have an attachment")
 public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, FieldValueInvisible, TwinAttachmentEntity, TwinFieldSearchNotImplemented> {
+
     private final AttachmentRestrictionService attachmentRestrictionService;
 
-    @FeaturerParam(name = "Restriction Id", description = "Id of field typer restrictions", order = 1)
+    @FeaturerParam(name = "Restriction Id", description = "Id of field typer restrictions", order = 1, optional = true)
     public static final FeaturerParamUUIDTwinsAttachmentRestrictionId restrictionId = new FeaturerParamUUIDTwinsAttachmentRestrictionId("restrictionId");
 
     @Override
     public FieldDescriptorAttachment getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
-        TwinAttachmentRestrictionEntity restriction = attachmentRestrictionService.findEntitySafe(restrictionId.extract(properties));
+        if (restrictionId.extract(properties) != null) {
+            TwinAttachmentRestrictionEntity restriction = attachmentRestrictionService.findEntitySafe(restrictionId.extract(properties));
 
-        return new FieldDescriptorAttachment()
-                .minCount(restriction.getMinCount())
-                .maxCount(restriction.getMaxCount())
-                .extensions(restriction.getFileExtensionLimit())
-                .fileSizeMbLimit(restriction.getFileSizeMbLimit())
-                .filenameRegExp(restriction.getFileNameRegexp());
+            return new FieldDescriptorAttachment()
+                    .minCount(restriction.getMinCount())
+                    .maxCount(restriction.getMaxCount())
+                    .extensions(restriction.getFileExtensionLimit())
+                    .fileSizeMbLimit(restriction.getFileSizeMbLimit())
+                    .filenameRegExp(restriction.getFileNameRegexp());
+        }
+        return new FieldDescriptorAttachment();
     }
 
     @Deprecated

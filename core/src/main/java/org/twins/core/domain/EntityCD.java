@@ -21,6 +21,21 @@ public class EntityCD<T extends PublicCloneable<T>> implements PublicCloneable<E
         return CollectionUtils.isEmpty(createList) && CollectionUtils.isEmpty(deleteList);
     }
 
+    public List<T> getCreateListSafe() {
+        if (this.createList == null) {
+            this.createList = new ArrayList<>();
+        }
+        return this.createList;
+    }
+
+    public List<T> getDeleteListSafe() {
+        if (this.deleteList == null) {
+            this.deleteList = new ArrayList<>();
+        }
+        return this.deleteList;
+    }
+
+
     @Override
     public EntityCD<T> clone() {
         EntityCD<T> clone = new EntityCD<>();
