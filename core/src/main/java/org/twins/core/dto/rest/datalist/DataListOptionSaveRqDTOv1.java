@@ -22,4 +22,7 @@ public class DataListOptionSaveRqDTOv1 extends Request {
 
     @Schema(description = "attributes map")
     public Map<String, String> attributesMap;
+
+    @Schema(description = "external id")
+    private String externalId;
 }

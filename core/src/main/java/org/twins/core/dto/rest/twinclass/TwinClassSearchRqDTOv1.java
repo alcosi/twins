@@ -109,4 +109,10 @@ public class TwinClassSearchRqDTOv1 extends Request {
 
     @Schema(description = "delete permission id exclude list")
     public Set<UUID> deletePermissionIdExcludeList;
+
+    @Schema(description = "external id like list")
+    public Set<String> externalIdLikeList;
+
+    @Schema(description = "external id not like list")
+    public Set<String> externalIdNotLikeList;
 }

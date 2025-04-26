@@ -10,6 +10,7 @@ public class DataListSave {
     private String key;
     private I18nEntity nameI18n;
     private I18nEntity descriptionI18n;
+    private String externalId;
     private DataListAttribute attribute1;
     private DataListAttribute attribute2;
     private DataListAttribute attribute3;

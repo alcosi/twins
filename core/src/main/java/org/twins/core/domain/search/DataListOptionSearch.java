@@ -22,6 +22,8 @@ public class DataListOptionSearch {
     private Set<String> optionNotLikeList;
     private Set<String> optionI18nLikeList;
     private Set<String> optionI18nNotLikeList;
+    private Set<String> externalIdLikeList;
+    private Set<String> externalIdNotLikeList;
     private Set<UUID> businessAccountIdList;
     private Set<UUID> businessAccountIdExcludeList;
     private Set<UUID> dataListSubsetIdList;

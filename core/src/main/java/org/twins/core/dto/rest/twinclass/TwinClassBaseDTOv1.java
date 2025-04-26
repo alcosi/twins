@@ -94,4 +94,7 @@ public class TwinClassBaseDTOv1 {
 
     @Schema(description = "assignee required")
     public Boolean assigneeRequired;
+
+    @Schema(description = "external id")
+    public String externalId;
 }

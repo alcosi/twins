@@ -144,8 +144,15 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         updateDataListAttributeI18n(dataListUpdate.getAttribute3(), DataListEntity.Fields.attribute3nameI18nId, dbDataListEntity, DataListEntity::getAttribute3nameI18nId, DataListEntity::setAttribute3nameI18nId, changesHelper);
         updateDataListAttributeKey(dataListUpdate.getAttribute4(), DataListEntity.Fields.attribute4key, dbDataListEntity, DataListEntity::getAttribute4key, DataListEntity::setAttribute4key, changesHelper);
         updateDataListAttributeI18n(dataListUpdate.getAttribute4(), DataListEntity.Fields.attribute4nameI18nId, dbDataListEntity, DataListEntity::getAttribute4nameI18nId, DataListEntity::setAttribute4nameI18nId, changesHelper);
+        updateExternalId(dbDataListEntity, dataListUpdate.getExternalId(), changesHelper);
         dbDataListEntity.setUpdatedAt(Timestamp.from(Instant.now()));
         return updateSafe(dbDataListEntity, changesHelper);
+    }
+
+    public void updateExternalId(DataListEntity dbDataListEntity, String newExternalId, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(DataListEntity.Fields.externalId, dbDataListEntity.getExternalId(), newExternalId))
+            return;
+        dbDataListEntity.setExternalId(newExternalId);
     }
 
     private void updateDataListKey(DataListSave dataListSave, DataListEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
