@@ -205,6 +205,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
         boolean hasBasicFields = false, hasUserFields = false, hasDatalistFields = false, hasLinksFields = false,
                 hasI18nFields = false;
+        if (KitUtils.isEmpty(twinEntity.getTwinClass().getTwinClassFieldKit()))
+            return;
         for (TwinClassFieldEntity twinClassField : twinEntity.getTwinClass().getTwinClassFieldKit().getCollection()) {
             FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturer(), FieldTyper.class);
             if (fieldTyper.getStorageType() == TwinFieldSimpleEntity.class) {
