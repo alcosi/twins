@@ -117,8 +117,14 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         updateDataListOptionStatus(optionUpdate.getStatus(), dbOption, changesHelper);
         updateDataListOptionName(optionUpdate.getNameI18n(), dbOption, changesHelper);
         updateAttributes(dbDataList, dbOption, optionUpdate.getAttributes(), changesHelper);
-
+        updateExternalId(dbOption, optionUpdate.getExternalId(), changesHelper);
         return updateSafe(dbOption, changesHelper);
+    }
+
+    public void updateExternalId(DataListOptionEntity dbOption, String newExternalId, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(DataListOptionEntity.Fields.externalId, dbOption.getExternalId(), newExternalId))
+            return;
+        dbOption.setExternalId(newExternalId);
     }
 
     private void updateAttributes(DataListEntity dataList, DataListOptionEntity option, Map<String, String> attributes, ChangesHelper changesHelper) {

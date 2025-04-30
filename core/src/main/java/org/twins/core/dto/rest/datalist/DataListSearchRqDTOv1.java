@@ -16,20 +16,34 @@ import java.util.UUID;
 public class DataListSearchRqDTOv1 extends Request {
     @Schema(description = "datalist id list")
     public Set<UUID> idList;
+
     @Schema(description = "datalist id exclude list")
     public Set<UUID> idExcludeList;
+
     @Schema(description = "datalist name like list")
     public Set<String> nameLikeList;
+
     @Schema(description = "datalist name not like list")
     public Set<String> nameNotLikeList;
+
     @Schema(description = "datalist description like list")
     public Set<String> descriptionLikeList;
+
     @Schema(description = "datalist description not like list")
     public Set<String> descriptionNotLikeList;
+
     @Schema(description = "datalist class key like list")
     public Set<String> keyLikeList;
+
     @Schema(description = "datalist class key not like list")
     public Set<String> keyNotLikeList;
+
     @Schema(description = "data list option search")
     public DataListOptionSearchDTOv1 optionSearch;
+
+    @Schema(description = "external id like list")
+    public Set<String> externalIdLikeList;
+
+    @Schema(description = "external id not like list")
+    public Set<String> externalIdNotLikeList;
 }

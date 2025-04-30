@@ -479,6 +479,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         updateTwinClassLogo(dbTwinClassEntity, twinClassUpdate.getLogo(), changesHelper);
         updateTwinClassMarkerDataList(dbTwinClassEntity, twinClassUpdate.getMarkerDataListUpdate(), changesHelper);
         updateTwinClassTagDataList(dbTwinClassEntity, twinClassUpdate.getTagDataListUpdate(), changesHelper);
+        updateTwinExternalId(dbTwinClassEntity, twinClassUpdate.getExternalId(), changesHelper);
+
 
         updateSafe(dbTwinClassEntity, changesHelper);
         if (changesHelper.hasChanges()) {
@@ -488,6 +490,12 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             );
             evictCache(cacheManager, cacheEntries);
         }
+    }
+
+    public void updateTwinExternalId(TwinClassEntity dbTwinClassEntity, String newExternalId, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(TwinClassEntity.Fields.externalId, dbTwinClassEntity.getExternalId(), newExternalId))
+            return;
+        dbTwinClassEntity.setExternalId(newExternalId);
     }
 
     public void updateTwinClassDescription(TwinClassEntity dbTwinClassEntity, I18nEntity descriptionI18n, ChangesHelper changesHelper) throws ServiceException {

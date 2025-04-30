@@ -60,7 +60,9 @@ public class TwinClassFieldSearchService {
                 checkUuidIn(search.getViewPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.viewPermissionId),
                 checkUuidIn(search.getViewPermissionIdList(), false, false, TwinClassFieldEntity.Fields.editPermissionId),
                 checkUuidIn(search.getViewPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.editPermissionId),
-                checkTernary(search.getRequired()));
+                checkTernary(search.getRequired()),
+                checkFieldLikeIn(search.getExternalIdLikeList(), false, false, TwinClassFieldEntity.Fields.externalId),
+                checkFieldLikeIn(search.getExternalIdNotLikeList(), true, false, TwinClassFieldEntity.Fields.externalId));
     }
 
     private void excludeSystemFields(TwinClassFieldSearch search) {

@@ -53,6 +53,8 @@ public class TwinClassSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
                 .setViewPermissionIdList(convertToSetSafe(src.getViewPermissionIdList()))
                 .setViewPermissionIdExcludeList(convertToSetSafe(src.getViewPermissionIdExcludeList()))
                 .setAssigneeRequired(src.getAssigneeRequired())
+                .setExternalIdLikeList(src.getExternalIdLikeList())
+                .setExternalIdNotLikeList(src.getExternalIdNotLikeList())
         ;
     }
 }

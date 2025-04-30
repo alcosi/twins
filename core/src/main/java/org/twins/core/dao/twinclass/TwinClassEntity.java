@@ -152,6 +152,10 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Column(name = "comment_attachment_restriction_id")
     private UUID commentAttachmentRestrictionId;
+
+    @Column(name = "external_id")
+    private String externalId;
+
 //    @ManyToOne
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
 //    private DomainEntity domain;
