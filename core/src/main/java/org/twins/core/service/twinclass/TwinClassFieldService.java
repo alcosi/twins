@@ -298,7 +298,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     @Transactional(rollbackFor = Throwable.class)
     public void createFieldBatch(List<TwinClassFieldSave> twinClassFieldSaves) throws ServiceException {
-        for (TwinClassFieldSave save: twinClassFieldSaves) {
+        for (TwinClassFieldSave save : twinClassFieldSaves) {
             createField(save);
         }
     }
@@ -350,7 +350,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     @Transactional(rollbackFor = Throwable.class)
     public void updateFieldBatch(List<TwinClassFieldSave> twinClassFieldSaves) throws ServiceException {
-        for (TwinClassFieldSave save: twinClassFieldSaves) {
+        for (TwinClassFieldSave save : twinClassFieldSaves) {
             updateField(save);
         }
     }
