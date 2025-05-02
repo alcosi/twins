@@ -191,7 +191,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         List<TwinClassFieldEntity> twinClassFieldList = null;
         if (twinClass != null) {
             Set<UUID> extendedClassIds = twinClass.getExtendedClassIdSet();
-            twinClassFieldList = twinClassFieldRepository.findByIdInAndTwinClassIdIn(setIds, extendedClassIds); 
+            twinClassFieldList = twinClassFieldRepository.findByIdInAndTwinClassIdIn(setIds, extendedClassIds);
         }
         return twinClassFieldList;
     }
@@ -235,6 +235,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
 
     public static final String CACHE_TWIN_CLASS_FIELD_FOR_LINK = "TwinClassFieldService.getFieldIdConfiguredForLink";
+
     @Cacheable(value = CACHE_TWIN_CLASS_FIELD_FOR_LINK, key = "#twinClassId + '' + #linkId")
     public TwinClassFieldEntity getFieldIdConfiguredForLink(UUID twinClassId, UUID linkId) {
         return twinClassFieldRepository.findByTwinClassIdAndFieldTyperIdInAndFieldTyperParamsLike(twinClassId, Set.of(FieldTyperLink.ID), "%" + linkId + "%");
@@ -294,6 +295,13 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         return twinClassFieldEntity;
     }
 
+    @Transactional(rollbackFor = Throwable.class)
+    public void createFieldBatch(List<TwinClassFieldEntity> twinClassFields, List<I18nEntity> names, List<I18nEntity> descriptions) throws ServiceException {
+        for (int i = 0; i < twinClassFields.size(); i++) {
+            createField(twinClassFields.get(i), names.get(i), descriptions.get(i));
+        }
+    }
+
     public KitGrouped<TwinClassFieldEntity, UUID, UUID> findTwinClassFields(Collection<UUID> ids) {
         KitGrouped<TwinClassFieldEntity, UUID, UUID> result = new KitGrouped<>(TwinClassFieldEntity::getId, TwinClassFieldEntity::getTwinClassId);
         if (CollectionUtils.isEmpty(ids))
@@ -337,6 +345,13 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             evictCache(cacheManager, cacheEntries);
         }
         return dbTwinClassFieldEntity;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public void updateFieldBatch(List<TwinClassFieldEntity> twinClassFields, List<I18nEntity> names, List<I18nEntity> descriptions) throws ServiceException {
+        for (int i = 0; i < twinClassFields.size(); i++) {
+            updateField(twinClassFields.get(i), names.get(i), descriptions.get(i));
+        }
     }
 
     public void updateTwinClassFieldTwinClass(TwinClassFieldEntity dbTwinClassFieldEntity, UUID newTwinClassId, ChangesHelper changesHelper) throws ServiceException {
