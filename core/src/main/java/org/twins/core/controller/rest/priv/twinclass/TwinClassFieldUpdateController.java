@@ -20,10 +20,7 @@ import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldBatchUpdateRqDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldCreateRqDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldRsDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldUpdateRqDTOv1;
+import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -61,10 +58,8 @@ public class TwinClassFieldUpdateController extends ApiController {
             @RequestBody TwinClassFieldUpdateRqDTOv1 request) {
         TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();
         try {
-            TwinClassFieldEntity twinClassFieldEntity = twinClassFieldUpdateRestDTOReverseMapper.convert(request).setId(twinClassFieldId);
-            I18nEntity nameI18n = i18NSaveRestDTOReverseMapper.convert(request.getNameI18n());
-            I18nEntity descriptionsI18n = i18NSaveRestDTOReverseMapper.convert(request.getDescriptionI18n());
-            twinClassFieldEntity = twinClassFieldService.updateField(twinClassFieldEntity, nameI18n, descriptionsI18n);
+            TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.updateField
+                    (twinClassFieldUpdateRestDTOReverseMapper.convert(request.setTwinClassFieldId(twinClassFieldId)));
             rs
                     .field(twinClassFieldRestDTOMapperV2.convert(twinClassFieldEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
@@ -79,25 +74,18 @@ public class TwinClassFieldUpdateController extends ApiController {
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassFieldUpdateBatchV1", summary = "Update twin class field batch")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Twin class fields updated", content = {
+            @ApiResponse(responseCode = "200", description = "Twin class fields updated successfully", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin_class_field/v1")
     public ResponseEntity<?> twinClassFieldBatchUpdateV1(
-            @MapperContextBinding(roots = TwinClassFieldRestDTOMapperV2.class, response = TwinClassFieldRsDTOv1.class) MapperContext mapperContext,
             @RequestBody TwinClassFieldBatchUpdateRqDTOv1 request) {
         Response rs = new Response();
         try {
-            List<TwinClassFieldEntity> twinClassFieldEntityList = twinClassFieldUpdateRestDTOReverseMapper.convertCollection(request.getTwinClassFields());
-            List<I18nEntity> namesI18n = new ArrayList<>();
-            List<I18nEntity> descriptionsI18n = new ArrayList<>();
-            for (TwinClassFieldUpdateRqDTOv1 dto : request.getTwinClassFields()) {
-                namesI18n.add(i18NSaveRestDTOReverseMapper.convert(dto.getNameI18n()));
-                descriptionsI18n.add(i18NSaveRestDTOReverseMapper.convert(dto.getDescriptionI18n()));
-            }
+            List<TwinClassFieldSave> twinClassFieldSaves = twinClassFieldUpdateRestDTOReverseMapper.convertCollection(request.getTwinClassFields());
 
-            twinClassFieldService.updateFieldBatch(twinClassFieldEntityList, namesI18n, descriptionsI18n);
+            twinClassFieldService.updateFieldBatch(twinClassFieldSaves);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

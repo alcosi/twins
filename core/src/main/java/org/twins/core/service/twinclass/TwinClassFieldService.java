@@ -31,6 +31,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldSave;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperLink;
@@ -252,53 +253,53 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }};
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinClassFieldEntity createField(TwinClassFieldEntity twinClassFieldEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+    public TwinClassFieldEntity createField(TwinClassFieldSave twinClassFieldSave) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        twinClassFieldEntity.setKey(KeyUtils.lowerCaseNullSafe(twinClassFieldEntity.getKey(), ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT));
-        if (twinClassFieldRepository.existsByKeyAndTwinClassId(twinClassFieldEntity.getKey(), twinClassFieldEntity.getTwinClassId()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT, "Twin class field with key[" + twinClassFieldEntity.getKey() + "] already exists for twin class: " + twinClassFieldEntity.getTwinClassId());
+        twinClassFieldSave.getField().setKey(KeyUtils.lowerCaseNullSafe(twinClassFieldSave.getField().getKey(), ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT));
+        if (twinClassFieldRepository.existsByKeyAndTwinClassId(twinClassFieldSave.getField().getKey(), twinClassFieldSave.getField().getTwinClassId()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT, "Twin class field with key[" + twinClassFieldSave.getField().getKey() + "] already exists for twin class: " + twinClassFieldSave.getField().getTwinClassId());
 
-        if (twinClassFieldEntity.getTwinClassId() == null)
+        if (twinClassFieldSave.getField().getTwinClassId() == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN);
-        if (twinClassFieldEntity.getViewPermissionId() != null
-                && !permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassFieldEntity.getViewPermissionId(), apiUser.getDomainId()))
+        if (twinClassFieldSave.getField().getViewPermissionId() != null
+                && !permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassFieldSave.getField().getViewPermissionId(), apiUser.getDomainId()))
             throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id");
-        if (twinClassFieldEntity.getEditPermissionId() != null
-                && !permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassFieldEntity.getEditPermissionId(), apiUser.getDomainId()))
+        if (twinClassFieldSave.getField().getEditPermissionId() != null
+                && !permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassFieldSave.getField().getEditPermissionId(), apiUser.getDomainId()))
             throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown edit permission id");
 
         FeaturerEntity fieldTyper;
         HashMap<String, String> params;
-        if (null != twinClassFieldEntity.getFieldTyperFeaturerId()) {
-            params = twinClassFieldEntity.getFieldTyperParams();
-            fieldTyper = featurerService.checkValid(twinClassFieldEntity.getFieldTyperFeaturerId(), params, FieldTyper.class);
+        if (null != twinClassFieldSave.getField().getFieldTyperFeaturerId()) {
+            params = twinClassFieldSave.getField().getFieldTyperParams();
+            fieldTyper = featurerService.checkValid(twinClassFieldSave.getField().getFieldTyperFeaturerId(), params, FieldTyper.class);
         } else {
             params = SIMPLE_FIELD_PARAMS;
             fieldTyper = featurerRepository.getById(1301);
         }
 
-        twinClassFieldEntity
-                .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_NAME, nameI18n).getId())
-                .setDescriptionI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_DESCRIPTION, descriptionI18n).getId())
+        twinClassFieldSave.getField()
+                .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_NAME, twinClassFieldSave.getNameI18n()).getId())
+                .setDescriptionI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_DESCRIPTION, twinClassFieldSave.getDescriptionI18n()).getId())
                 .setFieldTyperFeaturerId(fieldTyper.getId())
                 .setFieldTyperFeaturer(fieldTyper)
                 .setFieldTyperParams(params);
 
 
-        validateEntityAndThrow(twinClassFieldEntity, EntitySmartService.EntityValidateMode.beforeSave);
-        twinClassFieldEntity = entitySmartService.save(twinClassFieldEntity, twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        validateEntityAndThrow(twinClassFieldSave.getField(), EntitySmartService.EntityValidateMode.beforeSave);
+        twinClassFieldSave.setField(entitySmartService.save(twinClassFieldSave.getField(), twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException));
         Map<String, List<Object>> cacheEntries = Map.of(
-                TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(twinClassFieldEntity.getTwinClassId()),
-                TwinClassEntity.class.getSimpleName(), List.of(twinClassFieldEntity.getTwinClassId())
+                TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(twinClassFieldSave.getField().getTwinClassId()),
+                TwinClassEntity.class.getSimpleName(), List.of(twinClassFieldSave.getField().getTwinClassId())
         );
         evictCache(cacheManager, cacheEntries);
-        return twinClassFieldEntity;
+        return twinClassFieldSave.getField();
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public void createFieldBatch(List<TwinClassFieldEntity> twinClassFields, List<I18nEntity> names, List<I18nEntity> descriptions) throws ServiceException {
-        for (int i = 0; i < twinClassFields.size(); i++) {
-            createField(twinClassFields.get(i), names.get(i), descriptions.get(i));
+    public void createFieldBatch(List<TwinClassFieldSave> twinClassFieldSaves) throws ServiceException {
+        for (TwinClassFieldSave save: twinClassFieldSaves) {
+            createField(save);
         }
     }
 
@@ -317,17 +318,17 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinClassFieldEntity updateField(TwinClassFieldEntity twinClassFieldEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
-        TwinClassFieldEntity dbTwinClassFieldEntity = findEntitySafe(twinClassFieldEntity.getId());
+    public TwinClassFieldEntity updateField(TwinClassFieldSave twinClassFieldSave) throws ServiceException {
+        TwinClassFieldEntity dbTwinClassFieldEntity = findEntitySafe(twinClassFieldSave.getField().getId());
         ChangesHelper changesHelper = new ChangesHelper();
-        updateTwinClassFieldTwinClass(dbTwinClassFieldEntity, twinClassFieldEntity.getTwinClassId(), changesHelper);
-        updateTwinClassField_FieldTyperFeaturerId(dbTwinClassFieldEntity, twinClassFieldEntity.getFieldTyperFeaturerId(), twinClassFieldEntity.getFieldTyperParams(), changesHelper);
-        updateTwinClassFieldName(dbTwinClassFieldEntity, nameI18n, changesHelper);
-        updateTwinClassFieldDescription(dbTwinClassFieldEntity, descriptionI18n, changesHelper);
-        updateTwinClassFieldViewPermission(dbTwinClassFieldEntity, twinClassFieldEntity.getViewPermissionId(), changesHelper);
-        updateTwinClassFieldEditPermission(dbTwinClassFieldEntity, twinClassFieldEntity.getEditPermissionId(), changesHelper);
-        updateTwinClassFieldRequiredFlag(dbTwinClassFieldEntity, twinClassFieldEntity.getRequired(), changesHelper);
-        updateEntityField(twinClassFieldEntity, dbTwinClassFieldEntity, TwinClassFieldEntity::getExternalId,
+        updateTwinClassFieldTwinClass(dbTwinClassFieldEntity, twinClassFieldSave.getField().getTwinClassId(), changesHelper);
+        updateTwinClassField_FieldTyperFeaturerId(dbTwinClassFieldEntity, twinClassFieldSave.getField().getFieldTyperFeaturerId(), twinClassFieldSave.getField().getFieldTyperParams(), changesHelper);
+        updateTwinClassFieldName(dbTwinClassFieldEntity, twinClassFieldSave.getNameI18n(), changesHelper);
+        updateTwinClassFieldDescription(dbTwinClassFieldEntity, twinClassFieldSave.getDescriptionI18n(), changesHelper);
+        updateTwinClassFieldViewPermission(dbTwinClassFieldEntity, twinClassFieldSave.getField().getViewPermissionId(), changesHelper);
+        updateTwinClassFieldEditPermission(dbTwinClassFieldEntity, twinClassFieldSave.getField().getEditPermissionId(), changesHelper);
+        updateTwinClassFieldRequiredFlag(dbTwinClassFieldEntity, twinClassFieldSave.getField().getRequired(), changesHelper);
+        updateEntityField(twinClassFieldSave.getField(), dbTwinClassFieldEntity, TwinClassFieldEntity::getExternalId,
                 TwinClassFieldEntity::setExternalId, TwinClassFieldEntity.Fields.externalId, changesHelper);
 
         dbTwinClassFieldEntity = updateSafe(dbTwinClassFieldEntity, changesHelper);
@@ -348,9 +349,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public void updateFieldBatch(List<TwinClassFieldEntity> twinClassFields, List<I18nEntity> names, List<I18nEntity> descriptions) throws ServiceException {
-        for (int i = 0; i < twinClassFields.size(); i++) {
-            updateField(twinClassFields.get(i), names.get(i), descriptions.get(i));
+    public void updateFieldBatch(List<TwinClassFieldSave> twinClassFieldSaves) throws ServiceException {
+        for (TwinClassFieldSave save: twinClassFieldSaves) {
+            updateField(save);
         }
     }
 
