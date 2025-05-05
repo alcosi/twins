@@ -11,8 +11,8 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "TwinClassFieldBatchUpdateRqV1")
-public class TwinClassFieldBatchUpdateRqDTOv1 extends Request {
+@Schema(name = "TwinClassFieldUpdateRqV2")
+public class TwinClassFieldUpdateRqDTOv2 extends Request {
     @Schema(description = "twin class field list")
     public List<TwinClassFieldUpdateDTOv1> twinClassFields;
 }

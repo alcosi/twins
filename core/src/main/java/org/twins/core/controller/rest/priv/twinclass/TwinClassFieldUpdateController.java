@@ -80,7 +80,7 @@ public class TwinClassFieldUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin_class_field/v1")
     public ResponseEntity<?> twinClassFieldBatchUpdateV1(
-            @RequestBody TwinClassFieldBatchUpdateRqDTOv1 request) {
+            @RequestBody TwinClassFieldUpdateRqDTOv2 request) {
         Response rs = new Response();
         try {
             List<TwinClassFieldSave> twinClassFieldSaves = twinClassFieldUpdateRestDTOReverseMapper.convertCollection(request.getTwinClassFields());
