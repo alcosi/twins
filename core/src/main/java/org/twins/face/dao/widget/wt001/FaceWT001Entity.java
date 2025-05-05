@@ -38,6 +38,9 @@ public class FaceWT001Entity implements EasyLoggable{
     @Column(name = "search_id")
     private UUID searchId;
 
+    @Column(name = "show_create_button", nullable = false)
+    private boolean showCreateButton;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "label_i18n_id", nullable = false, insertable = false, updatable = false)
     private I18nEntity labelI18n;
