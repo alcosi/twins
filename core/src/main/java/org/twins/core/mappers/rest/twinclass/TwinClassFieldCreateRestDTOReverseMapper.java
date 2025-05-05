@@ -16,7 +16,6 @@ public class TwinClassFieldCreateRestDTOReverseMapper extends RestSimpleDTOMappe
     @Override
     public void map(TwinClassFieldCreateDTOv1 src, TwinClassFieldSave dst, MapperContext mapperContext) throws Exception {
         twinClassFieldSaveRestDTOReverseMapper.map(src, dst, mapperContext);
-        if (dst.getField() != null)
             dst.getField().setTwinClassId(src.getTwinClassId());
     }
 }

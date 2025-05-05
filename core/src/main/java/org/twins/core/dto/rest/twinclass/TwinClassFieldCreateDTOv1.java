@@ -13,6 +13,6 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinClassFieldCreateV1")
 public class TwinClassFieldCreateDTOv1 extends TwinClassFieldSaveDTOv1 {
-    @JsonIgnore
+    @Schema(description = "twin class id")
     public UUID twinClassId;
 }

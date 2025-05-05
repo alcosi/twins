@@ -12,14 +12,14 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 @Component
 @RequiredArgsConstructor
 public class TwinClassFieldUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassFieldUpdateDTOv1, TwinClassFieldSave> {
-
     private final TwinClassFieldSaveRestDTOReverseMapper twinClassFieldSaveRestDTOReverseMapper;
 
 
     @Override
     public void map(TwinClassFieldUpdateDTOv1 src, TwinClassFieldSave dst, MapperContext mapperContext) throws Exception {
         twinClassFieldSaveRestDTOReverseMapper.map(src, dst, mapperContext);
-        if (dst.getField() != null)
-            dst.getField().setTwinClassId(src.getTwinClassId());
+            dst.getField()
+                    .setId(src.getTwinClassFieldId())
+                    .setTwinClassId(src.getTwinClassId());
     }
 }

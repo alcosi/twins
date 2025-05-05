@@ -14,7 +14,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinClassFieldUpdateV1")
 public class TwinClassFieldUpdateDTOv1 extends TwinClassFieldSaveDTOv1 {
-    @JsonIgnore
+    @Schema(description = "twin class field id", example = DTOExamples.TWIN_CLASS_FIELD_ID)
     public UUID twinClassFieldId;
 
     @Schema(description = "twin class id", example = DTOExamples.TWIN_CLASS_ID)
