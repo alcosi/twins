@@ -19,6 +19,9 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.domain.datalist.DataListOptionCreate;
+import org.twins.core.dto.rest.Response;
+import org.twins.core.dto.rest.datalist.DataListOptionBatchCreateRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionCreateRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv3;
 import org.twins.core.mappers.rest.datalist.DataListOptionCreateDTOReverseMapper;
@@ -26,6 +29,8 @@ import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapperV3;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.datalist.DataListOptionService;
+
+import java.util.List;
 
 
 @Tag(name = ApiTag.DATA_LIST)
@@ -52,10 +57,33 @@ public class DataListOptionCreateController extends ApiController {
             @RequestBody DataListOptionCreateRqDTOv1 request) {
         DataListOptionRsDTOv3 rs = new DataListOptionRsDTOv3();
         try {
-            DataListOptionEntity dataListOptionEntity = dataListOptionService.createDataListOption(dataListOptionCreateDTOReverseMapper.convert(request));
+            DataListOptionEntity dataListOptionEntity = dataListOptionService.createDataListOption(dataListOptionCreateDTOReverseMapper.convert(request.getDataListOptionCreate()));
             rs
                     .setOption(dataListOptionRestDTOMapperV3.convert(dataListOptionEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "dataListOptionCreateV2", summary = "Create batch data list options")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "The data list option batch was created successfully", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/private/data_list_option/v2")
+    public ResponseEntity<?> dataListOptionCreateV2(
+            @RequestBody DataListOptionBatchCreateRqDTOv1 request) {
+        Response rs = new Response();
+        try {
+            List<DataListOptionCreate> dataListOptions = dataListOptionCreateDTOReverseMapper.convertCollection(request.getDataListOptions());
+
+            dataListOptionService.createDataListOptionBatch(dataListOptions);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

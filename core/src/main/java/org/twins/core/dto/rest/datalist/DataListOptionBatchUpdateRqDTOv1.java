@@ -6,11 +6,13 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
+import java.util.List;
+
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "DataListOptionCreateRqV1")
-public class DataListOptionCreateRqDTOv1 extends Request {
-    @Schema(description = "data list option create")
-    public DataListOptionCreateDTOv1 dataListOptionCreate;
+@Schema(name = "DataListOptionUpdateCreateRqV1")
+public class DataListOptionBatchUpdateRqDTOv1 extends Request {
+    @Schema(description = "data list options")
+    public List<DataListOptionUpdateDTOv1> dataListOptions;
 }

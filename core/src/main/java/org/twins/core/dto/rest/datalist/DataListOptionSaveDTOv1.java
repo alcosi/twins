@@ -12,8 +12,8 @@ import java.util.Map;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "DataListOptionSaveRqV1")
-public class DataListOptionSaveRqDTOv1 extends Request {
+@Schema(name = "DataListOptionSaveV1")
+public class DataListOptionSaveDTOv1 {
     @Schema(description = "icon")
     public String icon;
 
