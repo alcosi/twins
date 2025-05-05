@@ -44,6 +44,7 @@ public class TwinClassFieldUpdateController extends ApiController {
     private final TwinClassFieldUpdateRestDTOReverseMapper twinClassFieldUpdateRestDTOReverseMapper;
     private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
 
+    @Deprecated
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassFieldUpdateV1", summary = "Update twin class field")
     @ApiResponses(value = {

@@ -38,6 +38,7 @@ public class TwinClassFieldCreateController extends ApiController {
     private final TwinClassFieldRestDTOMapperV2 twinClassFieldRestDTOMapperV2;
     private final TwinClassFieldCreateRestDTOReverseMapper twinClassFieldCreateRestDTOReverseMapper;
 
+    @Deprecated
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassFieldCreateV1", summary = "Create new twin class field")
     @ApiResponses(value = {
