@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "DataListOptionUpdateCreateRqV1")
+@Schema(name = "DataListOptionUpdateRqV2")
 public class DataListOptionUpdateRqDTOv2 extends Request {
     @Schema(description = "data list options")
     public List<DataListOptionUpdateDTOv1> dataListOptions;
