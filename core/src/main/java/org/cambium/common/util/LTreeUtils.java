@@ -44,4 +44,15 @@ public class LTreeUtils {
     public static String convertToLTreeFormat(UUID uuid) {
         return uuid.toString().replace("-", "_");
     }
+
+    public static String convertToChainLTreeFormat(UUID... uuids) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < uuids.length; i++) {
+            result.append(convertToLTreeFormat(uuids[i]));
+            if (i < uuids.length - 1) {
+                result.append(".");
+            }
+        }
+        return result.toString();
+    }
 }
