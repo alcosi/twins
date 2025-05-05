@@ -13,9 +13,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
-@Schema(name = "TwinClassFieldSaveRqV1")
-public abstract class TwinClassFieldSaveRqDTOv1 extends Request {
+@Schema(name = "TwinClassFieldSaveV1")
+public abstract class TwinClassFieldSaveDTOv1{
 
     @Schema(description = "unique key within the class", example = DTOExamples.TWIN_CLASS_FIELD_KEY)
     public String key;

@@ -14,5 +14,5 @@ import java.util.List;
 @Schema(name = "TwinClassFieldBatchCreateRqV1")
 public class TwinClassFieldBatchCreateRqDTOv1 extends Request {
     @Schema(description = "twin class field list")
-    public List<TwinClassFieldCreateRqDTOv1> twinClassFields;
+    public List<TwinClassFieldCreateDTOv1> twinClassFields;
 }

@@ -59,7 +59,7 @@ public class TwinClassFieldUpdateController extends ApiController {
         TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();
         try {
             TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.updateField
-                    (twinClassFieldUpdateRestDTOReverseMapper.convert(request.setTwinClassFieldId(twinClassFieldId)));
+                    (twinClassFieldUpdateRestDTOReverseMapper.convert(request.getTwinClassFieldUpdate().setTwinClassFieldId(twinClassFieldId)));
             rs
                     .field(twinClassFieldRestDTOMapperV2.convert(twinClassFieldEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

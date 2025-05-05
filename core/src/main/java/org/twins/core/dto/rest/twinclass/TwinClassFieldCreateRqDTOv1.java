@@ -4,10 +4,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.Request;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Schema(name = "TwinClassFieldCreateRqV1")
-public class TwinClassFieldCreateRqDTOv1 extends TwinClassFieldSaveRqDTOv1 {
+public class TwinClassFieldCreateRqDTOv1 extends Request {
+    @Schema(description = "twin class field create")
+    public TwinClassFieldCreateDTOv1 twinClassFieldCreate;
 }
