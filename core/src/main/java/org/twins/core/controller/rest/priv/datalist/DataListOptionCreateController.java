@@ -43,7 +43,7 @@ public class DataListOptionCreateController extends ApiController {
     private final DataListOptionRestDTOMapperV3 dataListOptionRestDTOMapperV3;
     private final DataListOptionService dataListOptionService;
 
-
+    @Deprecated
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListOptionCreateV1", summary = "Create data list option data")
     @ApiResponses(value = {

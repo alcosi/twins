@@ -43,6 +43,7 @@ public class DataListOptionUpdateController extends ApiController {
     private final DataListOptionService dataListOptionService;
     private final DataListOptionRestDTOMapperV3 dataListOptionRestDTOMapperV3;
 
+    @Deprecated
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListOptionUpdateV1", summary = "Data list option for update")
     @ApiResponses(value = {
