@@ -32,11 +32,9 @@ import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
+import static org.cambium.common.util.LTreeUtils.convertToLTreeFormat;
 import static org.twins.core.service.SystemEntityService.TWIN_CLASS_USER;
 
 
@@ -129,7 +127,9 @@ public abstract class DomainInitiator extends FeaturerTwins {
 
 
     protected UUID createDomainUserTemplateTwin(DomainEntity domainEntity) throws ServiceException {
+        UUID twinClassId = UUID.randomUUID();
         TwinClassEntity twinClassEntity = new TwinClassEntity()
+                .setId(twinClassId)
                 .setDomainId(domainEntity.getId())
                 .setAbstractt(false)
                 .setKey("DOMAIN_USER_FOR_" + domainEntity.getKey().toUpperCase())
@@ -137,7 +137,9 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setOwnerType(TwinClassEntity.OwnerType.DOMAIN_USER)
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(systemEntityService.getUserIdSystem())
-                .setAssigneeRequired(false);
+                .setAssigneeRequired(false)
+                .setExtendsTwinClassId(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR)
+                .setExtendsHierarchyTree(convertToLTreeFormat(twinClassId));
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()

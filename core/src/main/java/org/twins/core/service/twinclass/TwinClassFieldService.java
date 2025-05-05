@@ -128,7 +128,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         Map<UUID, TwinClassEntity> needLoad = new HashMap<>();
         Set<UUID> forClasses = new HashSet<>();
         for (TwinClassEntity twinClassEntity : twinClassEntities)
-            if (twinClassEntity.getTwinClassFieldKit() == null && CollectionUtils.isNotEmpty(twinClassEntity.getExtendedClassIdSet())) {
+            if (twinClassEntity.getTwinClassFieldKit() == null) {
                 needLoad.put(twinClassEntity.getId(), twinClassEntity);
                 forClasses.addAll(twinClassEntity.getExtendedClassIdSet());
             }
