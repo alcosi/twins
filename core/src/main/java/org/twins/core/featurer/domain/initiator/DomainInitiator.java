@@ -2,6 +2,7 @@ package org.twins.core.featurer.domain.initiator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.LTreeUtils;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,9 +37,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.UUID;
-
-import static org.cambium.common.util.LTreeUtils.convertToChainLTreeFormat;
-import static org.twins.core.service.SystemEntityService.TWIN_CLASS_USER;
 
 
 @FeaturerType(id = FeaturerTwins.TYPE_25,
@@ -131,19 +129,18 @@ public abstract class DomainInitiator extends FeaturerTwins {
 
     protected UUID createDomainUserTemplateTwin(DomainEntity domainEntity) throws ServiceException {
         UUID twinClassId = UUID.randomUUID();
-        UUID globalAncestorUuid = SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR;
         TwinClassEntity twinClassEntity = new TwinClassEntity()
                 .setId(twinClassId)
                 .setDomainId(domainEntity.getId())
                 .setAbstractt(false)
                 .setKey("DOMAIN_USER_FOR_" + domainEntity.getKey().toUpperCase())
-                .setHeadTwinClassId(TWIN_CLASS_USER)
+                .setHeadTwinClassId(SystemEntityService.TWIN_CLASS_USER)
                 .setOwnerType(TwinClassEntity.OwnerType.DOMAIN_USER)
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(systemEntityService.getUserIdSystem())
                 .setAssigneeRequired(false)
-                .setExtendsTwinClassId(globalAncestorUuid)
-                .setExtendsHierarchyTree(convertToChainLTreeFormat(globalAncestorUuid, twinClassId));
+                .setExtendsTwinClassId(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR)
+                .setExtendsHierarchyTree(LTreeUtils.convertToChainLTreeFormat(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR, twinClassId));
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
