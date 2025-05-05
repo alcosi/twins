@@ -12,7 +12,7 @@ import java.util.List;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "DataListOptionUpdateCreateRqV1")
-public class DataListOptionBatchUpdateRqDTOv1 extends Request {
+public class DataListOptionUpdateRqDTOv2 extends Request {
     @Schema(description = "data list options")
     public List<DataListOptionUpdateDTOv1> dataListOptions;
 }

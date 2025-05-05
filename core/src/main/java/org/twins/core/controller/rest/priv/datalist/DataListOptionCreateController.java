@@ -21,7 +21,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.domain.datalist.DataListOptionCreate;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.datalist.DataListOptionBatchCreateRqDTOv1;
+import org.twins.core.dto.rest.datalist.DataListOptionCreateRqDTOv2;
 import org.twins.core.dto.rest.datalist.DataListOptionCreateRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv3;
 import org.twins.core.mappers.rest.datalist.DataListOptionCreateDTOReverseMapper;
@@ -78,7 +78,7 @@ public class DataListOptionCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/data_list_option/v2")
     public ResponseEntity<?> dataListOptionCreateV2(
-            @RequestBody DataListOptionBatchCreateRqDTOv1 request) {
+            @RequestBody DataListOptionCreateRqDTOv2 request) {
         Response rs = new Response();
         try {
             List<DataListOptionCreate> dataListOptions = dataListOptionCreateDTOReverseMapper.convertCollection(request.getDataListOptions());

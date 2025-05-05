@@ -20,7 +20,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.domain.datalist.DataListOptionUpdate;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.datalist.DataListOptionBatchUpdateRqDTOv1;
+import org.twins.core.dto.rest.datalist.DataListOptionUpdateRqDTOv2;
 import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv3;
 import org.twins.core.dto.rest.datalist.DataListOptionUpdateRqDTOv1;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapperV3;
@@ -79,7 +79,7 @@ public class DataListOptionUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/data_list_option/v2")
     public ResponseEntity<?> dataListOptionUpdateV2(
-            @RequestBody DataListOptionBatchUpdateRqDTOv1 request) {
+            @RequestBody DataListOptionUpdateRqDTOv2 request) {
         DataListOptionRsDTOv3 rs = new DataListOptionRsDTOv3();
         try {
             List<DataListOptionUpdate> dataListOptionUpdates = dataListOptionUpdateDTOReverseMapper.convertCollection(request.getDataListOptions());
