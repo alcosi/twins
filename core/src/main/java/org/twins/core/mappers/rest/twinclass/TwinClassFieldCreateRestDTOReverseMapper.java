@@ -2,7 +2,6 @@ package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldCreateDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldCreateRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldSave;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
