@@ -25,6 +25,7 @@ import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv3;
 import org.twins.core.dto.rest.datalist.DataListOptionUpdateRqDTOv1;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapperV3;
 import org.twins.core.mappers.rest.datalist.DataListOptionUpdateDTOReverseMapper;
+import org.twins.core.mappers.rest.datalist.DataListOptionUpdateDTOReverseMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.datalist.DataListOptionService;
@@ -40,6 +41,7 @@ import java.util.UUID;
 public class DataListOptionUpdateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final DataListOptionUpdateDTOReverseMapper dataListOptionUpdateDTOReverseMapper;
+    private final DataListOptionUpdateDTOReverseMapperV2 dataListOptionUpdateDTOReverseMapperV2;
     private final DataListOptionService dataListOptionService;
     private final DataListOptionRestDTOMapperV3 dataListOptionRestDTOMapperV3;
 
@@ -58,7 +60,7 @@ public class DataListOptionUpdateController extends ApiController {
             @RequestBody DataListOptionUpdateRqDTOv1 request) {
         DataListOptionRsDTOv3 rs = new DataListOptionRsDTOv3();
         try {
-            DataListOptionUpdate dataListOptionUpdate = dataListOptionUpdateDTOReverseMapper.convert(request.getDataListOptionUpdate());
+            DataListOptionUpdate dataListOptionUpdate = dataListOptionUpdateDTOReverseMapper.convert(request);
             DataListOptionEntity dataListOption = dataListOptionService.updateDataListOption(dataListOptionUpdate.setId(dataListOptionId));
             rs
                     .setOption(dataListOptionRestDTOMapperV3.convert(dataListOption, mapperContext))
@@ -83,7 +85,7 @@ public class DataListOptionUpdateController extends ApiController {
             @RequestBody DataListOptionUpdateRqDTOv2 request) {
         DataListOptionRsDTOv3 rs = new DataListOptionRsDTOv3();
         try {
-            List<DataListOptionUpdate> dataListOptionUpdates = dataListOptionUpdateDTOReverseMapper.convertCollection(request.getDataListOptions());
+            List<DataListOptionUpdate> dataListOptionUpdates = dataListOptionUpdateDTOReverseMapperV2.convertCollection(request.getDataListOptions());
 
             dataListOptionService.updateDataListOptionBatch(dataListOptionUpdates);
         } catch (ServiceException se) {

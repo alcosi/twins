@@ -25,6 +25,7 @@ import org.twins.core.dto.rest.datalist.DataListOptionCreateRqDTOv2;
 import org.twins.core.dto.rest.datalist.DataListOptionCreateRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv3;
 import org.twins.core.mappers.rest.datalist.DataListOptionCreateDTOReverseMapper;
+import org.twins.core.mappers.rest.datalist.DataListOptionCreateDTOReverseMapperV2;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapperV3;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -40,6 +41,7 @@ import java.util.List;
 public class DataListOptionCreateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final DataListOptionCreateDTOReverseMapper dataListOptionCreateDTOReverseMapper;
+    private final DataListOptionCreateDTOReverseMapperV2 dataListOptionCreateDTOReverseMapperV2;
     private final DataListOptionRestDTOMapperV3 dataListOptionRestDTOMapperV3;
     private final DataListOptionService dataListOptionService;
 
@@ -57,7 +59,7 @@ public class DataListOptionCreateController extends ApiController {
             @RequestBody DataListOptionCreateRqDTOv1 request) {
         DataListOptionRsDTOv3 rs = new DataListOptionRsDTOv3();
         try {
-            DataListOptionEntity dataListOptionEntity = dataListOptionService.createDataListOption(dataListOptionCreateDTOReverseMapper.convert(request.getDataListOptionCreate()));
+            DataListOptionEntity dataListOptionEntity = dataListOptionService.createDataListOption(dataListOptionCreateDTOReverseMapper.convert(request));
             rs
                     .setOption(dataListOptionRestDTOMapperV3.convert(dataListOptionEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
@@ -81,7 +83,7 @@ public class DataListOptionCreateController extends ApiController {
             @RequestBody DataListOptionCreateRqDTOv2 request) {
         Response rs = new Response();
         try {
-            List<DataListOptionCreate> dataListOptions = dataListOptionCreateDTOReverseMapper.convertCollection(request.getDataListOptions());
+            List<DataListOptionCreate> dataListOptions = dataListOptionCreateDTOReverseMapperV2.convertCollection(request.getDataListOptions());
 
             dataListOptionService.createDataListOptionBatch(dataListOptions);
         } catch (ServiceException se) {
