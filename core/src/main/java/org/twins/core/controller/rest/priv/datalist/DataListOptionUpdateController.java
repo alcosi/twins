@@ -19,14 +19,18 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.domain.datalist.DataListOptionUpdate;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.Response;
+import org.twins.core.dto.rest.datalist.DataListOptionUpdateRqDTOv2;
 import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv3;
 import org.twins.core.dto.rest.datalist.DataListOptionUpdateRqDTOv1;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapperV3;
 import org.twins.core.mappers.rest.datalist.DataListOptionUpdateDTOReverseMapper;
+import org.twins.core.mappers.rest.datalist.DataListOptionUpdateDTOReverseMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.datalist.DataListOptionService;
 
+import java.util.List;
 import java.util.UUID;
 
 
@@ -37,9 +41,11 @@ import java.util.UUID;
 public class DataListOptionUpdateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final DataListOptionUpdateDTOReverseMapper dataListOptionUpdateDTOReverseMapper;
+    private final DataListOptionUpdateDTOReverseMapperV2 dataListOptionUpdateDTOReverseMapperV2;
     private final DataListOptionService dataListOptionService;
     private final DataListOptionRestDTOMapperV3 dataListOptionRestDTOMapperV3;
 
+    @Deprecated
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListOptionUpdateV1", summary = "Data list option for update")
     @ApiResponses(value = {
@@ -59,6 +65,29 @@ public class DataListOptionUpdateController extends ApiController {
             rs
                     .setOption(dataListOptionRestDTOMapperV3.convert(dataListOption, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "dataListOptionUpdateV2", summary = "Update data list option batch")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Data list option batch updated successfully", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PutMapping(value = "/private/data_list_option/v2")
+    public ResponseEntity<?> dataListOptionUpdateV2(
+            @RequestBody DataListOptionUpdateRqDTOv2 request) {
+        DataListOptionRsDTOv3 rs = new DataListOptionRsDTOv3();
+        try {
+            List<DataListOptionUpdate> dataListOptionUpdates = dataListOptionUpdateDTOReverseMapperV2.convertCollection(request.getDataListOptions());
+
+            dataListOptionService.updateDataListOptionBatch(dataListOptionUpdates);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
