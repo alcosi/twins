@@ -60,10 +60,10 @@ public class TwinClassFieldUpdateController extends ApiController {
             @RequestBody TwinClassFieldUpdateRqDTOv1 request) {
         TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();
         try {
-            TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.updateField
-                    (twinClassFieldUpdateRestDTOReverseMapper.convert(request.setTwinClassFieldId(twinClassFieldId)));
+            List<TwinClassFieldEntity> twinClassFieldEntity = twinClassFieldService.updateFields
+                    (List.of(twinClassFieldUpdateRestDTOReverseMapper.convert(request.setTwinClassFieldId(twinClassFieldId))));
             rs
-                    .field(twinClassFieldRestDTOMapperV2.convert(twinClassFieldEntity, mapperContext))
+                    .field(twinClassFieldRestDTOMapperV2.convert(twinClassFieldEntity.getFirst(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -87,7 +87,7 @@ public class TwinClassFieldUpdateController extends ApiController {
         try {
             List<TwinClassFieldSave> twinClassFieldSaves = twinClassFieldUpdateRestDTOReverseMapperV2.convertCollection(request.getTwinClassFields());
 
-            twinClassFieldService.updateFieldBatch(twinClassFieldSaves);
+            twinClassFieldService.updateFields(twinClassFieldSaves);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
