@@ -9,12 +9,11 @@ import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.Map;
 
-@Deprecated
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "DataListOptionSaveRqV1")
-public class DataListOptionSaveRqDTOv1 extends Request {
+@Schema(name = "DataListOptionSaveV1")
+public class DataListOptionSaveDTOv1 {
     @Schema(description = "icon")
     public String icon;
 

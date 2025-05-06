@@ -84,6 +84,13 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         return saveSafe(dataListOption);
     }
 
+    @Transactional(rollbackFor = Throwable.class)
+    public void createDataListOptionBatch(List<DataListOptionCreate> dataListOptions) throws ServiceException {
+        for (DataListOptionCreate dataListOptionCreate : dataListOptions) {
+            createDataListOption(dataListOptionCreate);
+        }
+    }
+
     private void createAttributes(DataListEntity dataList, DataListOptionEntity dataListOption, Map<String, String> attributes) throws ServiceException {
         if (emptyAttributes(dataList))
             return;
@@ -119,6 +126,13 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         updateAttributes(dbDataList, dbOption, optionUpdate.getAttributes(), changesHelper);
         updateExternalId(dbOption, optionUpdate.getExternalId(), changesHelper);
         return updateSafe(dbOption, changesHelper);
+    }
+
+    @Transactional
+    public void updateDataListOptionBatch(List<DataListOptionUpdate> optionUpdates) throws ServiceException {
+        for (DataListOptionUpdate optionUpdate : optionUpdates) {
+            updateDataListOption(optionUpdate);
+        }
     }
 
     public void updateExternalId(DataListOptionEntity dbOption, String newExternalId, ChangesHelper changesHelper) {
