@@ -22,7 +22,9 @@ import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldCreateRestDTOReverseMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassFieldCreateRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapperV2;
+import org.twins.core.mappers.rest.twinclass.TwinClassFieldUpdateRestDTOReverseMapperV2;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.ArrayList;
@@ -37,6 +39,7 @@ public class TwinClassFieldCreateController extends ApiController {
     private final TwinClassFieldService twinClassFieldService;
     private final TwinClassFieldRestDTOMapperV2 twinClassFieldRestDTOMapperV2;
     private final TwinClassFieldCreateRestDTOReverseMapper twinClassFieldCreateRestDTOReverseMapper;
+    private final TwinClassFieldCreateRestDTOReverseMapperV2 twinClassFieldCreateRestDTOReverseMapperV2;
 
     @Deprecated
     @ParametersApiUserHeaders
@@ -53,7 +56,7 @@ public class TwinClassFieldCreateController extends ApiController {
             @RequestBody TwinClassFieldCreateRqDTOv1 request) {
         TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();
         try {
-            TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.createField(twinClassFieldCreateRestDTOReverseMapper.convert(request.getTwinClassFieldCreate().setTwinClassId(twinClassId)));
+            TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.createField(twinClassFieldCreateRestDTOReverseMapper.convert(request.setTwinClassId(twinClassId)));
 
             rs
                     .field(twinClassFieldRestDTOMapperV2.convert(twinClassFieldEntity, mapperContext));
@@ -66,18 +69,18 @@ public class TwinClassFieldCreateController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinClassFieldBatchCreateV1", summary = "Create batch twin class fields")
+    @Operation(operationId = "twinClassFieldCreateV2", summary = "Create batch twin class fields")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin class fields created successfully", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_class_field/v1")
-    public ResponseEntity<?> twinClassFieldBatchCreateV1(
+    public ResponseEntity<?> twinClassFieldCreateV2(
             @RequestBody TwinClassFieldCreateRqDTOv2 request) {
         Response rs = new Response();
         try {
-            List<TwinClassFieldSave> twinClassFieldSaves = twinClassFieldCreateRestDTOReverseMapper.convertCollection(request.getTwinClassFields());
+            List<TwinClassFieldSave> twinClassFieldSaves = twinClassFieldCreateRestDTOReverseMapperV2.convertCollection(request.getTwinClassFields());
 
             twinClassFieldService.createFieldBatch(twinClassFieldSaves);
         } catch (ServiceException se) {

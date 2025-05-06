@@ -8,15 +8,14 @@ import org.twins.core.dto.rest.twinclass.TwinClassFieldSave;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
-@Deprecated
 @Component
 @RequiredArgsConstructor
-public class TwinClassFieldCreateRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassFieldCreateRqDTOv1, TwinClassFieldSave> {
-    private final TwinClassFieldSaveRestDTOReverseMapper twinClassFieldSaveRestDTOReverseMapper;
+public class TwinClassFieldCreateRestDTOReverseMapperV2 extends RestSimpleDTOMapper<TwinClassFieldCreateDTOv1, TwinClassFieldSave> {
+    private final TwinClassFieldSaveRestDTOReverseMapperV2 twinClassFieldSaveRestDTOReverseMapper;
 
     @Override
-    public void map(TwinClassFieldCreateRqDTOv1 src, TwinClassFieldSave dst, MapperContext mapperContext) throws Exception {
+    public void map(TwinClassFieldCreateDTOv1 src, TwinClassFieldSave dst, MapperContext mapperContext) throws Exception {
         twinClassFieldSaveRestDTOReverseMapper.map(src, dst, mapperContext);
-        dst.getField().setTwinClassId(src.getTwinClassId());
+            dst.getField().setTwinClassId(src.getTwinClassId());
     }
 }
