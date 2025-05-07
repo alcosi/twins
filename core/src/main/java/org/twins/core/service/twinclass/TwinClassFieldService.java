@@ -353,14 +353,16 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             return Collections.emptyList();
         }
 
-        List<UUID> fieldIds = twinClassFieldSaves.stream()
-                .map(s -> s.getField().getId())
-                .collect(Collectors.toList());
+        Kit<TwinClassFieldEntity, UUID> dbFieldsKit =findEntitiesSafe(
+                twinClassFieldSaves.stream()
+                        .map(s -> s.getField().getId())
+                        .collect(Collectors.toList())
+        );
 
-        Kit<TwinClassFieldEntity, UUID> dbFieldsKit = findEntitiesSafe(fieldIds);
-
-        Map<TwinClassFieldEntity, ChangesHelper> changesMap = new HashMap<>();
+        ChangesHelperMulti<TwinClassFieldEntity> changes = new ChangesHelperMulti<>();
         CacheEvictCollector cacheEvictCollector = new CacheEvictCollector();
+
+        List<TwinClassFieldEntity> allEntities = new ArrayList<>(dbFieldsKit.getMap().values());
 
         for (TwinClassFieldSave save : twinClassFieldSaves) {
             TwinClassFieldEntity dbField = dbFieldsKit.get(save.getField().getId());
@@ -372,30 +374,28 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             ChangesHelper changesHelper = new ChangesHelper();
 
             updateTwinClassFieldTwinClass(dbField, save.getField().getTwinClassId(), changesHelper);
-            updateTwinClassField_FieldTyperFeaturerId(dbField, save.getField().getFieldTyperFeaturerId(), save.getField().getFieldTyperParams(), changesHelper);
+            updateTwinClassField_FieldTyperFeaturerId(dbField, save.getField().getFieldTyperFeaturerId(),
+                    save.getField().getFieldTyperParams(), changesHelper);
             updateTwinClassFieldName(dbField, save.getNameI18n(), changesHelper);
             updateTwinClassFieldDescription(dbField, save.getDescriptionI18n(), changesHelper);
             updateTwinClassFieldViewPermission(dbField, save.getField().getViewPermissionId(), changesHelper);
             updateTwinClassFieldEditPermission(dbField, save.getField().getEditPermissionId(), changesHelper);
             updateTwinClassFieldRequiredFlag(dbField, save.getField().getRequired(), changesHelper);
-            updateEntityField(save.getField(), dbField, TwinClassFieldEntity::getExternalId, TwinClassFieldEntity::setExternalId, TwinClassFieldEntity.Fields.externalId, changesHelper);
+            updateEntityField(save.getField(), dbField,
+                    TwinClassFieldEntity::getExternalId, TwinClassFieldEntity::setExternalId,
+                    TwinClassFieldEntity.Fields.externalId, changesHelper);
 
             if (changesHelper.hasChanges()) {
-                changesMap.put(dbField, changesHelper);
+                changes.add(dbField, changesHelper);
                 cacheEvictCollector.add(dbField.getTwinClassId(),
                         TwinClassRepository.CACHE_TWIN_CLASS_BY_ID,
                         TwinClassEntity.class.getSimpleName());
             }
         }
 
-        List<TwinClassFieldEntity> updatedFields = new ArrayList<>();
-        if (!changesMap.isEmpty()) {
-            Iterable<TwinClassFieldEntity> savedEntities = entitySmartService.saveAllAndLogChanges(
-                    changesMap,
-                    twinClassFieldRepository
-            );
 
-            savedEntities.forEach(updatedFields::add);
+        if (!changes.entrySet().isEmpty()) {
+            updateSafe(changes);
 
             cacheEvictCollector.add(
                     TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_ID_IN,
@@ -406,11 +406,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                     TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_PARENT_KEY);
 
             evictCache(cacheManager, cacheEvictCollector);
-        } else {
-            updatedFields.addAll(dbFieldsKit.getMap().values());
         }
 
-        return updatedFields;
+        return allEntities;
     }
 
     public void updateTwinClassFieldTwinClass(TwinClassFieldEntity dbTwinClassFieldEntity, UUID newTwinClassId, ChangesHelper changesHelper) throws ServiceException {
