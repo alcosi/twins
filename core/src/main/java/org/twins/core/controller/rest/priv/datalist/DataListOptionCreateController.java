@@ -59,9 +59,9 @@ public class DataListOptionCreateController extends ApiController {
             @RequestBody DataListOptionCreateRqDTOv1 request) {
         DataListOptionRsDTOv3 rs = new DataListOptionRsDTOv3();
         try {
-            DataListOptionEntity dataListOptionEntity = dataListOptionService.createDataListOption(dataListOptionCreateDTOReverseMapper.convert(request));
+            DataListOptionEntity dataListOptionEntities = dataListOptionService.createDataListOptions(dataListOptionCreateDTOReverseMapper.convert(request));
             rs
-                    .setOption(dataListOptionRestDTOMapperV3.convert(dataListOptionEntity, mapperContext))
+                    .setOption(dataListOptionRestDTOMapperV3.convert(dataListOptionEntities, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -85,7 +85,7 @@ public class DataListOptionCreateController extends ApiController {
         try {
             List<DataListOptionCreate> dataListOptions = dataListOptionCreateDTOReverseMapperV2.convertCollection(request.getDataListOptions());
 
-            dataListOptionService.createDataListOptionBatch(dataListOptions);
+            dataListOptionService.createDataListOptions(dataListOptions);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
