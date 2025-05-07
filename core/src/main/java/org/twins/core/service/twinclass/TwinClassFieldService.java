@@ -3,6 +3,7 @@ package org.twins.core.service.twinclass;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.cambium.common.CacheEvictCollector;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
@@ -260,7 +261,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
         final ApiUser apiUser = authService.getApiUser();
         final List<TwinClassFieldEntity> fieldsToCreate = new ArrayList<>(twinClassFieldSaves.size());
-        final Map<String, List<Object>> cacheEntries = new HashMap<>();
+        final CacheEvictCollector cacheEvictCollector = new CacheEvictCollector();
 
         for (TwinClassFieldSave save : twinClassFieldSaves) {
             TwinClassFieldEntity field = save.getField();
@@ -270,7 +271,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
             if (twinClassFieldRepository.existsByKeyAndTwinClassId(fieldKey, field.getTwinClassId())) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT,
-                        "Field key already exists: [" + fieldKey + "] for twin class [" + field.getTwinClassId() + "]" );
+                        "Field key already exists: [" + fieldKey + "] for twin class [" + field.getTwinClassId() + "]");
             }
 
             if (field.getTwinClassId() == null) {
@@ -305,10 +306,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             validateEntityAndThrow(field, EntitySmartService.EntityValidateMode.beforeSave);
             fieldsToCreate.add(field);
 
-            cacheEntries.computeIfAbsent(TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, k -> new ArrayList<>())
-                    .add(field.getTwinClassId());
-            cacheEntries.computeIfAbsent(TwinClassEntity.class.getSimpleName(), k -> new ArrayList<>())
-                    .add(field.getTwinClassId());
+            cacheEvictCollector.add(field.getTwinClassId(),
+                    TwinClassRepository.CACHE_TWIN_CLASS_BY_ID,
+                    TwinClassEntity.class.getSimpleName());
         }
 
         Iterable<TwinClassFieldEntity> savedEntities = entitySmartService.saveAllAndLog(
@@ -319,7 +319,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         List<TwinClassFieldEntity> result = StreamSupport.stream(savedEntities.spliterator(), false)
                 .collect(Collectors.toList());
 
-        CacheUtils.evictCache(cacheManager, cacheEntries);
+        CacheUtils.evictCache(cacheManager, cacheEvictCollector);
 
         return result;
     }
@@ -354,7 +354,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         }
 
         Map<TwinClassFieldEntity, ChangesHelper> changesMap = new HashMap<>();
-        Map<String, List<Object>> cacheEntries = new HashMap<>();
+        CacheEvictCollector cacheEvictCollector = new CacheEvictCollector();
 
         for (TwinClassFieldSave save : twinClassFieldSaves) {
             TwinClassFieldEntity dbField = dbFields.get(save.getField().getId());
@@ -378,10 +378,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
             if (changesHelper.hasChanges()) {
                 changesMap.put(dbField, changesHelper);
-                cacheEntries.computeIfAbsent(TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, k -> new ArrayList<>())
-                        .add(dbField.getTwinClassId());
-                cacheEntries.computeIfAbsent(TwinClassEntity.class.getSimpleName(), k -> new ArrayList<>())
-                        .add(dbField.getTwinClassId());
+                cacheEvictCollector.add(dbField.getTwinClassId(),
+                        TwinClassRepository.CACHE_TWIN_CLASS_BY_ID,
+                        TwinClassEntity.class.getSimpleName());
             }
         }
 
@@ -394,14 +393,15 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
             savedEntities.forEach(updatedFields::add);
 
-            cacheEntries.put(TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_ID_IN, Collections.emptyList());
-            cacheEntries.put(TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN, Collections.emptyList());
-            cacheEntries.put(TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_KEY_AND_TWIN_CLASS_ID_IN, Collections.emptyList());
-            cacheEntries.put(CACHE_TWIN_CLASS_FIELD_FOR_LINK, Collections.emptyList());
-            cacheEntries.put(TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_KEY, Collections.emptyList());
-            cacheEntries.put(TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_PARENT_KEY, Collections.emptyList());
+            cacheEvictCollector.add(
+                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_ID_IN,
+                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN,
+                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_KEY_AND_TWIN_CLASS_ID_IN,
+                    CACHE_TWIN_CLASS_FIELD_FOR_LINK,
+                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_KEY,
+                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_PARENT_KEY);
 
-            evictCache(cacheManager, cacheEntries);
+            evictCache(cacheManager, cacheEvictCollector);
         } else {
             updatedFields.addAll(dbFields.values());
         }
