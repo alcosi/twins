@@ -7,7 +7,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.StringUtils;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nType;
@@ -94,7 +93,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                     .setDataListId(dataListOptionCreate.getDataListId())
                     .setIcon(dataListOptionCreate.getIcon())
                     .setOptionI18NId(i18nService.createI18nAndTranslations(
-                            I18nType.PERMISSION_NAME,
+                            I18nType.DATA_LIST_OPTION_VALUE,
                             dataListOptionCreate.getNameI18n()).getId())
                     .setStatus(DataListOptionEntity.Status.active);
 
@@ -108,7 +107,6 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         entityRepository().saveAll(optionsToSave).forEach(result::add);
         return result;
     }
-
     private void createAttributes(DataListEntity dataList, DataListOptionEntity dataListOption, Map<String, String> attributes) throws ServiceException {
         if (emptyAttributes(dataList))
             return;
