@@ -1,13 +1,14 @@
 package org.twins.face.dao.widget.wt002;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
+import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.Type;
+import org.twins.face.dao.twidget.tw005.FaceTW005ButtonEntity;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -27,4 +28,9 @@ public class FaceWT002Entity {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "style_attributes", columnDefinition = "hstore")
     private HashMap<String, String> styleAttributes;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    Kit<FaceWT002ButtonEntity, UUID> buttons;
 }
