@@ -362,7 +362,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         ChangesHelperMulti<TwinClassFieldEntity> changes = new ChangesHelperMulti<>();
         CacheEvictCollector cacheEvictCollector = new CacheEvictCollector();
 
-        List<TwinClassFieldEntity> allEntities = new ArrayList<>(dbFieldsKit.getMap().values());
+        List<TwinClassFieldEntity> allEntities = dbFieldsKit.getList();
 
         for (TwinClassFieldSave save : twinClassFieldSaves) {
             TwinClassFieldEntity dbField = dbFieldsKit.get(save.getField().getId());
