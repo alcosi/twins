@@ -6,6 +6,8 @@ import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.StringUtils;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nType;
@@ -30,6 +32,7 @@ import org.twins.core.service.auth.AuthService;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -78,6 +81,9 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
 
     @Transactional(rollbackFor = Throwable.class)
     public List<DataListOptionEntity> createDataListOptions(List<DataListOptionCreate> dataListOptionCreates) throws ServiceException {
+        if (dataListOptionCreates.isEmpty()) {
+            return Collections.emptyList();
+        }
         List<DataListOptionEntity> optionsToSave = new ArrayList<>();
 
         for (DataListOptionCreate dataListOptionCreate : dataListOptionCreates) {
@@ -136,10 +142,14 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         if (optionUpdates.isEmpty()) {
             return Collections.emptyList();
         }
-        Map<DataListOptionEntity, ChangesHelper> entityChangesMap = new LinkedHashMap<>();
+
+        ChangesHelperMulti<DataListOptionEntity> changes = new ChangesHelperMulti<>();
+        List<DataListOptionEntity> allEntities = new ArrayList<>(optionUpdates.size());
 
         for (DataListOptionUpdate update : optionUpdates) {
             DataListOptionEntity dbOption = findEntitySafe(update.getId());
+            allEntities.add(dbOption);
+
             DataListEntity dbDataList = dbOption.getDataList();
             loadDataListAttributeAccessors(dbDataList);
 
@@ -150,15 +160,12 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
             updateAttributes(dbDataList, dbOption, update.getAttributes(), changesHelper);
             updateExternalId(dbOption, update.getExternalId(), changesHelper);
 
-            if (changesHelper.hasChanges()) {
-                entityChangesMap.put(dbOption, changesHelper);
-            }
+            changes.add(dbOption, changesHelper);
         }
 
+        updateSafe(changes);
 
-        List<DataListOptionEntity> result = new ArrayList<>(entityChangesMap.keySet());
-        entitySmartService.saveAllAndLogChanges(entityChangesMap, entityRepository());
-        return result;
+        return allEntities;
     }
 
 
