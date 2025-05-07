@@ -56,10 +56,10 @@ public class TwinClassFieldCreateController extends ApiController {
             @RequestBody TwinClassFieldCreateRqDTOv1 request) {
         TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();
         try {
-            List<TwinClassFieldEntity> twinClassFieldEntity = twinClassFieldService.createFields(List.of(twinClassFieldCreateRestDTOReverseMapper.convert(request.setTwinClassId(twinClassId))));
+            TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.createFields(twinClassFieldCreateRestDTOReverseMapper.convert(request.setTwinClassId(twinClassId)));
 
             rs
-                    .field(twinClassFieldRestDTOMapperV2.convert(twinClassFieldEntity.getFirst(), mapperContext));
+                    .field(twinClassFieldRestDTOMapperV2.convert(twinClassFieldEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

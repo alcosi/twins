@@ -60,10 +60,9 @@ public class TwinClassFieldUpdateController extends ApiController {
             @RequestBody TwinClassFieldUpdateRqDTOv1 request) {
         TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();
         try {
-            List<TwinClassFieldEntity> twinClassFieldEntity = twinClassFieldService.updateFields
-                    (List.of(twinClassFieldUpdateRestDTOReverseMapper.convert(request.setTwinClassFieldId(twinClassFieldId))));
+            TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.updateFields(twinClassFieldUpdateRestDTOReverseMapper.convert(request.setTwinClassFieldId(twinClassFieldId)));
             rs
-                    .field(twinClassFieldRestDTOMapperV2.convert(twinClassFieldEntity.getFirst(), mapperContext))
+                    .field(twinClassFieldRestDTOMapperV2.convert(twinClassFieldEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
