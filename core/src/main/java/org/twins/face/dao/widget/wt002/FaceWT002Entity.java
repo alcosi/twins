@@ -8,7 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.Type;
-import org.twins.face.dao.twidget.tw005.FaceTW005ButtonEntity;
+import org.twins.core.dao.face.FaceEntity;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -28,6 +28,10 @@ public class FaceWT002Entity {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "style_attributes", columnDefinition = "hstore")
     private HashMap<String, String> styleAttributes;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
+    private FaceEntity face;
 
     @Transient
     @EqualsAndHashCode.Exclude

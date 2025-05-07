@@ -13,6 +13,6 @@ CREATE TABLE IF NOT EXISTS face_widget_wt002_button
     label_i18n_id                   UUID REFERENCES i18n (id),
     icon_resource_id                UUID REFERENCES resource (id),
     style_attributes                HSTORE,
-    extends_hierarchy_twin_class_id UUID REFERENCES twin_class (id),
+    extends_hierarchy_twin_class_id UUID NOT NULL REFERENCES twin_class (id),
     extends_hierarchy_depth         INTEGER
 );

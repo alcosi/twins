@@ -1,13 +1,14 @@
 package org.twins.face.dao.widget.wt002;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.face.FaceEntity;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.resource.ResourceEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -41,5 +42,21 @@ public class FaceWT002ButtonEntity {
     private UUID extendsHierarchyTwinClassId;
 
     @Column(name = "extends_hierarchy_depth")
-    private int extendsHierarchyDepth;
+    private Integer extendsHierarchyDepth;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
+    private FaceEntity face;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "label_i18n_id", insertable = false, updatable = false)
+    private I18nEntity labelI18n;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "icon_resource_id", insertable = false, updatable = false)
+    private ResourceEntity iconResource;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "extends_hierarchy_twin_class_id", insertable = false, updatable = false)
+    private TwinClassEntity extendsHierarchyTwinClass;
 }
