@@ -3,14 +3,13 @@ package org.twins.core.service.twinclass;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.cambium.common.CacheEvictCollector;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.KeyUtils;
-import org.cambium.common.util.MapUtils;
-import org.cambium.common.util.UuidUtils;
+import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.featurer.dao.FeaturerRepository;
@@ -31,6 +30,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldSave;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperLink;
@@ -40,6 +40,8 @@ import org.twins.core.service.twin.TwinService;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
 
@@ -191,7 +193,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         List<TwinClassFieldEntity> twinClassFieldList = null;
         if (twinClass != null) {
             Set<UUID> extendedClassIds = twinClass.getExtendedClassIdSet();
-            twinClassFieldList = twinClassFieldRepository.findByIdInAndTwinClassIdIn(setIds, extendedClassIds); 
+            twinClassFieldList = twinClassFieldRepository.findByIdInAndTwinClassIdIn(setIds, extendedClassIds);
         }
         return twinClassFieldList;
     }
@@ -235,6 +237,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
 
     public static final String CACHE_TWIN_CLASS_FIELD_FOR_LINK = "TwinClassFieldService.getFieldIdConfiguredForLink";
+
     @Cacheable(value = CACHE_TWIN_CLASS_FIELD_FOR_LINK, key = "#twinClassId + '' + #linkId")
     public TwinClassFieldEntity getFieldIdConfiguredForLink(UUID twinClassId, UUID linkId) {
         return twinClassFieldRepository.findByTwinClassIdAndFieldTyperIdInAndFieldTyperParamsLike(twinClassId, Set.of(FieldTyperLink.ID), "%" + linkId + "%");
@@ -251,47 +254,78 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }};
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinClassFieldEntity createField(TwinClassFieldEntity twinClassFieldEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        twinClassFieldEntity.setKey(KeyUtils.lowerCaseNullSafe(twinClassFieldEntity.getKey(), ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT));
-        if (twinClassFieldRepository.existsByKeyAndTwinClassId(twinClassFieldEntity.getKey(), twinClassFieldEntity.getTwinClassId()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT, "Twin class field with key[" + twinClassFieldEntity.getKey() + "] already exists for twin class: " + twinClassFieldEntity.getTwinClassId());
+    public TwinClassFieldEntity createFields(TwinClassFieldSave twinClassFieldSave) throws ServiceException {
+        return createFields(List.of(twinClassFieldSave)).getFirst();
+    }
 
-        if (twinClassFieldEntity.getTwinClassId() == null)
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN);
-        if (twinClassFieldEntity.getViewPermissionId() != null
-                && !permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassFieldEntity.getViewPermissionId(), apiUser.getDomainId()))
-            throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id");
-        if (twinClassFieldEntity.getEditPermissionId() != null
-                && !permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassFieldEntity.getEditPermissionId(), apiUser.getDomainId()))
-            throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown edit permission id");
-
-        FeaturerEntity fieldTyper;
-        HashMap<String, String> params;
-        if (null != twinClassFieldEntity.getFieldTyperFeaturerId()) {
-            params = twinClassFieldEntity.getFieldTyperParams();
-            fieldTyper = featurerService.checkValid(twinClassFieldEntity.getFieldTyperFeaturerId(), params, FieldTyper.class);
-        } else {
-            params = SIMPLE_FIELD_PARAMS;
-            fieldTyper = featurerRepository.getById(1301);
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinClassFieldEntity> createFields(List<TwinClassFieldSave> twinClassFieldSaves) throws ServiceException {
+        if (CollectionUtils.isEmpty(twinClassFieldSaves)) {
+            return Collections.emptyList();
         }
 
-        twinClassFieldEntity
-                .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_NAME, nameI18n).getId())
-                .setDescriptionI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_DESCRIPTION, descriptionI18n).getId())
-                .setFieldTyperFeaturerId(fieldTyper.getId())
-                .setFieldTyperFeaturer(fieldTyper)
-                .setFieldTyperParams(params);
+        final ApiUser apiUser = authService.getApiUser();
+        final List<TwinClassFieldEntity> fieldsToCreate = new ArrayList<>(twinClassFieldSaves.size());
+        final CacheEvictCollector cacheEvictCollector = new CacheEvictCollector();
 
+        for (TwinClassFieldSave save : twinClassFieldSaves) {
+            TwinClassFieldEntity field = save.getField();
 
-        validateEntityAndThrow(twinClassFieldEntity, EntitySmartService.EntityValidateMode.beforeSave);
-        twinClassFieldEntity = entitySmartService.save(twinClassFieldEntity, twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-        Map<String, List<Object>> cacheEntries = Map.of(
-                TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(twinClassFieldEntity.getTwinClassId()),
-                TwinClassEntity.class.getSimpleName(), List.of(twinClassFieldEntity.getTwinClassId())
+            String fieldKey = KeyUtils.lowerCaseNullSafe(field.getKey(), ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT);
+            field.setKey(fieldKey);
+
+            if (twinClassFieldRepository.existsByKeyAndTwinClassId(fieldKey, field.getTwinClassId())) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT,
+                        "Field key already exists: [" + fieldKey + "] for twin class [" + field.getTwinClassId() + "]");
+            }
+
+            if (field.getTwinClassId() == null) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN);
+            }
+
+            if (field.getViewPermissionId() != null &&
+                    !permissionRepository.existsByIdAndPermissionGroup_DomainId(field.getViewPermissionId(), apiUser.getDomainId())) {
+                throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id");
+            }
+            if (field.getEditPermissionId() != null &&
+                    !permissionRepository.existsByIdAndPermissionGroup_DomainId(field.getEditPermissionId(), apiUser.getDomainId())) {
+                throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown edit permission id");
+            }
+
+            if (field.getFieldTyperFeaturerId() != null) {
+                field.setFieldTyperFeaturer(featurerService.checkValid(
+                        field.getFieldTyperFeaturerId(),
+                        field.getFieldTyperParams(),
+                        FieldTyper.class
+                ));
+            } else {
+                field.setFieldTyperFeaturer(featurerRepository.getById(1301))
+                        .setFieldTyperParams(SIMPLE_FIELD_PARAMS);
+            }
+
+            field
+                    .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_NAME, save.getNameI18n()).getId())
+                    .setDescriptionI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_DESCRIPTION, save.getDescriptionI18n()).getId());
+
+            validateEntityAndThrow(field, EntitySmartService.EntityValidateMode.beforeSave);
+            fieldsToCreate.add(field);
+
+            cacheEvictCollector.add(field.getTwinClassId(),
+                    TwinClassRepository.CACHE_TWIN_CLASS_BY_ID,
+                    TwinClassEntity.class.getSimpleName());
+        }
+
+        Iterable<TwinClassFieldEntity> savedEntities = entitySmartService.saveAllAndLog(
+                fieldsToCreate,
+                twinClassFieldRepository
         );
-        evictCache(cacheManager, cacheEntries);
-        return twinClassFieldEntity;
+
+        List<TwinClassFieldEntity> result = StreamSupport.stream(savedEntities.spliterator(), false)
+                .collect(Collectors.toList());
+
+        CacheUtils.evictCache(cacheManager, cacheEvictCollector);
+
+        return result;
     }
 
     public KitGrouped<TwinClassFieldEntity, UUID, UUID> findTwinClassFields(Collection<UUID> ids) {
@@ -309,34 +343,72 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinClassFieldEntity updateField(TwinClassFieldEntity twinClassFieldEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
-        TwinClassFieldEntity dbTwinClassFieldEntity = findEntitySafe(twinClassFieldEntity.getId());
-        ChangesHelper changesHelper = new ChangesHelper();
-        updateTwinClassFieldTwinClass(dbTwinClassFieldEntity, twinClassFieldEntity.getTwinClassId(), changesHelper);
-        updateTwinClassField_FieldTyperFeaturerId(dbTwinClassFieldEntity, twinClassFieldEntity.getFieldTyperFeaturerId(), twinClassFieldEntity.getFieldTyperParams(), changesHelper);
-        updateTwinClassFieldName(dbTwinClassFieldEntity, nameI18n, changesHelper);
-        updateTwinClassFieldDescription(dbTwinClassFieldEntity, descriptionI18n, changesHelper);
-        updateTwinClassFieldViewPermission(dbTwinClassFieldEntity, twinClassFieldEntity.getViewPermissionId(), changesHelper);
-        updateTwinClassFieldEditPermission(dbTwinClassFieldEntity, twinClassFieldEntity.getEditPermissionId(), changesHelper);
-        updateTwinClassFieldRequiredFlag(dbTwinClassFieldEntity, twinClassFieldEntity.getRequired(), changesHelper);
-        updateEntityField(twinClassFieldEntity, dbTwinClassFieldEntity, TwinClassFieldEntity::getExternalId,
-                TwinClassFieldEntity::setExternalId, TwinClassFieldEntity.Fields.externalId, changesHelper);
+    public TwinClassFieldEntity updateFields(TwinClassFieldSave twinClassFieldSave) throws ServiceException {
+        return updateFields(List.of(twinClassFieldSave)).getFirst();
+    }
 
-        dbTwinClassFieldEntity = updateSafe(dbTwinClassFieldEntity, changesHelper);
-        if (changesHelper.hasChanges()) {
-            Map<String, List<Object>> cacheEntries = Map.of(
-                    TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(dbTwinClassFieldEntity.getTwinClassId()),
-                    TwinClassEntity.class.getSimpleName(), List.of(dbTwinClassFieldEntity.getTwinClassId()),
-                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_ID_IN, Collections.emptyList(),
-                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN, Collections.emptyList(),
-                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_KEY_AND_TWIN_CLASS_ID_IN, Collections.emptyList(),
-                    CACHE_TWIN_CLASS_FIELD_FOR_LINK, Collections.emptyList(),
-                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_KEY, Collections.emptyList(),
-                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_PARENT_KEY, Collections.emptyList()
-            );
-            evictCache(cacheManager, cacheEntries);
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinClassFieldEntity> updateFields(List<TwinClassFieldSave> twinClassFieldSaves) throws ServiceException {
+        if (CollectionUtils.isEmpty(twinClassFieldSaves)) {
+            return Collections.emptyList();
         }
-        return dbTwinClassFieldEntity;
+
+        Kit<TwinClassFieldEntity, UUID> dbFieldsKit =findEntitiesSafe(
+                twinClassFieldSaves.stream()
+                        .map(s -> s.getField().getId())
+                        .collect(Collectors.toList())
+        );
+
+        ChangesHelperMulti<TwinClassFieldEntity> changes = new ChangesHelperMulti<>();
+        CacheEvictCollector cacheEvictCollector = new CacheEvictCollector();
+
+        List<TwinClassFieldEntity> allEntities = dbFieldsKit.getList();
+
+        for (TwinClassFieldSave save : twinClassFieldSaves) {
+            TwinClassFieldEntity dbField = dbFieldsKit.get(save.getField().getId());
+            if (dbField == null) {
+                throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN,
+                        "TwinClassField with id: [" + save.getField().getId() + "] not found");
+            }
+
+            ChangesHelper changesHelper = new ChangesHelper();
+
+            updateTwinClassFieldTwinClass(dbField, save.getField().getTwinClassId(), changesHelper);
+            updateTwinClassField_FieldTyperFeaturerId(dbField, save.getField().getFieldTyperFeaturerId(),
+                    save.getField().getFieldTyperParams(), changesHelper);
+            updateTwinClassFieldName(dbField, save.getNameI18n(), changesHelper);
+            updateTwinClassFieldDescription(dbField, save.getDescriptionI18n(), changesHelper);
+            updateTwinClassFieldViewPermission(dbField, save.getField().getViewPermissionId(), changesHelper);
+            updateTwinClassFieldEditPermission(dbField, save.getField().getEditPermissionId(), changesHelper);
+            updateTwinClassFieldRequiredFlag(dbField, save.getField().getRequired(), changesHelper);
+            updateEntityField(save.getField(), dbField,
+                    TwinClassFieldEntity::getExternalId, TwinClassFieldEntity::setExternalId,
+                    TwinClassFieldEntity.Fields.externalId, changesHelper);
+
+            if (changesHelper.hasChanges()) {
+                changes.add(dbField, changesHelper);
+                cacheEvictCollector.add(dbField.getTwinClassId(),
+                        TwinClassRepository.CACHE_TWIN_CLASS_BY_ID,
+                        TwinClassEntity.class.getSimpleName());
+            }
+        }
+
+
+        if (!changes.entrySet().isEmpty()) {
+            updateSafe(changes);
+
+            cacheEvictCollector.add(
+                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_ID_IN,
+                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN,
+                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_KEY_AND_TWIN_CLASS_ID_IN,
+                    CACHE_TWIN_CLASS_FIELD_FOR_LINK,
+                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_KEY,
+                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_PARENT_KEY);
+
+            evictCache(cacheManager, cacheEvictCollector);
+        }
+
+        return allEntities;
     }
 
     public void updateTwinClassFieldTwinClass(TwinClassFieldEntity dbTwinClassFieldEntity, UUID newTwinClassId, ChangesHelper changesHelper) throws ServiceException {

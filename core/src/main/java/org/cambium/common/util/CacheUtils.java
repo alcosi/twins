@@ -3,6 +3,7 @@ package org.cambium.common.util;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.CacheEvictCollector;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.cache.Cache;
@@ -49,4 +50,7 @@ public class CacheUtils {
         }
     }
 
+    public static <T> void evictCache(CacheManager cacheManager, CacheEvictCollector cacheEvictCollector) throws ServiceException {
+        evictCache(cacheManager, cacheEvictCollector.getCacheEntries());
+    }
 }

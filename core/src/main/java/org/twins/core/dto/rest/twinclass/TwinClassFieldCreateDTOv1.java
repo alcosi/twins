@@ -5,17 +5,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.Request;
 
 import java.util.UUID;
 
-@Deprecated
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "TwinClassFieldCreateRqV1")
-public class TwinClassFieldCreateRqDTOv1 extends TwinClassFieldSaveRqDTOv1 {
-    @JsonIgnore
-    public UUID TwinClassId;
-
+@Schema(name = "TwinClassFieldCreateV1")
+public class TwinClassFieldCreateDTOv1 extends TwinClassFieldSaveDTOv1 {
+    @Schema(description = "twin class id")
+    public UUID twinClassId;
 }
