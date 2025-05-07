@@ -72,6 +72,11 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     }
 
     @Transactional(rollbackFor = Throwable.class)
+    public DataListOptionEntity createDataListOptions(DataListOptionCreate create) throws ServiceException {
+        return createDataListOptions(List.of(create)).getFirst();
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
     public List<DataListOptionEntity> createDataListOptions(List<DataListOptionCreate> dataListOptionCreates) throws ServiceException {
         List<DataListOptionEntity> optionsToSave = new ArrayList<>();
 
@@ -119,6 +124,11 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     private boolean emptyAttributes(DataListEntity dataListEntity) {
         loadDataListAttributeAccessors(dataListEntity);
         return MapUtils.isEmpty(dataListEntity.getAttributes());
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public DataListOptionEntity updateDataListOptions(DataListOptionUpdate update) throws ServiceException {
+        return updateDataListOptions(List.of(update)).getFirst();
     }
 
     @Transactional(rollbackFor = Throwable.class)
