@@ -6,6 +6,8 @@ import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.StringUtils;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nType;
@@ -30,6 +32,7 @@ import org.twins.core.service.auth.AuthService;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -72,23 +75,38 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public DataListOptionEntity createDataListOption(DataListOptionCreate dataListOptionCreate) throws ServiceException {
-        DataListEntity dataList = dataListService.findEntitySafe(dataListOptionCreate.getDataListId());
-        loadDataListAttributeAccessors(dataList);
-        DataListOptionEntity dataListOption = new DataListOptionEntity()
-                .setDataListId(dataListOptionCreate.getDataListId())
-                .setIcon(dataListOptionCreate.getIcon())
-                .setOptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, dataListOptionCreate.getNameI18n()).getId())
-                .setStatus(DataListOptionEntity.Status.active);
-        createAttributes(dataList, dataListOption, dataListOptionCreate.getAttributes());
-        return saveSafe(dataListOption);
+    public DataListOptionEntity createDataListOptions(DataListOptionCreate create) throws ServiceException {
+        return createDataListOptions(List.of(create)).getFirst();
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public void createDataListOptionBatch(List<DataListOptionCreate> dataListOptions) throws ServiceException {
-        for (DataListOptionCreate dataListOptionCreate : dataListOptions) {
-            createDataListOption(dataListOptionCreate);
+    public List<DataListOptionEntity> createDataListOptions(List<DataListOptionCreate> dataListOptionCreates) throws ServiceException {
+        if (dataListOptionCreates.isEmpty()) {
+            return Collections.emptyList();
         }
+        List<DataListOptionEntity> optionsToSave = new ArrayList<>();
+
+        for (DataListOptionCreate dataListOptionCreate : dataListOptionCreates) {
+            DataListEntity dataList = dataListService.findEntitySafe(dataListOptionCreate.getDataListId());
+            loadDataListAttributeAccessors(dataList);
+
+            DataListOptionEntity dataListOption = new DataListOptionEntity()
+                    .setDataListId(dataListOptionCreate.getDataListId())
+                    .setIcon(dataListOptionCreate.getIcon())
+                    .setOptionI18NId(i18nService.createI18nAndTranslations(
+                            I18nType.PERMISSION_NAME,
+                            dataListOptionCreate.getNameI18n()).getId())
+                    .setStatus(DataListOptionEntity.Status.active);
+
+            createAttributes(dataList, dataListOption, dataListOptionCreate.getAttributes());
+
+            validateEntityAndThrow(dataListOption, EntitySmartService.EntityValidateMode.beforeSave);
+            optionsToSave.add(dataListOption);
+        }
+
+        List<DataListOptionEntity> result = new ArrayList<>();
+        entityRepository().saveAll(optionsToSave).forEach(result::add);
+        return result;
     }
 
     private void createAttributes(DataListEntity dataList, DataListOptionEntity dataListOption, Map<String, String> attributes) throws ServiceException {
@@ -115,25 +133,41 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public DataListOptionEntity updateDataListOption(DataListOptionUpdate optionUpdate) throws ServiceException {
-        DataListOptionEntity dbOption = findEntitySafe(optionUpdate.getId());
-        DataListEntity dbDataList = dbOption.getDataList();
-        loadDataListAttributeAccessors(dbDataList);
-        ChangesHelper changesHelper = new ChangesHelper();
-        updateDataListOptionIcon(optionUpdate, dbOption, changesHelper);
-        updateDataListOptionStatus(optionUpdate.getStatus(), dbOption, changesHelper);
-        updateDataListOptionName(optionUpdate.getNameI18n(), dbOption, changesHelper);
-        updateAttributes(dbDataList, dbOption, optionUpdate.getAttributes(), changesHelper);
-        updateExternalId(dbOption, optionUpdate.getExternalId(), changesHelper);
-        return updateSafe(dbOption, changesHelper);
+    public DataListOptionEntity updateDataListOptions(DataListOptionUpdate update) throws ServiceException {
+        return updateDataListOptions(List.of(update)).getFirst();
     }
 
-    @Transactional
-    public void updateDataListOptionBatch(List<DataListOptionUpdate> optionUpdates) throws ServiceException {
-        for (DataListOptionUpdate optionUpdate : optionUpdates) {
-            updateDataListOption(optionUpdate);
+    @Transactional(rollbackFor = Throwable.class)
+    public List<DataListOptionEntity> updateDataListOptions(List<DataListOptionUpdate> optionUpdates) throws ServiceException {
+        if (optionUpdates.isEmpty()) {
+            return Collections.emptyList();
         }
+
+        ChangesHelperMulti<DataListOptionEntity> changes = new ChangesHelperMulti<>();
+        List<DataListOptionEntity> allEntities = new ArrayList<>(optionUpdates.size());
+
+        for (DataListOptionUpdate update : optionUpdates) {
+            DataListOptionEntity dbOption = findEntitySafe(update.getId());
+            allEntities.add(dbOption);
+
+            DataListEntity dbDataList = dbOption.getDataList();
+            loadDataListAttributeAccessors(dbDataList);
+
+            ChangesHelper changesHelper = new ChangesHelper();
+            updateDataListOptionIcon(update, dbOption, changesHelper);
+            updateDataListOptionStatus(update.getStatus(), dbOption, changesHelper);
+            updateDataListOptionName(update.getNameI18n(), dbOption, changesHelper);
+            updateAttributes(dbDataList, dbOption, update.getAttributes(), changesHelper);
+            updateExternalId(dbOption, update.getExternalId(), changesHelper);
+
+            changes.add(dbOption, changesHelper);
+        }
+
+        updateSafe(changes);
+
+        return allEntities;
     }
+
 
     public void updateExternalId(DataListOptionEntity dbOption, String newExternalId, ChangesHelper changesHelper) {
         if (!changesHelper.isChanged(DataListOptionEntity.Fields.externalId, dbOption.getExternalId(), newExternalId))
