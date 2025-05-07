@@ -358,13 +358,12 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 .collect(Collectors.toList());
 
         Kit<TwinClassFieldEntity, UUID> dbFieldsKit = findEntitiesSafe(fieldIds);
-        Map<UUID, TwinClassFieldEntity> dbFields = dbFieldsKit.getMap();
 
         Map<TwinClassFieldEntity, ChangesHelper> changesMap = new HashMap<>();
         CacheEvictCollector cacheEvictCollector = new CacheEvictCollector();
 
         for (TwinClassFieldSave save : twinClassFieldSaves) {
-            TwinClassFieldEntity dbField = dbFields.get(save.getField().getId());
+            TwinClassFieldEntity dbField = dbFieldsKit.get(save.getField().getId());
             if (dbField == null) {
                 throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN,
                         "TwinClassField with id: [" + save.getField().getId() + "] not found");
@@ -408,7 +407,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
             evictCache(cacheManager, cacheEvictCollector);
         } else {
-            updatedFields.addAll(dbFields.values());
+            updatedFields.addAll(dbFieldsKit.getMap().values());
         }
 
         return updatedFields;
