@@ -23,6 +23,7 @@ import org.twins.core.mappers.rest.twin.TwinSearchDTOReverseMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinSearchService;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.twins.core.dao.user.UserSpecification.*;
@@ -41,10 +42,18 @@ public class UserSearchService {
         UUID businessAccountId = authService.getApiUser().getBusinessAccountId();
         Specification<UserEntity> userSpec = createUserSpecification(search, domainId, businessAccountId);
 
-        if (search.getChildTwins() != null) {
-            Specification<UserEntity> combinedSpec = userSpec.and(createTwinSpecification(search.getChildTwins()));
-            Page<UserEntity> page = userRepository.findAll(combinedSpec, PaginationUtils.pageableOffset(pagination));
-            return PaginationUtils.convertInPaginationResult(page, pagination);
+        if (search.getChildTwins() != null && !search.getChildTwins().isEmpty()) {
+            Specification<UserEntity> twinSpec = search.getChildTwins().stream()
+                    .filter(Objects::nonNull)
+                    .map(this::createTwinSpecification)
+                    .reduce(Specification::and)
+                    .orElse(null);
+
+            if (twinSpec != null) {
+                Specification<UserEntity> combinedSpec = userSpec.and(twinSpec);
+                Page<UserEntity> page = userRepository.findAll(combinedSpec, PaginationUtils.pageableOffset(pagination));
+                return PaginationUtils.convertInPaginationResult(page, pagination);
+            }
         }
 
         Page<UserEntity> page = userRepository.findAll(userSpec, PaginationUtils.pageableOffset(pagination));
