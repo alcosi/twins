@@ -26,14 +26,14 @@ public class FaceWT002ButtonRestDTOMapper extends RestSimpleDTOMapper<FaceWT002B
         dst
                 .setId(src.getId())
                 .setKey(src.getKey())
-                .setLabel(i18nService.translateToLocale(src.getLabelI18nId() != null ? src.getLabelI18nId() : src.getExtendsHierarchyTwinClass().getNameI18NId()))
+                .setLabel(i18nService.translateToLocale(src.getLabelI18nId() != null ? src.getLabelI18nId() : src.getTwinClass().getNameI18NId()))
                 .setIcon(resourceService.getResourceUri(src.getIconResource()))
                 .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "))
-                .setExtendsHierarchyTwinClassId(src.getExtendsHierarchyTwinClassId())
-                .setHierarchyDepth(src.getExtendsHierarchyDepth());
+                .setTwinClassId(src.getTwinClassId())
+                .setExtendsDepth(src.getExtendsDepth());
 
        if (mapperContext.hasModeButNot(FaceWT002Modes.FaceWT002Button2TwinClassMode.HIDE)) {
-           twinClassRestDTOMapper.postpone(src.getExtendsHierarchyTwinClass(), mapperContext.forkOnPoint(FaceWT002Modes.FaceWT002Button2TwinClassMode.SHORT));
+           twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(FaceWT002Modes.FaceWT002Button2TwinClassMode.SHORT));
        }
     }
 }

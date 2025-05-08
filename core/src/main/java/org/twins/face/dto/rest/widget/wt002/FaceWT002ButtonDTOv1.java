@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -28,8 +27,8 @@ public class FaceWT002ButtonDTOv1 {
     public Set<String> styleClasses;
 
     @Schema(description = "extends hierarchy twin class id")
-    public UUID extendsHierarchyTwinClassId;
+    public UUID twinClassId;
 
     @Schema(description = "hierarchy depth")
-    public Integer hierarchyDepth;
+    public Integer extendsDepth;
 }
