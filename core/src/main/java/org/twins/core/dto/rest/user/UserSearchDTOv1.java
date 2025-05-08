@@ -41,5 +41,5 @@ public class UserSearchDTOv1 {
     public List<SpaceSearchDTOv1> spaceExcludeList;
 
     @Schema(description = "child twins")
-    public TwinSearchDTOv1 childTwins;
+    public List<TwinSearchDTOv1> childTwins;
 }
