@@ -32,7 +32,7 @@ public class FaceWT002RestDTOMapper extends RestSimpleDTOMapper<FaceWT002Entity,
                 faceWT002Service.loadButtons(src);
                 dst
                         .setKey(src.getKey())
-                        .setStyleAttributes(src.getStyleAttributes())
+                        .setStyleClasses(src.getStyleClasses())
                         .setButtons(faceWT002ButtonRestDTOMapper.convertCollection(src.getButtons(), mapperContext));
             }
         }

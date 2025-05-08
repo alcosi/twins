@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -23,8 +24,8 @@ public class FaceWT002ButtonDTOv1 {
     @Schema(description = "Icon url. Might be relative")
     public String icon;
 
-    @Schema(description = "button extra style attributes")
-    public Map<String, String> styleAttributes;
+    @Schema(description = "button extra style classes")
+    public Set<String> styleClasses;
 
     @Schema(description = "extends hierarchy twin class id")
     public UUID extendsHierarchyTwinClassId;

@@ -10,7 +10,7 @@ import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.face.FaceEntity;
 
-import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -26,8 +26,8 @@ public class FaceWT002Entity {
     private String key;
 
     @Type(PostgreSQLHStoreType.class)
-    @Column(name = "style_attributes", columnDefinition = "hstore")
-    private HashMap<String, String> styleAttributes;
+    @Column(name = "style_classes")
+    private Set<String> styleClasses;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)

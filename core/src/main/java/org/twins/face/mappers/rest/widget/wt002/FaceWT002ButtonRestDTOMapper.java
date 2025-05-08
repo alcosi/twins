@@ -27,7 +27,7 @@ public class FaceWT002ButtonRestDTOMapper extends RestSimpleDTOMapper<FaceWT002B
                 .setKey(src.getKey())
                 .setLabel(i18nService.translateToLocale(src.getLabelI18nId() != null ? src.getLabelI18nId() : src.getExtendsHierarchyTwinClass().getNameI18NId()))
                 .setIcon(resourceService.getResourceUri(src.getIconResource()))
-                .setStyleAttributes(src.getStyleAttributes())
+                .setStyleClasses(src.getStyleClasses())
                 .setExtendsHierarchyTwinClassId(src.getExtendsHierarchyTwinClassId())
                 .setHierarchyDepth(src.getExtendsHierarchyDepth());
 

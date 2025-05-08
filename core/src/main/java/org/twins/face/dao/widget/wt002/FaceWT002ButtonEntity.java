@@ -10,7 +10,7 @@ import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
-import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -35,8 +35,8 @@ public class FaceWT002ButtonEntity {
     private UUID iconResourceId;
 
     @Type(PostgreSQLHStoreType.class)
-    @Column(name = "style_attributes", columnDefinition = "hstore")
-    private HashMap<String, String> styleAttributes;
+    @Column(name = "style_classes")
+    private Set<String> styleClasses;
 
     @Column(name = "extends_hierarchy_twin_class_id")
     private UUID extendsHierarchyTwinClassId;
