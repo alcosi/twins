@@ -23,7 +23,7 @@ public class FaceTW005DTOv1 extends FaceTwidgetDTOv1 {
     @Schema(description = "searchId")
     public UUID searchId;
 
-    @Schema(description = "twidget layout")
+    @Schema(description = "styles, converted to css classes")
     public Set<String> styleClasses;
 
     @Schema(description = "show given columns from table and filter")

@@ -27,6 +27,6 @@ public class FaceTW005ButtonDTOv1 {
     @Schema(description = "Icon url. Might be relative")
     public String icon;
 
-    @Schema(description = "twidget layout")
+    @Schema(description = "styles, converted to css classes")
     public Set<String> styleClasses;
 }
