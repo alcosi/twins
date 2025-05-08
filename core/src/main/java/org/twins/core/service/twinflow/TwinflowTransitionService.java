@@ -14,9 +14,6 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.i18n.dao.I18nEntity;
-import org.cambium.i18n.dao.I18nType;
-import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.draft.DraftStatus;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -55,6 +54,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
 import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
@@ -74,6 +74,7 @@ import static org.twins.core.dao.specifications.twinflow.TransitionAliasSpecific
 @Service
 @RequiredArgsConstructor
 public class TwinflowTransitionService extends EntitySecureFindServiceImpl<TwinflowTransitionEntity> {
+
     private final TwinflowTransitionRepository twinflowTransitionRepository;
     private final TwinflowTransitionValidatorRuleRepository twinflowTransitionValidatorRuleRepository;
     private final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
@@ -122,6 +123,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinFlowId");
         if (entity.getDstTwinStatusId() == null)
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty dstTwinStatusId");
+        if (entity.getTwinflowTransitionTypeId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinFlowTransitionTypeId");
 
         switch (entityValidateMode) {
             case beforeSave:
@@ -193,22 +196,12 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             twinEntity.setValidTransitionsKit(new Kit<>(twinflowTransitionEntityList, TwinflowTransitionEntity::getId)); // this will help to avoid loading one more time
             return;
         }
-        /* we can have 2 concurrent transitions to same dst_status_id and same alias:
-        1. with src_status_id = null - case of "from any" transition
-        2. with specific src_status_id
-        Second case has more priority
-        This logic can be done with postgres sql "distinct on" operator, but it's not supported in hibernate
-        */
-        Map<String, TwinflowTransitionEntity> alreadyAdded = new HashMap<>(); // key = alias_id + dst_status
+        List<TwinflowTransitionEntity> filteredByValidators = new ArrayList<>(); // key = alias_id + dst_status
         for (TwinflowTransitionEntity transitionEntity : twinflowTransitionEntityList) {
-            String transitionDistinctKey = transitionEntity.getTwinflowTransitionAlias().getAlias() + transitionEntity.getDstTwinStatusId();
-            if (alreadyAdded.containsKey(transitionDistinctKey)
-                    && alreadyAdded.get(transitionDistinctKey).getSrcTwinStatusId() != null)
-                continue; //skipping current transition because we already have one with specific src_status
             if (runTransitionValidators(transitionEntity, twinEntity))
-                alreadyAdded.put(transitionDistinctKey, transitionEntity);
+                filteredByValidators.add(transitionEntity);
         }
-        twinEntity.setValidTransitionsKit(new Kit<>(alreadyAdded.values().stream().toList(), TwinflowTransitionEntity::getId));
+        twinEntity.setValidTransitionsKit(new Kit<>(filteredByValidators, TwinflowTransitionEntity::getId));
     }
 
     public void loadValidTransitions(TwinEntity twinEntity) throws ServiceException {
@@ -256,6 +249,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         Map<TransitionDetectKey, List<TwinEntity>> triples = new HashMap<>();
         TransitionDetectKey triple;
         for (TwinEntity twinEntity : twinEntities) {
+            //twinflow can be inherited from extended class, that is why twin.getTwinClassId is not always equal to twinflow.twinClassId here
             triple = new TransitionDetectKey(
                     twinEntity.getTwinflow().getId(),
                     twinEntity.getTwinStatusId(),
@@ -279,6 +273,9 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 .setCreatedByUserId(apiUser.getUserId())
                 .setTwinflowTransitionAliasId(twinflowTransitionAlias.getId())
                 .setTwinflowTransitionAlias(twinflowTransitionAlias);
+
+        if (twinflowTransitionEntity.getTwinflowTransitionTypeId() == null)
+            twinflowTransitionEntity.setTwinflowTransitionTypeId(TwinflowTransitionType.STATUS_CHANGE);
 
         validateEntityAndThrow(twinflowTransitionEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return entitySmartService.save(twinflowTransitionEntity, twinflowTransitionRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
@@ -315,10 +312,14 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         updateTransitionPermission(dbTwinflowTransitionEntity, twinflowTransitionEntity.getPermissionId(), changesHelper);
         updateTransitionSrcStatus(dbTwinflowTransitionEntity, twinflowTransitionEntity.getSrcTwinStatusId(), changesHelper);
         updateTransitionDstStatus(dbTwinflowTransitionEntity, twinflowTransitionEntity.getDstTwinStatusId(), changesHelper);
+
+        dbTwinflowTransitionEntity = updateSafe(dbTwinflowTransitionEntity, changesHelper);
         if (changesHelper.hasChanges()) {
-            validateEntity(dbTwinflowTransitionEntity, EntitySmartService.EntityValidateMode.beforeSave);
-            dbTwinflowTransitionEntity = entitySmartService.saveAndLogChanges(dbTwinflowTransitionEntity, twinflowTransitionRepository, changesHelper);
-            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbTwinflowTransitionEntity.getTwinflow().getTwinClassId());
+            Map<String, List<Object>> cacheEntries = Map.of(
+                    TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(dbTwinflowTransitionEntity.getTwinflow().getTwinClassId()),
+                    TwinClassEntity.class.getSimpleName(), List.of(dbTwinflowTransitionEntity.getTwinflow().getTwinClassId())
+            );
+            evictCache(cacheManager, cacheEntries);
         }
         return dbTwinflowTransitionEntity;
     }
@@ -520,20 +521,14 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 TypedParameterTwins.uuidNullable(twinEntity.getTwinClassId()),
                 TwinService.isAssignee(twinEntity, apiUser),
                 TwinService.isCreator(twinEntity, apiUser));
-        if (transition == null)
-            throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionId + "] can not be found or denied  for " + twinEntity.logDetailed());
-        if (!transition.getTwinflowId().equals(twinEntity.getTwinflow().getId()))
-            throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionId + "] can not be performed for " + twinEntity.logDetailed()
-                    + ". Twinflow[" + twinEntity.getTwinflow().getId() + "] was detected for twin, but given transition is linked to twinflow[" + transition.getTwinflowId() + "]");
-        if (!transition.getSrcTwinStatusId().equals(twinEntity.getTwinStatusId()))
-            throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionId + "] can not be performed for " + twinEntity.logDetailed()
-                    + ". Given transition is valid only from status[" + transition.getSrcTwinStatusId() + "]");
+        checkTransitionValid(transitionId.toString(), transition, twinEntity);
         TransitionContext transitionContext = new TransitionContext();
         transitionContext
                 .setTransitionEntity(transition)
                 .addTargetTwin(twinEntity);
         return transitionContext;
     }
+
 
     public TransitionContext createTransitionContext(Collection<TwinEntity> twinEntities, UUID transitionId) throws ServiceException {
         twinflowService.loadTwinflow(twinEntities);
@@ -554,20 +549,41 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     TypedParameterTwins.uuidNullable(detectKey.twinClassId),
                     detectKey.isAssignee,
                     detectKey.isCreator);
-            if (transition == null)
-                throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionId + "] can not be found or denied for [" + entry.getValue().size() + "] twins");
-            if (!transition.getTwinflowId().equals(entry.getKey().twinflowId))
-                throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionId + "] can not be performed for [" + entry.getValue().size() + "] twins."
-                        + " Twinflow[" + entry.getKey().twinflowId + "] was detected for them, but given transition is linked to twinflow[" + transition.getTwinflowId() + "]");
-            if (!transition.getSrcTwinStatusId().equals(entry.getKey().srcStatusId))
-                throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionId + "] can not be performed for [" + entry.getValue().size() + "] twins."
-                        + ". Given transition is valid only from status[" + transition.getSrcTwinStatusId() + "]");
+            checkTransitionValid(transitionId.toString(), transition, entry);
         }
         TransitionContext transitionContext = new TransitionContext();
         transitionContext
                 .setTransitionEntity(transition)
                 .addTargetTwins(twinEntities);
         return transitionContext;
+    }
+
+    private static void checkTransitionValid(String transitionIdOrAlias, TwinflowTransitionEntity transition, TwinEntity twinEntity) throws ServiceException {
+        if (transition == null)
+            throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be found or denied  for " + twinEntity.logDetailed());
+        if (!transition.getTwinflowId().equals(twinEntity.getTwinflow().getId()))
+            throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be performed for " + twinEntity.logDetailed()
+                    + ". Twinflow[" + twinEntity.getTwinflow().getId() + "] was detected for twin, but given transition is linked to twinflow[" + transition.getTwinflowId() + "]");
+        if (transition.getSrcTwinStatusId() == null && twinEntity.getTwinStatusId().equals(transition.getDstTwinStatusId()))
+            throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be performed for " + twinEntity.logDetailed()
+                    + ". Loop transition should be configured for status[" + twinEntity.getTwinStatusId() + "]");
+        if (transition.getSrcTwinStatusId() != null && !twinEntity.getTwinStatusId().equals(transition.getSrcTwinStatusId()))
+            throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be performed for " + twinEntity.logDetailed()
+                    + ". Given transition is valid only from status[" + transition.getSrcTwinStatusId() + "]");
+    }
+
+    private static void checkTransitionValid(String transitionIdOrAlias, TwinflowTransitionEntity transition, Map.Entry<TransitionDetectKey, List<TwinEntity>> entry) throws ServiceException {
+        if (transition == null)
+            throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be found or denied for [" + entry.getValue().size() + "] twins");
+        if (!transition.getTwinflowId().equals(entry.getKey().twinflowId))
+            throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be performed for [" + entry.getValue().size() + "] twins."
+                    + " Twinflow[" + entry.getKey().twinflowId + "] was detected for them, but given transition is linked to twinflow[" + transition.getTwinflowId() + "]");
+        if (transition.getSrcTwinStatusId() == null && entry.getKey().srcStatusId.equals(transition.getDstTwinStatusId()))
+            throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be performed for [" + entry.getValue().size() + "] twins."
+                    + " Loop transition should be configured for status[" + entry.getKey().srcStatusId + "]");
+        if (transition.getSrcTwinStatusId() != null && !transition.getSrcTwinStatusId().equals(entry.getKey().srcStatusId))
+            throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be performed for [" + entry.getValue().size() + "] twins."
+                    + " Given transition is valid only from status[" + transition.getSrcTwinStatusId() + "]");
     }
 
     public TransitionContext createTransitionContext(TwinEntity twinEntity, String transitionAlias) throws ServiceException {
@@ -587,10 +603,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 TypedParameterTwins.uuidArray(apiUser.getUser().getUserGroups().getIdSetSafe()),
                 TypedParameterTwins.uuidNullable(twinEntity.getTwinClassId()),
                 TwinService.isAssignee(twinEntity, apiUser),
-                TwinService.isCreator(twinEntity, apiUser)
-        );
-        if (transition == null)
-            throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Not transitions for alias[" + transitionAlias + "] can not be performed for " + twinEntity.logDetailed());
+                TwinService.isCreator(twinEntity, apiUser));
+        checkTransitionValid(transitionAlias, transition, twinEntity);
         TransitionContext transitionContext = new TransitionContext();
         transitionContext
                 .setTransitionEntity(transition)
@@ -620,14 +634,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     TypedParameterTwins.uuidNullable(detectKey.twinClassId),
                     detectKey.isAssignee,
                     detectKey.isCreator);
-            if (transition == null)
-                throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionAlias + "] can not be found or denied for [" + entry.getValue().size() + "] twins");
-            if (!transition.getTwinflowId().equals(entry.getKey().twinflowId))
-                throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionAlias + "] can not be performed for [" + entry.getValue().size() + "] twins."
-                        + " Twinflow[" + entry.getKey().twinflowId + "] was detected for them, but given transition is linked to twinflow[" + transition.getTwinflowId() + "]");
-            if (transition.getSrcTwinStatusId() != null && !transition.getSrcTwinStatusId().equals(entry.getKey().srcStatusId))
-                throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionAlias + "] can not be performed for [" + entry.getValue().size() + "] twins."
-                        + ". Given transition is valid only from status[" + transition.getSrcTwinStatusId() + "]");
+            checkTransitionValid(transitionAlias, transition, entry);
             TransitionContext transitionContext = transitionContextMap.get(transition.getId());
             if (transitionContext == null) {
                 transitionContext = new TransitionContext();

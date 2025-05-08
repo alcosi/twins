@@ -8,7 +8,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
-import org.cambium.i18n.dao.I18nEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -66,6 +66,9 @@ public class DataListEntity implements EasyLoggable {
 
     @Column(name = "attribute_4_name_i18n_id")
     private UUID attribute4nameI18nId;
+
+    @Column(name = "external_id")
+    private String externalId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)

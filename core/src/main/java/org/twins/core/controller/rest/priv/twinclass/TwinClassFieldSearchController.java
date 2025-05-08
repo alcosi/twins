@@ -27,7 +27,6 @@ import org.twins.core.dto.rest.twinclass.TwinClassFieldSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldSearchDTOReverseMapper;
 import org.twins.core.service.twinclass.TwinClassFieldSearchService;
@@ -58,7 +57,7 @@ public class TwinClassFieldSearchController extends ApiController {
         TwinClassFieldSearchRsDTOv1 rs = new TwinClassFieldSearchRsDTOv1();
         try {
             PaginationResult<TwinClassFieldEntity> twinClassFieldList = twinClassFieldSearchService
-                    .findTwinClassFieldForDomain(twinClassFieldSearchDTOReverseMapper.convert(request), pagination);
+                    .findTwinClassField(twinClassFieldSearchDTOReverseMapper.convert(request), pagination);
             rs
                     .setFields(twinClassFieldRestDTOMapperV2.convertCollection(twinClassFieldList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClassFieldList))

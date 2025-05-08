@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.i18n.dao.I18nEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,12 +16,13 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowRsDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowUpdateRqDTOv1;
-import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
+import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinflow.TwinflowBaseV2RestDTOMapper;
@@ -39,7 +39,7 @@ public class TwinflowUpdateController extends ApiController {
 
     private final TwinflowBaseV2RestDTOMapper twinflowBaseV2RestDTOMapper;
     private final TwinflowUpdateRestDTOReverseMapper twinflowUpdateRestDTOReverseMapper;
-    private final I18nRestDTOReverseMapper i18nRestDTOReverseMapper;
+    private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final TwinflowService twinflowService;
 
@@ -57,8 +57,8 @@ public class TwinflowUpdateController extends ApiController {
             @RequestBody TwinflowUpdateRqDTOv1 request) {
         TwinflowRsDTOv1 rs = new TwinflowRsDTOv1();
         try {
-            I18nEntity nameI18n = i18nRestDTOReverseMapper.convert(request.getNameI18n());
-            I18nEntity descriptionsI18n = i18nRestDTOReverseMapper.convert(request.getDescriptionI18n());
+            I18nEntity nameI18n = i18NSaveRestDTOReverseMapper.convert(request.getNameI18n());
+            I18nEntity descriptionsI18n = i18NSaveRestDTOReverseMapper.convert(request.getDescriptionI18n());
             TwinflowEntity twinflowEntity = twinflowUpdateRestDTOReverseMapper.convert(request).setId(twinflowId);
             twinflowEntity = twinflowService.updateTwinflow(twinflowEntity, nameI18n, descriptionsI18n);
             rs

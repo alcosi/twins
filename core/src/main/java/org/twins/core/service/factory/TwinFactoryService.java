@@ -9,9 +9,9 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.i18n.dao.I18nEntity;
-import org.cambium.i18n.dao.I18nType;
-import org.cambium.i18n.service.I18nService;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -84,7 +84,8 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
 
     @Override
     public boolean isEntityReadDenied(TwinFactoryEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
+        ApiUser apiUser = authService.getApiUser();
+        return !entity.getDomainId().equals(apiUser.getDomainId());
     }
 
     @Override
@@ -97,8 +98,8 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         ApiUser apiUser = authService.getApiUser();
         factory
                 .setDomainId(apiUser.getDomainId())
-                .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, nameI18n).getId())
-                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n).getId())
+                .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_FACTORY_NAME, nameI18n).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_FACTORY_DESCRIPTION, descriptionI18n).getId())
                 .setCreatedByUserId(apiUser.getUserId())
                 .setCreatedByUser(apiUser.getUser())
                 .setCreatedAt(Timestamp.from(Instant.now()));
@@ -113,11 +114,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         updateFactoryKey(factoryEntity, dbEntity, changesHelper);
         updateFactoryName(nameI18n, dbEntity, changesHelper);
         updateFactoryDescription(descriptionI18n, dbEntity, changesHelper);
-        if (changesHelper.hasChanges()) {
-            validateEntityAndThrow(dbEntity, EntitySmartService.EntityValidateMode.beforeSave);
-            entitySmartService.saveAndLogChanges(dbEntity, twinFactoryRepository, changesHelper);
-        }
-        return dbEntity;
+        return updateSafe(dbEntity, changesHelper);
     }
 
     private void updateFactoryKey(TwinFactoryEntity factoryEntity, TwinFactoryEntity dbEntity, ChangesHelper changesHelper) {
@@ -250,7 +247,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         LoggerUtils.traceTreeLevelDown();
         for (TwinFactoryPipelineEntity factoryPipelineEntity : factoryPipelineEntityList) {
             log.info("Checking input for " + factoryPipelineEntity.logNormal() + " **" + factoryPipelineEntity.getDescription() + "** ");
-            Set<FactoryItem> pipelineInputList = getInputItems(factoryContext, factoryPipelineEntity.getInputTwinClassId(), factoryPipelineEntity.getTwinFactoryConditionSetId(), factoryPipelineEntity.isTwinFactoryConditionInvert());
+            Set<FactoryItem> pipelineInputList = getInputItems(factoryContext, factoryPipelineEntity.getInputTwinClassId(), factoryPipelineEntity.getTwinFactoryConditionSetId(), factoryPipelineEntity.getTwinFactoryConditionInvert());
             if (CollectionUtils.isEmpty(pipelineInputList)) {
                 log.info("Skipping " + factoryPipelineEntity.logShort() + " because of empty input");
                 continue;
@@ -258,14 +255,14 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             runPipelineSteps(factoryContext, factoryPipelineEntity, pipelineInputList);
             if (factoryPipelineEntity.getNextTwinFactoryId() != null) {
                 log.info("{} has nextFactoryId configured", factoryPipelineEntity.logShort());
-                if (factoryPipelineEntity.isNextTwinFactoryLimitScope()) {
+                if (factoryPipelineEntity.getNextTwinFactoryLimitScope()) {
                     //we will limit next factory items access only by current pipeline items
                     factoryContext.currentFactoryBranchEnterPipeline(factoryPipelineEntity.getId());
                     factoryContext.snapshotPipelineScope(pipelineInputList);
                 }
                 LoggerUtils.traceTreeLevelDown();
                 runFactory(factoryPipelineEntity.getNextTwinFactoryId(), factoryContext);
-                if (factoryPipelineEntity.isNextTwinFactoryLimitScope()) {
+                if (factoryPipelineEntity.getNextTwinFactoryLimitScope()) {
                     factoryContext.evictPipelineScope(); // we can clear it here
                     factoryContext.currentFactoryBranchExitPipeline();
                 }
@@ -283,7 +280,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             log.info("Checking input for " + factoryBranchEntity.logNormal() + " **" + factoryBranchEntity.getDescription() + "** ");
             boolean selected = false;
             for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
-                if (checkCondition(factoryBranchEntity.getTwinFactoryConditionSetId(), factoryBranchEntity.isTwinFactoryConditionInvert(), factoryItem)) {
+                if (checkCondition(factoryBranchEntity.getTwinFactoryConditionSetId(), factoryBranchEntity.getTwinFactoryConditionInvert(), factoryItem)) {
                     selected = true;
                     log.info("Branch was selected because of success condition check for {}", factoryItem.toString());
                     break;
@@ -316,7 +313,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             for (int step = 0; step < pipelineStepEntityList.size(); step++) {
                 stepOrder = "Step " + (step + 1) + "/" + pipelineStepEntityList.size() + " ";
                 TwinFactoryPipelineStepEntity pipelineStepEntity = pipelineStepEntityList.get(step);
-                if (!checkCondition(pipelineStepEntity.getTwinFactoryConditionSetId(), pipelineStepEntity.isTwinFactoryConditionInvert(), pipelineInput)) {
+                if (!checkCondition(pipelineStepEntity.getTwinFactoryConditionSetId(), pipelineStepEntity.getTwinFactoryConditionInvert(), pipelineInput)) {
                     log.info(stepOrder + pipelineStepEntity.logNormal() + " was skipped)");
                     continue;
                 }
@@ -325,7 +322,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 try {
                     filler.fill(pipelineStepEntity.getFillerParams(), pipelineInput, factoryPipelineEntity.getTemplateTwin(), logMsg);
                 } catch (Exception ex) {
-                    if (pipelineStepEntity.isOptional() && filler.canBeOptional()) {
+                    if (pipelineStepEntity.getOptional() && filler.canBeOptional()) {
                         log.warn("Step is optional and unsuccessful: " + (ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage()) + ". Pipeline will not be aborted");
                     } else {
                         log.error("Step[{}] is mandatory. Factory process will be aborted", pipelineStepEntity.getId());
@@ -350,7 +347,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         LoggerUtils.traceTreeLevelDown();
         for (TwinFactoryEraserEntity eraserEntity : eraserEntityList) {
             log.info("Checking input for {} **{}** ", eraserEntity.logNormal(), eraserEntity.getDescription());
-            Set<FactoryItem> eraserInputList = getInputItems(factoryContext, eraserEntity.getInputTwinClassId(), eraserEntity.getTwinFactoryConditionSetId(), eraserEntity.isTwinFactoryConditionInvert());
+            Set<FactoryItem> eraserInputList = getInputItems(factoryContext, eraserEntity.getInputTwinClassId(), eraserEntity.getTwinFactoryConditionSetId(), eraserEntity.getTwinFactoryConditionInvert());
             if (CollectionUtils.isEmpty(eraserInputList)) {
                 log.info("Skipping {} because of empty input", eraserEntity.logShort());
                 continue;

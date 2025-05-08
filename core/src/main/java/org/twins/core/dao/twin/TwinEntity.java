@@ -18,6 +18,7 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinAttachmentsCount;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.link.TwinLinkService;
 
@@ -31,7 +32,7 @@ import java.util.UUID;
 @Data
 @Table(name = "twin")
 @FieldNameConstants
-public class TwinEntity implements Cloneable, EasyLoggable {
+public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
     @Id
     private UUID id;
 
@@ -107,10 +108,6 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 //    @JoinColumn(name = "owner_business_account_id", insertable = false, updatable = false)
 //    private BusinessAccountEntity ownerBusinessAccount;
 
-//    @ManyToOne
-//    @JoinColumn(name = "owner_user_id", insertable = false, updatable = false)
-//    private UserEntity ownerUser;
-
     @ManyToOne
     @JoinColumn(name = "twin_status_id", insertable = false, updatable = false, nullable = false)
     @EqualsAndHashCode.Exclude
@@ -124,6 +121,12 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @JoinColumn(name = "assigner_user_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     private UserEntity assignerUser;
+
+    @ManyToOne
+    @JoinColumn(name = "owner_user_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private UserEntity ownerUser;
+
 
     //needed for specification
 //    @Deprecated
@@ -206,6 +209,10 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinFieldSimpleEntity, UUID> twinFieldSimpleKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private KitGrouped<TwinFieldI18nEntity, UUID, UUID> twinFieldI18nKit;
 
     /*
      we have to use TwinClassFieldId as key, not id. Also, multiple values supported, that is why kit inside a ki

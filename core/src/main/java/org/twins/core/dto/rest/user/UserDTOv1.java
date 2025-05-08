@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -22,4 +23,7 @@ public class UserDTOv1 {
 
     @Schema(description = "avatar url", example = "http://twins.org/a/avatar/carkikrefmkawfwfwg.png")
     public String avatar;
+
+    @Schema(description = "an ids of user groups")
+    public Set<UUID> userGroupIds;
 }

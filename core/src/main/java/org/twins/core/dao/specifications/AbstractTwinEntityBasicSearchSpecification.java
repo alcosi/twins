@@ -23,12 +23,16 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] idFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.id);
         String[] nameFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.name);
         String[] descriptionFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.description);
+        String[] externalIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.externalId);
         String[] assignerUserIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.assignerUserId);
         String[] createdByUserIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.createdByUserId);
         String[] twinStatusIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.twinStatusId);
         String[] headTwinIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.headTwinId);
         String[] hierarchyTreeFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.hierarchyTree);
         String[] twinClassIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.twinClassId);
+        String[] twinClassFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.twinClass);
+        String[] twinClassExtendsHierarchyTreeFieldPath = concatArray(twinClassFieldPath, TwinClassEntity.Fields.extendsHierarchyTree);
+
         String[] tagsFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.tags, TwinTagEntity.Fields.tagDataListOptionId);
         String[] markersFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.markers, TwinMarkerEntity.Fields.markerDataListOptionId);
         String[] touchFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.touches);
@@ -41,21 +45,23 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkFieldLikeIn(twinSearch.getTwinNameNotLikeList(), true, true, nameFieldPath),
                 checkFieldLikeIn(twinSearch.getTwinDescriptionLikeList(), false, true, descriptionFieldPath),
                 checkFieldLikeIn(twinSearch.getTwinDescriptionNotLikeList(), true, true, descriptionFieldPath),
+                checkFieldLikeIn(twinSearch.getExternalIdList(), false, true, externalIdFieldPath),
+                checkFieldLikeIn(twinSearch.getExternalIdExcludeList(), true, true, externalIdFieldPath),
                 checkUuidIn(twinSearch.getAssigneeUserIdList(), false, false, assignerUserIdFieldPath),
                 checkUuidIn(twinSearch.getAssigneeUserIdExcludeList(), true, true, assignerUserIdFieldPath),
                 checkUuidIn(twinSearch.getCreatedByUserIdList(), false, false, createdByUserIdFieldPath),
                 checkUuidIn(twinSearch.getCreatedByUserIdExcludeList(), true, true, createdByUserIdFieldPath),
                 checkUuidIn(twinSearch.getStatusIdList(), false, false, twinStatusIdFieldPath),
                 checkUuidIn(twinSearch.getStatusIdExcludeList(), true, false, twinStatusIdFieldPath),
-                checkUuidIn(twinSearch.getHeaderTwinIdList(), false, false, headTwinIdFieldPath),
+                checkUuidIn(twinSearch.getHeadTwinIdList(), false, false, headTwinIdFieldPath),
                 checkUuidIn(twinSearch.getTwinClassIdExcludeList(), true, false, twinClassIdFieldPath),
                 checkUuidIn(twinSearch.getTagDataListOptionIdList(), false, false, tagsFieldPath),
                 checkUuidIn(twinSearch.getTagDataListOptionIdExcludeList(), true, true, tagsFieldPath),
                 checkHierarchyContainsAny(twinSearch.getHierarchyTreeContainsIdList(), hierarchyTreeFieldPath),
                 checkUuidIn(twinSearch.getMarkerDataListOptionIdList(), false, false, markersFieldPath),
                 checkUuidIn(twinSearch.getMarkerDataListOptionIdExcludeList(), true, true, markersFieldPath),
-                checkUuidIn(twinSearch.getHeadTwinClassIdList(), false, false, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.headTwinClassId),
-                checkUuidIn(twinSearch.getExtendsTwinClassIdList(), false, false, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.extendsTwinClassId),
+                checkUuidIn(twinSearch.getHeadTwinClassIdList(), false, false, concatArray(twinClassFieldPath, TwinClassEntity.Fields.headTwinClassId)),
+                checkHierarchyContainsAny(twinSearch.getTwinClassExtendsHierarchyContainsIdList(), twinClassExtendsHierarchyTreeFieldPath),
                 checkTouchSearch(userId,false,twinSearch.getTouchList(),touchFieldPath),
                 checkTouchSearch(userId,true,twinSearch.getTouchExcludeList(),touchFieldPath),
         };
@@ -172,6 +178,10 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
             return cb.and(include, exclude);
         };
     }
+
+
+
+
 
 
 }

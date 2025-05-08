@@ -36,6 +36,8 @@ public class DataListOptionSearchDTOReverseMapper extends RestSimpleDTOMapper<Da
                 .setDataListSubsetKeyExcludeList(src.getDataListSubsetKeyExcludeList())
                 .setStatusIdList(src.getStatusIdList())
                 .setStatusIdExcludeList(src.getStatusIdExcludeList())
+                .setExternalIdLikeList(src.getExternalIdLikeList())
+                .setExternalIdNotLikeList(src.getExternalIdNotLikeList())
         ;
     }
 }

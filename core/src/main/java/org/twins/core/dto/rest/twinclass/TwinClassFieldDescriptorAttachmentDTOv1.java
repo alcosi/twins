@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
@@ -21,7 +22,7 @@ public class TwinClassFieldDescriptorAttachmentDTOv1 implements TwinClassFieldDe
     public Integer maxCount;
 
     @Schema(description = "Allowed extensions", example = "[\"jpg\", \"jpeg\", \"png\"]")
-    public List<String> extensions = new ArrayList<>();
+    public String extensions;
 
     @Schema(description = "Filename must match this regexp", example = ".*")
     public String filenameRegExp;

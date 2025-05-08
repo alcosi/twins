@@ -2,9 +2,8 @@ package org.twins.core.featurer.domain.initiator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.LTreeUtils;
 import org.cambium.featurer.annotations.FeaturerType;
-import org.cambium.i18n.dao.I18nType;
-import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -13,6 +12,7 @@ import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.DomainRepository;
 import org.twins.core.dao.domain.DomainTypeEntity;
 import org.twins.core.dao.domain.TierRepository;
+import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaRepository;
 import org.twins.core.dao.twin.TwinEntity;
@@ -28,6 +28,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
@@ -36,8 +37,6 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.UUID;
-
-import static org.twins.core.service.SystemEntityService.TWIN_CLASS_USER;
 
 
 @FeaturerType(id = FeaturerTwins.TYPE_25,
@@ -129,14 +128,19 @@ public abstract class DomainInitiator extends FeaturerTwins {
 
 
     protected UUID createDomainUserTemplateTwin(DomainEntity domainEntity) throws ServiceException {
+        UUID twinClassId = UUID.randomUUID();
         TwinClassEntity twinClassEntity = new TwinClassEntity()
+                .setId(twinClassId)
                 .setDomainId(domainEntity.getId())
                 .setAbstractt(false)
                 .setKey("DOMAIN_USER_FOR_" + domainEntity.getKey().toUpperCase())
-                .setHeadTwinClassId(TWIN_CLASS_USER)
+                .setHeadTwinClassId(SystemEntityService.TWIN_CLASS_USER)
                 .setOwnerType(TwinClassEntity.OwnerType.DOMAIN_USER)
                 .setCreatedAt(Timestamp.from(Instant.now()))
-                .setCreatedByUserId(systemEntityService.getUserIdSystem());
+                .setCreatedByUserId(systemEntityService.getUserIdSystem())
+                .setAssigneeRequired(false)
+                .setExtendsTwinClassId(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR)
+                .setExtendsHierarchyTree(LTreeUtils.convertToChainLTreeFormat(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR, twinClassId));
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
@@ -185,7 +189,9 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setKey(domainEntity.getKey().toUpperCase())
                 .setOwnerType(TwinClassEntity.OwnerType.DOMAIN)
                 .setCreatedAt(Timestamp.from(Instant.now()))
-                .setCreatedByUserId(systemEntityService.getUserIdSystem());
+                .setExtendsTwinClassId(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR)
+                .setCreatedByUserId(systemEntityService.getUserIdSystem())
+                .setAssigneeRequired(false);
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         return twinClassEntity.getId();
     }

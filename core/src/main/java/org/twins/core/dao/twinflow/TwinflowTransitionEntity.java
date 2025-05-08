@@ -7,8 +7,9 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
-import org.cambium.i18n.dao.I18nEntity;
 import org.hibernate.annotations.CreationTimestamp;
+import org.twins.core.dao.factory.TwinFactoryEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -47,6 +48,10 @@ public class TwinflowTransitionEntity implements EasyLoggable {
 
     @Column(name = "permission_id")
     private UUID permissionId;
+
+    @Column(name = "twinflow_transition_type_id")
+    @Enumerated(EnumType.STRING)
+    private TwinflowTransitionType twinflowTransitionTypeId;
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
@@ -121,8 +126,20 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     private UserEntity createdByUser;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inbuilt_twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity inbuiltFactory;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "drafting_twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity draftingFactory;
+
     @Override
     public String easyLog(Level level) {
-        return "twinflowTransition[id:" + id + "]";
+        return switch (level) {
+            case SHORT -> "twinflowTransition[" + id + "]";
+            case NORMAL -> "twinflowTransition[id:" + id + ", alias:" + (twinflowTransitionAlias != null ? twinflowTransitionAlias.getAlias() : twinflowTransitionAliasId) +  "]";
+            default -> "twinflowTransition[id:" + id + ", alias:" + (twinflowTransitionAlias != null ? twinflowTransitionAlias.getAlias() : twinflowTransitionAliasId) +  "]";
+        };
     }
 }

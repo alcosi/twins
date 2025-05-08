@@ -4,9 +4,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.i18n.dto.I18nDTOv1;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
+import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 @Data
 @Accessors(chain = true)
@@ -17,10 +17,10 @@ public class DataListSaveRqDTOv1 extends Request {
     public String key;
 
     @Schema(description = "name", example = DTOExamples.NAME)
-    public I18nDTOv1 nameI18n;
+    public I18nSaveDTOv1 nameI18n;
 
     @Schema(description = "description", example = DTOExamples.DESCRIPTION)
-    public I18nDTOv1 descriptionI18n;
+    public I18nSaveDTOv1 descriptionI18n;
 
     @Schema(description = "attribute1")
     public DataListAttributeSaveDTOv1 attribute1;
@@ -33,4 +33,7 @@ public class DataListSaveRqDTOv1 extends Request {
 
     @Schema(description = "attribute4")
     public DataListAttributeSaveDTOv1 attribute4;
+
+    @Schema(description = "external id")
+    public String externalId;
 }

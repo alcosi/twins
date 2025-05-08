@@ -9,6 +9,7 @@ import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
@@ -32,7 +33,7 @@ public class TierEntity implements EasyLoggable {
     private String description;
 
     @Column(name = "custom")
-    private boolean custom;
+    private Boolean custom;
 
     @Column(name = "permission_schema_id")
     private UUID permissionSchemaId;
@@ -51,6 +52,12 @@ public class TierEntity implements EasyLoggable {
 
     @Column(name = "user_count_quota")
     private Integer userCountQuota;
+
+    @Column(name = "created_at")
+    private Timestamp createdAt;
+
+    @Column(name = "updated_at")
+    private Timestamp updatedAt;
 
     //Performance safe because tier is not used in operations
     @ManyToOne

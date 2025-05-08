@@ -5,8 +5,8 @@ import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.dto.rest.twin.TwinSearchByLinkDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 import static org.cambium.common.util.CollectionUtils.convertToSetSafe;
 
@@ -24,11 +24,13 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                 .setStatusIdList(convertToSetSafe(src.getStatusIdList()))
                 .setAssigneeUserIdList(convertToSetSafe(src.getAssignerUserIdList()))
                 .setAssigneeUserIdExcludeList(convertToSetSafe(src.getAssignerUserIdExcludeList()))
-                .setHeaderTwinIdList(convertToSetSafe(src.getHeadTwinIdList()))
+                .setHeadTwinIdList(convertToSetSafe(src.getHeadTwinIdList()))
                 .setHeadTwinClassIdList(convertToSetSafe(src.getHeadTwinClassIdList()))
-                .setExtendsTwinClassIdList(convertToSetSafe(src.getExtendsTwinClassIdList()))
+                .setTwinClassExtendsHierarchyContainsIdList(convertToSetSafe(src.getTwinClassExtendsHierarchyContainsIdList()))
                 .setTwinIdList(convertToSetSafe(src.getTwinIdList()))
                 .setTwinIdExcludeList(convertToSetSafe(src.getTwinIdExcludeList()))
+                .setExternalIdList(src.getExternalIdList())
+                .setExternalIdExcludeList(src.getExternalIdExcludeList())
                 .setTwinNameLikeList(convertToSetSafe(src.getTwinNameLikeList()))
                 .setTwinNameNotLikeList(convertToSetSafe(src.getTwinNameNotLikeList()))
                 .setTwinDescriptionLikeList(convertToSetSafe(src.getDescriptionLikeList()))

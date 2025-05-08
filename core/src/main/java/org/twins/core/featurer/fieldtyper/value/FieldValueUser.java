@@ -42,6 +42,9 @@ public class FieldValueUser extends FieldValue {
 
     @Override
     public boolean hasValue(String value) {
+        if (CollectionUtils.isEmpty(users)) {
+            return false;
+        }
         UUID valueUUID;
         try {
             valueUUID = UUID.fromString(value);
@@ -58,5 +61,10 @@ public class FieldValueUser extends FieldValue {
     @Override
     public void nullify() {
         users = new ArrayList<>();
+    }
+
+    @Override
+    public boolean isNullified() {
+        return users != null && users.isEmpty();
     }
 }

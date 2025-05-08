@@ -3,7 +3,7 @@ package org.twins.core.mappers.rest.twinclass;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.i18n.service.I18nService;
+import org.twins.core.service.i18n.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -52,7 +52,8 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setFieldTyperParams(src.getFieldTyperParams())
                         .setViewPermissionId(src.getViewPermissionId())
                         .setEditPermissionId(src.getEditPermissionId())
-                        .setDescriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext));
+                        .setDescriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext))
+                        .setExternalId(src.getExternalId());
                 break;
             case DETAILED:
                 fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturer(), FieldTyper.class);
@@ -63,7 +64,8 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setName(i18nService.translateToLocale(src.getNameI18nId()))
                         .setRequired(src.getRequired())
                         .setDescription(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
-                        .setDescriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext));
+                        .setDescriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext))
+                        .setExternalId(src.getExternalId());
                 break;
             case SHORT:
                 dst

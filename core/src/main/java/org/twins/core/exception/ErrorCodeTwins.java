@@ -13,6 +13,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     ENTITY_INVALID(10002, "entity invalid"),
     ENTITY_ALREADY_EXIST(10003, "entity is already exist in db. Please check unique keys"),
     UUID_NOT_BE_NULLIFY_MARKER(10004, "uuid not be ffffffff-ffff-ffff-ffff-ffffffffffff"),
+    UUID_IS_NULL(10005, "uuid is null"),
     USER_UNKNOWN(10101, "unknown user"),
     USER_LOCALE_UNKNOWN(10102, "unknown locale"),
     DOMAIN_UNKNOWN(10201, "unknown domain"),
@@ -26,6 +27,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     DOMAIN_LOCALE_UNKNOWN(10209, "unknown locale"),
     DOMAIN_OR_BUSINESS_ACCOUNT_USER_NOT_EXISTS(10210, "domain or business_account user not exists"),
     DOMAIN_LOCALE_INACTIVE(10211, "Local is not active"),
+    DOMAIN_PERMISSION_DENIED(10212, "No permission to delete record in another domain"),
     PERMISSION_SCHEMA_NOT_ALLOWED(10301, "permission schema is not allowed"),
     PERMISSION_ID_UNKNOWN(10302, "permission id unknown"),
     TWIN_NOT_PROTECTED(10303, "Twin is not protected by permission"),
@@ -33,6 +35,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     PERMISSION_KEY_INCORRECT(10305, "permission key is incorrect"),
     TWIN_ID_IS_INCORRECT(10306, "twin id is invalid"),
     PERMISSION_GROUP_UNSUPPORTED(10307, "Current permission group is system group. No permission can be added to such group"),
+    PERMISSION_GRANT_USER_ALREADY_EXISTS(10307, "Entry permission grant user with same data already exists"),
     TWIN_CLASS_SCHEMA_NOT_ALLOWED(10401, "twin class schema is not allowed"),
     TWIN_CLASS_FIELD_KEY_UNKNOWN(10402, "twin class field key is unknown"),
     TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT(10403, "twin class field value type is incorrect"),
@@ -73,9 +76,12 @@ public enum ErrorCodeTwins implements ErrorCode {
     HEAD_TWIN_NOT_SPECIFIED(10703, "space twin must be specified"),
     TWIN_ALIAS_UNKNOWN(10801, "alias is unknown"),
     UNSUPPORTED_ALIAS_TYPE(10802, "unsupported alias type"),
+    ERROR_TWIN_ALIASES_CREATION(10803, "Aliases creation error for twins."),
     TWIN_LINK_INCORRECT(10901, "twins can not be linkend"),
     TWIN_FIELD_VALUE_INCORRECT(10902, "twins field value can not be converted"),
     TWIN_BASIC_FIELD_UNKNOWN(10903, "unknown twin basic field"),
+    TWIN_ASSIGNEE_REQUIRED(10904,"twin assignee is required for this twin class"),
+    TWIN_FIELD_IMMUTABLE(10905,"twin field is immutable"),
     FACTORY_INCORRECT(11001, "twin factory config is incorrect"),
     FACTORY_PIPELINE_STEP_ERROR(11002, "twin factory pipeline step error"),
     FACTORY_MULTIPLIER_ERROR(11003, "twin factory multiplier error"),
@@ -120,7 +126,9 @@ public enum ErrorCodeTwins implements ErrorCode {
     LINK_UPDATE_RESTRICTED(12402, "link can not be updated"),
     TIER_SIZE_QUOTA_REACHED(12501, "common attachments size exceeds tier quota"),
     TIER_COUNT_QUOTA_REACHED(12502, "common attachments count exceeds tier quota"),
-    ATTACHMENTS_NOT_VALID(12503, "attachment not valid");
+    ATTACHMENTS_NOT_VALID(12503, "attachment not valid"),
+    POINTER_NON_SINGLE(12601, "twin pointer is not single"),
+    POINTER_ON_NULL(12602, "twin pointer is null");
 
 
     private final int code;

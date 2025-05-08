@@ -6,6 +6,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.cambium.featurer.params.FeaturerParamStringTwinsEditorType;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
@@ -27,13 +28,16 @@ import java.util.Properties;
         name = "Text",
         description = "")
 public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, FieldValueText, TwinFieldSearchText> {
-    @FeaturerParam(name = "Regexp", description = "", order = 2)
+    @FeaturerParam(name = "Regexp", description = "", order = 1)
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
+    @FeaturerParam(name = "editorType", description = "", order = 2, optional = true, defaultValue = "PLAIN")
+    public static final FeaturerParamStringTwinsEditorType editorType = new FeaturerParamStringTwinsEditorType("editorType");
 
     @Override
     public FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new FieldDescriptorText()
-                .regExp(regexp.extract(properties));
+                .regExp(regexp.extract(properties))
+                .editorType(editorType.extract(properties));
     }
 
     @Override
@@ -49,11 +53,23 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
         return new FieldValueText(twinField.getTwinClassField())
-                .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : null);
+                .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ?
+                        twinFieldEntity.getValue() : null);
     }
 
     @Override
-    public Specification<TwinEntity> searchBy(TwinFieldSearchText search) throws ServiceException {
-        return Specification.where(TwinSpecification.checkFieldText(search));
+    public Specification<TwinEntity> searchBy(TwinFieldSearchText search) {
+        return Specification.where(TwinSpecification.checkFieldText(search, TwinEntity.Fields.fieldsSimple, TwinFieldSimpleEntity.Fields.value));
+    }
+
+    public enum TextEditorType {
+        PLAIN,
+        MARKDOWN_GITHUB,
+        MARKDOWN_BASIC;
+
+        @Override
+        public String toString() {
+            return name();
+        }
     }
 }

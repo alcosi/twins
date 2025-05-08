@@ -89,5 +89,12 @@ public class TwinClassBaseDTOv1 {
     @Schema(description = "uuid of description in I18n table")
     public UUID descriptionI18nId;
 
+    @Schema(description = "twin display page pointer")
+    public UUID pageFaceId;
 
+    @Schema(description = "assignee required")
+    public Boolean assigneeRequired;
+
+    @Schema(description = "external id")
+    public String externalId;
 }

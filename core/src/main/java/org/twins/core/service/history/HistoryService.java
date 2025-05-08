@@ -11,7 +11,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
-import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -37,8 +36,8 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinActionService;
-import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.sql.Timestamp;
@@ -52,13 +51,12 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     @Lazy
-    final TwinService twinService;
-    final TwinClassFieldService twinClassFieldService;
-    final HistoryRepository historyRepository;
-    final HistoryTypeDomainTemplateRepository historyTypeDomainTemplateRepository;
+    private final TwinClassFieldService twinClassFieldService;
+    private final HistoryRepository historyRepository;
+    private final HistoryTypeDomainTemplateRepository historyTypeDomainTemplateRepository;
     private final TwinActionService twinActionService;
-    final AuthService authService;
-    final I18nService i18nService;
+    private final AuthService authService;
+    private final I18nService i18nService;
 
     @Override
     public CrudRepository<HistoryEntity, UUID> entityRepository() {
@@ -194,7 +192,6 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return templateVars;
     }
 
-    //todo cache it
     private String getSnapshotMessageTemplate(HistoryType historyType, UUID domainId) {
         String snapshotTemplate = null;
         if (domainId != null)
@@ -248,6 +245,12 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setToValue(toValue));
     }
 
+    public HistoryItem<HistoryContextStringChange> externalIdChanged(String fromValue, String toValue) {
+        return new HistoryItem<>(HistoryType.externalIdChanged, new HistoryContextStringChange()
+                .setFromValue(fromValue)
+                .setToValue(toValue));
+    }
+
     public HistoryItem<HistoryContextStatusChange> statusChanged(TwinStatusEntity fromStatus, TwinStatusEntity toStatus) {
         return new HistoryItem<>(HistoryType.statusChanged, new HistoryContextStatusChange()
                 .shotFromStatus(fromStatus, i18nService)
@@ -259,6 +262,22 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setFromValue(fromValue)
                 .setToValue(toValue);
         context.shotField(twinClassFieldEntity, i18nService);
+        return new HistoryItem<>(HistoryType.fieldChanged, context);
+    }
+
+    public HistoryItem<HistoryContextI18nChange> fieldChangeI18n(
+            TwinClassFieldEntity twinClassFieldEntity,
+            Locale fromLocale,
+            String fromTranslation,
+            Locale toLocale,
+            String toTranslation
+    ) {
+        HistoryContextI18nChange context = new HistoryContextI18nChange()
+                .shotFrom(fromLocale, fromTranslation)
+                .shotTo(toLocale, toTranslation);
+
+        context.shotField(twinClassFieldEntity, i18nService);
+
         return new HistoryItem<>(HistoryType.fieldChanged, context);
     }
 

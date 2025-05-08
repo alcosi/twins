@@ -4,10 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.i18n.dto.I18nDTOv1;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkStrength;
 import org.twins.core.dto.rest.Request;
+import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.HashMap;
 
@@ -18,10 +18,10 @@ import java.util.HashMap;
 public class LinkSaveDTOv1 extends Request {
 
     @Schema(description = "Forward name i18n (if target twin-class as src)")
-    public I18nDTOv1 forwardNameI18n;
+    public I18nSaveDTOv1 forwardNameI18n;
 
     @Schema(description = "Backward name i18n (if target twin-class as dst)")
-    public I18nDTOv1 backwardNameI18n;
+    public I18nSaveDTOv1 backwardNameI18n;
 
     @Schema(description = "Link type (Many-to-one, Many-to-many, One-to-one)")
     public LinkEntity.TwinlinkType type;

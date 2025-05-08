@@ -21,6 +21,10 @@ public abstract class FieldValue implements Cloneable {
 
     public abstract boolean isFilled();
 
+    public boolean isBaseField() {
+        return twinClassField.isBaseField();
+    }
+
     public UUID getTwinClassFieldId() {
         return twinClassField.getId();
     }
@@ -32,6 +36,8 @@ public abstract class FieldValue implements Cloneable {
     public abstract FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity);
 
     public abstract void nullify();
+
+    public abstract boolean isNullified();
 
     public abstract boolean hasValue(String value);
 }

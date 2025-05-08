@@ -20,13 +20,6 @@ import java.util.UUID;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
 public class DataListOptionSpecification extends CommonSpecification<DataListOptionEntity> {
-
-    public static Specification<DataListOptionEntity> empty() {
-        return (root, query, cb) -> {
-            return cb.conjunction();
-        };
-    }
-
     public static Specification<DataListOptionEntity> checkStatusLikeIn(Collection<String> search, boolean not, boolean or) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(search))

@@ -4,10 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.i18n.dto.I18nDTOv1;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
+import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -21,10 +21,10 @@ public class TwinClassSaveRqDTOv1 extends Request {
     public String key;
 
     @Schema(description = "name", example = DTOExamples.TWIN_CLASS_NAME)
-    public I18nDTOv1 nameI18n;
+    public I18nSaveDTOv1 nameI18n;
 
     @Schema(description = "[optional] description", example = DTOExamples.TWIN_CLASS_DESCRIPTION)
-    public I18nDTOv1 descriptionI18n;
+    public I18nSaveDTOv1 descriptionI18n;
 
     @Schema(description = "[optional] an id of head hunter featurer. The field has a sense only if headTwinClassId filled", example = "")
     public Integer headHunterFeaturerId;
@@ -52,13 +52,22 @@ public class TwinClassSaveRqDTOv1 extends Request {
 
     @Schema(description = "[optional] this field helps to set extra permission, needed by users to view twins of given class. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
     public UUID viewPermissionId;
+
     @Schema(description = "[optional] this field helps to set extra permission, needed by users to create twins of given class. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
     public UUID createPermissionId;
+
     @Schema(description = "[optional] this field helps to set extra permission, needed by users to edit twins of given class. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
     public UUID editPermissionId;
+
     @Schema(description = "[optional] this field helps to set extra permission, needed by users to delete twins of given class. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
     public UUID deletePermissionId;
 
     @Schema(description = "[optional] owner typ of class")
     public TwinClassEntity.OwnerType ownerType;
+
+    @Schema(description = "[optional] is assignee required")
+    public Boolean assigneeRequired;
+
+    @Schema(description = "[optional] external id")
+    public String externalId;
 }

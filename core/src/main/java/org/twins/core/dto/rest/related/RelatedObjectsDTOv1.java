@@ -3,22 +3,26 @@ package org.twins.core.dto.rest.related;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
+import org.twins.core.dto.rest.comment.CommentDTOv1;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
-import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
+import org.twins.core.dto.rest.face.FaceDTOv1;
 import org.twins.core.dto.rest.factory.FactoryDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
+import org.twins.core.dto.rest.i18n.I18nDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
+import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
-import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
+import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
 
@@ -80,10 +84,18 @@ public class RelatedObjectsDTOv1 {
     @Schema(description = "related twinclass schema map", example = "{twin class schema map}")
     public Map<UUID, TwinClassSchemaDTOv1> twinClassSchemaMap;
 
+    @Schema(description = "related comment map", example = "{comment map}")
+    public Map<UUID, CommentDTOv1> commentMap;
+
     @Schema(description = "related featurer map", example = "{featurer map}")
     public Map<Integer, FeaturerDTOv1> featurerMap;
+
+    @Schema(description = "related face map", example = "{face map}")
+    public Map<UUID, FaceDTOv1> faceMap;
+
+    @Schema(description = "related i18n map", example = "{face map}")
+    public Map<UUID, I18nDTOv1> i18nMap;
+
+    @Schema(description = "related class field map", example = "{class field map}")
+    public Map<UUID, TwinClassFieldDTOv1> twinClassFieldMap;
 }
-
-
-
-

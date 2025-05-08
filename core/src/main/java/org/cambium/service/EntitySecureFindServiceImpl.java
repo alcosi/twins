@@ -5,13 +5,21 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.twins.core.exception.ErrorCodeTwins;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Optional;
-import java.util.UUID;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @Slf4j
@@ -19,12 +27,16 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     @Autowired
     public EntitySmartService entitySmartService;
 
+    @Autowired
+    private CacheManager cacheManager;
+
     @Override
     public UUID checkId(UUID id, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(id, entityRepository(), checkMode);
     }
 
     public abstract CrudRepository<T, UUID> entityRepository();
+
     public abstract Function<T, UUID> entityGetIdFunction();
 
     public Optional<T> findByKey(String key) throws ServiceException {
@@ -56,9 +68,10 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     }
 
     private T checkResult(EntitySmartService.ReadPermissionCheckMode permissionCheckMode, EntitySmartService.EntityValidateMode entityValidateMode, T entity) throws ServiceException {
-        if (entity == null || permissionCheckMode.equals(EntitySmartService.ReadPermissionCheckMode.none))
-            return entity;
-        if (isEntityReadDenied(entity, permissionCheckMode))
+        if (entity == null)
+            return null;
+        if (!permissionCheckMode.equals(EntitySmartService.ReadPermissionCheckMode.none)
+                && isEntityReadDenied(entity, permissionCheckMode))
             return null;
         validateEntityAndThrow(entity, entityValidateMode);
         return entity;
@@ -66,9 +79,9 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
 
     @Override
     public Kit<T, UUID> findEntities(Collection<UUID> entityIds,
-                                EntitySmartService.ListFindMode findMode,
-                                EntitySmartService.ReadPermissionCheckMode permissionCheckMode,
-                                EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+                                     EntitySmartService.ListFindMode findMode,
+                                     EntitySmartService.ReadPermissionCheckMode permissionCheckMode,
+                                     EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         Kit<T, UUID> kit = entitySmartService.findByIdIn(entityIds, entityRepository(), entityGetIdFunction(), findMode);
         Iterator<T> iterator = kit.iterator();
         while (iterator.hasNext()) {
@@ -89,17 +102,91 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             return "entity of class[" + entity.getClass().getSimpleName() + "] is invalid";
     }
 
-    public T findEntitySafe(UUID entityId) throws ServiceException {
+    public T findEntitySafeUncached(UUID entityId) throws ServiceException {
         return findEntity(entityId,
                 EntitySmartService.FindMode.ifEmptyThrows,
                 EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows,
                 EntitySmartService.EntityValidateMode.afterRead);
     }
 
+    public T findEntityPublic(UUID entityId) throws ServiceException {
+        return findEntity(entityId,
+                EntitySmartService.FindMode.ifEmptyThrows,
+                EntitySmartService.ReadPermissionCheckMode.none,
+                EntitySmartService.EntityValidateMode.afterRead);
+    }
+
+    @SuppressWarnings("unchecked")
+    public T findEntitySafe(UUID entityId) throws ServiceException {
+        if (entityId == null)
+            throw new ServiceException(ErrorCodeTwins.UUID_IS_NULL, "no " + entitySmartService.entityShortName(entityRepository()) + " can be found by null id");
+
+        T entity = null;
+        switch (getCacheSupportType()) {
+            case GLOBAL -> {
+                Class<T> clazz = getEntityClass();
+                String cacheKey = clazz.getSimpleName();
+                Cache cache = cacheManager.getCache(cacheKey);
+                if (cache != null) {
+                    entity = cache.get(entityId, clazz);
+                    if (entity == null) {
+                        entity = findEntitySafeUncached(entityId);
+                        if (entity != null) cache.put(entityId, entity);
+                    }
+                }
+            }
+            case REQUEST -> {
+                Class<T> clazz = getEntityClass();
+                String cacheKey = clazz.getSimpleName();
+                RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+                if (requestAttributes != null) {
+                    String requestCacheKey = cacheKey + "_" + entityId;
+                    entity = (T) requestAttributes.getAttribute(requestCacheKey, RequestAttributes.SCOPE_REQUEST);
+                    if (entity == null) {
+                        entity = findEntitySafeUncached(entityId);
+                        if (entity != null)
+                            requestAttributes.setAttribute(requestCacheKey, entity, RequestAttributes.SCOPE_REQUEST);
+                    }
+                }
+            }
+            case NONE -> entity = findEntitySafeUncached(entityId);
+
+        }
+        return entity;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Class<T> getEntityClass() {
+        Type genericSuperclass = getClass().getGenericSuperclass();
+        if (genericSuperclass instanceof ParameterizedType) {
+            Type[] actualTypeArguments = ((ParameterizedType) genericSuperclass).getActualTypeArguments();
+            if (actualTypeArguments.length > 0) {
+                return (Class<T>) actualTypeArguments[0];
+            }
+        }
+        throw new IllegalStateException("Cannot determine entity class");
+    }
+
+    public static enum CacheSupportType {
+        GLOBAL, REQUEST, NONE
+    }
+
+    public CacheSupportType getCacheSupportType() {
+        return CacheSupportType.NONE;
+    }
+
+
     public T findEntitySafe(String entityKey) throws ServiceException {
         return findEntity(entityKey,
                 EntitySmartService.FindMode.ifEmptyThrows,
                 EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows,
+                EntitySmartService.EntityValidateMode.afterRead);
+    }
+
+    public T findEntityPublic(String entityKey) throws ServiceException {
+        return findEntity(entityKey,
+                EntitySmartService.FindMode.ifEmptyThrows,
+                EntitySmartService.ReadPermissionCheckMode.none,
                 EntitySmartService.EntityValidateMode.afterRead);
     }
 
@@ -137,6 +224,40 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         return true;
     }
 
+    public T saveSafe(T entity) throws ServiceException {
+        validateEntityAndThrow(entity, EntitySmartService.EntityValidateMode.beforeSave);
+        return entityRepository().save(entity);
+    }
+
+    public T updateSafe(T entity, ChangesHelper changesHelper) throws ServiceException {
+        if (changesHelper.hasChanges()) {
+            validateEntity(entity, EntitySmartService.EntityValidateMode.beforeSave);
+            return entitySmartService.saveAndLogChanges(entity, entityRepository(), changesHelper);
+        }
+        return entity;
+    }
+
+    public Iterable<T> updateSafe(ChangesHelperMulti<T> changesHelperMulti) throws ServiceException {
+        List<T> entityList = new ArrayList<>();
+        StringBuilder changes = new StringBuilder();
+        for (var entry : changesHelperMulti.entrySet()) {
+            if (entry.getValue().hasChanges()) {
+                validateEntity(entry.getKey(), EntitySmartService.EntityValidateMode.beforeSave);
+                entityList.add(entry.getKey());
+                changes.append(entry.getValue().collectForLog());
+            }
+        }
+        if (CollectionUtils.isNotEmpty(entityList))
+            return entitySmartService.saveAllAndLogChanges(entityList, entityRepository(), changes);
+        else
+            return Collections.emptyList();
+    }
+
+    public void deleteSafe(UUID id) throws ServiceException {
+        findEntitySafe(id);
+        entitySmartService.deleteAndLog(id, entityRepository());
+    }
+
     public T validateEntityAndThrow(T entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entityValidateMode == EntitySmartService.EntityValidateMode.none)
             return entity;
@@ -152,5 +273,20 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     public boolean logErrorAndReturnFalse(String message) {
         log.error(message);
         return false;
+    }
+
+    public boolean logErrorAndReturnTrue(String message) {
+        log.error(message);
+        return true;
+    }
+
+    protected <T, R> void updateEntityField(T updateEntity, T dbEntity, Function<T, R> getFunction, BiConsumer<T, R> setFunction, String field, ChangesHelper changesHelper) {
+        //todo if the new field will have a nullify marker, then we will set the field to null,
+        // which will throw an error when saving if the entity field should not be null
+        R updateValue = getFunction.apply(updateEntity);
+        R dbValue = getFunction.apply(dbEntity);
+        if (!changesHelper.isChanged(field, dbValue, updateValue))
+            return;
+        setFunction.accept(dbEntity, updateValue);
     }
 }

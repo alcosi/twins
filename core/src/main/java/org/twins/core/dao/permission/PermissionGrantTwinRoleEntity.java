@@ -2,7 +2,9 @@ package org.twins.core.dao.permission;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinRole;
@@ -12,9 +14,10 @@ import java.util.UUID;
 
 @Entity
 @Data
+@Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "permission_grant_twin_role")
-public class PermissionGrantTwinRoleEntity {
+public class PermissionGrantTwinRoleEntity implements EasyLoggable {
 
     @Id
     @GeneratedValue(generator = "uuid")
@@ -54,4 +57,6 @@ public class PermissionGrantTwinRoleEntity {
     @ManyToOne
     @JoinColumn(name = "granted_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity grantedByUser;
+
+    public String easyLog(Level level) {return "permissionGrantTwinRole[id:" + id + "]";}
 }

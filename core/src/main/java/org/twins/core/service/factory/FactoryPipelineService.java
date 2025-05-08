@@ -5,19 +5,23 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.ChangesHelper;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.factory.TwinFactoryEraserEntity;
-import org.twins.core.dao.factory.TwinFactoryEraserRepository;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineRepository;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twin.TwinStatusService;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @Slf4j
@@ -28,6 +32,11 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
     @Getter
     private final TwinFactoryPipelineRepository repository;
     private final AuthService authService;
+    private final TwinClassService twinClassService;
+    private final TwinFactoryService twinFactoryService;
+    private final FactoryConditionSetService factoryConditionSetService;
+    private final TwinStatusService twinStatusService;
+    private final TwinService twinService;
 
     @Override
     public CrudRepository<TwinFactoryPipelineEntity, UUID> entityRepository() {
@@ -51,6 +60,59 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
 
     @Override
     public boolean validateEntity(TwinFactoryPipelineEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return !isEntityReadDenied(entity,EntitySmartService.ReadPermissionCheckMode.none);
+        if (entity.getTwinFactoryId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinFactoryId");
+        if (entity.getInputTwinClassId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty inputTwinClassId");
+
+
+        switch (entityValidateMode) {
+            case beforeSave:
+                if (entity.getInputTwinClass() == null || !entity.getInputTwinClass().getId().equals(entity.getInputTwinClassId()))
+                    entity.setInputTwinClass(twinClassService.findEntitySafe(entity.getInputTwinClassId()));
+                if (entity.getTwinFactory() == null || !entity.getTwinFactory().getId().equals(entity.getTwinFactoryId()))
+                    entity.setTwinFactory(twinFactoryService.findEntitySafe(entity.getTwinFactoryId()));
+                if (entity.getNextTwinFactoryId() != null && (entity.getNextTwinFactory() == null || !entity.getNextTwinFactory().getId().equals(entity.getNextTwinFactoryId())))
+                    entity.setNextTwinFactory(twinFactoryService.findEntitySafe(entity.getNextTwinFactoryId()));
+                if (entity.getTwinFactoryConditionSetId() != null && (entity.getConditionSet() == null || !entity.getConditionSet().getId().equals(entity.getTwinFactoryConditionSetId())))
+                    entity.setConditionSet(factoryConditionSetService.findEntitySafe(entity.getTwinFactoryConditionSetId()));
+                if (entity.getOutputTwinStatusId() != null && (entity.getOutputTwinStatus() == null || !entity.getOutputTwinStatus().getId().equals(entity.getOutputTwinStatusId())))
+                    entity.setOutputTwinStatus(twinStatusService.findEntitySafe(entity.getOutputTwinStatusId()));
+                if (entity.getTemplateTwinId() != null && (entity.getTemplateTwin() == null || !entity.getTemplateTwin().getId().equals(entity.getTemplateTwinId())))
+                    entity.setTemplateTwin(twinService.findEntitySafe(entity.getTemplateTwinId()));
+                if (entity.getNextTwinFactoryLimitScope() == null)
+                    entity.setNextTwinFactoryLimitScope(true);
+        }
+        return true;
+    }
+
+    public TwinFactoryPipelineEntity createFactoryPipeline(TwinFactoryPipelineEntity entity) throws ServiceException {
+        return saveSafe(entity);
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public TwinFactoryPipelineEntity updateFactoryPipeline(TwinFactoryPipelineEntity entity) throws ServiceException {
+        TwinFactoryPipelineEntity dbEntity = findEntitySafe(entity.getId());
+        entity.setId(dbEntity.getId());
+        ChangesHelper changesHelper = new ChangesHelper();
+
+        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getInputTwinClassId,
+                TwinFactoryPipelineEntity::setInputTwinClassId, TwinFactoryPipelineEntity.Fields.inputTwinClassId, changesHelper);
+        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getTwinFactoryConditionSetId,
+                TwinFactoryPipelineEntity::setTwinFactoryConditionSetId, TwinFactoryPipelineEntity.Fields.twinFactoryConditionSetId, changesHelper);
+        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getTwinFactoryConditionInvert,
+                TwinFactoryPipelineEntity::setTwinFactoryConditionInvert, TwinFactoryPipelineEntity.Fields.twinFactoryConditionInvert, changesHelper);
+        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getActive,
+                TwinFactoryPipelineEntity::setActive, TwinFactoryPipelineEntity.Fields.active, changesHelper);
+        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getOutputTwinStatusId,
+                TwinFactoryPipelineEntity::setOutputTwinStatusId, TwinFactoryPipelineEntity.Fields.outputTwinStatusId, changesHelper);
+        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getNextTwinFactoryId,
+                TwinFactoryPipelineEntity::setNextTwinFactoryId, TwinFactoryPipelineEntity.Fields.nextTwinFactoryId, changesHelper);
+        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getTemplateTwinId,
+                TwinFactoryPipelineEntity::setTemplateTwinId, TwinFactoryPipelineEntity.Fields.templateTwinId, changesHelper);
+        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getDescription,
+                TwinFactoryPipelineEntity::setDescription, TwinFactoryPipelineEntity.Fields.description, changesHelper);
+
+        return updateSafe(dbEntity, changesHelper);
     }
 }

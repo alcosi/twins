@@ -18,11 +18,9 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.twinoperation.TwinCreate;
-import org.twins.core.dto.rest.twin.TwinCreateRqDTOv1;
-import org.twins.core.dto.rest.twin.TwinCreateRqDTOv2;
-import org.twins.core.dto.rest.twin.TwinCreateRsDTOv1;
-import org.twins.core.dto.rest.twin.TwinFieldValueDTO;
-import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
+import org.twins.core.dto.rest.Response;
+import org.twins.core.dto.rest.twin.*;
+import org.twins.core.mappers.rest.attachment.AttachmentCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.TwinLinkAddRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinCreateRqRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinCreateRsRestDTOMapper;
@@ -45,7 +43,7 @@ public class TwinCreateController extends ApiController {
     private final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
     private final UserService userService;
     private final TwinCreateRsRestDTOMapper twinCreateRsRestDTOMapper;
-    private final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
+    private final AttachmentCreateRestDTOReverseMapper attachmentCreateRestDTOReverseMapper;
     private final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
     private final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
 
@@ -79,7 +77,7 @@ public class TwinCreateController extends ApiController {
                             .setAssignerUserId(userService.checkId(request.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
                             .setDescription(request.getDescription()));
             twinCreate
-                    .setAttachmentEntityList(attachmentAddRestDTOReverseMapper.convertCollection(request.getAttachments()))
+                    .setAttachmentEntityList(attachmentCreateRestDTOReverseMapper.convertCollection(request.getAttachments()))
                     .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertCollection(request.getLinks()))
                     .setCheckCreatePermission(true);
             rs = twinCreateRsRestDTOMapper
@@ -100,7 +98,7 @@ public class TwinCreateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinCreateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/v2", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/v2")
     public ResponseEntity<?> twinCreateV2(
             @RequestBody TwinCreateRqDTOv2 request) {
         TwinCreateRsDTOv1 rs = new TwinCreateRsDTOv1();
@@ -109,6 +107,31 @@ public class TwinCreateController extends ApiController {
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
                             .createTwin(twinCreate));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "twinBatchCreateV1", summary = "Create batch twins")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Import was completed successfully", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/private/twin/batch/v1")
+    public ResponseEntity<?> twinBatchCreateV1(
+            @RequestBody TwinBatchCreateRqDTOv1 request) {
+        Response rs = new Response();
+        try {
+            List<TwinCreate> twinCreates = twinCreateRqRestDTOReverseMapper.convertCollection(request.getTwins());
+            for (TwinCreate twinCreate : twinCreates) {
+                twinCreate.setCheckCreatePermission(true);
+            }
+            twinService.createTwinsAsyncBatch(twinCreates);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

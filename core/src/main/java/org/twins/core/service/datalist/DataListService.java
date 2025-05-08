@@ -11,9 +11,9 @@ import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KeyUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.i18n.dao.I18nEntity;
-import org.cambium.i18n.dao.I18nType;
-import org.cambium.i18n.service.I18nService;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySmartService;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -111,23 +111,22 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         DataListEntity dataListEntity = new DataListEntity()
                 .setKey(KeyUtils.lowerCaseNullSafe(dataListSave.getKey(), ErrorCodeTwins.DATALIST_KEY_INCORRECT))
                 .setDomainId(authService.getApiUser().getDomainId())
-                .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, dataListSave.getNameI18n()).getId())
-                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, dataListSave.getDescriptionI18n()).getId())
+                .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_NAME, dataListSave.getNameI18n()).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_DESCRIPTION, dataListSave.getDescriptionI18n()).getId())
                 .setCreatedAt(Timestamp.from(Instant.now()));
         setAttributes(dataListEntity, dataListSave);
-        validateEntityAndThrow(dataListEntity, EntitySmartService.EntityValidateMode.beforeSave);
-        return dataListRepository.save(dataListEntity);
+        return saveSafe(dataListEntity);
     }
 
     private void setAttributes(DataListEntity dataList, DataListSave dataListSave) throws ServiceException {
         if (dataListSave.getAttribute1() != null)
-            dataList.setAttribute1nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute1().getAttributeI18n()).getId());
+            dataList.setAttribute1nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_ATTRIBUTE_NAME, dataListSave.getAttribute1().getAttributeI18n()).getId());
         if (dataListSave.getAttribute2() != null)
-            dataList.setAttribute2nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute2().getAttributeI18n()).getId());
+            dataList.setAttribute2nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_ATTRIBUTE_NAME, dataListSave.getAttribute2().getAttributeI18n()).getId());
         if (dataListSave.getAttribute3() != null)
-            dataList.setAttribute3nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute3().getAttributeI18n()).getId());
+            dataList.setAttribute3nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_ATTRIBUTE_NAME, dataListSave.getAttribute3().getAttributeI18n()).getId());
         if (dataListSave.getAttribute4() != null)
-            dataList.setAttribute4nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute4().getAttributeI18n()).getId());
+            dataList.setAttribute4nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_ATTRIBUTE_NAME, dataListSave.getAttribute4().getAttributeI18n()).getId());
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -145,12 +144,15 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         updateDataListAttributeI18n(dataListUpdate.getAttribute3(), DataListEntity.Fields.attribute3nameI18nId, dbDataListEntity, DataListEntity::getAttribute3nameI18nId, DataListEntity::setAttribute3nameI18nId, changesHelper);
         updateDataListAttributeKey(dataListUpdate.getAttribute4(), DataListEntity.Fields.attribute4key, dbDataListEntity, DataListEntity::getAttribute4key, DataListEntity::setAttribute4key, changesHelper);
         updateDataListAttributeI18n(dataListUpdate.getAttribute4(), DataListEntity.Fields.attribute4nameI18nId, dbDataListEntity, DataListEntity::getAttribute4nameI18nId, DataListEntity::setAttribute4nameI18nId, changesHelper);
+        updateExternalId(dbDataListEntity, dataListUpdate.getExternalId(), changesHelper);
         dbDataListEntity.setUpdatedAt(Timestamp.from(Instant.now()));
-        if (changesHelper.hasChanges()) {
-            validateEntityAndThrow(dbDataListEntity, EntitySmartService.EntityValidateMode.beforeSave);
-            entitySmartService.saveAndLogChanges(dbDataListEntity, dataListRepository, changesHelper);
-        }
-        return dbDataListEntity;
+        return updateSafe(dbDataListEntity, changesHelper);
+    }
+
+    public void updateExternalId(DataListEntity dbDataListEntity, String newExternalId, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(DataListEntity.Fields.externalId, dbDataListEntity.getExternalId(), newExternalId))
+            return;
+        dbDataListEntity.setExternalId(newExternalId);
     }
 
     private void updateDataListKey(DataListSave dataListSave, DataListEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {

@@ -32,10 +32,10 @@ public class TwinFactoryEraserEntity implements EasyLoggable {
     private UUID twinFactoryConditionSetId;
 
     @Column(name = "twin_factory_condition_invert")
-    private boolean twinFactoryConditionInvert;
+    private Boolean twinFactoryConditionInvert;
 
     @Column(name = "active")
-    private boolean active;
+    private Boolean active;
 
     @Column(name = "description")
     private String description;

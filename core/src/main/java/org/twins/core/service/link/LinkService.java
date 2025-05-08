@@ -8,21 +8,19 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.MapUtils;
-import org.cambium.common.util.StringUtils;
-import org.cambium.common.util.UuidUtils;
+import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
-import org.cambium.i18n.dao.I18nEntity;
-import org.cambium.i18n.dao.I18nType;
-import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkRepository;
 import org.twins.core.dao.link.LinkStrength;
@@ -36,6 +34,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.linker.Linker;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserService;
 
@@ -61,6 +60,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     private final AuthService authService;
     private final FeaturerService featurerService;
     private final TwinLinkRepository twinLinkRepository;
+    private final CacheManager cacheManager;
 
     @Override
     public CrudRepository<LinkEntity, UUID> entityRepository() {
@@ -76,7 +76,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     public boolean isEntityReadDenied(LinkEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if (!entity.getDomainId().equals(apiUser.getDomain().getId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in " + apiUser.getDomain().logNormal());
             return true;
         }
         //todo check permission schema
@@ -100,6 +100,13 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incompatible source/destination class [" + entity.getSrcTwinClass().easyLog(EasyLoggable.Level.DETAILED) + " > " + entity.getDstTwinClass().easyLog(EasyLoggable.Level.DETAILED) + "]");
         }
         return true;
+    }
+
+
+    public static final String CACHE_LINK = "LinkService.findLinkByIdCached";
+    @Cacheable(value = CACHE_LINK, key = "#linkId")
+    public LinkEntity findLinkByIdCached(UUID linkId) throws ServiceException {
+        return findEntity(linkId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -148,6 +155,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                 dbLinkEntity.getSrcTwinClass().setLinksKit(null);
                 linkUpdate.getSrcTwinClass().setLinksKit(null);
             }
+            CacheUtils.evictCache(cacheManager,CACHE_LINK, dbLinkEntity.getId());
         }
         return dbLinkEntity;
     }

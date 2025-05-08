@@ -8,7 +8,7 @@ public enum ErrorCodeCommon implements ErrorCode {
     OK(0, "success", HttpStatus.OK),
     UNEXPECTED_SERVER_EXCEPTION(500, "something is not well configured in database"),
     NOT_IMPLEMENTED(501, "this operation is not supported yet"),
-    UUID_UNKNOWN(10000, "uuid is unknown",HttpStatus.NOT_FOUND),
+    UUID_UNKNOWN(10000, "uuid is unknown", HttpStatus.NOT_FOUND),
     UUID_ALREADY_EXIST(10001, "uuid is already exist"),
     ENTITY_INVALID(10002, "entity invalid"),
     FEATURER_IS_NULL(600, "Got featurer is null"),

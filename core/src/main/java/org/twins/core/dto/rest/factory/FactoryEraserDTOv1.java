@@ -25,10 +25,10 @@ public class FactoryEraserDTOv1 {
     public UUID factoryConditionSetId;
 
     @Schema(description = "factory condition set invert", example = DTOExamples.BOOLEAN_TRUE)
-    public boolean factoryConditionSetInvert;
+    public Boolean factoryConditionSetInvert;
 
     @Schema(description = "active", example = DTOExamples.BOOLEAN_TRUE)
-    public boolean active;
+    public Boolean active;
 
     @Schema(description = "description", example = DTOExamples.DESCRIPTION)
     public String description;

@@ -5,10 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
+import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
@@ -16,6 +19,7 @@ import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -64,7 +68,15 @@ public class MapperContext {
     @Getter
     private Map<UUID, RelatedObject<TwinFactoryPipelineEntity>> relatedFactoryPipelineMap = new LinkedHashMap<>();
     @Getter
+    private Map<UUID, RelatedObject<FaceEntity>> relatedFaceMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<I18nEntity>> relatedI18nMap = new LinkedHashMap<>();
+    @Getter
     private Map<Integer, RelatedObject<FeaturerEntity>> relatedFeaturerMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinClassFieldEntity>> relatedTwinClassFieldMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinCommentEntity>> relatedCommentMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
@@ -190,14 +202,22 @@ public class MapperContext {
             smartPut(relatedFactoryMap, twinFactory, twinFactory.getId());
         else if (relatedObject instanceof TwinFactoryPipelineEntity twinFactoryPipeline)
             smartPut(relatedFactoryPipelineMap, twinFactoryPipeline, twinFactoryPipeline.getId());
+        else if (relatedObject instanceof FaceEntity face)
+            smartPut(relatedFaceMap, face, face.getId());
+        else if (relatedObject instanceof I18nEntity i18n)
+            smartPut(relatedI18nMap, i18n, i18n.getId());
         else if (relatedObject instanceof FeaturerEntity featurer)
             smartPut(relatedFeaturerMap, featurer, featurer.getId());
+        else if (relatedObject instanceof TwinClassFieldEntity twinClassField)
+            smartPut(relatedTwinClassFieldMap, twinClassField, twinClassField.getId());
+        else if (relatedObject instanceof TwinCommentEntity entity)
+            smartPut(relatedCommentMap, entity, entity.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
         }
         if (relatedObject instanceof EasyLoggable loggable)
-            log.debug(loggable.easyLog(EasyLoggable.Level.NORMAL) + " will be converted later");
+            log.debug("{} will be converted later", loggable.logNormal());
         return true;
     }
 
@@ -382,7 +402,11 @@ public class MapperContext {
         dstMapperContext.relatedTwinflowMap = srcMapperContext.relatedTwinflowMap;
         dstMapperContext.relatedFactoryMap = srcMapperContext.relatedFactoryMap;
         dstMapperContext.relatedFactoryPipelineMap = srcMapperContext.relatedFactoryPipelineMap;
+        dstMapperContext.relatedFaceMap = srcMapperContext.relatedFaceMap;
+        dstMapperContext.relatedI18nMap = srcMapperContext.relatedI18nMap;
         dstMapperContext.relatedFeaturerMap = srcMapperContext.relatedFeaturerMap;
+        dstMapperContext.relatedTwinClassFieldMap = srcMapperContext.relatedTwinClassFieldMap;
+        dstMapperContext.relatedCommentMap = srcMapperContext.relatedCommentMap;
     }
 
     public MapperContext cloneWithIsolatedModes(MapperModeCollection mapperModeCollection) {

@@ -16,8 +16,13 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.service.auth.AuthService;
 
-import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
+import java.util.HashSet;
+
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+
+
 import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecification.*;
+import static org.twins.core.service.SystemEntityService.getSystemFieldsIds;
 
 
 @Slf4j
@@ -26,21 +31,23 @@ import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecific
 public class TwinClassFieldSearchService {
     private final AuthService authService;
     private final TwinClassFieldRepository twinClassFieldRepository;
+    private final TwinClassService twinClassService;
 
-    public PaginationResult<TwinClassFieldEntity> findTwinClassFieldForDomain(TwinClassFieldSearch search, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
         Page<TwinClassFieldEntity> ret = twinClassFieldRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
     private Specification<TwinClassFieldEntity> createTwinClassFieldSearchSpecification(TwinClassFieldSearch search) throws ServiceException {
+        excludeSystemFields(search);
         ApiUser apiUser = authService.getApiUser();
         return Specification.allOf(
                 checkFieldUuid(apiUser.getDomainId(), TwinClassFieldEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinClassFieldEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinClassFieldEntity.Fields.id),
-                checkUuidIn(search.getTwinClassIdList(), false, false, TwinClassFieldEntity.Fields.twinClassId),
-                checkUuidIn(search.getTwinClassIdExcludeList(), true, false, TwinClassFieldEntity.Fields.twinClassId),
+                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdMap()), false, false, TwinClassFieldEntity.Fields.twinClassId),
+                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdExcludeMap()), true, false, TwinClassFieldEntity.Fields.twinClassId),
                 checkFieldLikeIn(search.getKeyLikeList(), false, true, TwinClassFieldEntity.Fields.key),
                 checkFieldLikeIn(search.getKeyNotLikeList(), true, true, TwinClassFieldEntity.Fields.key),
                 joinAndSearchByI18NField(TwinClassFieldEntity.Fields.nameI18n, search.getNameI18nLikeList(), apiUser.getLocale(), true, false),
@@ -53,6 +60,17 @@ public class TwinClassFieldSearchService {
                 checkUuidIn(search.getViewPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.viewPermissionId),
                 checkUuidIn(search.getViewPermissionIdList(), false, false, TwinClassFieldEntity.Fields.editPermissionId),
                 checkUuidIn(search.getViewPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.editPermissionId),
-                checkRequired(search.getRequired()));
+                checkTernary(search.getRequired()),
+                checkFieldLikeIn(search.getExternalIdLikeList(), false, true, TwinClassFieldEntity.Fields.externalId),
+                checkFieldLikeIn(search.getExternalIdNotLikeList(), true, true, TwinClassFieldEntity.Fields.externalId));
     }
+
+    private void excludeSystemFields(TwinClassFieldSearch search) {
+        if (search.getIdExcludeList() == null) {
+            search.setIdExcludeList(new HashSet<>(getSystemFieldsIds()));
+        } else {
+            search.getIdExcludeList().addAll(getSystemFieldsIds());
+        }
+    }
+
 }

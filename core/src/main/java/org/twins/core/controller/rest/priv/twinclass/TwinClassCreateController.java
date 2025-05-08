@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.i18n.dao.I18nEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -19,11 +18,12 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassCreateRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassCreateRsDTOv1;
+import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
@@ -38,7 +38,7 @@ public class TwinClassCreateController extends ApiController {
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
     private final TwinClassCreateRestDTOReverseMapper twinClassCreateRestDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    private final I18nRestDTOReverseMapper i18nRestDTOReverseMapper;
+    private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassCreateV1", summary = "Create new twin class")
@@ -54,8 +54,8 @@ public class TwinClassCreateController extends ApiController {
         TwinClassCreateRsDTOv1 rs = new TwinClassCreateRsDTOv1();
         try {
             TwinClassEntity twinClassEntity = twinClassCreateRestDTOReverseMapper.convert(request);
-            I18nEntity nameI18n = i18nRestDTOReverseMapper.convert(request.getNameI18n());
-            I18nEntity descriptionsI18n = i18nRestDTOReverseMapper.convert(request.getDescriptionI18n());
+            I18nEntity nameI18n = i18NSaveRestDTOReverseMapper.convert(request.getNameI18n());
+            I18nEntity descriptionsI18n = i18NSaveRestDTOReverseMapper.convert(request.getDescriptionI18n());
             twinClassEntity = twinClassService.createInDomainClass(twinClassEntity, nameI18n, descriptionsI18n, request.getAutoCreatePermissions());
             rs
                     .setTwinClass(twinClassRestDTOMapper.convert(twinClassEntity, mapperContext))

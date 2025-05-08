@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
-import org.cambium.i18n.dao.I18nType;
+import org.twins.core.dao.i18n.I18nType;
 import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,7 +85,8 @@ public class DomainInitiatorB2B extends DomainInitiator {
                 .setKey("DOMAIN_BUSINESS_ACCOUNT_FOR_" + domainEntity.getKey().toUpperCase())
                 .setOwnerType(TwinClassEntity.OwnerType.DOMAIN_BUSINESS_ACCOUNT)
                 .setCreatedAt(Timestamp.from(Instant.now()))
-                .setCreatedByUserId(systemEntityService.getUserIdSystem());
+                .setCreatedByUserId(systemEntityService.getUserIdSystem())
+                .setAssigneeRequired(false);
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()

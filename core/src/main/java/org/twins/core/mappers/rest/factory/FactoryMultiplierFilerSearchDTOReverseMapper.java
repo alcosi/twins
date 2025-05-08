@@ -26,6 +26,7 @@ public class FactoryMultiplierFilerSearchDTOReverseMapper extends RestSimpleDTOM
                 .setFactoryConditionSetIdExcludeList(src.getFactoryConditionSetIdExcludeList())
                 .setDescriptionLikeList(src.getDescriptionLikeList())
                 .setDescriptionNotLikeList(src.getDescriptionNotLikeList())
-                .setActive(src.getActive());
+                .setActive(src.getActive())
+                .setFactoryConditionInvert(src.getFactoryConditionInvert());
     }
 }

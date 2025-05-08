@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.i18n.dao.I18nEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,12 +17,13 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.factory.TwinFactoryEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryUpdateRqDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryRestDTOMapperV2;
 import org.twins.core.mappers.rest.factory.FactoryUpdateDTOReverseMapper;
-import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
+import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.TwinFactoryService;
@@ -39,7 +39,7 @@ public class FactoryUpdateController extends ApiController {
     private final FactoryUpdateDTOReverseMapper factoryUpdateDTOReverseMapper;
     private final FactoryRestDTOMapperV2 factoryRestDTOMapperV2;
     private final TwinFactoryService twinFactoryService;
-    private final I18nRestDTOReverseMapper i18nRestDTOReverseMapper;
+    private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "factoryUpdateV1", summary = "Factory update")
@@ -57,8 +57,8 @@ public class FactoryUpdateController extends ApiController {
         try {
             TwinFactoryEntity factoryEntity = factoryUpdateDTOReverseMapper.convert(request);
             factoryEntity.setId(factoryId);
-            I18nEntity nameI18n = i18nRestDTOReverseMapper.convert(request.getNameI18n());
-            I18nEntity descriptionI18n = i18nRestDTOReverseMapper.convert(request.getDescriptionI18n());
+            I18nEntity nameI18n = i18NSaveRestDTOReverseMapper.convert(request.getNameI18n());
+            I18nEntity descriptionI18n = i18NSaveRestDTOReverseMapper.convert(request.getDescriptionI18n());
             factoryEntity = twinFactoryService.updateFactory(factoryEntity, nameI18n, descriptionI18n);
             rs
                     .setFactory(factoryRestDTOMapperV2.convert(factoryEntity, mapperContext))

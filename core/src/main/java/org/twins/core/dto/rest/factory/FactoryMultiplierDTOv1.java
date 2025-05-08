@@ -24,6 +24,9 @@ public class FactoryMultiplierDTOv1 {
     @Schema(description = "count pipeline steps", example = DTOExamples.COUNT)
     public Integer pipelineStepsCount;
 
+    @Schema(description = "multiplier featurer id", example = DTOExamples.FEATURER_ID)
+    private Integer multiplierFeaturerId;
+
     @Schema(description = "multiplier params", example = DTOExamples.FACTORY_PARAMS_MAP)
     public Map<String, String> multiplierParams;
 

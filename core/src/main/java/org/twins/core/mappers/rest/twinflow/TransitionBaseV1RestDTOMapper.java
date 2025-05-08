@@ -1,7 +1,7 @@
 package org.twins.core.mappers.rest.twinflow;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.i18n.service.I18nService;
+import org.twins.core.service.i18n.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
@@ -24,8 +24,9 @@ public class TransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
     @Override
     public void map(TwinflowTransitionEntity src, TwinflowTransitionBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(TransitionMode.SHORT)) {
-            case DETAILED, MANAGED:
+            case DETAILED, MANAGED ->
                 dst
+                        .setId(src.getId())
                         .setDstTwinStatusId(src.getDstTwinStatusId())
                         .setName(i18nService.translateToLocale(src.getNameI18NId()))
                         .setDescription(i18nService.translateToLocale(src.getDescriptionI18NId()))
@@ -33,14 +34,12 @@ public class TransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
                         .setAllowAttachments(src.isAllowAttachment())
                         .setAllowLinks(src.isAllowLinks())
                         .setAlias(src.getTwinflowTransitionAlias().getAlias())
-                        .setId(src.getId());
-                break;
-            case SHORT:
+                        .setType(src.getTwinflowTransitionTypeId());
+            case SHORT ->
                 dst
                         .setName(i18nService.translateToLocale(src.getNameI18NId()))
                         .setAlias(src.getTwinflowTransitionAlias().getAlias())
                         .setId(src.getId());
-                break;
         }
         if (mapperContext.hasModeButNot(StatusMode.Transition2StatusMode.HIDE))
             dst

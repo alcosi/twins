@@ -130,15 +130,15 @@ public class EntitySmartService {
         return entityClass != null ? entityClass.getSimpleName().replaceAll("Entity", "") : "<unknown>";
     }
 
-    private String entityShortName(Object entity) {
+    public String entityShortName(Object entity) {
         return entityShortName(entity.getClass());
     }
 
-    private <T> String entityShortName(CrudRepository<T, UUID> repository) {
+    public  <T> String entityShortName(CrudRepository<T, UUID> repository) {
         return entityShortName(getRepositoryEntityClass(repository));
     }
 
-    private <T> Class<T> getRepositoryEntityClass(CrudRepository<T, UUID> repository) {
+    public  <T> Class<T> getRepositoryEntityClass(CrudRepository<T, UUID> repository) {
         Type[] interfaces = repository.getClass().getInterfaces();
 
         for (Type t : interfaces) {
@@ -183,6 +183,7 @@ public class EntitySmartService {
         return checkOptional(optional, uuid, repository, mode);
     }
 
+
     public <T> T checkOptional(Optional<T> optional, Object keyObj, CrudRepository<T, UUID> repository, FindMode mode) throws ServiceException {
         String key = (keyObj instanceof UUID ? "id[" : "key[") + keyObj + "]";
         switch (mode) {
@@ -196,7 +197,7 @@ public class EntitySmartService {
                     return optional.get();
             case ifEmptyThrows:
                 if (optional.isEmpty())
-                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, " unknown " + entityShortName(repository) + " " + key);
+                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Unknown " + entityShortName(repository) + " " + key);
                 return optional.get();
         }
         return null;
@@ -320,7 +321,13 @@ public class EntitySmartService {
 
     public <T> Iterable<T> saveAllAndLogChanges(Iterable<T> entities, CrudRepository<T, UUID> repository, ChangesHelper changesHelper) {
         Iterable<T> result = repository.saveAll(entities);
-        log.info("Changes: " + changesHelper.collectForLog());
+        log.info("Changes: {}", changesHelper.collectForLog());
+        return result;
+    }
+
+    public <T> Iterable<T> saveAllAndLogChanges(Iterable<T> entities, CrudRepository<T, UUID> repository, StringBuilder changes) {
+        Iterable<T> result = repository.saveAll(entities);
+        log.info("Changes: {}", changes);
         return result;
     }
 
@@ -339,7 +346,7 @@ public class EntitySmartService {
             return entity;
         entity = repository.save(entity);
         if (entity instanceof EasyLoggable prettyLoggable)
-            log.info(prettyLoggable.easyLog(EasyLoggable.Level.SHORT) + " was updated: " + changesHelper.collectForLog());
+            log.info(prettyLoggable.logShort() + " was updated: " + changesHelper.collectForLog());
         else
             log.info(entityShortName(entity) + " was updated: " + changesHelper.collectForLog());
         return entity;

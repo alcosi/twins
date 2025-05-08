@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "fieldType")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "fieldType", visible = true)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorTextDTOv1.class, name = TwinClassFieldDescriptorTextDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorDateScrollDTOv1.class, name = TwinClassFieldDescriptorDateScrollDTOv1.KEY),
@@ -16,28 +16,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorListSharedInHeadDTOv1.class, name = TwinClassFieldDescriptorListSharedInHeadDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorLinkDTOv1.class, name = TwinClassFieldDescriptorLinkDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorLinkLongDTOv1.class, name = TwinClassFieldDescriptorLinkLongDTOv1.KEY),
+        @JsonSubTypes.Type(value = TwinClassFieldDescriptorI18nDTOv1.class, name = TwinClassFieldDescriptorI18nDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorUserDTOv1.class, name = TwinClassFieldDescriptorUserDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorUserLongDTOv1.class, name = TwinClassFieldDescriptorUserLongDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorAttachmentDTOv1.class, name = TwinClassFieldDescriptorAttachmentDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorNumericDTOv1.class, name = TwinClassFieldDescriptorNumericDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorImmutableDTOv1.class, name = TwinClassFieldDescriptorImmutableDTOv1.KEY),
 })
-@Schema(description = "On of values", example = "", oneOf = {
-        TwinClassFieldDescriptorTextDTOv1.class,
-        TwinClassFieldDescriptorColorHexDTOv1.class,
-        TwinClassFieldDescriptorUrlDTOv1.class,
-        TwinClassFieldDescriptorDateScrollDTOv1.class,
-        TwinClassFieldDescriptorListDTOv1.class,
-        TwinClassFieldDescriptorListLongDTOv1.class,
-        TwinClassFieldDescriptorListSharedInHeadDTOv1.class,
-        TwinClassFieldDescriptorLinkDTOv1.class,
-        TwinClassFieldDescriptorLinkLongDTOv1.class,
-        TwinClassFieldDescriptorUserDTOv1.class,
-        TwinClassFieldDescriptorUserLongDTOv1.class,
-        TwinClassFieldDescriptorAttachmentDTOv1.class,
-        TwinClassFieldDescriptorNumericDTOv1.class,
-        TwinClassFieldDescriptorImmutableDTOv1.class
-}, discriminatorProperty = "fieldType", discriminatorMapping = {
+@Schema(description = "One of values", example = "", discriminatorProperty = "fieldType", discriminatorMapping = {
         @DiscriminatorMapping(value = TwinClassFieldDescriptorTextDTOv1.KEY, schema = TwinClassFieldDescriptorTextDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorDateScrollDTOv1.KEY, schema = TwinClassFieldDescriptorDateScrollDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorColorHexDTOv1.KEY, schema = TwinClassFieldDescriptorColorHexDTOv1.class),
@@ -47,6 +33,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
         @DiscriminatorMapping(value = TwinClassFieldDescriptorListSharedInHeadDTOv1.KEY, schema = TwinClassFieldDescriptorListSharedInHeadDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorLinkDTOv1.KEY, schema = TwinClassFieldDescriptorLinkDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorLinkLongDTOv1.KEY, schema = TwinClassFieldDescriptorLinkLongDTOv1.class),
+        @DiscriminatorMapping(value = TwinClassFieldDescriptorI18nDTOv1.KEY, schema = TwinClassFieldDescriptorI18nDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorUserDTOv1.KEY, schema = TwinClassFieldDescriptorUserDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorUserLongDTOv1.KEY, schema = TwinClassFieldDescriptorUserLongDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorAttachmentDTOv1.KEY, schema = TwinClassFieldDescriptorAttachmentDTOv1.class),
@@ -63,6 +50,7 @@ public interface TwinClassFieldDescriptorDTO {
             TwinClassFieldDescriptorListLongDTOv1.KEY,
             TwinClassFieldDescriptorLinkDTOv1.KEY,
             TwinClassFieldDescriptorLinkLongDTOv1.KEY,
+            TwinClassFieldDescriptorI18nDTOv1.KEY,
             TwinClassFieldDescriptorListSharedInHeadDTOv1.KEY,
             TwinClassFieldDescriptorUserDTOv1.KEY,
             TwinClassFieldDescriptorUserLongDTOv1.KEY,

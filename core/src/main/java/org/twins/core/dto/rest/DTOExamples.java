@@ -6,6 +6,7 @@ public interface DTOExamples {
     String NAME = "Some name";
     String DESCRIPTION = "Some description";
     String COUNT = "3";
+    String INTEGER = "123456";
     String UUID_COLLECTION = "[\"11a4c3f8-c780-4421-9aee-9e7eec20c67d\", \"83050c4b-ef17-4d7d-8792-6e5a86557ab9\"]";
     String STRING_COLLECTION = "[\"String 1\", \"String 2\"]";
     String TRANSLATION = "translation";
@@ -29,6 +30,7 @@ public interface DTOExamples {
     String TWIN_CLASS_OWNER_TYPE = "SYSTEM";
     String WIDGET_ID = "4245e338-3c09-4390-8a03-435d1da4e311";
     String TWIN_ID = "1b2091e3-971a-41bc-b343-1f980227d02f";
+    String TWIN_ROLE_ID = "assignee";
     String TWIN_COMMENT_ID = "be44e826-ce24-4881-a227-f3f72d915a20";
     String TWIN_HISTORY_ID = "1b2091e3-971a-41bc-b343-1f980227d02f";
     String TWIN_NAME = "Oak";
@@ -47,25 +49,31 @@ public interface DTOExamples {
     String USER_GROUP_NAME = "Manager";
     String USER_GROUP_TYPE = "domainScopeDomainManage";
     String DOMAIN_ID = "f67ad556-dd27-4871-9a00-16fb0e8a4102";
+    String DOMAIN_NAME = "alcosi";
     String DOMAIN_KEY = "alcosi";
     String DOMAIN_TYPE = "basic";
     String DOMAIN_DESCRIPTION = "some domain";
+    String FACE_COMPONENT = "some domain";
+    String FACE_ID = "9a3f6075-f175-41cd-a804-934201ec969c";
     String BUSINESS_ACCOUNT_ID = "9a3f6075-f175-41cd-a804-934201ec969c";
     String BUSINESS_ACCOUNT_NAME = "Business account name";
     String AUTH_TOKEN = USER_ID + "," + BUSINESS_ACCOUNT_ID;
     String PERMISSION_SCHEMA_ID = "af143656-9899-4e1f-8683-48795cdefeac";
     String PERMISSION_GRANT_USER_ID = "9e8641f2-dda1-4a43-9a23-8786124cdb6b";
     String PERMISSION_GRANT_ASSIGNEE_PROPAGATION_ID = "a7485d77-16bc-440e-a88e-1a576954a839";
+    String PERMISSION_GRANT_SPACE_ROLE_ID = "f64ec2c1-a791-4305-acfc-6925d671c005";
     String TWINFLOW_SCHEMA_ID = "2c618b09-e8dc-4712-a433-2e18915ee70d";
     String TWINFLOW_ID = "34618b09-e8dc-4712-a433-2e18915ee70d";
     String DRAFT_ID = "34618b09-e8dc-4712-a433-2e18915ee70d";
     String TWINFLOW_NAME = "Default twinflow";
     String TWINFLOW_TRANSITION_ID = "f6606fa2-c047-4ba9-a92c-84051df681ab";
+    String TWINFLOW_TRANSITION_TYPE_ID = "STATUS_CHANGE";
     String TWINFLOW_TRANSITION_ALIAS = "start";
     String TWINFLOW_TRANSITION_ALIAS_ID = "da755c8a-248f-4e4f-978a-6474e41c8dca";
     String TWIN_CLASS_SCHEMA_ID = "8b9ea6ad-2b9b-4a4a-8ea9-1b17da4d603b";
     String CHANNEL = "WEB";
     String ATTACHMENT_STORAGE_LINK = "https://test.filestorage.by/JFUjEFWksfqwf";
+    String ATTACHMENT_STORAGE_LINKS_MAP = "{\"origin\":\"https://test.filestorage.by/JFUjEFWksfqwf\"}";
     String ATTACHMENT_EXTERNAL_ID = "JD999weqw9f";
     String ATTACHMENT_TITLE = "cert.pdf";
     String ATTACHMENT_DESCRIPTION = "fresh certificate";
@@ -84,6 +92,7 @@ public interface DTOExamples {
     String LAZY_RELATION_MODE_OFF = " Will be filled only in lazyRelations mode is false";
     String SPACE_ID = "5d956a15-6858-40ba-b0aa-b123c54e250d";
     String SPACE_ROLE = "creator";
+    String SPACE_ROLE_ID = "d74c3adc-c83c-4b55-92ca-cf570598296a";
     String SPACE_ROLE_USER_ID = "275bf3c4-951a-4d26-bb82-5e18361d301c";
     String SEARCH_ALIAS = "tools";
     String SEARCH_ID = "8c580967-c050-47cf-ac27-4096c6dda2d1";
@@ -102,14 +111,18 @@ public interface DTOExamples {
     String TRIGGER_ID = "9d956a15-6858-40ba-b0aa-b123c54e250d";
     String FACTORY_PIPELINE_ID = "5d956a15-6858-40ba-b0aa-b123c54e250d";
     String FACTORY_PIPELINE_STEP_ID = "99856a15-6858-40ba-b0aa-b123c54e250d";
-    String FACTORY_PARAMS_MAP = "{\"outputTwinClassId\"=>\"da69c441-9c8f-4e73-a07e-b5648f8f4396\",\n\"copyHead\"=>\"true\"}";
+    String FACTORY_PARAMS_MAP = "{\"outputTwinClassId\": \"da69c441-9c8f-4e73-a07e-b5648f8f4396\", \"copyHead\": \"true\"}";
     String MULTIPLIER_ID = "66956a15-6858-40ba-b0aa-b123c54e250d";
     String FACTORY_BRANCH_ID = "99956a15-6858-40ba-b0aa-b123c54e250d";
+    String FACTORY_MULTIPLIER_ID = "eb773f30-8f24-4ec7-8f06-9dc71d351177";
     String ERASER_ACTION = "NOT_SPECIFIED";
     String SIMPLE_PNG_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII";
     String RESOURCE_STORAGE_ID = "00000000-0000-0000-0007-000000000001";
     String RESOURCE_ID = "09cd9a50-dcbe-4c73-b39e-65d2000a8e85";
-
+    String TIER_ID = "64807201-e3d6-4016-b699-b36c5f91c58e";
+    String I18N_ID = "633c6d7d-99c8-4d87-89c6-2f72d0f5d673";
+    String I18N_KEY = "key";
+    String I18N_NAME = "name";
 
 
 }

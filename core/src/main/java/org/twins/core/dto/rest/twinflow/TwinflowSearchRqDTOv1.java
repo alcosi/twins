@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -22,29 +22,29 @@ public class TwinflowSearchRqDTOv1 extends Request {
     @Schema(description = "id exclude list")
     public Set<UUID> idExcludeList;
 
-    @Schema(description = "twin class id list")
-    public List<UUID> twinClassIdList;
+    @Schema(description = "twin class id map")
+    public Map<UUID, Boolean> twinClassIdMap;
 
-    @Schema(description = "twin class id exclude list")
-    public List<UUID> twinClassIdExcludeList;
+    @Schema(description = "twin class id exclude map")
+    public Map<UUID, Boolean> twinClassIdExcludeMap;
 
     @Schema(description = "name i18n keyword list(AND)")
-    public List<String> nameI18nLikeList;
+    public Set<String> nameI18nLikeList;
 
     @Schema(description = "name i18n keyword exclude list(OR)")
-    public List<String> nameI18nNotLikeList;
+    public Set<String> nameI18nNotLikeList;
 
     @Schema(description = "description i18n keyword list(AND)")
-    public List<String> descriptionI18nLikeList;
+    public Set<String> descriptionI18nLikeList;
 
     @Schema(description = "description i18n exclude keyword list(OR)")
-    public List<String> descriptionI18nNotLikeList;
+    public Set<String> descriptionI18nNotLikeList;
 
     @Schema(description = "initial status id list")
-    public List<UUID> initialStatusIdList;
+    public Set<UUID> initialStatusIdList;
 
     @Schema(description = "initial status id exclude list")
-    public List<UUID> initialStatusIdExcludeList;
+    public Set<UUID> initialStatusIdExcludeList;
 
     @Schema(description = "user id list")
     public Set<UUID> createdByUserIdList;

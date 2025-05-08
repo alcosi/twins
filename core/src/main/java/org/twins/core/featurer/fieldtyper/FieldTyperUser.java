@@ -29,6 +29,7 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUser;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.user.UserFilterService;
+import org.twins.core.service.user.UserService;
 
 import java.util.List;
 import java.util.Map;
@@ -49,10 +50,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
     UserFilterService userFilterService;
 
     @Autowired
-    UserRepository userRepository;
-
-    @Autowired
-    TwinFieldUserRepository twinFieldUserRepository;
+    UserService userService;
 
     @FeaturerParam(name = "User filter UUID", description = "", order = 1)
     public static final FeaturerParamUUID userFilterUUID = new FeaturerParamUUID("userFilterUUID"); //todo change type
@@ -70,7 +68,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
         if (value.getUsers() != null && value.getUsers().size() > 1 && !allowMultiply(properties))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply options are not allowed");
         UUID userFilterId = userFilterUUID.extract(properties); //todo not implemented yet
-        List<UserEntity> selectedUserEntityList = userRepository.findByIdIn(value.getUsers().stream().map(UserEntity::getId).toList());
+        List<UserEntity> selectedUserEntityList = userService.findEntitiesSafe(value.getUsers().stream().map(UserEntity::getId).toList()).getList();
         twinService.loadTwinFields(twin);
         Map<UUID, TwinFieldUserEntity> storedFieldUsers = null;
         if (twin.getTwinFieldUserKit().containsGroupedKey(value.getTwinClassField().getId()))

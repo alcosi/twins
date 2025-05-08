@@ -263,28 +263,28 @@ public class FeaturerService {
         int paramsCount = params != null ? (int) params.values().stream().filter(Objects::nonNull).count() : 0;
         int notOptionalParamsCountSetting = (int) paramsAnnotationsMap.values().stream().filter(it -> !it.optional()).count();
         int totalParamsCountSetting = paramsAnnotationsMap.values().size();
-        if (paramsCount != paramsAnnotationsMap.size())
-            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION,
-                    String.format("Incorrect params count for featurer[%s]. Expected %s, got %s", featurerId, paramsAnnotationsMap.size(), paramsCount));
         if (paramsCount < notOptionalParamsCountSetting) {
             throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, String.format("Incorrect params count for featurer[%s]. Expected (%s,%s), got %s", featurerId, notOptionalParamsCountSetting, totalParamsCountSetting, paramsCount));
         }
         if (paramsCount == 0)
             return ret;//no params
         for (var entry : paramsAnnotationsMap.entrySet()) {
-            String value = params.get(entry.getKey()) != null ? params.get(entry.getKey()) :
-                    entry.getValue().optional() ? entry.getValue().defaultValue() : null;
-            if (!entry.getValue().optional() && value == null) {
+            String value = null;
+            if (params.get(entry.getKey()) != null) {
+                value = params.get(entry.getKey());
+            } else if (!Objects.equals(entry.getValue().defaultValue(), FeaturerParam.DEFAULT_VALUE_NOT_SET)) {
+                value = entry.getValue().defaultValue();
+            } else if (!entry.getValue().optional()) {
                 throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, String.format("Incorrect non-optional param[%s] value[null] for featurer[%s].", entry.getKey(), featurerId));
             }
-            if (value.contains("injection@")) {
+            if (value != null && value.contains("injection@")) {
                 try {
                     ret.put(entry.getKey(), extractInjectedProperties(UUID.fromString(StringUtils.substringAfter(value, "@")), context));
                 } catch (Exception e) {
                     log.error("error getting value[" + entry.getValue() + "] injected by key[" + entry.getKey() + "]", e);
                     ret.put(entry.getKey(), value);
                 }
-            } else {
+            } else if (value != null) {
                 ret.put(entry.getKey(), value);
             }
         }

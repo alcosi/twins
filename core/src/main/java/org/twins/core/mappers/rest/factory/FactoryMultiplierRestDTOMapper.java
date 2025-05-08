@@ -23,21 +23,20 @@ public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFact
     @Override
     public void map(TwinFactoryMultiplierEntity src, FactoryMultiplierDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(FactoryMultiplierMode.DETAILED)) {
-            case DETAILED:
+            case DETAILED ->
                 dst
                         .setId(src.getId())
                         .setFactoryId(src.getTwinFactoryId())
                         .setInputTwinClassId(src.getInputTwinClassId())
+                        .setMultiplierFeaturerId(src.getMultiplierFeaturerId())
                         .setMultiplierParams(src.getMultiplierParams())
                         .setDescription(src.getDescription())
                         .setActive(src.getActive());
-                break;
-            case SHORT:
+            case SHORT ->
                 dst
                         .setId(src.getId())
                         .setFactoryId(src.getTwinFactoryId())
                         .setInputTwinClassId(src.getInputTwinClassId());
-                break;
         }
         if (mapperContext.hasModeButNot(FactoryMultiplierFiltersCountMode.HIDE)) {
             twinFactoryService.countFactoryMultiplierFilters(src);

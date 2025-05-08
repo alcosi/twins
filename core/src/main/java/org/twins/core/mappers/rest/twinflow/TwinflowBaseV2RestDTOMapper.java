@@ -27,18 +27,16 @@ public class TwinflowBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
 
     private final TwinflowBaseV1RestDTOMapper twinflowBaseV1RestDTOMapper;
 
-
     @MapperModePointerBinding(modes = UserMode.Twinflow2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
 
     @Override
     public void map(TwinflowEntity src, TwinflowBaseDTOv2 dst, MapperContext mapperContext) throws Exception {
         twinflowBaseV1RestDTOMapper.map(src, dst, mapperContext);
-
         if (mapperContext.hasModeButNot(TwinClassMode.Twinflow2TwinClassMode.HIDE))
             dst
-                    .setTwinClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.Twinflow2TwinClassMode.SHORT))));
-
+                    .setTwinClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.Twinflow2TwinClassMode.SHORT))))
+                    .setTwinClassId(src.getTwinClassId());
         if (mapperContext.hasModeButNot(UserMode.Twinflow2UserMode.HIDE) && src.getCreatedByUserId() != null)
             dst
                     .setCreatedByUser(userRestDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Twinflow2UserMode.SHORT))))

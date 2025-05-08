@@ -2,7 +2,7 @@ package org.twins.core.domain.datalist;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.i18n.dao.I18nEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 
 import java.util.Map;
 
@@ -11,5 +11,6 @@ import java.util.Map;
 public class DataListOptionSave {
     private String icon;
     private I18nEntity nameI18n;
+    private String externalId;
     private Map<String, String> attributes;
 }

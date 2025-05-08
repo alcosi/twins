@@ -9,10 +9,11 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
-import org.cambium.i18n.dao.I18nEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.service.SystemEntityService;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -23,9 +24,16 @@ import java.util.UUID;
 @Table(name = "twin_class_field")
 @FieldNameConstants
 public class TwinClassFieldEntity implements EasyLoggable {
+
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UUID.randomUUID();
+        }
+    }
 
     @Column(name = "twin_class_id")
     private UUID twinClassId;
@@ -52,8 +60,11 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Column(name = "edit_permission_id")
     private UUID editPermissionId;
 
-    @Column(name = "required")
-    private Boolean required;
+    @Column(name = "required", nullable = false)
+    private Boolean required; //not a primitive type because the update logic will break
+
+    @Column(name = "external_id")
+    private String externalId;
 
     @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
@@ -86,5 +97,9 @@ public class TwinClassFieldEntity implements EasyLoggable {
 
     public String easyLog(Level level) {
         return "twinClassField[id:" + id + ", key:" + key + "]";
+    }
+
+    public boolean isBaseField() {
+        return SystemEntityService.isSystemField(id);
     }
 }

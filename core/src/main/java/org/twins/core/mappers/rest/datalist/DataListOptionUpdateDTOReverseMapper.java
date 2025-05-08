@@ -7,6 +7,7 @@ import org.twins.core.dto.rest.datalist.DataListOptionUpdateRqDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
+@Deprecated
 @Component
 @RequiredArgsConstructor
 public class DataListOptionUpdateDTOReverseMapper extends RestSimpleDTOMapper<DataListOptionUpdateRqDTOv1, DataListOptionUpdate> {

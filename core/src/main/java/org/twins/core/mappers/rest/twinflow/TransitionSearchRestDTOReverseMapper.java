@@ -2,16 +2,13 @@ package org.twins.core.mappers.rest.twinflow;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.domain.search.TransitionSearch;
 import org.twins.core.dto.rest.twinflow.TransitionSearchRqDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = TransitionMode.class)
 public class TransitionSearchRestDTOReverseMapper extends RestSimpleDTOMapper<TransitionSearchRqDTOv1, TransitionSearch> {
 
     @Override
@@ -19,20 +16,27 @@ public class TransitionSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Tr
         dst
                 .setIdList(src.getIdList())
                 .setIdExcludeList(src.getIdExcludeList())
-                .setTwinClassIdList(src.twinClassIdList)
-                .setTwinClassIdExcludeList(src.twinClassIdExcludeList)
-                .setTwinflowIdList(src.twinflowIdList)
-                .setTwinflowIdExcludeList(src.twinflowIdExcludeList)
-                .setSrcStatusIdList(src.srcStatusIdList)
-                .setSrcStatusIdExcludeList(src.srcStatusIdExcludeList)
-                .setDstStatusIdList(src.dstStatusIdList)
-                .setDstStatusIdExcludeList(src.dstStatusIdExcludeList)
-                .setAliasLikeList(src.aliasLikeList)
-                .setPermissionIdList(src.permissionIdList)
-                .setPermissionIdExcludeList(src.permissionIdExcludeList)
-                .setInbuiltTwinFactoryIdList(src.inbuiltTwinFactoryIdList)
-                .setInbuiltTwinFactoryIdExcludeList(src.inbuiltTwinFactoryIdExcludeList)
-                .setDraftingTwinFactoryIdList(src.draftingTwinFactoryIdList)
-                .setDraftingTwinFactoryIdExcludeList(src.draftingTwinFactoryIdExcludeList);
+                .setNameLikeList(src.getNameLikeList())
+                .setNameNotLikeList(src.getNameNotLikeList())
+                .setDescriptionLikeList(src.getDescriptionLikeList())
+                .setDescriptionNotLikeList(src.getDescriptionNotLikeList())
+                .setTwinClassIdMap(src.getTwinClassIdMap())
+                .setTwinClassIdExcludeMap(src.getTwinClassIdExcludeMap())
+                .setTwinflowIdList(src.getTwinflowIdList())
+                .setTwinflowIdExcludeList(src.getTwinflowIdExcludeList())
+                .setSrcStatusIdList(src.getSrcStatusIdList())
+                .setSrcStatusIdExcludeList(src.getSrcStatusIdExcludeList())
+                .setDstStatusIdList(src.getDstStatusIdList())
+                .setDstStatusIdExcludeList(src.getDstStatusIdExcludeList())
+                .setAliasLikeList(src.getAliasLikeList())
+                .setPermissionIdList(src.getPermissionIdList())
+                .setPermissionIdExcludeList(src.getPermissionIdExcludeList())
+                .setInbuiltTwinFactoryIdList(src.getInbuiltTwinFactoryIdList())
+                .setInbuiltTwinFactoryIdExcludeList(src.getInbuiltTwinFactoryIdExcludeList())
+                .setDraftingTwinFactoryIdList(src.getDraftingTwinFactoryIdList())
+                .setDraftingTwinFactoryIdExcludeList(src.getDraftingTwinFactoryIdExcludeList())
+                .setTwinflowTransitionTypeList(src.getTwinflowTransitionTypeList())
+                .setTwinflowTransitionTypeExcludeList(src.getTwinflowTransitionTypeExcludeList())
+        ;
     }
 }

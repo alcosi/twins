@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.cambium.i18n.dao.I18nEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 
 import java.util.Arrays;
@@ -59,6 +59,9 @@ public class DataListOptionEntity implements EasyLoggable {
 
     @Column(name = "`order`")
     private Short order;
+
+    @Column(name = "external_id")
+    private String externalId;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "data_list_id", insertable = false, updatable = false)

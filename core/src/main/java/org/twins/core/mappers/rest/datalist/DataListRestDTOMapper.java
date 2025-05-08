@@ -3,7 +3,7 @@ package org.twins.core.mappers.rest.datalist;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.cambium.i18n.service.I18nService;
+import org.twins.core.service.i18n.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.datalist.DataListEntity;
@@ -33,7 +33,8 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
                         .setDescription(i18nService.translateToLocale(src.getDescriptionI18NId()))
                         .setKey(src.getKey())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
-                        .setUpdatedAt(convertOrNull(src.getUpdatedAt()));
+                        .setUpdatedAt(convertOrNull(src.getUpdatedAt()))
+                        .setExternalId(src.getExternalId());
                 if (StringUtils.isNotBlank(src.getAttribute1key()))
                     dst.setAttribute1(dataListAttributeRestDTOMapper.convert(new ImmutablePair<>(src.getAttribute1key(), src.getAttribute1nameI18nId())));
                 if (StringUtils.isNotBlank(src.getAttribute2key()))
@@ -50,7 +51,8 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
                         .setDescription(i18nService.translateToLocale(src.getDescriptionI18NId()))
                         .setKey(src.getKey())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
-                        .setUpdatedAt(convertOrNull(src.getUpdatedAt()));
+                        .setUpdatedAt(convertOrNull(src.getUpdatedAt()))
+                        .setExternalId(src.getExternalId());
             case SHORT ->
                 dst
                         .setId(src.getId())

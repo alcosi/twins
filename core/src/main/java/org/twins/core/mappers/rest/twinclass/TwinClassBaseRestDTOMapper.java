@@ -2,15 +2,15 @@ package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 
@@ -52,7 +52,10 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setTwinClassSchemaSpace(src.isTwinClassSchemaSpace())
                         .setPermissionSchemaSpace(src.isPermissionSchemaSpace())
                         .setAliasSpace(src.isAliasSpace())
-                        .setOwnerType(src.getOwnerType());
+                        .setOwnerType(src.getOwnerType())
+                        .setPageFaceId(src.getPageFaceId())
+                        .setAssigneeRequired(src.getAssigneeRequired())
+                        .setExternalId(src.getExternalId());
                 break;
             case DETAILED:
                 dst
@@ -66,7 +69,9 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setName(i18nService.translateToLocale(src.getNameI18NId()))
                         .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
                         .setLogo(src.getLogo())
-                        .setCreatedAt(src.getCreatedAt().toLocalDateTime());
+                        .setCreatedAt(src.getCreatedAt().toLocalDateTime())
+                        .setPageFaceId(src.getPageFaceId())
+                        .setExternalId(src.getExternalId());
                 break;
             case SHORT:
                 dst

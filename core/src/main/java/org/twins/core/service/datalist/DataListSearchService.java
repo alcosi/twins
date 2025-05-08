@@ -20,8 +20,8 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.cambium.i18n.dao.specifications.I18nSpecification.doubleJoinAndSearchByI18NField;
-import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.doubleJoinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.datalist.DataListSpecification.*;
 
 
@@ -61,7 +61,9 @@ public class DataListSearchService {
                 doubleJoinAndSearchByI18NField(DataListEntity.Fields.dataListOptions, DataListOptionEntity.Fields.optionI18n, search.getOptionSearch() != null ? search.getOptionSearch().getOptionI18nLikeList() : null, apiUser.getLocale(), false, false),
                 doubleJoinAndSearchByI18NField(DataListEntity.Fields.dataListOptions, DataListOptionEntity.Fields.optionI18n, search.getOptionSearch() != null ? search.getOptionSearch().getOptionI18nNotLikeList() : null, apiUser.getLocale(), true, true),
                 checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch() != null ? search.getOptionSearch().getBusinessAccountIdList() : null, false, false),
-                checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch() != null ? search.getOptionSearch().getBusinessAccountIdExcludeList() : null, true, true));
+                checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch() != null ? search.getOptionSearch().getBusinessAccountIdExcludeList() : null, true, true),
+                checkFieldLikeIn(search.getExternalIdLikeList(), false, false, DataListEntity.Fields.externalId),
+                checkFieldLikeIn(search.getExternalIdNotLikeList(), true, false, DataListEntity.Fields.externalId));
     }
 
     private Set<String> safeConvert(Set<DataListOptionEntity.Status> collection) {

@@ -44,12 +44,15 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
     public TwinClassFieldDescriptorDTO convert(FieldDescriptor fieldDescriptor, MapperContext mapperContext) throws Exception {
         if (fieldDescriptor instanceof FieldDescriptorText textDescriptor)
             return new TwinClassFieldDescriptorTextDTOv1()
-                    .regExp(textDescriptor.regExp());
+                    .regExp(textDescriptor.regExp())
+                    .editorType(textDescriptor.editorType());
         else if (fieldDescriptor instanceof FieldDescriptorColorPicker colorDescriptor)
             return new TwinClassFieldDescriptorColorHexDTOv1();
         else if (fieldDescriptor instanceof FieldDescriptorDate dateDescriptor)
             return new TwinClassFieldDescriptorDateScrollDTOv1()
-                    .pattern(dateDescriptor.pattern());
+                    .pattern(dateDescriptor.pattern())
+                    .beforeDate(dateDescriptor.beforeDate())
+                    .afterDate(dateDescriptor.afterDate());
         else if (fieldDescriptor instanceof FieldDescriptorList listDescriptor)
             if (listDescriptor.dataListId() != null) {
                 return new TwinClassFieldDescriptorListLongDTOv1()
@@ -57,7 +60,7 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                         .multiple(listDescriptor.multiple())
                         .dataListId(listDescriptor.dataListId());
             } else {
-                TwinClassFieldDescriptorListDTOv1 listFieldDescriptor =  new TwinClassFieldDescriptorListDTOv1()
+                TwinClassFieldDescriptorListDTOv1 listFieldDescriptor = new TwinClassFieldDescriptorListDTOv1()
                         .supportCustom(listDescriptor.supportCustom())
                         .multiple(listDescriptor.multiple())
                         .options(dataListOptionRestDTOMapper.convertCollectionPostpone(listDescriptor.options(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListOptionMode.TwinClassFieldDescriptor2DataListOptionMode.SHORT))));
@@ -79,20 +82,20 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                 return userFieldDescriptor;
             }
         else if (fieldDescriptor instanceof FieldDescriptorAttachment attachmentDescriptor)
-                return new TwinClassFieldDescriptorAttachmentDTOv1()
-                        .minCount(attachmentDescriptor.minCount())
-                        .maxCount(attachmentDescriptor.maxCount())
-                        .extensions(attachmentDescriptor.extensions())
-                        .fileSizeMbLimit(attachmentDescriptor.fileSizeMbLimit())
-                        .filenameRegExp(attachmentDescriptor.filenameRegExp());
+            return new TwinClassFieldDescriptorAttachmentDTOv1()
+                    .minCount(attachmentDescriptor.minCount())
+                    .maxCount(attachmentDescriptor.maxCount())
+                    .extensions(attachmentDescriptor.extensions())
+                    .fileSizeMbLimit(attachmentDescriptor.fileSizeMbLimit())
+                    .filenameRegExp(attachmentDescriptor.filenameRegExp());
         else if (fieldDescriptor instanceof FieldDescriptorNumeric numericDescriptor)
-                return new TwinClassFieldDescriptorNumericDTOv1()
-                        .min(numericDescriptor.min())
-                        .max(numericDescriptor.max())
-                        .step(numericDescriptor.step())
-                        .thousandSeparator(numericDescriptor.thousandSeparator())
-                        .decimalSeparator(numericDescriptor.decimalSeparator())
-                        .decimalPlaces(numericDescriptor.decimalPlaces());
+            return new TwinClassFieldDescriptorNumericDTOv1()
+                    .min(numericDescriptor.min())
+                    .max(numericDescriptor.max())
+                    .step(numericDescriptor.step())
+                    .thousandSeparator(numericDescriptor.thousandSeparator())
+                    .decimalSeparator(numericDescriptor.decimalSeparator())
+                    .decimalPlaces(numericDescriptor.decimalPlaces());
         else if (fieldDescriptor instanceof FieldDescriptorListShared listSharedDescriptor)
             return new TwinClassFieldDescriptorListSharedInHeadDTOv1()
                     .multiple(listSharedDescriptor.isMultiple());
@@ -108,8 +111,11 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                         .multiple(linkDescriptor.multiple())
                         .dstTwins(twinBaseV2RestDTOMapper.convertCollection(linkDescriptor.dstTwins(),
                                 mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinMode.TwinClassFieldDescriptor2TwinMode.SHORT))
-                                ));
+                        ));
             }
+        else if (fieldDescriptor instanceof FieldDescriptorI18n i18nDescriptor) {
+            return new TwinClassFieldDescriptorI18nDTOv1();
+        }
         return null;
     }
 }
