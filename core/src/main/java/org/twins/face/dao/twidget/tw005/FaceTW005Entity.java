@@ -1,6 +1,5 @@
 package org.twins.face.dao.twidget.tw005;
 
-import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -8,11 +7,9 @@ import lombok.Setter;
 import lombok.ToString;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
-import org.hibernate.annotations.Type;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceTwidget;
 
-import java.util.HashMap;
 import java.util.UUID;
 
 @Getter
@@ -30,9 +27,8 @@ public class FaceTW005Entity implements EasyLoggable, FaceTwidget {
     @Column(name = "glue", nullable = false)
     private boolean glue;
 
-    @Type(PostgreSQLHStoreType.class)
-    @Column(name = "style_attributes", columnDefinition = "hstore")
-    private HashMap<String, String> styleAttributes;
+    @Column(name = "style_classes")
+    private String styleClasses;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
