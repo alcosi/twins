@@ -1,6 +1,7 @@
 package org.twins.face.mappers.rest.twidget.tw005;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.util.StringUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -27,7 +28,7 @@ public class FaceTW005ButtonRestDTOMapper extends RestSimpleDTOMapper<FaceTW005B
                 .setOrder(src.getOrder())
                 .setIcon(resourceService.getResourceUri(src.getIconResource()))
                 .setTransitionId(src.getTransitionId())
-                .setStyleAttributes(src.getStyleAttributes())
+                .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "))
         ;
 
         if (mapperContext.hasModeButNot(FaceTW005Modes.FaceTW005Button2TransitionMode.HIDE)) {

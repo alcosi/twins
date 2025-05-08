@@ -1,6 +1,7 @@
 package org.twins.face.mappers.rest.twidget.tw005;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.util.StringUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.face.TwidgetConfig;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -30,7 +31,7 @@ public class FaceTW005RestDTOMapper extends RestSimpleDTOMapper<TwidgetConfig<Fa
                 dst
                         .setGlue(src.getConfig().isGlue())
                         .setAlignVertical(src.getConfig().isAlignVertical())
-                        .setStyleAttributes(src.getConfig().getStyleAttributes())
+                        .setStyleClasses(StringUtils.splitToSet(src.getConfig().getStyleClasses(), " "))
                         .setButtons(faceTW005ButtonRestDTOMapper.convertCollection(src.getConfig().getButtons(), mapperContext));
             }
         }
