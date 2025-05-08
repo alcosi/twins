@@ -19,8 +19,6 @@ import org.twins.core.service.auth.AuthService;
 import java.util.HashSet;
 
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
-
-
 import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecification.*;
 import static org.twins.core.service.SystemEntityService.getSystemFieldsIds;
 
@@ -40,7 +38,9 @@ public class TwinClassFieldSearchService {
     }
 
     private Specification<TwinClassFieldEntity> createTwinClassFieldSearchSpecification(TwinClassFieldSearch search) throws ServiceException {
-        excludeSystemFields(search);
+        if (search.isExcludeSystemFields()) {
+            excludeSystemFields(search);
+        }
         ApiUser apiUser = authService.getApiUser();
         return Specification.allOf(
                 checkFieldUuid(apiUser.getDomainId(), TwinClassFieldEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),

@@ -61,6 +61,7 @@ public class FaceTW004Service extends FaceTwidgetService<FaceTW004Entity> {
     public List<TwinClassFieldEntity> loadFields(UUID twinClassId, FaceTW004Entity faceTW004Entity) throws ServiceException {
         FieldFinder fieldFinder = featurerService.getFeaturer(faceTW004Entity.getFieldFinderFeaturer(), FieldFinder.class);
         TwinClassFieldSearch twinClassFieldSearch = fieldFinder.createSearch(faceTW004Entity.getFieldFinderParams(), twinClassId);
+        twinClassFieldSearch.setExcludeSystemFields(false);
         return twinClassFieldSearchService.findTwinClassField(twinClassFieldSearch, new SimplePagination().setLimit(250).setOffset(0)).getList();
     }
 }
