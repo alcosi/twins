@@ -6,12 +6,11 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 
-@Deprecated
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "FaceTW004ViewRsV1")
-public class FaceTW004ViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+@Schema(name = "FaceTW004ViewRsV2")
+public class FaceTW004ViewRsDTOv2 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "results - widget details")
-    public FaceTW004DTOv1 widget;
+    public FaceTW004DTOv2 widget;
 }
