@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -42,7 +43,7 @@ public class UserSearchService {
         UUID businessAccountId = authService.getApiUser().getBusinessAccountId();
         Specification<UserEntity> userSpec = createUserSpecification(search, domainId, businessAccountId);
 
-        if (search.getChildTwins() != null && !search.getChildTwins().isEmpty()) {
+        if (CollectionUtils.isNotEmpty(search.getChildTwins())) {
             Specification<UserEntity> twinSpec = search.getChildTwins().stream()
                     .filter(Objects::nonNull)
                     .map(this::createTwinSpecification)
