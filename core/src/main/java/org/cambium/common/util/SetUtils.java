@@ -7,7 +7,7 @@ import java.util.Set;
 
 public class SetUtils {
     public static <T> Set<T> narrowSet(Set<T> mainSet, Set<T> narrowSet) {
-        if (org.apache.commons.collections.CollectionUtils.isEmpty(narrowSet))
+        if (CollectionUtils.isEmpty(narrowSet))
             return mainSet;
         if (CollectionUtils.isEmpty(mainSet)) //it is ok to limit search in this case
             return narrowSet;

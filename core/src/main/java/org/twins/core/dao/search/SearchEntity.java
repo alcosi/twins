@@ -38,6 +38,9 @@ public class SearchEntity implements EasyLoggable {
     @Column(name = "head_twin_search_id")
     private UUID headTwinSearchId;
 
+    @Column(name = "children_twin_search_id")
+    private UUID childrenTwinSearchId;
+
     @OneToMany(fetch = FetchType.EAGER)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

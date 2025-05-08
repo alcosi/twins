@@ -6,17 +6,25 @@ import java.util.Arrays;
 
 @Getter
 public enum SearchField {
-    twinClassId("twinClassId"),
-    twinNameLike("twinNameLike"),
-    headTwinId("headTwinId"),
     twinId("twinId"),
+    twinNameLike("twinNameLike"),
+    twinDescriptionLike("twinDescriptionLike***"),
+    twinClassId("twinClassId"),
+    headTwinId("headTwinId"),
     statusId("statusId"),
     assigneeUserId("assigneeUserId"),
     createdByUserId("createdByUserId"),
     linkId("linkId"),
     tagDataListOptionId("tagDataListOptionId"),
     markerDataListOptionId("markerDataListOptionId"),
-    hierarchyTreeContainsId("hierarchyTreeContainsId");
+    hierarchyTreeContainsId("hierarchyTreeContainsId"),
+    fieldNumeric("fieldNumeric"),
+    fieldDate("fieldDate"),
+    fieldId("fieldId"),
+    fieldText("fieldText"),
+    fieldList("fieldList");
+
+
 
     private final String id;
 

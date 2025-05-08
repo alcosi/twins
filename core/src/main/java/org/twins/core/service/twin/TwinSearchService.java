@@ -160,22 +160,6 @@ public class TwinSearchService {
         return result;
     }
 
-    private List<BasicSearch> getBasicSearchesByAlias(List<SearchEntity> searchEntities, SearchByAlias searchByAlias) throws ServiceException {
-        List<BasicSearch> basicSearches = new ArrayList<>();
-        for (SearchEntity searchEntity : searchEntities) {
-            BasicSearch basicSearch = new BasicSearch();
-            addPredicates(searchEntity.getSearchPredicateList(), searchByAlias.getParams(), basicSearch, searchByAlias.getNarrow());
-            if (searchEntity.getHeadTwinSearchId() != null) {
-                List<SearchPredicateEntity> headSearchPredicates = searchPredicateRepository.findBySearchId(searchEntity.getHeadTwinSearchId());
-                if (CollectionUtils.isNotEmpty(headSearchPredicates) && basicSearch.getHeadSearch() == null)
-                    basicSearch.setHeadSearch(new TwinSearch());
-                addPredicates(headSearchPredicates, searchByAlias.getParams(), basicSearch.getHeadSearch(), searchByAlias.getNarrow());
-            }
-            basicSearches.add(basicSearch);
-        }
-        return basicSearches;
-    }
-
     public Map<String, Long> countTwinsInBatch(Map<String, BasicSearch> searchMap) throws ServiceException {
         Map<String, Long> result = new HashMap<>();
         for (Map.Entry<String, BasicSearch> entry : searchMap.entrySet())
@@ -236,6 +220,28 @@ public class TwinSearchService {
         return findTwins(basicSearches, pagination);
     }
 
+    private List<BasicSearch> getBasicSearchesByAlias(List<SearchEntity> searchEntities, SearchByAlias searchByAlias) throws ServiceException {
+        List<BasicSearch> basicSearches = new ArrayList<>();
+        for (SearchEntity searchEntity : searchEntities) {
+            BasicSearch basicSearch = new BasicSearch();
+            addPredicates(searchEntity.getSearchPredicateList(), searchByAlias.getParams(), basicSearch, searchByAlias.getNarrow());
+            if (searchEntity.getHeadTwinSearchId() != null) {
+                List<SearchPredicateEntity> headSearchPredicates = searchPredicateRepository.findBySearchId(searchEntity.getHeadTwinSearchId());
+                if (CollectionUtils.isNotEmpty(headSearchPredicates) && basicSearch.getHeadSearch() == null)
+                    basicSearch.setHeadSearch(new TwinSearch());
+                addPredicates(headSearchPredicates, searchByAlias.getParams(), basicSearch.getHeadSearch(), searchByAlias.getNarrow().getHeadSearch());
+            }
+            if (searchEntity.getChildrenTwinSearchId() != null) {
+                List<SearchPredicateEntity> childrenSearchPredicates = searchPredicateRepository.findBySearchId(searchEntity.getChildrenTwinSearchId());
+                if (CollectionUtils.isNotEmpty(childrenSearchPredicates) && basicSearch.getChildrenSearch() == null)
+                    basicSearch.setChildrenSearch(new TwinSearch());
+                addPredicates(childrenSearchPredicates, searchByAlias.getParams(), basicSearch.getChildrenSearch(), searchByAlias.getNarrow().getChildrenSearch());
+            }
+            basicSearches.add(basicSearch);
+        }
+        return basicSearches;
+    }
+
     protected void addPredicates(List<SearchPredicateEntity> searchPredicates, Map<String, String> namedParamsMap, TwinSearch mainSearch, TwinSearch narrowSearch) throws ServiceException {
         SearchCriteriaBuilder searchCriteriaBuilder = null;
         for (SearchPredicateEntity mainSearchPredicate : searchPredicates) {
@@ -254,7 +260,14 @@ public class TwinSearchService {
             functioPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
         }
         mainSearch.setTwinNameLikeList(narrowSet(mainSearch.getTwinNameLikeList(), narrowSearch.getTwinNameLikeList()));
+        mainSearch.setTwinNameNotLikeList(narrowSet(mainSearch.getTwinNameNotLikeList(), narrowSearch.getTwinNameNotLikeList()));
+        mainSearch.setTwinDescriptionLikeList(narrowSet(mainSearch.getTwinDescriptionLikeList(), narrowSearch.getTwinDescriptionLikeList()));
+        mainSearch.setTwinDescriptionNotLikeList(narrowSet(mainSearch.getTwinDescriptionNotLikeList(), narrowSearch.getTwinDescriptionNotLikeList()));
+        mainSearch.setTouchList(narrowSet(mainSearch.getTouchList(), narrowSearch.getTouchList()));
+        mainSearch.setTouchExcludeList(narrowSet(mainSearch.getTouchExcludeList(), narrowSearch.getTouchExcludeList()));
         mainSearch.setLinksAnyOfList(narrowMapOfSets(mainSearch.getLinksAnyOfList(), narrowSearch.getLinksAnyOfList()));
         mainSearch.setLinksNoAnyOfList(narrowMapOfSets(mainSearch.getLinksNoAnyOfList(), narrowSearch.getLinksNoAnyOfList()));
+        mainSearch.setLinksAllOfList(narrowMapOfSets(mainSearch.getLinksAllOfList(), narrowSearch.getLinksAllOfList()));
+        mainSearch.setLinksNoAllOfList(narrowMapOfSets(mainSearch.getLinksNoAllOfList(), narrowSearch.getLinksNoAllOfList()));
     }
 }
