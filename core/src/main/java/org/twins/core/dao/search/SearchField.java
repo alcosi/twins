@@ -17,7 +17,12 @@ public enum SearchField {
     linkId("linkId"),
     tagDataListOptionId("tagDataListOptionId"),
     markerDataListOptionId("markerDataListOptionId"),
-    hierarchyTreeContainsId("hierarchyTreeContainsId");
+    hierarchyTreeContainsId("hierarchyTreeContainsId"),
+    fieldNumeric("fieldNumeric"),
+    fieldDate("fieldDate"),
+    fieldId("fieldId"),
+    fieldText("fieldText"),
+    fieldList("fieldList");
 
 
 
