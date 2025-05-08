@@ -24,7 +24,7 @@ public class FaceWT002ButtonDTOv1 {
     @Schema(description = "Icon url. Might be relative")
     public String icon;
 
-    @Schema(description = "button extra style classes")
+    @Schema(description = "widget layout")
     public Set<String> styleClasses;
 
     @Schema(description = "extends hierarchy twin class id")

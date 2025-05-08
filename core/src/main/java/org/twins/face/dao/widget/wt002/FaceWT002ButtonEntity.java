@@ -1,16 +1,13 @@
 package org.twins.face.dao.widget.wt002;
 
-import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
-import java.util.Set;
 import java.util.UUID;
 
 @Getter
@@ -34,9 +31,8 @@ public class FaceWT002ButtonEntity {
     @Column(name = "icon_resource_id")
     private UUID iconResourceId;
 
-    @Type(PostgreSQLHStoreType.class)
     @Column(name = "style_classes")
-    private Set<String> styleClasses;
+    private String styleClasses;
 
     @Column(name = "extends_hierarchy_twin_class_id")
     private UUID extendsHierarchyTwinClassId;

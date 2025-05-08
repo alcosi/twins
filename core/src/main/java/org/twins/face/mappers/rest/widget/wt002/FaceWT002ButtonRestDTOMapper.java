@@ -1,6 +1,7 @@
 package org.twins.face.mappers.rest.widget.wt002;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.util.StringUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -27,7 +28,7 @@ public class FaceWT002ButtonRestDTOMapper extends RestSimpleDTOMapper<FaceWT002B
                 .setKey(src.getKey())
                 .setLabel(i18nService.translateToLocale(src.getLabelI18nId() != null ? src.getLabelI18nId() : src.getExtendsHierarchyTwinClass().getNameI18NId()))
                 .setIcon(resourceService.getResourceUri(src.getIconResource()))
-                .setStyleClasses(src.getStyleClasses())
+                .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "))
                 .setExtendsHierarchyTwinClassId(src.getExtendsHierarchyTwinClassId())
                 .setHierarchyDepth(src.getExtendsHierarchyDepth());
 

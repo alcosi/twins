@@ -17,7 +17,7 @@ public class FaceWT002DTOv1 extends FaceDTOv1 {
     @Schema(description = "uniq key")
     public String key;
 
-    @Schema(description = "button group extra style classes")
+    @Schema(description = "widget layout")
     public Set<String> styleClasses;
 
     @Schema(description = "show given columns from table and filter")
