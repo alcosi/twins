@@ -9,12 +9,11 @@ import org.twins.core.dto.rest.common.BasicUpdateOperationDTOv1;
 
 import java.util.UUID;
 
-@Deprecated
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinClassUpdateRqV1")
-public class TwinClassUpdateRqDTOv1 extends TwinClassSaveRqDTOv1 {
+@Schema(name =  "TwinClassUpdateV1")
+public class TwinClassUpdateDTOv1 extends TwinClassSaveDTOv1 {
     @Schema(description = "[optional] should be filled on change marker data list id")
     public BasicUpdateOperationDTOv1 markerDataListUpdate;
 
