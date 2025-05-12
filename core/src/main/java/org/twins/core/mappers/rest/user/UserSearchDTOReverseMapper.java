@@ -33,7 +33,7 @@ public class UserSearchDTOReverseMapper extends RestSimpleDTOMapper<UserSearchDT
 
         if (src.getChildTwinsCondition() != null) {
             dst.setChildTwinsCondition(new TwinConditionSearch()
-                    .setMatchAll(src.getChildTwinsCondition().getMachAll())
+                    .setMatchAll(src.getChildTwinsCondition().getMatchAll() != null ? src.getChildTwinsCondition().getMatchAll() : true)
                     .setChildTwins(twinSearchDTOReverseMapper.convertCollection(src.getChildTwinsCondition().getChildTwins())));
         }
     }

@@ -11,7 +11,7 @@ import java.util.List;
 @Schema(name = "TwinConditionV1")
 public class TwinConditionDTOv1 {
     @Schema(description = "match all child twins")
-    public Boolean machAll = true;
+    public Boolean matchAll;
 
     @Schema(description = "child twins")
     public List<TwinSearchDTOv1> childTwins;
