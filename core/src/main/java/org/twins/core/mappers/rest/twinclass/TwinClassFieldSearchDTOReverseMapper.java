@@ -28,6 +28,8 @@ public class TwinClassFieldSearchDTOReverseMapper extends RestSimpleDTOMapper<Tw
                 .setViewPermissionIdExcludeList(src.getViewPermissionIdExcludeList())
                 .setEditPermissionIdList(src.getEditPermissionIdList())
                 .setEditPermissionIdExcludeList(src.getEditPermissionIdExcludeList())
-                .setRequired(src.getRequired());
+                .setRequired(src.getRequired())
+                .setExternalIdLikeList(src.getExternalIdLikeList())
+                .setExternalIdNotLikeList(src.getExternalIdNotLikeList());
     }
 }

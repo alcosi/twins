@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 
+@Deprecated
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)

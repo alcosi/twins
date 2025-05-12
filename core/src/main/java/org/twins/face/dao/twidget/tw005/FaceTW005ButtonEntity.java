@@ -41,9 +41,8 @@ public class FaceTW005ButtonEntity implements EasyLoggable {
     @Column(name = "active", nullable = false)
     private boolean active;
 
-    @Type(PostgreSQLHStoreType.class)
-    @Column(name = "style_attributes", columnDefinition = "hstore")
-    private HashMap<String, String> styleAttributes;
+    @Column(name = "style_classes")
+    private String styleClasses;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)

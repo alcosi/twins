@@ -1,11 +1,9 @@
 package org.twins.core.dto.rest.twin;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", visible = true)
 @JsonSubTypes({
@@ -15,15 +13,14 @@ import lombok.Data;
         @JsonSubTypes.Type(value = TwinFieldSearchListDTOv1.class, name = TwinFieldSearchListDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinFieldSearchIdDTOv1.class, name = TwinFieldSearchIdDTOv1.KEY)
 })
-@Schema(description = "One of values", discriminatorProperty = "type", discriminatorMapping = {
+@Schema(additionalProperties = Schema.AdditionalPropertiesValue.FALSE, description = "One of values", discriminatorProperty = "type", discriminatorMapping = {
         @DiscriminatorMapping(value = TwinFieldSearchTextDTOv1.KEY, schema = TwinFieldSearchTextDTOv1.class),
         @DiscriminatorMapping(value = TwinFieldSearchDateDTOv1.KEY, schema = TwinFieldSearchDateDTOv1.class),
         @DiscriminatorMapping(value = TwinFieldSearchNumericDTOv1.KEY, schema = TwinFieldSearchNumericDTOv1.class),
         @DiscriminatorMapping(value = TwinFieldSearchListDTOv1.KEY, schema = TwinFieldSearchListDTOv1.class),
         @DiscriminatorMapping(value = TwinFieldSearchIdDTOv1.KEY, schema = TwinFieldSearchIdDTOv1.class)
 })
-@Data
-public abstract class TwinFieldSearchDTOv1 {
+public interface TwinFieldSearchDTOv1 {
 
     @Schema(description = "discriminator", requiredMode = Schema.RequiredMode.REQUIRED, examples = {
             TwinFieldSearchTextDTOv1.KEY,
@@ -32,6 +29,5 @@ public abstract class TwinFieldSearchDTOv1 {
             TwinFieldSearchListDTOv1.KEY,
             TwinFieldSearchIdDTOv1.KEY
     })
-    @JsonProperty("type")
-    protected String type;
+    public String type();
 }

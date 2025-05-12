@@ -7,6 +7,7 @@ import org.twins.face.dto.rest.twidget.FaceTwidgetDTOv1;
 
 import java.util.UUID;
 
+@Deprecated
 @Data
 @Accessors(chain = true)
 @Schema(name = "FaceTW004v1", description = "Twin single field view/edit twidget")

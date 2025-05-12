@@ -13,28 +13,24 @@ public class LTreeUtils {
         return "*." + firstId + ".*{" + depthBetweenIds.getMinimum() + "," + depthBetweenIds.getMaximum() + "}." + secondId + ".*";
     }
 
-
     public static String findChildsLQuery(Collection<String> ids, Range<Integer> depth) {
-        if (depth == null) depth = Range.of(0, 1);
-        return matchWithDepthRange(String.join("|", ids), null, depth);
+        return matchWithDepthRange(String.join("|", ids), null, adjustDepthRange(depth));
     }
 
     public static String matchWithDepthRange(String id, Range<Integer> depthLeft, Range<Integer> depthRight) {
         if (id == null) return null;
-        String leftPart;
-        if (depthLeft == null) {
-            leftPart = "*.";
-        } else {
-            leftPart = "*{" + depthLeft.getMinimum() + "," + depthLeft.getMaximum() + "}.";
-        }
-        String rightPart;
-        if (depthRight == null) {
-            rightPart = ".*";
-        } else {
-            rightPart = ".*{" + depthRight.getMinimum() + "," + depthRight.getMaximum() + "}";
-        }
+        String leftPart = (depthLeft == null) ? "*." : "*{" + depthLeft.getMinimum() + "," + depthLeft.getMaximum() + "}.";
+        String rightPart = (depthRight == null) ? ".*" : ".*{" + Math.max(1, depthRight.getMinimum()) + "," + depthRight.getMaximum() + "}";
         id = id.replace("-", "_");
         return leftPart + id + rightPart;
+    }
+
+    private static Range<Integer> adjustDepthRange(Range<Integer> depth) {
+        if (depth == null) {
+            return Range.of(1, (int) Short.MAX_VALUE);
+        }
+        int min = Math.max(1, depth.getMinimum());
+        return Range.of(min, depth.getMaximum());
     }
 
     public static String matchInTheMiddle(UUID id) {
@@ -43,5 +39,16 @@ public class LTreeUtils {
 
     public static String convertToLTreeFormat(UUID uuid) {
         return uuid.toString().replace("-", "_");
+    }
+
+    public static String convertToChainLTreeFormat(UUID... uuids) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < uuids.length; i++) {
+            result.append(convertToLTreeFormat(uuids[i]));
+            if (i < uuids.length - 1) {
+                result.append(".");
+            }
+        }
+        return result.toString();
     }
 }

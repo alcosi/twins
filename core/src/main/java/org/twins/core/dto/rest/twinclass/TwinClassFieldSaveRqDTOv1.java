@@ -11,6 +11,7 @@ import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 import java.util.HashMap;
 import java.util.UUID;
 
+@Deprecated
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
@@ -34,6 +35,9 @@ public abstract class TwinClassFieldSaveRqDTOv1 extends Request {
 
     @Schema(description = "Required field", example = "true")
     public Boolean required;
+
+    @Schema(description = "external id", example = "")
+    public String externalId;
 
     @Schema(description = "Field typer featurer ID", example = "1")
     public Integer fieldTyperFeaturerId;

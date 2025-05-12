@@ -8,9 +8,7 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.i18n.I18nLocaleRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.domain.ApiUser;
@@ -18,7 +16,6 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.transition.trigger.messaging.rabbitmq.payloads.RabbitMqMessagePayloadFields;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.rabbit.AmpqManager;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.Properties;
 
@@ -31,11 +28,6 @@ import java.util.Properties;
 public class TransitionTriggerRabbitMqSendFieldsForOperation extends TransitionTriggerRabbitMqConnection {
 
     private final AmpqManager ampqManager;
-
-    private final I18nLocaleRepository i18nLocaleRepository;
-
-    @Autowired
-    private TwinClassFieldService twinClassFieldService;
 
     private final AuthService authService;
 
@@ -51,6 +43,9 @@ public class TransitionTriggerRabbitMqSendFieldsForOperation extends TransitionT
     @FeaturerParam(name = "Fields", description = "Twin class field ids")
     public static final FeaturerParamUUIDSet fields = new FeaturerParamUUIDSet("fields");
 
+    @FeaturerParam(name = "Excluded info fields", description = "Twin class field ids excluded from summary twin info concat")
+    public static final FeaturerParamUUIDSet excludeInfoFields = new FeaturerParamUUIDSet("excludeInfoFields");
+
     @Override
     public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -62,7 +57,8 @@ public class TransitionTriggerRabbitMqSendFieldsForOperation extends TransitionT
                 apiUser.getBusinessAccountId(),
                 apiUser.getDomainId(),
                 operation.extract(properties),
-                fields.extract(properties)
+                fields.extract(properties),
+                excludeInfoFields.extract(properties)
         );
 
         ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(

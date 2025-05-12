@@ -5,9 +5,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.Request;
 
 import java.util.UUID;
 
+@Deprecated
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)

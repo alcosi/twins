@@ -63,6 +63,8 @@ public class TwinClassSearchService {
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinClassSearch.getNameI18nNotLikeList(), locale, true, true))
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinClassSearch.getDescriptionI18nLikeList(), locale, false, false))
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinClassSearch.getDescriptionI18nNotLikeList(), locale, true, true))
+                        .and(checkFieldLikeIn(twinClassSearch.getExternalIdLikeList(), false, false, TwinClassEntity.Fields.externalId))
+                        .and(checkFieldLikeIn(twinClassSearch.getExternalIdNotLikeList(), true, false, TwinClassEntity.Fields.externalId))
 
                         .and(checkHeadTwinClassChilds(headHierarchyChildsForTwinClassSearch.getIdList(), false, false, headHierarchyChildsForTwinClassSearch.getDepth()))
                         .and(checkHeadTwinClassChilds(headHierarchyChildsForTwinClassSearch.getIdExcludeList(), true, true, headHierarchyChildsForTwinClassSearch.getDepth()))

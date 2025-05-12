@@ -34,4 +34,5 @@ public class TwinClassUpdate {
     private EntityRelinkOperation tagDataListUpdate;
     private EntityRelinkOperation extendsTwinClassUpdate;
     private EntityRelinkOperation headTwinClassUpdate;
+    private String externalId;
 }

@@ -20,4 +20,6 @@ public class DataListSearch {
     private Set<String> keyLikeList;
     private Set<String> keyNotLikeList;
     private DataListOptionSearch optionSearch;
+    private Set<String> externalIdLikeList;
+    private Set<String> externalIdNotLikeList;
 }

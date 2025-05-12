@@ -48,4 +48,7 @@ public class DataListDTOv1 {
 
     @Schema(description = "attribute5")
     public DataListAttributeDTOv1 attribute5;
+
+    @Schema(description = "external id")
+    public String externalId;
 }

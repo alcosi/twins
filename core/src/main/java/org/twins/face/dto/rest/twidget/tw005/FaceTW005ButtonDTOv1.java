@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -26,6 +27,6 @@ public class FaceTW005ButtonDTOv1 {
     @Schema(description = "Icon url. Might be relative")
     public String icon;
 
-    @Schema(description = "button extra style attributes")
-    public Map<String, String> styleAttributes;
+    @Schema(description = "styles, converted to css classes")
+    public Set<String> styleClasses;
 }

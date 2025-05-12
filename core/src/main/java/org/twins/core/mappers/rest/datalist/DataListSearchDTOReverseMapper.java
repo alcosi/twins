@@ -24,6 +24,8 @@ public class DataListSearchDTOReverseMapper extends RestSimpleDTOMapper<DataList
                 .setDescriptionNotLikeList(src.getDescriptionNotLikeList())
                 .setKeyLikeList(src.getKeyLikeList())
                 .setKeyNotLikeList(src.getKeyNotLikeList())
+                .setExternalIdLikeList(src.getExternalIdLikeList())
+                .setExternalIdNotLikeList(src.getExternalIdNotLikeList())
                 .setOptionSearch(dataListOptionSearchDTOReverseMapper.convert(src.getOptionSearch(), mapperContext));
     }
 }

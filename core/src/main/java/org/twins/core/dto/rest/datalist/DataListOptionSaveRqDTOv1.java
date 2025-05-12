@@ -9,6 +9,7 @@ import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.Map;
 
+@Deprecated
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
@@ -22,4 +23,7 @@ public class DataListOptionSaveRqDTOv1 extends Request {
 
     @Schema(description = "attributes map")
     public Map<String, String> attributesMap;
+
+    @Schema(description = "external id")
+    private String externalId;
 }

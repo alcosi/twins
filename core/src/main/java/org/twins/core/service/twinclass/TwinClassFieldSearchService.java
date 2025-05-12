@@ -16,13 +16,8 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.HashSet;
-
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
-
-
 import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecification.*;
-import static org.twins.core.service.SystemEntityService.getSystemFieldsIds;
 
 
 @Slf4j
@@ -40,10 +35,9 @@ public class TwinClassFieldSearchService {
     }
 
     private Specification<TwinClassFieldEntity> createTwinClassFieldSearchSpecification(TwinClassFieldSearch search) throws ServiceException {
-        excludeSystemFields(search);
         ApiUser apiUser = authService.getApiUser();
         return Specification.allOf(
-                checkFieldUuid(apiUser.getDomainId(), TwinClassFieldEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                checkUuid(apiUser.getDomainId(), false, !search.isExcludeSystemFields(), TwinClassFieldEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinClassFieldEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinClassFieldEntity.Fields.id),
                 checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdMap()), false, false, TwinClassFieldEntity.Fields.twinClassId),
@@ -60,15 +54,9 @@ public class TwinClassFieldSearchService {
                 checkUuidIn(search.getViewPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.viewPermissionId),
                 checkUuidIn(search.getViewPermissionIdList(), false, false, TwinClassFieldEntity.Fields.editPermissionId),
                 checkUuidIn(search.getViewPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.editPermissionId),
-                checkTernary(search.getRequired()));
-    }
-
-    private void excludeSystemFields(TwinClassFieldSearch search) {
-        if (search.getIdExcludeList() == null) {
-            search.setIdExcludeList(new HashSet<>(getSystemFieldsIds()));
-        } else {
-            search.getIdExcludeList().addAll(getSystemFieldsIds());
-        }
+                checkTernary(search.getRequired()),
+                checkFieldLikeIn(search.getExternalIdLikeList(), false, true, TwinClassFieldEntity.Fields.externalId),
+                checkFieldLikeIn(search.getExternalIdNotLikeList(), true, true, TwinClassFieldEntity.Fields.externalId));
     }
 
 }

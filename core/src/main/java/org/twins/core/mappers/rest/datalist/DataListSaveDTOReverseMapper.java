@@ -24,6 +24,7 @@ public class DataListSaveDTOReverseMapper extends RestSimpleDTOMapper<DataListSa
                 .setAttribute1(dataListAttributeRestDTOReverseMapper.convert(src.getAttribute1()))
                 .setAttribute2(dataListAttributeRestDTOReverseMapper.convert(src.getAttribute2()))
                 .setAttribute3(dataListAttributeRestDTOReverseMapper.convert(src.getAttribute3()))
-                .setAttribute4(dataListAttributeRestDTOReverseMapper.convert(src.getAttribute4()));
+                .setAttribute4(dataListAttributeRestDTOReverseMapper.convert(src.getAttribute4()))
+                .setExternalId(src.getExternalId());
     }
 }
