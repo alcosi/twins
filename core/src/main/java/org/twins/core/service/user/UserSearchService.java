@@ -36,18 +36,21 @@ public class UserSearchService {
     private final AuthService authService;
     private final UserRepository userRepository;
     private final TwinSearchService twinSearchService;
-    private final TwinSearchDTOReverseMapper twinSearchDTOReverseMapper;
 
     public PaginationResult<UserEntity> findUsers(UserSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         UUID businessAccountId = authService.getApiUser().getBusinessAccountId();
         Specification<UserEntity> userSpec = createUserSpecification(search, domainId, businessAccountId);
 
-        if (CollectionUtils.isNotEmpty(search.getChildTwins())) {
-            Specification<UserEntity> twinSpec = search.getChildTwins().stream()
+        if (search.getChildTwinsCondition() != null && CollectionUtils.isNotEmpty(search.getChildTwinsCondition().getChildTwins())) {
+            Specification<UserEntity> twinSpec = search.getChildTwinsCondition().getChildTwins().stream()
                     .filter(Objects::nonNull)
                     .map(this::createTwinSpecification)
-                    .reduce(Specification::and)
+                    .reduce((spec1, spec2) ->
+                            search.getChildTwinsCondition().getMatchAll()
+                                    ? spec1.and(spec2)
+                                    : spec1.or(spec2)
+                    )
                     .orElse(null);
 
             if (twinSpec != null) {
@@ -61,7 +64,7 @@ public class UserSearchService {
         return PaginationUtils.convertInPaginationResult(page, pagination);
     }
 
-    private Specification<UserEntity> createTwinSpecification(TwinSearchDTOv1 childSearch) {
+    private Specification<UserEntity> createTwinSpecification(BasicSearch childSearch) {
         return (userRoot, query, cb) -> {
             if (query == null) {
                 log.error("Null parameters in twin specification");
@@ -71,14 +74,12 @@ public class UserSearchService {
             try {
                 Expression<UUID> userIdPath = userRoot.get(UserEntity.Fields.id);
 
-                BasicSearch childTwinsSearch = twinSearchDTOReverseMapper.convert(childSearch);
-
                 Subquery<Long> countSubquery = query.subquery(Long.class);
                 Root<TwinEntity> twinRoot = countSubquery.from(TwinEntity.class);
 
                 Predicate parentCondition = cb.equal(twinRoot.get(TwinEntity.Fields.headTwinId), userIdPath);
                 Predicate searchConditions = twinSearchService
-                        .createTwinEntitySearchSpecification(childTwinsSearch)
+                        .createTwinEntitySearchSpecification(childSearch)
                         .toPredicate(twinRoot, query, cb);
 
                 countSubquery.select(cb.count(twinRoot))

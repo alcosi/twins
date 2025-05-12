@@ -22,5 +22,5 @@ public class UserSearch {
     private Set<UserStatus> statusIdExcludeList;
     private List<SpaceSearch> spaceList;
     private List<SpaceSearch> spaceExcludeList;
-    private List<TwinSearchDTOv1> childTwins;
+    private TwinConditionSearch childTwinsCondition;
 }
