@@ -47,6 +47,12 @@ public class TwinClassFieldSearchRqDTOv1 extends Request {
     @Schema(description = "description i18n not like list")
     public Set<String> descriptionI18nNotLikeList;
 
+    @Schema(description = "external id like list")
+    public Set<String> externalIdLikeList;
+
+    @Schema(description = "external id not like list")
+    public Set<String> externalIdNotLikeList;
+
     @Schema(description = "field typer id list")
     public Set<Integer> fieldTyperIdList;
 

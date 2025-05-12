@@ -7,6 +7,7 @@ import org.twins.face.dto.rest.twidget.FaceTwidgetDTOv1;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -22,8 +23,8 @@ public class FaceTW005DTOv1 extends FaceTwidgetDTOv1 {
     @Schema(description = "searchId")
     public UUID searchId;
 
-    @Schema(description = "button group extra style attributes")
-    public Map<String, String> styleAttributes;
+    @Schema(description = "styles, converted to css classes")
+    public Set<String> styleClasses;
 
     @Schema(description = "show given columns from table and filter")
     public List<FaceTW005ButtonDTOv1> buttons;

@@ -98,8 +98,8 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         ApiUser apiUser = authService.getApiUser();
         factory
                 .setDomainId(apiUser.getDomainId())
-                .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, nameI18n).getId())
-                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n).getId())
+                .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_FACTORY_NAME, nameI18n).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_FACTORY_DESCRIPTION, descriptionI18n).getId())
                 .setCreatedByUserId(apiUser.getUserId())
                 .setCreatedByUser(apiUser.getUser())
                 .setCreatedAt(Timestamp.from(Instant.now()));

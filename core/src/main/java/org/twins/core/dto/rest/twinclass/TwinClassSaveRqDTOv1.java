@@ -67,4 +67,7 @@ public class TwinClassSaveRqDTOv1 extends Request {
 
     @Schema(description = "[optional] is assignee required")
     public Boolean assigneeRequired;
+
+    @Schema(description = "[optional] external id")
+    public String externalId;
 }

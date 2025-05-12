@@ -67,6 +67,9 @@ public class DataListEntity implements EasyLoggable {
     @Column(name = "attribute_4_name_i18n_id")
     private UUID attribute4nameI18nId;
 
+    @Column(name = "external_id")
+    private String externalId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude

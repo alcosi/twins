@@ -10,5 +10,6 @@ public record RabbitMqMessagePayloadFields(
     UUID businessAccountId,
     UUID domainId,
     String operation,
-    Set<UUID> fields
+    Set<UUID> fields,
+    Set<UUID> excludeInfoFields
 ) {}

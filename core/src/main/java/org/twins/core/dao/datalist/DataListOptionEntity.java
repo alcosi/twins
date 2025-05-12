@@ -60,6 +60,9 @@ public class DataListOptionEntity implements EasyLoggable {
     @Column(name = "`order`")
     private Short order;
 
+    @Column(name = "external_id")
+    private String externalId;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "data_list_id", insertable = false, updatable = false)
     private DataListEntity dataList;

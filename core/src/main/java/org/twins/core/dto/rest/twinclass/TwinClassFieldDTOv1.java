@@ -51,4 +51,7 @@ public class TwinClassFieldDTOv1 {
     @Schema(description = "edit permission id", example = "")
     public UUID editPermissionId;
 
+    @Schema(description = "external id", example = "")
+    public String externalId;
+
 }

@@ -33,4 +33,7 @@ public class DataListSaveRqDTOv1 extends Request {
 
     @Schema(description = "attribute4")
     public DataListAttributeSaveDTOv1 attribute4;
+
+    @Schema(description = "external id")
+    public String externalId;
 }

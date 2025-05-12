@@ -11,5 +11,6 @@ import java.util.Map;
 public class DataListOptionSave {
     private String icon;
     private I18nEntity nameI18n;
+    private String externalId;
     private Map<String, String> attributes;
 }
