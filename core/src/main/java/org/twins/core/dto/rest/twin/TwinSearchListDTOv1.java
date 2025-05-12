@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "TwinConditionV1")
+@Schema(name = "TwinSearchListV1")
 public class TwinSearchListDTOv1 {
     @Schema(description = "match all child twins")
     public Boolean matchAll;
