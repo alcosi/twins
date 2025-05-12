@@ -6,11 +6,10 @@ import lombok.experimental.Accessors;
 
 import java.util.Set;
 
-import static org.twins.core.dto.rest.twin.TwinFieldSearchTextDTOv1.KEY;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name = KEY)
+@Schema(name = TwinFieldSearchTextDTOv1.KEY)
 public class TwinFieldSearchTextDTOv1 implements TwinFieldSearchDTOv1 {
     public static final String KEY = "TwinFieldSearchTextV1";
     public String type = KEY;

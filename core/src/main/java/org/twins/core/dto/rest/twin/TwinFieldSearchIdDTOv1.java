@@ -7,11 +7,9 @@ import lombok.experimental.Accessors;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.twins.core.dto.rest.twin.TwinFieldSearchIdDTOv1.KEY;
-
 @Data
 @Accessors(fluent = true)
-@Schema(name = KEY)
+@Schema(name = TwinFieldSearchIdDTOv1.KEY)
 public class TwinFieldSearchIdDTOv1 implements TwinFieldSearchDTOv1 {
     public static final String KEY = "TwinFieldSearchIdV1";
     public String type = KEY;

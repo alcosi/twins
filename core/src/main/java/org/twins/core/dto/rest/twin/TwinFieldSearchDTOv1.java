@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
         @JsonSubTypes.Type(value = TwinFieldSearchListDTOv1.class, name = TwinFieldSearchListDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinFieldSearchIdDTOv1.class, name = TwinFieldSearchIdDTOv1.KEY)
 })
-@Schema(description = "One of values", discriminatorProperty = "type", discriminatorMapping = {
+@Schema(additionalProperties = Schema.AdditionalPropertiesValue.FALSE, description = "One of values", discriminatorProperty = "type", discriminatorMapping = {
         @DiscriminatorMapping(value = TwinFieldSearchTextDTOv1.KEY, schema = TwinFieldSearchTextDTOv1.class),
         @DiscriminatorMapping(value = TwinFieldSearchDateDTOv1.KEY, schema = TwinFieldSearchDateDTOv1.class),
         @DiscriminatorMapping(value = TwinFieldSearchNumericDTOv1.KEY, schema = TwinFieldSearchNumericDTOv1.class),
