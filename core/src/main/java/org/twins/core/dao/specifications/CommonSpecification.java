@@ -33,7 +33,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      * @param ids               A collection of UUIDs representing the hierarchy roots to validate against.
      * @param not               A flag indicating whether to negate the result of the condition.
      * @param includeNullValues A flag indicating whether null values should be included in the results.
-     * @param depthLimit        The maximum depth of the hierarchy to consider for the query. If null, defaults to 1.
+     * @param depthLimit        The maximum depth of the hierarchy to consider for the query. If null, defaults to unlimit.
      * @param ltreeFieldPath    The path to the ltree field in the entity. Can be one or more strings representing a nested field path.
      * @return A Specification object that can be used in a JPA Criteria query to apply the hierarchy child check based on the given parameters.
      */
@@ -43,8 +43,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return (root, query, cb) -> {
             if (org.cambium.common.util.CollectionUtils.isEmpty(ids))
                 return cb.conjunction();
-            var preparedDepthLimit = depthLimit == 0 ? null : depthLimit;
-            var preparedIds = LTreeUtils.findChildsLQuery(ids.stream().map(UUID::toString).collect(Collectors.toList()), Range.of(1, preparedDepthLimit));
+            var range = (depthLimit == null || depthLimit <= 0) ? null : Range.of(1, depthLimit);
+            var preparedIds = LTreeUtils.findChildsLQuery(ids.stream().map(UUID::toString).collect(Collectors.toList()), range);
             Path<String> ltreePath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, ltreeFieldPath);
             Predicate idPredicate;
             var ltreeIsInFunction = cb.function("hierarchy_check_lquery", Boolean.class, ltreePath, cb.literal(preparedIds));
@@ -79,7 +79,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(ids))
                 return cb.conjunction();
-            var preparedDepthLimit = depthLimit == 0 ? null : depthLimit;
+            var preparedDepthLimit = depthLimit == null || depthLimit <= 0 ? (int) Short.MAX_VALUE : depthLimit;
             Path<UUID> classIdPath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, concatArray(ltreeRootPath, ltreeRootIdFiled));
             Subquery<UUID> subquery = query.subquery(UUID.class);
             var subqueryRoot = subquery.from(ltreeRootClass);
