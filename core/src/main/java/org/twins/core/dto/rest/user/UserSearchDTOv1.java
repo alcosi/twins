@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.user.UserStatus;
-import org.twins.core.dto.rest.twin.TwinConditionDTOv1;
+import org.twins.core.dto.rest.twin.TwinSearchListDTOv1;
 
 import java.util.List;
 import java.util.Set;
@@ -40,6 +40,6 @@ public class UserSearchDTOv1 {
     @Schema(description = "space exclude list")
     public List<SpaceSearchDTOv1> spaceExcludeList;
 
-    @Schema(description = "child twins condition")
-    public TwinConditionDTOv1 childTwinsCondition;
+    @Schema(description = "child twins searches")
+    public TwinSearchListDTOv1 childTwinSearches;
 }

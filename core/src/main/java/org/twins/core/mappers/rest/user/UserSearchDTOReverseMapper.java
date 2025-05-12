@@ -3,7 +3,7 @@ package org.twins.core.mappers.rest.user;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.SpaceSearch;
-import org.twins.core.domain.search.TwinConditionSearch;
+import org.twins.core.domain.search.BasicSearchList;
 import org.twins.core.domain.search.UserSearch;
 import org.twins.core.dto.rest.user.SpaceSearchDTOv1;
 import org.twins.core.dto.rest.user.UserSearchDTOv1;
@@ -31,10 +31,10 @@ public class UserSearchDTOReverseMapper extends RestSimpleDTOMapper<UserSearchDT
                 .setSpaceList(mapSpaceList(src.getSpaceList()))
                 .setSpaceExcludeList(mapSpaceList(src.getSpaceExcludeList()));
 
-        if (src.getChildTwinsCondition() != null) {
-            dst.setChildTwinsCondition(new TwinConditionSearch()
-                    .setMatchAll(src.getChildTwinsCondition().getMatchAll() != null ? src.getChildTwinsCondition().getMatchAll() : true)
-                    .setChildTwins(twinSearchDTOReverseMapper.convertCollection(src.getChildTwinsCondition().getChildTwins())));
+        if (src.getChildTwinSearches() != null) {
+            dst.setChildTwinSearches(new BasicSearchList()
+                    .setMatchAll(src.getChildTwinSearches().getMatchAll() != null ? src.getChildTwinSearches().getMatchAll() : false)
+                    .setSearches(twinSearchDTOReverseMapper.convertCollection(src.getChildTwinSearches().getSearches())));
         }
     }
 

@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 @Accessors(chain = true)
-public class TwinConditionSearch {
-    private Boolean matchAll;
-    private List<BasicSearch> childTwins;
+public class BasicSearchList {
+    private boolean matchAll = false;
+    private List<BasicSearch> searches;
 }

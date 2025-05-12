@@ -19,8 +19,6 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.UserSearch;
-import org.twins.core.dto.rest.twin.TwinSearchDTOv1;
-import org.twins.core.mappers.rest.twin.TwinSearchDTOReverseMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinSearchService;
 
@@ -42,12 +40,12 @@ public class UserSearchService {
         UUID businessAccountId = authService.getApiUser().getBusinessAccountId();
         Specification<UserEntity> userSpec = createUserSpecification(search, domainId, businessAccountId);
 
-        if (search.getChildTwinsCondition() != null && CollectionUtils.isNotEmpty(search.getChildTwinsCondition().getChildTwins())) {
-            Specification<UserEntity> twinSpec = search.getChildTwinsCondition().getChildTwins().stream()
+        if (search.getChildTwinSearches() != null && CollectionUtils.isNotEmpty(search.getChildTwinSearches().getSearches())) {
+            Specification<UserEntity> twinSpec = search.getChildTwinSearches().getSearches().stream()
                     .filter(Objects::nonNull)
                     .map(this::createTwinSpecification)
                     .reduce((spec1, spec2) ->
-                            search.getChildTwinsCondition().getMatchAll()
+                            search.getChildTwinSearches().isMatchAll()
                                     ? spec1.and(spec2)
                                     : spec1.or(spec2)
                     )
