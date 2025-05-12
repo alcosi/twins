@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -23,6 +24,7 @@ import org.twins.core.mappers.rest.twin.TwinSearchDTOReverseMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinSearchService;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.twins.core.dao.user.UserSpecification.*;
@@ -34,24 +36,35 @@ public class UserSearchService {
     private final AuthService authService;
     private final UserRepository userRepository;
     private final TwinSearchService twinSearchService;
-    private final TwinSearchDTOReverseMapper twinSearchDTOReverseMapper;
 
     public PaginationResult<UserEntity> findUsers(UserSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         UUID businessAccountId = authService.getApiUser().getBusinessAccountId();
         Specification<UserEntity> userSpec = createUserSpecification(search, domainId, businessAccountId);
 
-        if (search.getChildTwins() != null) {
-            Specification<UserEntity> combinedSpec = userSpec.and(createTwinSpecification(search.getChildTwins()));
-            Page<UserEntity> page = userRepository.findAll(combinedSpec, PaginationUtils.pageableOffset(pagination));
-            return PaginationUtils.convertInPaginationResult(page, pagination);
+        if (search.getChildTwinsCondition() != null && CollectionUtils.isNotEmpty(search.getChildTwinsCondition().getChildTwins())) {
+            Specification<UserEntity> twinSpec = search.getChildTwinsCondition().getChildTwins().stream()
+                    .filter(Objects::nonNull)
+                    .map(this::createTwinSpecification)
+                    .reduce((spec1, spec2) ->
+                            search.getChildTwinsCondition().getMatchAll()
+                                    ? spec1.and(spec2)
+                                    : spec1.or(spec2)
+                    )
+                    .orElse(null);
+
+            if (twinSpec != null) {
+                Specification<UserEntity> combinedSpec = userSpec.and(twinSpec);
+                Page<UserEntity> page = userRepository.findAll(combinedSpec, PaginationUtils.pageableOffset(pagination));
+                return PaginationUtils.convertInPaginationResult(page, pagination);
+            }
         }
 
         Page<UserEntity> page = userRepository.findAll(userSpec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(page, pagination);
     }
 
-    private Specification<UserEntity> createTwinSpecification(TwinSearchDTOv1 childSearch) {
+    private Specification<UserEntity> createTwinSpecification(BasicSearch childSearch) {
         return (userRoot, query, cb) -> {
             if (query == null) {
                 log.error("Null parameters in twin specification");
@@ -61,14 +74,12 @@ public class UserSearchService {
             try {
                 Expression<UUID> userIdPath = userRoot.get(UserEntity.Fields.id);
 
-                BasicSearch childTwinsSearch = twinSearchDTOReverseMapper.convert(childSearch);
-
                 Subquery<Long> countSubquery = query.subquery(Long.class);
                 Root<TwinEntity> twinRoot = countSubquery.from(TwinEntity.class);
 
                 Predicate parentCondition = cb.equal(twinRoot.get(TwinEntity.Fields.headTwinId), userIdPath);
                 Predicate searchConditions = twinSearchService
-                        .createTwinEntitySearchSpecification(childTwinsSearch)
+                        .createTwinEntitySearchSpecification(childSearch)
                         .toPredicate(twinRoot, query, cb);
 
                 countSubquery.select(cb.count(twinRoot))
