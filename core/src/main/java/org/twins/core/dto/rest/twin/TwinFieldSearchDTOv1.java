@@ -1,11 +1,9 @@
 package org.twins.core.dto.rest.twin;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type", visible = true)
 @JsonSubTypes({
@@ -22,8 +20,7 @@ import lombok.Data;
         @DiscriminatorMapping(value = TwinFieldSearchListDTOv1.KEY, schema = TwinFieldSearchListDTOv1.class),
         @DiscriminatorMapping(value = TwinFieldSearchIdDTOv1.KEY, schema = TwinFieldSearchIdDTOv1.class)
 })
-@Data
-public abstract class TwinFieldSearchDTOv1 {
+public interface TwinFieldSearchDTOv1 {
 
     @Schema(description = "discriminator", requiredMode = Schema.RequiredMode.REQUIRED, examples = {
             TwinFieldSearchTextDTOv1.KEY,
@@ -32,6 +29,5 @@ public abstract class TwinFieldSearchDTOv1 {
             TwinFieldSearchListDTOv1.KEY,
             TwinFieldSearchIdDTOv1.KEY
     })
-    @JsonProperty("type")
-    protected String type;
+    public String type();
 }
