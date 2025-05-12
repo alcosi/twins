@@ -29,10 +29,13 @@ public class UserSearchDTOReverseMapper extends RestSimpleDTOMapper<UserSearchDT
                 .setStatusIdList(src.getStatusIdList())
                 .setStatusIdExcludeList(src.getStatusIdExcludeList())
                 .setSpaceList(mapSpaceList(src.getSpaceList()))
-                .setSpaceExcludeList(mapSpaceList(src.getSpaceExcludeList()))
-                .setChildTwinsCondition(new TwinConditionSearch()
-                        .setMatchAll(src.getChildTwinsCondition().getMachAll())
-                        .setChildTwins(twinSearchDTOReverseMapper.convertCollection(src.getChildTwinsCondition().getChildTwins())));
+                .setSpaceExcludeList(mapSpaceList(src.getSpaceExcludeList()));
+
+        if (src.getChildTwinsCondition() != null) {
+            dst.setChildTwinsCondition(new TwinConditionSearch()
+                    .setMatchAll(src.getChildTwinsCondition().getMachAll())
+                    .setChildTwins(twinSearchDTOReverseMapper.convertCollection(src.getChildTwinsCondition().getChildTwins())));
+        }
     }
 
     private List<SpaceSearch> mapSpaceList(List<SpaceSearchDTOv1> spaceDTOs) {
