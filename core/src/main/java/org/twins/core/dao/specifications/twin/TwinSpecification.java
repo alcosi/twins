@@ -65,6 +65,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
 
     public static Specification<TwinEntity> checkFieldNumeric(final TwinFieldSearchNumeric search) throws ServiceException {
         return (root, query, cb) -> {
+            if(search.isEmptySearch()) return cb.conjunction();
             Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
             twinFieldSimpleJoin.on(cb.equal(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
             // convert string to double in DB for math compare
@@ -101,6 +102,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
 
     public static Specification<TwinEntity> checkFieldDate(final TwinFieldSearchDate search, final String... fieldPath) {
         return (root, query, cb) -> {
+            if(search.isEmptySearch()) return cb.conjunction();
             List<Predicate> predicates = new ArrayList<>();
             Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
             twinFieldSimpleJoin.on(cb.equal(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
@@ -164,7 +166,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
 
     public static Specification<TwinEntity> checkFieldText(final TwinFieldSearchText search, final String... fieldPath) {
         return (root, query, cb) -> {
-
+            if(search.isEmptySearch()) return cb.conjunction();
             Path<String> fieldExpression;
             if (fieldPath.length > 0 && TwinEntity.Fields.fieldsSimple.equals(fieldPath[0])) {
                 Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(fieldPath[0], JoinType.INNER);
@@ -222,6 +224,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
     //TODO    Need a load test to compare subquery execution speed with join
     public static Specification<TwinEntity> checkFieldList(final TwinFieldSearchList search) {
         return (root, query, cb) -> {
+            if(search.isEmptySearch()) return cb.conjunction();
             Join<TwinEntity, TwinFieldDataListEntity> twinFieldListJoin = root.join(TwinEntity.Fields.fieldsList, JoinType.INNER);
             twinFieldListJoin.on(cb.equal(twinFieldListJoin.get(TwinFieldDataListEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
 

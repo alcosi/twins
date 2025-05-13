@@ -8,11 +8,11 @@ import java.util.List;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "TwinConditionV1")
-public class TwinConditionDTOv1 {
+@Schema(name = "TwinSearchListV1")
+public class TwinSearchListDTOv1 {
     @Schema(description = "match all child twins")
     public Boolean matchAll;
 
-    @Schema(description = "child twins")
-    public List<TwinSearchDTOv1> childTwins;
+    @Schema(description = "twin searches")
+    public List<TwinSearchDTOv1> searches;
 }

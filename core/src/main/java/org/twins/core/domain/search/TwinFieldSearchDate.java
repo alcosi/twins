@@ -2,6 +2,7 @@ package org.twins.core.domain.search;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.apache.commons.lang3.ObjectUtils;
 
 import java.time.LocalDateTime;
 
@@ -13,5 +14,11 @@ public class TwinFieldSearchDate extends TwinFieldSearch {
     LocalDateTime moreThen;
     LocalDateTime equals;
     boolean empty;
+
+    public boolean isEmptySearch() {
+        return ObjectUtils.isEmpty(lessThen) &&
+                ObjectUtils.isEmpty(moreThen) &&
+                ObjectUtils.isEmpty(equals);
+    }
 
 }

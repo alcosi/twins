@@ -12,4 +12,6 @@ public abstract class TwinFieldSearch {
     private TwinClassFieldEntity twinClassFieldEntity;
     private FieldTyper<?, ?, ?, TwinFieldSearch> fieldTyper;
 
+    abstract boolean isEmptySearch();
+
 }
