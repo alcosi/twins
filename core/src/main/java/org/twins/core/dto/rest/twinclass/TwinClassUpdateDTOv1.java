@@ -26,6 +26,6 @@ public class TwinClassUpdateDTOv1 extends TwinClassSaveDTOv1 {
     @Schema(description = "[optional] should be filled on change extends twins class id")
     public BasicUpdateOperationDTOv1 headTwinClassUpdate;
 
-    @JsonIgnore
+    @Schema(description = "twin class id")
     public UUID twinClassId;
 }

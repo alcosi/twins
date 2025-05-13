@@ -3,6 +3,7 @@ package org.twins.core.service.twinclass;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.cambium.common.CacheEvictCollector;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
@@ -190,12 +191,12 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         TwinClassEntity duplicateTwinClassEntity = new TwinClassEntity()
                 .setKey(newKey)
                 .setCreatedByUserId(apiUser.getUser().getId())
-                .setPermissionSchemaSpace(srcTwinClassEntity.isPermissionSchemaSpace())
-                .setTwinflowSchemaSpace(srcTwinClassEntity.isTwinflowSchemaSpace())
-                .setTwinClassSchemaSpace(srcTwinClassEntity.isTwinClassSchemaSpace())
-                .setAliasSpace(srcTwinClassEntity.isAliasSpace())
+                .setPermissionSchemaSpace(srcTwinClassEntity.getPermissionSchemaSpace())
+                .setTwinflowSchemaSpace(srcTwinClassEntity.getTwinflowSchemaSpace())
+                .setTwinClassSchemaSpace(srcTwinClassEntity.getTwinClassSchemaSpace())
+                .setAliasSpace(srcTwinClassEntity.getAliasSpace())
                 .setAssigneeRequired(srcTwinClassEntity.getAssigneeRequired())
-                .setAbstractt(srcTwinClassEntity.isAbstractt())
+                .setAbstractt(srcTwinClassEntity.getAbstractt())
                 .setExtendsTwinClassId(srcTwinClassEntity.getExtendsTwinClassId())
                 .setHeadTwinClassId(srcTwinClassEntity.getHeadTwinClassId())
                 .setLogo(srcTwinClassEntity.getLogo())
@@ -506,41 +507,68 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public void updateTwinClass(TwinClassUpdate twinClassUpdate) throws ServiceException {
-        TwinClassEntity dbTwinClassEntity = twinClassUpdate.getDbTwinClassEntity();
-        if (dbTwinClassEntity.getOwnerType().isSystemLevel())
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "system class can be edited");
-        ChangesHelper changesHelper = new ChangesHelper();
-        updateTwinClassName(dbTwinClassEntity, twinClassUpdate.getNameI18n(), changesHelper);
-        updateTwinClassDescription(dbTwinClassEntity, twinClassUpdate.getDescriptionI18n(), changesHelper);
-        updateTwinClassHeadTwinClass(dbTwinClassEntity, twinClassUpdate.getHeadTwinClassUpdate(), changesHelper);
-        updateTwinClassHeadHunterFeaturer(dbTwinClassEntity, twinClassUpdate.getHeadHunterFeaturerId(), twinClassUpdate.getHeadHunterParams(), changesHelper);
-        updateTwinClassExtendsTwinClass(dbTwinClassEntity, twinClassUpdate.getExtendsTwinClassUpdate(), changesHelper);
-        updateTwinClassAbstractFlag(dbTwinClassEntity, twinClassUpdate.getAbstractt(), changesHelper);
-        updateTwinClassTwinClassSchemaSpaceFlag(dbTwinClassEntity, twinClassUpdate.getTwinClassSchemaSpace(), changesHelper);
-        updateTwinClassTwinflowSchemaSpaceFlag(dbTwinClassEntity, twinClassUpdate.getTwinflowSchemaSpace(), changesHelper);
-        updateTwinClassAliasSpaceFlag(dbTwinClassEntity, twinClassUpdate.getAliasSpace(), changesHelper);
-        updateTwinClassAssigneeRequiredFlag(dbTwinClassEntity, twinClassUpdate.getAssigneeRequired(), changesHelper);
-        updateTwinClassPermissionSchemaSpaceFlag(dbTwinClassEntity, twinClassUpdate.getPermissionSchemaSpace(), changesHelper);
-        updateTwinClassViewPermission(dbTwinClassEntity, twinClassUpdate.getViewPermissionId(), changesHelper);
-        updateTwinClassEditPermission(dbTwinClassEntity, twinClassUpdate.getEditPermissionId(), changesHelper);
-        updateTwinClassCreatePermission(dbTwinClassEntity, twinClassUpdate.getCreatePermissionId(), changesHelper);
-        updateTwinClassDeletePermission(dbTwinClassEntity, twinClassUpdate.getDeletePermissionId(), changesHelper);
-        updateTwinClassKey(dbTwinClassEntity, twinClassUpdate.getKey(), changesHelper);
-        updateTwinClassLogo(dbTwinClassEntity, twinClassUpdate.getLogo(), changesHelper);
-        updateTwinClassMarkerDataList(dbTwinClassEntity, twinClassUpdate.getMarkerDataListUpdate(), changesHelper);
-        updateTwinClassTagDataList(dbTwinClassEntity, twinClassUpdate.getTagDataListUpdate(), changesHelper);
-        updateTwinExternalId(dbTwinClassEntity, twinClassUpdate.getExternalId(), changesHelper);
+    public TwinClassEntity updateTwinClasses(TwinClassUpdate twinClassUpdate) throws ServiceException {
+        return updateTwinClasses(List.of(twinClassUpdate)).getFirst();
+    }
 
-
-        updateSafe(dbTwinClassEntity, changesHelper);
-        if (changesHelper.hasChanges()) {
-            Map<String, List<Object>> cacheEntries = Map.of(
-                    TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(twinClassUpdate.getDbTwinClassEntity().getId()),
-                    TwinClassEntity.class.getSimpleName(), List.of(twinClassUpdate.getDbTwinClassEntity().getId())
-            );
-            evictCache(cacheManager, cacheEntries);
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinClassEntity> updateTwinClasses(List<TwinClassUpdate> twinClassUpdates) throws ServiceException {
+        if (CollectionUtils.isEmpty(twinClassUpdates)) {
+            return Collections.emptyList();
         }
+
+        Kit<TwinClassEntity, UUID> dbTwinClassesKit = findEntitiesSafe(
+                twinClassUpdates.stream()
+                        .map(update -> update.getTwinClass().getId())
+                        .collect(Collectors.toList())
+        );
+
+        ChangesHelperMulti<TwinClassEntity> changes = new ChangesHelperMulti<>();
+        CacheEvictCollector cacheEvictCollector = new CacheEvictCollector();
+
+        List<TwinClassEntity> allEntities = dbTwinClassesKit.getList();
+
+        for (TwinClassUpdate twinClassUpdate : twinClassUpdates) {
+            TwinClassEntity dbTwinClassEntity = dbTwinClassesKit.get(twinClassUpdate.getTwinClass().getId());
+            if (dbTwinClassEntity.getOwnerType().isSystemLevel())
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "system class can be edited");
+            ChangesHelper changesHelper = new ChangesHelper();
+            updateTwinClassName(dbTwinClassEntity, twinClassUpdate.getNameI18n(), changesHelper);
+            updateTwinClassDescription(dbTwinClassEntity, twinClassUpdate.getDescriptionI18n(), changesHelper);
+            updateTwinClassHeadTwinClass(dbTwinClassEntity, twinClassUpdate.getHeadTwinClassUpdate(), changesHelper);
+            updateTwinClassHeadHunterFeaturer(dbTwinClassEntity, twinClassUpdate.getTwinClass().getHeadHunterFeaturerId(), twinClassUpdate.getTwinClass().getHeadHunterParams(), changesHelper);
+            updateTwinClassExtendsTwinClass(dbTwinClassEntity, twinClassUpdate.getExtendsTwinClassUpdate(), changesHelper);
+            updateTwinClassAbstractFlag(dbTwinClassEntity, twinClassUpdate.getTwinClass().getAbstractt(), changesHelper);
+            updateTwinClassTwinClassSchemaSpaceFlag(dbTwinClassEntity, twinClassUpdate.getTwinClass().getTwinClassSchemaSpace(), changesHelper);
+            updateTwinClassTwinflowSchemaSpaceFlag(dbTwinClassEntity, twinClassUpdate.getTwinClass().getTwinflowSchemaSpace(), changesHelper);
+            updateTwinClassAliasSpaceFlag(dbTwinClassEntity, twinClassUpdate.getTwinClass().getAliasSpace(), changesHelper);
+            updateTwinClassAssigneeRequiredFlag(dbTwinClassEntity, twinClassUpdate.getTwinClass().getAssigneeRequired(), changesHelper);
+            updateTwinClassPermissionSchemaSpaceFlag(dbTwinClassEntity, twinClassUpdate.getTwinClass().getPermissionSchemaSpace(), changesHelper);
+            updateTwinClassViewPermission(dbTwinClassEntity, twinClassUpdate.getTwinClass().getViewPermissionId(), changesHelper);
+            updateTwinClassEditPermission(dbTwinClassEntity, twinClassUpdate.getTwinClass().getEditPermissionId(), changesHelper);
+            updateTwinClassCreatePermission(dbTwinClassEntity, twinClassUpdate.getTwinClass().getCreatePermissionId(), changesHelper);
+            updateTwinClassDeletePermission(dbTwinClassEntity, twinClassUpdate.getTwinClass().getDeletePermissionId(), changesHelper);
+            updateTwinClassKey(dbTwinClassEntity, twinClassUpdate.getTwinClass().getKey(), changesHelper);
+            updateTwinClassLogo(dbTwinClassEntity, twinClassUpdate.getTwinClass().getLogo(), changesHelper);
+            updateTwinClassMarkerDataList(dbTwinClassEntity, twinClassUpdate.getMarkerDataListUpdate(), changesHelper);
+            updateTwinClassTagDataList(dbTwinClassEntity, twinClassUpdate.getTagDataListUpdate(), changesHelper);
+            updateTwinExternalId(dbTwinClassEntity, twinClassUpdate.getTwinClass().getExternalId(), changesHelper);
+
+            if (changesHelper.hasChanges()) {
+                changes.add(dbTwinClassEntity, changesHelper);
+                cacheEvictCollector.add(dbTwinClassEntity.getId(),
+                        TwinClassRepository.CACHE_TWIN_CLASS_BY_ID,
+                        TwinClassEntity.class.getSimpleName());
+            }
+        }
+
+        if (!changes.entrySet().isEmpty()) {
+            updateSafe(changes);
+
+            evictCache(cacheManager, cacheEvictCollector);
+        }
+
+        return allEntities;
     }
 
     public void updateTwinExternalId(TwinClassEntity dbTwinClassEntity, String newExternalId, ChangesHelper changesHelper) {
@@ -630,7 +658,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public void updateTwinClassPermissionSchemaSpaceFlag(TwinClassEntity dbTwinClassEntity, Boolean newTwinClassPermissionSchemaSpaceFlag, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinClassEntity.Fields.permissionSchemaSpace, dbTwinClassEntity.isPermissionSchemaSpace(), newTwinClassPermissionSchemaSpaceFlag))
+        if (!changesHelper.isChanged(TwinClassEntity.Fields.permissionSchemaSpace, dbTwinClassEntity.getPermissionSchemaSpace(), newTwinClassPermissionSchemaSpaceFlag))
             return;
         //we have db trigger which will update twin.twinflow_schema_space_id column for twins of given class
         dbTwinClassEntity
@@ -638,7 +666,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public void updateTwinClassAliasSpaceFlag(TwinClassEntity dbTwinClassEntity, Boolean newTwinClassAliasSpaceFlag, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinClassEntity.Fields.aliasSpace, dbTwinClassEntity.isAliasSpace(), newTwinClassAliasSpaceFlag))
+        if (!changesHelper.isChanged(TwinClassEntity.Fields.aliasSpace, dbTwinClassEntity.getAliasSpace(), newTwinClassAliasSpaceFlag))
             return;
         //we have db trigger which will update twin.alias_space_id column for twins of given class
         dbTwinClassEntity
@@ -653,7 +681,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public void updateTwinClassTwinflowSchemaSpaceFlag(TwinClassEntity dbTwinClassEntity, Boolean newTwinClassTwinflowSchemaSpaceFlag, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinClassEntity.Fields.twinflowSchemaSpace, dbTwinClassEntity.isTwinflowSchemaSpace(), newTwinClassTwinflowSchemaSpaceFlag))
+        if (!changesHelper.isChanged(TwinClassEntity.Fields.twinflowSchemaSpace, dbTwinClassEntity.getTwinflowSchemaSpace(), newTwinClassTwinflowSchemaSpaceFlag))
             return;
         //we have db trigger which will update twin.twinflow_schema_space_id column for twins of given class
         dbTwinClassEntity
@@ -661,7 +689,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public void updateTwinClassTwinClassSchemaSpaceFlag(TwinClassEntity dbTwinClassEntity, Boolean newTwinClassSchemaSpaceFlag, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinClassEntity.Fields.twinClassSchemaSpace, dbTwinClassEntity.isTwinClassSchemaSpace(), newTwinClassSchemaSpaceFlag))
+        if (!changesHelper.isChanged(TwinClassEntity.Fields.twinClassSchemaSpace, dbTwinClassEntity.getTwinClassSchemaSpace(), newTwinClassSchemaSpaceFlag))
             return;
         //we have db trigger which will update twin.twin_class_schema_space_id column for twins of given class
         dbTwinClassEntity
@@ -669,7 +697,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public void updateTwinClassAbstractFlag(TwinClassEntity dbTwinClassEntity, Boolean newAbstractFlag, ChangesHelper changesHelper) throws ServiceException {
-        if (!changesHelper.isChanged(TwinClassEntity.Fields.abstractt, dbTwinClassEntity.isAbstractt(), newAbstractFlag))
+        if (!changesHelper.isChanged(TwinClassEntity.Fields.abstractt, dbTwinClassEntity.getAbstractt(), newAbstractFlag))
             return;
         if (newAbstractFlag && twinRepository.existsByTwinClassId(dbTwinClassEntity.getId()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "class can not be marked abstract, because some twins are already exist");

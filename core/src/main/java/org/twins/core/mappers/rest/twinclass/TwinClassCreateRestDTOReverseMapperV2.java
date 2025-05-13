@@ -10,7 +10,6 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 @Component
 @RequiredArgsConstructor
 public class TwinClassCreateRestDTOReverseMapperV2 extends RestSimpleDTOMapper<TwinClassCreateDTOv1, TwinClassCreate> {
-
     private final TwinClassSaveRestDTOReverseMapperV2 twinClassSaveRestDTOReverseMapper;
 
     @Override
@@ -24,7 +23,6 @@ public class TwinClassCreateRestDTOReverseMapperV2 extends RestSimpleDTOMapper<T
                 .setHeadTwinClassId(src.getHeadTwinClassId())
                 .setHeadTwinClassId(src.getHeadTwinClassId())
                 .setMarkerDataListId(src.getMarkerDataListId())
-                .setTagDataListId(src.getTagDataListId())
-        ;
+                .setTagDataListId(src.getTagDataListId());
     }
 }
