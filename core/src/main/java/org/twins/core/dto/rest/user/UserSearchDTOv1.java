@@ -28,6 +28,12 @@ public class UserSearchDTOv1 {
     @Schema(description = "name exclude list")
     public Set<String> userNameLikeExcludeList;
 
+    @Schema(description = "email list")
+    public Set<String> userEmailLikeList;
+
+    @Schema(description = "email exclude list")
+    public Set<String> userEmailLikeExcludeList;
+
     @Schema(description = "status id list")
     public Set<UserStatus> statusIdList;
 
