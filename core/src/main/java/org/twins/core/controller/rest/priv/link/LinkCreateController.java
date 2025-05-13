@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dto.rest.link.LinkCreateDTOv1;
@@ -28,12 +29,14 @@ import org.twins.core.mappers.rest.link.LinkForwardRestDTOV3Mapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.link.LinkService;
+import org.twins.core.service.permission.Permissions;
 
 
 @Tag(name = ApiTag.LINK)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy(Permissions.LINK_CREATE)
 public class LinkCreateController extends ApiController {
     private final LinkService linkService;
     private final LinkCreateRestDTOReverseMapper linkCreateRestDTOReverseMapper;

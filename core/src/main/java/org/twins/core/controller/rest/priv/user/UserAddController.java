@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.domain.DomainType;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserStatus;
@@ -31,6 +32,7 @@ import org.twins.core.dto.rest.user.UserAddRqDTOv1;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.user.UserService;
 
 import java.util.UUID;
@@ -39,6 +41,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy(Permissions.USER_CREATE)
 public class UserAddController extends ApiController {
     private final BusinessAccountService businessAccountService;
     private final DomainService domainService;

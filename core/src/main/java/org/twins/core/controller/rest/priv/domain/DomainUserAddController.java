@@ -16,12 +16,17 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
-import org.twins.core.domain.apiuser.*;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
+import org.twins.core.domain.apiuser.BusinessAccountResolverNotSpecified;
+import org.twins.core.domain.apiuser.DomainResolverGivenId;
+import org.twins.core.domain.apiuser.LocaleResolverGivenOrSystemDefault;
+import org.twins.core.domain.apiuser.UserResolverGivenId;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.domain.DomainUserAddRqDTOv1;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -29,6 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy(Permissions.DOMAIN_MANAGE)
 public class DomainUserAddController extends ApiController {
     private final DomainService domainService;
     private final AuthService authService;

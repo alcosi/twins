@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
@@ -23,6 +24,7 @@ import org.twins.core.dto.rest.draft.DraftRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinDeleteRqDTOv1;
 import org.twins.core.mappers.rest.draft.DraftRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinEraserService;
 
 import java.util.UUID;
@@ -31,6 +33,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy(Permissions.TWIN_DELETE)
 public class TwinDeleteController extends ApiController {
     private final TwinEraserService twinEraserService;
     private final DraftRestDTOMapper draftRestDTOMapper;
