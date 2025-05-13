@@ -19,11 +19,13 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -31,6 +33,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy(Permissions.ATTACHMENT_DELETE)
 public class AttachmentDeleteController extends ApiController {
     private final AuthService authService;
     private final AttachmentService attachmentService;

@@ -20,6 +20,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserAnonymousHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.datalist.DataListOptionSearchRqDTOv1;
@@ -31,11 +32,13 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListOptionSearchService;
+import org.twins.core.service.permission.Permissions;
 
 @Tag(name = ApiTag.DATA_LIST)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy(Permissions.DATA_LIST_OPTION_VIEW)
 public class DataListOptionSearchPublicController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;

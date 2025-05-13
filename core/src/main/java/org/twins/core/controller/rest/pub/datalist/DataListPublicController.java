@@ -16,10 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.annotation.Loggable;
-import org.twins.core.controller.rest.annotation.MapperContextBinding;
-import org.twins.core.controller.rest.annotation.ParametersApiUserAnonymousHeaders;
-import org.twins.core.controller.rest.annotation.SimplePaginationParams;
+import org.twins.core.controller.rest.annotation.*;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
@@ -32,6 +29,7 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListSearchService;
 import org.twins.core.service.datalist.DataListService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -39,6 +37,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy(Permissions.DATA_LIST_VIEW)
 public class DataListPublicController extends ApiController {
     private final AuthService authService;
     private final DataListService dataListService;

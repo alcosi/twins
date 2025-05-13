@@ -18,10 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.widget.WidgetListRsDTOv1;
 import org.twins.core.mappers.rest.widget.WidgetRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.widget.WidgetService;
 
 import java.util.UUID;
@@ -30,6 +32,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy(Permissions.TWIN_CLASS_VIEW)
 public class TwinClassWidgetListController extends ApiController {
     private final AuthService authService;
     private final WidgetService widgetService;
