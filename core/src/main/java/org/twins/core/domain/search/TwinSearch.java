@@ -125,8 +125,6 @@ public class TwinSearch {
         return this;
     }
 
-
-
     public TwinSearch addStatusId(UUID statusId, boolean exclude) {
         if (exclude)
             statusIdExcludeList = CollectionUtils.safeAdd(statusIdExcludeList, statusId);
@@ -218,6 +216,16 @@ public class TwinSearch {
             tagDataListOptionIdExcludeList = CollectionUtils.safeAdd(tagDataListOptionIdExcludeList, tagDataListOptionId);
         else
             tagDataListOptionIdList = CollectionUtils.safeAdd(tagDataListOptionIdList, tagDataListOptionId);
+        return this;
+    }
+
+    public TwinSearch addField(TwinFieldSearch field) {
+        fields = CollectionUtils.safeAdd(fields, field);
+        return this;
+    }
+
+    public TwinSearch addField(List<TwinFieldSearch> fieldList) {
+        fields = CollectionUtils.safeAdd(fields, fieldList);
         return this;
     }
 
