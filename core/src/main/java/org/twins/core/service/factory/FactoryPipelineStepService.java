@@ -86,19 +86,19 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
         TwinFactoryPipelineStepEntity dbEntity = findEntitySafe(entity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
 
-        updateEntityField(entity, dbEntity, TwinFactoryPipelineStepEntity::getTwinFactoryPipelineId,
+        updateEntityFieldThrowEntity(entity, dbEntity, TwinFactoryPipelineStepEntity::getTwinFactoryPipelineId,
                 TwinFactoryPipelineStepEntity::setTwinFactoryPipelineId, TwinFactoryPipelineStepEntity.Fields.twinFactoryPipelineId, changesHelper);
-        updateEntityField(entity, dbEntity, TwinFactoryPipelineStepEntity::getOrder,
+        updateEntityFieldThrowEntity(entity, dbEntity, TwinFactoryPipelineStepEntity::getOrder,
                 TwinFactoryPipelineStepEntity::setOrder, TwinFactoryPipelineStepEntity.Fields.order, changesHelper);
-        updateEntityField(entity, dbEntity, TwinFactoryPipelineStepEntity::getTwinFactoryConditionSetId,
+        updateEntityFieldThrowEntity(entity, dbEntity, TwinFactoryPipelineStepEntity::getTwinFactoryConditionSetId,
                 TwinFactoryPipelineStepEntity::setTwinFactoryConditionSetId, TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionSetId, changesHelper);
-        updateEntityField(entity, dbEntity, TwinFactoryPipelineStepEntity::getTwinFactoryConditionInvert,
+        updateEntityFieldThrowEntity(entity, dbEntity, TwinFactoryPipelineStepEntity::getTwinFactoryConditionInvert,
                 TwinFactoryPipelineStepEntity::setTwinFactoryConditionInvert, TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionInvert, changesHelper);
-        updateEntityField(entity, dbEntity, TwinFactoryPipelineStepEntity::getActive,
+        updateEntityFieldThrowEntity(entity, dbEntity, TwinFactoryPipelineStepEntity::getActive,
                 TwinFactoryPipelineStepEntity::setActive, TwinFactoryPipelineStepEntity.Fields.active, changesHelper);
-        updateEntityField(entity, dbEntity, TwinFactoryPipelineStepEntity::getDescription,
+        updateEntityFieldThrowEntity(entity, dbEntity, TwinFactoryPipelineStepEntity::getDescription,
                 TwinFactoryPipelineStepEntity::setDescription, TwinFactoryPipelineStepEntity.Fields.description, changesHelper);
-        updateEntityField(entity, dbEntity, TwinFactoryPipelineStepEntity::getOptional,
+        updateEntityFieldThrowEntity(entity, dbEntity, TwinFactoryPipelineStepEntity::getOptional,
                 TwinFactoryPipelineStepEntity::setOptional, TwinFactoryPipelineStepEntity.Fields.optional, changesHelper);
 
         updateFillerFeaturerId(dbEntity, entity.getFillerFeaturerId(), entity.getFillerParams(), changesHelper);

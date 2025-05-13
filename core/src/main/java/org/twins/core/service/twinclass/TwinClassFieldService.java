@@ -381,7 +381,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             updateTwinClassFieldViewPermission(dbField, save.getField().getViewPermissionId(), changesHelper);
             updateTwinClassFieldEditPermission(dbField, save.getField().getEditPermissionId(), changesHelper);
             updateTwinClassFieldRequiredFlag(dbField, save.getField().getRequired(), changesHelper);
-            updateEntityField(save.getField(), dbField,
+            updateEntityFieldThrowEntity(save.getField(), dbField,
                     TwinClassFieldEntity::getExternalId, TwinClassFieldEntity::setExternalId,
                     TwinClassFieldEntity.Fields.externalId, changesHelper);
 

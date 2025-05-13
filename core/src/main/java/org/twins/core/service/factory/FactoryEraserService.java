@@ -77,17 +77,17 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
     public TwinFactoryEraserEntity updateEraser(TwinFactoryEraserEntity updateEntity) throws ServiceException {
         TwinFactoryEraserEntity dbEntity = findEntitySafe(updateEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
-        updateEntityField(updateEntity, dbEntity, TwinFactoryEraserEntity::getInputTwinClassId, TwinFactoryEraserEntity::setInputTwinClassId,
+        updateEntityFieldThrowEntity(updateEntity, dbEntity, TwinFactoryEraserEntity::getInputTwinClassId, TwinFactoryEraserEntity::setInputTwinClassId,
                 TwinFactoryEraserEntity.Fields.inputTwinClassId, changesHelper);
-        updateEntityField(updateEntity, dbEntity, TwinFactoryEraserEntity::getTwinFactoryConditionSetId, TwinFactoryEraserEntity::setTwinFactoryConditionSetId,
+        updateEntityFieldThrowEntity(updateEntity, dbEntity, TwinFactoryEraserEntity::getTwinFactoryConditionSetId, TwinFactoryEraserEntity::setTwinFactoryConditionSetId,
                 TwinFactoryEraserEntity.Fields.twinFactoryConditionSetId, changesHelper);
-        updateEntityField(updateEntity, dbEntity, TwinFactoryEraserEntity::getTwinFactoryConditionInvert, TwinFactoryEraserEntity::setTwinFactoryConditionInvert,
+        updateEntityFieldThrowEntity(updateEntity, dbEntity, TwinFactoryEraserEntity::getTwinFactoryConditionInvert, TwinFactoryEraserEntity::setTwinFactoryConditionInvert,
                 TwinFactoryEraserEntity.Fields.twinFactoryConditionInvert, changesHelper);
-        updateEntityField(updateEntity, dbEntity, TwinFactoryEraserEntity::getActive, TwinFactoryEraserEntity::setActive,
+        updateEntityFieldThrowEntity(updateEntity, dbEntity, TwinFactoryEraserEntity::getActive, TwinFactoryEraserEntity::setActive,
                 TwinFactoryEraserEntity.Fields.active, changesHelper);
-        updateEntityField(updateEntity, dbEntity, TwinFactoryEraserEntity::getDescription, TwinFactoryEraserEntity::setDescription,
+        updateEntityFieldThrowEntity(updateEntity, dbEntity, TwinFactoryEraserEntity::getDescription, TwinFactoryEraserEntity::setDescription,
                 TwinFactoryEraserEntity.Fields.description, changesHelper);
-        updateEntityField(updateEntity, dbEntity, TwinFactoryEraserEntity::getEraserAction, TwinFactoryEraserEntity::setEraserAction,
+        updateEntityFieldThrowEntity(updateEntity, dbEntity, TwinFactoryEraserEntity::getEraserAction, TwinFactoryEraserEntity::setEraserAction,
                 TwinFactoryEraserEntity.Fields.eraserAction, changesHelper);
         return updateSafe(dbEntity, changesHelper);
     }

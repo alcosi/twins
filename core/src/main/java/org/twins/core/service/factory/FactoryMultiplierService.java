@@ -91,11 +91,11 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
         TwinFactoryMultiplierEntity dbMultiplierEntity = findEntitySafe(multiplierUpdate.getId());
         ChangesHelper changesHelper = new ChangesHelper();
 
-        updateEntityField(multiplierUpdate, dbMultiplierEntity, TwinFactoryMultiplierEntity::getInputTwinClassId,
+        updateEntityFieldThrowEntity(multiplierUpdate, dbMultiplierEntity, TwinFactoryMultiplierEntity::getInputTwinClassId,
                 TwinFactoryMultiplierEntity::setInputTwinClassId, TwinFactoryMultiplierEntity.Fields.inputTwinClassId, changesHelper);
-        updateEntityField(multiplierUpdate, dbMultiplierEntity, TwinFactoryMultiplierEntity::getDescription,
+        updateEntityFieldThrowEntity(multiplierUpdate, dbMultiplierEntity, TwinFactoryMultiplierEntity::getDescription,
                 TwinFactoryMultiplierEntity::setDescription, TwinFactoryMultiplierEntity.Fields.description, changesHelper);
-        updateEntityField(multiplierUpdate, dbMultiplierEntity, TwinFactoryMultiplierEntity::getActive,
+        updateEntityFieldThrowEntity(multiplierUpdate, dbMultiplierEntity, TwinFactoryMultiplierEntity::getActive,
                 TwinFactoryMultiplierEntity::setActive, TwinFactoryMultiplierEntity.Fields.active, changesHelper);
 
         updateMultiplierFeaturerId(dbMultiplierEntity, multiplierUpdate.getMultiplierFeaturerId(), multiplierUpdate.getMultiplierParams(), changesHelper);
