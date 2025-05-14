@@ -8,8 +8,6 @@ import org.twins.core.featurer.fieldtyper.FieldTyper;
 @Data
 @Accessors(chain = true)
 public abstract class TwinFieldSearch {
-
     private TwinClassFieldEntity twinClassFieldEntity;
     private FieldTyper<?, ?, ?, TwinFieldSearch> fieldTyper;
-
 }

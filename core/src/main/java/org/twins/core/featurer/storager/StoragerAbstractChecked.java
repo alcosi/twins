@@ -8,7 +8,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
-import org.cambium.featurer.params.FeaturerParamWordList;
+import org.cambium.featurer.params.FeaturerParamWordSet;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,7 +35,7 @@ public abstract class StoragerAbstractChecked extends Storager {
             optional = true,
             defaultValue = "*",
             exampleValues = {"image/*", "image/png,image/webp", "*/png", "*/webp", "*", "*/*"})
-    public static final FeaturerParamWordList supportedMimeTypes = new FeaturerParamWordList("supportedMimeTypes");
+    public static final FeaturerParamWordSet supportedMimeTypes = new FeaturerParamWordSet("supportedMimeTypes");
 
 
     /**
@@ -62,7 +62,7 @@ public abstract class StoragerAbstractChecked extends Storager {
      */
     protected Set<String> getSupportedMimeTypes(HashMap<String, String> params) throws ServiceException {
         Properties properties = extractProperties(params, false);
-        List<String> list = supportedMimeTypes.extract(properties);
+        Set<String> list = supportedMimeTypes.extract(properties);
         if (list == null || list.isEmpty()) {
             return Collections.emptySet();
         }

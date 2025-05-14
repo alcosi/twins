@@ -5,8 +5,8 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamStringSet;
 import org.cambium.featurer.params.FeaturerParamUUID;
+import org.cambium.featurer.params.FeaturerParamWordSet;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.search.SearchField;
@@ -37,16 +37,16 @@ public class SearchCriteriaBuilderFieldText extends SearchCriteriaBuilder {
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
     @FeaturerParam(name = "Value like all of list", description = "", optional = true, order = 2)
-    public static final FeaturerParamStringSet valueLikeAllOfList = new FeaturerParamStringSet("valueLikeAllOfList");
+    public static final FeaturerParamWordSet valueLikeAllOfList = new FeaturerParamWordSet("valueLikeAllOfList");
 
     @FeaturerParam(name = "Value like any of list", description = "", optional = true, order = 3)
-    public static final FeaturerParamStringSet valueLikeAnyOfList = new FeaturerParamStringSet("valueLikeAnyOfList");
+    public static final FeaturerParamWordSet valueLikeAnyOfList = new FeaturerParamWordSet("valueLikeAnyOfList");
 
     @FeaturerParam(name = "Value like no all of list", description = "", optional = true, order = 4)
-    public static final FeaturerParamStringSet valueLikeNoAllOfList = new FeaturerParamStringSet("valueLikeNoAllOfList");
+    public static final FeaturerParamWordSet valueLikeNoAllOfList = new FeaturerParamWordSet("valueLikeNoAllOfList");
 
     @FeaturerParam(name = "Value like no all of list", description = "", optional = true, order = 5)
-    public static final FeaturerParamStringSet valueLikeNoAnyOfList = new FeaturerParamStringSet("valueLikeNoAnyOfList");
+    public static final FeaturerParamWordSet valueLikeNoAnyOfList = new FeaturerParamWordSet("valueLikeNoAnyOfList");
 
     private final TwinClassFieldService twinClassFieldService;
 

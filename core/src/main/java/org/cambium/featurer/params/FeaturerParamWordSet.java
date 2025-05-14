@@ -1,30 +1,28 @@
 package org.cambium.featurer.params;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.featurer.annotations.FeaturerParamType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @FeaturerParamType(
-        id = "WORD_LIST",
+        id = "WORD_SET",
         description = "words splited by comma",
         regexp = ".*",
         example = "Hello world!")
-public class FeaturerParamWordList extends FeaturerParam<List<String>> {
-    public FeaturerParamWordList(String key) {
+public class FeaturerParamWordSet extends FeaturerParam<Set<String>> {
+    public FeaturerParamWordSet(String key) {
         super(key);
     }
 
     @Override
-    public List<String> extract(Properties properties) {
+    public Set<String> extract(Properties properties) {
         String str = (String) properties.get(key);
         if (StringUtils.isNotEmpty(str))
-            return Arrays.stream(str.split(",")).map(String::trim).collect(Collectors.toList());
+            return Arrays.stream(str.split(",")).map(String::trim).collect(Collectors.toSet());
         else
-            return new ArrayList<>();
+            return new HashSet<>();
     }
 }
