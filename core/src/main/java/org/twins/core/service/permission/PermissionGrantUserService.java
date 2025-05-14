@@ -99,11 +99,11 @@ public class PermissionGrantUserService extends EntitySecureFindServiceImpl<Perm
     public PermissionGrantUserEntity updatePermissionGrantUser(PermissionGrantUserEntity updateEntity) throws ServiceException {
         PermissionGrantUserEntity dbEntity = findEntitySafe(updateEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
-        updateEntityField(updateEntity, dbEntity, PermissionGrantUserEntity::getPermissionSchemaId, PermissionGrantUserEntity::setPermissionSchemaId,
+        updateEntityFieldByEntity(updateEntity, dbEntity, PermissionGrantUserEntity::getPermissionSchemaId, PermissionGrantUserEntity::setPermissionSchemaId,
                 PermissionGrantUserEntity.Fields.permissionSchemaId, changesHelper);
-        updateEntityField(updateEntity, dbEntity, PermissionGrantUserEntity::getPermissionId, PermissionGrantUserEntity::setPermissionId,
+        updateEntityFieldByEntity(updateEntity, dbEntity, PermissionGrantUserEntity::getPermissionId, PermissionGrantUserEntity::setPermissionId,
                 PermissionGrantUserEntity.Fields.permissionId, changesHelper);
-        updateEntityField(updateEntity, dbEntity, PermissionGrantUserEntity::getUserId, PermissionGrantUserEntity::setUserId,
+        updateEntityFieldByEntity(updateEntity, dbEntity, PermissionGrantUserEntity::getUserId, PermissionGrantUserEntity::setUserId,
                 PermissionGrantUserEntity.Fields.userId, changesHelper);
         return updateSafe(dbEntity, changesHelper);
     }

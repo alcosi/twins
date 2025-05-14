@@ -91,11 +91,11 @@ public class PermissionGrantUserGroupService extends EntitySecureFindServiceImpl
     public PermissionGrantUserGroupEntity updatePermissionGrantUserGroup(PermissionGrantUserGroupEntity updateEntity) throws ServiceException {
         PermissionGrantUserGroupEntity dbEntity = findEntitySafe(updateEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
-        updateEntityField(updateEntity, dbEntity, PermissionGrantUserGroupEntity::getPermissionSchemaId, PermissionGrantUserGroupEntity::setPermissionSchemaId,
+        updateEntityFieldByEntity(updateEntity, dbEntity, PermissionGrantUserGroupEntity::getPermissionSchemaId, PermissionGrantUserGroupEntity::setPermissionSchemaId,
                 PermissionGrantUserGroupEntity.Fields.permissionSchemaId, changesHelper);
-        updateEntityField(updateEntity, dbEntity, PermissionGrantUserGroupEntity::getPermissionId, PermissionGrantUserGroupEntity::setPermissionId,
+        updateEntityFieldByEntity(updateEntity, dbEntity, PermissionGrantUserGroupEntity::getPermissionId, PermissionGrantUserGroupEntity::setPermissionId,
                 PermissionGrantUserGroupEntity.Fields.permissionId, changesHelper);
-        updateEntityField(updateEntity, dbEntity, PermissionGrantUserGroupEntity::getUserGroupId, PermissionGrantUserGroupEntity::setUserGroupId,
+        updateEntityFieldByEntity(updateEntity, dbEntity, PermissionGrantUserGroupEntity::getUserGroupId, PermissionGrantUserGroupEntity::setUserGroupId,
                 PermissionGrantUserGroupEntity.Fields.userGroupId, changesHelper);
         return updateSafe(dbEntity, changesHelper);
     }

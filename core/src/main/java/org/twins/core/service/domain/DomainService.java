@@ -173,33 +173,33 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     public DomainEntity updateDomain(DomainEntity updateEntity) throws ServiceException {
         DomainEntity dbEntity = findEntitySafe(authService.getApiUser().getDomainId());
         ChangesHelper changesHelper = new ChangesHelper();
-        updateEntityField(updateEntity, dbEntity, DomainEntity::getName, DomainEntity::setName,
+        updateEntityFieldByEntity(updateEntity, dbEntity, DomainEntity::getName, DomainEntity::setName,
                 DomainEntity.Fields.name, changesHelper);
-        updateEntityField(updateEntity, dbEntity, DomainEntity::getDescription, DomainEntity::setDescription,
+        updateEntityFieldByEntity(updateEntity, dbEntity, DomainEntity::getDescription, DomainEntity::setDescription,
                 DomainEntity.Fields.description, changesHelper);
-        updateEntityField(updateEntity, dbEntity, DomainEntity::getBusinessAccountInitiatorFeaturerId, DomainEntity::setBusinessAccountInitiatorFeaturerId,
+        updateEntityFieldByEntity(updateEntity, dbEntity, DomainEntity::getBusinessAccountInitiatorFeaturerId, DomainEntity::setBusinessAccountInitiatorFeaturerId,
                 DomainEntity.Fields.businessAccountInitiatorFeaturerId, changesHelper);
-        updateEntityField(updateEntity, dbEntity, DomainEntity::getPermissionSchemaId, DomainEntity::setPermissionSchemaId,
+        updateEntityFieldByEntity(updateEntity, dbEntity, DomainEntity::getPermissionSchemaId, DomainEntity::setPermissionSchemaId,
                 DomainEntity.Fields.permissionSchemaId, changesHelper);
-        updateEntityField(updateEntity, dbEntity, DomainEntity::getTwinClassSchemaId, DomainEntity::setTwinClassSchemaId,
+        updateEntityFieldByEntity(updateEntity, dbEntity, DomainEntity::getTwinClassSchemaId, DomainEntity::setTwinClassSchemaId,
                 DomainEntity.Fields.twinClassSchemaId, changesHelper);
-        updateEntityField(updateEntity, dbEntity, DomainEntity::getBusinessAccountTemplateTwinId, DomainEntity::setBusinessAccountTemplateTwinId,
+        updateEntityFieldByEntity(updateEntity, dbEntity, DomainEntity::getBusinessAccountTemplateTwinId, DomainEntity::setBusinessAccountTemplateTwinId,
                 DomainEntity.Fields.businessAccountTemplateTwinId, changesHelper);
-        updateEntityField(updateEntity, dbEntity, DomainEntity::getDomainUserTemplateTwinId, DomainEntity::setDomainUserTemplateTwinId,
+        updateEntityFieldByEntity(updateEntity, dbEntity, DomainEntity::getDomainUserTemplateTwinId, DomainEntity::setDomainUserTemplateTwinId,
                 DomainEntity.Fields.domainUserTemplateTwinId, changesHelper);
-        updateEntityField(updateEntity, dbEntity, DomainEntity::getIconDarkResourceId, DomainEntity::setIconDarkResourceId,
+        updateEntityFieldByEntity(updateEntity, dbEntity, DomainEntity::getIconDarkResourceId, DomainEntity::setIconDarkResourceId,
                 DomainEntity.Fields.iconDarkResourceId, changesHelper);
-        updateEntityField(updateEntity, dbEntity, DomainEntity::getIconLightResourceId, DomainEntity::setIconLightResourceId,
+        updateEntityFieldByEntity(updateEntity, dbEntity, DomainEntity::getIconLightResourceId, DomainEntity::setIconLightResourceId,
                 DomainEntity.Fields.iconLightResourceId, changesHelper);
-        updateEntityField(updateEntity, dbEntity, DomainEntity::getDefaultTierId, DomainEntity::setDefaultTierId,
+        updateEntityFieldByEntity(updateEntity, dbEntity, DomainEntity::getDefaultTierId, DomainEntity::setDefaultTierId,
                 DomainEntity.Fields.defaultTierId, changesHelper);
-        updateEntityField(updateEntity, dbEntity, DomainEntity::getDefaultI18nLocaleId, DomainEntity::setDefaultI18nLocaleId,
+        updateEntityFieldByEntity(updateEntity, dbEntity, DomainEntity::getDefaultI18nLocaleId, DomainEntity::setDefaultI18nLocaleId,
                 DomainEntity.Fields.defaultI18nLocaleId, changesHelper);
-        updateEntityField(updateEntity, dbEntity, DomainEntity::getResourcesStorageId, DomainEntity::setResourcesStorageId,
+        updateEntityFieldByEntity(updateEntity, dbEntity, DomainEntity::getResourcesStorageId, DomainEntity::setResourcesStorageId,
                 DomainEntity.Fields.resourcesStorageId, changesHelper);
-        updateEntityField(updateEntity, dbEntity, DomainEntity::getAttachmentsStorageId, DomainEntity::setAttachmentsStorageId,
+        updateEntityFieldByEntity(updateEntity, dbEntity, DomainEntity::getAttachmentsStorageId, DomainEntity::setAttachmentsStorageId,
                 DomainEntity.Fields.attachmentsStorageId, changesHelper);
-        updateEntityField(updateEntity, dbEntity, DomainEntity::getNavbarFaceId, DomainEntity::setNavbarFaceId,
+        updateEntityFieldByEntity(updateEntity, dbEntity, DomainEntity::getNavbarFaceId, DomainEntity::setNavbarFaceId,
                 DomainEntity.Fields.navbarFaceId, changesHelper);
         updateBusinessAccountInitiatorFeaturerId(dbEntity, updateEntity.getBusinessAccountInitiatorFeaturerId(), updateEntity.getBusinessAccountInitiatorParams(), changesHelper);
         updateUserGroupManagerFeaturerId(dbEntity, updateEntity.getUserGroupManagerFeaturerId(), updateEntity.getUserGroupManagerParams(), changesHelper);
