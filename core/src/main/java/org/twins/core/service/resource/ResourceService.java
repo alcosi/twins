@@ -166,7 +166,6 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
         return newResource;
     }
 
-
     public String getResourceUri(ResourceEntity resourceEntity) throws ServiceException {
         if (resourceEntity != null) {
             var featurer = featurerService.getFeaturer(resourceEntity.getStorage().getStorageFeaturer(), Storager.class);
