@@ -20,6 +20,9 @@ public class FaceWT003Entity {
     @Enumerated(EnumType.STRING)
     private FaceWT003Level level;
 
+    @Column(name = "title_i18n_id")
+    private UUID titleI18nId;
+
     @Column(name = "message_i18n_id")
     private UUID messageI18nId;
 
