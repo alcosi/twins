@@ -95,21 +95,21 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
         entity.setId(dbEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
 
-        updateEntityFieldThrowEntity(entity, dbEntity, TwinFactoryPipelineEntity::getInputTwinClassId,
+        updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getInputTwinClassId,
                 TwinFactoryPipelineEntity::setInputTwinClassId, TwinFactoryPipelineEntity.Fields.inputTwinClassId, changesHelper);
-        updateEntityFieldThrowEntity(entity, dbEntity, TwinFactoryPipelineEntity::getTwinFactoryConditionSetId,
+        updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getTwinFactoryConditionSetId,
                 TwinFactoryPipelineEntity::setTwinFactoryConditionSetId, TwinFactoryPipelineEntity.Fields.twinFactoryConditionSetId, changesHelper);
-        updateEntityFieldThrowEntity(entity, dbEntity, TwinFactoryPipelineEntity::getTwinFactoryConditionInvert,
+        updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getTwinFactoryConditionInvert,
                 TwinFactoryPipelineEntity::setTwinFactoryConditionInvert, TwinFactoryPipelineEntity.Fields.twinFactoryConditionInvert, changesHelper);
-        updateEntityFieldThrowEntity(entity, dbEntity, TwinFactoryPipelineEntity::getActive,
+        updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getActive,
                 TwinFactoryPipelineEntity::setActive, TwinFactoryPipelineEntity.Fields.active, changesHelper);
-        updateEntityFieldThrowEntity(entity, dbEntity, TwinFactoryPipelineEntity::getOutputTwinStatusId,
+        updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getOutputTwinStatusId,
                 TwinFactoryPipelineEntity::setOutputTwinStatusId, TwinFactoryPipelineEntity.Fields.outputTwinStatusId, changesHelper);
-        updateEntityFieldThrowEntity(entity, dbEntity, TwinFactoryPipelineEntity::getNextTwinFactoryId,
+        updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getNextTwinFactoryId,
                 TwinFactoryPipelineEntity::setNextTwinFactoryId, TwinFactoryPipelineEntity.Fields.nextTwinFactoryId, changesHelper);
-        updateEntityFieldThrowEntity(entity, dbEntity, TwinFactoryPipelineEntity::getTemplateTwinId,
+        updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getTemplateTwinId,
                 TwinFactoryPipelineEntity::setTemplateTwinId, TwinFactoryPipelineEntity.Fields.templateTwinId, changesHelper);
-        updateEntityFieldThrowEntity(entity, dbEntity, TwinFactoryPipelineEntity::getDescription,
+        updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getDescription,
                 TwinFactoryPipelineEntity::setDescription, TwinFactoryPipelineEntity.Fields.description, changesHelper);
 
         return updateSafe(dbEntity, changesHelper);

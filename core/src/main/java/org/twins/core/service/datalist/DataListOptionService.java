@@ -155,15 +155,15 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
             ChangesHelper changesHelper = new ChangesHelper();
             updateDataListOptionName(update.getNameI18n(), dbOption, changesHelper);
             updateAttributes(dbDataList, dbOption, update.getAttributes(), changesHelper);
-            updateEntityFieldThrowValue(update.getIcon(), dbOption, DataListOptionEntity::getIcon,
+            updateEntityFieldByValue(update.getIcon(), dbOption, DataListOptionEntity::getIcon,
                     DataListOptionEntity::setIcon, DataListOptionEntity.Fields.icon, changesHelper);
-            updateEntityFieldThrowValue(update.getStatus(), dbOption, DataListOptionEntity::getStatus,
+            updateEntityFieldByValue(update.getStatus(), dbOption, DataListOptionEntity::getStatus,
                     DataListOptionEntity::setStatus, DataListOptionEntity.Fields.status, changesHelper);
-            updateEntityFieldThrowValue(update.getExternalId(), dbOption, DataListOptionEntity::getExternalId,
+            updateEntityFieldByValue(update.getExternalId(), dbOption, DataListOptionEntity::getExternalId,
                     DataListOptionEntity::setExternalId, DataListOptionEntity.Fields.externalId, changesHelper);
-            updateEntityFieldThrowValue(update.getBackgroundColor(), dbOption, DataListOptionEntity::getBackgroundColor,
+            updateEntityFieldByValue(update.getBackgroundColor(), dbOption, DataListOptionEntity::getBackgroundColor,
                     DataListOptionEntity::setBackgroundColor, DataListOptionEntity.Fields.backgroundColor, changesHelper);
-            updateEntityFieldThrowValue(update.getFontColor(), dbOption, DataListOptionEntity::getFontColor,
+            updateEntityFieldByValue(update.getFontColor(), dbOption, DataListOptionEntity::getFontColor,
                     DataListOptionEntity::setFontColor, DataListOptionEntity.Fields.fontColor, changesHelper);
 
             changes.add(dbOption, changesHelper);

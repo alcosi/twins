@@ -101,23 +101,23 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
         TierEntity dbTierEntity = findEntitySafe(tierUpdate.getId());
         ChangesHelper changesHelper = new ChangesHelper();
 
-        updateEntityFieldThrowEntity(tierUpdate, dbTierEntity, TierEntity::getName,
+        updateEntityFieldByEntity(tierUpdate, dbTierEntity, TierEntity::getName,
                 TierEntity::setName, TierEntity.Fields.name, changesHelper);
-        updateEntityFieldThrowEntity(tierUpdate, dbTierEntity, TierEntity::getDescription,
+        updateEntityFieldByEntity(tierUpdate, dbTierEntity, TierEntity::getDescription,
                 TierEntity::setDescription, TierEntity.Fields.description, changesHelper);
-        updateEntityFieldThrowEntity(tierUpdate, dbTierEntity, TierEntity::getCustom,
+        updateEntityFieldByEntity(tierUpdate, dbTierEntity, TierEntity::getCustom,
                 TierEntity::setCustom, TierEntity.Fields.custom, changesHelper);
-        updateEntityFieldThrowEntity(tierUpdate, dbTierEntity, TierEntity::getPermissionSchemaId,
+        updateEntityFieldByEntity(tierUpdate, dbTierEntity, TierEntity::getPermissionSchemaId,
                 TierEntity::setPermissionSchemaId, TierEntity.Fields.permissionSchemaId, changesHelper);
-        updateEntityFieldThrowEntity(tierUpdate, dbTierEntity, TierEntity::getTwinflowSchemaId,
+        updateEntityFieldByEntity(tierUpdate, dbTierEntity, TierEntity::getTwinflowSchemaId,
                 TierEntity::setTwinflowSchemaId, TierEntity.Fields.twinflowSchemaId, changesHelper);
-        updateEntityFieldThrowEntity(tierUpdate, dbTierEntity, TierEntity::getTwinClassSchemaId,
+        updateEntityFieldByEntity(tierUpdate, dbTierEntity, TierEntity::getTwinClassSchemaId,
                 TierEntity::setTwinClassSchemaId, TierEntity.Fields.twinClassSchemaId, changesHelper);
-        updateEntityFieldThrowEntity(tierUpdate, dbTierEntity, TierEntity::getAttachmentsStorageQuotaCount,
+        updateEntityFieldByEntity(tierUpdate, dbTierEntity, TierEntity::getAttachmentsStorageQuotaCount,
                 TierEntity::setAttachmentsStorageQuotaCount, TierEntity.Fields.attachmentsStorageQuotaCount, changesHelper);
-        updateEntityFieldThrowEntity(tierUpdate, dbTierEntity, TierEntity::getAttachmentsStorageQuotaSize,
+        updateEntityFieldByEntity(tierUpdate, dbTierEntity, TierEntity::getAttachmentsStorageQuotaSize,
                 TierEntity::setAttachmentsStorageQuotaSize, TierEntity.Fields.attachmentsStorageQuotaSize, changesHelper);
-        updateEntityFieldThrowEntity(tierUpdate, dbTierEntity, TierEntity::getUserCountQuota,
+        updateEntityFieldByEntity(tierUpdate, dbTierEntity, TierEntity::getUserCountQuota,
                 TierEntity::setUserCountQuota, TierEntity.Fields.userCountQuota, changesHelper);
 
         dbTierEntity.setUpdatedAt(Timestamp.from(Instant.now()));
