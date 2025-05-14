@@ -41,7 +41,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.USER_CREATE)
+@ProtectedBy(Permissions.USER_UPDATE)
 public class UserAddController extends ApiController {
     private final BusinessAccountService businessAccountService;
     private final DomainService domainService;

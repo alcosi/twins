@@ -18,16 +18,19 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.service.permission.PermissionGrantAssigneePropagationService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
-@Tag(description = "", name = ApiTag.PERMISSION)
+@Tag(description = "Delete permission grant assignee propagation", name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy(Permissions.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_DELETE)
 public class PermissionGrantAssigneePropagationDeleteController extends ApiController {
     private final PermissionGrantAssigneePropagationService permissionGrantAssigneePropagationService;
 

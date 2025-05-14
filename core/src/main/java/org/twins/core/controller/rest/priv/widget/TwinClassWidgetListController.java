@@ -28,7 +28,7 @@ import org.twins.core.service.widget.WidgetService;
 
 import java.util.UUID;
 
-@Tag(name = ApiTag.WIDGET)
+@Tag(description = "", name = ApiTag.TWIN_CLASS)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor

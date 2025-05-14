@@ -18,11 +18,12 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.domain.datalist.DataListOptionCreate;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.datalist.DataListOptionCreateRqDTOv2;
 import org.twins.core.dto.rest.datalist.DataListOptionCreateRqDTOv1;
+import org.twins.core.dto.rest.datalist.DataListOptionCreateRqDTOv2;
 import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv3;
 import org.twins.core.mappers.rest.datalist.DataListOptionCreateDTOReverseMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionCreateDTOReverseMapperV2;
@@ -30,6 +31,7 @@ import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapperV3;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.datalist.DataListOptionService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.List;
 
@@ -38,6 +40,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy(Permissions.DATA_LIST_OPTION_CREATE)
 public class DataListOptionCreateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final DataListOptionCreateDTOReverseMapper dataListOptionCreateDTOReverseMapper;

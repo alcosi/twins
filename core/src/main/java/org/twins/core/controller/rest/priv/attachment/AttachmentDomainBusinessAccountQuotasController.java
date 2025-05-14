@@ -30,7 +30,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.ATTACHMENT_VIEW)
+@ProtectedBy(Permissions.DOMAIN_VIEW)
 public class AttachmentDomainBusinessAccountQuotasController extends ApiController {
 
     private final AttachmentQuotasRestDTOMapper attachmentQuotasRestDTOMapper;

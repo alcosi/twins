@@ -35,7 +35,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.permission.Permissions;
 
-@Tag(name = ApiTag.DOMAIN)
+@Tag(description = "", name = ApiTag.DOMAIN)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor

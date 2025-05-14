@@ -34,7 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.DOMAIN_MANAGE)
+@ProtectedBy(Permissions.DOMAIN_BUSINESS_ACCOUNT_CREATE)
 public class DomainBusinessAccountAddController extends ApiController {
     private final DomainService domainService;
     private final AuthService authService;

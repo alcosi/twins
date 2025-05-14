@@ -28,7 +28,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.DOMAIN_MANAGE)
+@ProtectedBy(Permissions.DOMAIN_BUSINESS_ACCOUNT_DELETE)
 public class DomainBusinessAccountDeleteController extends ApiController {
     private final DomainService domainService;
     private final AuthService authService;

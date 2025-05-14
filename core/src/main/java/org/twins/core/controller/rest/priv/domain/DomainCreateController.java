@@ -19,6 +19,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.ParametersApiUserNoDomainHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.BusinessAccountResolverNotSpecified;
@@ -32,6 +33,7 @@ import org.twins.core.mappers.rest.domain.DomainCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.domain.DomainViewRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.permission.Permissions;
 
 import java.io.IOException;
 
@@ -41,6 +43,7 @@ import static org.cambium.common.util.MultipartFileUtils.convert;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy(Permissions.DOMAIN_CREATE)
 @Slf4j
 public class DomainCreateController extends ApiController {
     private final DomainService domainService;

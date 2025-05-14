@@ -36,11 +36,11 @@ import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
-@Tag(name = ApiTag.DOMAIN)
+@Tag(description = "", name = ApiTag.DOMAIN)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.DOMAIN_VIEW)
+@ProtectedBy(Permissions.DOMAIN_USER_VIEW)
 public class DomainUserSearchController extends ApiController {
     private final DomainUserSearchService domainUserSearchService;
     private final DomainUserSearchDTOReverseMapper domainUserSearchDTOReverseMapper;

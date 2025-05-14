@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twin.TwinTouchEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinListTouchAddRqDTOv1;
@@ -23,6 +24,7 @@ import org.twins.core.dto.rest.twin.TwinTouchListRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinTouchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.twin.TwinTouchRestDTOMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinTouchService;
 
 import java.util.List;
@@ -32,6 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy(Permissions.TWIN_UPDATE)
 public class TwinTouchAddController extends ApiController {
 
     private final TwinTouchRestDTOMapper twinTouchRestDTOMapper;

@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dto.rest.i18n.I18nTranslationListRsDTOv1;
 import org.twins.core.dto.rest.i18n.I18nTranslationUpdateRqDTOv1;
@@ -26,6 +27,7 @@ import org.twins.core.mappers.rest.i18n.I18nTranslationUpdateDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.i18n.I18nTranslationService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.List;
 
@@ -33,6 +35,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy(Permissions.I18N_UPDATE)
 public class I18nTranslationUpdateController extends ApiController {
     private final I18nTranslationUpdateDTOReverseMapper i18nTranslationUpdateDTOReverseMapper;
     private final I18nTranslationRestDTOMapper i18nTranslationRestDTOMapper;

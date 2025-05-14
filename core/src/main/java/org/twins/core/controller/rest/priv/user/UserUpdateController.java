@@ -26,7 +26,7 @@ import org.twins.core.service.user.UserService;
 
 import java.util.UUID;
 
-@Tag(name = ApiTag.USER)
+@Tag(description = "", name = ApiTag.USER)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor

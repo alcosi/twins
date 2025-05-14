@@ -19,6 +19,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.permission.PermissionGrantSpaceRoleEntity;
 import org.twins.core.dto.rest.permission.PermissionGrantSpaceRoleCreateRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGrantSpaceRoleRsDTOv1;
@@ -27,11 +28,13 @@ import org.twins.core.mappers.rest.permission.PermissionGrantSpaceRoleCreateDTOR
 import org.twins.core.mappers.rest.permission.PermissionGrantSpaceRoleRestDTOMapperV2;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantSpaceRoleService;
+import org.twins.core.service.permission.Permissions;
 
-@Tag(name = ApiTag.PERMISSION)
+@Tag(description = "Create permission grant space role", name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy(Permissions.PERMISSION_GRANT_SPACE_ROLE_CREATE)
 public class PermissionGrantSpaceRoleCreateController extends ApiController {
     private final PermissionGrantSpaceRoleService permissionGrantSpaceRoleService;
     private final PermissionGrantSpaceRoleRestDTOMapperV2 permissionGrantSpaceRoleRestDTOMapper;
