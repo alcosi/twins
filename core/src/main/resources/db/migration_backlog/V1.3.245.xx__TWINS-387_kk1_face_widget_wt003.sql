@@ -7,6 +7,6 @@ CREATE TABLE IF NOT EXISTS face_widget_wt003 (
     style_classes VARCHAR
 );
 
-CREATE INDEX IF NOT EXISTS idx_face_widget_wt003_message_i18n_id ON face_widget_wt003 (title_i18n_id);
+CREATE INDEX IF NOT EXISTS idx_face_widget_wt003_title_i18n_id ON face_widget_wt003 (title_i18n_id);
 CREATE INDEX IF NOT EXISTS idx_face_widget_wt003_message_i18n_id ON face_widget_wt003 (message_i18n_id);
 CREATE INDEX IF NOT EXISTS idx_face_widget_wt003_icon_resource_id ON face_widget_wt003 (icon_resource_id);
