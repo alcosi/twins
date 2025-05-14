@@ -25,12 +25,7 @@ public class FacePG002WidgetRestDTOMapper extends RestSimpleDTOMapper<FacePG002W
                 .setWidgetFaceId(src.getWidgetFaceId())
                 .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "))
                 .setActive(src.isActive());
-        for (String styleClass : dst.getStyleClasses()) { //todo delete me in future
-            if (styleClass.startsWith("deprecated-column-index-"))
-                dst.setColumn(Integer.valueOf(StringUtils.substringAfter(styleClass,"deprecated-column-index-")));
-            if (styleClass.startsWith("deprecated-row-index-"))
-                dst.setRow(Integer.valueOf(StringUtils.substringAfter(styleClass,"deprecated-row-index-")));
-        }
+
         if (mapperContext.hasModeButNot(FacePG002Modes.FacePG002Widget2FaceMode.HIDE)) {
             faceRestDTOMapper.postpone(src.getWidgetFace(), mapperContext.forkOnPoint(FacePG002Modes.FacePG002Widget2FaceMode.SHORT));
         }
