@@ -23,8 +23,8 @@ public class FaceWT003DTOv1 extends FaceDTOv1 {
     @Schema(description = "message")
     public String messageI18n;
 
-    @Schema(description = "icon resource")
-    public String iconResource;
+    @Schema(description = "icon")
+    public String icon;
 
     @Schema(description = "styles, converted to css classes")
     public Set<String> styleClasses;
