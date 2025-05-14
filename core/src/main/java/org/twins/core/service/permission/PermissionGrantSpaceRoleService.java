@@ -94,11 +94,11 @@ public class PermissionGrantSpaceRoleService extends EntitySecureFindServiceImpl
         PermissionGrantSpaceRoleEntity dbEntity = findEntitySafe(entity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
 
-        updateEntityField(entity, dbEntity, PermissionGrantSpaceRoleEntity::getPermissionSchemaId,
+        updateEntityFieldByEntity(entity, dbEntity, PermissionGrantSpaceRoleEntity::getPermissionSchemaId,
                 PermissionGrantSpaceRoleEntity::setPermissionSchemaId, PermissionGrantSpaceRoleEntity.Fields.permissionSchemaId ,changesHelper);
-        updateEntityField(entity, dbEntity, PermissionGrantSpaceRoleEntity::getPermissionId,
+        updateEntityFieldByEntity(entity, dbEntity, PermissionGrantSpaceRoleEntity::getPermissionId,
                 PermissionGrantSpaceRoleEntity::setPermissionId, PermissionGrantSpaceRoleEntity.Fields.permissionId ,changesHelper);
-        updateEntityField(entity, dbEntity, PermissionGrantSpaceRoleEntity::getSpaceRoleId,
+        updateEntityFieldByEntity(entity, dbEntity, PermissionGrantSpaceRoleEntity::getSpaceRoleId,
                 PermissionGrantSpaceRoleEntity::setSpaceRoleId, PermissionGrantSpaceRoleEntity.Fields.spaceRoleId ,changesHelper);
 
         return updateSafe(dbEntity, changesHelper);

@@ -97,13 +97,13 @@ public class PermissionGrantTwinRoleService extends EntitySecureFindServiceImpl<
         PermissionGrantTwinRoleEntity dbEntity = findEntitySafe(entity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
 
-        updateEntityField(entity, dbEntity, PermissionGrantTwinRoleEntity::getPermissionSchemaId,
+        updateEntityFieldByEntity(entity, dbEntity, PermissionGrantTwinRoleEntity::getPermissionSchemaId,
                 PermissionGrantTwinRoleEntity::setPermissionSchemaId, PermissionGrantTwinRoleEntity.Fields.permissionSchemaId, changesHelper);
-        updateEntityField(entity, dbEntity, PermissionGrantTwinRoleEntity::getPermissionId,
+        updateEntityFieldByEntity(entity, dbEntity, PermissionGrantTwinRoleEntity::getPermissionId,
                 PermissionGrantTwinRoleEntity::setPermissionId, PermissionGrantTwinRoleEntity.Fields.permissionId, changesHelper);
-        updateEntityField(entity, dbEntity, PermissionGrantTwinRoleEntity::getTwinClassId,
+        updateEntityFieldByEntity(entity, dbEntity, PermissionGrantTwinRoleEntity::getTwinClassId,
                 PermissionGrantTwinRoleEntity::setTwinClassId, PermissionGrantTwinRoleEntity.Fields.twinClassId, changesHelper);
-        updateEntityField(entity, dbEntity, PermissionGrantTwinRoleEntity::getTwinRole,
+        updateEntityFieldByEntity(entity, dbEntity, PermissionGrantTwinRoleEntity::getTwinRole,
                 PermissionGrantTwinRoleEntity::setTwinRole, PermissionGrantTwinRoleEntity.Fields.twinRole, changesHelper);
 
         return updateSafe(dbEntity, changesHelper);

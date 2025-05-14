@@ -12,5 +12,7 @@ public class DataListOptionSave {
     private String icon;
     private I18nEntity nameI18n;
     private String externalId;
+    private String backgroundColor;
+    private String fontColor;
     private Map<String, String> attributes;
 }

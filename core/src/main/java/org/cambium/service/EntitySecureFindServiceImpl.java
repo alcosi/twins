@@ -280,7 +280,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         return true;
     }
 
-    protected <T, R> void updateEntityField(T updateEntity, T dbEntity, Function<T, R> getFunction, BiConsumer<T, R> setFunction, String field, ChangesHelper changesHelper) {
+    protected <T, R> void updateEntityFieldByEntity(T updateEntity, T dbEntity, Function<T, R> getFunction, BiConsumer<T, R> setFunction, String field, ChangesHelper changesHelper) {
         //todo if the new field will have a nullify marker, then we will set the field to null,
         // which will throw an error when saving if the entity field should not be null
         R updateValue = getFunction.apply(updateEntity);
@@ -288,5 +288,14 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         if (!changesHelper.isChanged(field, dbValue, updateValue))
             return;
         setFunction.accept(dbEntity, updateValue);
+    }
+
+    protected <T, R> void updateEntityFieldByValue(Object updateValue, T dbEntity, Function<T, R> getFunction, BiConsumer<T, R> setFunction, String field, ChangesHelper changesHelper) {
+        //todo if the new field will have a nullify marker, then we will set the field to null,
+        // which will throw an error when saving if the entity field should not be null
+        R dbValue = getFunction.apply(dbEntity);
+        if (!changesHelper.isChanged(field, dbValue, updateValue))
+            return;
+        setFunction.accept(dbEntity, (R) updateValue);
     }
 }
