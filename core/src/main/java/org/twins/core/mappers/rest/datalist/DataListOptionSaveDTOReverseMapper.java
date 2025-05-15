@@ -3,13 +3,11 @@ package org.twins.core.mappers.rest.datalist;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.datalist.DataListOptionSave;
-import org.twins.core.dto.rest.datalist.DataListOptionSaveDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionSaveRqDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
-@Deprecated
 @Component
 @RequiredArgsConstructor
 public class DataListOptionSaveDTOReverseMapper extends RestSimpleDTOMapper<DataListOptionSaveRqDTOv1, DataListOptionSave> {
@@ -21,6 +19,8 @@ public class DataListOptionSaveDTOReverseMapper extends RestSimpleDTOMapper<Data
                 .setIcon(src.getIcon())
                 .setNameI18n(i18NSaveRestDTOReverseMapper.convert(src.getOptionI18n(), mapperContext))
                 .setAttributes(src.getAttributesMap())
-                .setExternalId(src.getExternalId());
+                .setExternalId(src.getExternalId())
+                .setBackgroundColor(src.getBackgroundColor())
+                .setFontColor(src.getFontColor());
     }
 }
