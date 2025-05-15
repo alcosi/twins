@@ -102,51 +102,64 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
 
     public static Specification<TwinEntity> checkFieldDate(final TwinFieldSearchDate search, final String... fieldPath) {
         return (root, query, cb) -> {
-            if(search.isEmptySearch()) return cb.conjunction();
-            List<Predicate> predicates = new ArrayList<>();
-            Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
-            twinFieldSimpleJoin.on(cb.equal(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
+            if (search.isEmptySearch()) return cb.conjunction();
 
+            List<Predicate> basePredicates = new ArrayList<>();
+
+            Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin =
+                    root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
+
+            twinFieldSimpleJoin.on(cb.equal(
+                    twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId),
+                    search.getTwinClassFieldEntity().getId()
+            ));
 
             Expression<String> stringValue = twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value);
-            Expression<LocalDateTime> dateTimeValue = cb.function("text2timestamp", LocalDateTime.class, twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value));
+            Expression<LocalDateTime> dateTimeValue =
+                    cb.function("text2timestamp", LocalDateTime.class, stringValue);
 
-            Predicate lessAndMore = null;
-            Predicate equals = null;
-            if (search.getLessThen() != null || search.getMoreThen() != null || search.getEquals() != null) {
-                predicates.add(cb.and(cb.isNotNull(stringValue), cb.notEqual(stringValue, cb.literal(""))));
-                if (search.getLessThen() != null)
-                    predicates.add(cb.and(cb.lessThan(dateTimeValue, cb.literal(search.getLessThen()))));
-                if (search.getMoreThen() != null)
-                    predicates.add(cb.and(cb.greaterThan(dateTimeValue, cb.literal(search.getMoreThen()))));
-                lessAndMore = getPredicate(cb, predicates, false);
-                if (search.getEquals() != null)
-                    equals = cb.and(cb.equal(dateTimeValue, cb.literal(search.getEquals())));
-            }
+            boolean hasEquals = search.getEquals() != null;
+            boolean hasLess = search.getLessThen() != null;
+            boolean hasMore = search.getMoreThen() != null;
+
+            basePredicates.add(cb.isNotNull(stringValue));
+            basePredicates.add(cb.notEqual(stringValue, cb.literal("")));
 
             Predicate valuePredicate;
-            Predicate finalPredicate = cb.conjunction();
-            if (null != equals && null != lessAndMore) {
-                predicates = new ArrayList<>();
-                predicates.add(lessAndMore);
-                predicates.add(equals);
-                valuePredicate = getPredicate(cb, predicates, true);
-            } else if (null != equals)
-                valuePredicate = equals;
-            else if (null != lessAndMore)
-                valuePredicate = lessAndMore;
-            else
-                valuePredicate = search.isEmpty() ? cb.disjunction() : cb.conjunction();
 
-            if (search.isEmpty())
-                finalPredicate = cb.or(valuePredicate, cb.or(
+            if (hasEquals) {
+                valuePredicate = cb.equal(dateTimeValue, cb.literal(search.getEquals()));
+            } else {
+                List<Predicate> rangePredicates = new ArrayList<>();
+                if (hasLess) {
+                    rangePredicates.add(cb.lessThan(dateTimeValue, cb.literal(search.getLessThen())));
+                }
+                if (hasMore) {
+                    rangePredicates.add(cb.greaterThan(dateTimeValue, cb.literal(search.getMoreThen())));
+                }
+
+                valuePredicate = getPredicate(cb, rangePredicates, false);
+            }
+
+            if (valuePredicate != null) {
+                basePredicates.add(valuePredicate);
+            }
+
+            Predicate finalPredicate;
+            if (search.isEmpty()) {
+                Predicate emptyOrNull = cb.or(
                         cb.equal(stringValue, cb.literal("")),
                         cb.isNull(stringValue)
-                ));
-            else finalPredicate = cb.and(valuePredicate, finalPredicate);
+                );
+                finalPredicate = cb.or(getPredicate(cb, basePredicates, false), emptyOrNull);
+            } else {
+                finalPredicate = getPredicate(cb, basePredicates, false);
+            }
+
             return finalPredicate;
         };
     }
+
 
     public static Specification<TwinEntity> checkFieldUuidIn(final TwinFieldSearchId search, final String... fieldPath) {
         return (root, query, cb) -> {
