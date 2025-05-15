@@ -7,12 +7,11 @@ import lombok.experimental.Accessors;
 
 import java.util.UUID;
 
-@Deprecated
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinClassCreateRqV1")
-public class TwinClassCreateRqDTOv1 extends TwinClassSaveRqDTOv1 {
+@Schema(name =  "TwinClassCreateV1")
+public class TwinClassCreateDTOv1 extends TwinClassSaveDTOv1 {
     @Schema(description = "[optional] link to extends class. All fields and links will be valid for current class. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
     public UUID extendsTwinClassId;
 
@@ -30,5 +29,4 @@ public class TwinClassCreateRqDTOv1 extends TwinClassSaveRqDTOv1 {
 
     @Schema(description = "[optional] if true - permissions will be created and assign to class (if not specified another permission ids in this dto)")
     public Boolean autoCreatePermissions = false;
-
 }

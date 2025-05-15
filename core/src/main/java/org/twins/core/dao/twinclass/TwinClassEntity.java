@@ -61,16 +61,16 @@ public class TwinClassEntity implements EasyLoggable {
     private String key;
 
     @Column(name = "permission_schema_space")
-    private boolean permissionSchemaSpace;
+    private Boolean permissionSchemaSpace;
 
     @Column(name = "twinflow_schema_space")
-    private boolean twinflowSchemaSpace;
+    private Boolean twinflowSchemaSpace;
 
     @Column(name = "twin_class_schema_space")
-    private boolean twinClassSchemaSpace;
+    private Boolean twinClassSchemaSpace;
 
     @Column(name = "alias_space")
-    private boolean aliasSpace;
+    private Boolean aliasSpace;
 
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
@@ -85,7 +85,7 @@ public class TwinClassEntity implements EasyLoggable {
     private UUID deletePermissionId;
 
     @Column(name = "abstract")
-    private boolean abstractt;
+    private Boolean abstractt;
 
     @Column(name = "name_i18n_id")
     private UUID nameI18NId;

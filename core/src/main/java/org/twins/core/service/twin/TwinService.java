@@ -440,7 +440,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     private static UUID getPermissionSchemaSpaceId(TwinEntity headTwin) {
-        return headTwin.getTwinClass().isPermissionSchemaSpace() ? headTwin.getId() : headTwin.getPermissionSchemaSpaceId();
+        return headTwin.getTwinClass().getPermissionSchemaSpace() ? headTwin.getId() : headTwin.getPermissionSchemaSpaceId();
     }
 
     public void createTwinEntity(TwinEntity twinEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
