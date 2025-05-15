@@ -20,7 +20,7 @@ public class FacePG001DTOv1 extends FaceDTOv1 {
 
     @Deprecated
     @Schema(description = "page layout")
-    public String layout = "TWO_COLUMNS"; //todo delete me after UI update
+        public String layout = "TWO_COLUMNS"; //todo delete me after UI update
 
     @Schema(description = "page widgets list")
     public List<FacePG001WidgetDTOv1> widgets;
