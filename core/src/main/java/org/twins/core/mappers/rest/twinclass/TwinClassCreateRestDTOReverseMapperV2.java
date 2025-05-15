@@ -17,7 +17,6 @@ public class TwinClassCreateRestDTOReverseMapperV2 extends RestSimpleDTOMapper<T
         twinClassSaveRestDTOReverseMapper.map(src, dst, mapperContext);
         dst
                 .setAutoCreatePermission(src.getAutoCreatePermissions())
-
                 .getTwinClass()
                 .setExtendsTwinClassId(src.getExtendsTwinClassId())
                 .setHeadTwinClassId(src.getHeadTwinClassId())
