@@ -10,6 +10,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.CacheUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -29,7 +30,6 @@ import org.twins.core.service.domain.DomainService;
 import java.util.*;
 import java.util.function.Function;
 
-import static org.cambium.common.util.CacheUtils.evictCache;
 
 @Component
 @Slf4j
@@ -346,7 +346,7 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
                 entry.getValue().setI18nId(i18nEntity.getId());
             }
             entitiesToSave.add(entry.getValue());
-            evictCache(cacheManager, I18nTranslationRepository.CACHE_I18N_TRANSLATIONS, entry.getValue().getI18nId() + "" + entry.getKey());
+            CacheUtils.evictCache(cacheManager, I18nTranslationRepository.CACHE_I18N_TRANSLATIONS, entry.getValue().getI18nId() + "" + entry.getKey());
         }
         i18nTranslationRepository.saveAll(entitiesToSave);
 

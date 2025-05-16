@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.CacheUtils;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KeyUtils;
 import org.twins.core.dao.i18n.I18nEntity;
@@ -30,7 +31,6 @@ import org.twins.core.service.twinclass.TwinClassService;
 import java.util.*;
 import java.util.function.Function;
 
-import static org.cambium.common.util.CacheUtils.evictCache;
 
 @Lazy
 @Slf4j
@@ -155,13 +155,13 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     }
 
     private void evictClassesCache(TwinClassEntity twinClassEntity) throws ServiceException {
-        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassEntity.getId());
-        evictCache(cacheManager, TwinClassEntity.class.getSimpleName(), List.of(twinClassEntity.getId()));
+        CacheUtils.evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassEntity.getId());
+        CacheUtils.evictCache(cacheManager, TwinClassEntity.class.getSimpleName(), List.of(twinClassEntity.getId()));
         twinClassService.loadExtendsHierarchyChildClasses(twinClassEntity);
         if (KitUtils.isEmpty(twinClassEntity.getExtendsHierarchyChildClassKit()))
             return;
-        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassEntity.getExtendsHierarchyChildClassKit().getIdSetSafe());
-        evictCache(cacheManager, TwinClassEntity.class.getSimpleName(), twinClassEntity.getExtendsHierarchyChildClassKit().getIdSetSafe());
+        CacheUtils.evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassEntity.getExtendsHierarchyChildClassKit().getIdSetSafe());
+        CacheUtils.evictCache(cacheManager, TwinClassEntity.class.getSimpleName(), twinClassEntity.getExtendsHierarchyChildClassKit().getIdSetSafe());
     }
 
     @Transactional(rollbackFor = Throwable.class)

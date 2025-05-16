@@ -3,6 +3,7 @@ package org.twins.core.service.twinclass;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.cambium.common.CacheEvictCollector;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
@@ -55,7 +56,6 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import static org.cambium.common.util.CacheUtils.evictCache;
 import static org.twins.core.dao.twinclass.TwinClassEntity.convertUuidFromLtreeFormat;
 
 @Slf4j
@@ -484,11 +484,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
         updateSafe(dbTwinClassEntity, changesHelper);
         if (changesHelper.hasChanges()) {
-            Map<String, List<Object>> cacheEntries = Map.of(
-                    TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(twinClassUpdate.getDbTwinClassEntity().getId()),
-                    TwinClassEntity.class.getSimpleName(), List.of(twinClassUpdate.getDbTwinClassEntity().getId())
-            );
-            evictCache(cacheManager, cacheEntries);
+            CacheEvictCollector cacheEvictCollector = new CacheEvictCollector();
+            cacheEvictCollector
+                    .add(twinClassUpdate.getDbTwinClassEntity().getId(), TwinClassRepository.CACHE_TWIN_CLASS_BY_ID)
+                    .add(twinClassUpdate.getDbTwinClassEntity().getId(), TwinClassEntity.class.getSimpleName());
+            CacheUtils.evictCache(cacheManager, cacheEvictCollector);
         }
     }
 

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IterableUtils;
+import org.cambium.common.CacheEvictCollector;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
@@ -65,7 +66,6 @@ import org.twins.core.service.user.UserService;
 import java.util.*;
 import java.util.function.Function;
 
-import static org.cambium.common.util.CacheUtils.evictCache;
 import static org.cambium.common.util.RowUtils.mapUuidInt;
 import static org.twins.core.dao.specifications.twinflow.TransitionAliasSpecification.*;
 
@@ -315,11 +315,11 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
         dbTwinflowTransitionEntity = updateSafe(dbTwinflowTransitionEntity, changesHelper);
         if (changesHelper.hasChanges()) {
-            Map<String, List<Object>> cacheEntries = Map.of(
-                    TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(dbTwinflowTransitionEntity.getTwinflow().getTwinClassId()),
-                    TwinClassEntity.class.getSimpleName(), List.of(dbTwinflowTransitionEntity.getTwinflow().getTwinClassId())
-            );
-            evictCache(cacheManager, cacheEntries);
+            CacheEvictCollector cacheEvictCollector = new CacheEvictCollector();
+            cacheEvictCollector
+                    .add(dbTwinflowTransitionEntity.getTwinflow().getTwinClassId(), TwinClassRepository.CACHE_TWIN_CLASS_BY_ID)
+                    .add(dbTwinflowTransitionEntity.getTwinflow().getTwinClassId(), TwinClassEntity.class.getSimpleName());
+            CacheUtils.evictCache(cacheManager, cacheEvictCollector);
         }
         return dbTwinflowTransitionEntity;
     }
@@ -336,7 +336,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (CollectionUtils.isNotEmpty(validatorCUD.getDeleteList())) {
             deleteValidators(dbTwinflowTransitionEntity, validatorCUD.getDeleteList());
         }
-        evictCache(cacheManager, TwinflowTransitionValidatorRuleRepository.CACHE_TRANSITION_VALIDATOR_RULES_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
+        CacheUtils.evictCache(cacheManager, TwinflowTransitionValidatorRuleRepository.CACHE_TRANSITION_VALIDATOR_RULES_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
     }
 
     @Transactional
@@ -388,7 +388,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (CollectionUtils.isNotEmpty(triggerCUD.getDeleteList())) {
             deleteTriggers(dbTwinflowTransitionEntity, triggerCUD.getDeleteList());
         }
-        evictCache(cacheManager, TwinflowTransitionTriggerRepository.CACHE_TRANSITION_TRIGGERS_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
+        CacheUtils.evictCache(cacheManager, TwinflowTransitionTriggerRepository.CACHE_TRANSITION_TRIGGERS_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
     }
 
     @Transactional
