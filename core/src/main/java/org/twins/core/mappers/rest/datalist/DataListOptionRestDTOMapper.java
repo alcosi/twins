@@ -23,19 +23,19 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
     @Override
     public void map(DataListOptionEntity src, DataListOptionDTOv1 dst, MapperContext mapperContext) {
         switch (mapperContext.getModeOrUse(DataListOptionMode.DETAILED)) {
-            case DETAILED:
+            case DETAILED ->
                 dst
                         .setId(src.getId())
                         .setName(src.getOptionI18NId() != null ? i18nService.translateToLocale(src.getOptionI18NId()) : src.getOption())
                         .setIcon(src.getIcon())
                         .setAttributes(getAttributes(src))
-                        .setStatus(src.getStatus());
-                break;
-            case SHORT:
+                        .setStatus(src.getStatus())
+                        .setBackgroundColor(src.getBackgroundColor())
+                        .setFontColor(src.getFontColor());
+            case SHORT ->
                 dst
                         .setId(src.getId())
                         .setName(src.getOptionI18NId() != null ? i18nService.translateToLocale(src.getOptionI18NId()) : src.getOption());
-                break;
         }
     }
 

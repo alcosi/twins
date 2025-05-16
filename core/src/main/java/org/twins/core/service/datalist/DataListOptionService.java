@@ -108,6 +108,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         entityRepository().saveAll(optionsToSave).forEach(result::add);
         return result;
     }
+
     private void createAttributes(DataListEntity dataList, DataListOptionEntity dataListOption, Map<String, String> attributes) throws ServiceException {
         if (emptyAttributes(dataList))
             return;
