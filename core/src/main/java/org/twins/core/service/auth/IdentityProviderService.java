@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.idp.IdentityProviderEntity;
 import org.twins.core.dao.idp.IdentityProviderRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.auth.IdentityProviderConfig;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.identityprovider.ClientLogoutData;
 import org.twins.core.featurer.identityprovider.ClientTokenData;
 import org.twins.core.featurer.identityprovider.connector.IdentityProviderConnector;
 import org.twins.core.service.TwinsEntitySecureFindService;
@@ -69,10 +71,10 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         return identityProviderConnector.login(identityProvider.getIdentityProviderConnectorParams(), username, password, fingerprint);
     }
 
-    public void logout() throws ServiceException{
+    public void logout(ClientLogoutData logoutData) throws ServiceException{
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
-        return identityProviderConnector.logout(identityProvider.getIdentityProviderConnectorParams(), username, password);
+        return identityProviderConnector.logout(identityProvider.getIdentityProviderConnectorParams(), logoutData);
     }
 
     public ClientTokenData refresh(String refreshToken) throws ServiceException {
@@ -83,5 +85,14 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
         return identityProviderConnector.refresh(identityProvider.getIdentityProviderConnectorParams(), refreshToken, fingerprint);
+    }
+
+    public IdentityProviderConfig getConfig() throws ServiceException {
+        IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
+        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
+        IdentityProviderConfig identityProviderConfig = new IdentityProviderConfig()
+                .setIdentityProvider(identityProvider)
+                .setSupportedMethods(identityProviderConnector.getSupportedMethods(identityProvider.getIdentityProviderConnectorParams()));
+        return identityProviderConfig;
     }
 }

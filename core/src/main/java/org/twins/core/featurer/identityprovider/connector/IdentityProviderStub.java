@@ -4,11 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
+import org.twins.core.domain.auth.method.AuthMethod;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.identityprovider.ClientLogoutData;
 import org.twins.core.featurer.identityprovider.ClientTokenData;
 import org.twins.core.featurer.identityprovider.TokenMetaData;
 
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -37,5 +40,15 @@ public class IdentityProviderStub extends IdentityProviderConnector {
         if (tokenData.length > 1)
             ret.setBusinessAccountId(UUID.fromString(tokenData[1].trim()));
         return ret;
+    }
+
+    @Override
+    public List<AuthMethod> getSupportedMethods(Properties properties) {
+        return List.of();
+    }
+
+    @Override
+    public void logout(Properties properties, ClientLogoutData clientLogoutData) throws ServiceException {
+        throw new ServiceException(ErrorCodeTwins.IDP_LOGOUT_NOT_SUPPORTED);
     }
 }

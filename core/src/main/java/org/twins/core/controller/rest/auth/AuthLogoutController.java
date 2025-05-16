@@ -18,8 +18,6 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.auth.AuthLogoutRsDTOv1;
 import org.twins.core.dto.rest.face.FaceViewRsDTOv1;
-import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.auth.IdentityProviderService;
 
 @Tag(description = "Auth logout controller", name = ApiTag.AUTH)
@@ -27,9 +25,7 @@ import org.twins.core.service.auth.IdentityProviderService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class AuthLogoutController extends ApiController {
-    private final AuthService authService;
     private final IdentityProviderService identityProviderService;
-    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "authLogoutV1", summary = "Logout from identity provider, linked to current domain")
