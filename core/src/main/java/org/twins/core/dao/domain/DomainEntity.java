@@ -19,6 +19,7 @@ import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
+import org.twins.core.featurer.tokenhandler.TokenHandler;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 
 import java.sql.Timestamp;
@@ -96,6 +97,21 @@ public class DomainEntity implements EasyLoggable {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "business_account_initiator_params", columnDefinition = "hstore")
     private HashMap<String, String> businessAccountInitiatorParams;
+
+    @Deprecated //todo delete me after IDP support
+    @Column(name = "token_handler_featurer_id")
+    private Integer tokenHandlerFeaturerId;
+
+    @Deprecated //todo delete me after IDP support
+    @FeaturerList(type = TokenHandler.class)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "token_handler_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity tokenHandlerFeaturer;
+
+    @Deprecated //todo delete me after IDP support
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "token_handler_params", columnDefinition = "hstore")
+    private HashMap<String, String> tokenHandlerParams;
 
     @Column(name = "user_group_manager_featurer_id")
     private Integer userGroupManagerFeaturerId;

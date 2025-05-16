@@ -17,7 +17,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterDomainHeader;
 import org.twins.core.dto.rest.auth.AuthConfigRsDTOv1;
-import org.twins.core.featurer.identityprovider.token.ClientTokenData;
+import org.twins.core.featurer.identityprovider.ClientTokenData;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.auth.IdentityProviderService;

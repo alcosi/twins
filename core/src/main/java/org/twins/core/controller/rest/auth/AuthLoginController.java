@@ -18,9 +18,10 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterDomainHeader;
 import org.twins.core.dto.rest.auth.AuthLoginRqDTOv1;
+import org.twins.core.dto.rest.auth.AuthLoginRqDTOv2;
 import org.twins.core.dto.rest.auth.AuthLoginRsDTOv1;
-import org.twins.core.featurer.identityprovider.token.ClientTokenData;
-import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.featurer.identityprovider.ClientTokenData;
+import org.twins.core.mappers.rest.auth.ClientTokenRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.auth.IdentityProviderService;
 
@@ -31,10 +32,10 @@ import org.twins.core.service.auth.IdentityProviderService;
 public class AuthLoginController extends ApiController {
     private final AuthService authService;
     private final IdentityProviderService identityProviderService;
-    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
+    private final ClientTokenRestDTOMapper clientTokenRestDTOMapper;
 
     @ParameterDomainHeader
-    @Operation(operationId = "authLoginV1", summary = "Returns an access token")
+    @Operation(operationId = "authLoginV1", summary = "Returns auth/refresh tokens by username/password")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Login to ", content = {
                     @Content(mediaType = "application/json", schema =
@@ -46,7 +47,29 @@ public class AuthLoginController extends ApiController {
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
             ClientTokenData clientTokenData = identityProviderService.login(request.getUsername(), request.getPassword());
-            //todo convert to response
+            rs.setTokens(clientTokenRestDTOMapper.convert(clientTokenData));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParameterDomainHeader
+    @Operation(operationId = "authLoginV2", summary = "Returns auth/refresh tokens by username/password/fingerprint")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Login to ", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = AuthLoginRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/auth/login/v2")
+    public ResponseEntity<?> authLoginV2(@RequestBody AuthLoginRqDTOv2 request) {
+        AuthLoginRsDTOv1 rs = new AuthLoginRsDTOv1();
+        try {
+            authService.getApiUser().setAnonymousWithDefaultLocale();
+            ClientTokenData clientTokenData = identityProviderService.login(request.getUsername(), request.getPassword(), request.getFingerprint());
+            rs.setTokens(clientTokenRestDTOMapper.convert(clientTokenData));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

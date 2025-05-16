@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.domain.Channel;
+import org.twins.core.featurer.identityprovider.TokenMetaData;
 import org.twins.core.featurer.tokenhandler.TokenHandler;
 import org.twins.core.service.HttpRequestService;
 import org.twins.core.service.auth.AuthService;
@@ -46,7 +47,7 @@ public class UserBusinessAccountResolverAuthToken implements BusinessAccountReso
             authToken = httpRequestService.getBusinessAccountIdFromRequest() + "," + httpRequestService.getUserIdFromRequest();
         DomainEntity domainEntity = authService.getApiUser().getDomain(); // warning recursion call risk
         TokenHandler tokenHandler = featurerService.getFeaturer(domainEntity.getTokenHandlerFeaturer(), TokenHandler.class);
-        TokenHandler.Result result = tokenHandler.resolveUserIdAndBusinessAccountId(domainEntity.getTokenHandlerParams(), authToken, domainEntity, Channel.WEB);
+        TokenMetaData result = tokenHandler.resolveUserIdAndBusinessAccountId(domainEntity.getTokenHandlerParams(), authToken, domainEntity, Channel.WEB);
         userId = result.getUserId();
         businessAccountId = result.getBusinessAccountId();
         resolved = true;

@@ -42,7 +42,6 @@ public class AuthLogoutController extends ApiController {
     public ResponseEntity<?> authLoginV1() {
         AuthLogoutRsDTOv1 rs = new AuthLogoutRsDTOv1();
         try {
-            authService.getApiUser().setAnonymousWithDefaultLocale();
             identityProviderService.logout();
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

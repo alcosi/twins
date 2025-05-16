@@ -1,17 +1,14 @@
 package org.twins.core.featurer.identityprovider.connector;
 
-import lombok.Data;
-import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.identityprovider.token.ClientTokenData;
+import org.twins.core.featurer.identityprovider.ClientTokenData;
+import org.twins.core.featurer.identityprovider.TokenMetaData;
 
 import java.util.HashMap;
 import java.util.Properties;
-import java.util.UUID;
 
 
 @FeaturerType(id = FeaturerTwins.TYPE_33,
@@ -19,19 +16,24 @@ import java.util.UUID;
         description = "")
 @Slf4j
 public abstract class IdentityProviderConnector extends FeaturerTwins {
-    public ClientTokenData login(HashMap<String, String> identityProviderConnectorParams, String username, String password) throws ServiceException {
+    public ClientTokenData login(HashMap<String, String> identityProviderConnectorParams, String username, String password, String fingerprint) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, identityProviderConnectorParams, new HashMap<>());
-        return login(properties, username, password);
+        return login(properties, username, password, fingerprint);
     }
 
-    protected ClientTokenData login(Properties properties, String username, String password) throws ServiceException {
-        throw new ServiceException(ErrorCodeTwins.IDP_PASSWORD_LOGIN_NOT_SUPPORTED);
+    protected abstract ClientTokenData login(Properties properties, String username, String password, String fingerprint) throws ServiceException;
+
+    public ClientTokenData refresh(HashMap<String, String> identityProviderConnectorParams, String refreshToken, String fingerprint) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, identityProviderConnectorParams, new HashMap<>());
+        return refresh(properties, refreshToken, fingerprint);
     }
 
-    @Data
-    @Accessors(chain = true)
-    public static class Result {
-        UUID userId;
-        UUID businessAccountId;
+    protected abstract ClientTokenData refresh(Properties properties, String refreshToken, String fingerprint) throws ServiceException;
+
+    public TokenMetaData resolveAuthTokenMetaData(HashMap<String, String> initiatorParams, String token) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, initiatorParams, new HashMap<>());
+        return resolveAuthTokenMetaData(properties, token);
     }
+
+    protected abstract TokenMetaData resolveAuthTokenMetaData(Properties properties, String token) throws ServiceException;
 }

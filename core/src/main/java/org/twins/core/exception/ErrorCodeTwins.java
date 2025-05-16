@@ -130,7 +130,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     POINTER_NON_SINGLE(12601, "twin pointer is not single"),
     POINTER_ON_NULL(12602, "twin pointer is null"),
     IDP_IS_NOT_ACTIVE(12701, "identity provider is not active", HttpStatus.SERVICE_UNAVAILABLE),
-    IDP_PASSWORD_LOGIN_NOT_SUPPORTED(12702, "identity provider is not active");
+    IDP_PASSWORD_LOGIN_NOT_SUPPORTED(12702, "password login is not supported by identity provider connector"),
+    IDP_TOKEN_REFRESH_NOT_SUPPORTED(12703, "token is not supported by identity provider connector");
 
 
     private final int code;
