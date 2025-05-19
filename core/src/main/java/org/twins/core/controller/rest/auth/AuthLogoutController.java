@@ -12,12 +12,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dto.rest.auth.AuthLogoutRqDTOv1;
 import org.twins.core.dto.rest.auth.AuthLogoutRsDTOv1;
 import org.twins.core.dto.rest.face.FaceViewRsDTOv1;
+import org.twins.core.mappers.rest.auth.ClientLogoutDataRestDTOReverseMapper;
 import org.twins.core.service.auth.IdentityProviderService;
 
 @Tag(description = "Auth logout controller", name = ApiTag.AUTH)
@@ -26,6 +29,7 @@ import org.twins.core.service.auth.IdentityProviderService;
 @RequiredArgsConstructor
 public class AuthLogoutController extends ApiController {
     private final IdentityProviderService identityProviderService;
+    private final ClientLogoutDataRestDTOReverseMapper clientLogoutDataRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "authLogoutV1", summary = "Logout from identity provider, linked to current domain")
@@ -35,10 +39,10 @@ public class AuthLogoutController extends ApiController {
                     @Schema(implementation = FaceViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/auth/logout/v1")
-    public ResponseEntity<?> authLoginV1() {
+    public ResponseEntity<?> authLoginV1(@RequestBody AuthLogoutRqDTOv1 request) {
         AuthLogoutRsDTOv1 rs = new AuthLogoutRsDTOv1();
         try {
-            identityProviderService.logout();
+            identityProviderService.logout(clientLogoutDataRestDTOReverseMapper.convert(request.getAuthData()));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

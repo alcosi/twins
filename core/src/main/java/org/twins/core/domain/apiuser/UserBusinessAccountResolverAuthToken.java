@@ -1,18 +1,14 @@
 package org.twins.core.domain.apiuser;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
-import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.domain.Channel;
 import org.twins.core.featurer.identityprovider.TokenMetaData;
-import org.twins.core.featurer.tokenhandler.TokenHandler;
 import org.twins.core.service.HttpRequestService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.auth.IdentityProviderService;
 
 import java.util.UUID;
 
@@ -21,7 +17,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserBusinessAccountResolverAuthToken implements BusinessAccountResolver, UserResolver {
     final HttpRequestService httpRequestService;
-    final FeaturerService featurerService;
+    final IdentityProviderService identityProviderService;
     @Lazy
     final AuthService authService;
     private UUID userId;
@@ -43,11 +39,7 @@ public class UserBusinessAccountResolverAuthToken implements BusinessAccountReso
         if (resolved)
             return;
         String authToken = httpRequestService.getAuthTokenFromRequest();
-        if (StringUtils.isEmpty(authToken)) //todo delete on production
-            authToken = httpRequestService.getBusinessAccountIdFromRequest() + "," + httpRequestService.getUserIdFromRequest();
-        DomainEntity domainEntity = authService.getApiUser().getDomain(); // warning recursion call risk
-        TokenHandler tokenHandler = featurerService.getFeaturer(domainEntity.getTokenHandlerFeaturer(), TokenHandler.class);
-        TokenMetaData result = tokenHandler.resolveUserIdAndBusinessAccountId(domainEntity.getTokenHandlerParams(), authToken, domainEntity, Channel.WEB);
+        TokenMetaData result = identityProviderService.resolveAuthTokenMetaData(authToken);
         userId = result.getUserId();
         businessAccountId = result.getBusinessAccountId();
         resolved = true;

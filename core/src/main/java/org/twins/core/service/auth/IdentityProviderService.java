@@ -15,7 +15,8 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.auth.IdentityProviderConfig;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.identityprovider.ClientLogoutData;
-import org.twins.core.featurer.identityprovider.ClientTokenData;
+import org.twins.core.featurer.identityprovider.ClientSideAuthData;
+import org.twins.core.featurer.identityprovider.TokenMetaData;
 import org.twins.core.featurer.identityprovider.connector.IdentityProviderConnector;
 import org.twins.core.service.TwinsEntitySecureFindService;
 
@@ -61,11 +62,11 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         return identityProvider;
     }
 
-    public ClientTokenData login(String username, String password) throws ServiceException {
+    public ClientSideAuthData login(String username, String password) throws ServiceException {
         return login(username, password, null);
     }
 
-    public ClientTokenData login(String username, String password, String fingerprint) throws ServiceException {
+    public ClientSideAuthData login(String username, String password, String fingerprint) throws ServiceException {
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
         return identityProviderConnector.login(identityProvider.getIdentityProviderConnectorParams(), username, password, fingerprint);
@@ -74,14 +75,14 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
     public void logout(ClientLogoutData logoutData) throws ServiceException{
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
-        return identityProviderConnector.logout(identityProvider.getIdentityProviderConnectorParams(), logoutData);
+        identityProviderConnector.logout(identityProvider.getIdentityProviderConnectorParams(), logoutData);
     }
 
-    public ClientTokenData refresh(String refreshToken) throws ServiceException {
+    public ClientSideAuthData refresh(String refreshToken) throws ServiceException {
         return refresh(refreshToken, null);
     }
 
-    public ClientTokenData refresh(String refreshToken, String fingerprint) throws ServiceException {
+    public ClientSideAuthData refresh(String refreshToken, String fingerprint) throws ServiceException {
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
         return identityProviderConnector.refresh(identityProvider.getIdentityProviderConnectorParams(), refreshToken, fingerprint);
@@ -94,5 +95,11 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
                 .setIdentityProvider(identityProvider)
                 .setSupportedMethods(identityProviderConnector.getSupportedMethods(identityProvider.getIdentityProviderConnectorParams()));
         return identityProviderConfig;
+    }
+
+    public TokenMetaData resolveAuthTokenMetaData(String authToken) throws ServiceException {
+        IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
+        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
+        return identityProviderConnector.resolveAuthTokenMetaData(identityProvider.getIdentityProviderConnectorParams(), authToken);
     }
 }

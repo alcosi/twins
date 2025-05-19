@@ -6,11 +6,13 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Response;
 
+import java.util.Map;
+
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "AuthRefreshRsV1")
 public class AuthRefreshRsDTOv1 extends Response {
     @Schema(description = "tokens data")
-    public TokensDTOv1 tokens;
+    public Map<String, String> authData;
 }

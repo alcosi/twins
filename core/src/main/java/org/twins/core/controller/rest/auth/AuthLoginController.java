@@ -20,8 +20,8 @@ import org.twins.core.controller.rest.annotation.ParameterDomainHeader;
 import org.twins.core.dto.rest.auth.AuthLoginRqDTOv1;
 import org.twins.core.dto.rest.auth.AuthLoginRqDTOv2;
 import org.twins.core.dto.rest.auth.AuthLoginRsDTOv1;
-import org.twins.core.featurer.identityprovider.ClientTokenData;
-import org.twins.core.mappers.rest.auth.ClientTokenRestDTOMapper;
+import org.twins.core.featurer.identityprovider.ClientSideAuthData;
+import org.twins.core.mappers.rest.auth.ClientSideAuthDateRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.auth.IdentityProviderService;
 
@@ -32,7 +32,7 @@ import org.twins.core.service.auth.IdentityProviderService;
 public class AuthLoginController extends ApiController {
     private final AuthService authService;
     private final IdentityProviderService identityProviderService;
-    private final ClientTokenRestDTOMapper clientTokenRestDTOMapper;
+    private final ClientSideAuthDateRestDTOMapper clientSideAuthDateRestDTOMapper;
 
     @ParameterDomainHeader
     @Operation(operationId = "authLoginV1", summary = "Returns auth/refresh tokens by username/password")
@@ -46,8 +46,8 @@ public class AuthLoginController extends ApiController {
         AuthLoginRsDTOv1 rs = new AuthLoginRsDTOv1();
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
-            ClientTokenData clientTokenData = identityProviderService.login(request.getUsername(), request.getPassword());
-            rs.setTokens(clientTokenRestDTOMapper.convert(clientTokenData));
+            ClientSideAuthData clientSideAuthData = identityProviderService.login(request.getUsername(), request.getPassword());
+            rs.setAuthData(clientSideAuthDateRestDTOMapper.convert(clientSideAuthData));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -68,8 +68,8 @@ public class AuthLoginController extends ApiController {
         AuthLoginRsDTOv1 rs = new AuthLoginRsDTOv1();
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
-            ClientTokenData clientTokenData = identityProviderService.login(request.getUsername(), request.getPassword(), request.getFingerprint());
-            rs.setTokens(clientTokenRestDTOMapper.convert(clientTokenData));
+            ClientSideAuthData clientSideAuthData = identityProviderService.login(request.getUsername(), request.getPassword(), request.getFingerprint());
+            rs.setAuthData(clientSideAuthDateRestDTOMapper.convert(clientSideAuthData));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
