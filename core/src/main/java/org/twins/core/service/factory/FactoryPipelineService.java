@@ -21,7 +21,6 @@ import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.UUID;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @Slf4j
@@ -96,21 +95,21 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
         entity.setId(dbEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
 
-        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getInputTwinClassId,
+        updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getInputTwinClassId,
                 TwinFactoryPipelineEntity::setInputTwinClassId, TwinFactoryPipelineEntity.Fields.inputTwinClassId, changesHelper);
-        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getTwinFactoryConditionSetId,
+        updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getTwinFactoryConditionSetId,
                 TwinFactoryPipelineEntity::setTwinFactoryConditionSetId, TwinFactoryPipelineEntity.Fields.twinFactoryConditionSetId, changesHelper);
-        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getTwinFactoryConditionInvert,
+        updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getTwinFactoryConditionInvert,
                 TwinFactoryPipelineEntity::setTwinFactoryConditionInvert, TwinFactoryPipelineEntity.Fields.twinFactoryConditionInvert, changesHelper);
-        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getActive,
+        updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getActive,
                 TwinFactoryPipelineEntity::setActive, TwinFactoryPipelineEntity.Fields.active, changesHelper);
-        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getOutputTwinStatusId,
+        updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getOutputTwinStatusId,
                 TwinFactoryPipelineEntity::setOutputTwinStatusId, TwinFactoryPipelineEntity.Fields.outputTwinStatusId, changesHelper);
-        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getNextTwinFactoryId,
+        updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getNextTwinFactoryId,
                 TwinFactoryPipelineEntity::setNextTwinFactoryId, TwinFactoryPipelineEntity.Fields.nextTwinFactoryId, changesHelper);
-        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getTemplateTwinId,
+        updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getTemplateTwinId,
                 TwinFactoryPipelineEntity::setTemplateTwinId, TwinFactoryPipelineEntity.Fields.templateTwinId, changesHelper);
-        updateEntityField(entity, dbEntity, TwinFactoryPipelineEntity::getDescription,
+        updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getDescription,
                 TwinFactoryPipelineEntity::setDescription, TwinFactoryPipelineEntity.Fields.description, changesHelper);
 
         return updateSafe(dbEntity, changesHelper);
