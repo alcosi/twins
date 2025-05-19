@@ -79,7 +79,7 @@ public class ApiUser {
     public DomainEntity getDomain() throws ServiceException {
         if (domain != null)
             return domain;
-        //we do not call loadDBU because we need domain to detect tokenHandler to resolve userId and businessAccountId
+        //we do not call loadDBU because we need domain to detect identity connector to resolve userId and businessAccountId
         //otherwise we will get endless loop
         resolveDomainId();
         if (domainId == null)
