@@ -1,7 +1,6 @@
 package org.twins.core.featurer.identityprovider.connector;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
@@ -11,19 +10,16 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.identityprovider.ClientLogoutData;
 import org.twins.core.featurer.identityprovider.ClientSideAuthData;
 import org.twins.core.featurer.identityprovider.TokenMetaData;
-import org.twins.core.service.HttpRequestService;
 
 import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_1901,
-        name = "Stub",
-        description = "Not for production purpose")
+@Featurer(id = FeaturerTwins.ID_1903,
+        name = "ALCOSI IDS",
+        description = "")
 @RequiredArgsConstructor
-public class IdentityProviderStub extends IdentityProviderConnector {
-    final HttpRequestService httpRequestService;
+public class IdentityProviderAlcosi extends IdentityProviderConnector {
 
     @Override
     protected ClientSideAuthData login(Properties properties, String username, String password, String fingerprint) throws ServiceException {
@@ -37,14 +33,7 @@ public class IdentityProviderStub extends IdentityProviderConnector {
 
     @Override
     protected TokenMetaData resolveAuthTokenMetaData(Properties properties, String token) throws ServiceException {
-        if (StringUtils.isEmpty(token))
-            token = httpRequestService.getBusinessAccountIdFromRequest() + "," + httpRequestService.getUserIdFromRequest();
-        String[] tokenData = token.split(",");
-        TokenMetaData ret = new TokenMetaData()
-                .setUserId(UUID.fromString(tokenData[0].trim()));
-        if (tokenData.length > 1)
-            ret.setBusinessAccountId(UUID.fromString(tokenData[1].trim()));
-        return ret;
+        throw new ServiceException(ErrorCodeTwins.IDP_RESOLVE_TOKEN_NOT_SUPPORTED);
     }
 
     @Override

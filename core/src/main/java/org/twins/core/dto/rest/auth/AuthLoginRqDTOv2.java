@@ -10,7 +10,7 @@ import org.twins.core.dto.rest.Request;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "AuthLoginRqV1")
+@Schema(name = "AuthLoginRqV2")
 public class AuthLoginRqDTOv2 extends Request {
     @Schema(description = "username", example = DTOExamples.EMAIL)
     public String username;

@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Properties;
 
 
-@FeaturerType(id = FeaturerTwins.TYPE_33,
+@FeaturerType(id = FeaturerTwins.TYPE_19,
         name = "Identity provider connector",
         description = "")
 @Slf4j
