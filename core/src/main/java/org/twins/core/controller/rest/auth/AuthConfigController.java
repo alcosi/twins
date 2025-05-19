@@ -18,7 +18,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterDomainHeader;
 import org.twins.core.domain.auth.IdentityProviderConfig;
 import org.twins.core.dto.rest.auth.AuthConfigRsDTOv1;
-import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.mappers.rest.auth.IdentityProviderConfigRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.auth.IdentityProviderService;
 
@@ -29,7 +29,7 @@ import org.twins.core.service.auth.IdentityProviderService;
 public class AuthConfigController extends ApiController {
     private final AuthService authService;
     private final IdentityProviderService identityProviderService;
-    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
+    private final IdentityProviderConfigRestDTOMapper identityProviderConfigRestDTOMapper;
 
     @ParameterDomainHeader
     @Operation(operationId = "authConfigV1", summary = "Returns auth configuration for selected domain. Wit")
@@ -43,8 +43,8 @@ public class AuthConfigController extends ApiController {
         AuthConfigRsDTOv1 rs = new AuthConfigRsDTOv1();
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
-            IdentityProviderConfig providerServiceConfig = identityProviderService.getConfig();
-            //todo convert to response
+            IdentityProviderConfig identityProviderConfig = identityProviderService.getConfig();
+            rs.setConfig(identityProviderConfigRestDTOMapper.convert(identityProviderConfig));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

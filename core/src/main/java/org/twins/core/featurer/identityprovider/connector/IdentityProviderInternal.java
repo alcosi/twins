@@ -5,6 +5,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.auth.method.AuthMethod;
+import org.twins.core.domain.auth.method.AuthMethodPassword;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.identityprovider.ClientLogoutData;
@@ -38,7 +39,10 @@ public class IdentityProviderInternal extends IdentityProviderConnector {
 
     @Override
     public List<AuthMethod> getSupportedMethods(Properties properties) {
-        return List.of();
+        return List.of(new AuthMethodPassword()
+                .setRegisterSupported(false)
+                .setRecoverSupported(false)
+                .setFingerprintRequired(false));
     }
 
     @Override
