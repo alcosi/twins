@@ -13,7 +13,6 @@ import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nType;
-import org.twins.core.dao.twin.TwinStatusCreate;
 import org.twins.core.dto.rest.twinclass.TwinClassCreate;
 import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySmartService;
@@ -538,8 +537,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             if (dbTwinClassEntity.getOwnerType().isSystemLevel())
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "system class can be edited");
             ChangesHelper changesHelper = new ChangesHelper();
-            updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getHeadHunterFeaturerId, TwinClassEntity::setHeadHunterFeaturerId, TwinClassEntity.Fields.headHunterFeaturerId, changesHelper);
-            updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getHeadHunterParams, TwinClassEntity::setHeadHunterParams, TwinClassEntity.Fields.headHunterParams, changesHelper);
+
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getAbstractt, TwinClassEntity::setAbstractt, TwinClassEntity.Fields.abstractt, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getTwinClassSchemaSpace, TwinClassEntity::setTwinClassSchemaSpace, TwinClassEntity.Fields.twinClassSchemaSpace, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getTwinflowSchemaSpace, TwinClassEntity::setTwinflowSchemaSpace, TwinClassEntity.Fields.twinflowSchemaSpace, changesHelper);
@@ -554,6 +552,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getLogo, TwinClassEntity::setLogo, TwinClassEntity.Fields.logo, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getExternalId, TwinClassEntity::setExternalId, TwinClassEntity.Fields.externalId, changesHelper);
 
+
+            updateTwinClassFeaturer(dbTwinClassEntity, twinClassUpdate.getTwinClass().getHeadHunterFeaturerId(), twinClassUpdate.getTwinClass().getHeadHunterParams(), changesHelper);
             updateTwinClassName(dbTwinClassEntity, twinClassUpdate.getNameI18n(), changesHelper);
             updateTwinClassDescription(dbTwinClassEntity, twinClassUpdate.getDescriptionI18n(), changesHelper);
             updateTwinClassHeadTwinClass(dbTwinClassEntity, twinClassUpdate.getHeadTwinClassUpdate(), changesHelper);
@@ -576,6 +576,20 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
 
         return allEntities;
+    }
+
+    public void updateTwinClassFeaturer(TwinClassEntity dbTwinClassEntity, Integer newHeadhunterFeaturerId, HashMap<String, String> headHunterParams, ChangesHelper changesHelper) throws ServiceException {
+        if (changesHelper.isChanged(TwinClassEntity.Fields.headHunterFeaturerId, dbTwinClassEntity.getHeadHunterFeaturerId(), newHeadhunterFeaturerId)) {
+            FeaturerEntity newHeadHunterFeaturer = featurerService.checkValid(newHeadhunterFeaturerId, headHunterParams, HeadHunter.class);
+            dbTwinClassEntity
+                    .setHeadHunterFeaturerId(newHeadHunterFeaturer.getId())
+                    .setHeadHunterFeaturer(newHeadHunterFeaturer);
+        }
+        if (!MapUtils.areEqual(dbTwinClassEntity.getHeadHunterParams(), headHunterParams)) {
+            changesHelper.add(TwinClassEntity.Fields.headHunterParams, dbTwinClassEntity.getHeadHunterParams(), headHunterParams);
+            dbTwinClassEntity
+                    .setHeadHunterParams(headHunterParams);
+        }
     }
 
     public void updateTwinClassDescription(TwinClassEntity dbTwinClassEntity, I18nEntity descriptionI18n, ChangesHelper changesHelper) throws ServiceException {
