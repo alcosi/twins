@@ -2,22 +2,18 @@ package org.twins.core.dto.rest.twinclass;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.HashMap;
 import java.util.UUID;
 
-@Deprecated
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinClassSaveRqV1")
-public class TwinClassSaveRqDTOv1 extends Request {
+@Schema(name =  "TwinClassSaveV1")
+public class TwinClassSaveDTOv1 {
     @Schema(description = "unique key within the domain", example = DTOExamples.TWIN_CLASS_KEY)
     public String key;
 
