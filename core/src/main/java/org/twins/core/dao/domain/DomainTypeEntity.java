@@ -9,8 +9,8 @@ import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.idp.IdentityProviderEntity;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
-import org.twins.core.featurer.tokenhandler.TokenHandler;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 
 import java.util.HashMap;
@@ -39,14 +39,9 @@ public class DomainTypeEntity implements EasyLoggable {
     @Column(name = "domain_initiator_params", columnDefinition = "hstore")
     private HashMap<String, String> domainInitiatorParams;
 
-    @FeaturerList(type = TokenHandler.class)
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "default_token_handler_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity defaultTokenHandlerFeaturer;
-
-    @Type(PostgreSQLHStoreType.class)
-    @Column(name = "default_token_handler_params", columnDefinition = "hstore")
-    private HashMap<String, String> defaultTokenHandlerParams;
+    @JoinColumn(name = "default_identity_provider_id", insertable = false, updatable = false)
+    private IdentityProviderEntity defaultIdentityProvider;
 
     @FeaturerList(type = UserGroupManager.class)
     @ManyToOne(fetch = FetchType.EAGER)

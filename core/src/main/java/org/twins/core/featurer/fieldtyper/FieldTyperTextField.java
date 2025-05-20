@@ -30,7 +30,7 @@ import java.util.Properties;
 public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, FieldValueText, TwinFieldSearchText> {
     @FeaturerParam(name = "Regexp", description = "", order = 1)
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
-    @FeaturerParam(name = "editorType", description = "", order = 2, optional = true, defaultValue = "PLAIN")
+    @FeaturerParam(name = "EditorType", description = "", order = 2, optional = true, defaultValue = "PLAIN")
     public static final FeaturerParamStringTwinsEditorType editorType = new FeaturerParamStringTwinsEditorType("editorType");
 
     @Override

@@ -123,6 +123,8 @@ public interface DTOExamples {
     String I18N_ID = "633c6d7d-99c8-4d87-89c6-2f72d0f5d673";
     String I18N_KEY = "key";
     String I18N_NAME = "name";
+    String EMAIL = "user@example.com";
+    String PASSWORD = "secret";
 
 
 }

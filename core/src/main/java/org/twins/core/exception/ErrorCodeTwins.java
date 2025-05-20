@@ -128,7 +128,12 @@ public enum ErrorCodeTwins implements ErrorCode {
     TIER_COUNT_QUOTA_REACHED(12502, "common attachments count exceeds tier quota"),
     ATTACHMENTS_NOT_VALID(12503, "attachment not valid"),
     POINTER_NON_SINGLE(12601, "twin pointer is not single"),
-    POINTER_ON_NULL(12602, "twin pointer is null");
+    POINTER_ON_NULL(12602, "twin pointer is null"),
+    IDP_IS_NOT_ACTIVE(12701, "identity provider is not active", HttpStatus.SERVICE_UNAVAILABLE),
+    IDP_PASSWORD_LOGIN_NOT_SUPPORTED(12702, "password login is not supported by identity provider connector"),
+    IDP_TOKEN_REFRESH_NOT_SUPPORTED(12703, "token is not supported by identity provider connector"),
+    IDP_LOGOUT_NOT_SUPPORTED(12704, "logout is not supported by identity provider connector"),
+    IDP_RESOLVE_TOKEN_NOT_SUPPORTED(12705, "resolve token is not supported by identity provider connector");
 
 
     private final int code;
