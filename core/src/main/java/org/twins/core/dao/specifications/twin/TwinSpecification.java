@@ -104,59 +104,43 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         return (root, query, cb) -> {
             if (search.isEmptySearch()) return cb.conjunction();
 
-            List<Predicate> basePredicates = new ArrayList<>();
-
-            Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin =
-                    root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
-
-            twinFieldSimpleJoin.on(cb.equal(
-                    twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId),
-                    search.getTwinClassFieldEntity().getId()
-            ));
+            Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
+            twinFieldSimpleJoin.on(cb.equal(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
 
             Expression<String> stringValue = twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value);
-            Expression<LocalDateTime> dateTimeValue =
-                    cb.function("text2timestamp", LocalDateTime.class, stringValue);
+            Expression<LocalDateTime> dateTimeValue = cb.function("text2timestamp", LocalDateTime.class, stringValue);
 
-            boolean hasEquals = search.getEquals() != null;
-            boolean hasLess = search.getLessThen() != null;
-            boolean hasMore = search.getMoreThen() != null;
+            Predicate valuePredicate = cb.conjunction();
+            if (search.getLessThen() != null || search.getMoreThen() != null || search.getEquals() != null) {
+                if(!search.isEmpty())
+                    valuePredicate = cb.and(cb.isNotNull(stringValue), cb.notEqual(stringValue, cb.literal("")));
 
-            basePredicates.add(cb.isNotNull(stringValue));
-            basePredicates.add(cb.notEqual(stringValue, cb.literal("")));
-
-            Predicate valuePredicate;
-
-            if (hasEquals) {
-                valuePredicate = cb.equal(dateTimeValue, cb.literal(search.getEquals()));
-            } else {
-                List<Predicate> rangePredicates = new ArrayList<>();
-                if (hasLess) {
-                    rangePredicates.add(cb.lessThan(dateTimeValue, cb.literal(search.getLessThen())));
+                boolean hasRange = false;
+                Predicate rangePredicate = cb.conjunction();
+                if (search.getLessThen() != null) {
+                    rangePredicate = cb.and(rangePredicate, cb.lessThan(dateTimeValue, cb.literal(search.getLessThen())));
+                    hasRange = true;
                 }
-                if (hasMore) {
-                    rangePredicates.add(cb.greaterThan(dateTimeValue, cb.literal(search.getMoreThen())));
+                if (search.getMoreThen() != null) {
+                    rangePredicate = cb.and(rangePredicate, cb.greaterThan(dateTimeValue, cb.literal(search.getMoreThen())));
+                    hasRange = true;
                 }
 
-                valuePredicate = getPredicate(cb, rangePredicates, false);
+                if (search.getEquals() != null) {
+                    Predicate equalsPredicate = cb.equal(dateTimeValue, cb.literal(search.getEquals()));
+                    if (hasRange) {
+                        valuePredicate = cb.and(valuePredicate, cb.or(rangePredicate, equalsPredicate));
+                    } else {
+                        valuePredicate = cb.and(valuePredicate, equalsPredicate);
+                    }
+                } else if (hasRange) {
+                    valuePredicate = cb.and(valuePredicate, rangePredicate);
+                }
             }
+            if (search.isEmpty())
+                return cb.or(valuePredicate, cb.or(cb.equal(stringValue, cb.literal("")), cb.isNull(stringValue)));
 
-            if (valuePredicate != null) {
-                basePredicates.add(valuePredicate);
-            }
-
-            Predicate finalPredicate;
-            if (search.isEmpty()) {
-                Predicate emptyOrNull = cb.or(
-                        cb.equal(stringValue, cb.literal("")),
-                        cb.isNull(stringValue)
-                );
-                finalPredicate = cb.or(getPredicate(cb, basePredicates, false), emptyOrNull);
-            } else {
-                finalPredicate = getPredicate(cb, basePredicates, false);
-            }
-
-            return finalPredicate;
+            return valuePredicate;
         };
     }
 
