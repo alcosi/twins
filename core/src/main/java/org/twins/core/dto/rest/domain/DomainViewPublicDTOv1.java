@@ -17,6 +17,9 @@ public class DomainViewPublicDTOv1 {
     @Schema(description = "key", example = DTOExamples.DOMAIN_KEY)
     public String key;
 
+    @Schema(description = "name", example = DTOExamples.DOMAIN_NAME)
+    public String name;
+
     @Schema(description = "domain description", example = DTOExamples.DOMAIN_KEY)
     public String description;
 

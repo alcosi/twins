@@ -9,7 +9,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 @Getter
 @AllArgsConstructor
 @FieldNameConstants(onlyExplicitlyIncluded = true)
-public enum TwinclassSchemaMode implements MapperMode {
+public enum TwinClassSchemaMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include SHORT(1),
     @FieldNameConstants.Include DETAILED(2);
@@ -19,7 +19,7 @@ public enum TwinclassSchemaMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum Tier2TwinclassSchemaMode implements MapperModePointer<TwinclassSchemaMode> {
+    public enum Tier2TwinClassSchemaMode implements MapperModePointer<TwinClassSchemaMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -27,11 +27,31 @@ public enum TwinclassSchemaMode implements MapperMode {
         final int priority;
 
         @Override
-        public TwinclassSchemaMode point() {
+        public TwinClassSchemaMode point() {
             return switch (this) {
-                case HIDE -> TwinclassSchemaMode.HIDE;
-                case SHORT -> TwinclassSchemaMode.SHORT;
-                case DETAILED -> TwinclassSchemaMode.DETAILED;
+                case HIDE -> TwinClassSchemaMode.HIDE;
+                case SHORT -> TwinClassSchemaMode.SHORT;
+                case DETAILED -> TwinClassSchemaMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum Domain2TwinClassSchemaMode implements MapperModePointer<TwinClassSchemaMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public TwinClassSchemaMode point() {
+            return switch (this) {
+                case HIDE -> TwinClassSchemaMode.HIDE;
+                case SHORT -> TwinClassSchemaMode.SHORT;
+                case DETAILED -> TwinClassSchemaMode.DETAILED;
             };
         }
     }

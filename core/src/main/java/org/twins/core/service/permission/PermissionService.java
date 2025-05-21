@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.permission.*;
 import org.twins.core.dao.space.*;
 import org.twins.core.dao.twin.TwinEntity;
@@ -187,14 +186,6 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return detectKeys;
     }
 
-    public PermissionSchemaEntity loadSchemaForDomain(DomainEntity domain) {
-        if(null != domain.getPermissionSchema())
-            return domain.getPermissionSchema();
-        final PermissionSchemaEntity permissionSchema = permissionSchemaRepository.findById(domain.getPermissionSchemaId()).orElse(null);
-        domain.setPermissionSchema(permissionSchema);
-        return permissionSchema;
-    }
-
     public PermissionSchemaEntity getCurrentPermissionSchema(TwinEntity twin) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         PermissionSchemaEntity permissionSchema = null;
@@ -206,7 +197,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
                 final DomainBusinessAccountEntity domainBusinessAccount = domainService.getDomainBusinessAccountEntitySafe(apiUser.getDomainId(), apiUser.getBusinessAccountId());
                 permissionSchema = domainBusinessAccount.getPermissionSchema();
             } else {
-                permissionSchema = loadSchemaForDomain(apiUser.getDomain());
+                permissionSchema = apiUser.getDomain().getPermissionSchema();
             }
             if (null == permissionSchema) throw new ServiceException(ErrorCodeTwins.PERMISSION_SCHEMA_NOT_SPECIFIED);
         }
