@@ -7,6 +7,8 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 
+import java.util.UUID;
+
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
@@ -17,4 +19,10 @@ public class AuthLoginRqDTOv1 extends Request {
 
     @Schema(description = "password", example = DTOExamples.PASSWORD)
     public String password;
+
+    @Schema(description = "agent fingerprint (hash)")
+    public String fingerprint;
+
+    @Schema(description = "public key id")
+    public UUID publicKeyId;
 }

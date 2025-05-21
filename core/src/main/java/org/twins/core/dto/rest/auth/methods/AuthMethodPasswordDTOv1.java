@@ -18,4 +18,10 @@ public class AuthMethodPasswordDTOv1 implements AuthMethodDTOv1 {
 
     @Schema(description = "Password recover is supported")
     public boolean recoverSupported;
+
+    @Schema(description = "Agent finger print check is supported")
+    public boolean fingerPrintRequired;
+
+    @Schema(description = "Public key to crypt password (if supported)")
+    public String publicKey;
 }
