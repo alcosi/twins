@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
@@ -24,5 +25,11 @@ public class DataListOptionSaveDTOv1 {
     public Map<String, String> attributesMap;
 
     @Schema(description = "external id")
-    private String externalId;
+    public String externalId;
+
+    @Schema(description = "background color hex", example = DTOExamples.COLOR_HEX)
+    public String backgroundColor;
+
+    @Schema(description = "font color hex", example = DTOExamples.COLOR_HEX)
+    public String fontColor;
 }

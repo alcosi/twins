@@ -26,6 +26,8 @@ public class UserSearchDTOReverseMapper extends RestSimpleDTOMapper<UserSearchDT
                 .setUserIdExcludeList(src.getUserIdExcludeList())
                 .setUserNameLikeList(src.getUserNameLikeList())
                 .setUserNameLikeExcludeList(src.getUserNameLikeExcludeList())
+                .setUserEmailLikeList(src.getUserEmailLikeList())
+                .setUserEmailLikeExcludeList(src.getUserEmailLikeExcludeList())
                 .setStatusIdList(src.getStatusIdList())
                 .setStatusIdExcludeList(src.getStatusIdExcludeList())
                 .setSpaceList(mapSpaceList(src.getSpaceList()))

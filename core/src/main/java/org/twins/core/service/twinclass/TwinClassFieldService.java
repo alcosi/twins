@@ -43,8 +43,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static org.cambium.common.util.CacheUtils.evictCache;
-
 
 @Slf4j
 @Service
@@ -381,7 +379,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             updateTwinClassFieldViewPermission(dbField, save.getField().getViewPermissionId(), changesHelper);
             updateTwinClassFieldEditPermission(dbField, save.getField().getEditPermissionId(), changesHelper);
             updateTwinClassFieldRequiredFlag(dbField, save.getField().getRequired(), changesHelper);
-            updateEntityField(save.getField(), dbField,
+            updateEntityFieldByEntity(save.getField(), dbField,
                     TwinClassFieldEntity::getExternalId, TwinClassFieldEntity::setExternalId,
                     TwinClassFieldEntity.Fields.externalId, changesHelper);
 
@@ -405,7 +403,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                     TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_KEY,
                     TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_PARENT_KEY);
 
-            evictCache(cacheManager, cacheEvictCollector);
+            CacheUtils.evictCache(cacheManager, cacheEvictCollector);
         }
 
         return allEntities;
