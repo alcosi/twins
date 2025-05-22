@@ -34,7 +34,8 @@ public class FacePG002TabRestDTOMapper extends RestSimpleDTOMapper<FacePG002TabE
             case DETAILED -> dst
                     .setId(src.getId())
                     .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "))
-                    .setTitle(i18nService.translateToLocale(src.getTitleI18nId()));
+                    .setTitle(i18nService.translateToLocale(src.getTitleI18nId()))
+                    .setOrder(src.getOrder());
         }
         if (mapperContext.hasModeButNot(FacePG002Modes.FacePG002TabWidgetCollectionMode.HIDE)) {
             facePG002Service.loadWidgets(src);
