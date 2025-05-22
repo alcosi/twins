@@ -13,10 +13,10 @@ public class AuthMethodOath2DTOv1 implements AuthMethodDTOv1 {
     public static final String KEY = "AuthMethodOath2V1";
     public String type = KEY;
 
-    @Schema(description = "button icon")
-    public String iconUrl;
+    @Schema(description = "icon")
+    public String icon;
 
-    @Schema(description = "button label")
+    @Schema(description = "label")
     public String label;
 
     @Schema(description = "redirect url")

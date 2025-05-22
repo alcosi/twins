@@ -13,6 +13,12 @@ public class AuthMethodPasswordDTOv1 implements AuthMethodDTOv1 {
     public static final String KEY = "AuthMethodPasswordV1";
     public String type = KEY;
 
+    @Schema(description = "icon")
+    public String icon;
+
+    @Schema(description = "label")
+    public String label;
+
     @Schema(description = "New user register is supported")
     public boolean registerSupported;
 
