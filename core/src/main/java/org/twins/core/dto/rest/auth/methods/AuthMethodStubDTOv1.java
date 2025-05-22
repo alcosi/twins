@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import static org.twins.core.dto.rest.auth.methods.AuthMethodPasswordDTOv1.KEY;
+import static org.twins.core.dto.rest.auth.methods.AuthMethodStubDTOv1.KEY;
 
 @Data
 @Accessors(fluent = true) //todo are you sure?
