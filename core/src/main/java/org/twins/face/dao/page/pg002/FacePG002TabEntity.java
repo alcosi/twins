@@ -49,6 +49,9 @@ public class FacePG002TabEntity implements EasyLoggable {
     @JoinColumn(name = "icon_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconResource;
 
+    @Column(name = "`order`")
+    private Integer order;
+
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
