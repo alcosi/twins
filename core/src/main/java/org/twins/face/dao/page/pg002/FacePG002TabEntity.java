@@ -50,7 +50,7 @@ public class FacePG002TabEntity implements EasyLoggable {
     private ResourceEntity iconResource;
 
     @Column(name = "`order`")
-    private Integer order;
+    private short order;
 
     @Transient
     @EqualsAndHashCode.Exclude

@@ -20,6 +20,6 @@ public class FaceWT002DTOv1 extends FaceDTOv1 {
     @Schema(description = "widget layout")
     public Set<String> styleClasses;
 
-    @Schema(description = "show given columns from table and filter")
+    @Schema(description = "creat twin buttons array")
     public List<FaceWT002ButtonDTOv1> buttons;
 }
