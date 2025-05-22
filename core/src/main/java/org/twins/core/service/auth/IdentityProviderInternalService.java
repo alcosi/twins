@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CryptUtils;
 import org.cambium.common.util.StringUtils;
+import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -13,14 +14,19 @@ import org.twins.core.dao.idp.IdentityProviderInternalTokenEntity;
 import org.twins.core.dao.idp.IdentityProviderInternalTokenRepository;
 import org.twins.core.dao.idp.IdentityProviderInternalUserEntity;
 import org.twins.core.dao.idp.IdentityProviderInternalUserRepository;
+import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.user.UserRepository;
+import org.twins.core.domain.auth.AuthSignup;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.identityprovider.ClientSideAuthData;
 import org.twins.core.featurer.identityprovider.TokenMetaData;
+import org.twins.core.service.user.UserService;
 
 import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Base64;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -31,8 +37,10 @@ public class IdentityProviderInternalService {
     private static final Base64.Encoder base64Encoder = Base64.getUrlEncoder().withoutPadding();
     private final IdentityProviderInternalUserRepository identityProviderInternalUserRepository;
     private final IdentityProviderInternalTokenRepository identityProviderInternalTokenRepository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final AuthService authService;
+    private final UserService userService;
 
     public static String generateToken(int byteLength) {
         byte[] randomBytes = new byte[byteLength];
@@ -111,5 +119,29 @@ public class IdentityProviderInternalService {
 
     public static String getTokenHash(String token) {
         return CryptUtils.sha256(token);
+    }
+
+    public AuthSignup.Result signup(AuthSignup authSignup) throws ServiceException {
+        IdentityProviderInternalUserEntity internalUserEntity = identityProviderInternalUserRepository.findByUser_Email(authSignup.getEmail());
+        if (internalUserEntity != null) {
+            throw new ServiceException(ErrorCodeTwins.IDP_SIGNUP_EMAIL_ALREADY_REGISTERED);
+        }
+        internalUserEntity = new IdentityProviderInternalUserEntity();
+        UserEntity user = userRepository.findByEmail(authSignup.getEmail());
+        if (user == null) {
+            user = new UserEntity()
+                    .setId(UUID.randomUUID())
+                    .setName(authSignup.getFirstName() + " " + authSignup.getLastName())
+                    .setEmail(authSignup.getEmail());  //todo this is not safe, because we need to verify email
+            userService.addUser(user, EntitySmartService.SaveMode.saveAndThrowOnException);
+        }
+        internalUserEntity
+                .setUserId(user.getId())
+                .setUser(user)
+                .setLastLoginAt(Timestamp.from(Instant.now()))
+                .setPasswordHash(passwordEncoder.encode(authSignup.getPassword()))
+                .setActive(true);
+        identityProviderInternalUserRepository.save(internalUserEntity);
+        return AuthSignup.Result.SIGNED_UP;
     }
 }

@@ -134,12 +134,13 @@ public enum ErrorCodeTwins implements ErrorCode {
     IDP_TOKEN_REFRESH_NOT_SUPPORTED(12703, "token is not supported by identity provider connector"),
     IDP_LOGOUT_NOT_SUPPORTED(12704, "logout is not supported by identity provider connector"),
     IDP_RESOLVE_TOKEN_NOT_SUPPORTED(12705, "resolve token is not supported by identity provider connector"),
-    IDP_UNAUTHORIZED(12706, "incorrect username or password", HttpStatus.UNAUTHORIZED),
-    IDP_EMPTY_USERNAME_OR_PASSWORD(12707, "empty username or password", HttpStatus.UNAUTHORIZED),
-    IDP_INCORRECT_REFRESH_TOKEN(12708, "refresh token is invalid or expired", HttpStatus.UNAUTHORIZED),
-    IDP_INCORRECT_AUTH_TOKEN(12709, "auth token empty or unknown", HttpStatus.UNAUTHORIZED),
-    IDP_INCORRECT_AUTH_EXPIRED(12710, "auth token is expired", HttpStatus.UNAUTHORIZED),
-    IDP_INCORRECT_LOGIN_KEY(12711, "incorrect or expired login key", HttpStatus.UNAUTHORIZED);
+    IDP_SIGNUP_NOT_SUPPORTED(12706, "signup is not supported by identity provider connector"),
+    IDP_UNAUTHORIZED(12707, "incorrect username or password", HttpStatus.UNAUTHORIZED),
+    IDP_EMPTY_USERNAME_OR_PASSWORD(12708, "empty username or password", HttpStatus.UNAUTHORIZED),
+    IDP_INCORRECT_REFRESH_TOKEN(12709, "refresh token is invalid or expired", HttpStatus.UNAUTHORIZED),
+    IDP_INCORRECT_AUTH_TOKEN(12710, "auth token empty or unknown", HttpStatus.UNAUTHORIZED),
+    IDP_INCORRECT_LOGIN_KEY(12711, "incorrect or expired login key", HttpStatus.UNAUTHORIZED),
+    IDP_SIGNUP_EMAIL_ALREADY_REGISTERED(12712, "email is already registered");
 
 
     private final int code;

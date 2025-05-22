@@ -14,6 +14,7 @@ import org.twins.core.dao.idp.IdentityProviderEntity;
 import org.twins.core.dao.idp.IdentityProviderRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.auth.AuthLogin;
+import org.twins.core.domain.auth.AuthSignup;
 import org.twins.core.domain.auth.IdentityProviderConfig;
 import org.twins.core.domain.auth.LoginKey;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -129,5 +130,11 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         } catch (Exception e) {
             throw new ServiceException(ErrorCodeTwins.IDP_INCORRECT_LOGIN_KEY);
         }
+    }
+
+    public AuthSignup.Result signup(AuthSignup authSignup) throws ServiceException {
+        IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
+        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
+        return identityProviderConnector.signup(identityProvider.getIdentityProviderConnectorParams(), authSignup);
     }
 }

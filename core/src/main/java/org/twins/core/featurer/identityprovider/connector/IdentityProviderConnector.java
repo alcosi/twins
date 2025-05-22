@@ -3,6 +3,7 @@ package org.twins.core.featurer.identityprovider.connector;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
+import org.twins.core.domain.auth.AuthSignup;
 import org.twins.core.domain.auth.method.AuthMethod;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.identityprovider.ClientLogoutData;
@@ -51,5 +52,13 @@ public abstract class IdentityProviderConnector extends FeaturerTwins {
         Properties properties = featurerService.extractProperties(this, identityProviderConnectorParams, new HashMap<>());
         logout(properties, logoutData);
     }
+
     public abstract void logout(Properties properties, ClientLogoutData clientLogoutData) throws ServiceException;
+
+    public AuthSignup.Result signup(HashMap<String, String> identityProviderConnectorParams, AuthSignup authSignup) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, identityProviderConnectorParams, new HashMap<>());
+        return signup(properties,authSignup);
+    }
+
+    public abstract AuthSignup.Result signup(Properties properties, AuthSignup authSignup) throws ServiceException;
 }

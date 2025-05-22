@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
+import org.twins.core.domain.auth.AuthSignup;
 import org.twins.core.domain.auth.method.AuthMethod;
 import org.twins.core.domain.auth.method.AuthMethodStub;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -56,5 +57,10 @@ public class IdentityProviderStub extends IdentityProviderConnector {
     @Override
     public void logout(Properties properties, ClientLogoutData clientLogoutData) throws ServiceException {
         throw new ServiceException(ErrorCodeTwins.IDP_LOGOUT_NOT_SUPPORTED);
+    }
+
+    @Override
+    public AuthSignup.Result signup(Properties properties, AuthSignup authSignup) throws ServiceException {
+        throw new ServiceException(ErrorCodeTwins.IDP_SIGNUP_NOT_SUPPORTED);
     }
 }
