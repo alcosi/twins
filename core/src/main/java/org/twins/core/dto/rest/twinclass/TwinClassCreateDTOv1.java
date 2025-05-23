@@ -30,5 +30,5 @@ public class TwinClassCreateDTOv1 extends TwinClassSaveDTOv1 {
     public Boolean autoCreatePermissions = false;
 
     @Schema(description = "[optional] if true - twinflow and status will be created and assign to class")
-    public Boolean autoCreateTwinflow = false;
+    public Boolean autoCreateTwinflow = true;
 }
