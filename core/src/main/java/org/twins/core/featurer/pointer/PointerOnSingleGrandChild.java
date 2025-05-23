@@ -17,9 +17,8 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.twin.TwinSearchService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -45,19 +44,14 @@ public class PointerOnSingleGrandChild extends Pointer {
             return null;
         }
 
-        List<TwinEntity> grandchildren = new ArrayList<>();
+        Set<UUID> childIds = children.stream().map(TwinEntity::getId).collect(Collectors.toSet());
 
-        for (TwinEntity child : children) {
-            BasicSearch grandchildSearch = new BasicSearch();
-            grandchildSearch
-                    .addHeadTwinId(child.getId())
-                    .addTwinClassId(twinClassId.extract(properties), false);
+        BasicSearch grandchildSearch = new BasicSearch();
+        grandchildSearch
+                .setHeadTwinIdList(childIds)
+                .addTwinClassId(twinClassId.extract(properties), false);
 
-            List<TwinEntity> found = twinSearchService.findTwins(grandchildSearch);
-            if (!CollectionUtils.isEmpty(found)) {
-                grandchildren.addAll(found);
-            }
-        }
+        List<TwinEntity> grandchildren = twinSearchService.findTwins(grandchildSearch);
 
         if (CollectionUtils.isEmpty(grandchildren)) {
             return null;
