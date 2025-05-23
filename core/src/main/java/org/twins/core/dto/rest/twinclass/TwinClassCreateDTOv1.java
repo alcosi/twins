@@ -19,7 +19,6 @@ public class TwinClassCreateDTOv1 extends TwinClassSaveDTOv1 {
             "Example: Task and Sub-task. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
     public UUID headTwinClassId;
 
-
     @Schema(description = "[optional] id of linked marker list. Markers in some cases similar to secondary statuses. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
     public UUID markerDataListId;
 
@@ -29,4 +28,7 @@ public class TwinClassCreateDTOv1 extends TwinClassSaveDTOv1 {
 
     @Schema(description = "[optional] if true - permissions will be created and assign to class (if not specified another permission ids in this dto)")
     public Boolean autoCreatePermissions = false;
+
+    @Schema(description = "[optional] if true - twinflow and status will be created and assign to class")
+    public Boolean autoCreateTwinflow = false;
 }

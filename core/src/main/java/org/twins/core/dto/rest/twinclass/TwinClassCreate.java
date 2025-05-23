@@ -9,4 +9,5 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class TwinClassCreate extends TwinClassSave {
     private Boolean autoCreatePermission;
+    private Boolean autoCreateTwinflow;
 }
