@@ -65,7 +65,8 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
     public enum TextEditorType {
         PLAIN,
         MARKDOWN_GITHUB,
-        MARKDOWN_BASIC;
+        MARKDOWN_BASIC,
+        HTML;
 
         @Override
         public String toString() {
