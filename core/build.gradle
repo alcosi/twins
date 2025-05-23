@@ -92,6 +92,7 @@ dependencies {
         exclude group: "org.apache.tomcat"
     }
     implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'org.springframework.security:spring-security-crypto'
     implementation('com.github.ben-manes.caffeine:caffeine')
     implementation('org.springframework.boot:spring-boot-starter-undertow')
     implementation("org.springframework.amqp:spring-rabbit")

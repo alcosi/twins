@@ -11,10 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -48,7 +45,8 @@ public class FacePG001Controller extends ApiController {
     @GetMapping(value = "/private/face/pg001/{faceId}/v1")
     public ResponseEntity<?> facePG001ViewV1(
             @MapperContextBinding(roots = FacePG001RestDTOMapper.class, response = FacePG001ViewRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.FACE_ID) @PathVariable UUID faceId) {
+            @Parameter(example = DTOExamples.FACE_ID) @PathVariable UUID faceId,
+            @RequestParam(required = false) UUID twinId) {
         FacePG001ViewRsDTOv1 rs = new FacePG001ViewRsDTOv1();
         try {
             FacePG001Entity facePG001Entity = facePG001Service.findEntitySafe(faceId);

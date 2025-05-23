@@ -13,9 +13,21 @@ public class AuthMethodPasswordDTOv1 implements AuthMethodDTOv1 {
     public static final String KEY = "AuthMethodPasswordV1";
     public String type = KEY;
 
+    @Schema(description = "icon")
+    public String icon;
+
+    @Schema(description = "label")
+    public String label;
+
     @Schema(description = "New user register is supported")
     public boolean registerSupported;
 
     @Schema(description = "Password recover is supported")
     public boolean recoverSupported;
+
+    @Schema(description = "Agent finger print check is supported")
+    public boolean fingerPrintRequired;
+
+    @Schema(description = "Public key to crypt password (if supported)")
+    public String publicKey;
 }
