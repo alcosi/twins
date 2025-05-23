@@ -25,7 +25,6 @@ public class TransitionBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
     private final TransitionBaseV2RestDTOMapper transitionBaseV2RestDTOMapper;
     @MapperModePointerBinding(modes = {TwinflowTransitionValidatorRuleMode.TwinflowTransition2TwinflowTransitionValidatorRuleMode.class})
     private final TwinflowTransitionValidatorRuleBaseV1RestDTOMapper twinflowTransitionValidatorRuleBaseV1RestDTOMapper;
-    private final TriggerV1RestDTOMapper triggerV1RestDTOMapper;
 
     private final TwinflowTransitionService twinflowTransitionService;
     private final PermissionService permissionService;
@@ -33,15 +32,13 @@ public class TransitionBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
     @Override
     public void map(TwinflowTransitionEntity src, TwinflowTransitionBaseDTOv3 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(TransitionMode.SHORT)) {
-            case MANAGED:
+            case MANAGED -> {
                 if (!permissionService.currentUserHasPermission(Permissions.TRANSITION_MANAGE))
                     throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + TransitionMode.MANAGED + "] is not allowed for current user");
                 twinflowTransitionService.loadValidators(src);
                 twinflowTransitionService.loadTriggers(src);
-                dst
-                        .setValidatorRules(twinflowTransitionValidatorRuleBaseV1RestDTOMapper.convertCollection(src.getValidatorRulesKit().getCollection(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinflowTransitionValidatorRuleMode.TwinflowTransition2TwinflowTransitionValidatorRuleMode.HIDE))))
-                        .setTriggers(triggerV1RestDTOMapper.convertCollection(src.getTriggersKit().getCollection(), mapperContext));
-                break;
+                dst.setValidatorRules(twinflowTransitionValidatorRuleBaseV1RestDTOMapper.convertCollection(src.getValidatorRulesKit().getCollection(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinflowTransitionValidatorRuleMode.TwinflowTransition2TwinflowTransitionValidatorRuleMode.HIDE))));
+            }
         }
         transitionBaseV2RestDTOMapper.map(src, dst, mapperContext);
     }
@@ -52,7 +49,6 @@ public class TransitionBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
             if (!permissionService.currentUserHasPermission(Permissions.TRANSITION_MANAGE))
                 throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + TransitionMode.MANAGED + "] is not allowed for current user");
             twinflowTransitionService.loadValidators(srcCollection);
-            twinflowTransitionService.loadTriggers(srcCollection);
         }
     }
 

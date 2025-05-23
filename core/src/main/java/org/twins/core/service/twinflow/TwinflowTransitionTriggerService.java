@@ -2,14 +2,22 @@ package org.twins.core.service.twinflow;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.MapUtils;
+import org.cambium.featurer.FeaturerService;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerRepository;
+import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 
+import java.util.HashMap;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -18,6 +26,8 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImpl<TwinflowTransitionTriggerEntity> {
     private final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
+    private final FeaturerService featurerService;
+
     @Override
     public CrudRepository<TwinflowTransitionTriggerEntity, UUID> entityRepository() {
         return twinflowTransitionTriggerRepository;
@@ -35,6 +45,58 @@ public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImp
 
     @Override
     public boolean validateEntity(TwinflowTransitionTriggerEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entity.getTwinflowTransitionId() == null) {
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinflowTransitionId");
+        }
+        if (entity.getTransitionTriggerFeaturerId() == null) {
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty transitionTriggerFeaturerId");
+        }
+
+        switch (entityValidateMode) {
+            case beforeSave -> {
+                if (entity.getTransitionTriggerFeaturer() == null || !entity.getTransitionTriggerFeaturerId().equals(entity.getTransitionTriggerFeaturer().getId())) {
+                    entity.setTransitionTriggerFeaturer(featurerService.checkValid(entity.getTransitionTriggerFeaturerId(), entity.getTransitionTriggerParams(), TransitionTrigger.class));
+                }
+            }
+        }
         return true;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public TwinflowTransitionTriggerEntity createTransitionTrigger(TwinflowTransitionTriggerEntity transitionTrigger) throws ServiceException {
+        return saveSafe(transitionTrigger.setActive(true));
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public TwinflowTransitionTriggerEntity updateTransitionTrigger(TwinflowTransitionTriggerEntity updateEntity) throws ServiceException {
+        TwinflowTransitionTriggerEntity dbEntity = findEntitySafe(updateEntity.getId());
+        ChangesHelper changesHelper = new ChangesHelper();
+        updateEntityFieldByEntity(updateEntity, dbEntity, TwinflowTransitionTriggerEntity::getTwinflowTransitionId,
+                TwinflowTransitionTriggerEntity::setTwinflowTransitionId, TwinflowTransitionTriggerEntity.Fields.twinflowTransitionId, changesHelper);
+        updateTransitionTriggerFeaturer(dbEntity, updateEntity.getTransitionTriggerFeaturerId(), updateEntity.getTransitionTriggerParams(), changesHelper);
+        updateEntityFieldByEntity(updateEntity, dbEntity, TwinflowTransitionTriggerEntity::getOrder,
+                TwinflowTransitionTriggerEntity::setOrder, TwinflowTransitionTriggerEntity.Fields.order, changesHelper);
+        updateActive(dbEntity, updateEntity, changesHelper);
+        return updateSafe(dbEntity, changesHelper);
+    }
+
+    private void updateTransitionTriggerFeaturer(TwinflowTransitionTriggerEntity dbEntity, Integer newTransitionTriggerFeaturerId, HashMap<String, String> params, ChangesHelper changesHelper) throws ServiceException {
+        if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.transitionTriggerFeaturerId,
+                dbEntity.getTransitionTriggerFeaturer(), newTransitionTriggerFeaturerId)) {
+            FeaturerEntity newTransitionTriggerFeaturer = featurerService.checkValid(newTransitionTriggerFeaturerId, params, TransitionTrigger.class);
+            dbEntity
+                    .setTransitionTriggerFeaturerId(newTransitionTriggerFeaturer.getId())
+                    .setTransitionTriggerFeaturer(newTransitionTriggerFeaturer);
+            if (!MapUtils.areEqual(dbEntity.getTransitionTriggerParams(), params)) {
+                changesHelper.add(TwinflowTransitionTriggerEntity.Fields.transitionTriggerParams, dbEntity.getTransitionTriggerParams(), params);
+                dbEntity.setTransitionTriggerParams(params);
+            }
+        }
+    }
+
+    private void updateActive(TwinflowTransitionTriggerEntity dbEntity, TwinflowTransitionTriggerEntity updateEntity, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.isActive, dbEntity.isActive(), updateEntity.isActive()))
+            return;
+        dbEntity.setActive(updateEntity.isActive());
     }
 }
