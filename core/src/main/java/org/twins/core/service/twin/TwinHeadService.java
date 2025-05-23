@@ -16,7 +16,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinHeadRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
@@ -36,7 +35,6 @@ import java.util.UUID;
 @Lazy
 @RequiredArgsConstructor
 public class TwinHeadService {
-    private final TwinHeadRepository twinHeadRepository;
     @Lazy
     private final TwinClassService twinClassService;
     @Lazy
@@ -92,55 +90,6 @@ public class TwinHeadService {
         if (validHead.getTotal() == 0)
             throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, "twin[" + headTwinId + "] is not allowed for twinClass[" + subClass.getId() + "]");
         return validHead.getList().getFirst();
-    }
-
-    //todo delete me
-    @Deprecated
-    public Page<TwinEntity> getValidUserTwinListByTwinClass(TwinClassEntity twinClassEntity, SimplePagination pagination) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        Pageable pageable = PaginationUtils.pageableOffset(pagination);
-        Page<TwinEntity> userTwinList = null;
-        switch (twinClassEntity.getOwnerType()) {
-            case DOMAIN_BUSINESS_ACCOUNT:
-            case DOMAIN_BUSINESS_ACCOUNT_USER:
-                // only users linked to domain and businessAccount at once will be selected
-                userTwinList = twinHeadRepository.findUserTwinByBusinessAccountIdAndDomainId(apiUser.getBusinessAccount().getId(), apiUser.getDomain().getId(), pageable);
-                break;
-            case BUSINESS_ACCOUNT:
-                // only users linked to businessAccount will be selected
-                userTwinList = twinHeadRepository.findUserTwinByBusinessAccountId(apiUser.getBusinessAccount().getId(), pageable);
-                break;
-            case DOMAIN_USER:
-            case DOMAIN:
-                // only users linked to domain will be selected
-                userTwinList = twinHeadRepository.findUserTwinByDomainId(apiUser.getDomain().getId(), pageable);
-                break;
-            case USER:
-                //todo all users
-        }
-        return userTwinList;
-    }
-
-    //todo delete me
-    @Deprecated
-    public Page<TwinEntity> getValidBusinessAccountTwinListByTwinClass(TwinClassEntity twinClassEntity, SimplePagination pagination) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        Pageable pageable = PaginationUtils.pageableOffset(pagination);
-        Page<TwinEntity> businessAccountList = null;
-        switch (twinClassEntity.getOwnerType()) {
-            case DOMAIN_BUSINESS_ACCOUNT:
-            case DOMAIN_BUSINESS_ACCOUNT_USER:
-                businessAccountList = twinHeadRepository.findBusinessAccountTwinByUserIdAndDomainId(apiUser.getUser().getId(), apiUser.getDomain().getId(), pageable);
-                break;
-            case USER:
-                businessAccountList = twinHeadRepository.findBusinessAccountTwinByUser(apiUser.getUser().getId(), pageable);
-                break;
-            case DOMAIN_USER:
-            case DOMAIN:
-                businessAccountList = twinHeadRepository.findBusinessAccountTwinByDomainId(apiUser.getDomain().getId(), pageable);
-                break;
-        }
-        return businessAccountList;
     }
 
     public void loadCreatableChildTwinClasses(TwinEntity twinEntity) throws ServiceException {
