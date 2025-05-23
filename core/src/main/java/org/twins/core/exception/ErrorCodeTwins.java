@@ -58,6 +58,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_CLASS_FIELD_FEATURER_NOT_SPECIFIED(10420, "Twin class field featurer is not specified"),
     TWIN_CLASS_READ_DENIED(10421, "Twin class read denied"),
     TWIN_CLASS_CYCLE(10422, "Twin class head_id or extends_id cant be equals id of class."),
+    TWIN_CLASS_FIELD_CHILD_STATUS_INCORRECT(10423, "The child's status is not set correctly"),
     TWINFLOW_SCHEMA_NOT_ALLOWED(10501, "twinflow schema is not allowed"),
     TWINFLOW_SCHEMA_NOT_CONFIGURED(10502, "twinflow schema is not configured"),
     TWINFLOW_TRANSACTION_INCORRECT(10503, "twinflow transition can not be performed"),
