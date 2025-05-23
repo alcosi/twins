@@ -24,13 +24,16 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.apiuser.DBUMembershipCheck;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.SearchByAlias;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilder;
 import org.twins.core.featurer.search.detector.SearchDetector;
+import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.domain.DBUService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.user.UserGroupService;
@@ -43,9 +46,6 @@ import static org.cambium.common.util.MapUtils.narrowMapOfSets;
 import static org.cambium.common.util.PaginationUtils.sortType;
 import static org.cambium.common.util.SetUtils.narrowSet;
 import static org.springframework.data.jpa.domain.Specification.where;
-import static org.twins.core.dao.specifications.AbstractTwinEntityBasicSearchSpecification.createTwinEntityBasicSearchSpecification;
-import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
-import static org.twins.core.dao.specifications.CommonSpecification.checkPermissions;
 import static org.twins.core.dao.specifications.twin.TwinSpecification.*;
 
 @Service
@@ -64,7 +64,7 @@ public class TwinSearchService {
     @Lazy
     private final AuthService authService;
     private final EntitySmartService entitySmartService;
-
+    private final DBUService dbuService;
 
     public Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -82,7 +82,7 @@ public class TwinSearchService {
         } else {
             specification = specification
                     .and(checkPermissions(domainId, businessAccountId, userId, apiUser.getUser().getUserGroups().getIdSetSafe()))
-                    .and(checkClass(basicSearch.getTwinClassIdList(), apiUser));
+                    .and(checkClass(basicSearch.getTwinClassIdList(), apiUser, detectDbuMembership(basicSearch)));
         }
 
 
@@ -103,6 +103,38 @@ public class TwinSearchService {
                 ));
 
         return specification;
+    }
+
+    private DBUMembershipCheck detectDbuMembership(BasicSearch basicSearch) {
+        DBUMembershipCheck effectiveDbuMembershipCheck = basicSearch.getDbuMembershipCheck();
+        if (effectiveDbuMembershipCheck == null && !CollectionUtils.isEmpty(basicSearch.getTwinClassIdList())) {
+            for (UUID twinClassId : basicSearch.getTwinClassIdList()) {
+                try {
+                    if (SystemEntityService.isTwinClassForUser(twinClassId)) {
+                        effectiveDbuMembershipCheck = dbuService.detectSystemTwinsDBUMembershipCheck(TwinClassEntity.OwnerType.USER);
+                    } else if (SystemEntityService.isTwinClassForBusinessAccount(twinClassId)) {
+                        effectiveDbuMembershipCheck = dbuService.detectSystemTwinsDBUMembershipCheck(TwinClassEntity.OwnerType.BUSINESS_ACCOUNT);
+                    }
+                } catch (ServiceException e) {
+
+                    log.error("Failed to detect default DBU membership: {}", e.getMessage(), e);
+//                        systemLevelPredicate = cb.isFalse(cb.literal(true));
+                    break;
+                }
+                if (effectiveDbuMembershipCheck != null)
+                    break;
+            }
+        }
+        // If effectiveDbuMembershipCheck is still null, determine it for security purposes
+        if (effectiveDbuMembershipCheck == null) {
+            try {
+                effectiveDbuMembershipCheck = dbuService.detectSystemTwinsDBUMembershipCheck();
+            } catch (ServiceException e) {
+                log.error("Failed to detect default DBU membership: {}", e.getMessage(), e);
+                effectiveDbuMembershipCheck = DBUMembershipCheck.BLOCKED;
+            }
+        }
+        return effectiveDbuMembershipCheck;
     }
 
     public List<TwinEntity> findTwins(BasicSearch basicSearch) throws ServiceException {
