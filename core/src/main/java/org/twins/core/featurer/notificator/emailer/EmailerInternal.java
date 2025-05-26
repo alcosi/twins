@@ -19,7 +19,7 @@ import java.util.Properties;
 
 @Slf4j
 @Component
-@Featurer(id = FeaturerTwins.ID_3001,
+@Featurer(id = FeaturerTwins.ID_3301,
         name = "Internal",
         description = "")
 public class EmailerInternal extends EmailerCachedSender<JavaMailSender> {

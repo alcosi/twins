@@ -1,3 +1,5 @@
+INSERT INTO featurer_type (id, name)VALUES (33, 'Emailer') ON CONFLICT (id) DO NOTHING;
+
 create table if not exists email_sender_status
 (
     id          varchar not null
@@ -38,7 +40,7 @@ on conflict (id) do nothing;
 
 
 INSERT INTO email_sender (id, name, description, emailer_featurer_id, emailer_params, email_sender_status_id, created_at)
-VALUES ('00000000-0000-0000-0009-000000000001', 'Internal', 'System internal email sender ', 3301, 'host => "127.0.0.1, port => 587, username => "username", password => "password", auth => true, starttls => true', 'ACTIVE', now()) on conflict do nothing;
+VALUES ('00000000-0000-0000-0009-000000000001', 'Internal', 'System internal email sender ', 3301, 'host => "127.0.0.1", port => 587, username => "username", password => "password", auth => true, starttls => true', 'ACTIVE', now()) on conflict do nothing;
 
 
 
