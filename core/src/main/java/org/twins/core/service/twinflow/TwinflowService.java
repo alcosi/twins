@@ -3,10 +3,12 @@ package org.twins.core.service.twinflow;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.cambium.common.CacheEvictCollector;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.CacheUtils;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.MapUtils;
@@ -44,8 +46,6 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
-
-import static org.cambium.common.util.CacheUtils.evictCache;
 
 @Slf4j
 @Service
@@ -270,11 +270,11 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         updateTwinflowInitStatus(dbTwinflowEntity, twinflowEntity.getInitialTwinStatusId(), changesHelper);
         dbTwinflowEntity = updateSafe(dbTwinflowEntity, changesHelper);
         if (changesHelper.hasChanges()) {
-            Map<String, List<Object>> cacheEntries = Map.of(
-                    TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, List.of(dbTwinflowEntity.getTwinClassId()),
-                    TwinClassEntity.class.getSimpleName(), List.of(dbTwinflowEntity.getTwinClassId())
-            );
-            evictCache(cacheManager, cacheEntries);
+            CacheEvictCollector cacheEvictCollector = new CacheEvictCollector();
+            cacheEvictCollector
+                    .add(dbTwinflowEntity.getTwinClassId(), TwinClassRepository.CACHE_TWIN_CLASS_BY_ID)
+                    .add(dbTwinflowEntity.getTwinClassId() ,TwinClassEntity.class.getSimpleName());
+            CacheUtils.evictCache(cacheManager, cacheEvictCollector);
         }
         return dbTwinflowEntity;
     }

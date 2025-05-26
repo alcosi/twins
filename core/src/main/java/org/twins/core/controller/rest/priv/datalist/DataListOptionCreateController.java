@@ -84,7 +84,6 @@ public class DataListOptionCreateController extends ApiController {
         Response rs = new Response();
         try {
             List<DataListOptionCreate> dataListOptions = dataListOptionCreateDTOReverseMapperV2.convertCollection(request.getDataListOptions());
-
             dataListOptionService.createDataListOptions(dataListOptions);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

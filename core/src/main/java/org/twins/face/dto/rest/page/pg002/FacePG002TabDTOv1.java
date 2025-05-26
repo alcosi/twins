@@ -24,10 +24,9 @@ public class FacePG002TabDTOv1 {
     @Schema(description = "page layout")
     public Set<String> styleClasses;
 
-    @Deprecated
-    @Schema(description = "tab layout")
-    public String layout = "TWO_COLUMNS"; //todo delete me after UI update
-
     @Schema(description = "tab widgets list")
     public List<FacePG002WidgetDTOv1> widgets;
+
+    @Schema(name = "order")
+    public Short order;
 }

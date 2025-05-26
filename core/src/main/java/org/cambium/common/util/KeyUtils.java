@@ -4,7 +4,7 @@ import org.cambium.common.exception.ErrorCode;
 import org.cambium.common.exception.ServiceException;
 
 public class KeyUtils {
-    public static final String KEY_REGEXP = "^[a-zA-Zа-яА-Я0-9_\\\\s]+$";
+    public static final String KEY_REGEXP = "^[a-zA-Z0-9_\\\\s]+$";
 
     public static String upperCaseNullFriendly(String key, ErrorCode errorCode) throws ServiceException {
         return formatKey(key, 3, 36, true, false, errorCode);

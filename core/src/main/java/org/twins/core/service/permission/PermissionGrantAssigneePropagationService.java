@@ -98,15 +98,15 @@ public class PermissionGrantAssigneePropagationService extends EntitySecureFindS
         PermissionGrantAssigneePropagationEntity dbEntity = findEntitySafe(entity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
 
-        updateEntityField(entity, dbEntity, PermissionGrantAssigneePropagationEntity::getPermissionSchemaId,
+        updateEntityFieldByEntity(entity, dbEntity, PermissionGrantAssigneePropagationEntity::getPermissionSchemaId,
                 PermissionGrantAssigneePropagationEntity::setPermissionSchemaId, PermissionGrantAssigneePropagationEntity.Fields.permissionSchemaId ,changesHelper);
-        updateEntityField(entity, dbEntity, PermissionGrantAssigneePropagationEntity::getPermissionId,
+        updateEntityFieldByEntity(entity, dbEntity, PermissionGrantAssigneePropagationEntity::getPermissionId,
                 PermissionGrantAssigneePropagationEntity::setPermissionId, PermissionGrantAssigneePropagationEntity.Fields.permissionId ,changesHelper);
-        updateEntityField(entity, dbEntity, PermissionGrantAssigneePropagationEntity::getPropagationByTwinClassId,
+        updateEntityFieldByEntity(entity, dbEntity, PermissionGrantAssigneePropagationEntity::getPropagationByTwinClassId,
                 PermissionGrantAssigneePropagationEntity::setPropagationByTwinClassId, PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinClassId ,changesHelper);
-        updateEntityField(entity, dbEntity, PermissionGrantAssigneePropagationEntity::getPropagationByTwinStatusId,
+        updateEntityFieldByEntity(entity, dbEntity, PermissionGrantAssigneePropagationEntity::getPropagationByTwinStatusId,
                 PermissionGrantAssigneePropagationEntity::setPropagationByTwinStatusId, PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinStatusId ,changesHelper);
-        updateEntityField(entity, dbEntity, PermissionGrantAssigneePropagationEntity::getInSpaceOnly,
+        updateEntityFieldByEntity(entity, dbEntity, PermissionGrantAssigneePropagationEntity::getInSpaceOnly,
                 PermissionGrantAssigneePropagationEntity::setInSpaceOnly, PermissionGrantAssigneePropagationEntity.Fields.inSpaceOnly ,changesHelper);
 
         return updateSafe(dbEntity, changesHelper);

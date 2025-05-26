@@ -65,6 +65,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
 
     public static Specification<TwinEntity> checkFieldNumeric(final TwinFieldSearchNumeric search) throws ServiceException {
         return (root, query, cb) -> {
+            if(search.isEmptySearch()) return cb.conjunction();
             Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
             twinFieldSimpleJoin.on(cb.equal(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
             // convert string to double in DB for math compare
@@ -101,50 +102,48 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
 
     public static Specification<TwinEntity> checkFieldDate(final TwinFieldSearchDate search, final String... fieldPath) {
         return (root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
+            if (search.isEmptySearch()) return cb.conjunction();
+
             Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
             twinFieldSimpleJoin.on(cb.equal(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
 
-
             Expression<String> stringValue = twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value);
-            Expression<LocalDateTime> dateTimeValue = cb.function("text2timestamp", LocalDateTime.class, twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value));
+            Expression<LocalDateTime> dateTimeValue = cb.function("text2timestamp", LocalDateTime.class, stringValue);
 
-            Predicate lessAndMore = null;
-            Predicate equals = null;
+            Predicate valuePredicate = cb.conjunction();
             if (search.getLessThen() != null || search.getMoreThen() != null || search.getEquals() != null) {
-                predicates.add(cb.and(cb.isNotNull(stringValue), cb.notEqual(stringValue, cb.literal(""))));
-                if (search.getLessThen() != null)
-                    predicates.add(cb.and(cb.lessThan(dateTimeValue, cb.literal(search.getLessThen()))));
-                if (search.getMoreThen() != null)
-                    predicates.add(cb.and(cb.greaterThan(dateTimeValue, cb.literal(search.getMoreThen()))));
-                lessAndMore = getPredicate(cb, predicates, false);
-                if (search.getEquals() != null)
-                    equals = cb.and(cb.equal(dateTimeValue, cb.literal(search.getEquals())));
+                if(!search.isEmpty())
+                    valuePredicate = cb.and(cb.isNotNull(stringValue), cb.notEqual(stringValue, cb.literal("")));
+
+                boolean hasRange = false;
+                Predicate rangePredicate = cb.conjunction();
+                if (search.getLessThen() != null) {
+                    rangePredicate = cb.and(rangePredicate, cb.lessThan(dateTimeValue, cb.literal(search.getLessThen())));
+                    hasRange = true;
+                }
+                if (search.getMoreThen() != null) {
+                    rangePredicate = cb.and(rangePredicate, cb.greaterThan(dateTimeValue, cb.literal(search.getMoreThen())));
+                    hasRange = true;
+                }
+
+                if (search.getEquals() != null) {
+                    Predicate equalsPredicate = cb.equal(dateTimeValue, cb.literal(search.getEquals()));
+                    if (hasRange) {
+                        valuePredicate = cb.and(valuePredicate, cb.or(rangePredicate, equalsPredicate));
+                    } else {
+                        valuePredicate = cb.and(valuePredicate, equalsPredicate);
+                    }
+                } else if (hasRange) {
+                    valuePredicate = cb.and(valuePredicate, rangePredicate);
+                }
             }
-
-            Predicate valuePredicate;
-            Predicate finalPredicate = cb.conjunction();
-            if (null != equals && null != lessAndMore) {
-                predicates = new ArrayList<>();
-                predicates.add(lessAndMore);
-                predicates.add(equals);
-                valuePredicate = getPredicate(cb, predicates, true);
-            } else if (null != equals)
-                valuePredicate = equals;
-            else if (null != lessAndMore)
-                valuePredicate = lessAndMore;
-            else
-                valuePredicate = search.isEmpty() ? cb.disjunction() : cb.conjunction();
-
             if (search.isEmpty())
-                finalPredicate = cb.or(valuePredicate, cb.or(
-                        cb.equal(stringValue, cb.literal("")),
-                        cb.isNull(stringValue)
-                ));
-            else finalPredicate = cb.and(valuePredicate, finalPredicate);
-            return finalPredicate;
+                return cb.or(valuePredicate, cb.or(cb.equal(stringValue, cb.literal("")), cb.isNull(stringValue)));
+
+            return valuePredicate;
         };
     }
+
 
     public static Specification<TwinEntity> checkFieldUuidIn(final TwinFieldSearchId search, final String... fieldPath) {
         return (root, query, cb) -> {
@@ -164,7 +163,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
 
     public static Specification<TwinEntity> checkFieldText(final TwinFieldSearchText search, final String... fieldPath) {
         return (root, query, cb) -> {
-
+            if(search.isEmptySearch()) return cb.conjunction();
             Path<String> fieldExpression;
             if (fieldPath.length > 0 && TwinEntity.Fields.fieldsSimple.equals(fieldPath[0])) {
                 Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(fieldPath[0], JoinType.INNER);
@@ -222,6 +221,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
     //TODO    Need a load test to compare subquery execution speed with join
     public static Specification<TwinEntity> checkFieldList(final TwinFieldSearchList search) {
         return (root, query, cb) -> {
+            if(search.isEmptySearch()) return cb.conjunction();
             Join<TwinEntity, TwinFieldDataListEntity> twinFieldListJoin = root.join(TwinEntity.Fields.fieldsList, JoinType.INNER);
             twinFieldListJoin.on(cb.equal(twinFieldListJoin.get(TwinFieldDataListEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
 

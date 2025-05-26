@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 
 import java.util.UUID;
 
+@Deprecated
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)

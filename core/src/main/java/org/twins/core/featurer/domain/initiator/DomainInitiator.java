@@ -93,8 +93,8 @@ public abstract class DomainInitiator extends FeaturerTwins {
         Properties properties = featurerService.extractProperties(this, domainTypeEntity.getDomainInitiatorParams(), new HashMap<>());
         domainEntity
                 .setCreatedAt(Timestamp.from(Instant.now()))
-                .setTokenHandlerFeaturerId(domainTypeEntity.getDefaultTokenHandlerFeaturer().getId())
-                .setTokenHandlerParams(domainTypeEntity.getDefaultTokenHandlerParams())
+                .setIdentityProvider(domainTypeEntity.getDefaultIdentityProvider())
+                .setIdentityProviderId(domainTypeEntity.getDefaultIdentityProvider().getId())
                 .setUserGroupManagerFeaturerId(domainTypeEntity.getDefaultUserGroupManagerFeaturer().getId())
                 .setUserGroupManagerFeaturer(domainTypeEntity.getDefaultUserGroupManagerFeaturer())
                 .setUserGroupManagerParams(domainTypeEntity.getDefaultUserGroupManagerParams())
