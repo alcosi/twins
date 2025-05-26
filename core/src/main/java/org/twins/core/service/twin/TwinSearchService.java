@@ -73,68 +73,57 @@ public class TwinSearchService {
         UUID businessAccountId = apiUser.getBusinessAccountId();
         UUID userId = apiUser.getUser().getId();
         //todo create filter by basicSearch.getExtendsTwinClassIdList()
-        Specification<TwinEntity> specification = where(createTwinEntityBasicSearchSpecification(basicSearch,userId));
+        Specification<TwinEntity> specification = where(createTwinEntityBasicSearchSpecification(basicSearch, userId));
 
         if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL) || !basicSearch.isCheckViewPermission()) {
             specification = specification
-                    .and(checkFieldUuid(apiUser.getDomainId(),TwinEntity.Fields.twinClass,TwinClassEntity.Fields.domainId))
+                    .and(checkFieldUuid(apiUser.getDomainId(), TwinEntity.Fields.twinClass, TwinClassEntity.Fields.domainId))
                     .and(checkClassId(basicSearch.getTwinClassIdList()));
         } else {
+            detectSystemClassSearchCheck(basicSearch);
             specification = specification
                     .and(checkPermissions(domainId, businessAccountId, userId, apiUser.getUser().getUserGroups().getIdSetSafe()))
-                    .and(checkClass(basicSearch.getTwinClassIdList(), apiUser, detectDbuMembership(basicSearch)));
+                    .and(checkClass(basicSearch.getTwinClassIdList(), apiUser, basicSearch.getDbuMembershipCheck()));
         }
 
 
         //HEAD TWIN CHECK
         if (null != basicSearch.getHeadSearch() && !basicSearch.getHeadSearch().isEmpty())
             specification = specification.and(
-                checkHeadTwin(
-                        createTwinEntityBasicSearchSpecification(basicSearch.getHeadSearch(),userId),
-                        basicSearch.getHeadSearch()
-                ));
+                    checkHeadTwin(
+                            createTwinEntityBasicSearchSpecification(basicSearch.getHeadSearch(), userId),
+                            basicSearch.getHeadSearch()
+                    ));
 
         //CHILDREN TWINS CHECK
         if (null != basicSearch.getChildrenSearch() && !basicSearch.getChildrenSearch().isEmpty())
             specification = specification.and(
-                checkChildrenTwins(
-                        createTwinEntityBasicSearchSpecification(basicSearch.getChildrenSearch(),userId),
-                        basicSearch.getChildrenSearch()
-                ));
+                    checkChildrenTwins(
+                            createTwinEntityBasicSearchSpecification(basicSearch.getChildrenSearch(), userId),
+                            basicSearch.getChildrenSearch()
+                    ));
 
         return specification;
     }
 
-    private DBUMembershipCheck detectDbuMembership(BasicSearch basicSearch) {
-        DBUMembershipCheck effectiveDbuMembershipCheck = basicSearch.getDbuMembershipCheck();
-        if (effectiveDbuMembershipCheck == null && !CollectionUtils.isEmpty(basicSearch.getTwinClassIdList())) {
-            for (UUID twinClassId : basicSearch.getTwinClassIdList()) {
-                try {
-                    if (SystemEntityService.isTwinClassForUser(twinClassId)) {
-                        effectiveDbuMembershipCheck = dbuService.detectSystemTwinsDBUMembershipCheck(TwinClassEntity.OwnerType.USER);
-                    } else if (SystemEntityService.isTwinClassForBusinessAccount(twinClassId)) {
-                        effectiveDbuMembershipCheck = dbuService.detectSystemTwinsDBUMembershipCheck(TwinClassEntity.OwnerType.BUSINESS_ACCOUNT);
-                    }
-                } catch (ServiceException e) {
-
-                    log.error("Failed to detect default DBU membership: {}", e.getMessage(), e);
-//                        systemLevelPredicate = cb.isFalse(cb.literal(true));
-                    break;
-                }
-                if (effectiveDbuMembershipCheck != null)
-                    break;
+    private void detectSystemClassSearchCheck(BasicSearch basicSearch) throws ServiceException {
+        if (basicSearch.getDbuMembershipCheck() != null) {
+            return;
+        }
+        if (CollectionUtils.isEmpty(basicSearch.getTwinClassIdList())) {
+            basicSearch
+                    .addTwinClassId(List.of(SystemEntityService.TWIN_CLASS_BUSINESS_ACCOUNT, SystemEntityService.TWIN_CLASS_USER), true)
+                    .setDbuMembershipCheck(DBUMembershipCheck.BLOCKED);
+            return;
+        }
+        DBUMembershipCheck detectedCheck = DBUMembershipCheck.BLOCKED;
+        for (UUID twinClassId : basicSearch.getTwinClassIdList()) {
+            detectedCheck = dbuService.detectSystemTwinsDBUMembershipCheck(twinClassId);
+            if (detectedCheck != DBUMembershipCheck.BLOCKED && basicSearch.getTwinClassIdList().size() > 1) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_INCORRECT, "mixed search is not allowed");
             }
         }
-        // If effectiveDbuMembershipCheck is still null, determine it for security purposes
-        if (effectiveDbuMembershipCheck == null) {
-            try {
-                effectiveDbuMembershipCheck = dbuService.detectSystemTwinsDBUMembershipCheck();
-            } catch (ServiceException e) {
-                log.error("Failed to detect default DBU membership: {}", e.getMessage(), e);
-                effectiveDbuMembershipCheck = DBUMembershipCheck.BLOCKED;
-            }
-        }
-        return effectiveDbuMembershipCheck;
+        basicSearch.setDbuMembershipCheck(detectedCheck);
     }
 
     public List<TwinEntity> findTwins(BasicSearch basicSearch) throws ServiceException {
@@ -162,8 +151,10 @@ public class TwinSearchService {
 
     public PaginationResult<TwinEntity> findTwins(List<BasicSearch> basicSearches, SimplePagination pagination) throws ServiceException {
         Specification<TwinEntity> spec = where(null);
-        for (BasicSearch basicSearch : basicSearches)
+        for (BasicSearch basicSearch : basicSearches) {
+            detectSystemClassSearchCheck(basicSearch);
             spec = spec.or(createTwinEntitySearchSpecification(basicSearch));
+        }
         Page<TwinEntity> ret = twinRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
