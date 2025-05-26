@@ -6,4 +6,5 @@ VALUES (
         'Password',
         'Field typer for password field',
         false
-       );
+       )
+ON CONFLICT ON CONSTRAINT featurer_pk DO NOTHING;
