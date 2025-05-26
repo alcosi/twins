@@ -57,9 +57,4 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
 
     @Query(value = "select t.id from TwinEntity t where t.twinClassId = :twinClassId and t.id in :ids")
     Set<UUID> findIdByTwinClassIdAndIdIn(@Param("twinClassId") UUID twinClassId, @Param("ids") Collection<UUID> ids);
-
-    @Query(value = "SELECT t.* FROM twin t WHERE t.hierarchy_tree ~ (:grandparentIdWithUnderscores || '.*{1}.' || t.id)::ltree AND t.twin_class_id = :grandchildTwinClassId", nativeQuery = true)
-    List<TwinEntity> findDirectGrandChildrenByHierarchyAndClass(
-            @Param("grandparentIdWithUnderscores") String grandparentIdWithUnderscores,
-            @Param("grandchildTwinClassId") UUID grandchildTwinClassId);
 }

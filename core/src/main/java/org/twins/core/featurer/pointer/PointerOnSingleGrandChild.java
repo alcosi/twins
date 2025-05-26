@@ -35,7 +35,12 @@ public class PointerOnSingleGrandChild extends Pointer {
 
     @Override
     protected TwinEntity point(Properties properties, TwinEntity srcTwinEntity) throws ServiceException {
-        List<TwinEntity> grandchildren = twinSearchService.findDirectGrandChildrenByHierarchyAndClass(srcTwinEntity.getId(), twinClassId.extract(properties));
+        BasicSearch childSearch = new BasicSearch();
+        childSearch
+                .addHierarchyTreeContainsId(srcTwinEntity.getId())
+                .addTwinClassId(twinClassId.extract(properties), false);
+
+        List<TwinEntity> grandchildren = twinSearchService.findTwins(childSearch);
 
         if (CollectionUtils.isEmpty(grandchildren)) {
             return null;

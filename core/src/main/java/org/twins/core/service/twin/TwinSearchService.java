@@ -257,9 +257,4 @@ public class TwinSearchService {
         mainSearch.setLinksAnyOfList(narrowMapOfSets(mainSearch.getLinksAnyOfList(), narrowSearch.getLinksAnyOfList()));
         mainSearch.setLinksNoAnyOfList(narrowMapOfSets(mainSearch.getLinksNoAnyOfList(), narrowSearch.getLinksNoAnyOfList()));
     }
-
-    public List<TwinEntity> findDirectGrandChildrenByHierarchyAndClass(UUID twinId, UUID grandChildTwinClassId) {
-        String normalizedTwinId = twinId.toString().replace("-", "_");
-        return twinRepository.findDirectGrandChildrenByHierarchyAndClass(normalizedTwinId, grandChildTwinClassId);
-    }
 }
