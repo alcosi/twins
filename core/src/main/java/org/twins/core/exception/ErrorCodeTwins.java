@@ -139,7 +139,9 @@ public enum ErrorCodeTwins implements ErrorCode {
     IDP_INCORRECT_REFRESH_TOKEN(12708, "refresh token is invalid or expired", HttpStatus.UNAUTHORIZED),
     IDP_INCORRECT_AUTH_TOKEN(12709, "auth token empty or unknown", HttpStatus.UNAUTHORIZED),
     IDP_INCORRECT_AUTH_EXPIRED(12710, "auth token is expired", HttpStatus.UNAUTHORIZED),
-    IDP_INCORRECT_LOGIN_KEY(12711, "incorrect or expired login key", HttpStatus.UNAUTHORIZED);
+    IDP_INCORRECT_LOGIN_KEY(12711, "incorrect or expired login key", HttpStatus.UNAUTHORIZED),
+    IDP_PROVIDED_TOKEN_IS_NOT_ACTIVE(12712,"provided token is not active", HttpStatus.UNAUTHORIZED),
+    IDP_AUTHENTICATION_EXCEPTION(12713, "authentication error", HttpStatus.UNAUTHORIZED);
 
 
     private final int code;
