@@ -22,7 +22,10 @@ import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.attachment.AttachmentActionService;
 import org.twins.core.service.attachment.AttachmentService;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 
 
@@ -72,6 +75,7 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
                     .setCommentId(src.getTwinCommentId())
                     .setViewPermissionId(src.getViewPermissionId())
                     .setDescription(src.getDescription())
+                    .setSize(src.getSize())
                     .setTitle(src.getTitle())
                     .setExternalId(src.getExternalId())
                     .setStorageLink(src.getStorageFileKey());

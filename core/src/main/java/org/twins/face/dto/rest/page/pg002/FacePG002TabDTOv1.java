@@ -26,4 +26,7 @@ public class FacePG002TabDTOv1 {
 
     @Schema(description = "tab widgets list")
     public List<FacePG002WidgetDTOv1> widgets;
+
+    @Schema(name = "order")
+    public Short order;
 }

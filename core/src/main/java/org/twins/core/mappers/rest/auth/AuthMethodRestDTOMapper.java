@@ -27,16 +27,20 @@ public class AuthMethodRestDTOMapper extends RestSimpleDTOMapper<AuthMethod, Aut
     @Override
     public AuthMethodDTOv1 convert(AuthMethod src, MapperContext mapperContext) throws Exception {
         if (src instanceof AuthMethodStub authMethodStub) {
-            return new AuthMethodStubDTOv1();
+            return new AuthMethodStubDTOv1()
+                    .label(authMethodStub.getLabel())
+                    .icon(authMethodStub.getIcon());
         } else if (src instanceof AuthMethodPassword authMethodPassword) {
             return new AuthMethodPasswordDTOv1()
+                    .label(authMethodPassword.getLabel())
+                    .icon(authMethodPassword.getIcon())
                     .recoverSupported(authMethodPassword.isRecoverSupported())
                     .registerSupported(authMethodPassword.isRegisterSupported())
                     .fingerPrintRequired(authMethodPassword.isFingerprintRequired());
         } else if (src instanceof AuthMethodOath2 authMethodOath2) {
             return new AuthMethodOath2DTOv1()
                     .label(authMethodOath2.getLabel())
-                    .iconUrl(authMethodOath2.getIconUrl())
+                    .icon(authMethodOath2.getIcon())
                     .redirectUrl(authMethodOath2.getRedirectUrl());
         }
         return null;
