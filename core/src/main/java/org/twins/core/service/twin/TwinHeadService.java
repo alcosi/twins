@@ -45,7 +45,7 @@ public class TwinHeadService {
         if (twinClassEntity.getHeadTwinClassId() == null)
             return PaginationUtils.convertInPaginationResult(pagination);
         TwinClassEntity headTwinClassEntity = twinClassService.findEntitySafe(twinClassEntity.getHeadTwinClassId());
-        if (!headTwinClassEntity.getOwnerType().isSystemLevel()) {// out-of-domain head class. Valid twins list must be limited
+        if (headTwinClassEntity.getOwnerType().isSystemLevel()) {// out-of-domain head class. Valid twins list must be limited
             if (SystemEntityService.isTwinClassForUser(headTwinClassEntity.getId()) // twin.id = user.id
                     || SystemEntityService.isTwinClassForBusinessAccount(headTwinClassEntity.getId())) { // twin.id = business_account_id
                 basicSearch.addTwinClassId(headTwinClassEntity.getId(), false);// DBU check depends on class for which we are searching heads
@@ -53,9 +53,7 @@ public class TwinHeadService {
                 throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, headTwinClassEntity.logShort() + " unknown system twin class for head");
             }
         } else {
-            //head can be configured as parent class
-            twinClassService.loadExtendsHierarchyChildClasses(headTwinClassEntity);
-            basicSearch.addTwinClassId(headTwinClassEntity.getExtendsHierarchyChildClassKit().getIdSet(), false);
+            basicSearch.addTwinClassExtendsHierarchyContainsId(headTwinClassEntity.getId());
         }
         if (twinClassEntity.getHeadHunterFeaturer() != null) {//headhunter should not be empty if head twin is specified and head class is not USER and BA
             HeadHunter headHunter = featurerService.getFeaturer(twinClassEntity.getHeadHunterFeaturer(), HeadHunter.class);

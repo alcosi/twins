@@ -199,6 +199,11 @@ public class TwinSearch {
         return this;
     }
 
+    public TwinSearch addTwinClassExtendsHierarchyContainsId(UUID twinClassId) {
+        twinClassExtendsHierarchyContainsIdList = CollectionUtils.safeAdd(twinClassExtendsHierarchyContainsIdList, twinClassId);
+        return this;
+    }
+
     public TwinSearch addMarkerDataListOptionId(UUID markerDataListOptionId, boolean exclude) {
         if (exclude)
             markerDataListOptionIdExcludeList = CollectionUtils.safeAdd(markerDataListOptionIdExcludeList, markerDataListOptionId);
