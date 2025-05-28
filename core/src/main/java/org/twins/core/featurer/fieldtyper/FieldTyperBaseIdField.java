@@ -16,7 +16,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueId;
 import java.util.Properties;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_1326,
+@Featurer(id = FeaturerTwins.ID_1327,
         name = "BaseId",
         description = "Field typer for base id twin field")
 public class FieldTyperBaseIdField extends FieldTyper<FieldDescriptorImmutable, FieldValueId, TwinEntity, TwinFieldSearchNotImplemented> {
