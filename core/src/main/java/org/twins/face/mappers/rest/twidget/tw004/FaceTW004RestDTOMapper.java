@@ -40,11 +40,13 @@ public class FaceTW004RestDTOMapper extends RestSimpleDTOMapper<TwidgetConfig<Fa
         TwinClassFieldEntity twinClassField = fields.getFirst();
         switch (mapperContext.getModeOrUse(FaceMode.SHORT)) { // perhaps we need some separate mode
             case SHORT -> dst
-                    .setKey(twinClassField.getKey());
+                    .setKey(twinClassField.getKey())
+                    .setEditable(true);
             case DETAILED -> dst
                     .setKey(twinClassField.getKey())
                     .setLabel(i18nService.translateToLocale(twinClassField.getNameI18nId()))
-                    .setTwinClassFieldId(twinClassField.getId());
+                    .setTwinClassFieldId(twinClassField.getId())
+                    .setEditable(true);
         }
         if (mapperContext.hasModeButNot(FaceTW004Modes.FaceTW0042TwinClassFieldMode.HIDE)) {
             dst.setTwinClassFieldId(twinClassField.getId());

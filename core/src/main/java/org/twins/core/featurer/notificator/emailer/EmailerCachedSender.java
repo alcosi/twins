@@ -1,0 +1,43 @@
+package org.twins.core.featurer.notificator.emailer;
+
+import org.cambium.common.exception.ServiceException;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+public abstract class EmailerCachedSender<S> extends Emailer {
+    @Override
+    protected void sendMail(UUID emailSenderId, Properties properties, String dstEmail, String subject, String text) throws ServiceException {
+        S sender = getSender(emailSenderId, properties);
+        sendMail(sender, properties, dstEmail, subject, text);
+    }
+
+    protected abstract void sendMail(S sender, Properties properties, String dstEmail, String subject, String text) throws ServiceException;
+
+    @Override
+    protected void sendMail(UUID emailSenderId, Properties properties, String dstEmail, String subject, String templateId, Map<String, String> templateVars) throws ServiceException {
+        S sender = getSender(emailSenderId, properties);
+        sendMail(sender, properties, dstEmail, subject, templateId, templateVars);
+    }
+
+    protected abstract void sendMail(S sender, Properties properties, String dstEmail, String subject, String templateId, Map<String, String> templateVars) throws ServiceException;
+
+    public S createSender(HashMap<String, String> emailerParams) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, emailerParams, new HashMap<>());
+        return createSender(properties);
+    }
+
+    protected abstract S createSender(Properties properties) throws ServiceException;
+
+    private final Map<UUID, S> senderCache = new ConcurrentHashMap<>();
+
+    public S getSender(UUID mailerId, Properties properties) throws ServiceException {
+        if (!senderCache.containsKey(mailerId)) {
+            senderCache.put(mailerId, createSender(properties));
+        }
+        return senderCache.get(mailerId);
+    }
+}

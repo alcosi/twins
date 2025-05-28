@@ -18,4 +18,7 @@ public class FaceTW004FieldDTOv1 {
 
     @Schema(description = "twin field (also basic field constants supported)")
     public UUID twinClassFieldId;
+
+    @Schema(description = "is editable")
+    public Boolean editable;
 }

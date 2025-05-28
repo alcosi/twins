@@ -415,11 +415,12 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
         for (TwinClassEntity savedClass : savedClasses) {
             Boolean autoCreatePerms = createByOriginalKey.get(savedClass.getKey()).getAutoCreatePermission();
+            Boolean autoCreateTwinflow = createByOriginalKey.get(savedClass.getKey()).getAutoCreateTwinflow();
 
             refreshExtendsHierarchyTree(savedClass);
             refreshHeadHierarchyTree(savedClass);
 
-            if (autoCreatePerms != null && autoCreatePerms) {
+            if (Boolean.TRUE.equals(autoCreatePerms)) {
                 Map<PermissionService.DefaultClassPermissionsPrefix, PermissionEntity> permissions =
                         permissionService.createDefaultPermissionsForNewInDomainClass(savedClass);
 
@@ -454,9 +455,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             refreshHeadHierarchyTree(savedClass);
 
             //todo batch create for twinStatus and twinflow
-            TwinStatusEntity status = twinStatusService.createStatus(savedClass, "init", "Initial status");
-            TwinflowEntity twinflow = twinflowService.createTwinflow(savedClass, status);
-            twinflowService.registerTwinflow(twinflow, apiUser.getDomain(), savedClass);
+            if (Boolean.TRUE.equals(autoCreateTwinflow)) {
+                TwinStatusEntity status = twinStatusService.createStatus(savedClass, "init", "Initial status");
+                TwinflowEntity twinflow = twinflowService.createTwinflow(savedClass, status);
+                twinflowService.registerTwinflow(twinflow, apiUser.getDomain(), savedClass);
+            }
         }
 
         if (!classesWithPermissions.isEmpty()) {
