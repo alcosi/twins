@@ -1,4 +1,8 @@
--- INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1325, 13, '', '', '', false) on conflict (id) do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1327, 13, '', '', '', false) on conflict (id) do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1328, 13, '', '', '', false) on conflict (id) do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1329, 13, '', '', '', false) on conflict (id) do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1330, 13, '', '', '', false) on conflict (id) do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1331, 13, '', '', '', false) on conflict (id) do nothing;
 
 INSERT INTO public.twin_class_field (id, twin_class_id, key, name_i18n_id, description_i18n_id, field_typer_featurer_id, field_typer_params, view_permission_id, edit_permission_id, required) VALUES ('00000000-0000-0000-0011-000000000012'::uuid, '00000000-0000-0000-0001-000000000004'::uuid, 'base_id'::varchar(100), null::uuid, null::uuid, 1327::integer, null::hstore, null::uuid, null::uuid, false::boolean) on conflict (id) do nothing;
 INSERT INTO public.twin_class_field (id, twin_class_id, key, name_i18n_id, description_i18n_id, field_typer_featurer_id, field_typer_params, view_permission_id, edit_permission_id, required) VALUES ('00000000-0000-0000-0011-000000000013'::uuid, '00000000-0000-0000-0001-000000000004'::uuid, 'base_twin_class_id'::varchar(100), null::uuid, null::uuid, 1328::integer, null::hstore, null::uuid, null::uuid, false::boolean) on conflict (id) do nothing;
