@@ -28,7 +28,7 @@ public class FieldTyperBaseMarkerField extends FieldTyper<FieldDescriptorImmutab
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueSelect value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, "aliases change is not allowed.");
+        throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, "markers change is not allowed.");
     }
 
     @Override
