@@ -446,6 +446,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public void createTwinEntity(TwinEntity twinEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinEntity.getId() == null)
             twinEntity.setId(UUID.randomUUID()); // this id is necessary for fields and links. Because entity is not stored currently
+        if (twinEntity.getTwinClass().getAbstractt()) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_IS_ABSTRACT, "Cannot create twin of abstract twin class: " + twinEntity.getTwinClass().logShort());
+        }
         if (twinEntity.getTwinStatusId() == null) {
             TwinflowEntity twinflowEntity = twinflowService.loadTwinflow(twinEntity);
             twinEntity
