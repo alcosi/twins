@@ -412,7 +412,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
         if (twinEntity.getTwinClass() == null)
             twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
-        if (twinEntity.getTwinClass().getAbstractt()) {
+        if (Boolean.TRUE.equals(twinEntity.getTwinClass().getAbstractt())) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_IS_ABSTRACT, "Cannot create twin of abstract twin class: " + twinEntity.getTwinClass().logShort());
         }
         setHeadSafe(twinEntity);
