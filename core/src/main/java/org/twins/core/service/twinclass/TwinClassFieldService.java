@@ -34,6 +34,7 @@ import org.twins.core.dto.rest.twinclass.TwinClassFieldSave;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperLink;
+import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
@@ -132,8 +133,10 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 needLoad.put(twinClassEntity.getId(), twinClassEntity);
                 forClasses.addAll(twinClassEntity.getExtendedClassIdSet());
             }
+
         if (needLoad.isEmpty())
             return;
+        forClasses.remove(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR);
         KitGrouped<TwinClassFieldEntity, UUID, UUID> fields = new KitGrouped<>(twinClassFieldRepository.findByTwinClassIdIn(forClasses), TwinClassFieldEntity::getId, TwinClassFieldEntity::getTwinClassId);
         for (TwinClassEntity twinClassEntity : needLoad.values()) {
             List<TwinClassFieldEntity> classFields = new ArrayList<>();
