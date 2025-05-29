@@ -44,5 +44,10 @@ create table if not exists identity_provider_internal_token
 create index if not exists  identity_provider_internal_token_user_id_index
     on identity_provider_internal_token (user_id);
 
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1901, 19, '', '', '', false) on conflict (id) do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1902, 19, '', '', '', false) on conflict (id) do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1903, 19, '', '', '', false) on conflict (id) do nothing;
+
+
 INSERT INTO identity_provider (id, name, description, identity_provider_connector_featurer_id, identity_provider_connector_params, identity_provider_status_id, created_at)
 VALUES ('00000000-0000-0000-0008-000000000002', 'Internal', 'TEST only identity provider. Please use external IDP on production', 1902, 'refreshTokenLifetimeInSeconds => 86400, authTokenLifetimeInSeconds => 300', 'ACTIVE', now()) on conflict do nothing;
