@@ -19,8 +19,6 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.headhunter.HeadHunter;
 import org.twins.core.service.SystemEntityService;
-import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.domain.DBUService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
@@ -36,10 +34,8 @@ public class TwinHeadService {
     private final TwinClassService twinClassService;
     @Lazy
     private final TwinService twinService;
-    private final AuthService authService;
     private final FeaturerService featurerService;
     private final TwinSearchService twinSearchService;
-    private final DBUService dbuService;
 
     public PaginationResult<TwinEntity> findValidHeads(TwinClassEntity twinClassEntity, BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
         if (twinClassEntity.getHeadTwinClassId() == null)
