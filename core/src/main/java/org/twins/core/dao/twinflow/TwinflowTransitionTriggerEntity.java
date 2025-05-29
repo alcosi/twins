@@ -44,6 +44,10 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicClon
     @Column(name = "transition_trigger_params", columnDefinition = "hstore")
     private HashMap<String, String> transitionTriggerParams;
 
+    @ManyToOne
+    @JoinColumn(name = "twinflow_transition_id", insertable = false, updatable = false)
+    private TwinflowTransitionEntity twinflowTransition;
+
     @Column(name = "active")
     private boolean isActive;
 
