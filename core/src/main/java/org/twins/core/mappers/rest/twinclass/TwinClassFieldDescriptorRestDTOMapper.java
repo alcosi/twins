@@ -91,6 +91,9 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                     .extensions(attachmentDescriptor.extensions())
                     .fileSizeMbLimit(attachmentDescriptor.fileSizeMbLimit())
                     .filenameRegExp(attachmentDescriptor.filenameRegExp());
+        else if (fieldDescriptor instanceof FieldDescriptorBoolean booleanDescriptor)
+            return new TwinClassFieldDescriptorBooleanDTOv1()
+                    .checkboxType(booleanDescriptor.checkboxType());
         else if (fieldDescriptor instanceof FieldDescriptorNumeric numericDescriptor)
             return new TwinClassFieldDescriptorNumericDTOv1()
                     .min(numericDescriptor.min())
