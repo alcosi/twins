@@ -7,6 +7,7 @@ import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.twin.TwinTouchEntity;
+import org.twins.core.domain.apiuser.DBUMembershipCheck;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -26,6 +27,7 @@ public class TwinSearch {
     private Set<UUID> twinIdExcludeList;
     private Set<UUID> twinClassIdList;
     private Set<UUID> twinClassIdExcludeList;
+    private DBUMembershipCheck dbuMembershipCheck; // this will take sense only if we search by TWIN_CLASS_USER or TWIN_CLASS_BUSINESS_ACCOUNT
     private Set<UUID> headTwinClassIdList;
     private Set<UUID> twinClassExtendsHierarchyContainsIdList;
     private Set<UUID> headTwinIdList;
@@ -194,6 +196,11 @@ public class TwinSearch {
 
     public TwinSearch addHierarchyTreeContainsId(UUID twinId) {
         hierarchyTreeContainsIdList = CollectionUtils.safeAdd(hierarchyTreeContainsIdList, twinId);
+        return this;
+    }
+
+    public TwinSearch addTwinClassExtendsHierarchyContainsId(UUID twinClassId) {
+        twinClassExtendsHierarchyContainsIdList = CollectionUtils.safeAdd(twinClassExtendsHierarchyContainsIdList, twinClassId);
         return this;
     }
 

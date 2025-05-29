@@ -24,13 +24,16 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.apiuser.DBUMembershipCheck;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.SearchByAlias;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilder;
 import org.twins.core.featurer.search.detector.SearchDetector;
+import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.domain.DBUService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.user.UserGroupService;
@@ -43,9 +46,6 @@ import static org.cambium.common.util.MapUtils.narrowMapOfSets;
 import static org.cambium.common.util.PaginationUtils.sortType;
 import static org.cambium.common.util.SetUtils.narrowSet;
 import static org.springframework.data.jpa.domain.Specification.where;
-import static org.twins.core.dao.specifications.AbstractTwinEntityBasicSearchSpecification.createTwinEntityBasicSearchSpecification;
-import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
-import static org.twins.core.dao.specifications.CommonSpecification.checkPermissions;
 import static org.twins.core.dao.specifications.twin.TwinSpecification.*;
 
 @Service
@@ -64,7 +64,7 @@ public class TwinSearchService {
     @Lazy
     private final AuthService authService;
     private final EntitySmartService entitySmartService;
-
+    private final DBUService dbuService;
 
     public Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -73,36 +73,57 @@ public class TwinSearchService {
         UUID businessAccountId = apiUser.getBusinessAccountId();
         UUID userId = apiUser.getUser().getId();
         //todo create filter by basicSearch.getExtendsTwinClassIdList()
-        Specification<TwinEntity> specification = where(createTwinEntityBasicSearchSpecification(basicSearch,userId));
+        Specification<TwinEntity> specification = where(createTwinEntityBasicSearchSpecification(basicSearch, userId));
 
         if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL) || !basicSearch.isCheckViewPermission()) {
             specification = specification
-                    .and(checkFieldUuid(apiUser.getDomainId(),TwinEntity.Fields.twinClass,TwinClassEntity.Fields.domainId))
+                    .and(checkFieldUuid(apiUser.getDomainId(), TwinEntity.Fields.twinClass, TwinClassEntity.Fields.domainId))
                     .and(checkClassId(basicSearch.getTwinClassIdList()));
         } else {
+            detectSystemClassSearchCheck(basicSearch);
             specification = specification
                     .and(checkPermissions(domainId, businessAccountId, userId, apiUser.getUser().getUserGroups().getIdSetSafe()))
-                    .and(checkClass(basicSearch.getTwinClassIdList(), apiUser));
+                    .and(checkClass(basicSearch.getTwinClassIdList(), apiUser, basicSearch.getDbuMembershipCheck()));
         }
 
 
         //HEAD TWIN CHECK
         if (null != basicSearch.getHeadSearch() && !basicSearch.getHeadSearch().isEmpty())
             specification = specification.and(
-                checkHeadTwin(
-                        createTwinEntityBasicSearchSpecification(basicSearch.getHeadSearch(),userId),
-                        basicSearch.getHeadSearch()
-                ));
+                    checkHeadTwin(
+                            createTwinEntityBasicSearchSpecification(basicSearch.getHeadSearch(), userId),
+                            basicSearch.getHeadSearch()
+                    ));
 
         //CHILDREN TWINS CHECK
         if (null != basicSearch.getChildrenSearch() && !basicSearch.getChildrenSearch().isEmpty())
             specification = specification.and(
-                checkChildrenTwins(
-                        createTwinEntityBasicSearchSpecification(basicSearch.getChildrenSearch(),userId),
-                        basicSearch.getChildrenSearch()
-                ));
+                    checkChildrenTwins(
+                            createTwinEntityBasicSearchSpecification(basicSearch.getChildrenSearch(), userId),
+                            basicSearch.getChildrenSearch()
+                    ));
 
         return specification;
+    }
+
+    private void detectSystemClassSearchCheck(BasicSearch basicSearch) throws ServiceException {
+        if (basicSearch.getDbuMembershipCheck() != null) {
+            return;
+        }
+        if (CollectionUtils.isEmpty(basicSearch.getTwinClassIdList())) {
+            basicSearch
+                    .addTwinClassId(List.of(SystemEntityService.TWIN_CLASS_BUSINESS_ACCOUNT, SystemEntityService.TWIN_CLASS_USER), true)
+                    .setDbuMembershipCheck(DBUMembershipCheck.BLOCKED);
+            return;
+        }
+        DBUMembershipCheck detectedCheck = DBUMembershipCheck.BLOCKED;
+        for (UUID twinClassId : basicSearch.getTwinClassIdList()) {
+            detectedCheck = dbuService.detectSystemTwinsDBUMembershipCheck(twinClassId);
+            if (detectedCheck != DBUMembershipCheck.BLOCKED && basicSearch.getTwinClassIdList().size() > 1) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_INCORRECT, "mixed search is not allowed");
+            }
+        }
+        basicSearch.setDbuMembershipCheck(detectedCheck);
     }
 
     public List<TwinEntity> findTwins(BasicSearch basicSearch) throws ServiceException {
@@ -130,8 +151,10 @@ public class TwinSearchService {
 
     public PaginationResult<TwinEntity> findTwins(List<BasicSearch> basicSearches, SimplePagination pagination) throws ServiceException {
         Specification<TwinEntity> spec = where(null);
-        for (BasicSearch basicSearch : basicSearches)
+        for (BasicSearch basicSearch : basicSearches) {
+            detectSystemClassSearchCheck(basicSearch);
             spec = spec.or(createTwinEntitySearchSpecification(basicSearch));
+        }
         Page<TwinEntity> ret = twinRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
