@@ -29,6 +29,7 @@ public class FaceTW005ButtonRestDTOMapper extends RestSimpleDTOMapper<FaceTW005B
                 .setIcon(resourceService.getResourceUri(src.getIconResource()))
                 .setTransitionId(src.getTransitionId())
                 .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "))
+                .setShowWhenInactive(src.isShowWhenInactive())
         ;
 
         if (mapperContext.hasModeButNot(FaceTW005Modes.FaceTW005Button2TransitionMode.HIDE)) {
