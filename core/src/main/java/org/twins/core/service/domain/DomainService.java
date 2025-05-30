@@ -209,48 +209,44 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     }
 
     public void updateBusinessAccountInitiatorFeaturerId(DomainEntity dbDomainEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        FeaturerEntity newBusinessAccountInitiatorFeaturer = null;
         if (newFeaturerId == null || newFeaturerId == 0) {
             if (MapUtils.isEmpty(newFeaturerParams))
                 return; //nothing was changed
             else
                 newFeaturerId = dbDomainEntity.getBusinessAccountInitiatorFeaturerId(); // only params where changed
         }
-        if (!MapUtils.areEqual(dbDomainEntity.getBusinessAccountInitiatorParams(), newFeaturerParams)) {
-            newBusinessAccountInitiatorFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, BusinessAccountInitiator.class);
-            changesHelper.add(DomainEntity.Fields.businessAccountInitiatorParams, dbDomainEntity.getBusinessAccountInitiatorParams(), newFeaturerParams);
-            dbDomainEntity
-                    .setBusinessAccountInitiatorParams(newFeaturerParams);
-        }
         if (changesHelper.isChanged(DomainEntity.Fields.businessAccountInitiatorFeaturerId, dbDomainEntity.getBusinessAccountInitiatorFeaturerId(), newFeaturerId)) {
-            if (newBusinessAccountInitiatorFeaturer == null)
-                newBusinessAccountInitiatorFeaturer = featurerService.getFeaturerEntity(newFeaturerId);
+            FeaturerEntity newBusinessAccountInitiatorFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, BusinessAccountInitiator.class);
             dbDomainEntity
                     .setBusinessAccountInitiatorFeaturerId(newBusinessAccountInitiatorFeaturer.getId())
                     .setBusinessAccountInitiatorFeaturer(newBusinessAccountInitiatorFeaturer);
         }
+        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
+        if (!MapUtils.areEqual(dbDomainEntity.getBusinessAccountInitiatorParams(), newFeaturerParams)) {
+            changesHelper.add(DomainEntity.Fields.businessAccountInitiatorParams, dbDomainEntity.getBusinessAccountInitiatorParams(), newFeaturerParams);
+            dbDomainEntity
+                    .setBusinessAccountInitiatorParams(newFeaturerParams);
+        }
     }
 
     public void updateUserGroupManagerFeaturerId(DomainEntity dbDomainEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        FeaturerEntity newUserGroupManagerFeaturer = null;
         if (newFeaturerId == null || newFeaturerId == 0) {
             if (MapUtils.isEmpty(newFeaturerParams))
                 return; //nothing was changed
             else
                 newFeaturerId = dbDomainEntity.getUserGroupManagerFeaturerId(); // only params where changed
         }
-        if (!MapUtils.areEqual(dbDomainEntity.getUserGroupManagerParams(), newFeaturerParams)) {
-            newUserGroupManagerFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, UserGroupManager.class);
-            changesHelper.add(DomainEntity.Fields.userGroupManagerParams, dbDomainEntity.getUserGroupManagerParams(), newFeaturerParams);
-            dbDomainEntity
-                    .setUserGroupManagerParams(newFeaturerParams);
-        }
         if (changesHelper.isChanged(DomainEntity.Fields.userGroupManagerFeaturerId, dbDomainEntity.getUserGroupManagerFeaturerId(), newFeaturerId)) {
-            if (newUserGroupManagerFeaturer == null)
-                newUserGroupManagerFeaturer = featurerService.getFeaturerEntity(newFeaturerId);
+            FeaturerEntity newUserGroupManagerFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, UserGroupManager.class);
             dbDomainEntity
                     .setUserGroupManagerFeaturerId(newUserGroupManagerFeaturer.getId())
                     .setUserGroupManagerFeaturer(newUserGroupManagerFeaturer);
+        }
+        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
+        if (!MapUtils.areEqual(dbDomainEntity.getUserGroupManagerParams(), newFeaturerParams)) {
+            changesHelper.add(DomainEntity.Fields.userGroupManagerParams, dbDomainEntity.getUserGroupManagerParams(), newFeaturerParams);
+            dbDomainEntity
+                    .setUserGroupManagerParams(newFeaturerParams);
         }
     }
 

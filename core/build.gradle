@@ -118,6 +118,7 @@ dependencies {
     implementation 'org.apache.tika:tika-core:3.0.0'
     implementation 'io.github.breninsul:io-stream-commons:1.0.2'
     implementation 'io.minio:minio:8.5.12'
+    implementation 'org.jasypt:jasypt:1.9.3'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
