@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -29,4 +28,7 @@ public class FaceTW005ButtonDTOv1 {
 
     @Schema(description = "styles, converted to css classes")
     public Set<String> styleClasses;
+
+    @Schema(description = "is showing needed when button inactive")
+    public Boolean showWhenInactive;
 }

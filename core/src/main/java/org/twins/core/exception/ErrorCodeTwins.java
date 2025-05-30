@@ -59,6 +59,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_CLASS_FIELD_FEATURER_NOT_SPECIFIED(10420, "Twin class field featurer is not specified"),
     TWIN_CLASS_READ_DENIED(10421, "Twin class read denied"),
     TWIN_CLASS_CYCLE(10422, "Twin class head_id or extends_id cant be equals id of class."),
+    TWIN_CLASS_IS_ABSTRACT(10423, "Cant create twin of abstract twin class"),
     TWINFLOW_SCHEMA_NOT_ALLOWED(10501, "twinflow schema is not allowed"),
     TWINFLOW_SCHEMA_NOT_CONFIGURED(10502, "twinflow schema is not configured"),
     TWINFLOW_TRANSACTION_INCORRECT(10503, "twinflow transition can not be performed"),
@@ -103,6 +104,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_SEARCH_ALIAS_UNKNOWN(11603, "twin search alias unknown"),
     TWIN_SEARCH_CONFIG_INCORRECT(11604, "twin search config incorrect"),
     TWIN_SEARCH_PARAM_INCORRECT(11605, "twin search params incorrect"),
+    TWIN_SEARCH_INCORRECT(11606, "twin search is incorrect"),
     SHOW_MODE_ACCESS_DENIED(11701, "show mode access denied", HttpStatus.FORBIDDEN),
     TWIN_CREATE_ACCESS_DENIED(11801, "Twin can't be created by current user", HttpStatus.FORBIDDEN),
     TWIN_ERASE_LOCKED(11802, "erase locked"),
@@ -144,7 +146,9 @@ public enum ErrorCodeTwins implements ErrorCode {
     IDP_SIGNUP_EMAIL_ALREADY_REGISTERED(12712, "email is already registered"),
     IDP_USER_IS_INACTIVE(12713, "user is inactive"),
     IDP_EMAIL_VERIFICATION_CODE_INCORRECT(12714, "email verification code is incorrect"),
-    IDP_EMAIL_VERIFICATION_CODE_EXPIRED(12715, "email verification code is expired"),;
+    IDP_EMAIL_VERIFICATION_CODE_EXPIRED(12715, "email verification code is expired"),
+    IDP_PROVIDED_TOKEN_IS_NOT_ACTIVE(12716,"provided token is not active", HttpStatus.UNAUTHORIZED),
+    IDP_AUTHENTICATION_EXCEPTION(12717, "authentication error", HttpStatus.UNAUTHORIZED);
 
 
     private final int code;

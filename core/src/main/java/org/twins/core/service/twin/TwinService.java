@@ -412,6 +412,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
         if (twinEntity.getTwinClass() == null)
             twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
+        if (Boolean.TRUE.equals(twinEntity.getTwinClass().getAbstractt())) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_IS_ABSTRACT, "Cannot create twin of abstract twin class: " + twinEntity.getTwinClass().logShort());
+        }
         setHeadSafe(twinEntity);
         if (twinCreate.isCheckCreatePermission())
             checkCreatePermission(twinEntity, authService.getApiUser());
@@ -431,16 +434,21 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     private void setHeadSafe(TwinEntity twinEntity) throws ServiceException {
-        if (twinEntity.getHeadTwinId() == null)
+        if (twinEntity.getTwinClass().getHeadTwinClassId() != null && twinEntity.getHeadTwinId() == null) {
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, "head twin is required for " + twinEntity.getTwinClass().logShort());
+        } else if (twinEntity.getTwinClass().getHeadTwinClassId() == null) {
             return;
-        TwinEntity headTwin = twinHeadService.checkValidHeadForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass());
-        twinEntity
+        }
+        TwinEntity headTwin = twinHeadService.checkValidHeadForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass());    twinEntity
                 .setHeadTwinId(headTwin.getId())
                 .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin));
     }
 
+
+
     private static UUID getPermissionSchemaSpaceId(TwinEntity headTwin) {
-        return headTwin.getTwinClass().getPermissionSchemaSpace() ? headTwin.getId() : headTwin.getPermissionSchemaSpaceId();
+        return Boolean.TRUE.equals(headTwin.getTwinClass().getPermissionSchemaSpace()) ?
+                headTwin.getId() : headTwin.getPermissionSchemaSpaceId();
     }
 
     public void createTwinEntity(TwinEntity twinEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
