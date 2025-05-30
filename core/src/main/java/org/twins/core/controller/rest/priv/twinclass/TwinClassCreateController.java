@@ -71,13 +71,13 @@ public class TwinClassCreateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin classes created successfully", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinClassCreateRqDTOv2.class))}),
+                    @Schema(implementation = TwinClassCreateRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_class/v2")
     public ResponseEntity<?> twinClassCreateV2(
-            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassCreateRsDTOV2.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassCreateRsDTOv2.class) MapperContext mapperContext,
             @RequestBody TwinClassCreateRqDTOv2 request) {
-        TwinClassCreateRsDTOV2 rs = new TwinClassCreateRsDTOV2();
+        TwinClassCreateRsDTOv2 rs = new TwinClassCreateRsDTOv2();
         try {
             List<TwinClassEntity> twinClassEntityList = twinClassService.createInDomainClass(twinClassCreateRestDTOReverseMapperV2.convertCollection(request.getTwinClassCreates()));
             rs
