@@ -7,8 +7,10 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinFieldSimpleEntity;
+import org.twins.core.dao.twin.TwinFieldSimpleNonIndexedEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
@@ -26,19 +28,22 @@ import java.util.Properties;
         name = "Password",
         description = "Password field")
 public class FieldTyperPassword
-        extends FieldTyperSimple<FieldDescriptorPassword, FieldValueText, TwinFieldSearchNotImplemented> {
+        extends FieldTyperSimpleNonIndexed<FieldDescriptorPassword, FieldValueText, TwinFieldSearchNotImplemented> {
 
     @FeaturerParam(name = "Regexp", description = "")
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
 
+    @Autowired
+    private StandardPBEStringEncryptor passwordEncryptor;
+
     @Override
-    protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity,
+    protected void serializeValue(Properties properties, TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity,
                                   FieldValueText value, TwinChangesCollector twinChangesCollector)
             throws ServiceException {
-        if (twinFieldEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(value.getValue())) {
+        if (twinFieldSimpleNonIndexedEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(value.getValue())) {
             throw new ServiceException(
                     ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED,
-                    twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required"
+                    twinFieldSimpleNonIndexedEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required"
             );
         }
 
@@ -47,7 +52,7 @@ public class FieldTyperPassword
         if (!value.getValue().matches(pattern)) {
             throw new ServiceException(
                     ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
-                    twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL)
+                    twinFieldSimpleNonIndexedEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL)
                             + " value["
                             + value.getValue()
                             + "] does not match pattern["
@@ -55,16 +60,17 @@ public class FieldTyperPassword
             );
         }
 
-        detectValueChange(twinFieldEntity, twinChangesCollector, value.getValue());
+        value.setValue(passwordEncryptor.encrypt(value.getValue()));
+        detectValueChange(twinFieldSimpleNonIndexedEntity, twinChangesCollector, value.getValue());
     }
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField,
-                                              TwinFieldSimpleEntity twinFieldEntity) throws ServiceException {
+                                              TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity) throws ServiceException {
         return new FieldValueText(twinField.getTwinClassField())
                 .setValue(
-                        twinFieldEntity != null && twinFieldEntity.getValue() != null
-                                ? twinFieldEntity.getValue()
+                        twinFieldSimpleNonIndexedEntity != null
+                                ? passwordEncryptor.decrypt(twinFieldSimpleNonIndexedEntity.getValue())
                                 : null
                 );
     }
