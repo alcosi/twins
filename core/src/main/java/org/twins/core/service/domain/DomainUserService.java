@@ -51,8 +51,9 @@ public class DomainUserService extends EntitySecureFindServiceImpl<DomainUserEnt
         return true;
     }
 
-    public DomainUserEntity findByUserId(UUID userId) {
-        DomainUserEntity entity = repository.findByUserId(userId);
+    public DomainUserEntity findByUserId(UUID userId) throws ServiceException {
+        UUID domainId = authService.getApiUser().getDomainId();
+        DomainUserEntity entity = repository.findByDomainIdAndUserId(domainId, userId);
         if (entity == null)
             return null;
         if (isEntityReadDenied(entity))
