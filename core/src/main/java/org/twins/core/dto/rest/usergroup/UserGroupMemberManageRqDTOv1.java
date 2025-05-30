@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -15,8 +15,8 @@ import java.util.UUID;
 @Schema(name = "UserGroupMemberManageRqV1")
 public class UserGroupMemberManageRqDTOv1 extends Request {
     @Schema()
-    public List<UUID> userGroupEnterList;
+    public Set<UUID> userGroupEnterList;
 
     @Schema()
-    public List<UUID> userGroupExitList;
+    public Set<UUID> userGroupExitList;
 }

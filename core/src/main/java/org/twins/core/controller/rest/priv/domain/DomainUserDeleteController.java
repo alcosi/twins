@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -24,7 +23,7 @@ import org.twins.core.domain.apiuser.UserResolverGivenId;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.domain.DomainUserService;
 
 import java.util.UUID;
 
@@ -33,7 +32,7 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainUserDeleteController extends ApiController {
-    private final DomainService domainService;
+    private final DomainUserService domainUserService;
     private final AuthService authService;
 
     @ParameterChannelHeader
@@ -52,13 +51,12 @@ public class DomainUserDeleteController extends ApiController {
             authService.getApiUser()
                     .setDomainResolver(new DomainResolverGivenId(domainId))
                     .setUserResolver(new UserResolverGivenId(userId));
-            domainService.deleteUser(
-                    domainService.checkDomainId(domainId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
-                    userId);
+            domainUserService.deleteUser(userId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
             return createErrorRs(e, rs);
+
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }

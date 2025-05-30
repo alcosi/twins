@@ -22,7 +22,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountUserAddRqDTOv1;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.businessaccount.BusinessAccountService;
+import org.twins.core.service.businessaccount.BusinessAccountUserService;
 
 import java.util.UUID;
 
@@ -31,9 +31,10 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class BusinessAccountUserAddController extends ApiController {
-    private final BusinessAccountService businessAccountService;
+    private final BusinessAccountUserService businessAccountUserService;
     private final AuthService authService;
 
+    @Deprecated
     @ParameterChannelHeader
     @Operation(operationId = "businessAccountUserAddV1", summary = "Add user to business account. " +
             "If business account is not exist it will be created. If user is not exist it will be created")
@@ -52,7 +53,7 @@ public class BusinessAccountUserAddController extends ApiController {
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId))
                     .setUserResolver(new UserResolverGivenId(request.userId))
                     .setCheckMembershipMode(false);
-            businessAccountService.addUser(
+            businessAccountUserService.addUserSmart(
                     businessAccountId,
                     request.userId,
                     EntitySmartService.SaveMode.ifNotPresentCreate,

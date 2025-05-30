@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.twins.core.domain.auth.AuthSignup;
+import org.twins.core.domain.auth.EmailVerificationMode;
 import org.twins.core.domain.auth.method.AuthMethod;
 import org.twins.core.domain.auth.method.AuthMethodPassword;
 import org.twins.core.featurer.FeaturerTwins;
@@ -225,5 +227,15 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
         } catch (Exception exception) {
             throw new ServiceException(IDP_AUTHENTICATION_EXCEPTION);
         }
+    }
+
+    @Override
+    public EmailVerificationMode signupByEmailInitiate(Properties properties, AuthSignup authSignup) throws ServiceException {
+        throw new ServiceException(IDP_SIGNUP_NOT_SUPPORTED);
+    }
+
+    @Override
+    public void signupByEmailActivate(Properties properties, UUID twinsUserId, String email, String idpUserActivateToken) throws ServiceException {
+        throw new ServiceException(IDP_SIGNUP_NOT_SUPPORTED);
     }
 }

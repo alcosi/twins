@@ -18,7 +18,6 @@ import org.twins.core.dao.idp.IdentityProviderEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.resource.StorageEntity;
-import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 
 import java.sql.Timestamp;
@@ -82,20 +81,22 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "business_account_initiator_featurer_id")
     private Integer businessAccountInitiatorFeaturerId;
 
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "business_account_initiator_params", columnDefinition = "hstore")
+    private HashMap<String, String> businessAccountInitiatorParams;
+
+    @Column(name = "domain_user_initiator_featurer_id")
+    private Integer domainUserInitiatorFeaturerId;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "domain_user_initiator_params", columnDefinition = "hstore")
+    private HashMap<String, String> domainUserInitiatorParams;
+
     @Column(name = "attachments_storage_used_count")
     private Long attachmentsStorageUsedCount;
 
     @Column(name = "attachments_storage_used_size")
     private Long attachmentsStorageUsedSize;
-
-    @FeaturerList(type = BusinessAccountInitiator.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "business_account_initiator_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity businessAccountInitiatorFeaturer;
-
-    @Type(PostgreSQLHStoreType.class)
-    @Column(name = "business_account_initiator_params", columnDefinition = "hstore")
-    private HashMap<String, String> businessAccountInitiatorParams;
 
     @Column(name = "user_group_manager_featurer_id")
     private Integer userGroupManagerFeaturerId;

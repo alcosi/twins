@@ -30,7 +30,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.domain.DomainBusinessAccountService;
 
 import java.util.UUID;
 
@@ -40,7 +40,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DomainBusinessAccountListController extends ApiController {
     private final AuthService authService;
-    private final DomainService domainService;
+    private final DomainBusinessAccountService domainBusinessAccountService;
     private final DomainBusinessAccountDTOMapper domainBusinessAccountDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final DomainBusinessAccountSearchRestDTOReverseMapper domainBusinessAccountSearchRestDTOReverseMapper;
@@ -60,7 +60,7 @@ public class DomainBusinessAccountListController extends ApiController {
             @RequestBody DomainBusinessAccountSearchRqDTOv1 request) {
         DomainBusinessAccountSearchRsDTOv1 rs = new DomainBusinessAccountSearchRsDTOv1();
         try {
-            PaginationResult<DomainBusinessAccountEntity> domainBusinessAccounts = domainService.findDomainBusinessAccounts(domainBusinessAccountSearchRestDTOReverseMapper.convert(request), pagination);
+            PaginationResult<DomainBusinessAccountEntity> domainBusinessAccounts = domainBusinessAccountService.findDomainBusinessAccounts(domainBusinessAccountSearchRestDTOReverseMapper.convert(request), pagination);
             rs
                     .setBusinessAccounts(domainBusinessAccountDTOMapper.convertCollection(domainBusinessAccounts.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(domainBusinessAccounts))
@@ -86,7 +86,7 @@ public class DomainBusinessAccountListController extends ApiController {
             @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable("businessAccountId") UUID businessAccountId) {
         DomainBusinessAccountViewRsDTOv1 rs = new DomainBusinessAccountViewRsDTOv1();
         try {
-            DomainBusinessAccountEntity domainBusinessAccount = domainService.getDomainBusinessAccountEntitySafe(authService.getApiUser().getDomainId(), businessAccountId);
+            DomainBusinessAccountEntity domainBusinessAccount = domainBusinessAccountService.getDomainBusinessAccountEntitySafe(authService.getApiUser().getDomainId(), businessAccountId);
             rs
                     .setBusinessAccount(domainBusinessAccountDTOMapper.convert(domainBusinessAccount, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

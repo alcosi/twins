@@ -24,7 +24,7 @@ import org.twins.core.domain.apiuser.UserResolverGivenId;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.businessaccount.BusinessAccountService;
+import org.twins.core.service.businessaccount.BusinessAccountUserService;
 
 import java.util.UUID;
 
@@ -33,9 +33,10 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class BusinessAccountUserDeleteController extends ApiController {
-    private final BusinessAccountService businessAccountService;
+    private final BusinessAccountUserService businessAccountUserService;
     private final AuthService authService;
 
+    @Deprecated
     @ParameterChannelHeader
     @Operation(operationId = "businessAccountUserDeleteV1", summary = "Delete user from businessAccount")
     @ApiResponses(value = {
@@ -52,8 +53,8 @@ public class BusinessAccountUserDeleteController extends ApiController {
             authService.getApiUser()
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId))
                     .setUserResolver(new UserResolverGivenId(userId));
-            businessAccountService.deleteUser(
-                    businessAccountService.checkBusinessAccountId(businessAccountId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
+            businessAccountUserService.deleteUser(
+                    businessAccountUserService.checkId(businessAccountId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
                     userId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

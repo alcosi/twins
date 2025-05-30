@@ -29,8 +29,10 @@ import org.twins.core.domain.apiuser.UserResolverGivenId;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.user.UserAddRqDTOv1;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.businessaccount.BusinessAccountService;
+import org.twins.core.service.businessaccount.BusinessAccountUserService;
+import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.domain.DomainUserService;
 import org.twins.core.service.user.UserService;
 
 import java.util.UUID;
@@ -40,11 +42,14 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class UserAddController extends ApiController {
-    private final BusinessAccountService businessAccountService;
+    private final BusinessAccountUserService businessAccountUserService;
     private final DomainService domainService;
+    private final DomainUserService domainUserService;
+    private final DomainBusinessAccountService domainBusinessAccountService;
     private final UserService userService;
     private final AuthService authService;
 
+    @Deprecated
     @ParameterChannelHeader
     @Operation(operationId = "userAddV1", summary = "Smart endpoint for adding new user. It will also" +
             " add user to domain and businessAccount if specified. If given businessAccount is not registered in domain, it will register it")
@@ -62,7 +67,7 @@ public class UserAddController extends ApiController {
             UUID businessAccountId = request.getUser().getBusinessAccountId() != null ? request.getUser().getBusinessAccountId() : request.getBusinessAccountId();
             UUID domainId = request.getUser().getDomainId() != null ? request.getUser().getDomainId() : request.getDomainId();
             String locale = request.getUser().getLocale() != null ? request.getUser().getLocale() : request.getLocale();
-            domainService.checkDomainId(domainId, EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS);
+            domainService.checkId(domainId, EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS);
             ApiUser apiUser = authService.getApiUser();
             apiUser
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId))
@@ -70,7 +75,7 @@ public class UserAddController extends ApiController {
                     .setDomainResolver(new DomainResolverGivenId(domainId))
                     .setLocaleResolver(new LocaleResolverGivenOrSystemDefault(locale))
                     .setCheckMembershipMode(false);
-            userService.addUser(new UserEntity()
+            UserEntity userEntity = userService.addUser(new UserEntity()
                             .setId(request.user.id)
                             .setName(request.user.fullName)
                             .setEmail(request.user.email)
@@ -82,13 +87,13 @@ public class UserAddController extends ApiController {
             if (businessAccountId == null && domainId == null)
                 return new ResponseEntity<>(rs, HttpStatus.OK);
             if (businessAccountId != null) {
-                businessAccountService.addUser(businessAccountId, request.user.id, EntitySmartService.SaveMode.ifNotPresentCreate, EntitySmartService.SaveMode.none, true);
+                businessAccountUserService.addUserSmart(businessAccountId, request.user.id, EntitySmartService.SaveMode.ifNotPresentCreate, EntitySmartService.SaveMode.none, true);
             }
             if (domainId != null) {
-                domainService.addUser(domainId, request.user.id, EntitySmartService.SaveMode.none, true);
+                domainUserService.addUser(request.getUser().getId(), true);
             }
             if (domainId != null && businessAccountId != null && apiUser.getDomain().getDomainType() == DomainType.b2b) {
-                domainService.addBusinessAccount(domainId, businessAccountId, null, null, EntitySmartService.SaveMode.none, true);
+                domainBusinessAccountService.addBusinessAccountSmart(businessAccountId, null, null, EntitySmartService.SaveMode.none, true);
             }
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

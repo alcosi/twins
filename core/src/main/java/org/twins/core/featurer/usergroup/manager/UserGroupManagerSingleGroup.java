@@ -36,7 +36,7 @@ public class UserGroupManagerSingleGroup extends UserGroupManager {
     public static final FeaturerParamBoolean allowEmpty = new FeaturerParamBoolean("allowEmpty");
 
     @Override
-    public void manageForUser(Properties properties, UserEntity user, List<UUID> userGroupEnterList, List<UUID> userGroupExitList, ApiUser apiUser) throws ServiceException {
+    public void manageForUser(Properties properties, UserEntity user, Set<UUID> userGroupEnterList, Set<UUID> userGroupExitList, ApiUser apiUser) throws ServiceException {
         Set<UUID> groupsToLoad = new HashSet<>();
         if (CollectionUtils.isNotEmpty(userGroupEnterList))
             groupsToLoad.addAll(userGroupEnterList);
@@ -49,7 +49,7 @@ public class UserGroupManagerSingleGroup extends UserGroupManager {
         if (CollectionUtils.isNotEmpty(userGroupEnterList)) {
             if (CollectionUtils.size(userGroupEnterList) != 1)
                 throw new ServiceException(ErrorCodeTwins.USER_GROUP_ENTER_ERROR, "only one group is allowed to be entered");
-            UUID enterUserGroupId = userGroupEnterList.get(0);
+            UUID enterUserGroupId = userGroupEnterList.stream().findFirst().orElse(null);
             UserGroupEntity userGroup = loadedUserGroupsKit.get(enterUserGroupId);
             if (userGroup == null) {
                 throw new ServiceException(ErrorCodeTwins.USER_GROUP_UNKNOWN, "Incorrect enterUserGroupId[" + enterUserGroupId + "]");

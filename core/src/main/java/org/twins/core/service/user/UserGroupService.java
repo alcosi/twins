@@ -18,10 +18,7 @@ import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -97,27 +94,31 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         }
     }
 
+    public void enterGroups(Set<UUID> userGroupIds) throws ServiceException {
+        manageForUser(authService.getApiUser().getUserId(), userGroupIds, null);
+    }
+
     public void enterGroup(UUID userGroupId) throws ServiceException {
-        manageForUser(authService.getApiUser().getUserId(), Collections.singletonList(userGroupId), null);
+        manageForUser(authService.getApiUser().getUserId(), Collections.singleton(userGroupId), null);
     }
 
     public void enterGroup(UUID userId, UUID userGroupId) throws ServiceException {
-        manageForUser(userId, Collections.singletonList(userGroupId), null);
+        manageForUser(userId, Collections.singleton(userGroupId), null);
     }
 
     public void exitGroup(UUID userGroupId) throws ServiceException {
-        manageForUser(authService.getApiUser().getUserId(), null, Collections.singletonList(userGroupId));
+        manageForUser(authService.getApiUser().getUserId(), null, Collections.singleton(userGroupId));
     }
 
     public void exitGroup(UUID userId, UUID userGroupId) throws ServiceException {
-        manageForUser(userId, null, Collections.singletonList(userGroupId));
+        manageForUser(userId, null, Collections.singleton(userGroupId));
     }
 
-    public void manageForUser(UUID userId, List<UUID> userGroupEnterList, List<UUID> userGroupExitList) throws ServiceException {
+    public void manageForUser(UUID userId, Set<UUID> userGroupEnterList, Set<UUID> userGroupExitList) throws ServiceException {
         manageForUser(userService.findEntitySafe(userId), userGroupEnterList, userGroupExitList);
     }
 
-    public void manageForUser(UserEntity user, List<UUID> userGroupEnterList, List<UUID> userGroupExitList) throws ServiceException {
+    public void manageForUser(UserEntity user, Set<UUID> userGroupEnterList, Set<UUID> userGroupExitList) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         DomainEntity domainEntity = apiUser.getDomain();
         UserGroupManager userGroupManager = featurerService.getFeaturer(domainEntity.getUserGroupManagerFeaturer(), UserGroupManager.class);

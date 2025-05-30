@@ -11,8 +11,8 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.user.UserGroupService;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -24,10 +24,10 @@ public abstract class UserGroupManager extends FeaturerTwins {
     @Lazy
     @Autowired
     protected UserGroupService userGroupService;
-    public void manageForUser(HashMap<String, String> params, UserEntity user, List<UUID> userGroupEnterList, List<UUID> userGroupExitList, ApiUser apiUser) throws ServiceException {
+    public void manageForUser(HashMap<String, String> params, UserEntity user, Set<UUID> userGroupEnterList, Set<UUID> userGroupExitList, ApiUser apiUser) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, params, new HashMap<>());
         manageForUser(properties, user, userGroupEnterList, userGroupExitList, apiUser);
     }
 
-    public abstract void manageForUser(Properties properties, UserEntity user, List<UUID> userGroupEnterList, List<UUID> userGroupExitList, ApiUser apiUser) throws ServiceException;
+    public abstract void manageForUser(Properties properties, UserEntity user, Set<UUID> userGroupEnterList, Set<UUID> userGroupExitList, ApiUser apiUser) throws ServiceException;
 }

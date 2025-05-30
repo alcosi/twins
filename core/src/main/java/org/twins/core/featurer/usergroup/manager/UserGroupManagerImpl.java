@@ -15,7 +15,10 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -27,7 +30,7 @@ public class UserGroupManagerImpl extends UserGroupManager {
     final UserGroupRepository userGroupRepository;
     final FeaturerService featurerService;
     @Override
-    public void manageForUser(Properties properties, UserEntity user, List<UUID> userGroupEnterList, List<UUID> userGroupExitList, ApiUser apiUser) throws ServiceException {
+    public void manageForUser(Properties properties, UserEntity user, Set<UUID> userGroupEnterList, Set<UUID> userGroupExitList, ApiUser apiUser) throws ServiceException {
         Set<UUID> groupsToLoad = new HashSet<>();
         if (CollectionUtils.isNotEmpty(userGroupEnterList))
             groupsToLoad.addAll(userGroupEnterList);

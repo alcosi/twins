@@ -89,6 +89,8 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
 
     List<UserEntity> findByIdIn(List<UUID> idList);
 
+    UserEntity findByEmail(String email);
+
     @Query(value = "select u.id from UserEntity u " +
             "left join BusinessAccountUserEntity bau on u.id = bau.userId and bau.businessAccountId = :businessAccountId " +
             "left join DomainUserEntity du on u.id = du.userId and du.domainId = :domainId " +
