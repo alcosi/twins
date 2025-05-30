@@ -37,10 +37,6 @@ public class DomainUserInitiatorB2B extends DomainUserInitiator {
 
     @Override
     protected void init(Properties properties, DomainUserEntity domainUserEntity) throws ServiceException {
-        Set<UUID> groupIds = userGroupIds.extract(properties);
-        if (groupIds.isEmpty()) {
-            return;
-        }
         if (autoCreateBusinessAccount.extract(properties)) {
             //perhaps we need to grant for current user some permissions (DOMAIN_BUSINESS_ACCOUNT_CREATE))
             domainBusinessAccountService.addBusinessAccountSmart(
@@ -49,6 +45,10 @@ public class DomainUserInitiatorB2B extends DomainUserInitiator {
                     "New company",
                     EntitySmartService.SaveMode.ifPresentThrowsElseCreate,
                     false);
+        }
+        Set<UUID> groupIds = userGroupIds.extract(properties);
+        if (groupIds.isEmpty()) {
+            return;
         }
         userGroupService.enterGroups(userGroupIds.extract(properties));
 

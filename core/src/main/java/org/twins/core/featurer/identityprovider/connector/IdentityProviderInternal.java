@@ -54,7 +54,7 @@ public class IdentityProviderInternal extends IdentityProviderConnector {
     @Override
     public List<AuthMethod> getSupportedMethods(Properties properties) {
         return List.of(new AuthMethodPassword()
-                .setRegisterSupported(false)
+                .setRegisterSupported(true)
                 .setRecoverSupported(false)
                 .setFingerprintRequired(false));
     }

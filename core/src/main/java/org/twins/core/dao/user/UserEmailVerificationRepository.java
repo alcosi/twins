@@ -8,6 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface UserEmailVerificationRepository extends CrudRepository<UserEmailVerificationEntity, UUID>, JpaSpecificationExecutor<UserEmailVerificationEntity> {
-    UserEmailVerificationEntity findByVerificationCodeTwins(String code);
     UserEmailVerificationEntity findByVerificationCodeIDP(String code);
 }

@@ -130,7 +130,8 @@ public class IdentityProviderInternalService {
                 .setUserId(authSignup.getTwinsUserId())
                 .setLastLoginAt(Timestamp.from(Instant.now()))
                 .setPasswordHash(passwordEncoder.encode(authSignup.getPassword()))
-                .setActive(false);
+                .setActive(false)
+                .setCreatedAt(Timestamp.from(Instant.now()));
         identityProviderInternalUserRepository.save(internalUserEntity);
     }
 

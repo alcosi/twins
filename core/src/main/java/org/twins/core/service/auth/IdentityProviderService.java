@@ -5,13 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CryptUtils;
 import org.cambium.common.util.StringUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySmartService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.idp.IdentityProviderEntity;
 import org.twins.core.dao.idp.IdentityProviderRepository;
 import org.twins.core.dao.user.UserEmailVerificationEntity;
@@ -165,10 +165,10 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
         EmailVerificationMode emailVerificationMode = identityProviderConnector.signupByEmailInitiate(identityProvider.getIdentityProviderConnectorParams(), authSignup);
         UserEmailVerificationEntity userEmailVerificationEntity = new UserEmailVerificationEntity()
+                .setId(UUID.randomUUID())
                 .setEmail(authSignup.getEmail())
                 .setIdentityProviderId(identityProvider.getId())
                 .setUserId(user.getId())
-                .setVerificationCodeTwins(UUID.randomUUID().toString())
                 .setCreatedAt(Timestamp.from(Instant.now()));
         if (emailVerificationMode instanceof EmailVerificationByTwins emailVerificationByTwins) {
             userEmailVerificationEntity
@@ -182,10 +182,10 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
     //todo create scheduler to delete old UserEmailVerificationEntity
 
     public void signupByEmailConfirm(String verificationCode) throws ServiceException {
-        if (StringUtils.isBlank(verificationCode)) {
+        if (StringUtils.isBlank(verificationCode) || !UuidUtils.isUUID(verificationCode)) {
             throw new ServiceException(ErrorCodeTwins.IDP_EMAIL_VERIFICATION_CODE_INCORRECT);
         }
-        UserEmailVerificationEntity userEmailVerificationEntity = userEmailVerificationRepository.findByVerificationCodeTwins(verificationCode);
+        UserEmailVerificationEntity userEmailVerificationEntity = userEmailVerificationRepository.findById(UUID.fromString(verificationCode)).orElse(null);
         if (userEmailVerificationEntity == null) {
             throw new ServiceException(ErrorCodeTwins.IDP_EMAIL_VERIFICATION_CODE_INCORRECT);
         } else if (userEmailVerificationEntity.getCreatedAt() == null
@@ -202,17 +202,10 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
                     .setEmail(userEmailVerificationEntity.getEmail())
                     .setUserStatusId(UserStatus.ACTIVE);
             userService.saveSafe(user);
-        } else {
-            //this user is not new in twins, but he is new in IDP and perhaps in domain
-            DomainUserEntity domainUserEntity = domainUserService.findByUserId(user.getId());
-            if (domainUserEntity != null) {
-                // this user was already registered in domain, nothing to do more.
-                // This case can happen, if we change IDP on existed domain, so all users should go throw IDP signup process
-                return;
-            }
         }
         ApiUser apiUser = authService.getApiUser();
         apiUser.setUserResolver(new UserResolverGivenId(user.getId())); //welcome
         domainUserService.addUser(user.getId(), true);
+        userEmailVerificationRepository.delete(userEmailVerificationEntity);
     }
 }

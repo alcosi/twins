@@ -31,9 +31,6 @@ public class UserEmailVerificationEntity implements EasyLoggable {
     @Column(name = "identity_provider_id")
     private UUID identityProviderId;
 
-    @Column(name = "verification_code_twins")
-    private String verificationCodeTwins;
-
     @Column(name = "verification_code_idp")
     private String verificationCodeIDP;
 

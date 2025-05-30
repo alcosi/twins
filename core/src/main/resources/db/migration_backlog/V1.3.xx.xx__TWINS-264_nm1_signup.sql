@@ -16,7 +16,6 @@ create table if not exists user_email_verification
             references identity_provider
             on update cascade on delete cascade,
     email varchar not null,
-    verification_code_twins varchar not null unique,
     verification_code_idp varchar,
     created_at          timestamp default CURRENT_TIMESTAMP
 );
@@ -42,8 +41,10 @@ insert into featurer(id, featurer_type_id, class, name, description)
 values (3402, 34, '', '', '')
 on conflict (id) do nothing;
 update domain set domain_user_initiator_featurer_id = 3401 where domain_type_id = 'basic' and domain.domain_user_initiator_featurer_id is null;
-update domain set domain_user_initiator_featurer_id = 3402 where domain_type_id = 'basic' and domain.domain_user_initiator_featurer_id is null;
+update domain set domain_user_initiator_featurer_id = 3402 where domain_type_id = 'b2b' and domain.domain_user_initiator_featurer_id is null;
 
+alter table domain
+    alter column domain_user_initiator_featurer_id set not null;
 
 
 
