@@ -10,7 +10,7 @@ import org.twins.core.dto.rest.Response;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "AuthLoginKeyRsV1")
-public class AuthLoginKeyRsDTOv1 extends Response {
+public class AuthCryptKeyRsDTOv1 extends Response {
     @Schema(description = "public key to encrypt login")
-    public LoginKeyDTOv1 publicKey;
+    public CryptKeyDTOv1 publicKey;
 }
