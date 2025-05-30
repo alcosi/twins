@@ -10,16 +10,13 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterDomainHeader;
-import org.twins.core.dto.rest.auth.AuthSignupRqDTOv1;
-import org.twins.core.dto.rest.auth.AuthSignupRsDTOv1;
-import org.twins.core.featurer.identityprovider.ClientSideAuthData;
+import org.twins.core.dto.rest.auth.AuthSignupByEmailConfirmRsDTOv1;
+import org.twins.core.dto.rest.auth.AuthSignupByEmailRqDTOv1;
+import org.twins.core.dto.rest.auth.AuthSignupByEmailRsDTOv1;
 import org.twins.core.mappers.rest.auth.AuthSignupRestDTOReverseMapper;
 import org.twins.core.mappers.rest.auth.ClientSideAuthDateRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
@@ -29,7 +26,7 @@ import org.twins.core.service.auth.IdentityProviderService;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class AuthSignupController extends ApiController {
+public class AuthSignupByEmailController extends ApiController {
     private final AuthService authService;
     private final IdentityProviderService identityProviderService;
     private final ClientSideAuthDateRestDTOMapper clientSideAuthDateRestDTOMapper;
@@ -37,19 +34,39 @@ public class AuthSignupController extends ApiController {
 
 
     @ParameterDomainHeader
-    @Operation(operationId = "authSignUpV1", summary = "Returns auth/refresh tokens by username/password and fingerprint (if required)")
+    @Operation(operationId = "authSignupByEmailInitiateV1", summary = "Initiate signup by email")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "SignUp to ", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = AuthSignupRsDTOv1.class))}),
+                    @Schema(implementation = AuthSignupByEmailRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/auth/signup/v1")
-    public ResponseEntity<?> authSignUpV1(@RequestBody AuthSignupRqDTOv1 request) {
-        AuthSignupRsDTOv1 rs = new AuthSignupRsDTOv1();
+    @PostMapping(value = "/auth/signup_by_email/initiate/v1")
+    public ResponseEntity<?> authSignupByEmailInitiateV1(@RequestBody AuthSignupByEmailRqDTOv1 request) {
+        AuthSignupByEmailRsDTOv1 rs = new AuthSignupByEmailRsDTOv1();
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
-            ClientSideAuthData clientSideAuthData = identityProviderService.signup(authSignUpRestDTOReverseMapper.convert(request));
-            rs.setAuthData(clientSideAuthDateRestDTOMapper.convert(clientSideAuthData));
+            identityProviderService.signupByEmailInitiate(authSignUpRestDTOReverseMapper.convert(request));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParameterDomainHeader
+    @Operation(operationId = "authSignupByEmailConfirmV1", summary = "Confirm email be token, which was sent to given email")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "SignUp to ", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = AuthSignupByEmailConfirmRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/auth/signup_by_email/confirm/v1")
+    public ResponseEntity<?> authSignupByEmailConfirmV1(@RequestParam(required = true) String verificationToken) {
+        AuthSignupByEmailConfirmRsDTOv1 rs = new AuthSignupByEmailConfirmRsDTOv1();
+        try {
+            authService.getApiUser().setAnonymousWithDefaultLocale();
+            identityProviderService.signupByEmailConfirm(verificationToken);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

@@ -34,6 +34,7 @@ public class BusinessAccountUpdateController extends ApiController {
     private final BusinessAccountService businessAccountService;
     private final AuthService authService;
 
+    @Deprecated
     @ParameterChannelHeader
     @Operation(operationId = "businessAccountUpdateV1", summary = "Update businessAccount")
     @ApiResponses(value = {
@@ -50,7 +51,7 @@ public class BusinessAccountUpdateController extends ApiController {
             authService.getApiUser()
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId));
             BusinessAccountEntity businessAccountEntity = new BusinessAccountEntity()
-                    .setId(businessAccountService.checkBusinessAccountId(businessAccountId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
+                    .setId(businessAccountService.checkId(businessAccountId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
                     .setName(request.name());
             businessAccountService.updateBusinessAccount(businessAccountEntity);
         } catch (ServiceException se) {

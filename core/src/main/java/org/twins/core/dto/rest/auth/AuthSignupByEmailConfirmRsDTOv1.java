@@ -9,6 +9,6 @@ import org.twins.core.dto.rest.Response;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "AuthSignupRsV1")
-public class AuthSignupRsDTOv1 extends Response {
+@Schema(name = "AuthSignupByEmailConfirmRsV1")
+public class AuthSignupByEmailConfirmRsDTOv1 extends Response {
 }

@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class LoginKey {
+public class CryptKey {
     private UUID id;
     private KeyPair keyPair;
     private LocalDateTime expires;

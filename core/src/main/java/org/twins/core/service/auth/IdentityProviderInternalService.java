@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CryptUtils;
 import org.cambium.common.util.StringUtils;
-import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,7 +13,6 @@ import org.twins.core.dao.idp.IdentityProviderInternalTokenEntity;
 import org.twins.core.dao.idp.IdentityProviderInternalTokenRepository;
 import org.twins.core.dao.idp.IdentityProviderInternalUserEntity;
 import org.twins.core.dao.idp.IdentityProviderInternalUserRepository;
-import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.auth.AuthSignup;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -55,6 +53,8 @@ public class IdentityProviderInternalService {
         IdentityProviderInternalUserEntity user = identityProviderInternalUserRepository.findByUser_Email(username);
         if (user == null || !passwordEncoder.matches(password, user.getPasswordHash())) {
             throw new ServiceException(ErrorCodeTwins.IDP_UNAUTHORIZED);
+        } else if (!user.isActive()) {
+            throw new ServiceException(ErrorCodeTwins.IDP_USER_IS_INACTIVE);
         }
         ClientSideAuthData clientSideAuthData = new ClientSideAuthData()
                 .putRefreshToken(generateToken(64))
@@ -121,27 +121,25 @@ public class IdentityProviderInternalService {
         return CryptUtils.sha256(token);
     }
 
-    public AuthSignup.Result signup(AuthSignup authSignup) throws ServiceException {
+    public void signupByEmailInitiate(AuthSignup authSignup) throws ServiceException {
         IdentityProviderInternalUserEntity internalUserEntity = identityProviderInternalUserRepository.findByUser_Email(authSignup.getEmail());
         if (internalUserEntity != null) {
             throw new ServiceException(ErrorCodeTwins.IDP_SIGNUP_EMAIL_ALREADY_REGISTERED);
         }
-        internalUserEntity = new IdentityProviderInternalUserEntity();
-        UserEntity user = userRepository.findByEmail(authSignup.getEmail());
-        if (user == null) {
-            user = new UserEntity()
-                    .setId(UUID.randomUUID())
-                    .setName(authSignup.getFirstName() + " " + authSignup.getLastName())
-                    .setEmail(authSignup.getEmail());  //todo this is not safe, because we need to verify email
-            userService.addUser(user, EntitySmartService.SaveMode.saveAndThrowOnException);
-        }
-        internalUserEntity
-                .setUserId(user.getId())
-                .setUser(user)
+        internalUserEntity = new IdentityProviderInternalUserEntity()
+                .setUserId(authSignup.getTwinsUserId())
                 .setLastLoginAt(Timestamp.from(Instant.now()))
                 .setPasswordHash(passwordEncoder.encode(authSignup.getPassword()))
-                .setActive(true);
+                .setActive(false);
         identityProviderInternalUserRepository.save(internalUserEntity);
-        return AuthSignup.Result.SIGNED_UP;
+    }
+
+    public void signupByEmailActivate(UUID twinsUserId) throws ServiceException {
+        IdentityProviderInternalUserEntity internalUserEntity = identityProviderInternalUserRepository.findByUserId(twinsUserId);
+        if (internalUserEntity == null) {
+            throw new ServiceException(ErrorCodeTwins.IDP_UNAUTHORIZED); //todo change code
+        }
+        internalUserEntity.setActive(true);
+        identityProviderInternalUserRepository.save(internalUserEntity);
     }
 }

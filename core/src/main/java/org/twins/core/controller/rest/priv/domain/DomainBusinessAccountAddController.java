@@ -24,7 +24,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.domain.DomainBusinessAccountAddRqDTOv1;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.domain.DomainBusinessAccountService;
 
 import java.util.UUID;
 
@@ -33,10 +33,11 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainBusinessAccountAddController extends ApiController {
-    private final DomainService domainService;
+    private final DomainBusinessAccountService domainBusinessAccountService;
     private final AuthService authService;
     private final UserResolverSystem userResolverSystem;
 
+    @Deprecated
     @ParameterChannelHeader
     @Operation(operationId = "domainBusinessAccountAddV1", summary = "Add businessAccount to domain. " +
             "If business account is not exist it will be created. Domain must be already present.")
@@ -57,8 +58,7 @@ public class DomainBusinessAccountAddController extends ApiController {
                     .setUserResolver(userResolverSystem)
                     .setLocaleResolver(new LocaleResolverEnglish())
                     .setCheckMembershipMode(false);
-            domainService.addBusinessAccount(
-                    domainId,
+            domainBusinessAccountService.addBusinessAccountSmart(
                     request.getBusinessAccountId(),
                     request.getTierId(),
                     request.getName(),

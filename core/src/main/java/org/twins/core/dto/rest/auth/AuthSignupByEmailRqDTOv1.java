@@ -12,8 +12,8 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "AuthSignupRqV1")
-public class AuthSignupRqDTOv1 extends Request {
+@Schema(name = "AuthSignupByEmailRqV1")
+public class AuthSignupByEmailRqDTOv1 extends Request {
     @Schema(description = "first name", example = DTOExamples.NAME)
     public String firstName;
 

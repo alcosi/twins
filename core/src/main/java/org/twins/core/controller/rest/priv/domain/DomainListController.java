@@ -31,7 +31,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.domain.DomainUserService;
 
 @Tag(name = ApiTag.DOMAIN)
 @RestController
@@ -40,7 +40,7 @@ import org.twins.core.service.domain.DomainService;
 public class DomainListController extends ApiController {
     private final AuthService authService;
     private final UserResolverAuthToken userResolverAuthToken;
-    private final DomainService domainService;
+    private final DomainUserService domainUserService;
     private final DomainViewRestDTOMapper domainViewRestDTOMapper;
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -63,7 +63,7 @@ public class DomainListController extends ApiController {
                     .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified())
                     .setLocaleResolver(new LocaleResolverEnglish())//todo may throw an error
                     .setDomainResolver(new DomainResolverNotSpecified());
-            PaginationResult<DomainEntity> domainList = domainService
+            PaginationResult<DomainEntity> domainList = domainUserService
                     .findDomainListByUser(pagination);
             rs
                     .setDomains(domainViewRestDTOMapper.convertCollection(domainList.getList(), mapperContext))

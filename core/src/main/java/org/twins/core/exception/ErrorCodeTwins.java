@@ -28,6 +28,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     DOMAIN_OR_BUSINESS_ACCOUNT_USER_NOT_EXISTS(10210, "domain or business_account user not exists"),
     DOMAIN_LOCALE_INACTIVE(10211, "Local is not active"),
     DOMAIN_PERMISSION_DENIED(10212, "No permission to delete record in another domain"),
+    DOMAIN_BUSINESS_ACCOUNT_LEVEL_NOT_SUPPORTED(10213, "Current domain type does not supports business account"),
     PERMISSION_SCHEMA_NOT_ALLOWED(10301, "permission schema is not allowed"),
     PERMISSION_ID_UNKNOWN(10302, "permission id unknown"),
     TWIN_NOT_PROTECTED(10303, "Twin is not protected by permission"),
@@ -139,8 +140,11 @@ public enum ErrorCodeTwins implements ErrorCode {
     IDP_EMPTY_USERNAME_OR_PASSWORD(12708, "empty username or password", HttpStatus.UNAUTHORIZED),
     IDP_INCORRECT_REFRESH_TOKEN(12709, "refresh token is invalid or expired", HttpStatus.UNAUTHORIZED),
     IDP_INCORRECT_AUTH_TOKEN(12710, "auth token empty or unknown", HttpStatus.UNAUTHORIZED),
-    IDP_INCORRECT_LOGIN_KEY(12711, "incorrect or expired login key", HttpStatus.UNAUTHORIZED),
-    IDP_SIGNUP_EMAIL_ALREADY_REGISTERED(12712, "email is already registered");
+    IDP_INCORRECT_CRYPT_KEY(12711, "incorrect or expired login key", HttpStatus.UNAUTHORIZED),
+    IDP_SIGNUP_EMAIL_ALREADY_REGISTERED(12712, "email is already registered"),
+    IDP_USER_IS_INACTIVE(12713, "user is inactive"),
+    IDP_EMAIL_VERIFICATION_CODE_INCORRECT(12714, "email verification code is incorrect"),
+    IDP_EMAIL_VERIFICATION_CODE_EXPIRED(12715, "email verification code is expired"),;
 
 
     private final int code;

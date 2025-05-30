@@ -11,12 +11,12 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterDomainHeader;
-import org.twins.core.domain.auth.LoginKey;
+import org.twins.core.domain.auth.CryptKey;
 import org.twins.core.dto.rest.auth.AuthLoginKeyRsDTOv1;
 import org.twins.core.mappers.rest.auth.LoginKeyRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
@@ -38,12 +38,12 @@ public class AuthLoginKeyController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = AuthLoginKeyRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/auth/login_key/v1")
+    @GetMapping(value = "/auth/login_key/v1")
     public ResponseEntity<?> authLoginKeyV2() {
         AuthLoginKeyRsDTOv1 rs = new AuthLoginKeyRsDTOv1();
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
-            LoginKey.LoginPublicKey clientSideAuthData = identityProviderService.getPublicKeyForLogin();
+            CryptKey.LoginPublicKey clientSideAuthData = identityProviderService.getPublicKeyForPasswordCrypt();
             rs.setPublicKey(loginKeyRestDTOMapper.convert(clientSideAuthData));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

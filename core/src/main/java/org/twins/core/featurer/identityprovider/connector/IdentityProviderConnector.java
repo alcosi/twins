@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.twins.core.domain.auth.AuthSignup;
+import org.twins.core.domain.auth.EmailVerificationMode;
 import org.twins.core.domain.auth.method.AuthMethod;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.identityprovider.ClientLogoutData;
@@ -13,6 +14,7 @@ import org.twins.core.featurer.identityprovider.TokenMetaData;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
 
 @FeaturerType(id = FeaturerTwins.TYPE_19,
@@ -55,10 +57,17 @@ public abstract class IdentityProviderConnector extends FeaturerTwins {
 
     public abstract void logout(Properties properties, ClientLogoutData clientLogoutData) throws ServiceException;
 
-    public AuthSignup.Result signup(HashMap<String, String> identityProviderConnectorParams, AuthSignup authSignup) throws ServiceException {
+    public EmailVerificationMode signupByEmailInitiate(HashMap<String, String> identityProviderConnectorParams, AuthSignup authSignup) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, identityProviderConnectorParams, new HashMap<>());
-        return signup(properties,authSignup);
+        return signupByEmailInitiate(properties, authSignup);
     }
 
-    public abstract AuthSignup.Result signup(Properties properties, AuthSignup authSignup) throws ServiceException;
+    public abstract EmailVerificationMode signupByEmailInitiate(Properties properties, AuthSignup authSignup) throws ServiceException;
+
+    public void signupByEmailActivate(HashMap<String, String> identityProviderConnectorParams, UUID twinsUserId, String email, String idpUserActivateToken) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, identityProviderConnectorParams, new HashMap<>());
+        signupByEmailActivate(properties, twinsUserId, email, idpUserActivateToken);
+    }
+
+    public abstract void signupByEmailActivate(Properties properties, UUID twinsUserId, String email, String idpUserActivateToken) throws ServiceException;
 }

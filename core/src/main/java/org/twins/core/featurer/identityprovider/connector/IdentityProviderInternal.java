@@ -7,6 +7,8 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.auth.AuthSignup;
+import org.twins.core.domain.auth.EmailVerificationByTwins;
+import org.twins.core.domain.auth.EmailVerificationMode;
 import org.twins.core.domain.auth.method.AuthMethod;
 import org.twins.core.domain.auth.method.AuthMethodPassword;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -18,6 +20,7 @@ import org.twins.core.service.auth.IdentityProviderInternalService;
 
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1902,
@@ -62,7 +65,16 @@ public class IdentityProviderInternal extends IdentityProviderConnector {
     }
 
     @Override
-    public AuthSignup.Result signup(Properties properties, AuthSignup authSignup) throws ServiceException {
-        return identityProviderInternalService.signup(authSignup);
+    public EmailVerificationMode signupByEmailInitiate(Properties properties, AuthSignup authSignup) throws ServiceException {
+        identityProviderInternalService.signupByEmailInitiate(authSignup);
+        return new EmailVerificationByTwins()
+                .setIdpUserActivateCode(UUID.randomUUID().toString());
     }
+
+    @Override
+    public void signupByEmailActivate(Properties properties, UUID twinsUserId, String email, String idpUserActivateToken) throws ServiceException {
+        identityProviderInternalService.signupByEmailActivate(twinsUserId);
+    }
+
+
 }
