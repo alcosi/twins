@@ -33,6 +33,7 @@ public class TwinChangesService {
 
     private final TwinRepository twinRepository;
     private final TwinFieldSimpleRepository twinFieldSimpleRepository;
+    private final TwinFieldSimpleNonIndexedRepository twinFieldSimpleNonIndexedRepository;
     private final TwinFieldDataListRepository twinFieldDataListRepository;
     private final TwinLinkRepository twinLinkRepository;
     private final TwinFieldUserRepository twinFieldUserRepository;
@@ -52,6 +53,7 @@ public class TwinChangesService {
         //we have to flush new twins save because of "Not-null property references a transient value - transient instance must be saved before current operation" in other related entities
         saveEntitiesAndFlush(twinChangesCollector, TwinEntity.class, twinRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldSimpleEntity.class, twinFieldSimpleRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, TwinFieldSimpleNonIndexedEntity.class, twinFieldSimpleNonIndexedRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldDataListEntity.class, twinFieldDataListRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldUserEntity.class, twinFieldUserRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinLinkEntity.class, twinLinkRepository, changesApplyResult);
@@ -67,6 +69,7 @@ public class TwinChangesService {
         deleteEntities(twinChangesCollector, TwinEntity.class, twinRepository);
         deleteEntities(twinChangesCollector, TwinFieldDataListEntity.class, twinFieldDataListRepository);
         deleteEntities(twinChangesCollector, TwinFieldSimpleEntity.class, twinFieldSimpleRepository);
+        deleteEntities(twinChangesCollector, TwinFieldSimpleNonIndexedEntity.class, twinFieldSimpleNonIndexedRepository);
         deleteEntities(twinChangesCollector, TwinFieldUserEntity.class, twinFieldUserRepository);
         deleteEntities(twinChangesCollector, TwinLinkEntity.class, twinLinkRepository);
         deleteEntities(twinChangesCollector, TwinMarkerEntity.class, twinMarkerRepository);

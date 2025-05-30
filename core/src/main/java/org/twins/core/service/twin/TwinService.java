@@ -70,6 +70,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     private final TwinRepository twinRepository;
     private final TwinFieldSimpleRepository twinFieldSimpleRepository;
+    private final TwinFieldSimpleNonIndexedRepository twinFieldSimpleNonIndexedRepository;
     private final TwinFieldUserRepository twinFieldUserRepository;
     private final TwinFieldDataListRepository twinFieldDataListRepository;
     private final TwinFieldI18nRepository twinFieldI18nRepository;
@@ -207,7 +208,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 hasI18nFields = false;
         for (TwinClassFieldEntity twinClassField : twinEntity.getTwinClass().getTwinClassFieldKit().getCollection()) {
             FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturer(), FieldTyper.class);
-            if (fieldTyper.getStorageType() == TwinFieldSimpleEntity.class) {
+            if (fieldTyper.getStorageType() == TwinFieldSimpleEntity.class || fieldTyper.getStorageType() == TwinFieldSimpleNonIndexedEntity.class) {
                 hasBasicFields = true;
             } else if (fieldTyper.getStorageType() == TwinFieldUserEntity.class) {
                 hasUserFields = true;
@@ -220,6 +221,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinEntity.getTwinFieldSimpleKit() == null)
             twinEntity.setTwinFieldSimpleKit(
                     new Kit<>(hasBasicFields ? twinFieldSimpleRepository.findByTwinId(twinEntity.getId()) : null, TwinFieldSimpleEntity::getTwinClassFieldId));
+        if (twinEntity.getTwinFieldSimpleNonIndexedKit() == null)
+            twinEntity.setTwinFieldSimpleNonIndexedKit(
+                    new Kit<>(hasBasicFields ? twinFieldSimpleNonIndexedRepository.findByTwinId(twinEntity.getId()) : null, TwinFieldSimpleNonIndexedEntity::getTwinClassFieldId));
         if (twinEntity.getTwinFieldUserKit() == null)
             twinEntity.setTwinFieldUserKit(
                     new KitGrouped<>(hasUserFields ? twinFieldUserRepository.findByTwinId(twinEntity.getId()) : null, TwinFieldUserEntity::getId, TwinFieldUserEntity::getTwinClassFieldId));
@@ -863,6 +867,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public TwinFieldSimpleEntity createTwinFieldEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, String value) {
         return new TwinFieldSimpleEntity()
+                .setTwinClassField(twinClassFieldEntity)
+                .setTwinClassFieldId(twinClassFieldEntity.getId())
+                .setTwin(twinEntity)
+                .setTwinId(twinEntity.getId())
+                .setValue(value);
+    }
+
+    public TwinFieldSimpleNonIndexedEntity createTwinFieldNonIndexedEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, String value) {
+        return new TwinFieldSimpleNonIndexedEntity()
                 .setTwinClassField(twinClassFieldEntity)
                 .setTwinClassFieldId(twinClassFieldEntity.getId())
                 .setTwin(twinEntity)
