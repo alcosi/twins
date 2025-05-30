@@ -76,8 +76,10 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
                     entity.setInputTwinClass(twinClassService.findEntitySafe(entity.getInputTwinClassId()));
                 if (entity.getTwinFactory() == null || !entity.getTwinFactory().getId().equals(entity.getTwinFactoryId()))
                     entity.setTwinFactory(twinFactoryService.findEntitySafe(entity.getTwinFactoryId()));
-                if (entity.getMultiplierFeaturer() == null || !(entity.getMultiplierFeaturer().getId() == (entity.getMultiplierFeaturerId())))
+                if (entity.getMultiplierFeaturer() == null || !(entity.getMultiplierFeaturer().getId() == (entity.getMultiplierFeaturerId()))) {
                     entity.setMultiplierFeaturer(featurerService.checkValid(entity.getMultiplierFeaturerId(), entity.getMultiplierParams(), Multiplier.class));
+                    featurerService.prepareForStore(entity.getMultiplierFeaturerId(), entity.getMultiplierParams());
+                }
         }
         return true;
     }
@@ -105,25 +107,23 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
 
 
     public void updateMultiplierFeaturerId(TwinFactoryMultiplierEntity dbMultiplierEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        FeaturerEntity newMultiplierFeaturer = null;
         if (newFeaturerId == null || newFeaturerId == 0) {
             if (MapUtils.isEmpty(newFeaturerParams))
                 return; //nothing was changed
             else
                 newFeaturerId = dbMultiplierEntity.getMultiplierFeaturerId(); // only params where changed
         }
-        if (!MapUtils.areEqual(dbMultiplierEntity.getMultiplierParams(), newFeaturerParams)) {
-            newMultiplierFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, Multiplier.class);
-            changesHelper.add(TwinFactoryMultiplierEntity.Fields.multiplierParams, dbMultiplierEntity.getMultiplierParams(), newFeaturerParams);
-            dbMultiplierEntity
-                    .setMultiplierParams(newFeaturerParams);
-        }
         if (changesHelper.isChanged(TwinFactoryMultiplierEntity.Fields.multiplierFeaturerId, dbMultiplierEntity.getMultiplierFeaturerId(), newFeaturerId)) {
-            if (newMultiplierFeaturer == null)
-                newMultiplierFeaturer = featurerService.getFeaturerEntity(newFeaturerId);
+            FeaturerEntity newMultiplierFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, Multiplier.class);
             dbMultiplierEntity
                     .setMultiplierFeaturerId(newMultiplierFeaturer.getId())
                     .setMultiplierFeaturer(newMultiplierFeaturer);
+        }
+        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
+        if (!MapUtils.areEqual(dbMultiplierEntity.getMultiplierParams(), newFeaturerParams)) {
+            changesHelper.add(TwinFactoryMultiplierEntity.Fields.multiplierParams, dbMultiplierEntity.getMultiplierParams(), newFeaturerParams);
+            dbMultiplierEntity
+                    .setMultiplierParams(newFeaturerParams);
         }
     }
 }
