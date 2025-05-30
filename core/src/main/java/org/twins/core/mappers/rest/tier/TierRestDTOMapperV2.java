@@ -9,10 +9,10 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.PermissionSchemaMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TierMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinclassSchemaMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinClassSchemaMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinflowSchemaMode;
 import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapper;
-import org.twins.core.mappers.rest.twinclass.TwinclassSchemaDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassSchemaDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowSchemaRestDTOMapper;
 
 @Component
@@ -27,8 +27,8 @@ public class TierRestDTOMapperV2 extends RestSimpleDTOMapper<TierEntity, TierDTO
     @MapperModePointerBinding(modes = TwinflowSchemaMode.Tier2TwinflowSchemaMode.class)
     private final TwinflowSchemaRestDTOMapper twinflowSchemaRestDTOMapper;
 
-    @MapperModePointerBinding(modes = TwinclassSchemaMode.Tier2TwinclassSchemaMode.class)
-    private final TwinclassSchemaDTOMapper twinclassSchemaDTOMapper;
+    @MapperModePointerBinding(modes = TwinClassSchemaMode.Tier2TwinClassSchemaMode.class)
+    private final TwinClassSchemaDTOMapper twinclassSchemaDTOMapper;
 
     @Override
     public void map(TierEntity src, TierDTOv2 dst, MapperContext mapperContext) throws Exception {
@@ -41,9 +41,9 @@ public class TierRestDTOMapperV2 extends RestSimpleDTOMapper<TierEntity, TierDTO
             dst
                     .setTwinflowSchema(twinflowSchemaRestDTOMapper.convertOrPostpone(src.getTwinflowSchema(), mapperContext.forkOnPoint(TwinflowSchemaMode.Tier2TwinflowSchemaMode.SHORT)))
                     .setTwinflowSchemaId(src.getTwinflowSchemaId());
-        if (mapperContext.hasModeButNot(TwinclassSchemaMode.Tier2TwinclassSchemaMode.HIDE))
+        if (mapperContext.hasModeButNot(TwinClassSchemaMode.Tier2TwinClassSchemaMode.HIDE))
             dst
-                    .setTwinClassSchema(twinclassSchemaDTOMapper.convertOrPostpone(src.getTwinClassSchema(), mapperContext.forkOnPoint(TwinclassSchemaMode.Tier2TwinclassSchemaMode.SHORT)))
+                    .setTwinClassSchema(twinclassSchemaDTOMapper.convertOrPostpone(src.getTwinClassSchema(), mapperContext.forkOnPoint(TwinClassSchemaMode.Tier2TwinClassSchemaMode.SHORT)))
                     .setTwinClassSchemaId(src.getTwinClassSchemaId());
     }
 }

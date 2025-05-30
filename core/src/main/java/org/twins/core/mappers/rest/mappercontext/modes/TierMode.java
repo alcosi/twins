@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldNameConstants;
 import org.twins.core.mappers.rest.mappercontext.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 
 @Getter
 @AllArgsConstructor
@@ -14,4 +15,24 @@ public enum TierMode implements MapperMode {
     @FieldNameConstants.Include DETAILED(2);
 
     final int priority;
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum Domain2TierMode implements MapperModePointer<TierMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public TierMode point() {
+            return switch (this) {
+                case HIDE -> TierMode.HIDE;
+                case SHORT -> TierMode.SHORT;
+                case DETAILED -> TierMode.DETAILED;
+            };
+        }
+    }
 }
