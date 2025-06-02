@@ -6,10 +6,10 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinClassFieldDescriptorPasswordV1")
-public class TwinClassFieldDescriptorPasswordDTOv1 implements TwinClassFieldDescriptorDTO {
+@Schema(name =  "TwinClassFieldDescriptorSecretV1")
+public class TwinClassFieldDescriptorSecretDTOv1 implements TwinClassFieldDescriptorDTO {
 
-    public static final String KEY = "passwordV1";
+    public static final String KEY = "secretV1";
     public String fieldType = KEY;
 
     @Schema(description = "Some validation regexp", example = ".*")

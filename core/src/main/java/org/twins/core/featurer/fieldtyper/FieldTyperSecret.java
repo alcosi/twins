@@ -17,7 +17,7 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorPassword;
+import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorSecret;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.util.Properties;
@@ -25,16 +25,16 @@ import java.util.Properties;
 @Log4j2
 @Component
 @Featurer(id = FeaturerTwins.ID_1326,
-        name = "Password",
-        description = "Password field")
-public class FieldTyperPassword
-        extends FieldTyperSimpleNonIndexed<FieldDescriptorPassword, FieldValueText, TwinFieldSearchNotImplemented> {
+        name = "Secret",
+        description = "Secret field")
+public class FieldTyperSecret
+        extends FieldTyperSimpleNonIndexed<FieldDescriptorSecret, FieldValueText, TwinFieldSearchNotImplemented> {
 
     @FeaturerParam(name = "Regexp", description = "")
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
 
     @Autowired
-    private StandardPBEStringEncryptor passwordEncryptor;
+    private StandardPBEStringEncryptor encryptor;
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity,
@@ -60,7 +60,7 @@ public class FieldTyperPassword
             );
         }
 
-        value.setValue(passwordEncryptor.encrypt(value.getValue()));
+        value.setValue(encryptor.encrypt(value.getValue()));
         detectValueChange(twinFieldSimpleNonIndexedEntity, twinChangesCollector, value.getValue());
     }
 
@@ -70,15 +70,15 @@ public class FieldTyperPassword
         return new FieldValueText(twinField.getTwinClassField())
                 .setValue(
                         twinFieldSimpleNonIndexedEntity != null
-                                ? passwordEncryptor.decrypt(twinFieldSimpleNonIndexedEntity.getValue())
+                                ? encryptor.decrypt(twinFieldSimpleNonIndexedEntity.getValue())
                                 : null
                 );
     }
 
     @Override
-    protected FieldDescriptorPassword getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity,
-                                                         Properties properties) throws ServiceException {
-        return new FieldDescriptorPassword()
+    protected FieldDescriptorSecret getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity,
+                                                       Properties properties) throws ServiceException {
+        return new FieldDescriptorSecret()
                 .regExp(regexp.extract(properties));
     }
 }

@@ -16,9 +16,12 @@ public abstract class FieldTyperSimpleNonIndexed<D extends FieldDescriptor, T ex
 
     protected void detectValueChange(TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity, TwinChangesCollector twinChangesCollector, String newValue) {
         if (twinChangesCollector.collectIfChanged(twinFieldSimpleNonIndexedEntity, "field[" + twinFieldSimpleNonIndexedEntity.getTwinClassField().getKey() + "]", twinFieldSimpleNonIndexedEntity.getValue(), newValue)) {
-            if (twinChangesCollector.isHistoryCollectorEnabled())
-                twinChangesCollector.getHistoryCollector(twinFieldSimpleNonIndexedEntity.getTwin()).add(
-                        historyService.fieldChangeSimple(twinFieldSimpleNonIndexedEntity.getTwinClassField(), twinFieldSimpleNonIndexedEntity.getValue(), newValue));
+            if (twinChangesCollector.isHistoryCollectorEnabled()) {
+                twinChangesCollector
+                        .getHistoryCollector(twinFieldSimpleNonIndexedEntity.getTwin())
+                        .add(historyService.fieldChangeSimpleSecret(twinFieldSimpleNonIndexedEntity.getTwinClassField(), twinFieldSimpleNonIndexedEntity.getValue()));
+            }
+
             twinFieldSimpleNonIndexedEntity.setValue(newValue);
         }
     }

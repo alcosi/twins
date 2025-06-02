@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit;
 @EnableConfigurationProperties({I18nProperties.class})
 public class ApplicationConfig {
 
-    @Value("${jasypt.encryptor.password}")
+    @Value("${jasypt.encryptor.secret.key}")
     private String secretKey;
 
     @Bean
@@ -167,7 +167,7 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public StandardPBEStringEncryptor passwordEncryptor() {
+    public StandardPBEStringEncryptor encryptor() {
         StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
         encryptor.setPassword(secretKey);
         encryptor.setAlgorithm("PBEWithHMACSHA512AndAES_256");
