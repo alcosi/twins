@@ -9,8 +9,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "LoginKeyV1")
-public class LoginKeyDTOv1 {
+@Schema(name = "CryptKeyV1")
+public class CryptKeyDTOv1 {
     @Schema(description = "key id")
     public UUID id;
 

@@ -38,7 +38,7 @@ public class PointerOnSingleGrandChild extends Pointer {
         BasicSearch childSearch = new BasicSearch();
         childSearch
                 .addHierarchyTreeContainsId(srcTwinEntity.getId())
-                .addTwinClassId(twinClassId.extract(properties), false);
+                .addTwinClassExtendsHierarchyContainsId(twinClassId.extract(properties));
 
         List<TwinEntity> grandchildren = twinSearchService.findTwins(childSearch);
 
