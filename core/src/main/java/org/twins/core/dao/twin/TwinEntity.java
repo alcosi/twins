@@ -243,6 +243,10 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    private Kit<TwinFieldSimpleNonIndexedEntity , UUID> twinFieldSimpleNonIndexedKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
     private KitGrouped<TwinFieldI18nEntity, UUID, UUID> twinFieldI18nKit;
 
     /*

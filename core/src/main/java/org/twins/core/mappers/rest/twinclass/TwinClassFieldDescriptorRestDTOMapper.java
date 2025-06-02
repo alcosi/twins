@@ -46,8 +46,8 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
             return new TwinClassFieldDescriptorTextDTOv1()
                     .regExp(textDescriptor.regExp())
                     .editorType(textDescriptor.editorType());
-        else if (fieldDescriptor instanceof FieldDescriptorPassword passwordDescriptor)
-            return new TwinClassFieldDescriptorPasswordDTOv1()
+        else if (fieldDescriptor instanceof FieldDescriptorSecret passwordDescriptor)
+            return new TwinClassFieldDescriptorSecretDTOv1()
                     .regExp(passwordDescriptor.regExp());
         else if (fieldDescriptor instanceof FieldDescriptorColorPicker colorDescriptor)
             return new TwinClassFieldDescriptorColorHexDTOv1();
