@@ -64,7 +64,9 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
 
     public UserEntity addUser(UserEntity userEntity, EntitySmartService.SaveMode userSaveMode) throws ServiceException {
         userEntity.setCreatedAt(Timestamp.from(Instant.now()));
-        userEntity.setUserStatusId(UserStatus.ACTIVE);
+        if (userEntity.getUserStatusId() == null) {
+            userEntity.setUserStatusId(UserStatus.ACTIVE);
+        }
         EntitySmartService.SaveResult<UserEntity> saveResult = entitySmartService.saveWithResult(userEntity.getId(), userEntity, userRepository, userSaveMode);
         // The logic of creating a user record in twin is implemented through a trigger in the database
         return saveResult.getSavedEntity();
@@ -180,5 +182,9 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
 
     public List<UUID> getUsersOutOfDomainAndBusinessAccount(Set<UUID> userIds, UUID businessAccountId, UUID domainId) {
         return userRepository.getUsersOutOfDomainAndBusinessAccount(userIds, businessAccountId, domainId);
+    }
+
+    public UserEntity findByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 }

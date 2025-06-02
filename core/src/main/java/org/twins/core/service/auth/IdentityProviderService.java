@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CryptUtils;
+import org.cambium.common.util.StringUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySmartService;
 import org.jetbrains.annotations.NotNull;
@@ -12,18 +14,25 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.idp.IdentityProviderEntity;
 import org.twins.core.dao.idp.IdentityProviderRepository;
+import org.twins.core.dao.user.UserEmailVerificationEntity;
+import org.twins.core.dao.user.UserEmailVerificationRepository;
+import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.user.UserStatus;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.auth.AuthLogin;
-import org.twins.core.domain.auth.IdentityProviderConfig;
-import org.twins.core.domain.auth.LoginKey;
+import org.twins.core.domain.apiuser.UserResolverGivenId;
+import org.twins.core.domain.auth.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.identityprovider.ClientLogoutData;
 import org.twins.core.featurer.identityprovider.ClientSideAuthData;
 import org.twins.core.featurer.identityprovider.TokenMetaData;
 import org.twins.core.featurer.identityprovider.connector.IdentityProviderConnector;
 import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.domain.DomainUserService;
+import org.twins.core.service.user.UserService;
 
 import java.security.NoSuchAlgorithmException;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.function.Function;
@@ -36,6 +45,9 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
     private final AuthService authService;
     private final FeaturerService featurerService;
     private final IdentityProviderRepository identityProviderRepository;
+    private final UserEmailVerificationRepository userEmailVerificationRepository;
+    private final UserService userService;
+    private final DomainUserService domainUserService;
 
     @Override
     public CrudRepository<IdentityProviderEntity, UUID> entityRepository() {
@@ -61,6 +73,10 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
     private IdentityProviderEntity getDomainIdentityProviderSafe() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         IdentityProviderEntity identityProvider = apiUser.getDomain().getIdentityProvider();
+        return checkIdentityProviderActive(identityProvider);
+    }
+
+    private static IdentityProviderEntity checkIdentityProviderActive(IdentityProviderEntity identityProvider) throws ServiceException {
         if (identityProvider.getStatus() != IdentityProviderEntity.IdentityProviderStatus.ACTIVE) {
             throw new ServiceException(ErrorCodeTwins.IDP_IS_NOT_ACTIVE);
         }
@@ -70,13 +86,13 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
     public ClientSideAuthData login(AuthLogin authLogin) throws ServiceException {
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
         if (authLogin.getPublicKeyId() != null) {
-            decryptPassword(authLogin);
+            authLogin.setPassword(decryptPassword(authLogin.getPassword(), authLogin.getPublicKeyId()));
         }
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
         return identityProviderConnector.login(identityProvider.getIdentityProviderConnectorParams(), authLogin.getUsername(), authLogin.getPassword(), authLogin.getFingerPrint());
     }
 
-    public void logout(ClientLogoutData logoutData) throws ServiceException{
+    public void logout(ClientLogoutData logoutData) throws ServiceException {
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
         identityProviderConnector.logout(identityProvider.getIdentityProviderConnectorParams(), logoutData);
@@ -107,27 +123,89 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         return identityProviderConnector.resolveAuthTokenMetaData(identityProvider.getIdentityProviderConnectorParams(), authToken);
     }
 
-    private static final LoginKey loginKey = new LoginKey().setExpires(LocalDateTime.now());
+    private static final CryptKey passwordCryptKey = new CryptKey().setExpires(LocalDateTime.now());
 
-    public LoginKey.LoginPublicKey getPublicKeyForLogin() throws NoSuchAlgorithmException {
-        if (loginKey.getExpires().isBefore(LocalDateTime.now())) {
-            loginKey.setId(UUID.randomUUID())
+    public CryptKey.LoginPublicKey getPublicKeyForPasswordCrypt() throws NoSuchAlgorithmException {
+        if (passwordCryptKey.getExpires().isBefore(LocalDateTime.now())) {
+            passwordCryptKey.setId(UUID.randomUUID())
                     .setKeyPair(CryptUtils.generateRsaKeyPair())
                     .setExpires(LocalDateTime.now().plusMinutes(10));
         }
-        return loginKey.getPublicKey();
+        return passwordCryptKey.getPublicKey();
     }
 
-    private void decryptPassword(AuthLogin authLogin) throws ServiceException {
-        if (loginKey.getExpires().isBefore(LocalDateTime.now())
-                || authLogin.getPublicKeyId() == null
-                || !authLogin.getPublicKeyId().equals(loginKey.getId())) {
-            throw new ServiceException(ErrorCodeTwins.IDP_INCORRECT_LOGIN_KEY);
+    private String decryptPassword(String encryptedPassword, UUID keyId) throws ServiceException {
+
+        if (passwordCryptKey.getExpires().isBefore(LocalDateTime.now())
+                || keyId == null
+                || !keyId.equals(passwordCryptKey.getId())) {
+            throw new ServiceException(ErrorCodeTwins.IDP_INCORRECT_CRYPT_KEY);
         }
         try {
-            authLogin.setPassword(CryptUtils.decrypt(authLogin.getPassword(), loginKey.getKeyPair()));
+            return CryptUtils.decrypt(encryptedPassword, passwordCryptKey.getKeyPair());
         } catch (Exception e) {
-            throw new ServiceException(ErrorCodeTwins.IDP_INCORRECT_LOGIN_KEY);
+            throw new ServiceException(ErrorCodeTwins.IDP_INCORRECT_CRYPT_KEY);
         }
+    }
+
+    public AuthSignup.Result signupByEmailInitiate(AuthSignup authSignup) throws ServiceException {
+        IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
+        if (authSignup.getPublicKeyId() != null) {
+            authSignup.setPassword(decryptPassword(authSignup.getPassword(), authSignup.getPublicKeyId()));
+        }
+        UserEntity user = userService.findByEmail(authSignup.getEmail());
+        if (user == null) {
+            user = new UserEntity()
+                    .setId(UUID.randomUUID())
+                    .setName(authSignup.getFirstName() + " " + authSignup.getLastName())
+                    .setUserStatusId(UserStatus.EMAIL_VERIFICATION_REQUIRED);
+            userService.addUser(user, EntitySmartService.SaveMode.saveAndThrowOnException);
+        }
+        authSignup.setTwinsUserId(user.getId());
+        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
+        EmailVerificationMode emailVerificationMode = identityProviderConnector.signupByEmailInitiate(identityProvider.getIdentityProviderConnectorParams(), authSignup);
+        UserEmailVerificationEntity userEmailVerificationEntity = new UserEmailVerificationEntity()
+                .setId(UUID.randomUUID())
+                .setEmail(authSignup.getEmail())
+                .setIdentityProviderId(identityProvider.getId())
+                .setUserId(user.getId())
+                .setCreatedAt(Timestamp.from(Instant.now()));
+        if (emailVerificationMode instanceof EmailVerificationByTwins emailVerificationByTwins) {
+            userEmailVerificationEntity
+                    .setVerificationCodeIDP(emailVerificationByTwins.getIdpUserActivateCode());
+            //todo send email
+        }
+        userEmailVerificationRepository.save(userEmailVerificationEntity);
+        return AuthSignup.Result.EMAIL_VERIFICATION_REQUIRED;
+    }
+
+    //todo create scheduler to delete old UserEmailVerificationEntity
+
+    public void signupByEmailConfirm(String verificationCode) throws ServiceException {
+        if (StringUtils.isBlank(verificationCode) || !UuidUtils.isUUID(verificationCode)) {
+            throw new ServiceException(ErrorCodeTwins.IDP_EMAIL_VERIFICATION_CODE_INCORRECT);
+        }
+        UserEmailVerificationEntity userEmailVerificationEntity = userEmailVerificationRepository.findById(UUID.fromString(verificationCode)).orElse(null);
+        if (userEmailVerificationEntity == null) {
+            throw new ServiceException(ErrorCodeTwins.IDP_EMAIL_VERIFICATION_CODE_INCORRECT);
+        } else if (userEmailVerificationEntity.getCreatedAt() == null
+                || userEmailVerificationEntity.getCreatedAt().before(Timestamp.from(Instant.now().minusSeconds(1800)))) { //todo move to properties
+            throw new ServiceException(ErrorCodeTwins.IDP_EMAIL_VERIFICATION_CODE_EXPIRED);
+        }
+        IdentityProviderEntity identityProvider = checkIdentityProviderActive(userEmailVerificationEntity.getIdentityProvider());
+        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
+        identityProviderConnector.signupByEmailActivate(identityProvider.getIdentityProviderConnectorParams(), userEmailVerificationEntity.getUserId(), userEmailVerificationEntity.getEmail(), verificationCode);
+        UserEntity user = userEmailVerificationEntity.getUser();
+        if (user.getUserStatusId() == UserStatus.EMAIL_VERIFICATION_REQUIRED) {
+            //this is absolutely new twin user, it was not signed up in system before by any IDP (other domains)
+            user
+                    .setEmail(userEmailVerificationEntity.getEmail())
+                    .setUserStatusId(UserStatus.ACTIVE);
+            userService.saveSafe(user);
+        }
+        ApiUser apiUser = authService.getApiUser();
+        apiUser.setUserResolver(new UserResolverGivenId(user.getId())); //welcome
+        domainUserService.addUser(user.getId(), true);
+        userEmailVerificationRepository.delete(userEmailVerificationEntity);
     }
 }

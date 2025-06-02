@@ -46,6 +46,8 @@ public abstract class BusinessAccountInitiator extends FeaturerTwins {
     protected abstract void init(Properties properties, DomainBusinessAccountEntity domainBusinessAccountEntity) throws ServiceException;
 
     protected void postInit(Properties properties, DomainBusinessAccountEntity domainBusinessAccountEntity) throws ServiceException {
-        twinService.duplicateTwin(domainBusinessAccountEntity.getDomain().getBusinessAccountTemplateTwinId(), domainBusinessAccountEntity.getId()); //creating twin for business account in domain
+        if (domainBusinessAccountEntity.getDomain().getBusinessAccountTemplateTwinId() != null) {
+            twinService.duplicateTwin(domainBusinessAccountEntity.getDomain().getBusinessAccountTemplateTwinId(), domainBusinessAccountEntity.getId()); //creating twin for business account in domain
+        }
     }
 }
