@@ -297,12 +297,12 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             }
 
             if (field.getFieldTyperFeaturerId() != null) {
+                featurerService.prepareForStore(field.getFieldTyperFeaturerId(), field.getFieldTyperParams());
                 field.setFieldTyperFeaturer(featurerService.checkValid(
                         field.getFieldTyperFeaturerId(),
                         field.getFieldTyperParams(),
                         FieldTyper.class
                 ));
-                featurerService.prepareForStore(field.getFieldTyperFeaturerId(), field.getFieldTyperParams());
             } else {
                 field.setFieldTyperFeaturer(featurerRepository.getById(1301))
                         .setFieldTyperParams(SIMPLE_FIELD_PARAMS);
