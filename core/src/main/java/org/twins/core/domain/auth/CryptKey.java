@@ -15,8 +15,8 @@ public class CryptKey {
     private KeyPair keyPair;
     private LocalDateTime expires;
 
-    public LoginPublicKey getPublicKey() {
-        return new LoginPublicKey()
+    public CryptPublicKey getPublicKey() {
+        return new CryptPublicKey()
                 .setId(id)
                 .setPublicKey(keyPair.getPublic())
                 .setExpires(expires);
@@ -24,7 +24,7 @@ public class CryptKey {
 
     @Data
     @Accessors(chain = true)
-    public static class LoginPublicKey {
+    public static class CryptPublicKey {
         private UUID id;
         private PublicKey publicKey;
         private LocalDateTime expires;

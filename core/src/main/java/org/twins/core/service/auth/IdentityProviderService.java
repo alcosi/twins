@@ -24,6 +24,7 @@ import org.twins.core.domain.auth.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.identityprovider.ClientLogoutData;
 import org.twins.core.featurer.identityprovider.ClientSideAuthData;
+import org.twins.core.featurer.identityprovider.M2MAuthData;
 import org.twins.core.featurer.identityprovider.TokenMetaData;
 import org.twins.core.featurer.identityprovider.connector.IdentityProviderConnector;
 import org.twins.core.service.TwinsEntitySecureFindService;
@@ -48,6 +49,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
     private final UserEmailVerificationRepository userEmailVerificationRepository;
     private final UserService userService;
     private final DomainUserService domainUserService;
+    private final ActAsUserService actAsUserService;
 
     @Override
     public CrudRepository<IdentityProviderEntity, UUID> entityRepository() {
@@ -92,6 +94,20 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         return identityProviderConnector.login(identityProvider.getIdentityProviderConnectorParams(), authLogin.getUsername(), authLogin.getPassword(), authLogin.getFingerPrint());
     }
 
+    public M2MAuthData login(AuthM2MLogin m2mLogin) throws ServiceException {
+        IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
+        if (m2mLogin.getPublicKeyId() != null) {
+            m2mLogin.setClientSecret(decryptPassword(m2mLogin.getClientSecret(), m2mLogin.getPublicKeyId()));
+        }
+        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
+        //perhaps we need separate method
+        ClientSideAuthData clientSideAuthData = identityProviderConnector.login(identityProvider.getIdentityProviderConnectorParams(), m2mLogin.getClientId(), m2mLogin.getClientSecret(), null);
+        M2MAuthData m2MAuthData = new M2MAuthData()
+                .setClientSideAuthData(clientSideAuthData)
+                .setActAsUserKey(actAsUserService.getPublicKey());
+        return m2MAuthData;
+    }
+
     public void logout(ClientLogoutData logoutData) throws ServiceException {
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
@@ -125,7 +141,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
 
     private static final CryptKey passwordCryptKey = new CryptKey().setExpires(LocalDateTime.now());
 
-    public CryptKey.LoginPublicKey getPublicKeyForPasswordCrypt() throws NoSuchAlgorithmException {
+    public CryptKey.CryptPublicKey getPublicKeyForPasswordCrypt() throws NoSuchAlgorithmException {
         if (passwordCryptKey.getExpires().isBefore(LocalDateTime.now())) {
             passwordCryptKey.setId(UUID.randomUUID())
                     .setKeyPair(CryptUtils.generateRsaKeyPair())

@@ -11,40 +11,48 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterDomainHeader;
-import org.twins.core.domain.auth.CryptKey;
-import org.twins.core.dto.rest.auth.AuthCryptKeyRsDTOv1;
+import org.twins.core.dto.rest.auth.AuthM2MLoginRqDTOv1;
+import org.twins.core.dto.rest.auth.AuthM2MLoginRsDTOv1;
+import org.twins.core.featurer.identityprovider.M2MAuthData;
+import org.twins.core.mappers.rest.auth.AuthM2MLoginRestDTOReverseMapper;
+import org.twins.core.mappers.rest.auth.ClientSideAuthDateRestDTOMapper;
 import org.twins.core.mappers.rest.auth.CryptKeyRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.auth.IdentityProviderService;
 
-@Tag(description = "Auth get crypt public key controller", name = ApiTag.AUTH)
+@Tag(description = "Machine to machine auth", name = ApiTag.AUTH)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class AuthCryptKeyController extends ApiController {
+public class AuthM2MLoginController extends ApiController {
     private final AuthService authService;
     private final IdentityProviderService identityProviderService;
+    private final ClientSideAuthDateRestDTOMapper clientSideAuthDateRestDTOMapper;
+    private final AuthM2MLoginRestDTOReverseMapper m2MLoginRestDTOReverseMapper;
     private final CryptKeyRestDTOMapper cryptKeyRestDTOMapper;
 
     @ParameterDomainHeader
-        @Operation(operationId = "authCryptKeyV1", summary = "Get public key to encrypt password during auth")
+    @Operation(operationId = "authM2MLoginV1", summary = "Returns auth data for machine-to-machine + act-as-user public key")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Login to ", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = AuthCryptKeyRsDTOv1.class))}),
+                    @Schema(implementation = AuthM2MLoginRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/auth/crypt_key/v1")
-    public ResponseEntity<?> authCryptKeyV1() {
-        AuthCryptKeyRsDTOv1 rs = new AuthCryptKeyRsDTOv1();
+    @PostMapping(value = "/auth/m2m/login/v1")
+    public ResponseEntity<?> authM2MLoginV1(@RequestBody AuthM2MLoginRqDTOv1 request) {
+        AuthM2MLoginRsDTOv1 rs = new AuthM2MLoginRsDTOv1();
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
-            CryptKey.CryptPublicKey clientSideAuthData = identityProviderService.getPublicKeyForPasswordCrypt();
-            rs.setPublicKey(cryptKeyRestDTOMapper.convert(clientSideAuthData));
+            M2MAuthData m2MAuthData = identityProviderService.login(m2MLoginRestDTOReverseMapper.convert(request));
+            rs
+                    .setAuthData(clientSideAuthDateRestDTOMapper.convert(m2MAuthData.getClientSideAuthData()))
+                    .setActAsUserPublicKey(cryptKeyRestDTOMapper.convert(m2MAuthData.getActAsUserKey()));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
