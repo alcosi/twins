@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamEncrypted;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.RequestEntity;
@@ -50,19 +51,19 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
     public static final FeaturerParamString identityServerBaseUri = new FeaturerParamString("identityServerBaseUri");
 
     @FeaturerParam(name = "Client id")
-    public static final FeaturerParamString clientId = new FeaturerParamString("clientId");
+    public static final FeaturerParamEncrypted clientId = new FeaturerParamEncrypted("clientId");
 
     @FeaturerParam(name = "Scope")
     public static final FeaturerParamString scope = new FeaturerParamString("scope");
 
     @FeaturerParam(name = "Client secret")
-    public static final FeaturerParamString clientSecret = new FeaturerParamString("clientSecret");
+    public static final FeaturerParamEncrypted clientSecret = new FeaturerParamEncrypted("clientSecret");
 
     @FeaturerParam(name = "Client introspection id")
-    public static final FeaturerParamString clientIntrospectionId = new FeaturerParamString("clientIntrospectionId");
+    public static final FeaturerParamEncrypted clientIntrospectionId = new FeaturerParamEncrypted("clientIntrospectionId");
 
     @FeaturerParam(name = "Client introspection secret")
-    public static final FeaturerParamString clientIntrospectionSecret = new FeaturerParamString("clientIntrospectionSecret");
+    public static final FeaturerParamEncrypted clientIntrospectionSecret = new FeaturerParamEncrypted("clientIntrospectionSecret");
 
     @FeaturerParam(name = "Client introspection secret")
     public static final FeaturerParamString activeBusinessAccountClaimName = new FeaturerParamString("activeBusinessAccountClaimName");
