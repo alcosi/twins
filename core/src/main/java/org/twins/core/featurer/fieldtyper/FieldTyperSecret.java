@@ -34,7 +34,7 @@ public class FieldTyperSecret
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
 
     @Autowired
-    private StandardPBEStringEncryptor encryptor;
+    private StandardPBEStringEncryptor secretEncryptor;
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity,
@@ -60,7 +60,7 @@ public class FieldTyperSecret
             );
         }
 
-        value.setValue(encryptor.encrypt(value.getValue()));
+        value.setValue(secretEncryptor.encrypt(value.getValue()));
         detectValueChange(twinFieldSimpleNonIndexedEntity, twinChangesCollector, value.getValue());
     }
 
@@ -70,7 +70,7 @@ public class FieldTyperSecret
         return new FieldValueText(twinField.getTwinClassField())
                 .setValue(
                         twinFieldSimpleNonIndexedEntity != null
-                                ? encryptor.decrypt(twinFieldSimpleNonIndexedEntity.getValue())
+                                ? secretEncryptor.decrypt(twinFieldSimpleNonIndexedEntity.getValue())
                                 : null
                 );
     }

@@ -1,7 +1,9 @@
 package org.twins.core.config;
 
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
+import org.jasypt.iv.RandomIvGenerator;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -11,6 +13,18 @@ public class EncryptionConfig {
 
     private static StandardPBEStringEncryptor encryptor;
     private static String password;
+
+    @Value("${twin.field.password.key}")
+    private String secretKey;
+
+    @Bean
+    public StandardPBEStringEncryptor secretEncryptor() {
+        StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
+        encryptor.setPassword(secretKey);
+        encryptor.setAlgorithm("PBEWithHMACSHA512AndAES_256");
+        encryptor.setIvGenerator(new RandomIvGenerator());
+        return encryptor;
+    }
 
     public static StandardPBEStringEncryptor getEncryptor() {
         if (encryptor != null) return encryptor;

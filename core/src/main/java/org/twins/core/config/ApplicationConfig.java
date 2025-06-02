@@ -52,9 +52,6 @@ import java.util.concurrent.TimeUnit;
 @EnableConfigurationProperties({I18nProperties.class})
 public class ApplicationConfig {
 
-    @Value("${jasypt.encryptor.secret.key}")
-    private String secretKey;
-
     @Bean
     public NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
         return new NamedParameterJdbcTemplate(dataSource);
@@ -165,16 +162,6 @@ public class ApplicationConfig {
         executor.initialize();
         return executor;
     }
-
-    @Bean
-    public StandardPBEStringEncryptor encryptor() {
-        StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
-        encryptor.setPassword(secretKey);
-        encryptor.setAlgorithm("PBEWithHMACSHA512AndAES_256");
-        encryptor.setIvGenerator(new RandomIvGenerator());
-        return encryptor;
-    }
-
 
 //    @Bean(name = "cacheManagerRequestScope")
 //    @RequestScope(proxyMode = ScopedProxyMode.TARGET_CLASS)
