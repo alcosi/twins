@@ -69,7 +69,7 @@ public class DomainUserService extends EntitySecureFindServiceImpl<DomainUserEnt
     }
 
     public DomainUserEntity findByUserId(UUID userId) throws ServiceException {
-        var entity = domainUserRepository.findByDomainIdAndUserId(userId, authService.getApiUser().getDomainId());
+        var entity = domainUserRepository.findByDomainIdAndUserId(authService.getApiUser().getDomainId(), userId);
         if (entity == null)
             return null;
         if (isEntityReadDenied(entity))
