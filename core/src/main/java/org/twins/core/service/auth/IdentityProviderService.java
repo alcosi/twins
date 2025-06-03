@@ -143,9 +143,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
 
     public CryptKey.CryptPublicKey getPublicKeyForPasswordCrypt() throws NoSuchAlgorithmException {
         if (passwordCryptKey.getExpires().isBefore(LocalDateTime.now())) {
-            passwordCryptKey.setId(UUID.randomUUID())
-                    .setKeyPair(CryptUtils.generateRsaKeyPair())
-                    .setExpires(LocalDateTime.now().plusMinutes(10));
+            passwordCryptKey.flush();
         }
         return passwordCryptKey.getPublicKey();
     }

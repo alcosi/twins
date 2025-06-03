@@ -2,12 +2,10 @@ package org.twins.core.domain.apiuser;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 import org.twins.core.featurer.identityprovider.TokenMetaData;
 import org.twins.core.service.HttpRequestService;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.auth.IdentityProviderService;
 
 import java.util.UUID;
@@ -18,8 +16,6 @@ import java.util.UUID;
 public class UserBusinessAccountResolverAuthToken implements BusinessAccountResolver, UserResolver {
     final HttpRequestService httpRequestService;
     final IdentityProviderService identityProviderService;
-    @Lazy
-    final AuthService authService;
     private UUID userId;
     private UUID businessAccountId;
     private boolean resolved = false;
@@ -43,5 +39,12 @@ public class UserBusinessAccountResolverAuthToken implements BusinessAccountReso
         userId = result.getUserId();
         businessAccountId = result.getBusinessAccountId();
         resolved = true;
+        ActAsUser actAsUser = httpRequestService.getActAsUser();
+        if (actAsUser == null) {
+            return;
+        }
+        //todo check permission to act as user
+        userId = actAsUser.getUserId();
+        businessAccountId = actAsUser.getBusinessAccountId();
     }
 }
