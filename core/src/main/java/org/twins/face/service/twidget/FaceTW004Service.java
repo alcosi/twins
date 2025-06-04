@@ -71,11 +71,8 @@ public class FaceTW004Service extends FaceTwidgetService<FaceTW004Entity> {
 
         FieldFilter fieldFilter = featurerService.getFeaturer(twidgetConfig.getConfig().getFieldFilterFeaturer(), FieldFilter.class);
         Kit<TwinClassFieldEntity, UUID> fieldsKit = fieldFilter.filterFields(twidgetConfig.getConfig().getFieldFilterParams(), fields, twidgetConfig.getTargetTwin());
-        Set<UUID> remainingFieldIds = fieldsKit.getIdSetSafe();
+        Set<UUID> editableFieldIds = fieldsKit.getIdSetSafe();
 
-        return fields.stream()
-                .filter(field -> remainingFieldIds.contains(field.getId()))
-                .map(field -> new TwinClassFieldEditable(field, true))
-                .toList();
+        return fields.stream().map(field -> new TwinClassFieldEditable(field, editableFieldIds.contains(field.getId()))).toList();
     }
 }
