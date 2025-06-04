@@ -11,40 +11,43 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.annotation.ParameterDomainHeader;
-import org.twins.core.domain.auth.CryptKey;
-import org.twins.core.dto.rest.auth.AuthCryptKeyRsDTOv1;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dto.rest.auth.AuthM2MRefreshRsDTOv1;
+import org.twins.core.dto.rest.auth.AuthRefreshRqDTOv1;
+import org.twins.core.featurer.identityprovider.M2MAuthData;
+import org.twins.core.mappers.rest.auth.ClientSideAuthDateRestDTOMapper;
 import org.twins.core.mappers.rest.auth.CryptKeyRestDTOMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.auth.IdentityProviderService;
 
-@Tag(description = "Auth get crypt public key controller", name = ApiTag.AUTH)
+@Tag(description = "", name = ApiTag.AUTH)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class AuthCryptKeyController extends ApiController {
-    private final AuthService authService;
+public class AuthM2MRefreshController extends ApiController {
     private final IdentityProviderService identityProviderService;
+    private final ClientSideAuthDateRestDTOMapper clientSideAuthDateRestDTOMapper;
     private final CryptKeyRestDTOMapper cryptKeyRestDTOMapper;
 
-    @ParameterDomainHeader
-        @Operation(operationId = "authCryptKeyV1", summary = "Get public key to encrypt password during auth")
+    @ParametersApiUserHeaders
+    @Operation(operationId = "authM2MRefreshV1", summary = "Refresh M2M auth_token by refresh_token")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Login to ", content = {
+            @ApiResponse(responseCode = "200", description = "Token refreshed ", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = AuthCryptKeyRsDTOv1.class))}),
+                    @Schema(implementation = AuthM2MRefreshRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/auth/crypt_key/v1")
-    public ResponseEntity<?> authCryptKeyV1() {
-        AuthCryptKeyRsDTOv1 rs = new AuthCryptKeyRsDTOv1();
+    @PostMapping(value = "/auth/m2m/refresh/v1")
+    public ResponseEntity<?> authM2MRefreshV1(@RequestBody AuthRefreshRqDTOv1 request) {
+        AuthM2MRefreshRsDTOv1 rs = new AuthM2MRefreshRsDTOv1();
         try {
-            authService.getApiUser().setAnonymousWithDefaultLocale();
-            CryptKey.CryptPublicKey clientSideAuthData = identityProviderService.getPublicKeyForPasswordCrypt();
-            rs.setPublicKey(cryptKeyRestDTOMapper.convert(clientSideAuthData));
+            M2MAuthData m2MAuthData = identityProviderService.refreshM2M(request.getRefreshToken());
+            rs
+                    .setAuthData(clientSideAuthDateRestDTOMapper.convert(m2MAuthData.getClientSideAuthData()))
+                    .setActAsUserPublicKey(cryptKeyRestDTOMapper.convert(m2MAuthData.getActAsUserKey()));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

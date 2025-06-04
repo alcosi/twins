@@ -7,11 +7,8 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.annotations.FeaturerList;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
-import org.twins.core.featurer.identityprovider.connector.IdentityProviderConnector;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -44,14 +41,16 @@ public class IdentityProviderEntity implements EasyLoggable {
     @Column(name = "identity_provider_connector_featurer_id")
     private Integer identityProviderConnectorFeaturerId;
 
-    @FeaturerList(type = IdentityProviderConnector.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "identity_provider_connector_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity identityProviderConnectorFeaturer;
-
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "identity_provider_connector_params", columnDefinition = "hstore")
     private HashMap<String, String> identityProviderConnectorParams;
+
+    @Column(name = "trustor_featurer_id")
+    private Integer trustorFeaturerId;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "trustor_params", columnDefinition = "hstore")
+    private HashMap<String, String> trustorParams;
 
     public String easyLog(Level level) {
         return "identity_provider[id:" + id + "]";

@@ -16,9 +16,9 @@ import java.util.Base64;
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = DomainMode.class)
-public class LoginKeyRestDTOMapper extends RestSimpleDTOMapper<CryptKey.LoginPublicKey, CryptKeyDTOv1> {
+public class CryptKeyRestDTOMapper extends RestSimpleDTOMapper<CryptKey.CryptPublicKey, CryptKeyDTOv1> {
     @Override
-    public void map(CryptKey.LoginPublicKey src, CryptKeyDTOv1 dst, MapperContext mapperContext) throws Exception {
+    public void map(CryptKey.CryptPublicKey src, CryptKeyDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
                 .setId(src.getId())
                 .setAlgorithm(src.getPublicKey().getAlgorithm())
