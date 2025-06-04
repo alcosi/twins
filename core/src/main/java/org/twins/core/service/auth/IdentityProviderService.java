@@ -101,7 +101,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
             m2mLogin.setClientSecret(decryptPassword(m2mLogin.getClientSecret(), m2mLogin.getPublicKeyId()));
         }
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
-        Trustor trustor = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), Trustor.class);
+        Trustor trustor = featurerService.getFeaturer(identityProvider.getTrustorFeaturerId(), Trustor.class);
         //perhaps we need separate method
         ClientSideAuthData clientSideAuthData = identityProviderConnector.login(identityProvider.getIdentityProviderConnectorParams(), m2mLogin.getClientId(), m2mLogin.getClientSecret(), null);
         M2MAuthData m2MAuthData = new M2MAuthData()
@@ -123,7 +123,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
     public M2MAuthData refreshM2M(String refreshToken) throws ServiceException {
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
-        Trustor trustor = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), Trustor.class);
+        Trustor trustor = featurerService.getFeaturer(identityProvider.getTrustorFeaturerId(), Trustor.class);
         return new M2MAuthData()
                 .setClientSideAuthData(identityProviderConnector.refresh(identityProvider.getIdentityProviderConnectorParams(), refreshToken, null))
                 .setActAsUserKey(trustor.getActAsUserPublicKey(identityProvider.getTrustorParams()));
@@ -236,7 +236,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
 
     public ActAsUser resolveActAsUser(String actAsUserHeader) throws ServiceException {
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
-        Trustor trustor = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), Trustor.class);
+        Trustor trustor = featurerService.getFeaturer(identityProvider.getTrustorFeaturerId(), Trustor.class);
         return trustor.resolveActAsUser(identityProvider.getTrustorParams(), actAsUserHeader);
     }
 }
