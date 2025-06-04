@@ -18,11 +18,8 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.twinclass.*;
-import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassCreateRestDTOReverseMapper;
@@ -74,16 +71,18 @@ public class TwinClassCreateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin classes created successfully", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = Response.class))}),
+                    @Schema(implementation = TwinClassCreateRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_class/v2")
     public ResponseEntity<?> twinClassCreateV2(
+            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassCreateRsDTOv2.class) MapperContext mapperContext,
             @RequestBody TwinClassCreateRqDTOv2 request) {
-        Response rs = new Response();
+        TwinClassCreateRsDTOv2 rs = new TwinClassCreateRsDTOv2();
         try {
-            List<TwinClassCreate> twinClassCreates = twinClassCreateRestDTOReverseMapperV2.convertCollection(request.getTwinClassCreates());
-
-            twinClassService.createInDomainClass(twinClassCreates);
+            List<TwinClassEntity> twinClassEntityList = twinClassService.createInDomainClass(twinClassCreateRestDTOReverseMapperV2.convertCollection(request.getTwinClassCreates()));
+            rs
+                    .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClassEntityList, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

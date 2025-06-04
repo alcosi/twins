@@ -275,6 +275,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                     .setLinkerFeaturerId(newLinkerFeaturer.getId())
                     .setLinkerFeaturer(newLinkerFeaturer);
         }
+        featurerService.prepareForStore(newHeadhunterFeaturerId, linkerParams);
         if (!MapUtils.areEqual(dbLinkEntity.getLinkerParams(), linkerParams)) {
             changesHelper.add(TwinClassEntity.Fields.headHunterParams, dbLinkEntity.getLinkerParams(), linkerParams);
             dbLinkEntity

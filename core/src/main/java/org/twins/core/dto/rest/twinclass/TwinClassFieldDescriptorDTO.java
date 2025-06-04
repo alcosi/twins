@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "fieldType", visible = true)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorTextDTOv1.class, name = TwinClassFieldDescriptorTextDTOv1.KEY),
-        @JsonSubTypes.Type(value = TwinClassFieldDescriptorPasswordDTOv1.class, name = TwinClassFieldDescriptorPasswordDTOv1.KEY),
+        @JsonSubTypes.Type(value = TwinClassFieldDescriptorSecretDTOv1.class, name = TwinClassFieldDescriptorSecretDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorDateScrollDTOv1.class, name = TwinClassFieldDescriptorDateScrollDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorColorHexDTOv1.class, name = TwinClassFieldDescriptorColorHexDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorUrlDTOv1.class, name = TwinClassFieldDescriptorUrlDTOv1.KEY),
@@ -27,7 +27,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 })
 @Schema(description = "One of values", example = "", discriminatorProperty = "fieldType", discriminatorMapping = {
         @DiscriminatorMapping(value = TwinClassFieldDescriptorTextDTOv1.KEY, schema = TwinClassFieldDescriptorTextDTOv1.class),
-        @DiscriminatorMapping(value = TwinClassFieldDescriptorPasswordDTOv1.KEY, schema = TwinClassFieldDescriptorPasswordDTOv1.class),
+        @DiscriminatorMapping(value = TwinClassFieldDescriptorSecretDTOv1.KEY, schema = TwinClassFieldDescriptorSecretDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorDateScrollDTOv1.KEY, schema = TwinClassFieldDescriptorDateScrollDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorColorHexDTOv1.KEY, schema = TwinClassFieldDescriptorColorHexDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorUrlDTOv1.KEY, schema = TwinClassFieldDescriptorUrlDTOv1.class),
@@ -47,7 +47,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public interface TwinClassFieldDescriptorDTO {
     @Schema(description = "discriminator", requiredMode = Schema.RequiredMode.REQUIRED, examples = {
             TwinClassFieldDescriptorTextDTOv1.KEY,
-            TwinClassFieldDescriptorPasswordDTOv1.KEY,
+            TwinClassFieldDescriptorSecretDTOv1.KEY,
             TwinClassFieldDescriptorColorHexDTOv1.KEY,
             TwinClassFieldDescriptorUrlDTOv1.KEY,
             TwinClassFieldDescriptorDateScrollDTOv1.KEY,

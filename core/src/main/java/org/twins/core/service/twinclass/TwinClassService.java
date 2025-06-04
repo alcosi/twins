@@ -384,6 +384,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
             if (twinClass.getHeadHunterFeaturerId() != null) {
                 featurerService.checkValid(twinClass.getHeadHunterFeaturerId(), twinClass.getHeadHunterParams(), HeadHunter.class);
+                featurerService.prepareForStore(twinClass.getHeadHunterFeaturerId(), twinClass.getHeadHunterParams());
             }
 
             if (twinClass.getExtendsTwinClassId() != null) {
@@ -588,6 +589,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                     .setHeadHunterFeaturerId(newHeadHunterFeaturer.getId())
                     .setHeadHunterFeaturer(newHeadHunterFeaturer);
         }
+        featurerService.prepareForStore(newHeadhunterFeaturerId, headHunterParams);
         if (!MapUtils.areEqual(dbTwinClassEntity.getHeadHunterParams(), headHunterParams)) {
             changesHelper.add(TwinClassEntity.Fields.headHunterParams, dbTwinClassEntity.getHeadHunterParams(), headHunterParams);
             dbTwinClassEntity

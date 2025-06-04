@@ -4,12 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
-import org.twins.core.dao.i18n.I18nType;
 import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.TierEntity;
+import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -54,9 +54,10 @@ public class DomainInitiatorB2B extends DomainInitiator {
     protected void postInit(Properties properties, DomainEntity domainEntity) throws ServiceException {
         super.postInit(properties, domainEntity);
         domainEntity
-                .setBusinessAccountInitiatorFeaturerId(1101)
+                .setBusinessAccountInitiatorFeaturerId(FeaturerTwins.ID_1101)
                 .setBusinessAccountInitiatorParams(null) // 1101 does not need params
                 .setBusinessAccountTemplateTwinId(createBusinessAccountTemplateTwin(domainEntity))
+                .setDomainUserInitiatorFeaturerId(FeaturerTwins.ID_3402)
                 .setDefaultTierId(createDefaultTier(domainEntity));
     }
 

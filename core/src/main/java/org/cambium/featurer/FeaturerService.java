@@ -346,4 +346,21 @@ public class FeaturerService {
     public List<FeaturerEntity> findByIdIn(Set<Integer> ids) {
         return featurerRepository.findByIdIn(ids);
     }
+
+    public HashMap<String, String> prepareForStore(Integer featurerId, HashMap<String, String> featurerParams) throws ServiceException {
+
+        Featurer featurer = featurerMap.get(featurerId);
+        if (featurer == null)
+            throw new ServiceException(ErrorCodeCommon.FEATURER_ID_UNKNOWN, "unknown featurer id[" + featurerId + "]");
+        var paramsMap = featurerParamsMap.get(featurerId);
+        for (var entry : paramsMap.entrySet()) {
+            var key = entry.getKey();
+            var value = featurerParams.get(key);
+            var preparedForStoreValue = entry.getValue().prepareForStore(value);
+            if (!Objects.equals(value, preparedForStoreValue)) {
+                featurerParams.put(key, preparedForStoreValue);
+            }
+        }
+        return featurerParams;
+    }
 }

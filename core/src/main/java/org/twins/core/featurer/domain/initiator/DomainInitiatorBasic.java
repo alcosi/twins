@@ -33,10 +33,10 @@ public class DomainInitiatorBasic extends DomainInitiator {
     @Override
     protected void init(Properties properties, DomainEntity domainEntity) throws ServiceException {
         domainEntity
-                .setBusinessAccountInitiatorFeaturer(null)
                 .setBusinessAccountInitiatorFeaturerId(null)
                 .setBusinessAccountInitiatorParams(null)
                 .setBusinessAccountTemplateTwinId(null)
+                .setDomainUserInitiatorFeaturerId(FeaturerTwins.ID_3401)
                 .setDomainUserTemplateTwinId(null);
     }
 }

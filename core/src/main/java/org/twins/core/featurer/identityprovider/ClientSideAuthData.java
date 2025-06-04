@@ -1,9 +1,11 @@
 package org.twins.core.featurer.identityprovider;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.HashMap;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class ClientSideAuthData extends HashMap<String, String> {
     public static final String REFRESH_TOKEN = "refresh_token";
