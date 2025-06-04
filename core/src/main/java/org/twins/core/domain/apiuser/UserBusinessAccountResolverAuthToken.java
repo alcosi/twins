@@ -2,6 +2,7 @@ package org.twins.core.domain.apiuser;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 import org.twins.core.featurer.identityprovider.TokenMetaData;
@@ -39,10 +40,11 @@ public class UserBusinessAccountResolverAuthToken implements BusinessAccountReso
         userId = result.getUserId();
         businessAccountId = result.getBusinessAccountId();
         resolved = true;
-        ActAsUser actAsUser = httpRequestService.getActAsUser();
-        if (actAsUser == null) {
+        String actAsUserHeader = httpRequestService.getActAsUserFromRequest();
+        if (StringUtils.isEmpty(actAsUserHeader)) {
             return;
         }
+        ActAsUser actAsUser = identityProviderService.resolveActAsUser(actAsUserHeader);
         //todo check permission to act as user
         userId = actAsUser.getUserId();
         businessAccountId = actAsUser.getBusinessAccountId();

@@ -19,6 +19,7 @@ import org.twins.core.dao.user.UserEmailVerificationRepository;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserStatus;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.apiuser.ActAsUser;
 import org.twins.core.domain.apiuser.UserResolverGivenId;
 import org.twins.core.domain.auth.*;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -27,6 +28,7 @@ import org.twins.core.featurer.identityprovider.ClientSideAuthData;
 import org.twins.core.featurer.identityprovider.M2MAuthData;
 import org.twins.core.featurer.identityprovider.TokenMetaData;
 import org.twins.core.featurer.identityprovider.connector.IdentityProviderConnector;
+import org.twins.core.featurer.identityprovider.trustor.Trustor;
 import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.domain.DomainUserService;
 import org.twins.core.service.user.UserService;
@@ -49,7 +51,6 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
     private final UserEmailVerificationRepository userEmailVerificationRepository;
     private final UserService userService;
     private final DomainUserService domainUserService;
-    private final ActAsUserService actAsUserService;
 
     @Override
     public CrudRepository<IdentityProviderEntity, UUID> entityRepository() {
@@ -90,7 +91,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         if (authLogin.getPublicKeyId() != null) {
             authLogin.setPassword(decryptPassword(authLogin.getPassword(), authLogin.getPublicKeyId()));
         }
-        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
+        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
         return identityProviderConnector.login(identityProvider.getIdentityProviderConnectorParams(), authLogin.getUsername(), authLogin.getPassword(), authLogin.getFingerPrint());
     }
 
@@ -99,18 +100,19 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         if (m2mLogin.getPublicKeyId() != null) {
             m2mLogin.setClientSecret(decryptPassword(m2mLogin.getClientSecret(), m2mLogin.getPublicKeyId()));
         }
-        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
+        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
+        Trustor trustor = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), Trustor.class);
         //perhaps we need separate method
         ClientSideAuthData clientSideAuthData = identityProviderConnector.login(identityProvider.getIdentityProviderConnectorParams(), m2mLogin.getClientId(), m2mLogin.getClientSecret(), null);
         M2MAuthData m2MAuthData = new M2MAuthData()
                 .setClientSideAuthData(clientSideAuthData)
-                .setActAsUserKey(actAsUserService.getPublicKey());
+                .setActAsUserKey(trustor.getActAsUserPublicKey(identityProvider.getTrustorParams()));
         return m2MAuthData;
     }
 
     public void logout(ClientLogoutData logoutData) throws ServiceException {
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
-        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
+        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
         identityProviderConnector.logout(identityProvider.getIdentityProviderConnectorParams(), logoutData);
     }
 
@@ -118,15 +120,24 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         return refresh(refreshToken, null);
     }
 
+    public M2MAuthData refreshM2M(String refreshToken) throws ServiceException {
+        IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
+        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
+        Trustor trustor = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), Trustor.class);
+        return new M2MAuthData()
+                .setClientSideAuthData(identityProviderConnector.refresh(identityProvider.getIdentityProviderConnectorParams(), refreshToken, null))
+                .setActAsUserKey(trustor.getActAsUserPublicKey(identityProvider.getTrustorParams()));
+    }
+
     public ClientSideAuthData refresh(String refreshToken, String fingerprint) throws ServiceException {
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
-        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
+        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
         return identityProviderConnector.refresh(identityProvider.getIdentityProviderConnectorParams(), refreshToken, fingerprint);
     }
 
     public IdentityProviderConfig getConfig() throws ServiceException {
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
-        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
+        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
         IdentityProviderConfig identityProviderConfig = new IdentityProviderConfig()
                 .setIdentityProvider(identityProvider)
                 .setSupportedMethods(identityProviderConnector.getSupportedMethods(identityProvider.getIdentityProviderConnectorParams()));
@@ -135,7 +146,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
 
     public TokenMetaData resolveAuthTokenMetaData(String authToken) throws ServiceException {
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
-        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
+        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
         return identityProviderConnector.resolveAuthTokenMetaData(identityProvider.getIdentityProviderConnectorParams(), authToken);
     }
 
@@ -176,7 +187,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
             userService.addUser(user, EntitySmartService.SaveMode.saveAndThrowOnException);
         }
         authSignup.setTwinsUserId(user.getId());
-        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
+        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
         EmailVerificationMode emailVerificationMode = identityProviderConnector.signupByEmailInitiate(identityProvider.getIdentityProviderConnectorParams(), authSignup);
         UserEmailVerificationEntity userEmailVerificationEntity = new UserEmailVerificationEntity()
                 .setId(UUID.randomUUID())
@@ -207,7 +218,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
             throw new ServiceException(ErrorCodeTwins.IDP_EMAIL_VERIFICATION_CODE_EXPIRED);
         }
         IdentityProviderEntity identityProvider = checkIdentityProviderActive(userEmailVerificationEntity.getIdentityProvider());
-        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturer(), IdentityProviderConnector.class);
+        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
         identityProviderConnector.signupByEmailActivate(identityProvider.getIdentityProviderConnectorParams(), userEmailVerificationEntity.getUserId(), userEmailVerificationEntity.getEmail(), verificationCode);
         UserEntity user = userEmailVerificationEntity.getUser();
         if (user.getUserStatusId() == UserStatus.EMAIL_VERIFICATION_REQUIRED) {
@@ -221,5 +232,11 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         apiUser.setUserResolver(new UserResolverGivenId(user.getId())); //welcome
         domainUserService.addUser(user.getId(), true);
         userEmailVerificationRepository.delete(userEmailVerificationEntity);
+    }
+
+    public ActAsUser resolveActAsUser(String actAsUserHeader) throws ServiceException {
+        IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
+        Trustor trustor = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), Trustor.class);
+        return trustor.resolveActAsUser(identityProvider.getTrustorParams(), actAsUserHeader);
     }
 }

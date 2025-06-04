@@ -11,8 +11,8 @@ import java.util.Map;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "AuthM2MLoginRsV1")
-public class AuthM2MLoginRsDTOv1 extends Response {
+@Schema(name = "AuthM2MRefreshRsV1")
+public class AuthM2MRefreshRsDTOv1 extends Response {
     @Schema(description = "tokens data")
     public Map<String, String> authData;
 
