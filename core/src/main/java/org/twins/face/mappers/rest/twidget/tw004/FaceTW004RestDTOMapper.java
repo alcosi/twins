@@ -6,8 +6,8 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.face.TwidgetConfig;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldEditable;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceTwidgetRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -33,24 +33,24 @@ public class FaceTW004RestDTOMapper extends RestSimpleDTOMapper<TwidgetConfig<Fa
     @Override
     public void map(TwidgetConfig<FaceTW004Entity> src, FaceTW004DTOv1 dst, MapperContext mapperContext) throws Exception {
         faceTwidgetRestDTOMapper.map(src, dst, mapperContext);
-        List<TwinClassFieldEntity> fields = faceTW004Service.loadFields(src.getTargetTwin().getTwinClassId(), src.getConfig());
+        List<TwinClassFieldEditable> fields = faceTW004Service.loadFields(src.getTargetTwin().getTwinClassId(), src);
         if (CollectionUtils.isEmpty(fields)) {
             throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "no field configured for twidget");
         }
-        TwinClassFieldEntity twinClassField = fields.getFirst();
+        TwinClassFieldEditable twinClassFieldEditable = fields.getFirst();
         switch (mapperContext.getModeOrUse(FaceMode.SHORT)) { // perhaps we need some separate mode
             case SHORT -> dst
-                    .setKey(twinClassField.getKey())
+                    .setKey(twinClassFieldEditable.getField().getKey())
                     .setEditable(true);
             case DETAILED -> dst
-                    .setKey(twinClassField.getKey())
-                    .setLabel(i18nService.translateToLocale(twinClassField.getNameI18nId()))
-                    .setTwinClassFieldId(twinClassField.getId())
-                    .setEditable(true);
+                    .setKey(twinClassFieldEditable.getField().getKey())
+                    .setLabel(i18nService.translateToLocale(twinClassFieldEditable.getField().getNameI18nId()))
+                    .setTwinClassFieldId(twinClassFieldEditable.getField().getId())
+                    .setEditable(twinClassFieldEditable.isEditable());
         }
         if (mapperContext.hasModeButNot(FaceTW004Modes.FaceTW0042TwinClassFieldMode.HIDE)) {
-            dst.setTwinClassFieldId(twinClassField.getId());
-            twinClassFieldRestDTOMapper.postpone(twinClassField, mapperContext.forkOnPoint(FaceTW004Modes.FaceTW0042TwinClassFieldMode.SHORT));
+            dst.setTwinClassFieldId(twinClassFieldEditable.getField().getId());
+            twinClassFieldRestDTOMapper.postpone(twinClassFieldEditable.getField(), mapperContext.forkOnPoint(FaceTW004Modes.FaceTW0042TwinClassFieldMode.SHORT));
         }
     }
 }

@@ -37,6 +37,15 @@ public class FaceTW004Entity implements EasyLoggable, FaceTwidget {
     @Column(name = "field_finder_params", columnDefinition = "hstore")
     private HashMap<String, String> fieldFinderParams;
 
+    @FeaturerList(type = FieldFinder.class)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "field_filter_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity fieldFilterFeaturer;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "field_filter_params", columnDefinition = "hstore")
+    private HashMap<String, String> fieldFilterParams;
+
     @Override
     public String easyLog(Level level) {
         switch (level) {
