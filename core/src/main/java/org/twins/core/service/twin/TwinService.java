@@ -202,7 +202,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
 
     public void loadTwinFields(TwinEntity twinEntity) throws ServiceException {
-        if (twinEntity.getTwinFieldSimpleKit() != null && twinEntity.getTwinFieldUserKit() != null && twinEntity.getTwinFieldDatalistKit() != null && twinEntity.getTwinFieldI18nKit() != null && twinEntity.getTwinFieldBooleanKit() == null)
+        if (twinEntity.getTwinFieldSimpleKit() != null && twinEntity.getTwinFieldUserKit() != null && twinEntity.getTwinFieldDatalistKit() != null && twinEntity.getTwinFieldI18nKit() != null && twinEntity.getTwinFieldBooleanKit() != null)
             return;
         twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
         boolean hasBasicFields = false, hasBasicNonIndexedFields = false, hasUserFields = false,
@@ -241,7 +241,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     new KitGrouped<>(hasI18nFields ? twinFieldI18nRepository.findByTwinId(twinEntity.getId()) : null, TwinFieldI18nEntity::getId, TwinFieldI18nEntity::getTwinClassFieldId));
         if (twinEntity.getTwinFieldBooleanKit() == null)
             twinEntity.setTwinFieldBooleanKit(
-                    new KitGrouped<>(hasBooleanFields ? twinFieldBooleanRepository.findByTwinId(twinEntity.getId()) : null, TwinFieldBooleanEntity::getId, TwinFieldBooleanEntity::getTwinClassFieldId));
+                    new Kit<>(hasBooleanFields ? twinFieldBooleanRepository.findByTwinId(twinEntity.getId()) : null, TwinFieldBooleanEntity::getTwinClassFieldId));
     }
 
     public boolean areFieldsOfTwinClassFieldExists(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
@@ -337,12 +337,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         if (!needFieldBooleanLoad.isEmpty()) {
             KitGrouped<TwinFieldBooleanEntity, UUID, UUID> allTwinsBooLeanFieldsKit = new KitGrouped<>(
-                    twinFieldBooleanRepository.findByTwinIdIn(needFieldBooleanLoad.keySet()), TwinFieldBooleanEntity::getId, TwinFieldBooleanEntity::getId);
+                    twinFieldBooleanRepository.findByTwinIdIn(needFieldBooleanLoad.keySet()), TwinFieldBooleanEntity::getId, TwinFieldBooleanEntity::getTwinId);
             if (!KitUtils.isEmpty(allTwinsBooLeanFieldsKit)) {
                 TwinEntity twinEntity;
                 for (Map.Entry<UUID, TwinEntity> entry : needFieldBooleanLoad.entrySet()) {
                     twinEntity = entry.getValue();
-                    twinEntity.setTwinFieldBooleanKit(new KitGrouped<>(allTwinsBooLeanFieldsKit.getGrouped(twinEntity.getId()), TwinFieldBooleanEntity::getId, TwinFieldBooleanEntity::getId));
+                    twinEntity.setTwinFieldBooleanKit(new Kit<>(allTwinsBooLeanFieldsKit.getGrouped(twinEntity.getId()), TwinFieldBooleanEntity::getTwinClassFieldId));
                 }
             }
         }
@@ -901,6 +901,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public TwinFieldSimpleEntity createTwinFieldEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, String value) {
         return new TwinFieldSimpleEntity()
+                .setTwinClassField(twinClassFieldEntity)
+                .setTwinClassFieldId(twinClassFieldEntity.getId())
+                .setTwin(twinEntity)
+                .setTwinId(twinEntity.getId())
+                .setValue(value);
+    }
+
+    public TwinFieldBooleanEntity createTwinFieldBooleanEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, Boolean value) {
+        return new TwinFieldBooleanEntity()
                 .setTwinClassField(twinClassFieldEntity)
                 .setTwinClassFieldId(twinClassFieldEntity.getId())
                 .setTwin(twinEntity)

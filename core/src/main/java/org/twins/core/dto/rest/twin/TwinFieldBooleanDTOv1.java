@@ -10,5 +10,5 @@ import org.twins.core.dto.rest.DTOExamples;
 @Schema(name = "TwinFieldBooleanV1")
 public class TwinFieldBooleanDTOv1 {
     @Schema(description = "boolean value", example = DTOExamples.BOOLEAN_TRUE)
-    public boolean value;
+    public Boolean value;
 }

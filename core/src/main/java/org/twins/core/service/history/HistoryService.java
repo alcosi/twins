@@ -317,14 +317,6 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return new HistoryItem<>(HistoryType.fieldChanged, context);
     }
 
-    public HistoryItem<HistoryContextBooleanChange> fieldChangeBoolean(TwinClassFieldEntity twinClassFieldEntity, boolean from, boolean to) {
-        HistoryContextBooleanChange context = new HistoryContextBooleanChange()
-                .shotFrom(from)
-                .shotTo(to);
-        context.shotField(twinClassFieldEntity, i18nService);
-        return new HistoryItem<>(HistoryType.fieldChanged, context);
-    }
-
     public HistoryItem<HistoryContextLink> linkCreated(UUID twinLinkId, LinkEntity linkEntity, TwinEntity dstTwinEntity, boolean forward) {
         HistoryContextLink context = new HistoryContextLink()
                 .setTwinLinkId(twinLinkId)

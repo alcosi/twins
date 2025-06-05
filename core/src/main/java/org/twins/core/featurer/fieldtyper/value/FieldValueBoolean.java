@@ -11,7 +11,8 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class FieldValueBoolean extends FieldValue {
-    private boolean value;
+
+    private Boolean value;
 
     public FieldValueBoolean(TwinClassFieldEntity twinClassFieldEntity) {
         super(twinClassFieldEntity);
@@ -19,7 +20,7 @@ public class FieldValueBoolean extends FieldValue {
 
     @Override
     public boolean isFilled() {
-        return true;
+        return value != null;
     }
 
     @Override
@@ -31,12 +32,12 @@ public class FieldValueBoolean extends FieldValue {
 
     @Override
     public void nullify() {
-        value = false;
+        value = null;
     }
 
     @Override
     public boolean isNullified() {
-        return true;
+        return value == null;
     }
 
     @Override

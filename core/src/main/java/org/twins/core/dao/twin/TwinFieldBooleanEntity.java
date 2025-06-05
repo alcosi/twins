@@ -34,7 +34,7 @@ public class TwinFieldBooleanEntity implements TwinFieldStorage {
     private UUID twinClassFieldId;
 
     @Column(name = "value")
-    private boolean value;
+    private Boolean value;
 
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
