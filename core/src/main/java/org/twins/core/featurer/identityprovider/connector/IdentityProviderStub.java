@@ -34,6 +34,11 @@ public class IdentityProviderStub extends IdentityProviderConnector {
     }
 
     @Override
+    protected ClientSideAuthData m2mAuth(Properties properties, String clientId, String clientSecret) throws ServiceException {
+        throw new ServiceException(ErrorCodeTwins.IDP_PASSWORD_LOGIN_NOT_SUPPORTED);
+    }
+
+    @Override
     protected ClientSideAuthData refresh(Properties properties, String refreshToken, String fingerprint) throws ServiceException{
         throw new ServiceException(ErrorCodeTwins.IDP_TOKEN_REFRESH_NOT_SUPPORTED);
     }
@@ -71,7 +76,7 @@ public class IdentityProviderStub extends IdentityProviderConnector {
     }
 
     @Override
-    public void switchActiveBusinessAccount(Properties properties, UUID businessAccountId) throws ServiceException {
-
+    public void switchActiveBusinessAccount(Properties properties, String authToken, UUID domainId, UUID businessAccountId) throws ServiceException {
+        throw new ServiceException(ErrorCodeTwins.IDP_SWITCH_ACTIVE_BUSINESS_ACCOUNT_NOT_SUPPORTED);
     }
 }

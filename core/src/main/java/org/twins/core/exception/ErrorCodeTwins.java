@@ -149,7 +149,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     IDP_EMAIL_VERIFICATION_CODE_EXPIRED(12715, "email verification code is expired"),
     IDP_PROVIDED_TOKEN_IS_NOT_ACTIVE(12716,"provided token is not active", HttpStatus.UNAUTHORIZED),
     IDP_AUTHENTICATION_EXCEPTION(12717, "authentication error", HttpStatus.UNAUTHORIZED),
-    IDP_SWITCH_ACTIVE_BUSINESS_ACCOUNT(12718, "active acctount switch is not supported"),
+    IDP_SWITCH_ACTIVE_BUSINESS_ACCOUNT_NOT_SUPPORTED(12718, "active account switch is not supported"),
+    IDP_EMPTY_CLIENT_ID_OR_SECRET(12719, "empty clientId or secret", HttpStatus.UNAUTHORIZED),
     ACT_AS_USER_INCORRECT(12801, "act as user authentication error", HttpStatus.UNAUTHORIZED),
     ACT_AS_USER_NONCE_IS_NOT_UNIQ(12801, "act as user authentication error", HttpStatus.UNAUTHORIZED);
 

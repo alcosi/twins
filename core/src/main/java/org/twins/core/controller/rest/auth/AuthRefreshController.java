@@ -21,7 +21,7 @@ import org.twins.core.dto.rest.auth.AuthRefreshRqDTOv1;
 import org.twins.core.dto.rest.auth.AuthRefreshRqDTOv2;
 import org.twins.core.dto.rest.auth.AuthRefreshRsDTOv1;
 import org.twins.core.featurer.identityprovider.ClientSideAuthData;
-import org.twins.core.mappers.rest.auth.ClientSideAuthDateRestDTOMapper;
+import org.twins.core.mappers.rest.auth.ClientSideAuthDataRestDTOMapper;
 import org.twins.core.service.auth.IdentityProviderService;
 
 @Tag(description = "Auth login controller", name = ApiTag.AUTH)
@@ -30,7 +30,7 @@ import org.twins.core.service.auth.IdentityProviderService;
 @RequiredArgsConstructor
 public class AuthRefreshController extends ApiController {
     private final IdentityProviderService identityProviderService;
-    private final ClientSideAuthDateRestDTOMapper clientSideAuthDateRestDTOMapper;
+    private final ClientSideAuthDataRestDTOMapper clientSideAuthDataRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "authRefreshV1", summary = "Refresh auth_token by refresh_token")
@@ -44,7 +44,7 @@ public class AuthRefreshController extends ApiController {
         AuthRefreshRsDTOv1 rs = new AuthRefreshRsDTOv1();
         try {
             ClientSideAuthData clientSideAuthData = identityProviderService.refresh(request.getRefreshToken());
-            rs.setAuthData(clientSideAuthDateRestDTOMapper.convert(clientSideAuthData));
+            rs.setAuthData(clientSideAuthDataRestDTOMapper.convert(clientSideAuthData));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -65,7 +65,7 @@ public class AuthRefreshController extends ApiController {
         AuthRefreshRsDTOv1 rs = new AuthRefreshRsDTOv1();
         try {
             ClientSideAuthData clientSideAuthData = identityProviderService.refresh(request.getRefreshToken(), request.getFingerprint());
-            rs.setAuthData(clientSideAuthDateRestDTOMapper.convert(clientSideAuthData));
+            rs.setAuthData(clientSideAuthDataRestDTOMapper.convert(clientSideAuthData));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

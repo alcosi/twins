@@ -34,9 +34,6 @@ public class IdentityProviderInternalUserEntity implements EasyLoggable {
     @Column(name = "last_login_at")
     private Timestamp lastLoginAt;
 
-    @Column(name = "last_active_business_account_id")
-    private UUID lastActiveBusinessAccountId;
-
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private UserEntity user;

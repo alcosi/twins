@@ -13,6 +13,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.domain.DomainType;
+import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.idp.IdentityProviderEntity;
 import org.twins.core.dao.idp.IdentityProviderRepository;
 import org.twins.core.dao.user.UserEmailVerificationEntity;
@@ -21,6 +23,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserStatus;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.ActAsUser;
+import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
 import org.twins.core.domain.apiuser.UserResolverGivenId;
 import org.twins.core.domain.auth.*;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -51,6 +54,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
     private final IdentityProviderRepository identityProviderRepository;
     private final UserEmailVerificationRepository userEmailVerificationRepository;
     private final UserService userService;
+    private final ApiUserResolverService apiUserResolverService;
     @Lazy
     private final DomainUserService domainUserService;
 
@@ -94,18 +98,30 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
             authLogin.setPassword(decryptPassword(authLogin.getPassword(), authLogin.getPublicKeyId()));
         }
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
-        return identityProviderConnector.login(identityProvider.getIdentityProviderConnectorParams(), authLogin.getUsername(), authLogin.getPassword(), authLogin.getFingerPrint());
+        ClientSideAuthData clientSideAuthData = identityProviderConnector.login(identityProvider.getIdentityProviderConnectorParams(), authLogin.getUsername(), authLogin.getPassword(), authLogin.getFingerPrint());
+        TokenMetaData tokenMetaData = resolveAuthTokenMetaData(clientSideAuthData.getAuthToken());
+        authService.getApiUser()
+                .setUserResolver(new UserResolverGivenId(tokenMetaData.getUserId()))
+                .setBusinessAccountResolver(new BusinessAccountResolverGivenId(tokenMetaData.getBusinessAccountId()));
+        if (authService.getApiUser().getDomain().getDomainType() == DomainType.b2b && tokenMetaData.getBusinessAccountId() == null) {
+            //looks like we need to switch active BA
+
+            DomainUserEntity domainUserEntity = domainUserService.findByUserId(tokenMetaData.getUserId());
+            if (domainUserEntity.getLastActiveBusinessAccountId() != null) {
+                switchActiveBusinessAccount(clientSideAuthData.getAuthToken(), tokenMetaData.getUserId(), domainUserEntity.getLastActiveBusinessAccountId());
+            }
+        }
+        return clientSideAuthData;
     }
 
-    public M2MAuthData login(AuthM2MLogin m2mLogin) throws ServiceException {
+    public M2MAuthData m2mAuth(AuthM2MGetToken m2mLogin) throws ServiceException {
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
         if (m2mLogin.getPublicKeyId() != null) {
             m2mLogin.setClientSecret(decryptPassword(m2mLogin.getClientSecret(), m2mLogin.getPublicKeyId()));
         }
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
         Trustor trustor = featurerService.getFeaturer(identityProvider.getTrustorFeaturerId(), Trustor.class);
-        //perhaps we need separate method
-        ClientSideAuthData clientSideAuthData = identityProviderConnector.login(identityProvider.getIdentityProviderConnectorParams(), m2mLogin.getClientId(), m2mLogin.getClientSecret(), null);
+        ClientSideAuthData clientSideAuthData = identityProviderConnector.m2mAuth(identityProvider.getIdentityProviderConnectorParams(), m2mLogin.getClientId(), m2mLogin.getClientSecret());
         M2MAuthData m2MAuthData = new M2MAuthData()
                 .setClientSideAuthData(clientSideAuthData)
                 .setActAsUserKey(trustor.getActAsUserPublicKey(identityProvider.getTrustorParams()));
@@ -243,9 +259,14 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         return trustor.resolveActAsUser(identityProvider.getTrustorParams(), actAsUserHeader);
     }
 
-    public void switchActiveBusinessAccount(UUID newBusinessAccountId) throws ServiceException {
+    public void switchActiveBusinessAccount(String authToken, UUID newBusinessAccountId) throws ServiceException {
+        switchActiveBusinessAccount(authToken, newBusinessAccountId, authService.getApiUser().getUserId());
+    }
+
+    public void switchActiveBusinessAccount(String authToken, UUID userId, UUID newBusinessAccountId) throws ServiceException {
+        apiUserResolverService.checkDBU(authService.getApiUser().getDomainId(), newBusinessAccountId, userId);
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
-        identityProviderConnector.switchActiveBusinessAccount(identityProvider.getIdentityProviderConnectorParams(), newBusinessAccountId);
+        identityProviderConnector.switchActiveBusinessAccount(identityProvider.getIdentityProviderConnectorParams(), authToken, authService.getApiUser().getDomainId(), newBusinessAccountId);
     }
 }

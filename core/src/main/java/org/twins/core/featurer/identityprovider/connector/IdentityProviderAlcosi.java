@@ -83,6 +83,11 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
     }
 
     @Override
+    protected ClientSideAuthData m2mAuth(Properties properties, String clientId, String clientSecret) throws ServiceException {
+        return login(properties, clientId, clientSecret, null);
+    }
+
+    @Override
     protected ClientSideAuthData refresh(Properties properties, String refreshToken, String fingerprint) throws ServiceException {
 
         String requestBody = new StringJoiner("&")
@@ -241,7 +246,7 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
     }
 
     @Override
-    public void switchActiveBusinessAccount(Properties properties, UUID businessAccountId) throws ServiceException {
-        throw new ServiceException(IDP_SWITCH_ACTIVE_BUSINESS_ACCOUNT);
+    public void switchActiveBusinessAccount(Properties properties, String authToken, UUID domainId, UUID businessAccountId) throws ServiceException {
+        throw new ServiceException(IDP_SWITCH_ACTIVE_BUSINESS_ACCOUNT_NOT_SUPPORTED);
     }
 }

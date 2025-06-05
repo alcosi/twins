@@ -40,6 +40,7 @@ public abstract class DomainUserInitiator extends FeaturerTwins {
 
     protected abstract void init(Properties properties, DomainUserEntity domainUserEntity) throws ServiceException;
 
+
     protected void postInit(Properties properties, DomainUserEntity domainUserEntity) throws ServiceException {
         if (domainUserEntity.getDomain().getDomainUserTemplateTwinId() != null) {
             TwinDuplicate duplicateTwin = twinService.createDuplicateTwin(domainUserEntity.getDomain().getDomainUserTemplateTwinId(), domainUserEntity.getId());

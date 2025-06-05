@@ -18,7 +18,7 @@ import org.twins.core.dto.rest.auth.AuthSignupByEmailConfirmRsDTOv1;
 import org.twins.core.dto.rest.auth.AuthSignupByEmailRqDTOv1;
 import org.twins.core.dto.rest.auth.AuthSignupByEmailRsDTOv1;
 import org.twins.core.mappers.rest.auth.AuthSignupRestDTOReverseMapper;
-import org.twins.core.mappers.rest.auth.ClientSideAuthDateRestDTOMapper;
+import org.twins.core.mappers.rest.auth.ClientSideAuthDataRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.auth.IdentityProviderService;
 
@@ -29,7 +29,7 @@ import org.twins.core.service.auth.IdentityProviderService;
 public class AuthSignupByEmailController extends ApiController {
     private final AuthService authService;
     private final IdentityProviderService identityProviderService;
-    private final ClientSideAuthDateRestDTOMapper clientSideAuthDateRestDTOMapper;
+    private final ClientSideAuthDataRestDTOMapper clientSideAuthDataRestDTOMapper;
     private final AuthSignupRestDTOReverseMapper authSignUpRestDTOReverseMapper;
 
 
