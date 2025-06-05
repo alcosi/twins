@@ -49,10 +49,10 @@ public class TransitionTriggerRabbitMqSendTwinForOperation extends TransitionTri
                 TransitionTriggerRabbitMqConnection.url.extract(properties));
 
         Map<String, String> eventMap = Map.of(
-                "twinId", twinEntity.getId().toString() + "\n",
-                "userId", apiUser.getUserId().toString() + "\n",
-                "domainId", apiUser.getDomainId().toString() + "\n",
-                "businessAccountId", apiUser.getBusinessAccountId().toString() + "\n",
+                "twinId", twinEntity.getId().toString(),
+                "userId", apiUser.getUserId().toString(),
+                "domainId", apiUser.getDomainId().toString(),
+                "businessAccountId", apiUser.getBusinessAccountId().toString(),
                 "operation", operation.extract(properties)
         );
         ampqManager.sendMessage(factory, exchange.extract(properties), queue.extract(properties), eventMap);
