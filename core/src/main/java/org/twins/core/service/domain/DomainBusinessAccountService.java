@@ -98,6 +98,7 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
         return true;
     }
 
+    @Transactional(rollbackFor = Throwable.class)
     public void addBusinessAccount(UUID businessAccountId, UUID tierId, boolean ignoreAlreadyExists) throws ServiceException {
         DomainEntity domain = authService.getApiUser().getDomain();
         if (domain.getDomainType() != DomainType.b2b)

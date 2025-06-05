@@ -63,11 +63,15 @@ public class ApiUser {
 
     public ApiUser setBusinessAccountResolver(BusinessAccountResolver businessAccountResolver) {
         this.businessAccountResolver = businessAccountResolver;
+        if (NOT_SPECIFIED.equals(this.businessAccountId))
+            this.businessAccountId = null;
         return this;
     }
 
     public ApiUser setUserResolver(UserResolver userResolver) {
         this.userResolver = userResolver;
+        if (NOT_SPECIFIED.equals(this.userId))
+            this.userId = null;
         return this;
     }
 

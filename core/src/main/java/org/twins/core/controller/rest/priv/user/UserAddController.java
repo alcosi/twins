@@ -90,7 +90,7 @@ public class UserAddController extends ApiController {
                 businessAccountUserService.addUserSmart(businessAccountId, request.user.id, EntitySmartService.SaveMode.ifNotPresentCreate, EntitySmartService.SaveMode.none, true);
             }
             if (domainId != null) {
-                domainUserService.addUser(request.getUser().getId(), true);
+                domainUserService.addUser(userEntity, true);
             }
             if (domainId != null && businessAccountId != null && apiUser.getDomain().getDomainType() == DomainType.b2b) {
                 domainBusinessAccountService.addBusinessAccountSmart(businessAccountId, null, null, EntitySmartService.SaveMode.none, true);

@@ -14,10 +14,12 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.domain.DomainUserNoRelationProjection;
 import org.twins.core.dao.domain.DomainUserRepository;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.domain.user.DomainUserInitiator;
@@ -77,21 +79,23 @@ public class DomainUserService extends EntitySecureFindServiceImpl<DomainUserEnt
         return entity;
     }
 
-    public void addUser(UUID userId, boolean ignoreAlreadyExists) throws ServiceException {
+    @Transactional(rollbackFor = Throwable.class)
+    public void addUser(UserEntity userEntity, boolean ignoreAlreadyExists) throws ServiceException {
         DomainEntity domain = authService.getApiUser().getDomain();
-        DomainUserNoRelationProjection existed = getDomainUserNoRelationProjection(userId);
+        DomainUserNoRelationProjection existed = getDomainUserNoRelationProjection(userEntity.getId());
         if (existed != null) {
             if (ignoreAlreadyExists)
                 return;
             else
-                throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_ALREADY_EXISTS, "user[" + userId + " is already registered in " + domain.logShort());
+                throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_ALREADY_EXISTS, "user[" + userEntity.getId() + " is already registered in " + domain.logShort());
         }
         Locale locale = authService.getApiUser().getLocale();
         domainService.checkLocaleActiveInDomain(locale);
         DomainUserEntity domainUserEntity = new DomainUserEntity()
                 .setDomainId(domain.getId())
                 .setDomain(domain)
-                .setUserId(userId)
+                .setUserId(userEntity.getId())
+                .setUser(userEntity)
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setI18nLocaleId(locale);
         DomainUserInitiator domainUserInitiator = featurerService.getFeaturer(domain.getDomainUserInitiatorFeaturerId(), DomainUserInitiator.class);
@@ -99,8 +103,8 @@ public class DomainUserService extends EntitySecureFindServiceImpl<DomainUserEnt
     }
 
     public void addUserSmart(UUID userId, boolean ignoreAlreadyExists) throws ServiceException {
-        userService.addUser(userId, EntitySmartService.SaveMode.ifNotPresentCreate);
-        addUser(userId, ignoreAlreadyExists);
+        UserEntity user = userService.addUser(userId, EntitySmartService.SaveMode.ifNotPresentCreate);
+        addUser(user, ignoreAlreadyExists);
     }
 
     public void deleteUser(UUID userId) throws ServiceException {

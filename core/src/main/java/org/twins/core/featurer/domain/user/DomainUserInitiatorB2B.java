@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsUserGroupId;
-import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.user.UserGroupService;
 
@@ -26,7 +25,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DomainUserInitiatorB2B extends DomainUserInitiator {
     private final UserGroupService userGroupService;
-    private final BusinessAccountService businessAccountService;
     private final DomainBusinessAccountService domainBusinessAccountService;
 
     @FeaturerParam(name = "Enter groups", description = "", order = 1, optional = true)
@@ -37,10 +35,16 @@ public class DomainUserInitiatorB2B extends DomainUserInitiator {
 
     @Override
     protected void init(Properties properties, DomainUserEntity domainUserEntity) throws ServiceException {
+    }
+
+    @Override
+    protected void postInit(Properties properties, DomainUserEntity domainUserEntity) throws ServiceException {
+        super.postInit(properties, domainUserEntity);
         if (autoCreateBusinessAccount.extract(properties)) {
             //perhaps we need to grant for current user some permissions (DOMAIN_BUSINESS_ACCOUNT_CREATE))
+            UUID newBusinessAccountId = UUID.randomUUID();
             domainBusinessAccountService.addBusinessAccountSmart(
-                    UUID.randomUUID(),
+                    newBusinessAccountId,
                     null,
                     "New company",
                     EntitySmartService.SaveMode.ifPresentThrowsElseCreate,
@@ -51,6 +55,5 @@ public class DomainUserInitiatorB2B extends DomainUserInitiator {
             return;
         }
         userGroupService.enterGroups(userGroupIds.extract(properties));
-
     }
 }
