@@ -29,6 +29,13 @@ public abstract class IdentityProviderConnector extends FeaturerTwins {
 
     protected abstract ClientSideAuthData login(Properties properties, String username, String password, String fingerprint) throws ServiceException;
 
+    public ClientSideAuthData m2mAuth(HashMap<String, String> identityProviderConnectorParams, String clientId, String clientSecret) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, identityProviderConnectorParams, new HashMap<>());
+        return m2mAuth(properties, clientId, clientSecret);
+    }
+
+    protected abstract ClientSideAuthData m2mAuth(Properties properties, String clientId, String clientSecret) throws ServiceException;
+
     public ClientSideAuthData refresh(HashMap<String, String> identityProviderConnectorParams, String refreshToken, String fingerprint) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, identityProviderConnectorParams, new HashMap<>());
         return refresh(properties, refreshToken, fingerprint);
@@ -70,4 +77,13 @@ public abstract class IdentityProviderConnector extends FeaturerTwins {
     }
 
     public abstract void signupByEmailActivate(Properties properties, UUID twinsUserId, String email, String idpUserActivateToken) throws ServiceException;
+
+
+    public void switchActiveBusinessAccount(HashMap<String, String> identityProviderConnectorParams, String authToken, UUID domainId, UUID businessAccountId) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, identityProviderConnectorParams, new HashMap<>());
+        switchActiveBusinessAccount(properties, authToken, domainId, businessAccountId);
+    }
+
+    public abstract void switchActiveBusinessAccount(Properties properties, String authToken, UUID domainId, UUID businessAccountId) throws ServiceException;
+
 }
