@@ -239,4 +239,9 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
     public void signupByEmailActivate(Properties properties, UUID twinsUserId, String email, String idpUserActivateToken) throws ServiceException {
         throw new ServiceException(IDP_SIGNUP_NOT_SUPPORTED);
     }
+
+    @Override
+    public void switchActiveBusinessAccount(Properties properties, UUID businessAccountId) throws ServiceException {
+        throw new ServiceException(IDP_SWITCH_ACTIVE_BUSINESS_ACCOUNT);
+    }
 }

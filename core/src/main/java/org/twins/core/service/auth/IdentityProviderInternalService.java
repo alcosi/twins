@@ -18,6 +18,7 @@ import org.twins.core.domain.auth.AuthSignup;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.identityprovider.ClientSideAuthData;
 import org.twins.core.featurer.identityprovider.TokenMetaData;
+import org.twins.core.service.HttpRequestService;
 import org.twins.core.service.user.UserService;
 
 import java.security.SecureRandom;
@@ -39,6 +40,7 @@ public class IdentityProviderInternalService {
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final AuthService authService;
     private final UserService userService;
+    private final HttpRequestService httpRequestService;
 
     public static String generateToken(int byteLength) {
         byte[] randomBytes = new byte[byteLength];
@@ -142,5 +144,22 @@ public class IdentityProviderInternalService {
         }
         internalUserEntity.setActive(true);
         identityProviderInternalUserRepository.save(internalUserEntity);
+    }
+
+    public void switchActiveBusinessAccount(UUID businessAccountId) throws ServiceException {
+        String authToken = httpRequestService.getAuthTokenFromRequest();
+        IdentityProviderInternalTokenEntity token = identityProviderInternalTokenRepository.findByAccessToken(getTokenHash(authToken));
+        if (token == null) {
+            throw new ServiceException(ErrorCodeTwins.IDP_INCORRECT_AUTH_TOKEN);
+        }
+        if (!businessAccountId.equals(token.getActiveBusinessAccountId())) {
+            token.setActiveBusinessAccountId(businessAccountId);
+            identityProviderInternalTokenRepository.save(token);
+        }
+        IdentityProviderInternalUserEntity internalUserEntity = identityProviderInternalUserRepository.findByUserId(token.getUserId());
+        if (!businessAccountId.equals(internalUserEntity.getLastActiveBusinessAccountId())) {
+            internalUserEntity.setLastActiveBusinessAccountId(businessAccountId);
+            identityProviderInternalUserRepository.save(internalUserEntity);
+        }
     }
 }

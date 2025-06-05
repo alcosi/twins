@@ -70,4 +70,13 @@ public abstract class IdentityProviderConnector extends FeaturerTwins {
     }
 
     public abstract void signupByEmailActivate(Properties properties, UUID twinsUserId, String email, String idpUserActivateToken) throws ServiceException;
+
+
+    public void switchActiveBusinessAccount(HashMap<String, String> identityProviderConnectorParams, UUID businessAccountId) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, identityProviderConnectorParams, new HashMap<>());
+        switchActiveBusinessAccount(properties, businessAccountId);
+    }
+
+    public abstract void switchActiveBusinessAccount(Properties properties, UUID businessAccountId) throws ServiceException;
+
 }

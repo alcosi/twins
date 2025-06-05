@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.idp.IdentityProviderEntity;
 import org.twins.core.dao.idp.IdentityProviderRepository;
 import org.twins.core.dao.user.UserEmailVerificationEntity;
@@ -50,6 +51,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
     private final IdentityProviderRepository identityProviderRepository;
     private final UserEmailVerificationRepository userEmailVerificationRepository;
     private final UserService userService;
+    @Lazy
     private final DomainUserService domainUserService;
 
     @Override
@@ -206,6 +208,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
 
     //todo create scheduler to delete old UserEmailVerificationEntity
 
+    @Transactional(rollbackFor = Throwable.class)
     public void signupByEmailConfirm(String verificationCode) throws ServiceException {
         if (StringUtils.isBlank(verificationCode) || !UuidUtils.isUUID(verificationCode)) {
             throw new ServiceException(ErrorCodeTwins.IDP_EMAIL_VERIFICATION_CODE_INCORRECT);
@@ -230,7 +233,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         }
         ApiUser apiUser = authService.getApiUser();
         apiUser.setUserResolver(new UserResolverGivenId(user.getId())); //welcome
-        domainUserService.addUser(user.getId(), true);
+        domainUserService.addUser(user, true);
         userEmailVerificationRepository.delete(userEmailVerificationEntity);
     }
 
@@ -238,5 +241,11 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
         Trustor trustor = featurerService.getFeaturer(identityProvider.getTrustorFeaturerId(), Trustor.class);
         return trustor.resolveActAsUser(identityProvider.getTrustorParams(), actAsUserHeader);
+    }
+
+    public void switchActiveBusinessAccount(UUID newBusinessAccountId) throws ServiceException {
+        IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
+        IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
+        identityProviderConnector.switchActiveBusinessAccount(identityProvider.getIdentityProviderConnectorParams(), newBusinessAccountId);
     }
 }

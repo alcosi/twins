@@ -76,5 +76,8 @@ public class IdentityProviderInternal extends IdentityProviderConnector {
         identityProviderInternalService.signupByEmailActivate(twinsUserId);
     }
 
-
+    @Override
+    public void switchActiveBusinessAccount(Properties properties, UUID businessAccountId) throws ServiceException {
+        identityProviderInternalService.switchActiveBusinessAccount(businessAccountId);
+    }
 }

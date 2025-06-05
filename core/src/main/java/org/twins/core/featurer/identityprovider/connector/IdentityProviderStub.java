@@ -67,6 +67,11 @@ public class IdentityProviderStub extends IdentityProviderConnector {
 
     @Override
     public void signupByEmailActivate(Properties properties, UUID twinsUserId, String email, String idpUserActivateToken) throws ServiceException {
+        throw new ServiceException(ErrorCodeTwins.IDP_SIGNUP_NOT_SUPPORTED);
+    }
+
+    @Override
+    public void switchActiveBusinessAccount(Properties properties, UUID businessAccountId) throws ServiceException {
 
     }
 }
