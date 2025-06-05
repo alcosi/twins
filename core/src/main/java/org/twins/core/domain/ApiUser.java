@@ -168,6 +168,7 @@ public class ApiUser {
         try {
             userId = userResolver.resolveCurrentUserId();
         } catch (ServiceException e) {
+            //todo delete me
             log.error("Resolve userId exception:", e);
         }
         if (userId == null)
