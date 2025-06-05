@@ -230,7 +230,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         }
         ApiUser apiUser = authService.getApiUser();
         apiUser.setUserResolver(new UserResolverGivenId(user.getId())); //welcome
-        domainUserService.addUser(user.getId(), true);
+        domainUserService.addUser(user, true);
         userEmailVerificationRepository.delete(userEmailVerificationEntity);
     }
 
