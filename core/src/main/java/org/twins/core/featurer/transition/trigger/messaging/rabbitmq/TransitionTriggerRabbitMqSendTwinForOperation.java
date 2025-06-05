@@ -48,7 +48,13 @@ public class TransitionTriggerRabbitMqSendTwinForOperation extends TransitionTri
         ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(
                 TransitionTriggerRabbitMqConnection.url.extract(properties));
 
-        Map<String, String> eventMap = Map.of( "twinId" ,twinEntity.getId().toString(), "userId", apiUser.getUserId().toString(), "businessAccountId", apiUser.getBusinessAccountId().toString(), "operation", operation.extract(properties));
+        Map<String, String> eventMap = Map.of(
+                "twinId", twinEntity.getId().toString() + "\n",
+                "userId", apiUser.getUserId().toString() + "\n",
+                "domainId", apiUser.getDomainId().toString() + "\n",
+                "businessAccountId", apiUser.getBusinessAccountId().toString() + "\n",
+                "operation", operation.extract(properties)
+        );
         ampqManager.sendMessage(factory, exchange.extract(properties), queue.extract(properties), eventMap);
         log.debug("Done sending to Rabbit");
     }
