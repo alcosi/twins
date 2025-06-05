@@ -103,6 +103,7 @@ public class IdentityProviderInternalService {
                 .setUserId(user.getUserId())
                 .setAccessToken(getTokenHash(clientSideAuthData.getAuthToken()))
                 .setAccessExpiresAt(Timestamp.from(authTokenExpiresAt))
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setRevoked(false);
         identityProviderInternalTokenRepository.save(token);
         user.setLastLoginAt(Timestamp.from(Instant.now()));
