@@ -14,7 +14,7 @@ import java.util.HashMap;
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = DomainMode.class)
-public class ClientSideAuthDateRestDTOMapper extends RestSimpleDTOMapper<ClientSideAuthData, HashMap<String, String>> {
+public class ClientSideAuthDataRestDTOMapper extends RestSimpleDTOMapper<ClientSideAuthData, HashMap<String, String>> {
     @Override
     public void map(ClientSideAuthData src, HashMap<String, String> dst, MapperContext mapperContext) throws Exception {
         dst
