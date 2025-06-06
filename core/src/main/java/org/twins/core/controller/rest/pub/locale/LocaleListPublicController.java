@@ -28,7 +28,6 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.DOMAIN_VIEW)
 public class LocaleListPublicController extends ApiController {
     private final AuthService authService;
     private final LocaleRestDTOMapper localeRestDTOMapper;

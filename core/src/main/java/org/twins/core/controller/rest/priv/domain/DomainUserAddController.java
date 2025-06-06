@@ -41,7 +41,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @ProtectedBy(Permissions.DOMAIN_USER_CREATE)
 public class DomainUserAddController extends ApiController {
-    private final DomainService domainService;
     private final AuthService authService;
     private final DomainUserService domainUserService;
 

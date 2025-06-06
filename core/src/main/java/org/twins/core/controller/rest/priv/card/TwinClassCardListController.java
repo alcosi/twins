@@ -35,7 +35,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TWIN_CLASS_VIEW)
+@ProtectedBy(Permissions.TWIN_CLASS_CARD_VIEW)
 public class TwinClassCardListController extends ApiController {
     private final AuthService authService;
     private final CardService cardService;

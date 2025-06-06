@@ -34,7 +34,6 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.DOMAIN_VIEW)
 public class DomainViewPublicController extends ApiController {
     private final AuthService authService;
     private final DomainService domainService;

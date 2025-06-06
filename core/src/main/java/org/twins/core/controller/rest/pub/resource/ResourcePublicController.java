@@ -37,7 +37,6 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 @Slf4j
-@ProtectedBy(Permissions.ATTACHMENT_VIEW)
 public class ResourcePublicController extends ApiController {
     private final AuthService authService;
     private final ResourceService resourceService;
