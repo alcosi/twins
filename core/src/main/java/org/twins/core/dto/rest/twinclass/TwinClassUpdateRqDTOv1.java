@@ -9,6 +9,7 @@ import org.twins.core.dto.rest.common.BasicUpdateOperationDTOv1;
 
 import java.util.UUID;
 
+@Deprecated
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)

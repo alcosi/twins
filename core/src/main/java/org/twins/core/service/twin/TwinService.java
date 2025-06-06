@@ -14,6 +14,7 @@ import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -70,6 +71,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     private final TwinRepository twinRepository;
     private final TwinFieldSimpleRepository twinFieldSimpleRepository;
+    private final TwinFieldSimpleNonIndexedRepository twinFieldSimpleNonIndexedRepository;
     private final TwinFieldUserRepository twinFieldUserRepository;
     private final TwinFieldDataListRepository twinFieldDataListRepository;
     private final TwinFieldI18nRepository twinFieldI18nRepository;
@@ -203,12 +205,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinEntity.getTwinFieldSimpleKit() != null && twinEntity.getTwinFieldUserKit() != null && twinEntity.getTwinFieldDatalistKit() != null && twinEntity.getTwinFieldI18nKit() != null)
             return;
         twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
-        boolean hasBasicFields = false, hasUserFields = false, hasDatalistFields = false, hasLinksFields = false,
-                hasI18nFields = false;
+        boolean hasBasicFields = false, hasBasicNonIndexedFields = false, hasUserFields = false,
+                hasDatalistFields = false, hasLinksFields = false, hasI18nFields = false;
         for (TwinClassFieldEntity twinClassField : twinEntity.getTwinClass().getTwinClassFieldKit().getCollection()) {
             FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturer(), FieldTyper.class);
+
             if (fieldTyper.getStorageType() == TwinFieldSimpleEntity.class) {
                 hasBasicFields = true;
+            } else if (fieldTyper.getStorageType() == TwinFieldSimpleNonIndexedEntity.class) {
+                hasBasicNonIndexedFields = true;
             } else if (fieldTyper.getStorageType() == TwinFieldUserEntity.class) {
                 hasUserFields = true;
             } else if (fieldTyper.getStorageType() == TwinFieldDataListEntity.class) {
@@ -220,6 +225,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinEntity.getTwinFieldSimpleKit() == null)
             twinEntity.setTwinFieldSimpleKit(
                     new Kit<>(hasBasicFields ? twinFieldSimpleRepository.findByTwinId(twinEntity.getId()) : null, TwinFieldSimpleEntity::getTwinClassFieldId));
+        if (twinEntity.getTwinFieldSimpleNonIndexedKit() == null)
+            twinEntity.setTwinFieldSimpleNonIndexedKit(
+                    new Kit<>(hasBasicNonIndexedFields ? twinFieldSimpleNonIndexedRepository.findByTwinId(twinEntity.getId()) : null, TwinFieldSimpleNonIndexedEntity::getTwinClassFieldId));
         if (twinEntity.getTwinFieldUserKit() == null)
             twinEntity.setTwinFieldUserKit(
                     new KitGrouped<>(hasUserFields ? twinFieldUserRepository.findByTwinId(twinEntity.getId()) : null, TwinFieldUserEntity::getId, TwinFieldUserEntity::getTwinClassFieldId));
@@ -412,6 +420,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
         if (twinEntity.getTwinClass() == null)
             twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
+        if (Boolean.TRUE.equals(twinEntity.getTwinClass().getAbstractt())) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_IS_ABSTRACT, "Cannot create twin of abstract twin class: " + twinEntity.getTwinClass().logShort());
+        }
         setHeadSafe(twinEntity);
         if (twinCreate.isCheckCreatePermission())
             checkCreatePermission(twinEntity, authService.getApiUser());
@@ -431,16 +442,21 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     private void setHeadSafe(TwinEntity twinEntity) throws ServiceException {
-        if (twinEntity.getHeadTwinId() == null)
+        if (twinEntity.getTwinClass().getHeadTwinClassId() != null && twinEntity.getHeadTwinId() == null) {
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, "head twin is required for " + twinEntity.getTwinClass().logShort());
+        } else if (twinEntity.getTwinClass().getHeadTwinClassId() == null) {
             return;
-        TwinEntity headTwin = twinHeadService.checkValidHeadForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass());
-        twinEntity
+        }
+        TwinEntity headTwin = twinHeadService.checkValidHeadForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass());    twinEntity
                 .setHeadTwinId(headTwin.getId())
                 .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin));
     }
 
+
+
     private static UUID getPermissionSchemaSpaceId(TwinEntity headTwin) {
-        return headTwin.getTwinClass().isPermissionSchemaSpace() ? headTwin.getId() : headTwin.getPermissionSchemaSpaceId();
+        return Boolean.TRUE.equals(headTwin.getTwinClass().getPermissionSchemaSpace()) ?
+                headTwin.getId() : headTwin.getPermissionSchemaSpaceId();
     }
 
     public void createTwinEntity(TwinEntity twinEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
@@ -866,6 +882,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 .setValue(value);
     }
 
+    public TwinFieldSimpleNonIndexedEntity createTwinFieldNonIndexedEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, String value) {
+        return new TwinFieldSimpleNonIndexedEntity()
+                .setTwinClassField(twinClassFieldEntity)
+                .setTwinClassFieldId(twinClassFieldEntity.getId())
+                .setTwin(twinEntity)
+                .setTwinId(twinEntity.getId())
+                .setValue(value);
+    }
+
     public TwinEntity duplicateTwin(UUID srcTwinId, UUID newTwinId) throws ServiceException {
         return duplicateTwin(
                 findEntity(srcTwinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.none),
@@ -873,11 +898,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public TwinEntity duplicateTwin(TwinEntity srcTwin, UUID newTwinId) throws ServiceException {
-        TwinEntity duplicateEntity = srcTwin.clone();
-        fillOwner(duplicateEntity);
-        duplicateEntity
-                .setId(newTwinId)
-                .setCreatedByUserId(authService.getApiUser().getUserId());
+        TwinEntity duplicateEntity = fillDuplicate(srcTwin, newTwinId);
         duplicateEntity = createTwin(duplicateEntity);
         cloneTwinFieldListAndSave(srcTwin, duplicateEntity);
         twinflowService.runTwinStatusTransitionTriggers(duplicateEntity, null, duplicateEntity.getTwinStatus());
@@ -893,11 +914,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public TwinDuplicate createDuplicateTwin(TwinEntity srcTwin, UUID newTwinId) throws ServiceException {
         TwinDuplicate twinDuplicate = new TwinDuplicate();
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-        TwinEntity duplicateEntity = srcTwin.clone();
-        fillOwner(duplicateEntity);
-        duplicateEntity
-                .setId(newTwinId)
-                .setCreatedByUserId(authService.getApiUser().getUserId());
+        TwinEntity duplicateEntity = fillDuplicate(srcTwin, newTwinId);
         createTwin(duplicateEntity, twinChangesCollector);
         cloneTwinFields(srcTwin, duplicateEntity, twinChangesCollector);
         twinDuplicate.setDuplicate(duplicateEntity);
@@ -905,6 +922,23 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twinDuplicate;
     }
 
+    @NotNull
+    private TwinEntity fillDuplicate(TwinEntity srcTwin, UUID newTwinId) throws ServiceException {
+        TwinEntity duplicateEntity = srcTwin.clone();
+        fillOwner(duplicateEntity);
+        duplicateEntity
+                .setId(newTwinId)
+                .setCreatedByUserId(authService.getApiUser().getUserId())
+                .setCreatedAt(null); // no sense to use created at from original twin
+        if (duplicateEntity.getAssignerUserId() == null && Boolean.TRUE.equals(duplicateEntity.getTwinClass().getAssigneeRequired())) {
+            duplicateEntity
+                    .setAssignerUserId(authService.getApiUser().getUserId())
+                    .setAssignerUser(authService.getApiUser().getUser());
+        }
+        return duplicateEntity;
+    }
+
+    @Transactional
     public void saveDuplicateTwin(TwinDuplicate twinDuplicate) throws ServiceException {
         twinChangesService.applyChanges(twinDuplicate.getChangesCollector());
         twinflowService.runTwinStatusTransitionTriggers(twinDuplicate.getDuplicate(), null, twinDuplicate.getDuplicate().getTwinStatus());

@@ -410,8 +410,10 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     private Map<UUID, List<FactoryItem>> groupItemsByClass(FactoryContext factoryContext) {
         Map<UUID, List<FactoryItem>> factoryInputTwins = new HashMap<>();
         for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
-            List<FactoryItem> twinsGroupedByClass = factoryInputTwins.computeIfAbsent(factoryItem.getOutput().getTwinEntity().getTwinClassId(), k -> new ArrayList<>());
-            twinsGroupedByClass.add(factoryItem);
+            for (UUID twinClassId : factoryItem.getOutput().getTwinEntity().getTwinClass().getExtendedClassIdSet()) {
+                List<FactoryItem> twinsGroupedByClass = factoryInputTwins.computeIfAbsent(twinClassId, k -> new ArrayList<>());
+                twinsGroupedByClass.add(factoryItem);
+            }
         }
         return factoryInputTwins;
     }

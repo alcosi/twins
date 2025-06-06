@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -61,16 +62,16 @@ public class TwinClassEntity implements EasyLoggable {
     private String key;
 
     @Column(name = "permission_schema_space")
-    private boolean permissionSchemaSpace;
+    private Boolean permissionSchemaSpace;
 
     @Column(name = "twinflow_schema_space")
-    private boolean twinflowSchemaSpace;
+    private Boolean twinflowSchemaSpace;
 
     @Column(name = "twin_class_schema_space")
-    private boolean twinClassSchemaSpace;
+    private Boolean twinClassSchemaSpace;
 
     @Column(name = "alias_space")
-    private boolean aliasSpace;
+    private Boolean aliasSpace;
 
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
@@ -85,7 +86,7 @@ public class TwinClassEntity implements EasyLoggable {
     private UUID deletePermissionId;
 
     @Column(name = "abstract")
-    private boolean abstractt;
+    private Boolean abstractt;
 
     @Column(name = "name_i18n_id")
     private UUID nameI18NId;
@@ -164,17 +165,20 @@ public class TwinClassEntity implements EasyLoggable {
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
     @Deprecated //for specification only
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity nameI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     @Deprecated //for specification only
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity descriptionI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "page_face_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FaceEntity pageFace;
 
 //    @ManyToOne

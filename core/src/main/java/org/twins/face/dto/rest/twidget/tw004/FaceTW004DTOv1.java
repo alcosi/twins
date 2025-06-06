@@ -2,6 +2,7 @@ package org.twins.face.dto.rest.twidget.tw004;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.face.dto.rest.twidget.FaceTwidgetDTOv1;
 
@@ -9,6 +10,7 @@ import java.util.UUID;
 
 @Deprecated
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 @Schema(name = "FaceTW004v1", description = "Twin single field view/edit twidget")
 public class FaceTW004DTOv1 extends FaceTwidgetDTOv1 {
@@ -20,4 +22,7 @@ public class FaceTW004DTOv1 extends FaceTwidgetDTOv1 {
 
     @Schema(description = "twin field (also basic field constants supported)")
     public UUID twinClassFieldId;
+
+    @Schema(description = "is editable")
+    public Boolean editable;
 }

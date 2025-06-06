@@ -8,7 +8,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +26,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.domain.DomainBusinessAccountUpdateRqDTOv1;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
@@ -35,10 +37,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @ProtectedBy(Permissions.DOMAIN_BUSINESS_ACCOUNT_UPDATE)
 public class DomainBusinessAccountUpdateController extends ApiController {
-    private final DomainService domainService;
+    private final DomainBusinessAccountService domainBusinessAccountService;
     private final AuthService authService;
     private final UserResolverSystem userResolverSystem;
 
+    @Value("${api.unsecured.enable}")
+    private boolean apiUnsecuredEnabled;
+
+    @Deprecated
     @ParameterChannelHeader
     @Operation(operationId = "domainBusinessAccountUpdateV1", summary = "Update settings for businessAccount in domain")
     @ApiResponses(value = {
@@ -53,11 +59,13 @@ public class DomainBusinessAccountUpdateController extends ApiController {
             @RequestBody DomainBusinessAccountUpdateRqDTOv1 request) {
         Response rs = new Response();
         try {
+            if (!apiUnsecuredEnabled)
+                throw new ServiceException(ErrorCodeCommon.FORBIDDEN);
             authService.getApiUser()
                     .setDomainResolver(new DomainResolverGivenId(domainId))
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId))
                     .setUserResolver(userResolverSystem);
-            domainService.updateDomainBusinessAccount(new DomainBusinessAccountEntity()
+            domainBusinessAccountService.updateDomainBusinessAccount(new DomainBusinessAccountEntity()
                     .setDomainId(domainId)
                     .setBusinessAccountId(businessAccountId)
                     .setTierId(request.getTierId())

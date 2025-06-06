@@ -12,7 +12,10 @@ import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
+import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.domain.DomainBusinessAccountEntity;
+import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
@@ -190,6 +193,34 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinTouchEntity> touches;
 
+    //needed for specification (USER & BA twins)
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private Collection<DomainUserEntity> domainUsers;
+
+    //needed for specification (USER & BA twins)
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private Collection<BusinessAccountUserEntity> businessAccountUsersUserTwins;
+
+    //needed for specification (USER & BA twins)
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_account_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private Collection<BusinessAccountUserEntity> businessAccountUsersBusinessAccountTwins;
+
+    //needed for specification (USER & BA twins)
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_account_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private Collection<DomainBusinessAccountEntity> domainBusinessAccounts;
+
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -209,6 +240,10 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinFieldSimpleEntity, UUID> twinFieldSimpleKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinFieldSimpleNonIndexedEntity , UUID> twinFieldSimpleNonIndexedKit;
 
     @Transient
     @EqualsAndHashCode.Exclude

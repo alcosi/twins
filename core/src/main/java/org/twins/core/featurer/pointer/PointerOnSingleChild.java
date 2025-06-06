@@ -37,7 +37,7 @@ public class PointerOnSingleChild extends Pointer {
         BasicSearch basicSearch = new BasicSearch();
         basicSearch
                 .addHeadTwinId(srcTwinEntity.getId())
-                .addTwinClassId(twinClassId.extract(properties), false);
+                .addTwinClassExtendsHierarchyContainsId(twinClassId.extract(properties));
         List<TwinEntity> childTwins = twinSearchService.findTwins(basicSearch);
         if (CollectionUtils.isEmpty(childTwins))
             return null;

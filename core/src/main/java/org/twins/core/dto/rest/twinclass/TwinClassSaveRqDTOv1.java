@@ -12,6 +12,7 @@ import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 import java.util.HashMap;
 import java.util.UUID;
 
+@Deprecated
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)

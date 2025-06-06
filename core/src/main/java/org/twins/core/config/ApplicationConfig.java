@@ -13,7 +13,10 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.service.EntitySmartService;
+import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
+import org.jasypt.iv.RandomIvGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.CacheManager;
@@ -47,6 +50,7 @@ import java.util.concurrent.TimeUnit;
         @PropertySource(value = "classpath:/application.properties", ignoreResourceNotFound = true)})
 @EnableConfigurationProperties({I18nProperties.class})
 public class ApplicationConfig {
+
     @Bean
     public NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
         return new NamedParameterJdbcTemplate(dataSource);
@@ -162,7 +166,6 @@ public class ApplicationConfig {
         executor.initialize();
         return executor;
     }
-
 
 //    @Bean(name = "cacheManagerRequestScope")
 //    @RequestScope(proxyMode = ScopedProxyMode.TARGET_CLASS)

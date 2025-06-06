@@ -9,10 +9,13 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.face.dao.page.pg002.FacePG002Entity;
+import org.twins.face.dao.page.pg002.FacePG002TabEntity;
 import org.twins.face.dto.rest.page.pg002.FacePG002DTOv1;
 import org.twins.face.service.page.FacePG002Service;
 
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 
 
 @Component
@@ -36,7 +39,10 @@ public class FacePG002RestDTOMapper extends RestSimpleDTOMapper<FacePG002Entity,
         }
         if (mapperContext.hasModeButNot(FacePG002Modes.FacePG002TabCollectionMode.HIDE)) {
             facePG002Service.loadTabs(src);
-            dst.setTabs(facePG002TabRestDTOMapper.convertCollection(src.getTabs(), mapperContext));
+            List<FacePG002TabEntity> sortedList = src.getTabs().getCollection().stream()
+                    .sorted(Comparator.comparingInt(FacePG002TabEntity::getOrder))
+                    .toList();
+            dst.setTabs(facePG002TabRestDTOMapper.convertCollection(sortedList, mapperContext));
         }
     }
 

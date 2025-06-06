@@ -64,6 +64,28 @@ public class UserPermissionListController extends ApiController {
     }
 
     @ParametersApiUserHeaders
+    @Operation(operationId = "currentUserPermissionListV1", summary = "Returns permission list for current user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = PermissionListRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @GetMapping(value = "/private/user/permission/v1")
+    public ResponseEntity<?> currentUserPermissionListV1(
+            @MapperContextBinding(roots = PermissionRestDTOMapperV2.class, response = PermissionListRsDTOv1.class) MapperContext mapperContext) {
+        PermissionListRsDTOv1 rs = new PermissionListRsDTOv1();
+        try {
+            rs.setPermissions(permissionRestDTOMapperV2.convertCollection(
+                    permissionService.findPermissionsForCurrentUser().getList(), mapperContext));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
     @Operation(operationId = "userPermissionGroupedListV1", summary = "Returns grouped permission list for selected user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
@@ -78,6 +100,29 @@ public class UserPermissionListController extends ApiController {
         try {
             rs.permissionGroups = permissionGroupWithGroupRestDTOMapper.convertCollection(
                     permissionService.findPermissionsForUser(userId).getGroupedList(),
+                    mapperContext);
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "currentUserPermissionGroupedListV1", summary = "Returns grouped permission list for current user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = PermissionGroupedListRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @RequestMapping(value = "/private/user/permission_group/v1", method = RequestMethod.GET)
+    public ResponseEntity<?> currentUserPermissionGroupedListV1(
+            @MapperContextBinding(roots = PermissionGroupWithGroupRestDTOMapper.class, response = PermissionGroupedListRsDTOv1.class) MapperContext mapperContext) {
+        PermissionGroupedListRsDTOv1 rs = new PermissionGroupedListRsDTOv1();
+        try {
+            rs.permissionGroups = permissionGroupWithGroupRestDTOMapper.convertCollection(
+                    permissionService.findPermissionsForCurrentUser().getGroupedList(),
                     mapperContext);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

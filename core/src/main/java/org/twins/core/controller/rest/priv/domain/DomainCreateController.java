@@ -20,9 +20,9 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.ParametersApiUserNoDomainHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.apiuser.BusinessAccountResolverNotSpecified;
 import org.twins.core.domain.apiuser.DomainResolverNotSpecified;
 import org.twins.core.domain.apiuser.LocaleResolverGivenOrSystemDefault;
 import org.twins.core.domain.apiuser.UserResolverAuthToken;
@@ -53,7 +53,7 @@ public class DomainCreateController extends ApiController {
     private final UserResolverAuthToken userResolverAuthToken;
     private final ObjectMapper objectMapper;
 
-    @ParametersApiUserNoDomainHeaders
+    @ParametersApiUserHeaders
     @Operation(operationId = "domainCreateV1", summary = "Add new domain.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Domain was added", content = {
@@ -66,7 +66,7 @@ public class DomainCreateController extends ApiController {
         return processCreationRequest(request, null, null);
     }
 
-    @ParametersApiUserNoDomainHeaders
+    @ParametersApiUserHeaders
     @Operation(operationId = "domainCreateV2", summary = "Create new domain with icons")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Domain was created", content = {
@@ -93,8 +93,8 @@ public class DomainCreateController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
             apiUser
-                    .setUserResolver(userResolverAuthToken)
-                    .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified())
+//                    .setUserResolver(userResolverAuthToken)
+//                    .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified())
                     .setDomainResolver(new DomainResolverNotSpecified())
                     .setLocaleResolver(new LocaleResolverGivenOrSystemDefault(request.getDomain().getDefaultLocale()))
                     .setCheckMembershipMode(false);
