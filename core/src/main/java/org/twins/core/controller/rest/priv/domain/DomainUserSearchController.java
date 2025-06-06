@@ -98,4 +98,28 @@ public class DomainUserSearchController extends ApiController {
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "domainCurrentUserViewV1", summary = "Returns current user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = DomainUserViewRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @GetMapping(value = "/private/domain/user/v1")
+    public ResponseEntity<?> domainCurrentUserViewV1(
+            @MapperContextBinding(roots = DomainUserRestDTOMapperV2.class, response = DomainUserViewRsDTOv1.class) MapperContext mapperContext) {
+        DomainUserViewRsDTOv1 rs = new DomainUserViewRsDTOv1();
+        try {
+            DomainUserEntity domainUser = domainUserService.getCurrentUser();
+            rs
+                    .setUser(domainUserRestDTOMapperV2.convert(domainUser, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
 }

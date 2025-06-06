@@ -79,6 +79,15 @@ public class DomainUserService extends EntitySecureFindServiceImpl<DomainUserEnt
         return entity;
     }
 
+    public DomainUserEntity getCurrentUser() throws ServiceException {
+        var entity = domainUserRepository.findByDomainIdAndUserId(authService.getApiUser().getDomainId(), authService.getApiUser().getUserId());
+        if (entity == null)
+            return null;
+        if (isEntityReadDenied(entity))
+            return null;
+        return entity;
+    }
+
     @Transactional(rollbackFor = Throwable.class)
     public void addUser(UserEntity userEntity, boolean ignoreAlreadyExists) throws ServiceException {
         DomainEntity domain = authService.getApiUser().getDomain();
