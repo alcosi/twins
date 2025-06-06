@@ -119,6 +119,7 @@ dependencies {
     implementation 'io.github.breninsul:io-stream-commons:1.0.2'
     implementation 'io.minio:minio:8.5.12'
     implementation 'org.jasypt:jasypt:1.9.3'
+    implementation 'com.alcosi:alcosi-identity-server-communication:3.02-RELEASE'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

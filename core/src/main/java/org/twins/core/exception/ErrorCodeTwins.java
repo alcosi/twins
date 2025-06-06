@@ -148,12 +148,18 @@ public enum ErrorCodeTwins implements ErrorCode {
     IDP_EMAIL_VERIFICATION_CODE_INCORRECT(12714, "email verification code is incorrect"),
     IDP_EMAIL_VERIFICATION_CODE_EXPIRED(12715, "email verification code is expired"),
     IDP_PROVIDED_TOKEN_IS_NOT_ACTIVE(12716,"provided token is not active", HttpStatus.UNAUTHORIZED),
-    IDP_AUTHENTICATION_EXCEPTION(12717, "authentication error", HttpStatus.UNAUTHORIZED),
-    IDP_SWITCH_ACTIVE_BUSINESS_ACCOUNT_NOT_SUPPORTED(12718, "active account switch is not supported"),
-    IDP_EMPTY_CLIENT_ID_OR_SECRET(12719, "empty clientId or secret", HttpStatus.UNAUTHORIZED),
+    IDP_REGISTRATION_INCORRECT_PASSWORD_FORMAT(12717, "incorrect password format"),
+    IDP_INVALID_INPUT_DATA(12718, "invalid input data"),
+    IDP_ACCOUNT_ALREADY_ACTIVATED(12719, "account already activated"),
+    IDP_ACCOUNT_ACTIVATION_FAILED(12720, "account activation failed"),
+    IDP_BAD_REQUEST(12721, "bad request"),
+    IDP_USER_NOT_FOUND(12722, "user not found", HttpStatus.NOT_FOUND),
+    IDP_AUTHENTICATION_EXCEPTION(12723, "authentication error", HttpStatus.UNAUTHORIZED),
+    IDP_SWITCH_ACTIVE_BUSINESS_ACCOUNT_NOT_SUPPORTED(12724, "active account switch is not supported"),
+    IDP_INTERNAL_SERVER_ERROR(12725, "internal server error", HttpStatus.INTERNAL_SERVER_ERROR),
+    IDP_EMPTY_CLIENT_ID_OR_SECRET(12726, "empty clientId or secret", HttpStatus.UNAUTHORIZED),
     ACT_AS_USER_INCORRECT(12801, "act as user authentication error", HttpStatus.UNAUTHORIZED),
     ACT_AS_USER_NONCE_IS_NOT_UNIQ(12801, "act as user authentication error", HttpStatus.UNAUTHORIZED);
-
 
     private final int code;
     private final String message;
