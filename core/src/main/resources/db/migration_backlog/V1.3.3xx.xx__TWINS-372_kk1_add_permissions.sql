@@ -1,6 +1,3 @@
---Skipping DENY_ALL
---Skipping TWINFLOW_MANAGE
---Start TWINFLOW_CREATE
 insert into public.i18n (id, name, key, i18n_type_id) VALUES
                                                           ('a207a7b1-d16b-386a-83f5-cd0d9cffc444', 'Twinflow create name', null, 'permissionName'),
                                                           ('ef4d65eb-594d-3b17-b5d3-66ab79956725', 'Twinflow create description', null, 'permissionDescription')
@@ -67,6 +64,28 @@ INSERT INTO public.permission_grant_global
 
 
 --Skipping TWINFLOW_SCHEMA_MANAGE
+--Start TWINFLOW_SCHEMA_VIEW
+insert into public.i18n (id, name, key, i18n_type_id) VALUES
+                                                          ('34a913a8-b6ed-3d63-9f19-f2674e6e88c5', 'Twinflow schema view name', null, 'permissionName'),
+                                                          ('872f42ac-e9a8-35fc-bf78-6adefa5ac253', 'Twinflow schema view description', null, 'permissionDescription')
+    on conflict (id) do update set name = excluded.name, key = excluded.key, i18n_type_id = excluded.i18n_type_id;
+
+insert into public.i18n_translation (i18n_id, locale, translation, usage_counter) VALUES
+                                                                                      ('34a913a8-b6ed-3d63-9f19-f2674e6e88c5', 'en', 'Twinflow schema view', 0),
+                                                                                      ('872f42ac-e9a8-35fc-bf78-6adefa5ac253', 'en', 'Twinflow schema view', 0)
+    on conflict (i18n_id,locale) do update set translation = excluded.translation, usage_counter = excluded.usage_counter;;
+
+INSERT INTO public.permission (id, key, permission_group_id, name_i18n_id, description_i18n_id) VALUES
+    ('00000000-0000-0000-0004-000000000176', 'TWINFLOW_SCHEMA_VIEW', '00000000-0000-0000-0005-000000000001', '34a913a8-b6ed-3d63-9f19-f2674e6e88c5', '872f42ac-e9a8-35fc-bf78-6adefa5ac253')
+    on conflict (id) do update set key=excluded.key;
+
+INSERT INTO public.permission_grant_global
+(id, permission_id, user_group_id, granted_by_user_id, granted_at) VALUES
+    ('00000000-0000-0000-0007-000000000176', '00000000-0000-0000-0004-000000000176', '00000000-0000-0000-0006-000000000001', '00000000-0000-0000-0000-000000000000', default)
+    on conflict do nothing ;
+--End TWINFLOW_SCHEMA_VIEW
+
+
 --Skipping TWIN_CLASS_MANAGE
 --Start TWIN_CLASS_CREATE
 insert into public.i18n (id, name, key, i18n_type_id) VALUES
