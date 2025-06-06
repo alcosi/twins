@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public class GenerateMigrationForPermissions {
     static final String startId = "00000000-0000-0000-0004-000000000034";
-    static final String endId = "00000000-0000-0000-0004-000000000167";
+    static final String endId = "00000000-0000-0000-0004-000000000175";
     static final String userGroupId = "00000000-0000-0000-0006-000000000001";
     static final String grantedByUserIdId = "00000000-0000-0000-0000-000000000000";
 
