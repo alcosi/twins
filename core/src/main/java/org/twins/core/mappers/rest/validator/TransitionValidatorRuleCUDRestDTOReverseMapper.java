@@ -12,7 +12,7 @@ import org.twins.core.service.twinflow.TwinflowTransitionValidatorService;
 
 @Component
 @RequiredArgsConstructor
-public class TransitionValidatorRuleCUDRestDTOReverseMapperV1 extends RestSimpleDTOMapper<TransitionValidatorRuleCudDTOv1, EntityCUD<TwinflowTransitionValidatorRuleEntity>> {
+public class TransitionValidatorRuleCUDRestDTOReverseMapper extends RestSimpleDTOMapper<TransitionValidatorRuleCudDTOv1, EntityCUD<TwinflowTransitionValidatorRuleEntity>> {
 
     //todo think about cud logic
 
