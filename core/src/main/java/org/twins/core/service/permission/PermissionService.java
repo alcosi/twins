@@ -408,6 +408,10 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
 
     }
 
+    public KitGroupedObj<PermissionEntity, UUID, UUID, PermissionGroupEntity> findPermissionsForCurrentUser() throws ServiceException {
+        return findPermissionsForUser(apiUser.getUser());
+    }
+
     public KitGroupedObj<PermissionEntity, UUID, UUID, PermissionGroupEntity> findPermissionsForUser(UUID userId) throws ServiceException {
         return findPermissionsForUser(userService.findEntitySafe(userId));
     }
