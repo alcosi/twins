@@ -36,7 +36,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.FEATURER_VIEW)
+@ProtectedBy({Permissions.FEATURER_MANAGE, Permissions.FEATURER_VIEW})
 public class FeaturerSearchController extends ApiController {
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
     private final FeaturerDTOReversMapper featurerDTOReversMapper;

@@ -40,7 +40,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.PERMISSION_GRANT_SPACE_ROLE_VIEW)
+@ProtectedBy({Permissions.PERMISSION_GRANT_SPACE_ROLE_MANAGE, Permissions.PERMISSION_GRANT_SPACE_ROLE_VIEW})
 public class PermissionGrantSpaceRoleSearchController extends ApiController {
 
     private final PaginationMapper paginationMapper;

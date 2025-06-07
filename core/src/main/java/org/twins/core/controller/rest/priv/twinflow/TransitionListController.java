@@ -34,7 +34,7 @@ import org.twins.core.service.twinflow.TwinflowTransitionService;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TRANSITION_VIEW)
+@ProtectedBy({Permissions.TRANSITION_MANAGE, Permissions.TRANSITION_VIEW})
 public class TransitionListController extends ApiController {
     private final TransitionSearchRestDTOReverseMapper transitionSearchRestDTOReverseMapper;
     private final TransitionBaseV2RestDTOMapper transitionBaseV2RestDTOMapper;

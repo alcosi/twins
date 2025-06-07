@@ -34,7 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.COMMENT_VIEW)
+@ProtectedBy({Permissions.COMMENT_MANAGE, Permissions.COMMENT_VIEW})
 public class CommentViewController extends ApiController {
     private final CommentService commentService;
     private final CommentRestDTOMapper commentRestDTOMapper;

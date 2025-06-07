@@ -33,7 +33,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.USER_GROUP_UPDATE)
+@ProtectedBy({Permissions.USER_GROUP_MANAGE, Permissions.USER_GROUP_UPDATE})
 public class UserGroupMemberManageController extends ApiController {
     private final UserGroupRestDTOMapper userGroupDTOMapper;
     private final UserGroupService userGroupService;

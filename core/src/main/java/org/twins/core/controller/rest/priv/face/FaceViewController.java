@@ -35,7 +35,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.FACE_VIEW)
+@ProtectedBy({Permissions.FACE_MANAGE, Permissions.FACE_VIEW})
 public class FaceViewController extends ApiController {
     private final FaceService faceService;
     private final FaceRestDTOMapper faceRestDTOMapper;

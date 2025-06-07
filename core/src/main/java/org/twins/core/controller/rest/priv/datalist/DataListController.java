@@ -35,7 +35,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.DATA_LIST_VIEW)
+@ProtectedBy({Permissions.DATA_LIST_MANAGE, Permissions.DATA_LIST_VIEW})
 public class DataListController extends ApiController {
     private final AuthService authService;
     private final DataListService dataListService;

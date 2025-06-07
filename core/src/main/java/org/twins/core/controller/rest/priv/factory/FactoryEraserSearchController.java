@@ -41,7 +41,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.ERASER_VIEW)
+@ProtectedBy({Permissions.ERASER_MANAGE, Permissions.ERASER_VIEW})
 public class FactoryEraserSearchController extends ApiController {
 
     private final PaginationMapper paginationMapper;

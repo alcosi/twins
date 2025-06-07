@@ -39,7 +39,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.DOMAIN_VIEW)
+@ProtectedBy({Permissions.DOMAIN_MANAGE, Permissions.DOMAIN_VIEW})
 public class DomainViewController extends ApiController {
     private final DomainService domainService;
     private final DomainViewRestDTOMapper domainViewRestDTOMapper;

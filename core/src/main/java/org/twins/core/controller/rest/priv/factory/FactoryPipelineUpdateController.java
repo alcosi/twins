@@ -34,7 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.PIPELINE_UPDATE)
+@ProtectedBy({Permissions.PIPELINE_MANAGE, Permissions.PIPELINE_UPDATE})
 public class FactoryPipelineUpdateController extends ApiController {
     private final FactoryPipelineRestDTOMapperV2 factoryPipelineRestDTOMapperV2;
     private final FactoryPipelineUpdateDTOReverseMapper factoryPipelineUpdateDTOReverseMapper;

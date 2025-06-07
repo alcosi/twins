@@ -40,7 +40,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.FACTORY_VIEW)
+@ProtectedBy({Permissions.FACTORY_MANAGE, Permissions.FACTORY_VIEW})
 public class FactorySearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;

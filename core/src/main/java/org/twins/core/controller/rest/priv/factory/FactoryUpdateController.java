@@ -36,7 +36,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.FACTORY_UPDATE)
+@ProtectedBy({Permissions.FACTORY_MANAGE, Permissions.FACTORY_UPDATE})
 public class FactoryUpdateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final FactoryUpdateDTOReverseMapper factoryUpdateDTOReverseMapper;

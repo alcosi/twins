@@ -34,7 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.PERMISSION_UPDATE)
+@ProtectedBy({Permissions.PERMISSION_MANAGE, Permissions.PERMISSION_UPDATE})
 public class PermissionUpdateController extends ApiController {
 
     private final PermissionRestDTOMapper permissionRestDTOMapper;

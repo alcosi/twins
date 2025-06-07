@@ -35,7 +35,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TWIN_STATUS_UPDATE)
+@ProtectedBy({Permissions.TWIN_STATUS_MANAGE, Permissions.TWIN_STATUS_UPDATE})
 public class TwinStatusUpdateController extends ApiController {
     private final TwinStatusService twinStatusService;
     private final TwinStatusRestDTOReverseMapper twinStatusRestDTOReverseMapper;

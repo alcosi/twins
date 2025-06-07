@@ -38,7 +38,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TIER_VIEW)
+@ProtectedBy({Permissions.TIER_MANAGE, Permissions.TIER_VIEW})
 public class TierSearchController extends ApiController {
 
     private final TierSearchService tierSearchService;

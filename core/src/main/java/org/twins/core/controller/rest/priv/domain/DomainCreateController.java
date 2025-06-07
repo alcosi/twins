@@ -43,7 +43,7 @@ import static org.cambium.common.util.MultipartFileUtils.convert;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.DOMAIN_CREATE)
+@ProtectedBy({Permissions.DOMAIN_MANAGE, Permissions.DOMAIN_CREATE})
 @Slf4j
 public class DomainCreateController extends ApiController {
     private final DomainService domainService;

@@ -41,7 +41,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.PERMISSION_GROUP_VIEW)
+@ProtectedBy({Permissions.PERMISSION_GROUP_MANAGE, Permissions.PERMISSION_GROUP_VIEW})
 public class PermissionGroupSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;

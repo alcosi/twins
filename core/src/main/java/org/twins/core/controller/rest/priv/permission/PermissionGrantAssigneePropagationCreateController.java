@@ -33,7 +33,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_CREATE)
+@ProtectedBy({Permissions.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_MANAGE, Permissions.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_CREATE})
 public class PermissionGrantAssigneePropagationCreateController extends ApiController {
     private final PermissionGrantAssigneePropagationService permissionGrantAssigneePropagationService;
     private final PermissionGrantAssigneePropagationRestDTOMapperV2 permissionGrantAssigneePropagationRestDTOMapperV2;

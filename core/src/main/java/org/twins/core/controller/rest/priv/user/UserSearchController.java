@@ -37,7 +37,7 @@ import org.twins.core.service.user.UserSearchService;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.USER_VIEW)
+@ProtectedBy({Permissions.USER_MANAGE, Permissions.USER_VIEW})
 public class UserSearchController extends ApiController {
     private final UserSearchService userSearchService;
     private final UserRestDTOMapper userRestDTOMapper;

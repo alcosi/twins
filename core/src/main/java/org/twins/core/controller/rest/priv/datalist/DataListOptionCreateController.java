@@ -40,7 +40,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.DATA_LIST_OPTION_CREATE)
+@ProtectedBy({Permissions.DATA_LIST_OPTION_MANAGE, Permissions.DATA_LIST_OPTION_CREATE})
 public class DataListOptionCreateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final DataListOptionCreateDTOReverseMapper dataListOptionCreateDTOReverseMapper;

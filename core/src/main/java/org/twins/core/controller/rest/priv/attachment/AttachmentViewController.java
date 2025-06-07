@@ -34,7 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.ATTACHMENT_VIEW)
+@ProtectedBy({Permissions.ATTACHMENT_MANAGE, Permissions.ATTACHMENT_VIEW})
 public class AttachmentViewController extends ApiController {
 
     private final AttachmentService attachmentService;

@@ -35,7 +35,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TIER_UPDATE)
+@ProtectedBy({Permissions.TIER_MANAGE, Permissions.TIER_UPDATE})
 public class TierUpdateController extends ApiController {
     private final TierUpdateDTOReverseMapper tierUpdateDTOReverseMapper;
     private final TierService tierService;

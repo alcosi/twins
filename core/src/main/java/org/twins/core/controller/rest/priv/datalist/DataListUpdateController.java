@@ -36,7 +36,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.DATA_LIST_UPDATE)
+@ProtectedBy({Permissions.DATA_LIST_MANAGE, Permissions.DATA_LIST_UPDATE})
 public class DataListUpdateController extends ApiController {
     private final DataListUpdateDTOReverseMapper dataListUpdateDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;

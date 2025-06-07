@@ -36,7 +36,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TWINFLOW_CREATE)
+@ProtectedBy({Permissions.TWINFLOW_MANAGE, Permissions.TWINFLOW_CREATE})
 public class TwinflowCreateController extends ApiController {
 
     private final TwinflowBaseV2RestDTOMapper twinflowBaseV2RestDTOMapper;

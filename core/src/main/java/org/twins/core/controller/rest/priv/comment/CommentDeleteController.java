@@ -30,7 +30,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.COMMENT_DELETE)
+@ProtectedBy({Permissions.COMMENT_MANAGE, Permissions.COMMENT_DELETE})
 public class CommentDeleteController extends ApiController {
     private final CommentService commentService;
 
@@ -39,7 +39,7 @@ public class CommentDeleteController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = Response.class)) }),
+                    @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @DeleteMapping(value = "/private/comment/{commentId}/v1")
     public ResponseEntity<?> twinCommentDeleteV1(

@@ -34,7 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.PERMISSION_GRANT_SPACE_ROLE_UPDATE)
+@ProtectedBy({Permissions.PERMISSION_GRANT_SPACE_ROLE_MANAGE, Permissions.PERMISSION_GRANT_SPACE_ROLE_UPDATE})
 public class PermissionGrantSpaceRoleUpdateController extends ApiController {
     private final PermissionGrantSpaceRoleService permissionGrantSpaceRoleService;
     private final PermissionGrantSpaceRoleRestDTOMapperV2 permissionGrantSpaceRoleRestDTOMapper;

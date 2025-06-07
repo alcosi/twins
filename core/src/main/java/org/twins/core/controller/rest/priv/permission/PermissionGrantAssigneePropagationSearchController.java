@@ -40,7 +40,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_VIEW)
+@ProtectedBy({Permissions.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_MANAGE, Permissions.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_VIEW})
 public class PermissionGrantAssigneePropagationSearchController extends ApiController {
 
     private final PaginationMapper paginationMapper;

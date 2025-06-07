@@ -37,7 +37,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.ATTACHMENT_VIEW)
+@ProtectedBy({Permissions.ATTACHMENT_MANAGE, Permissions.ATTACHMENT_VIEW})
 public class AttachmentSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;

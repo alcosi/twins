@@ -36,7 +36,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.LINK_VIEW)
+@ProtectedBy({Permissions.LINK_MANAGE, Permissions.LINK_VIEW})
 public class TwinClassLinkListController extends ApiController {
     private final LinkService linkService;
     private final LinkForwardRestDTOMapper linkForwardRestDTOMapper;

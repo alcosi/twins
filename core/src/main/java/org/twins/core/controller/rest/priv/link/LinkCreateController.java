@@ -36,7 +36,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.LINK_CREATE)
+@ProtectedBy({Permissions.LINK_MANAGE, Permissions.LINK_CREATE})
 public class LinkCreateController extends ApiController {
     private final LinkService linkService;
     private final LinkCreateRestDTOReverseMapper linkCreateRestDTOReverseMapper;

@@ -30,7 +30,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TIER_DELETE)
+@ProtectedBy({Permissions.TIER_MANAGE, Permissions.TIER_DELETE})
 public class TierDeleteController extends ApiController {
     private final TierService tierService;
 

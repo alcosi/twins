@@ -38,7 +38,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.LINK_UPDATE)
+@ProtectedBy({Permissions.LINK_MANAGE, Permissions.LINK_UPDATE})
 public class LinkUpdateController extends ApiController {
     private final LinkService linkService;
     private final LinkUpdateRestDTOReverseMapper linkUpdateRestDTOReverseMapper;

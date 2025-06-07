@@ -34,7 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TWIN_VIEW)
+@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_VIEW})
 public class TwinFieldViewController extends ApiController {
     private final TwinService twinService;
     private final TwinFieldRestDTOMapper twinFieldRestDTOMapper;

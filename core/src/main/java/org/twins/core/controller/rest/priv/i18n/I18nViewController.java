@@ -34,7 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.I18N_VIEW)
+@ProtectedBy({Permissions.I18N_MANAGE, Permissions.I18N_VIEW})
 public class I18nViewController extends ApiController {
     private final I18nService i18nService;
     private final I18nRestDTOMapper i18nRestDTOMapper;

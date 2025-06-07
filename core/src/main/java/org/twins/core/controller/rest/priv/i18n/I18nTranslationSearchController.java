@@ -38,7 +38,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.I18N_VIEW)
+@ProtectedBy({Permissions.I18N_MANAGE, Permissions.I18N_VIEW})
 public class I18nTranslationSearchController extends ApiController {
     private final I18nTranslationSearchService i18nTranslationSearchService;
     private final I18nTranslationRestDTOMapper i18nTranslationRestDTOMapper;

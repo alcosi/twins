@@ -34,7 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.PERMISSION_GRANT_USER_GROUP_UPDATE)
+@ProtectedBy({Permissions.PERMISSION_GRANT_USER_GROUP_MANAGE, Permissions.PERMISSION_GRANT_USER_GROUP_UPDATE})
 public class PermissionGrantUserGroupUpdateController extends ApiController {
     private final PermissionGrantUserGroupService permissionGrantUserGroupService;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;

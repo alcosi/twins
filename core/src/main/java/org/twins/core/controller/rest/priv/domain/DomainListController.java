@@ -38,7 +38,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.DOMAIN_VIEW)
+@ProtectedBy({Permissions.DOMAIN_MANAGE, Permissions.DOMAIN_VIEW})
 public class DomainListController extends ApiController {
     private final AuthService authService;
     private final UserResolverAuthToken userResolverAuthToken;

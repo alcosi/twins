@@ -40,7 +40,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.MULTIPLIER_VIEW)
+@ProtectedBy({Permissions.MULTIPLIER_MANAGE, Permissions.MULTIPLIER_VIEW})
 public class FactoryMultiplierSearchController extends ApiController {
 
     private final PaginationMapper paginationMapper;

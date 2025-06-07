@@ -34,7 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.BRANCH_CREATE)
+@ProtectedBy({Permissions.BRANCH_MANAGE, Permissions.BRANCH_CREATE})
 public class FactoryBranchCreateController extends ApiController {
     private final FactoryBranchRestDTOMapperV2 factoryBranchRestDTOMapperV2;
     private final FactoryBranchCreateDTOReverseMapper factoryBranchCreateDTOReverseMapper;

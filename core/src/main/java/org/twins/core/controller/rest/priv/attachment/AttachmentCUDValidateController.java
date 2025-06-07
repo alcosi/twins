@@ -34,7 +34,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.ATTACHMENT_VALIDATE)
+@ProtectedBy({Permissions.ATTACHMENT_MANAGE, Permissions.ATTACHMENT_VALIDATE})
 public class AttachmentCUDValidateController extends ApiController {
 
     private final AttachmentCUDValidateRestDTOReverseMapper attachmentCUDValidateRestDTOReverseMapper;

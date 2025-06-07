@@ -34,7 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TRANSITION_VIEW)
+@ProtectedBy({Permissions.TRANSITION_MANAGE, Permissions.TRANSITION_VIEW})
 public class TransitionViewController extends ApiController {
     private final TwinflowTransitionService twinflowTransitionService;
     private final TransitionBaseV3RestDTOMapper transitionBaseV3RestDTOMapper;

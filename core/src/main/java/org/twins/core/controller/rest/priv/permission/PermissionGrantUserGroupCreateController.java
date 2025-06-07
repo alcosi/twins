@@ -33,7 +33,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.PERMISSION_GRANT_USER_GROUP_CREATE)
+@ProtectedBy({Permissions.PERMISSION_GRANT_USER_GROUP_MANAGE, Permissions.PERMISSION_GRANT_USER_GROUP_CREATE})
 public class PermissionGrantUserGroupCreateController extends ApiController {
 
     private final PermissionGrantUserGroupCreateRestReverseDTOMapper permissionGrantUserGroupCreateRestReverseDTOMapper;

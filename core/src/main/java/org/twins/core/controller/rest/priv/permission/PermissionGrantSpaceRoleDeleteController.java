@@ -30,7 +30,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.PERMISSION_GRANT_SPACE_ROLE_DELETE)
+@ProtectedBy({Permissions.PERMISSION_GRANT_SPACE_ROLE_MANAGE, Permissions.PERMISSION_GRANT_SPACE_ROLE_DELETE})
 public class PermissionGrantSpaceRoleDeleteController extends ApiController {
     private final PermissionGrantSpaceRoleService permissionGrantSpaceRoleService;
 

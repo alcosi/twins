@@ -35,7 +35,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.I18N_UPDATE)
+@ProtectedBy({Permissions.I18N_MANAGE, Permissions.I18N_UPDATE})
 public class I18nTranslationUpdateController extends ApiController {
     private final I18nTranslationUpdateDTOReverseMapper i18nTranslationUpdateDTOReverseMapper;
     private final I18nTranslationRestDTOMapper i18nTranslationRestDTOMapper;

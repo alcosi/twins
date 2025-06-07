@@ -34,7 +34,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.PERMISSION_GRANT_SPACE_ROLE_CREATE)
+@ProtectedBy({Permissions.PERMISSION_GRANT_SPACE_ROLE_MANAGE, Permissions.PERMISSION_GRANT_SPACE_ROLE_CREATE})
 public class PermissionGrantSpaceRoleCreateController extends ApiController {
     private final PermissionGrantSpaceRoleService permissionGrantSpaceRoleService;
     private final PermissionGrantSpaceRoleRestDTOMapperV2 permissionGrantSpaceRoleRestDTOMapper;

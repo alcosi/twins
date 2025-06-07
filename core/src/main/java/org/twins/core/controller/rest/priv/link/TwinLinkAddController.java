@@ -31,7 +31,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.LINK_CREATE)
+@ProtectedBy({Permissions.LINK_MANAGE, Permissions.LINK_CREATE})
 public class TwinLinkAddController extends ApiController {
     private final TwinLinkService twinLinkService;
     private final TwinService twinService;

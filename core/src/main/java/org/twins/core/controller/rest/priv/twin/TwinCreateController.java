@@ -42,7 +42,7 @@ import java.util.Map;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TWIN_CREATE)
+@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_CREATE})
 public class TwinCreateController extends ApiController {
     private final AuthService authService;
     private final TwinService twinService;

@@ -30,7 +30,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.PIPELINE_STEP_DELETE)
+@ProtectedBy({Permissions.PIPELINE_STEP_MANAGE, Permissions.PIPELINE_STEP_DELETE})
 public class FactoryPipelineStepDeleteController extends ApiController {
     private final FactoryPipelineStepService factoryPipelineStepService;
 

@@ -32,7 +32,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.COMMENT_CREATE)
+@ProtectedBy({Permissions.COMMENT_MANAGE, Permissions.COMMENT_CREATE})
 public class CommentCreateController extends ApiController {
     private final CommentService commentService;
     private final CommentCreateRsRestDTOMapper commentCreateRsRestDTOMapper;

@@ -33,7 +33,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.DATA_LIST_VIEW)
+@ProtectedBy({Permissions.DATA_LIST_MANAGE, Permissions.DATA_LIST_VIEW})
 public class DataListSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final DataListSearchService dataListSearchService;

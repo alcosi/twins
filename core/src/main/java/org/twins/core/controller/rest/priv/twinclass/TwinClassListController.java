@@ -35,7 +35,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TWIN_CLASS_VIEW)
+@ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_VIEW})
 public class TwinClassListController extends ApiController {
     private final TwinClassService twinClassService;
     private final TwinClassSearchService twinClassSearchService;

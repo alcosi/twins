@@ -34,7 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.ERASER_UPDATE)
+@ProtectedBy({Permissions.ERASER_MANAGE, Permissions.ERASER_UPDATE})
 public class FactoryEraserUpdateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final FactoryEraserUpdateDTOReverseMapper factoryEraserUpdateDTOReverseMapper;

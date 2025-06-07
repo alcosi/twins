@@ -36,7 +36,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.COMMENT_VIEW)
+@ProtectedBy({Permissions.COMMENT_MANAGE, Permissions.COMMENT_VIEW})
 public class CommentSearchController extends ApiController {
     private final CommentService commentService;
     private final CommentSearchRestDTOMapper searchRestDTOMapper;

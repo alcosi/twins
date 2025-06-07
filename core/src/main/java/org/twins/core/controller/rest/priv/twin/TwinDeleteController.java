@@ -33,7 +33,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TWIN_DELETE)
+@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_DELETE})
 public class TwinDeleteController extends ApiController {
     private final TwinEraserService twinEraserService;
     private final DraftRestDTOMapper draftRestDTOMapper;

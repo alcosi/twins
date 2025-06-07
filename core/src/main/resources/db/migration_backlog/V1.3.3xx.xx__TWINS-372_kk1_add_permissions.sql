@@ -1,3 +1,6 @@
+--Skipping DENY_ALL
+--Skipping TWINFLOW_MANAGE
+--Start TWINFLOW_CREATE
 insert into public.i18n (id, name, key, i18n_type_id) VALUES
                                                           ('a207a7b1-d16b-386a-83f5-cd0d9cffc444', 'Twinflow create name', null, 'permissionName'),
                                                           ('ef4d65eb-594d-3b17-b5d3-66ab79956725', 'Twinflow create description', null, 'permissionDescription')
@@ -176,6 +179,28 @@ INSERT INTO public.permission_grant_global
 
 
 --Skipping TWIN_CLASS_FIELD_MANAGE
+--Start TWIN_CLASS_CARD_MANAGE
+insert into public.i18n (id, name, key, i18n_type_id) VALUES
+                                                          ('276ca997-23ba-33a1-a110-ca30801d90c8', 'Twin class card manage name', null, 'permissionName'),
+                                                          ('9f3ee6cd-e997-3b3c-83b6-4fd54d9f9429', 'Twin class card manage description', null, 'permissionDescription')
+    on conflict (id) do update set name = excluded.name, key = excluded.key, i18n_type_id = excluded.i18n_type_id;
+
+insert into public.i18n_translation (i18n_id, locale, translation, usage_counter) VALUES
+                                                                                      ('276ca997-23ba-33a1-a110-ca30801d90c8', 'en', 'Twin class card manage', 0),
+                                                                                      ('9f3ee6cd-e997-3b3c-83b6-4fd54d9f9429', 'en', 'Twin class card manage', 0)
+    on conflict (i18n_id,locale) do update set translation = excluded.translation, usage_counter = excluded.usage_counter;;
+
+INSERT INTO public.permission (id, key, permission_group_id, name_i18n_id, description_i18n_id) VALUES
+    ('00000000-0000-0000-0004-000000000178', 'TWIN_CLASS_CARD_MANAGE', '00000000-0000-0000-0005-000000000001', '276ca997-23ba-33a1-a110-ca30801d90c8', '9f3ee6cd-e997-3b3c-83b6-4fd54d9f9429')
+    on conflict (id) do update set key=excluded.key;
+
+INSERT INTO public.permission_grant_global
+(id, permission_id, user_group_id, granted_by_user_id, granted_at) VALUES
+    ('00000000-0000-0000-0007-000000000178', '00000000-0000-0000-0004-000000000178', '00000000-0000-0000-0006-000000000001', '00000000-0000-0000-0000-000000000000', default)
+    on conflict do nothing ;
+--End TWIN_CLASS_CARD_MANAGE
+
+
 --Start TWIN_CLASS_CARD_VIEW
 insert into public.i18n (id, name, key, i18n_type_id) VALUES
                                                           ('463026bd-2f3f-3868-9de1-fba6081c4645', 'Twin class card view name', null, 'permissionName'),
@@ -1401,6 +1426,28 @@ INSERT INTO public.permission_grant_global
 --End PERMISSION_VIEW
 
 
+--Start PERMISSION_GRANT_ASSIGNEE_PROPAGATION_MANAGE
+insert into public.i18n (id, name, key, i18n_type_id) VALUES
+                                                          ('edbdc582-8867-3069-ad75-99dbb1d8e50c', 'Permission grant assignee propagation manage name', null, 'permissionName'),
+                                                          ('60545717-c3c7-30f8-a256-8e993eb77fba', 'Permission grant assignee propagation manage description', null, 'permissionDescription')
+    on conflict (id) do update set name = excluded.name, key = excluded.key, i18n_type_id = excluded.i18n_type_id;
+
+insert into public.i18n_translation (i18n_id, locale, translation, usage_counter) VALUES
+                                                                                      ('edbdc582-8867-3069-ad75-99dbb1d8e50c', 'en', 'Permission grant assignee propagation manage', 0),
+                                                                                      ('60545717-c3c7-30f8-a256-8e993eb77fba', 'en', 'Permission grant assignee propagation manage', 0)
+    on conflict (i18n_id,locale) do update set translation = excluded.translation, usage_counter = excluded.usage_counter;;
+
+INSERT INTO public.permission (id, key, permission_group_id, name_i18n_id, description_i18n_id) VALUES
+    ('00000000-0000-0000-0004-000000000181', 'PERMISSION_GRANT_ASSIGNEE_PROPAGATION_MANAGE', '00000000-0000-0000-0005-000000000001', 'edbdc582-8867-3069-ad75-99dbb1d8e50c', '60545717-c3c7-30f8-a256-8e993eb77fba')
+    on conflict (id) do update set key=excluded.key;
+
+INSERT INTO public.permission_grant_global
+(id, permission_id, user_group_id, granted_by_user_id, granted_at) VALUES
+    ('00000000-0000-0000-0007-000000000181', '00000000-0000-0000-0004-000000000181', '00000000-0000-0000-0006-000000000001', '00000000-0000-0000-0000-000000000000', default)
+    on conflict do nothing ;
+--End PERMISSION_GRANT_ASSIGNEE_PROPAGATION_MANAGE
+
+
 --Start PERMISSION_GRANT_ASSIGNEE_PROPAGATION_CREATE
 insert into public.i18n (id, name, key, i18n_type_id) VALUES
                                                           ('18e4d0aa-4e35-3172-8a1e-af0647401116', 'Permission grant assignee propagation create name', null, 'permissionName'),
@@ -1487,6 +1534,28 @@ INSERT INTO public.permission_grant_global
     ('00000000-0000-0000-0007-000000000091', '00000000-0000-0000-0004-000000000091', '00000000-0000-0000-0006-000000000001', '00000000-0000-0000-0000-000000000000', default)
     on conflict do nothing ;
 --End PERMISSION_GRANT_ASSIGNEE_PROPAGATION_VIEW
+
+
+--Start PERMISSION_GRANT_SPACE_ROLE_MANAGE
+insert into public.i18n (id, name, key, i18n_type_id) VALUES
+                                                          ('6f8b4c31-69e7-3e77-a14e-977767034099', 'Permission grant space role manage name', null, 'permissionName'),
+                                                          ('4f3c6d21-1be2-3e56-ab2e-9205220604ea', 'Permission grant space role manage description', null, 'permissionDescription')
+    on conflict (id) do update set name = excluded.name, key = excluded.key, i18n_type_id = excluded.i18n_type_id;
+
+insert into public.i18n_translation (i18n_id, locale, translation, usage_counter) VALUES
+                                                                                      ('6f8b4c31-69e7-3e77-a14e-977767034099', 'en', 'Permission grant space role manage', 0),
+                                                                                      ('4f3c6d21-1be2-3e56-ab2e-9205220604ea', 'en', 'Permission grant space role manage', 0)
+    on conflict (i18n_id,locale) do update set translation = excluded.translation, usage_counter = excluded.usage_counter;;
+
+INSERT INTO public.permission (id, key, permission_group_id, name_i18n_id, description_i18n_id) VALUES
+    ('00000000-0000-0000-0004-000000000182', 'PERMISSION_GRANT_SPACE_ROLE_MANAGE', '00000000-0000-0000-0005-000000000001', '6f8b4c31-69e7-3e77-a14e-977767034099', '4f3c6d21-1be2-3e56-ab2e-9205220604ea')
+    on conflict (id) do update set key=excluded.key;
+
+INSERT INTO public.permission_grant_global
+(id, permission_id, user_group_id, granted_by_user_id, granted_at) VALUES
+    ('00000000-0000-0000-0007-000000000182', '00000000-0000-0000-0004-000000000182', '00000000-0000-0000-0006-000000000001', '00000000-0000-0000-0000-000000000000', default)
+    on conflict do nothing ;
+--End PERMISSION_GRANT_SPACE_ROLE_MANAGE
 
 
 --Start PERMISSION_GRANT_SPACE_ROLE_CREATE
@@ -1577,6 +1646,28 @@ INSERT INTO public.permission_grant_global
 --End PERMISSION_GRANT_SPACE_ROLE_VIEW
 
 
+--Start PERMISSION_GRANT_TWIN_ROLE_MANAGE
+insert into public.i18n (id, name, key, i18n_type_id) VALUES
+                                                          ('8a1e2207-77cc-3136-921e-1572c1643ac8', 'Permission grant twin role manage name', null, 'permissionName'),
+                                                          ('5ee1e90c-d344-35e3-9e57-9cf2516940b8', 'Permission grant twin role manage description', null, 'permissionDescription')
+    on conflict (id) do update set name = excluded.name, key = excluded.key, i18n_type_id = excluded.i18n_type_id;
+
+insert into public.i18n_translation (i18n_id, locale, translation, usage_counter) VALUES
+                                                                                      ('8a1e2207-77cc-3136-921e-1572c1643ac8', 'en', 'Permission grant twin role manage', 0),
+                                                                                      ('5ee1e90c-d344-35e3-9e57-9cf2516940b8', 'en', 'Permission grant twin role manage', 0)
+    on conflict (i18n_id,locale) do update set translation = excluded.translation, usage_counter = excluded.usage_counter;;
+
+INSERT INTO public.permission (id, key, permission_group_id, name_i18n_id, description_i18n_id) VALUES
+    ('00000000-0000-0000-0004-000000000183', 'PERMISSION_GRANT_TWIN_ROLE_MANAGE', '00000000-0000-0000-0005-000000000001', '8a1e2207-77cc-3136-921e-1572c1643ac8', '5ee1e90c-d344-35e3-9e57-9cf2516940b8')
+    on conflict (id) do update set key=excluded.key;
+
+INSERT INTO public.permission_grant_global
+(id, permission_id, user_group_id, granted_by_user_id, granted_at) VALUES
+    ('00000000-0000-0000-0007-000000000183', '00000000-0000-0000-0004-000000000183', '00000000-0000-0000-0006-000000000001', '00000000-0000-0000-0000-000000000000', default)
+    on conflict do nothing ;
+--End PERMISSION_GRANT_TWIN_ROLE_MANAGE
+
+
 --Start PERMISSION_GRANT_TWIN_ROLE_CREATE
 insert into public.i18n (id, name, key, i18n_type_id) VALUES
                                                           ('3c5d9196-6a02-3b0a-8106-b4ca9b8787f8', 'Permission grant twin role create name', null, 'permissionName'),
@@ -1665,6 +1756,28 @@ INSERT INTO public.permission_grant_global
 --End PERMISSION_GRANT_TWIN_ROLE_VIEW
 
 
+--Start PERMISSION_GRANT_USER_MANAGE
+insert into public.i18n (id, name, key, i18n_type_id) VALUES
+                                                          ('8155d240-3778-330b-93b5-2007435f3849', 'Permission grant user manage name', null, 'permissionName'),
+                                                          ('5e3c7e12-989d-3b82-be25-f2ff6118e0b7', 'Permission grant user manage description', null, 'permissionDescription')
+    on conflict (id) do update set name = excluded.name, key = excluded.key, i18n_type_id = excluded.i18n_type_id;
+
+insert into public.i18n_translation (i18n_id, locale, translation, usage_counter) VALUES
+                                                                                      ('8155d240-3778-330b-93b5-2007435f3849', 'en', 'Permission grant user manage', 0),
+                                                                                      ('5e3c7e12-989d-3b82-be25-f2ff6118e0b7', 'en', 'Permission grant user manage', 0)
+    on conflict (i18n_id,locale) do update set translation = excluded.translation, usage_counter = excluded.usage_counter;;
+
+INSERT INTO public.permission (id, key, permission_group_id, name_i18n_id, description_i18n_id) VALUES
+    ('00000000-0000-0000-0004-000000000184', 'PERMISSION_GRANT_USER_MANAGE', '00000000-0000-0000-0005-000000000001', '8155d240-3778-330b-93b5-2007435f3849', '5e3c7e12-989d-3b82-be25-f2ff6118e0b7')
+    on conflict (id) do update set key=excluded.key;
+
+INSERT INTO public.permission_grant_global
+(id, permission_id, user_group_id, granted_by_user_id, granted_at) VALUES
+    ('00000000-0000-0000-0007-000000000184', '00000000-0000-0000-0004-000000000184', '00000000-0000-0000-0006-000000000001', '00000000-0000-0000-0000-000000000000', default)
+    on conflict do nothing ;
+--End PERMISSION_GRANT_USER_MANAGE
+
+
 --Start PERMISSION_GRANT_USER_CREATE
 insert into public.i18n (id, name, key, i18n_type_id) VALUES
                                                           ('3352a544-fadc-3d7b-835e-0ba726d85ec1', 'Permission grant user create name', null, 'permissionName'),
@@ -1751,6 +1864,28 @@ INSERT INTO public.permission_grant_global
     ('00000000-0000-0000-0007-000000000103', '00000000-0000-0000-0004-000000000103', '00000000-0000-0000-0006-000000000001', '00000000-0000-0000-0000-000000000000', default)
     on conflict do nothing ;
 --End PERMISSION_GRANT_USER_VIEW
+
+
+--Start PERMISSION_GRANT_USER_GROUP_MANAGE
+insert into public.i18n (id, name, key, i18n_type_id) VALUES
+                                                          ('7ff4438f-90ce-3294-a024-81a0f18a525f', 'Permission grant user group manage name', null, 'permissionName'),
+                                                          ('0802ac45-76fd-371f-baec-1467b8b8c974', 'Permission grant user group manage description', null, 'permissionDescription')
+    on conflict (id) do update set name = excluded.name, key = excluded.key, i18n_type_id = excluded.i18n_type_id;
+
+insert into public.i18n_translation (i18n_id, locale, translation, usage_counter) VALUES
+                                                                                      ('7ff4438f-90ce-3294-a024-81a0f18a525f', 'en', 'Permission grant user group manage', 0),
+                                                                                      ('0802ac45-76fd-371f-baec-1467b8b8c974', 'en', 'Permission grant user group manage', 0)
+    on conflict (i18n_id,locale) do update set translation = excluded.translation, usage_counter = excluded.usage_counter;;
+
+INSERT INTO public.permission (id, key, permission_group_id, name_i18n_id, description_i18n_id) VALUES
+    ('00000000-0000-0000-0004-000000000185', 'PERMISSION_GRANT_USER_GROUP_MANAGE', '00000000-0000-0000-0005-000000000001', '7ff4438f-90ce-3294-a024-81a0f18a525f', '0802ac45-76fd-371f-baec-1467b8b8c974')
+    on conflict (id) do update set key=excluded.key;
+
+INSERT INTO public.permission_grant_global
+(id, permission_id, user_group_id, granted_by_user_id, granted_at) VALUES
+    ('00000000-0000-0000-0007-000000000185', '00000000-0000-0000-0004-000000000185', '00000000-0000-0000-0006-000000000001', '00000000-0000-0000-0000-000000000000', default)
+    on conflict do nothing ;
+--End PERMISSION_GRANT_USER_GROUP_MANAGE
 
 
 --Start PERMISSION_GRANT_USER_GROUP_CREATE
@@ -2597,6 +2732,28 @@ INSERT INTO public.permission_grant_global
 --End DRAFT_COMMIT
 
 
+--Start DOMAIN_BUSINESS_ACCOUNT_MANAGE
+insert into public.i18n (id, name, key, i18n_type_id) VALUES
+                                                          ('b9c3832f-e6c0-3e62-82df-05245eb5ca18', 'Domain business account manage name', null, 'permissionName'),
+                                                          ('5755c669-82e0-3600-80bf-c3435552fcdb', 'Domain business account manage description', null, 'permissionDescription')
+    on conflict (id) do update set name = excluded.name, key = excluded.key, i18n_type_id = excluded.i18n_type_id;
+
+insert into public.i18n_translation (i18n_id, locale, translation, usage_counter) VALUES
+                                                                                      ('b9c3832f-e6c0-3e62-82df-05245eb5ca18', 'en', 'Domain business account manage', 0),
+                                                                                      ('5755c669-82e0-3600-80bf-c3435552fcdb', 'en', 'Domain business account manage', 0)
+    on conflict (i18n_id,locale) do update set translation = excluded.translation, usage_counter = excluded.usage_counter;;
+
+INSERT INTO public.permission (id, key, permission_group_id, name_i18n_id, description_i18n_id) VALUES
+    ('00000000-0000-0000-0004-000000000177', 'DOMAIN_BUSINESS_ACCOUNT_MANAGE', '00000000-0000-0000-0005-000000000001', 'b9c3832f-e6c0-3e62-82df-05245eb5ca18', '5755c669-82e0-3600-80bf-c3435552fcdb')
+    on conflict (id) do update set key=excluded.key;
+
+INSERT INTO public.permission_grant_global
+(id, permission_id, user_group_id, granted_by_user_id, granted_at) VALUES
+    ('00000000-0000-0000-0007-000000000177', '00000000-0000-0000-0004-000000000177', '00000000-0000-0000-0006-000000000001', '00000000-0000-0000-0000-000000000000', default)
+    on conflict do nothing ;
+--End DOMAIN_BUSINESS_ACCOUNT_MANAGE
+
+
 --Start DOMAIN_BUSINESS_ACCOUNT_CREATE
 insert into public.i18n (id, name, key, i18n_type_id) VALUES
                                                           ('5411f20f-a73d-3f0a-8bde-719736f11215', 'Domain business account create name', null, 'permissionName'),
@@ -2683,6 +2840,28 @@ INSERT INTO public.permission_grant_global
     ('00000000-0000-0000-0007-000000000145', '00000000-0000-0000-0004-000000000145', '00000000-0000-0000-0006-000000000001', '00000000-0000-0000-0000-000000000000', default)
     on conflict do nothing ;
 --End DOMAIN_BUSINESS_ACCOUNT_VIEW
+
+
+--Start DOMAIN_USER_MANAGE
+insert into public.i18n (id, name, key, i18n_type_id) VALUES
+                                                          ('11d7f55b-5f26-3740-9ac2-24875cdbbe4f', 'Domain user manage name', null, 'permissionName'),
+                                                          ('37f8503c-a431-3b27-8c86-eb3e68bfddaa', 'Domain user manage description', null, 'permissionDescription')
+    on conflict (id) do update set name = excluded.name, key = excluded.key, i18n_type_id = excluded.i18n_type_id;
+
+insert into public.i18n_translation (i18n_id, locale, translation, usage_counter) VALUES
+                                                                                      ('11d7f55b-5f26-3740-9ac2-24875cdbbe4f', 'en', 'Domain user manage', 0),
+                                                                                      ('37f8503c-a431-3b27-8c86-eb3e68bfddaa', 'en', 'Domain user manage', 0)
+    on conflict (i18n_id,locale) do update set translation = excluded.translation, usage_counter = excluded.usage_counter;;
+
+INSERT INTO public.permission (id, key, permission_group_id, name_i18n_id, description_i18n_id) VALUES
+    ('00000000-0000-0000-0004-000000000179', 'DOMAIN_USER_MANAGE', '00000000-0000-0000-0005-000000000001', '11d7f55b-5f26-3740-9ac2-24875cdbbe4f', '37f8503c-a431-3b27-8c86-eb3e68bfddaa')
+    on conflict (id) do update set key=excluded.key;
+
+INSERT INTO public.permission_grant_global
+(id, permission_id, user_group_id, granted_by_user_id, granted_at) VALUES
+    ('00000000-0000-0000-0007-000000000179', '00000000-0000-0000-0004-000000000179', '00000000-0000-0000-0006-000000000001', '00000000-0000-0000-0000-000000000000', default)
+    on conflict do nothing ;
+--End DOMAIN_USER_MANAGE
 
 
 --Start DOMAIN_USER_CREATE
@@ -3060,6 +3239,28 @@ INSERT INTO public.permission_grant_global
     ('00000000-0000-0000-0007-000000000162', '00000000-0000-0000-0004-000000000162', '00000000-0000-0000-0006-000000000001', '00000000-0000-0000-0000-000000000000', default)
     on conflict do nothing ;
 --End TIER_VIEW
+
+
+--Start FACE_MANAGE
+insert into public.i18n (id, name, key, i18n_type_id) VALUES
+                                                          ('349caa55-3839-37dc-b744-79a96cde1180', 'Face manage name', null, 'permissionName'),
+                                                          ('85289341-0252-3a4b-b2bf-a59dcaef5b81', 'Face manage description', null, 'permissionDescription')
+    on conflict (id) do update set name = excluded.name, key = excluded.key, i18n_type_id = excluded.i18n_type_id;
+
+insert into public.i18n_translation (i18n_id, locale, translation, usage_counter) VALUES
+                                                                                      ('349caa55-3839-37dc-b744-79a96cde1180', 'en', 'Face manage', 0),
+                                                                                      ('85289341-0252-3a4b-b2bf-a59dcaef5b81', 'en', 'Face manage', 0)
+    on conflict (i18n_id,locale) do update set translation = excluded.translation, usage_counter = excluded.usage_counter;;
+
+INSERT INTO public.permission (id, key, permission_group_id, name_i18n_id, description_i18n_id) VALUES
+    ('00000000-0000-0000-0004-000000000180', 'FACE_MANAGE', '00000000-0000-0000-0005-000000000001', '349caa55-3839-37dc-b744-79a96cde1180', '85289341-0252-3a4b-b2bf-a59dcaef5b81')
+    on conflict (id) do update set key=excluded.key;
+
+INSERT INTO public.permission_grant_global
+(id, permission_id, user_group_id, granted_by_user_id, granted_at) VALUES
+    ('00000000-0000-0000-0007-000000000180', '00000000-0000-0000-0004-000000000180', '00000000-0000-0000-0006-000000000001', '00000000-0000-0000-0000-000000000000', default)
+    on conflict do nothing ;
+--End FACE_MANAGE
 
 
 --Start FACE_VIEW

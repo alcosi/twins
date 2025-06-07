@@ -34,7 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.PIPELINE_STEP_CREATE)
+@ProtectedBy({Permissions.PIPELINE_STEP_MANAGE, Permissions.PIPELINE_STEP_CREATE})
 public class FactoryPipelineStepCreateController extends ApiController {
     private final FactoryPipelineStepService factoryPipelineStepService;
     private final FactoryPipelineStepRestDTOMapperV2 factoryPipelineStepRestDTOMapper;

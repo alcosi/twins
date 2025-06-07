@@ -34,7 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.DATA_LIST_OPTION_VIEW)
+@ProtectedBy({Permissions.DATA_LIST_OPTION_MANAGE, Permissions.DATA_LIST_OPTION_VIEW})
 public class DataListOptionController extends ApiController {
     private final DataListOptionService dataListOptionService;
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;

@@ -45,7 +45,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TRANSITION_DRAFT)
+@ProtectedBy({Permissions.TRANSITION_MANAGE, Permissions.TRANSITION_DRAFT})
 public class TwinTransitionDraftController extends ApiController {
     private final TwinService twinService;
     private final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;

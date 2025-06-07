@@ -32,7 +32,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TIER_CREATE)
+@ProtectedBy({Permissions.TIER_MANAGE, Permissions.TIER_CREATE})
 public class TierCreateController extends ApiController {
     private final TierService tierService;
     private final TierCreateDTOReverseMapper tierCreateDTOReverseMapper;

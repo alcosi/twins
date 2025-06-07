@@ -29,7 +29,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.BUSINESS_ACCOUNT_DELETE)
+@ProtectedBy({Permissions.BUSINESS_ACCOUNT_MANAGE, Permissions.BUSINESS_ACCOUNT_DELETE})
 public class BusinessAccountDeleteController extends ApiController {
 
     @ParameterChannelHeader

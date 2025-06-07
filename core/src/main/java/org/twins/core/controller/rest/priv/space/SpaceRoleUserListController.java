@@ -43,7 +43,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.SPACE_ROLE_VIEW)
+@ProtectedBy({Permissions.SPACE_ROLE_MANAGE, Permissions.SPACE_ROLE_VIEW})
 public class SpaceRoleUserListController extends ApiController {
     private final UserRestDTOMapper userRestDTOMapper;
     private final UserRefSpaceRoleDTOMapper userRefSpaceRoleDTOMapper;

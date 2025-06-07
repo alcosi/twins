@@ -30,7 +30,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.PERMISSION_GRANT_USER_GROUP_DELETE)
+@ProtectedBy({Permissions.PERMISSION_GRANT_USER_GROUP_MANAGE, Permissions.PERMISSION_GRANT_USER_GROUP_DELETE})
 public class PermissionGrantUserGroupDeleteController extends ApiController {
     private final PermissionGrantUserGroupService permissionGrantUserGroupService;
 

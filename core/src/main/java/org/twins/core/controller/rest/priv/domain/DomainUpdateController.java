@@ -34,7 +34,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.DOMAIN_UPDATE)
+@ProtectedBy({Permissions.DOMAIN_MANAGE, Permissions.DOMAIN_UPDATE})
 public class DomainUpdateController extends ApiController {
     private final DomainUpdateRestDTOReverseMapper domainUpdateRestDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;

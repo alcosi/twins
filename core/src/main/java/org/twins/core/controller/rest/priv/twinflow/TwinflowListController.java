@@ -37,7 +37,7 @@ import org.twins.core.service.twinflow.TwinflowSearchService;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TWINFLOW_VIEW)
+@ProtectedBy({Permissions.TWINFLOW_MANAGE, Permissions.TWINFLOW_VIEW})
 public class TwinflowListController extends ApiController {
     private final TwinflowSearchService twinflowSearchService;
     private final TwinflowBaseV3RestDTOMapper twinflowBaseV3RestDTOMapper;

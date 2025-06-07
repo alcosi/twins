@@ -32,7 +32,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TWIN_CLASS_VIEW)
+@ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_VIEW})
 public class TwinClassWidgetListController extends ApiController {
     private final AuthService authService;
     private final WidgetService widgetService;
@@ -43,7 +43,7 @@ public class TwinClassWidgetListController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Widget list prepared", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = WidgetListRsDTOv1.class)) }),
+                    @Schema(implementation = WidgetListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class/{twinClassId}/widget/list/v1")
     public ResponseEntity<?> twinClassWidgetListV1(

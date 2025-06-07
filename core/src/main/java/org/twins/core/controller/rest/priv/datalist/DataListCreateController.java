@@ -34,7 +34,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.DATA_LIST_CREATE)
+@ProtectedBy({Permissions.DATA_LIST_MANAGE, Permissions.DATA_LIST_CREATE})
 public class DataListCreateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final DataListCreateDTOReverseMapper dataListCreateDTOReverseMapper;

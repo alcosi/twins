@@ -35,7 +35,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.FACTORY_CREATE)
+@ProtectedBy({Permissions.FACTORY_MANAGE, Permissions.FACTORY_CREATE})
 public class FactoryCreateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final FactoryCreateDTOReverseMapper factoryCreateDTOReverseMapper;

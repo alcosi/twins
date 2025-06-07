@@ -29,7 +29,7 @@ import java.util.Set;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.DOMAIN_VIEW)
+@ProtectedBy({Permissions.DOMAIN_MANAGE, Permissions.DOMAIN_VIEW})
 public class DomainClassOwnerTypeListController extends ApiController {
 
     private final TwinClassService twinClassService;

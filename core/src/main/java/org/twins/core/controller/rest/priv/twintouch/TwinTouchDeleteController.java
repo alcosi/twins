@@ -31,7 +31,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TWIN_UPDATE)
+@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_UPDATE})
 public class TwinTouchDeleteController extends ApiController {
     private final TwinTouchService twinTouchService;
 
