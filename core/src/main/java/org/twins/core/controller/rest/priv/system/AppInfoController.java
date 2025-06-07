@@ -16,13 +16,16 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.system.AppInfoRsDTOv1;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.system.system.AppInfoService;
 
 @Tag(description = "Application info form MANIFEST.MF", name = ApiTag.SYSTEM)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy(Permissions.SYSTEM_APP_INFO_VIEW)
 public class AppInfoController extends ApiController {
     private final AppInfoService appInfoService;
 

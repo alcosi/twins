@@ -18,12 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.apiuser.UserResolverGivenId;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainUserService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -31,6 +33,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.DOMAIN_USER_MANAGE, Permissions.DOMAIN_USER_DELETE})
 public class DomainUserDeleteController extends ApiController {
     private final DomainUserService domainUserService;
     private final AuthService authService;

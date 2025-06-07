@@ -16,9 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twinclass.TwinClassOwnerTypeEntity;
 import org.twins.core.dto.rest.twinclass.DomainClassOwnerTypeListRsDTOv1;
 import org.twins.core.mappers.rest.twinclass.TwinClassOwnerTypeRestDTOMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Set;
@@ -27,6 +29,7 @@ import java.util.Set;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.DOMAIN_MANAGE, Permissions.DOMAIN_VIEW})
 public class DomainClassOwnerTypeListController extends ApiController {
 
     private final TwinClassService twinClassService;

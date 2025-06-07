@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.permission.PermissionGrantUserGroupEntity;
 import org.twins.core.dto.rest.permission.PermissionGrantUserGroupCreateRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGrantUserGroupSaveRsDTOv1;
@@ -26,11 +27,13 @@ import org.twins.core.mappers.rest.permission.PermissionGrantUserGroupCreateRest
 import org.twins.core.mappers.rest.permission.PermissionGrantUserGroupRestDTOMapperV2;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantUserGroupService;
+import org.twins.core.service.permission.Permissions;
 
 @Tag(description = "", name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.PERMISSION_GRANT_USER_GROUP_MANAGE, Permissions.PERMISSION_GRANT_USER_GROUP_CREATE})
 public class PermissionGrantUserGroupCreateController extends ApiController {
 
     private final PermissionGrantUserGroupCreateRestReverseDTOMapper permissionGrantUserGroupCreateRestReverseDTOMapper;

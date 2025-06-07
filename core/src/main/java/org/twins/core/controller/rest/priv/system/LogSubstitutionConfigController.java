@@ -8,9 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.pagination.SimplePagination;
-import org.cambium.common.util.PaginationUtils;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -22,15 +19,18 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.system.CommandRsDTOv1;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.system.LogSupportService;
 
 @Tag(description = "Config substitution for log file", name = ApiTag.SYSTEM)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy(Permissions.LOG_SUBSTITUTION_VIEW)
 public class LogSubstitutionConfigController extends ApiController {
     private final LogSupportService logSupportService;
     private final AuthService authService;

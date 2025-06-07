@@ -16,12 +16,16 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.transition.TransitionContext;
 import org.twins.core.domain.transition.TransitionContextBatch;
 import org.twins.core.domain.transition.TransitionResult;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.transition.*;
+import org.twins.core.dto.rest.transition.TwinTransitionContextDTOv1;
+import org.twins.core.dto.rest.transition.TwinTransitionPerformBatchRqDTOv1;
+import org.twins.core.dto.rest.transition.TwinTransitionPerformRqDTOv1;
+import org.twins.core.dto.rest.transition.TwinTransitionPerformRsDTOv1;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.link.TwinLinkCUDRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -30,6 +34,7 @@ import org.twins.core.mappers.rest.twin.TwinBasicFieldsRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinCreateRqRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionPerformRsRestDTOMapperV1;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 
@@ -41,6 +46,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TRANSITION_MANAGE, Permissions.TRANSITION_PERFORM})
 public class TwinTransitionPerformControllerOld extends ApiController {
     private final TwinService twinService;
     private final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;

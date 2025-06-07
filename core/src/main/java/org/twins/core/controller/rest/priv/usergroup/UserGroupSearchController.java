@@ -20,6 +20,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dto.rest.usergroup.UserGroupSearchRqDTOv1;
@@ -29,12 +30,14 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapperV2;
 import org.twins.core.mappers.rest.usergroup.UserGroupSearchDTOReverseMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.permission.UserGroupSearchService;
 
 @Tag(name = ApiTag.USER_GROUP)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.USER_GROUP_MANAGE, Permissions.USER_GROUP_VIEW})
 public class UserGroupSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;

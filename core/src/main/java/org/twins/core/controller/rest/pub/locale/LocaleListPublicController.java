@@ -17,10 +17,12 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.ParameterDomainHeader;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.domain.LocaleListRsDTOv1;
 import org.twins.core.mappers.rest.locale.LocaleRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.permission.Permissions;
 
 @Tag(description = "Get domain locale lists", name = ApiTag.LOCALE)
 @RestController

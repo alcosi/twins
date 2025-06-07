@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.attachment.AttachmentCUDValidateResult;
 import org.twins.core.dto.rest.attachment.AttachmentCUDValidateRqDTOv1;
 import org.twins.core.dto.rest.attachment.AttachmentCUDValidateRsDTOv1;
@@ -27,11 +28,13 @@ import org.twins.core.mappers.rest.attachment.AttachmentCUDValidateRestDTORevers
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.attachment.AttachmentRestrictionService;
+import org.twins.core.service.permission.Permissions;
 
 @Tag(description = "", name = ApiTag.ATTACHMENT)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.ATTACHMENT_MANAGE, Permissions.ATTACHMENT_VALIDATE})
 public class AttachmentCUDValidateController extends ApiController {
 
     private final AttachmentCUDValidateRestDTOReverseMapper attachmentCUDValidateRestDTOReverseMapper;

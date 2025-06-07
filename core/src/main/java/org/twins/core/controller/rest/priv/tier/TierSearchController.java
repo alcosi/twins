@@ -12,27 +12,33 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.domain.search.TierSearch;
 import org.twins.core.dto.rest.tier.TierSearchRqDTOv1;
 import org.twins.core.dto.rest.tier.TierSearchRsDTOv1;
-import org.twins.core.mappers.rest.tier.TierRestDTOMapperV2;
-import org.twins.core.mappers.rest.tier.TierSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.mappers.rest.tier.TierRestDTOMapperV2;
+import org.twins.core.mappers.rest.tier.TierSearchDTOReverseMapper;
 import org.twins.core.service.domain.TierSearchService;
+import org.twins.core.service.permission.Permissions;
 
 @Tag(name = ApiTag.TIER)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TIER_MANAGE, Permissions.TIER_VIEW})
 public class TierSearchController extends ApiController {
 
     private final TierSearchService tierSearchService;
