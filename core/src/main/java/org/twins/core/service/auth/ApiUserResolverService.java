@@ -58,6 +58,10 @@ public class ApiUserResolverService {
         return entitySmartService.findById(userId, userRepository, EntitySmartService.FindMode.ifEmptyThrows);
     }
 
+    public void checkDBU(UUID domainId, UUID businessAccountId, UUID userId) throws ServiceException {
+        loadDBU(domainId, businessAccountId, userId, new DBU(), true);
+    }
+
     public void loadDBU(UUID domainId, UUID businessAccountId, UUID userId, DBU dbu, boolean checkMembershipMode) throws ServiceException {
         if (checkMembershipMode) {
             if (isUserSpecified(userId) && isDomainSpecified(domainId) && isBusinessAccountSpecified(businessAccountId) && (dbu.getDomain() == null || dbu.getBusinessAccount() == null || dbu.getUser() == null)) {

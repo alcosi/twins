@@ -8,8 +8,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +36,9 @@ public class BusinessAccountUpdateController extends ApiController {
     private final BusinessAccountService businessAccountService;
     private final AuthService authService;
 
+    @Value("${api.unsecured.enable}")
+    private boolean apiUnsecuredEnabled;
+
     @Deprecated
     @ParameterChannelHeader
     @Operation(operationId = "businessAccountUpdateV1", summary = "Update businessAccount")
@@ -48,6 +53,8 @@ public class BusinessAccountUpdateController extends ApiController {
             @RequestBody BusinessAccountUpdateRqDTOv1 request) {
         Response rs = new Response();
         try {
+            if (!apiUnsecuredEnabled)
+                throw new ServiceException(ErrorCodeCommon.FORBIDDEN);
             authService.getApiUser()
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId));
             BusinessAccountEntity businessAccountEntity = new BusinessAccountEntity()

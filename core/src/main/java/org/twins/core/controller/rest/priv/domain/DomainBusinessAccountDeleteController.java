@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -29,6 +30,9 @@ public class DomainBusinessAccountDeleteController extends ApiController {
     private final DomainBusinessAccountService domainBusinessAccountService;
     private final AuthService authService;
 
+    @Value("${api.unsecured.enable}")
+    private boolean apiUnsecuredEnabled;
+
     @Deprecated
     @ParametersApiUserHeaders
     @Operation(operationId = "domainBusinessAccountDeleteV1", summary = "Delete businessAccount from domain")
@@ -42,7 +46,6 @@ public class DomainBusinessAccountDeleteController extends ApiController {
         Response rs = new Response();
         try {
             ApiUser apiUser = authService.getApiUser();
-
             domainBusinessAccountService.deleteBusinessAccountFromDomain(
                     apiUser.getBusinessAccount().getId());
         } catch (ServiceException se) {

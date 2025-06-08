@@ -18,12 +18,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
-import org.twins.core.controller.rest.annotation.ParametersApiUserNoDomainHeaders;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.domain.apiuser.BusinessAccountResolverNotSpecified;
-import org.twins.core.domain.apiuser.DomainResolverNotSpecified;
-import org.twins.core.domain.apiuser.LocaleResolverEnglish;
 import org.twins.core.domain.apiuser.UserResolverAuthToken;
 import org.twins.core.dto.rest.domain.DomainListRsDTOv1;
 import org.twins.core.mappers.rest.domain.DomainViewRestDTOMapper;
@@ -45,7 +42,7 @@ public class DomainListController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
-    @ParametersApiUserNoDomainHeaders
+    @ParametersApiUserHeaders
     @Operation(operationId = "domainListV1", summary = "Return a list of domains for current user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "domain data list", content = {
@@ -58,11 +55,11 @@ public class DomainListController extends ApiController {
             @SimplePaginationParams SimplePagination pagination) {
         DomainListRsDTOv1 rs = new DomainListRsDTOv1();
         try {
-            authService.getApiUser()
-                    .setUserResolver(userResolverAuthToken)
-                    .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified())
-                    .setLocaleResolver(new LocaleResolverEnglish())//todo may throw an error
-                    .setDomainResolver(new DomainResolverNotSpecified());
+//            authService.getApiUser()
+//                    .setUserResolver(userResolverAuthToken)
+//                    .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified())
+//                    .setLocaleResolver(new LocaleResolverEnglish())//todo may throw an error
+//                    .setDomainResolver(new DomainResolverNotSpecified());
             PaginationResult<DomainEntity> domainList = domainUserService
                     .findDomainListByUser(pagination);
             rs

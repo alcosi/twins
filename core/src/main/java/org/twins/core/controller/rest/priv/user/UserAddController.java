@@ -7,8 +7,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -49,6 +51,9 @@ public class UserAddController extends ApiController {
     private final UserService userService;
     private final AuthService authService;
 
+    @Value("${api.unsecured.enable}")
+    private boolean apiUnsecuredEnabled;
+
     @Deprecated
     @ParameterChannelHeader
     @Operation(operationId = "userAddV1", summary = "Smart endpoint for adding new user. It will also" +
@@ -63,6 +68,8 @@ public class UserAddController extends ApiController {
             @RequestBody UserAddRqDTOv1 request) {
         Response rs = new Response();
         try {
+            if (!apiUnsecuredEnabled)
+                throw new ServiceException(ErrorCodeCommon.FORBIDDEN);
             // for deprecated fields
             UUID businessAccountId = request.getUser().getBusinessAccountId() != null ? request.getUser().getBusinessAccountId() : request.getBusinessAccountId();
             UUID domainId = request.getUser().getDomainId() != null ? request.getUser().getDomainId() : request.getDomainId();
@@ -90,7 +97,7 @@ public class UserAddController extends ApiController {
                 businessAccountUserService.addUserSmart(businessAccountId, request.user.id, EntitySmartService.SaveMode.ifNotPresentCreate, EntitySmartService.SaveMode.none, true);
             }
             if (domainId != null) {
-                domainUserService.addUser(request.getUser().getId(), true);
+                domainUserService.addUser(userEntity, true);
             }
             if (domainId != null && businessAccountId != null && apiUser.getDomain().getDomainType() == DomainType.b2b) {
                 domainBusinessAccountService.addBusinessAccountSmart(businessAccountId, null, null, EntitySmartService.SaveMode.none, true);

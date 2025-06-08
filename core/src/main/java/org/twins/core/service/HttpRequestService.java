@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 import org.springframework.web.util.WebUtils;
+import org.twins.core.service.auth.ActAsUserService;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -22,6 +23,9 @@ public class HttpRequestService extends SessionLocaleResolver {
     public static final String HEADER_DOMAIN_ID = "DomainId";
     public static final String HEADER_BUSINESS_ACCOUNT_ID = "BusinessAccountId";
     public static final String HEADER_CHANNEL = "Channel";
+    public static final String HEADER_ACT_AS_USER = "X-Act-As-User";
+
+    private final ActAsUserService actAsUserService;
 
     public HttpServletRequest getRequest() {
         return request;
@@ -35,6 +39,11 @@ public class HttpRequestService extends SessionLocaleResolver {
     public String getAuthTokenFromRequest() {
         return request.getHeader(HEADER_AUTH_TOKEN);
     }
+
+    public String getActAsUserFromRequest() {
+        return request.getHeader(HEADER_ACT_AS_USER);
+    }
+
     public String getDomainIdFromRequest() {
         return request.getHeader(HEADER_DOMAIN_ID);
     }
@@ -102,5 +111,5 @@ public class HttpRequestService extends SessionLocaleResolver {
     public Locale getLocale() {
         return resolveLocale(request);
     }
-    
+
 }

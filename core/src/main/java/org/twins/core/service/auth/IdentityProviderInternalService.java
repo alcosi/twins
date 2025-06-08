@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.idp.IdentityProviderInternalTokenEntity;
 import org.twins.core.dao.idp.IdentityProviderInternalTokenRepository;
 import org.twins.core.dao.idp.IdentityProviderInternalUserEntity;
@@ -18,6 +19,8 @@ import org.twins.core.domain.auth.AuthSignup;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.identityprovider.ClientSideAuthData;
 import org.twins.core.featurer.identityprovider.TokenMetaData;
+import org.twins.core.service.HttpRequestService;
+import org.twins.core.service.domain.DomainUserService;
 import org.twins.core.service.user.UserService;
 
 import java.security.SecureRandom;
@@ -39,6 +42,8 @@ public class IdentityProviderInternalService {
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final AuthService authService;
     private final UserService userService;
+    private final HttpRequestService httpRequestService;
+    private final DomainUserService domainUserService;
 
     public static String generateToken(int byteLength) {
         byte[] randomBytes = new byte[byteLength];
@@ -56,17 +61,49 @@ public class IdentityProviderInternalService {
         } else if (!user.isActive()) {
             throw new ServiceException(ErrorCodeTwins.IDP_USER_IS_INACTIVE);
         }
+        Instant authTokenExpiresAt = Instant.now().plusSeconds(authTokenExpiresInSeconds);
+        Instant refreshTokenExpiresAt = Instant.now().plusSeconds(refreshTokenExpiresInSeconds);
         ClientSideAuthData clientSideAuthData = new ClientSideAuthData()
                 .putRefreshToken(generateToken(64))
-                .putAuthToken(generateToken(32));
+                .putAuthToken(generateToken(32))
+                .putAuthTokenExpiresAt(authTokenExpiresAt.toString())
+                .putRefreshTokenExpiresAt(refreshTokenExpiresAt.toString());
         IdentityProviderInternalTokenEntity token = new IdentityProviderInternalTokenEntity()
                 .setDomainId(authService.getApiUser().getDomainId())
                 .setUserId(user.getUserId())
                 .setAccessToken(getTokenHash(clientSideAuthData.getAuthToken()))
-                .setAccessExpiresAt(Timestamp.from(Instant.now().plusSeconds(authTokenExpiresInSeconds)))
+                .setAccessExpiresAt(Timestamp.from(authTokenExpiresAt))
                 .setRefreshToken(getTokenHash(clientSideAuthData.getRefreshToken()))
-                .setRefreshExpiresAt(Timestamp.from(Instant.now().plusSeconds(refreshTokenExpiresInSeconds)))
+                .setRefreshExpiresAt(Timestamp.from(refreshTokenExpiresAt))
                 .setFingerPrint(fingerprint)
+                .setCreatedAt(Timestamp.from(Instant.now()))
+                .setRevoked(false);
+        identityProviderInternalTokenRepository.save(token);
+        user.setLastLoginAt(Timestamp.from(Instant.now()));
+        identityProviderInternalUserRepository.save(user);
+        return clientSideAuthData;
+    }
+
+    public ClientSideAuthData m2mToken(String clientId, String clientSecret, long authTokenExpiresInSeconds) throws ServiceException {
+        if (StringUtils.isEmpty(clientId) || StringUtils.isEmpty(clientSecret)) {
+            throw new ServiceException(ErrorCodeTwins.IDP_EMPTY_CLIENT_ID_OR_SECRET);
+        }
+        IdentityProviderInternalUserEntity user = identityProviderInternalUserRepository.findByUser_Email(clientId);
+        if (user == null || !passwordEncoder.matches(clientSecret, user.getPasswordHash())) {
+            throw new ServiceException(ErrorCodeTwins.IDP_UNAUTHORIZED);
+        } else if (!user.isActive()) {
+            throw new ServiceException(ErrorCodeTwins.IDP_USER_IS_INACTIVE);
+        }
+        Instant authTokenExpiresAt = Instant.now().plusSeconds(authTokenExpiresInSeconds);
+        ClientSideAuthData clientSideAuthData = new ClientSideAuthData()
+                .putAuthToken(generateToken(32))
+                .putAuthTokenExpiresAt(authTokenExpiresAt.toString());
+        IdentityProviderInternalTokenEntity token = new IdentityProviderInternalTokenEntity()
+                .setDomainId(authService.getApiUser().getDomainId())
+                .setUserId(user.getUserId())
+                .setAccessToken(getTokenHash(clientSideAuthData.getAuthToken()))
+                .setAccessExpiresAt(Timestamp.from(authTokenExpiresAt))
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setRevoked(false);
         identityProviderInternalTokenRepository.save(token);
         user.setLastLoginAt(Timestamp.from(Instant.now()));
@@ -142,5 +179,21 @@ public class IdentityProviderInternalService {
         }
         internalUserEntity.setActive(true);
         identityProviderInternalUserRepository.save(internalUserEntity);
+    }
+
+    public void switchActiveBusinessAccount(String authToken, UUID domainId, UUID businessAccountId) throws ServiceException {
+        IdentityProviderInternalTokenEntity token = identityProviderInternalTokenRepository.findByAccessToken(getTokenHash(authToken));
+        if (token == null) {
+            throw new ServiceException(ErrorCodeTwins.IDP_INCORRECT_AUTH_TOKEN);
+        }
+        if (!businessAccountId.equals(token.getActiveBusinessAccountId())) {
+            token.setActiveBusinessAccountId(businessAccountId);
+            identityProviderInternalTokenRepository.save(token);
+        }
+        DomainUserEntity domainUserEntity = domainUserService.getDomainUser();
+        if (!businessAccountId.equals(domainUserEntity.getLastActiveBusinessAccountId())) {
+            domainUserEntity.setLastActiveBusinessAccountId(businessAccountId);
+            domainUserService.saveSafe(domainUserEntity);
+        }
     }
 }
