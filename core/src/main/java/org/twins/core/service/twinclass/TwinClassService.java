@@ -263,6 +263,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         List<TwinClassEntity> childClasses = twinClassRepository.findByDomainIdAndHeadHierarchyContains(authService.getApiUser().getDomainId(), String.join(",", classLTree));
         for (TwinClassEntity twinClass : needLoad) {
             for (TwinClassEntity childClass : childClasses) {
+                if (childClass.getId().equals(twinClass.getId()))
+                    return;
                 if (childClass.getHeadHierarchyClassIdSet().contains(twinClass.getId()))
                     twinClass.getHeadHierarchyChildClassKit().add(childClass);
             }
