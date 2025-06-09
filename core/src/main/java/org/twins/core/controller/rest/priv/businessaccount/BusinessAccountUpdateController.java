@@ -34,7 +34,6 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.BUSINESS_ACCOUNT_MANAGE, Permissions.BUSINESS_ACCOUNT_UPDATE})
 public class BusinessAccountUpdateController extends ApiController {
     private final BusinessAccountService businessAccountService;
     private final AuthService authService;

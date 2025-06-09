@@ -30,7 +30,6 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.USER_MANAGE, Permissions.USER_UPDATE})
 public class UserUpdateController extends ApiController {
     private final UserService userService;
 

@@ -33,7 +33,6 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.DOMAIN_USER_MANAGE, Permissions.DOMAIN_USER_DELETE})
 public class DomainUserDeleteController extends ApiController {
     private final DomainUserService domainUserService;
     private final AuthService authService;
