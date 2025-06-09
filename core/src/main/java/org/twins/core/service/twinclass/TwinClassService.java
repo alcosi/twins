@@ -264,7 +264,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         for (TwinClassEntity twinClass : needLoad) {
             for (TwinClassEntity childClass : childClasses) {
                 if (childClass.getId().equals(twinClass.getId()))
-                    return;
+                    continue;
                 if (childClass.getHeadHierarchyClassIdSet().contains(twinClass.getId()))
                     twinClass.getHeadHierarchyChildClassKit().add(childClass);
             }
