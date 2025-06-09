@@ -19,6 +19,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.space.UserRefSpaceRole;
@@ -33,6 +34,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.space.SpaceRoleUserSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.space.UserRefSpaceRoleDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.space.SpaceUserRoleService;
 
 import java.util.UUID;
@@ -41,6 +43,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.SPACE_ROLE_MANAGE, Permissions.SPACE_ROLE_VIEW})
 public class SpaceRoleUserListController extends ApiController {
     private final UserRestDTOMapper userRestDTOMapper;
     private final UserRefSpaceRoleDTOMapper userRefSpaceRoleDTOMapper;
