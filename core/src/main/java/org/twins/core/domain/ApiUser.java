@@ -152,6 +152,7 @@ public class ApiUser {
         } catch (ServiceException e) {
             log.error("Resolve locale exception:", e);
         }
+        log.info("resolved locale[{}]", locale);
     }
 
     private void resolveDomainId() {
@@ -164,6 +165,7 @@ public class ApiUser {
         } catch (ServiceException e) {
             log.error("Resolve domainId exception:", e);
         }
+        log.info("resolved domainId[{}]", domainId);
         if (domainId == null)
             domainId = NOT_SPECIFIED;
     }
@@ -178,6 +180,7 @@ public class ApiUser {
         } catch (ServiceException e) {
             log.error("Resolve businessAccountId exception:", e);
         }
+        log.info("resolved businessAccountId[{}]", businessAccountId);
         if (businessAccountId == null)
             businessAccountId = NOT_SPECIFIED;
     }
@@ -202,6 +205,7 @@ public class ApiUser {
         if (userResolver == null)
             userResolver = apiUserResolverService.getMainResolverAuthToken();
         userId = userResolver.resolveCurrentUserId();
+        log.info("resolved userId[{}]", userId);
         if (userId == null)
             userId = NOT_SPECIFIED;
     }
