@@ -29,7 +29,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     DOMAIN_LOCALE_INACTIVE(10211, "Local is not active"),
     DOMAIN_PERMISSION_DENIED(10212, "No permission to delete record in another domain"),
     DOMAIN_BUSINESS_ACCOUNT_LEVEL_NOT_SUPPORTED(10213, "Current domain type does not supports business account"),
-    NO_REQUIRED_PERMISSION(10214, "No required permissions to perform this operation"),
+    NO_REQUIRED_PERMISSION(10214, "No required permissions to perform this operation", HttpStatus.FORBIDDEN),
     PERMISSION_SCHEMA_NOT_ALLOWED(10301, "permission schema is not allowed"),
     PERMISSION_ID_UNKNOWN(10302, "permission id unknown"),
     TWIN_NOT_PROTECTED(10303, "Twin is not protected by permission"),
