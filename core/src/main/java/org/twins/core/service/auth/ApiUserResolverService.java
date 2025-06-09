@@ -18,7 +18,7 @@ import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.apiuser.DomainResolverHeaders;
 import org.twins.core.domain.apiuser.LocaleResolverDomainUser;
 import org.twins.core.domain.apiuser.LocaleResolverHeader;
-import org.twins.core.domain.apiuser.UserBusinessAccountResolverAuthToken;
+import org.twins.core.domain.apiuser.MainResolverAuthToken;
 import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.List;
@@ -44,7 +44,7 @@ public class ApiUserResolverService {
     @Getter
     final LocaleResolverHeader localeResolverHeader;
     @Getter
-    final UserBusinessAccountResolverAuthToken userBusinessAccountResolverAuthToken;
+    final MainResolverAuthToken mainResolverAuthToken;
 
     public DomainEntity findDomain(UUID domainId) throws ServiceException {
         return entitySmartService.findById(domainId, domainRepository, EntitySmartService.FindMode.ifEmptyThrows);
