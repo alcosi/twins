@@ -32,7 +32,7 @@ public class ProtectedByAspect {
         Method method = signature.getMethod();
         ProtectedBy annotation = resolveAnnotation(method);
         if (annotation != null) {
-            List<Permissions> requiredButAbsentPermissions = getRequiredButAbsentPermissions(annotation.value());
+            List<Permissions> requiredButAbsentPermissions = getRequiredButAbsentPermissions(annotation.value(), annotation.anyOf());
             if (!requiredButAbsentPermissions.isEmpty()) {
                 String noPermissionNames = requiredButAbsentPermissions.stream().map(Permissions::name).collect(Collectors.joining(","));
                 log.warn("Access denied: User does not have any of the required permissions {} for {}", noPermissionNames, method);
@@ -43,7 +43,7 @@ public class ProtectedByAspect {
     }
 
     @NotNull
-    private List<Permissions> getRequiredButAbsentPermissions(Permissions[] requiredPermissions) throws ServiceException {
+    private List<Permissions> getRequiredButAbsentPermissions(Permissions[] requiredPermissions, boolean anyOf) throws ServiceException {
         if (requiredPermissions == null || requiredPermissions.length == 0) {
             return new ArrayList<>();
         }
@@ -52,6 +52,8 @@ public class ProtectedByAspect {
             for (Permissions permission : requiredPermissions) {
                 if (!permissionService.currentUserHasPermission(permission)) {
                     requiredButAbsentPermissions.add(permission);
+                } else if (anyOf) {
+                    return new ArrayList<>();
                 }
             }
         } catch (Throwable e) {

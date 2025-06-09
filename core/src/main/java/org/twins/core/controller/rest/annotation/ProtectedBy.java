@@ -15,7 +15,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ProtectedBy {
     /**
-     * The permissions to check. The user must have at least one of these permissions.
+     * The permissions to check. The user must have at least one of these permissions by default true.
      */
     Permissions[] value();
+    boolean anyOf() default true;
 }
