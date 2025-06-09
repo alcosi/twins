@@ -195,6 +195,7 @@ public class ApiUser {
         } catch (ServiceException e) {
             log.error("Resolve machine businessAccountId exception:", e);
         }
+        log.info("resolved machineBusinessAccountId[{}]", machineBusinessAccountId);
         if (machineBusinessAccountId == null)
             machineBusinessAccountId = NOT_SPECIFIED;
     }
@@ -216,6 +217,7 @@ public class ApiUser {
         if (machineUserResolver == null)
             machineUserResolver = apiUserResolverService.getMainResolverAuthToken();
         machineUserId = machineUserResolver.resolveCurrentMachineUserId();
+        log.info("resolved machineUserId[{}]", machineUserId);
         if (machineUserId == null)
             machineUserId = NOT_SPECIFIED;
     }
