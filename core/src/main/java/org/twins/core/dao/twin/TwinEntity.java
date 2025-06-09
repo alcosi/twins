@@ -178,6 +178,13 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    private Collection<TwinFieldBooleanEntity> fieldsBoolean;
+
+    //needed for specification
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
     private Collection<TwinFieldDataListEntity> fieldsList;
 
     //needed for specification

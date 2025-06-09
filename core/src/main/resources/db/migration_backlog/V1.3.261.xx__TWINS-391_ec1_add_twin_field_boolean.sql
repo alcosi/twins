@@ -6,5 +6,5 @@ CREATE TABLE IF NOT EXISTS twin_field_boolean
     value               BOOLEAN
 );
 
-CREATE INDEX IF NOT EXISTS idx_twin_field_boolean_field_value ON twin_field_boolean (twin_class_field_id, value);
-CREATE INDEX IF NOT EXISTS idx_twin_field_boolean_field_value ON twin_field_boolean (twin_class_field_id, twin_id);
+CREATE INDEX IF NOT EXISTS twin_field_boolean_twin_class_field_id_value_index ON twin_field_boolean (twin_class_field_id, value);
+CREATE UNIQUE INDEX IF NOT EXISTS twin_field_boolean_twin_class_field_id_twin_id_uindex ON twin_field_boolean (twin_id, twin_class_field_id);

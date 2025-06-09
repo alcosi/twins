@@ -5,11 +5,15 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.specifications.twin.TwinSpecification;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldBooleanEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.domain.search.TwinFieldSearchBoolean;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
@@ -24,7 +28,7 @@ import java.util.Properties;
         name = "Boolean",
         description = "")
 @RequiredArgsConstructor
-public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolean, FieldValueBoolean, TwinFieldSearchNotImplemented> {
+public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolean, FieldValueBoolean, TwinFieldSearchBoolean> {
 
     @FeaturerParam(name = "CheckboxType", description = "", order = 1, optional = true, defaultValue = "TOGGLE")
     public static final FeaturerParamStringTwinsCheckboxType checkboxType = new FeaturerParamStringTwinsCheckboxType("checkboxType");
@@ -50,5 +54,10 @@ public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolea
     protected FieldValueBoolean deserializeValue(Properties properties, TwinField twinField, TwinFieldBooleanEntity twinFieldBooleanEntity) throws ServiceException {
         return new FieldValueBoolean(twinField.getTwinClassField())
                 .setValue(twinFieldBooleanEntity.getValue());
+    }
+
+    @Override
+    public Specification<TwinEntity> searchBy(TwinFieldSearchBoolean twinFieldSearchBoolean) {
+        return Specification.where(TwinSpecification.checkFieldBoolean(twinFieldSearchBoolean));
     }
 }

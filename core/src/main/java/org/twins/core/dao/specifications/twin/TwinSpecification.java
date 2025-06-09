@@ -7,6 +7,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.specifications.AbstractTwinEntityBasicSearchSpecification;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinFieldBooleanEntity;
 import org.twins.core.dao.twin.TwinFieldDataListEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.domain.search.*;
@@ -270,6 +271,17 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
 
             return cb.and(include, exclude);
 
+        };
+    }
+
+    public static Specification<TwinEntity> checkFieldBoolean(final TwinFieldSearchBoolean search) {
+        return (root, query, cb) -> {
+            Join<TwinEntity, TwinFieldBooleanEntity> twinFieldBooleanJoin = root.join(TwinEntity.Fields.fieldsBoolean, JoinType.INNER);
+            twinFieldBooleanJoin.on(cb.equal(twinFieldBooleanJoin.get(TwinFieldBooleanEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
+
+            Expression<Boolean> booleanField = twinFieldBooleanJoin.get(TwinFieldBooleanEntity.Fields.value);
+
+            return search.getValue() == null ? cb.isNull(booleanField) : cb.equal(booleanField, search.getValue());
         };
     }
 }
