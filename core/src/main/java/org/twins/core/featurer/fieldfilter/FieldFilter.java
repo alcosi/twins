@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-@FeaturerType(id = FeaturerTwins.TYPE_35,
+@FeaturerType(id = FeaturerTwins.TYPE_36,
         name = "FieldFilter",
         description = "Filter class fields")
 @Slf4j

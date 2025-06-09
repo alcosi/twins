@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @Slf4j
 @Component
-@Featurer(id = FeaturerTwins.ID_3501,
+@Featurer(id = FeaturerTwins.ID_3601,
         name = "Filter given field by id",
         description = "")
 public class FieldFilterGiven extends FieldFilter {
