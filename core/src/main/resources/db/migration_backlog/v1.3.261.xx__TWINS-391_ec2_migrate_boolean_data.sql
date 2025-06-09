@@ -3,6 +3,11 @@ DO $$
         batch_size INTEGER := 1000;
         rows_moved INTEGER := 1;
     BEGIN
+
+        UPDATE twin_class_field
+        SET field_typer_featurer_id = 1306
+        WHERE id IN (SELECT twin_class_field_id FROM twin_field_simple WHERE value = 'true' OR value = 'false');
+
         WHILE rows_moved > 0 LOOP
                 WITH migration_batch AS (
                     DELETE FROM twin_field_simple
