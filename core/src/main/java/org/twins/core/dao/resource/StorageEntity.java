@@ -3,6 +3,8 @@ package org.twins.core.dao.resource;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -56,6 +58,8 @@ public class StorageEntity implements EasyLoggable {
     @JoinColumn(name = "storager_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity storageFeaturer;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;

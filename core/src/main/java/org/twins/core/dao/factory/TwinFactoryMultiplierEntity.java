@@ -3,6 +3,8 @@ package org.twins.core.dao.factory;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -49,10 +51,14 @@ public class TwinFactoryMultiplierEntity implements EasyLoggable {
     @Column(name = "active")
     private Boolean active;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
     private TwinFactoryEntity twinFactory;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "input_twin_class_id", insertable = false, updatable = false)
     private TwinClassEntity inputTwinClass;

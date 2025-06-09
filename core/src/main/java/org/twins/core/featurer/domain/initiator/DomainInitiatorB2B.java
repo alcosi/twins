@@ -43,7 +43,7 @@ public class DomainInitiatorB2B extends DomainInitiator {
     @Override
     public boolean isSupportedTwinClassOwnerType(TwinClassEntity.OwnerType ownerType) {
         return switch (ownerType) {
-            case DOMAIN, DOMAIN_USER, DOMAIN_BUSINESS_ACCOUNT_USER -> true;
+            case DOMAIN, DOMAIN_USER, DOMAIN_BUSINESS_ACCOUNT, DOMAIN_BUSINESS_ACCOUNT_USER -> true;
             default -> false;
         };
     }

@@ -8,12 +8,14 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
-import org.twins.core.dao.i18n.LocaleConverter;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
+import org.twins.core.dao.i18n.LocaleConverter;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Collection;
+import java.util.Locale;
+import java.util.UUID;
 
 
 @Entity
@@ -38,6 +40,9 @@ public class DomainUserEntity implements EasyLoggable {
     @Column(name = "i18n_locale_id")
     @Convert(converter = LocaleConverter.class)
     private Locale i18nLocaleId;
+
+    @Column(name = "last_active_business_account_id")
+    private UUID lastActiveBusinessAccountId;
 
     @ManyToOne
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)

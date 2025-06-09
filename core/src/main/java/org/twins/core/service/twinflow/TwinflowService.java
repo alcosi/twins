@@ -190,6 +190,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         }
     }
 
+    @Transactional
     public void runTwinStatusTransitionTriggers(TwinEntity twinEntity, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity) throws ServiceException {
         List<TwinStatusTransitionTriggerEntity> triggerEntityList;
         UUID srcStatusId = srcStatusEntity != null ? srcStatusEntity.getId() : null;

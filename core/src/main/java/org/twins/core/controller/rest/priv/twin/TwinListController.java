@@ -16,10 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.annotation.Loggable;
-import org.twins.core.controller.rest.annotation.MapperContextBinding;
-import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.controller.rest.annotation.SimplePaginationParams;
+import org.twins.core.controller.rest.annotation.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.dto.rest.DTOExamples;
@@ -34,6 +31,7 @@ import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twin.TwinSearchByAliasDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinSearchExtendedDTOReverseMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.ArrayList;
@@ -44,6 +42,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_VIEW})
 public class TwinListController extends ApiController {
     private final TwinSearchService twinSearchService;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;

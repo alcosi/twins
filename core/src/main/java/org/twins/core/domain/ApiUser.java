@@ -63,11 +63,15 @@ public class ApiUser {
 
     public ApiUser setBusinessAccountResolver(BusinessAccountResolver businessAccountResolver) {
         this.businessAccountResolver = businessAccountResolver;
+        if (NOT_SPECIFIED.equals(this.businessAccountId))
+            this.businessAccountId = null;
         return this;
     }
 
     public ApiUser setUserResolver(UserResolver userResolver) {
         this.userResolver = userResolver;
+        if (NOT_SPECIFIED.equals(this.userId))
+            this.userId = null;
         return this;
     }
 
@@ -156,16 +160,12 @@ public class ApiUser {
             businessAccountId = NOT_SPECIFIED;
     }
 
-    private void resolveUserId() {
+    private void resolveUserId() throws ServiceException {
         if (userId != null)
             return;
         if (userResolver == null)
             userResolver = apiUserResolverService.getUserBusinessAccountResolverAuthToken();
-        try {
-            userId = userResolver.resolveCurrentUserId();
-        } catch (ServiceException e) {
-            log.error("Resolve userId exception:", e);
-        }
+        userId = userResolver.resolveCurrentUserId();
         if (userId == null)
             userId = NOT_SPECIFIED;
     }
@@ -187,7 +187,7 @@ public class ApiUser {
     }
 
     //this method only indicates that we have some data about domain id, but it's unchecked
-    public boolean isUserSpecified() {
+    public boolean isUserSpecified() throws ServiceException {
         if (user != null)
             return true;
         resolveUserId();
@@ -218,6 +218,7 @@ public class ApiUser {
      * B - businessAccount
      * U - user
      * This method is very important to for checking membership
+     *
      * @throws ServiceException
      */
     private void loadDBU() throws ServiceException {

@@ -18,7 +18,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterDomainHeader;
 import org.twins.core.domain.auth.CryptKey;
 import org.twins.core.dto.rest.auth.AuthCryptKeyRsDTOv1;
-import org.twins.core.mappers.rest.auth.LoginKeyRestDTOMapper;
+import org.twins.core.mappers.rest.auth.CryptKeyRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.auth.IdentityProviderService;
 
@@ -29,7 +29,7 @@ import org.twins.core.service.auth.IdentityProviderService;
 public class AuthCryptKeyController extends ApiController {
     private final AuthService authService;
     private final IdentityProviderService identityProviderService;
-    private final LoginKeyRestDTOMapper loginKeyRestDTOMapper;
+    private final CryptKeyRestDTOMapper cryptKeyRestDTOMapper;
 
     @ParameterDomainHeader
         @Operation(operationId = "authCryptKeyV1", summary = "Get public key to encrypt password during auth")
@@ -43,8 +43,8 @@ public class AuthCryptKeyController extends ApiController {
         AuthCryptKeyRsDTOv1 rs = new AuthCryptKeyRsDTOv1();
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
-            CryptKey.LoginPublicKey clientSideAuthData = identityProviderService.getPublicKeyForPasswordCrypt();
-            rs.setPublicKey(loginKeyRestDTOMapper.convert(clientSideAuthData));
+            CryptKey.CryptPublicKey clientSideAuthData = identityProviderService.getPublicKeyForPasswordCrypt();
+            rs.setPublicKey(cryptKeyRestDTOMapper.convert(clientSideAuthData));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

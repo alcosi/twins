@@ -28,17 +28,25 @@ import java.util.UUID;
         description = "Not for production purpose")
 @RequiredArgsConstructor
 public class IdentityProviderInternal extends IdentityProviderConnector {
-    @FeaturerParam(name = "Auth token lifetime", description = "Auth token lifetime in seconds", order = 2)
+    @FeaturerParam(name = "Auth token lifetime", description = "Auth token lifetime in seconds", order = 1)
     public static final FeaturerParamInt authTokenLifetimeInSeconds = new FeaturerParamInt("authTokenLifetimeInSeconds");
 
     @FeaturerParam(name = "Refresh token lifetime", description = "Refresh token lifetime in seconds", order = 2)
     public static final FeaturerParamInt refreshTokenLifetimeInSeconds = new FeaturerParamInt("refreshTokenLifetimeInSeconds");
+
+    @FeaturerParam(name = "M2M token lifetime", description = "M2M token lifetime in seconds", order = 1)
+    public static final FeaturerParamInt m2mAuthTokenLifetimeInSeconds = new FeaturerParamInt("m2mAuthTokenLifetimeInSeconds");
 
     private final IdentityProviderInternalService identityProviderInternalService;
 
     @Override
     protected ClientSideAuthData login(Properties properties, String username, String password, String fingerprint) throws ServiceException {
         return identityProviderInternalService.login(username, password, fingerprint, authTokenLifetimeInSeconds.extract(properties), refreshTokenLifetimeInSeconds.extract(properties));
+    }
+
+    @Override
+    protected ClientSideAuthData m2mAuth(Properties properties, String clientId, String clientSecret) throws ServiceException {
+        return identityProviderInternalService.m2mToken(clientId, clientSecret, m2mAuthTokenLifetimeInSeconds.extract(properties));
     }
 
     @Override
@@ -76,5 +84,9 @@ public class IdentityProviderInternal extends IdentityProviderConnector {
         identityProviderInternalService.signupByEmailActivate(twinsUserId);
     }
 
+    @Override
+    public void switchActiveBusinessAccount(Properties properties, String authToken, UUID domainId, UUID businessAccountId) throws ServiceException {
+        identityProviderInternalService.switchActiveBusinessAccount(authToken, domainId, businessAccountId);
+    }
 
 }

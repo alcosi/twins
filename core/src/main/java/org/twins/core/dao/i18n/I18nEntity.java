@@ -46,6 +46,8 @@ public class I18nEntity {
     @Column(name = "key")
     private String key;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;

@@ -8,14 +8,17 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
 import org.twins.core.domain.apiuser.UserResolverGivenId;
 import org.twins.core.dto.rest.DTOExamples;
@@ -23,6 +26,7 @@ import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountUserAddRqDTOv1;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountUserService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -33,6 +37,9 @@ import java.util.UUID;
 public class BusinessAccountUserAddController extends ApiController {
     private final BusinessAccountUserService businessAccountUserService;
     private final AuthService authService;
+
+    @Value("${api.unsecured.enable}")
+    private boolean apiUnsecuredEnabled;
 
     @Deprecated
     @ParameterChannelHeader
@@ -49,6 +56,8 @@ public class BusinessAccountUserAddController extends ApiController {
             @RequestBody BusinessAccountUserAddRqDTOv1 request) {
         Response rs = new Response();
         try {
+            if (!apiUnsecuredEnabled)
+                throw new ServiceException(ErrorCodeCommon.FORBIDDEN);
             authService.getApiUser()
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId))
                     .setUserResolver(new UserResolverGivenId(request.userId))

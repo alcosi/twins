@@ -98,20 +98,22 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
         return true;
     }
 
-    public void addBusinessAccount(UUID businessAccountId, UUID tierId, boolean ignoreAlreadyExists) throws ServiceException {
+    @Transactional(rollbackFor = Throwable.class)
+    public DomainBusinessAccountEntity addBusinessAccount(BusinessAccountEntity businessAccount, UUID tierId, boolean ignoreAlreadyExists) throws ServiceException {
         DomainEntity domain = authService.getApiUser().getDomain();
         if (domain.getDomainType() != DomainType.b2b)
             throw new ServiceException(ErrorCodeTwins.DOMAIN_BUSINESS_ACCOUNT_LEVEL_NOT_SUPPORTED, "no business account can be added to " + domain.logNormal());
-        DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(domain.getId(), businessAccountId);
+        DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(domain.getId(), businessAccount.getId());
         if (domainBusinessAccountEntity != null)
             if (ignoreAlreadyExists)
-                return;
+                return domainBusinessAccountEntity;
             else
-                throw new ServiceException(ErrorCodeTwins.DOMAIN_BUSINESS_ACCOUNT_ALREADY_EXISTS, "businessAccount[" + businessAccountId + "] is already registered in " + domain.logShort());
+                throw new ServiceException(ErrorCodeTwins.DOMAIN_BUSINESS_ACCOUNT_ALREADY_EXISTS, businessAccount.logShort() + " is already registered in " + domain.logShort());
         domainBusinessAccountEntity = new DomainBusinessAccountEntity()
                 .setDomainId(domain.getId())
                 .setDomain(domain)
-                .setBusinessAccountId(businessAccountId)
+                .setBusinessAccountId(businessAccount.getId())
+                .setBusinessAccount(businessAccount)
                 .setTierId(null == tierId ? domain.getDefaultTierId() : tierId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
         if (domainBusinessAccountEntity.getTierId() == null)
@@ -120,14 +122,15 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
         domainBusinessAccountEntity.setTier(tierService.findEntitySafe(domainBusinessAccountEntity.getTierId()));
         BusinessAccountInitiator businessAccountInitiator = featurerService.getFeaturer(domain.getBusinessAccountInitiatorFeaturerId(), BusinessAccountInitiator.class);
         businessAccountInitiator.init(domain.getBusinessAccountInitiatorParams(), domainBusinessAccountEntity);
+        return domainBusinessAccountEntity;
     }
 
-    public void addBusinessAccountSmart(UUID businessAccountId, UUID tierId, String name, EntitySmartService.SaveMode businessAccountCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
+    public DomainBusinessAccountEntity addBusinessAccountSmart(UUID businessAccountId, UUID tierId, String name, EntitySmartService.SaveMode businessAccountCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
         DomainEntity domain = authService.getApiUser().getDomain();
         if (domain.getDomainType() != DomainType.b2b)
-            return; //only b2b domains support BA add
-        businessAccountService.addBusinessAccount(businessAccountId, name, businessAccountCreateMode);
-        addBusinessAccount(businessAccountId, tierId, ignoreAlreadyExists);
+            return null; //only b2b domains support BA add
+        BusinessAccountEntity businessAccount = businessAccountService.addBusinessAccount(businessAccountId, name, businessAccountCreateMode);
+        return addBusinessAccount(businessAccount, tierId, ignoreAlreadyExists);
     }
 
     @Transactional(rollbackFor = Throwable.class)

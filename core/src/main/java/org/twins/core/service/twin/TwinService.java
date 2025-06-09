@@ -14,6 +14,7 @@ import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -933,11 +934,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public TwinEntity duplicateTwin(TwinEntity srcTwin, UUID newTwinId) throws ServiceException {
-        TwinEntity duplicateEntity = srcTwin.clone();
-        fillOwner(duplicateEntity);
-        duplicateEntity
-                .setId(newTwinId)
-                .setCreatedByUserId(authService.getApiUser().getUserId());
+        TwinEntity duplicateEntity = fillDuplicate(srcTwin, newTwinId);
         duplicateEntity = createTwin(duplicateEntity);
         cloneTwinFieldListAndSave(srcTwin, duplicateEntity);
         twinflowService.runTwinStatusTransitionTriggers(duplicateEntity, null, duplicateEntity.getTwinStatus());
@@ -953,11 +950,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public TwinDuplicate createDuplicateTwin(TwinEntity srcTwin, UUID newTwinId) throws ServiceException {
         TwinDuplicate twinDuplicate = new TwinDuplicate();
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-        TwinEntity duplicateEntity = srcTwin.clone();
-        fillOwner(duplicateEntity);
-        duplicateEntity
-                .setId(newTwinId)
-                .setCreatedByUserId(authService.getApiUser().getUserId());
+        TwinEntity duplicateEntity = fillDuplicate(srcTwin, newTwinId);
         createTwin(duplicateEntity, twinChangesCollector);
         cloneTwinFields(srcTwin, duplicateEntity, twinChangesCollector);
         twinDuplicate.setDuplicate(duplicateEntity);
@@ -965,6 +958,23 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twinDuplicate;
     }
 
+    @NotNull
+    private TwinEntity fillDuplicate(TwinEntity srcTwin, UUID newTwinId) throws ServiceException {
+        TwinEntity duplicateEntity = srcTwin.clone();
+        fillOwner(duplicateEntity);
+        duplicateEntity
+                .setId(newTwinId)
+                .setCreatedByUserId(authService.getApiUser().getUserId())
+                .setCreatedAt(null); // no sense to use created at from original twin
+        if (duplicateEntity.getAssignerUserId() == null && Boolean.TRUE.equals(duplicateEntity.getTwinClass().getAssigneeRequired())) {
+            duplicateEntity
+                    .setAssignerUserId(authService.getApiUser().getUserId())
+                    .setAssignerUser(authService.getApiUser().getUser());
+        }
+        return duplicateEntity;
+    }
+
+    @Transactional
     public void saveDuplicateTwin(TwinDuplicate twinDuplicate) throws ServiceException {
         twinChangesService.applyChanges(twinDuplicate.getChangesCollector());
         twinflowService.runTwinStatusTransitionTriggers(twinDuplicate.getDuplicate(), null, twinDuplicate.getDuplicate().getTwinStatus());

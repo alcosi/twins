@@ -18,20 +18,22 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryConditionSetSearchRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryConditionSetSearchRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryConditionSetViewRsDTOv1;
+import org.twins.core.mappers.rest.factory.FactoryConditionSetRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryConditionSetRestDTOMapperV2;
 import org.twins.core.mappers.rest.factory.FactoryConditionSetSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
-import org.twins.core.mappers.rest.factory.FactoryConditionSetRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryConditionSetSearchService;
 import org.twins.core.service.factory.FactoryConditionSetService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -39,6 +41,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.CONDITION_SET_MANAGE, Permissions.CONDITION_SET_VIEW})
 public class FactoryConditionSetSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
