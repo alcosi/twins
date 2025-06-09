@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dto.rest.DTOExamples;
@@ -31,13 +32,15 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.domain.DomainUserSearchService;
 import org.twins.core.service.domain.DomainUserService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
-@Tag(name = ApiTag.DOMAIN)
+@Tag(description = "", name = ApiTag.DOMAIN)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.DOMAIN_USER_MANAGE, Permissions.DOMAIN_USER_VIEW})
 public class DomainUserSearchController extends ApiController {
     private final DomainUserSearchService domainUserSearchService;
     private final DomainUserSearchDTOReverseMapper domainUserSearchDTOReverseMapper;
@@ -88,6 +91,30 @@ public class DomainUserSearchController extends ApiController {
         DomainUserViewRsDTOv1 rs = new DomainUserViewRsDTOv1();
         try {
             DomainUserEntity domainUser = domainUserService.findByUserId(userId);
+            rs
+                    .setUser(domainUserRestDTOMapperV2.convert(domainUser, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "domainCurrentUserViewV1", summary = "Returns current user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = DomainUserViewRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @GetMapping(value = "/private/domain/user/v1")
+    public ResponseEntity<?> domainCurrentUserViewV1(
+            @MapperContextBinding(roots = DomainUserRestDTOMapperV2.class, response = DomainUserViewRsDTOv1.class) MapperContext mapperContext) {
+        DomainUserViewRsDTOv1 rs = new DomainUserViewRsDTOv1();
+        try {
+            DomainUserEntity domainUser = domainUserService.getCurrentUser();
             rs
                     .setUser(domainUserRestDTOMapperV2.convert(domainUser, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

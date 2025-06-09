@@ -21,7 +21,7 @@ import org.twins.core.dto.rest.auth.AuthLoginRqDTOv1;
 import org.twins.core.dto.rest.auth.AuthLoginRsDTOv1;
 import org.twins.core.featurer.identityprovider.ClientSideAuthData;
 import org.twins.core.mappers.rest.auth.AuthLoginRestDTOReverseMapper;
-import org.twins.core.mappers.rest.auth.ClientSideAuthDateRestDTOMapper;
+import org.twins.core.mappers.rest.auth.ClientSideAuthDataRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.auth.IdentityProviderService;
 
@@ -32,7 +32,7 @@ import org.twins.core.service.auth.IdentityProviderService;
 public class AuthLoginController extends ApiController {
     private final AuthService authService;
     private final IdentityProviderService identityProviderService;
-    private final ClientSideAuthDateRestDTOMapper clientSideAuthDateRestDTOMapper;
+    private final ClientSideAuthDataRestDTOMapper clientSideAuthDataRestDTOMapper;
     private final AuthLoginRestDTOReverseMapper authLoginRestDTOReverseMapper;
 
 
@@ -49,7 +49,7 @@ public class AuthLoginController extends ApiController {
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
             ClientSideAuthData clientSideAuthData = identityProviderService.login(authLoginRestDTOReverseMapper.convert(request));
-            rs.setAuthData(clientSideAuthDateRestDTOMapper.convert(clientSideAuthData));
+            rs.setAuthData(clientSideAuthDataRestDTOMapper.convert(clientSideAuthData));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

@@ -110,7 +110,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         ApiUser apiUser = authService.getApiUser()
                 .setDomainResolver(new DomainResolverGivenId(domainEntity.getId())); // welcome to new domain!
         domainLocaleService.addDomainLocale(domainEntity.getId(), apiUser.getLocale());
-        domainUserService.addUser(apiUser.getUserId(), false);
+        domainUserService.addUser(apiUser.getUser(), false);
         userGroupService.enterGroup(UserGroup.DOMAIN_ADMIN.uuid);
         return processIcons(domainEntity, lightIcon, darkIcon);
     }

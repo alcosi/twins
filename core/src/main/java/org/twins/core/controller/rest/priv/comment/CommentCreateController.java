@@ -15,14 +15,16 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.comment.CommentCreateRqDTOv1;
 import org.twins.core.dto.rest.comment.CommentCreateRsDTOv1;
 import org.twins.core.mappers.rest.attachment.AttachmentCreateRestDTOReverseMapper;
-import org.twins.core.mappers.rest.comment.CommentCreateRsRestDTOMapper;
 import org.twins.core.mappers.rest.comment.CommentCreateRestDTOReversedMapper;
+import org.twins.core.mappers.rest.comment.CommentCreateRsRestDTOMapper;
 import org.twins.core.service.comment.CommentService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -30,6 +32,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.COMMENT_MANAGE, Permissions.COMMENT_CREATE})
 public class CommentCreateController extends ApiController {
     private final CommentService commentService;
     private final CommentCreateRsRestDTOMapper commentCreateRsRestDTOMapper;

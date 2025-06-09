@@ -2,6 +2,8 @@ package org.twins.core.dao.factory;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -36,14 +38,20 @@ public class TwinFactoryBranchEntity implements EasyLoggable {
     @Column(name = "description")
     private String description;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
     private TwinFactoryEntity factory;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
     private TwinFactoryConditionSetEntity conditionSet;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "next_twin_factory_id", insertable = false, updatable = false, nullable = false)
     private TwinFactoryEntity nextFactory;

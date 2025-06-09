@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -164,17 +165,20 @@ public class TwinClassEntity implements EasyLoggable {
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
     @Deprecated //for specification only
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity nameI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     @Deprecated //for specification only
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity descriptionI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "page_face_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FaceEntity pageFace;
 
 //    @ManyToOne

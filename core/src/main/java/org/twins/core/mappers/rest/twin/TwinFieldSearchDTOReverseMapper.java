@@ -44,6 +44,10 @@ public class TwinFieldSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinFie
             return new TwinFieldSearchId()
                     .setIdList(user.idList())
                     .setIdExcludeList(user.idExcludeList());
+        } else if (twinFieldSearchDTOv1 instanceof TwinFieldSearchUserDTOv1 user) {
+            return new TwinFieldSearchUser()
+                    .setIdList(user.idList())
+                    .setIdExcludeList(user.idExcludeList());
         } else if (twinFieldSearchDTOv1 instanceof TwinFieldSearchNumericDTOv1 numeric) {
             Double less = null;
             Double more = null;

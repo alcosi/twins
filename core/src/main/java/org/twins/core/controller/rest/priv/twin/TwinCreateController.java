@@ -11,10 +11,14 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.twinoperation.TwinCreate;
@@ -26,6 +30,7 @@ import org.twins.core.mappers.rest.twin.TwinCreateRqRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinCreateRsRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapper;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
 
@@ -37,6 +42,7 @@ import java.util.Map;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_CREATE})
 public class TwinCreateController extends ApiController {
     private final AuthService authService;
     private final TwinService twinService;

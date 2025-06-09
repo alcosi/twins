@@ -2,6 +2,8 @@ package org.twins.core.dao.datalist;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 
@@ -21,10 +23,14 @@ public class DataListSubsetOptionEntity {
     @Column(name = "data_list_option_id")
     private UUID dataListOptionId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "data_list_subset_id", insertable = false, updatable = false)
     private DataListSubsetEntity dataListSubset;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "data_list_option_id", insertable = false, updatable = false)
     private DataListOptionEntity dataListOption;

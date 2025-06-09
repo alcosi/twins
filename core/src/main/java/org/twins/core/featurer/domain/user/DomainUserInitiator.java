@@ -6,6 +6,7 @@ import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.domain.DomainUserRepository;
 import org.twins.core.domain.twinoperation.TwinDuplicate;
@@ -29,6 +30,7 @@ public abstract class DomainUserInitiator extends FeaturerTwins {
     @Autowired
     private TwinService twinService;
 
+    @Transactional(rollbackFor = Throwable.class)
     public void init(HashMap<String, String> initiatorParams, DomainUserEntity domainUserEntity) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, initiatorParams, new HashMap<>());
         init(properties, domainUserEntity);
@@ -37,6 +39,7 @@ public abstract class DomainUserInitiator extends FeaturerTwins {
     }
 
     protected abstract void init(Properties properties, DomainUserEntity domainUserEntity) throws ServiceException;
+
 
     protected void postInit(Properties properties, DomainUserEntity domainUserEntity) throws ServiceException {
         if (domainUserEntity.getDomain().getDomainUserTemplateTwinId() != null) {

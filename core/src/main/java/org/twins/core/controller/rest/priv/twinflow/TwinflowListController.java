@@ -20,6 +20,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dto.rest.twinflow.TwinflowSearchRqDTOv1;
@@ -29,12 +30,14 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinflow.TwinflowBaseV3RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowSearchRestDTOReverseMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowSearchService;
 
 @Tag(name = ApiTag.TWINFLOW)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TWINFLOW_MANAGE, Permissions.TWINFLOW_VIEW})
 public class TwinflowListController extends ApiController {
     private final TwinflowSearchService twinflowSearchService;
     private final TwinflowBaseV3RestDTOMapper twinflowBaseV3RestDTOMapper;

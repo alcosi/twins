@@ -4,13 +4,14 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.service.SystemEntityService;
@@ -72,12 +73,14 @@ public class TwinClassFieldEntity implements EasyLoggable {
 
     @Deprecated //for specification only
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
     private I18nEntity nameI18n;
 
     @Deprecated //for specification only
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     private I18nEntity descriptionI18n;
@@ -87,10 +90,14 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @JoinColumn(name = "field_typer_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity fieldTyperFeaturer;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "view_permission_id", insertable = false, updatable = false)
     private PermissionEntity viewPermission;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "edit_permission_id", insertable = false, updatable = false)
     private PermissionEntity editPermission;

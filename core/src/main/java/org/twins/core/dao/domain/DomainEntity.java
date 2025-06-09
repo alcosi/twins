@@ -132,27 +132,38 @@ public class DomainEntity implements EasyLoggable {
     @Convert(converter = DomainTypeConverter.class)
     private DomainType domainType;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_light_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconLightResource;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_dark_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconDarkResource;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attachments_storage_id", insertable = false, updatable = false)
     private StorageEntity attachmentsStorage;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resources_storage_id", insertable = false, updatable = false)
     private StorageEntity resourcesStorage;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "navbar_face_id", insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
     private FaceEntity navbarFace;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "identity_provider_id", insertable = false, updatable = false)
     private IdentityProviderEntity identityProvider;

@@ -5,14 +5,15 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.featurer.linker.Linker;
@@ -79,15 +80,17 @@ public class LinkEntity implements EasyLoggable {
     private UserEntity createdByUser;
 
     @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "forward_name_i18n_id", insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
     private I18nEntity forwardNameI18n;
 
     @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "backward_name_i18n_id", insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
     private I18nEntity backwardNameI18n;
 
     @Column(name = "linker_featurer_id")

@@ -11,11 +11,14 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountRepository;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountUserRepository;
 import org.twins.core.dao.domain.DomainUserEntity;
+import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
+import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
@@ -60,6 +63,7 @@ public class BusinessAccountService extends EntitySecureFindServiceImpl<Business
         return true;
     }
 
+    @Transactional(rollbackFor = Throwable.class)
     public BusinessAccountEntity addBusinessAccount(UUID businessAccountId, String name, EntitySmartService.SaveMode entityCreateMode) throws ServiceException {
         BusinessAccountEntity businessAccountEntity = new BusinessAccountEntity()
                 .setId(businessAccountId)
@@ -67,7 +71,13 @@ public class BusinessAccountService extends EntitySecureFindServiceImpl<Business
                 .setCreatedAt(Timestamp.from(Instant.now()));
         EntitySmartService.SaveResult<BusinessAccountEntity> saveResult = entitySmartService.saveWithResult(businessAccountId, businessAccountEntity, businessAccountRepository, entityCreateMode);
         if (saveResult.isWasCreated()) {
-            twinService.duplicateTwin(systemEntityService.getTwinIdTemplateForBusinessAccount(), businessAccountEntity.getId());
+            if (!authService.getApiUser().isBusinessAccountSpecified()) {
+                authService.getApiUser()
+                        .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId)) // welcome to new BA
+                        .setCheckMembershipMode(false); // BA is just created, so no sense to check BA - User membership
+            }
+            TwinDuplicate twinDuplicate = twinService.createDuplicateTwin(systemEntityService.getTwinIdTemplateForBusinessAccount(), businessAccountEntity.getId());
+            twinService.saveDuplicateTwin(twinDuplicate);
         }
         return saveResult.getSavedEntity();
     }

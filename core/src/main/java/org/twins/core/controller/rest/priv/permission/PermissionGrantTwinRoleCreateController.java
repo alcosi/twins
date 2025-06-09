@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.permission.PermissionGrantTwinRoleEntity;
 import org.twins.core.dto.rest.permission.PermissionGrantTwinRoleCreateRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGrantTwinRoleRsDTOv1;
@@ -26,11 +27,13 @@ import org.twins.core.mappers.rest.permission.PermissionGrantTwinRoleCreateDTORe
 import org.twins.core.mappers.rest.permission.PermissionGrantTwinRoleRestDTOMapperV2;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantTwinRoleService;
+import org.twins.core.service.permission.Permissions;
 
-@Tag(description = "", name = ApiTag.PERMISSION)
+@Tag(description = "Create permission grant twin role", name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.PERMISSION_GRANT_TWIN_ROLE_MANAGE, Permissions.PERMISSION_GRANT_TWIN_ROLE_CREATE})
 public class PermissionGrantTwinRoleCreateController extends ApiController {
     private final PermissionGrantTwinRoleService permissionGrantTwinRoleService;
     private final PermissionGrantTwinRoleRestDTOMapperV2 permissionGrantTwinRoleRestDTOMapper;

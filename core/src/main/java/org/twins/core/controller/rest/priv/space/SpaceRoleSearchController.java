@@ -20,6 +20,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dto.rest.space.SpaceRoleSearchRqDTOv1;
@@ -29,12 +30,14 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.space.SpaceRoleDTOMapperV2;
 import org.twins.core.mappers.rest.space.SpaceRoleSearchDTOReverseMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.space.SpaceRoleSearchService;
 
 @Tag(name = ApiTag.SPACE)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.SPACE_ROLE_MANAGE, Permissions.SPACE_ROLE_VIEW})
 public class SpaceRoleSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
