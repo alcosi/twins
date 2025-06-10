@@ -1,6 +1,7 @@
 package org.twins.core.domain.apiuser;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.StringUtils;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Component
 @RequestScope
 @RequiredArgsConstructor
+@Slf4j
 public class UserBusinessAccountResolverAuthToken implements BusinessAccountResolver, UserResolver {
     final HttpRequestService httpRequestService;
     final IdentityProviderService identityProviderService;
@@ -36,6 +38,7 @@ public class UserBusinessAccountResolverAuthToken implements BusinessAccountReso
         if (resolved)
             return;
         String authToken = httpRequestService.getAuthTokenFromRequest();
+        log.info("Auth token: {}", authToken);
         TokenMetaData result = identityProviderService.resolveAuthTokenMetaData(authToken);
         userId = result.getUserId();
         businessAccountId = result.getBusinessAccountId();
