@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.UuidUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
@@ -26,17 +27,25 @@ import java.util.UUID;
 public class ApiUser {
     private DomainEntity domain;
     private BusinessAccountEntity businessAccount;
+    private BusinessAccountEntity machineBusinessAccount;
     private UserEntity user;
+    private UserEntity machineUser;
     private UUID domainId;
     private UUID businessAccountId;
     private UUID userId;
+    private UUID machineBusinessAccountId;
+    private UUID machineUserId;
     private DomainResolver domainResolver;
     private Locale locale;
     private LocaleResolver localeResolver;
     private BusinessAccountResolver businessAccountResolver;
     private UserResolver userResolver;
+    private MachineBusinessAccountResolver machineBusinessAccountResolver;
+    private MachineUserResolver machineUserResolver;
     private Channel channel;
-    public static final UUID NOT_SPECIFIED = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
+    @Getter
+    private ActAsUserStep actAsUserStep = ActAsUserStep.OMITTED;
+    public static final UUID NOT_SPECIFIED = UuidUtils.NULLIFY_MARKER;
 
     @Getter
     private final UUID requestId = UUID.randomUUID();
@@ -55,6 +64,8 @@ public class ApiUser {
     final ApiUserResolverService apiUserResolverService;
 
     public ApiUser setDomainResolver(DomainResolver domainResolver) {
+        // do not change this code, because of security issues
+        // if domain is already resolved, changing resolver should not make any sense
         this.domainResolver = domainResolver;
         if (NOT_SPECIFIED.equals(this.domainId))
             this.domainId = null;
@@ -62,6 +73,8 @@ public class ApiUser {
     }
 
     public ApiUser setBusinessAccountResolver(BusinessAccountResolver businessAccountResolver) {
+        // do not change this code, because of security issues
+        // if businessAccount is already resolved, changing resolver should not make any sense
         this.businessAccountResolver = businessAccountResolver;
         if (NOT_SPECIFIED.equals(this.businessAccountId))
             this.businessAccountId = null;
@@ -69,6 +82,8 @@ public class ApiUser {
     }
 
     public ApiUser setUserResolver(UserResolver userResolver) {
+        // do not change this code, because of security issues
+        // if user is already resolved, changing resolver should not make any sense
         this.userResolver = userResolver;
         if (NOT_SPECIFIED.equals(this.userId))
             this.userId = null;
@@ -120,6 +135,15 @@ public class ApiUser {
         return user;
     }
 
+    public UserEntity getMachineUser() throws ServiceException {
+        if (machineUser != null)
+            return machineUser;
+        loadDBU();
+        if (machineUser == null)
+            throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN);
+        return machineUser;
+    }
+
     private void resolveLocale() {
         if (locale != null)
             return;
@@ -152,7 +176,7 @@ public class ApiUser {
         if (businessAccountId != null)
             return;
         if (businessAccountResolver == null)
-            businessAccountResolver = apiUserResolverService.getUserBusinessAccountResolverAuthToken();
+            businessAccountResolver = apiUserResolverService.getMainResolverAuthToken();
         try {
             businessAccountId = businessAccountResolver.resolveCurrentBusinessAccountId();
         } catch (ServiceException e) {
@@ -163,15 +187,41 @@ public class ApiUser {
             businessAccountId = NOT_SPECIFIED;
     }
 
+    private void resolveMachineBusinessAccountId() {
+        if (machineBusinessAccountId != null)
+            return;
+        if (machineBusinessAccountResolver == null)
+            machineBusinessAccountResolver = apiUserResolverService.getMainResolverAuthToken();
+        try {
+            machineBusinessAccountId = machineBusinessAccountResolver.resolveMachineBusinessAccountId();
+        } catch (ServiceException e) {
+            log.error("Resolve machine businessAccountId exception:", e);
+        }
+        log.info("resolved machineBusinessAccountId[{}]", machineBusinessAccountId);
+        if (machineBusinessAccountId == null)
+            machineBusinessAccountId = NOT_SPECIFIED;
+    }
+
     private void resolveUserId() throws ServiceException {
         if (userId != null)
             return;
         if (userResolver == null)
-            userResolver = apiUserResolverService.getUserBusinessAccountResolverAuthToken();
+            userResolver = apiUserResolverService.getMainResolverAuthToken();
         userId = userResolver.resolveCurrentUserId();
         log.info("resolved userId[{}]", userId);
         if (userId == null)
             userId = NOT_SPECIFIED;
+    }
+
+    private void resolveMachineUserId() throws ServiceException {
+        if (machineUserId != null)
+            return;
+        if (machineUserResolver == null)
+            machineUserResolver = apiUserResolverService.getMainResolverAuthToken();
+        machineUserId = machineUserResolver.resolveCurrentMachineUserId();
+        log.info("resolved machineUserId[{}]", machineUserId);
+        if (machineUserId == null)
+            machineUserId = NOT_SPECIFIED;
     }
 
     //this method only indicates that we have some data about domain id, but it's unchecked
@@ -198,6 +248,14 @@ public class ApiUser {
         return userId != null && !NOT_SPECIFIED.equals(userId);
     }
 
+    //this method only indicates that we have some data about domain id, but it's unchecked
+    public boolean isMachineUserSpecified() throws ServiceException {
+        if (machineUser != null)
+            return true;
+        resolveMachineUserId();
+        return machineUserId != null && !NOT_SPECIFIED.equals(machineUserId);
+    }
+
     public UUID getDomainId() throws ServiceException {
         if (isDomainSpecified())
             return getDomain().getId();
@@ -216,6 +274,12 @@ public class ApiUser {
         return null;
     }
 
+    public UUID getMachineUserId() throws ServiceException {
+        if (isMachineUserSpecified())
+            return getMachineUser().getId();
+        return null;
+    }
+
     /**
      * DBU
      * D - domain
@@ -229,7 +293,16 @@ public class ApiUser {
         resolveDomainId();
         resolveBusinessAccountId();
         resolveUserId();
-
+        resolveMachineUserId();
+        resolveMachineBusinessAccountId();
+        if (machineUserId != null && !NOT_SPECIFIED.equals(machineUserId)) {
+            ApiUserResolverService.DBU dbu = new ApiUserResolverService.DBU(domain, machineBusinessAccount, machineUser); //all args can be null
+            apiUserResolverService.loadDBU(domainId, machineBusinessAccountId, machineUserId, dbu, checkMembershipMode);
+            domain = dbu.getDomain();
+            machineBusinessAccount = dbu.getBusinessAccount();
+            machineUser = dbu.getUser();
+            setActAsUserStep(ActAsUserStep.PERMISSION_CHECK_NEEDED);
+        }
         ApiUserResolverService.DBU dbu = new ApiUserResolverService.DBU(domain, businessAccount, user); //all args can be null
         apiUserResolverService.loadDBU(domainId, businessAccountId, userId, dbu, checkMembershipMode);
         domain = dbu.getDomain();
@@ -260,5 +333,22 @@ public class ApiUser {
                 .setUserResolver(new UserResolverNotSpecified())
                 .setLocaleResolver(new LocaleResolverEnglish())
                 .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
+    }
+
+    public void setActAsUserStep(ActAsUserStep nextActAsUserStep) throws ServiceException {
+        if (nextActAsUserStep.step == (actAsUserStep.step + 1)) {
+            actAsUserStep = nextActAsUserStep;
+        }
+        // log or throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION);
+    }
+
+    @RequiredArgsConstructor
+    public enum ActAsUserStep {
+        OMITTED(0),
+        PERMISSION_CHECK_NEEDED(1),
+        USER_GROUP_INVOLVE_NEEDED(2),
+        READY(3);
+
+        final int step;
     }
 }

@@ -14,10 +14,12 @@ import java.util.UUID;
 @Component
 @RequestScope
 @RequiredArgsConstructor
-public class UserBusinessAccountResolverAuthToken implements BusinessAccountResolver, UserResolver {
+public class MainResolverAuthToken implements BusinessAccountResolver, UserResolver, MachineUserResolver, MachineBusinessAccountResolver {
     final HttpRequestService httpRequestService;
     final IdentityProviderService identityProviderService;
     private UUID userId;
+    private UUID machineUserId;
+    private UUID machineBusinessAccountId;
     private UUID businessAccountId;
     private boolean resolved = false;
     @Override
@@ -32,21 +34,35 @@ public class UserBusinessAccountResolverAuthToken implements BusinessAccountReso
         return userId;
     }
 
+    @Override
+    public UUID resolveCurrentMachineUserId() throws ServiceException {
+        resolve();
+        return machineUserId;
+    }
+
+    @Override
+    public UUID resolveMachineBusinessAccountId() throws ServiceException {
+        resolve();
+        return machineBusinessAccountId;
+    }
+
     public void resolve() throws ServiceException {
         if (resolved)
             return;
         String authToken = httpRequestService.getAuthTokenFromRequest();
         TokenMetaData result = identityProviderService.resolveAuthTokenMetaData(authToken);
-        userId = result.getUserId();
-        businessAccountId = result.getBusinessAccountId();
-        resolved = true;
         String actAsUserHeader = httpRequestService.getActAsUserFromRequest();
         if (StringUtils.isEmpty(actAsUserHeader)) {
-            return;
+            userId = result.getUserId();
+            businessAccountId = result.getBusinessAccountId();
+        } else {
+            ActAsUser actAsUser = identityProviderService.resolveActAsUser(actAsUserHeader);
+            //todo check permission to act as user
+            machineUserId = result.getUserId();
+            machineBusinessAccountId = result.getBusinessAccountId();
+            userId = actAsUser.getUserId();
+            businessAccountId = actAsUser.getBusinessAccountId();
         }
-        ActAsUser actAsUser = identityProviderService.resolveActAsUser(actAsUserHeader);
-        //todo check permission to act as user
-        userId = actAsUser.getUserId();
-        businessAccountId = actAsUser.getBusinessAccountId();
+        resolved = true;
     }
 }
