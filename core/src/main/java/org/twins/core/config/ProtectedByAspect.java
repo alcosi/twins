@@ -7,6 +7,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
@@ -32,7 +33,7 @@ public class ProtectedByAspect {
         Method method = signature.getMethod();
         ProtectedBy annotation = resolveAnnotation(method);
         if (annotation != null) {
-            List<Permissions> requiredButAbsentPermissions = getRequiredButAbsentPermissions(annotation.value());
+            List<Permissions> requiredButAbsentPermissions = getRequiredButAbsentPermissions(annotation.value(), annotation.anyOf());
             if (!requiredButAbsentPermissions.isEmpty()) {
                 String noPermissionNames = requiredButAbsentPermissions.stream().map(Permissions::name).collect(Collectors.joining(","));
                 log.warn("Access denied: User does not have any of the required permissions {} for {}", noPermissionNames, method);
@@ -43,15 +44,17 @@ public class ProtectedByAspect {
     }
 
     @NotNull
-    private List<Permissions> getRequiredButAbsentPermissions(Permissions[] requiredPermissions) throws ServiceException {
+    private List<Permissions> getRequiredButAbsentPermissions(Permissions[] requiredPermissions, boolean anyOf) throws ServiceException {
         if (requiredPermissions == null || requiredPermissions.length == 0) {
-            return new ArrayList<>();
+            return List.of();
         }
-        List<Permissions> requiredButAbsentPermissions = new ArrayList<>();
+        List<Permissions> requiredButAbsentPermissions = null;
         try {
             for (Permissions permission : requiredPermissions) {
                 if (!permissionService.currentUserHasPermission(permission)) {
-                    requiredButAbsentPermissions.add(permission);
+                    requiredButAbsentPermissions = CollectionUtils.safeAdd(requiredButAbsentPermissions, permission);
+                } else if (anyOf) {
+                    return List.of();
                 }
             }
         } catch (Throwable e) {

@@ -33,13 +33,13 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.USER_PERMISSION_VIEW)
 public class UserPermissionListController extends ApiController {
     private final PermissionRestDTOMapperV2 permissionRestDTOMapperV2;
     private final PermissionGroupWithGroupRestDTOMapper permissionGroupWithGroupRestDTOMapper;
     private final PermissionService permissionService;
     private final UserService userService;
 
+    @ProtectedBy(Permissions.USER_PERMISSION_VIEW)
     @ParametersApiUserHeaders
     @Operation(operationId = "userPermissionListV1", summary = "Returns permission list for selected user")
     @ApiResponses(value = {
@@ -85,6 +85,7 @@ public class UserPermissionListController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
+    @ProtectedBy(Permissions.USER_PERMISSION_VIEW)
     @ParametersApiUserHeaders
     @Operation(operationId = "userPermissionGroupedListV1", summary = "Returns grouped permission list for selected user")
     @ApiResponses(value = {
