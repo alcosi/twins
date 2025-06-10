@@ -8,14 +8,17 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.apiuser.LocaleResolverEnglish;
@@ -24,6 +27,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.domain.DomainBusinessAccountAddRqDTOv1;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.domain.DomainBusinessAccountService;
 
 import java.util.UUID;
@@ -36,6 +40,9 @@ public class DomainBusinessAccountAddController extends ApiController {
     private final DomainBusinessAccountService domainBusinessAccountService;
     private final AuthService authService;
     private final UserResolverSystem userResolverSystem;
+
+    @Value("${api.unsecured.enable}")
+    private boolean apiUnsecuredEnabled;
 
     @Deprecated
     @ParameterChannelHeader
@@ -52,6 +59,8 @@ public class DomainBusinessAccountAddController extends ApiController {
             @RequestBody DomainBusinessAccountAddRqDTOv1 request) {
         Response rs = new Response();
         try {
+            if (!apiUnsecuredEnabled)
+                throw new ServiceException(ErrorCodeCommon.FORBIDDEN);
             authService.getApiUser()
                     .setDomainResolver(new DomainResolverGivenId(domainId))
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(request.getBusinessAccountId()))

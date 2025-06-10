@@ -8,7 +8,7 @@
 package org.twins.core.config;
 
 
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -19,9 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-
 import org.springframework.cache.CacheManager;
-
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
@@ -38,6 +36,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 import org.twins.core.config.filter.LoggingFilter;
+import org.twins.core.config.filter.UncaughtExceptionFilter;
 
 import javax.sql.DataSource;
 import java.util.concurrent.TimeUnit;
@@ -85,6 +84,11 @@ public class ApplicationConfig {
         return new LoggingFilter();
     }
 
+    @Order(2)
+    @Bean(name = "uncaughtExceptionFilter", value = "uncaughtExceptionFilter")
+    public UncaughtExceptionFilter uncaughtExceptionFilter(UncaughtExceptionFilter.LoggingController controller, ObjectMapper objectMapper) {
+        return new UncaughtExceptionFilter(controller, objectMapper);
+    }
     /**
      * Configures a MeterRegistry with common tags applied to all metrics.
      * This method customizes the MeterRegistry by adding a common tag
