@@ -90,6 +90,20 @@ public class ApiUser {
         return this;
     }
 
+    public ApiUser setMachineUserResolver(MachineUserResolver machineUserResolver) {
+        this.machineUserResolver = machineUserResolver;
+        if (NOT_SPECIFIED.equals(this.machineUserId))
+            this.machineUserId = null;
+        return this;
+    }
+
+    public ApiUser setMachineBusinessAccountResolver(MachineBusinessAccountResolver machineBusinessAccountResolver) {
+        this.machineBusinessAccountResolver = machineBusinessAccountResolver;
+        if (NOT_SPECIFIED.equals(this.machineBusinessAccountId))
+            this.machineBusinessAccountId = null;
+        return this;
+    }
+
     public ApiUser setLocaleResolver(LocaleResolver localeResolver) {
         this.localeResolver = localeResolver;
         return this;
