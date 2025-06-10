@@ -1,6 +1,7 @@
 package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
@@ -14,7 +15,7 @@ import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 
-
+@Slf4j
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = TwinClassMode.class)
@@ -24,10 +25,13 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
 
     @Override
     public void map(TwinClassEntity src, TwinClassBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
+        if (mapperContext.hasMode(TwinClassMode.MANAGED) && !permissionService.currentUserHasPermission(Permissions.TWIN_CLASS_MANAGE)) {
+            log.warn("Show Mode [{}] is not allowed for current user", TwinClassMode.MANAGED);
+            mapperContext.setMode(TwinClassMode.DETAILED);
+        }
+
         switch (mapperContext.getModeOrUse(TwinClassMode.DETAILED)) {
             case MANAGED:
-                if (!permissionService.currentUserHasPermission(Permissions.TWIN_CLASS_MANAGE))
-                    throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + TwinClassMode.MANAGED + "] is not allowed for current user");
                 dst
                         .setId(src.getId())
                         .setKey(src.getKey())
