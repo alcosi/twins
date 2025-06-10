@@ -2,8 +2,8 @@ package org.twins.face.mappers.rest.twidget.tw004;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.face.TwidgetConfig;
+import org.twins.face.domain.twidget.tw004.FaceTW004TwinClassField;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceTwidgetRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -24,7 +24,7 @@ public class FaceTW004v2RestDTOMapper extends RestSimpleDTOMapper<TwidgetConfig<
     @Override
     public void map(TwidgetConfig<FaceTW004Entity> src, FaceTW004DTOv2 dst, MapperContext mapperContext) throws Exception {
         faceTwidgetRestDTOMapper.map(src, dst, mapperContext);
-        List<TwinClassFieldEntity> fields = faceTW004Service.loadFields(src.getTargetTwin().getTwinClassId(), src.getConfig());
+        List<FaceTW004TwinClassField> fields = faceTW004Service.loadFields(src.getTargetTwin().getTwinClassId(), src);
         dst.setFields(faceTW004v2FieldRestDTOMapper.convertCollection(fields));
     }
 }
