@@ -14,7 +14,6 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 
 import java.util.Properties;
-import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -22,16 +21,13 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_3602,
         name = "Filter field by twin status ids",
         description = "")
-public class FieldFilterStatus extends FieldFilter {
+public class FieldFilterInStatus extends FieldFilter {
     @FeaturerParam(name = "Status ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
-    @FeaturerParam(name = "Exclude", description = "", order = 2)
-    public static final FeaturerParamBoolean exclude = new FeaturerParamBoolean("exclude");
-
     @Override
     public void filterFields(Properties properties, Kit<TwinClassFieldEntity, UUID> fieldsKit, TwinEntity twin) throws ServiceException {
-        if (statusIds.extract(properties).contains(twin.getTwinStatusId()) == exclude.extract(properties)) {
+        if (statusIds.extract(properties).contains(twin.getTwinStatusId())) {
             fieldsKit.clear();
         }
     }
