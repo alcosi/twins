@@ -27,7 +27,6 @@ public class FieldFilterGiven extends FieldFilter {
 
     @Override
     public void filterFields(Properties properties, Kit<TwinClassFieldEntity, UUID> fieldsKit, TwinEntity twin) throws ServiceException {
-        Set<UUID> idsToRemove = filteredFieldIds.extract(properties);
-        fieldsKit.removeIf(field -> idsToRemove.contains(field.getId()));
+        fieldsKit.removeIf(field -> filteredFieldIds.extract(properties).contains(field.getId()));
     }
 }
