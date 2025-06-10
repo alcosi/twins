@@ -43,6 +43,8 @@ public class ApiUser {
     private MachineBusinessAccountResolver machineBusinessAccountResolver;
     private MachineUserResolver machineUserResolver;
     private Channel channel;
+    @Getter
+    private ActAsUserStep actAsUserStep = ActAsUserStep.OMITTED;
     public static final UUID NOT_SPECIFIED = UuidUtils.NULLIFY_MARKER;
 
     @Getter
@@ -299,7 +301,7 @@ public class ApiUser {
             domain = dbu.getDomain();
             machineBusinessAccount = dbu.getBusinessAccount();
             machineUser = dbu.getUser();
-            //todo check that act-as is allowed for this machine user
+            setActAsUserStep(ActAsUserStep.PERMISSION_CHECK_NEEDED);
         }
         ApiUserResolverService.DBU dbu = new ApiUserResolverService.DBU(domain, businessAccount, user); //all args can be null
         apiUserResolverService.loadDBU(domainId, businessAccountId, userId, dbu, checkMembershipMode);
@@ -331,5 +333,22 @@ public class ApiUser {
                 .setUserResolver(new UserResolverNotSpecified())
                 .setLocaleResolver(new LocaleResolverEnglish())
                 .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
+    }
+
+    public void setActAsUserStep(ActAsUserStep nextActAsUserStep) throws ServiceException {
+        if (nextActAsUserStep.step == (actAsUserStep.step + 1)) {
+            actAsUserStep = nextActAsUserStep;
+        }
+        // log or throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION);
+    }
+
+    @RequiredArgsConstructor
+    public enum ActAsUserStep {
+        OMITTED(0),
+        PERMISSION_CHECK_NEEDED(1),
+        USER_GROUP_INVOLVE_NEEDED(2),
+        READY(3);
+
+        final int step;
     }
 }

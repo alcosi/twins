@@ -71,7 +71,6 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
     public void loadGroups(Collection<UserEntity> userEntityList) throws ServiceException {
         Kit<UserEntity, UUID> needLoad = new Kit<>(UserEntity::getId);
         ApiUser apiUser = authService.getApiUser();
-        boolean actAsUserInvolving = apiUser.getUser().getUserGroups() == null && apiUser.isMachineUserSpecified();
         for (UserEntity userEntity : userEntityList) {
             if (userEntity.getUserGroups() == null) {
                 userEntity.setUserGroups(new Kit<>(UserGroupEntity::getId));
@@ -95,23 +94,24 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
                         needLoad.get(userGroupMap.getUserId()).getUserGroups().add(userGroupMap.getUserGroup());
                 }
         }
-        if (actAsUserInvolving) {
-            userGroupsForActAsUserInvolve();
-        }
+        userGroupsForActAsUserInvolve();
     }
 
     private void userGroupsForActAsUserInvolve() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if (!apiUser.isMachineUserSpecified()) {
+        if (apiUser.getActAsUserStep() != ApiUser.ActAsUserStep.USER_GROUP_INVOLVE_NEEDED) {
             return;
         }
         UserEntity actAsUser = apiUser.getUser();
         List<UserGroupActAsUserInvolveEntity> actAsUserInvolveList = actAsUserInvolveRepository.findByMachineUserIdAndDomainId(apiUser.getMachineUserId(), apiUser.getDomainId());
         if (CollectionUtils.isEmpty(actAsUserInvolveList)) {
-            log.debug("Current machine user has not act as user involve");
+            log.info("Current machine user has not act as user involve");
             return;
         }
-        actAsUser.getUserGroups().addAll(actAsUserInvolveList.stream().map(UserGroupActAsUserInvolveEntity::getInvolveInUserGroup).toList());
+        List<UserGroupEntity> involvedInGroups = actAsUserInvolveList.stream().map(UserGroupActAsUserInvolveEntity::getInvolveInUserGroup).toList();
+        actAsUser.getUserGroups().addAll(involvedInGroups);
+        log.info("Act-as-user was involved into: {}", involvedInGroups.size());
+        apiUser.setActAsUserStep(ApiUser.ActAsUserStep.READY);
     }
 
     public void enterGroups(Set<UUID> userGroupIds) throws ServiceException {
