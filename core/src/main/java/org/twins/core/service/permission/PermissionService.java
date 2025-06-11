@@ -438,16 +438,26 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return permissionSchemaId;
     }
 
-    public boolean currentUserHasPermission(UUID permissionId) throws ServiceException {
+    public boolean currentUserHasPermission(boolean anyOf, Permissions... permissions) throws ServiceException {
+        if (permissions == null || permissions.length == 0)
+            return false;
+
+        List<UUID> ids = Arrays.stream(permissions)
+                .map(Permissions::getId)
+                .toList();
+
         ApiUser apiUser = authService.getApiUser();
         if (!apiUser.isUserSpecified())
             return false;
+
         loadUserPermissions(apiUser.getUser());
-        return apiUser.getUser().getPermissions().contains(permissionId);
+        return anyOf 
+            ? apiUser.getUser().getPermissions().stream().anyMatch(ids::contains)
+            : apiUser.getUser().getPermissions().containsAll(ids);
     }
 
-    public boolean currentUserHasPermission(Permissions permission) throws ServiceException {
-        return currentUserHasPermission(permission.getId());
+    public boolean currentUserHasPermission(Permissions... permissions) throws ServiceException {
+        return currentUserHasPermission(true, permissions);
     }
 
     public void loadCurrentUserPermissions() throws ServiceException {

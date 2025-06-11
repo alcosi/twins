@@ -25,13 +25,16 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.domain.DomainUserSearchRqDTOv1;
 import org.twins.core.dto.rest.domain.DomainUserSearchRsDTOv1;
 import org.twins.core.dto.rest.domain.DomainUserViewRsDTOv1;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.domain.DomainUserRestDTOMapperV2;
 import org.twins.core.mappers.rest.domain.DomainUserSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainUserSearchService;
 import org.twins.core.service.domain.DomainUserService;
+import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
@@ -47,6 +50,8 @@ public class DomainUserSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final DomainUserService domainUserService;
+    private final AuthService authService;
+    private final PermissionService permissionService;
 
     @ProtectedBy({Permissions.DOMAIN_USER_MANAGE, Permissions.DOMAIN_USER_VIEW})
     @ParametersApiUserHeaders
@@ -77,7 +82,7 @@ public class DomainUserSearchController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
-    @ProtectedBy({Permissions.DOMAIN_USER_MANAGE, Permissions.DOMAIN_USER_VIEW})
+
     @ParametersApiUserHeaders
     @Operation(operationId = "domainUserViewV1", summary = "Return the user by id")
     @ApiResponses(value = {
@@ -91,6 +96,11 @@ public class DomainUserSearchController extends ApiController {
             @Parameter(example = DTOExamples.USER_ID) @PathVariable("userId") UUID userId) {
         DomainUserViewRsDTOv1 rs = new DomainUserViewRsDTOv1();
         try {
+            if (!userId.equals(authService.getApiUser().getUserId())
+                    && permissionService.currentUserHasPermission(Permissions.DOMAIN_USER_MANAGE, Permissions.DOMAIN_USER_VIEW)) {
+                throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "User does not have required permissions ["
+                        + Permissions.DOMAIN_USER_MANAGE.name() + "] or [" + Permissions.DOMAIN_USER_VIEW.name() + "]");
+            }
             DomainUserEntity domainUser = domainUserService.findByUserId(userId);
             rs
                     .setUser(domainUserRestDTOMapperV2.convert(domainUser, mapperContext))
