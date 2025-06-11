@@ -440,8 +440,8 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     }
 
     public void checkUserIsCurrentOrHasPermission(UUID userId, boolean anyOf, Permissions... permissions) throws ServiceException {
-        if (!userId.equals(authService.getApiUser().getUserId())) {
-            throw new ServiceException(ErrorCodeTwins.USER_REQUEST_DENIED, "This request allowed only for user with id[" + authService.getApiUser().getUserId() + "]");
+        if (userId.equals(authService.getApiUser().getUserId())) {
+            return;
         }
         Set<UUID> permissionIds = Arrays.stream(permissions)
                 .map(Permissions::getId)

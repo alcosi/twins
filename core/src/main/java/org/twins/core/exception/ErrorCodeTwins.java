@@ -16,7 +16,6 @@ public enum ErrorCodeTwins implements ErrorCode {
     UUID_IS_NULL(10005, "uuid is null"),
     USER_UNKNOWN(10101, "unknown user"),
     USER_LOCALE_UNKNOWN(10102, "unknown locale"),
-    USER_REQUEST_DENIED(10103, "The current user cannot configure this request"),
     DOMAIN_UNKNOWN(10201, "unknown domain"),
     DOMAIN_TYPE_UNSUPPORTED(10202, "domain type unsupported"),
     DOMAIN_KEY_INCORRECT(10203, "domain key is incorrect"),
