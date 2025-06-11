@@ -22,7 +22,9 @@ import org.twins.core.dao.user.UserEmailVerificationRepository;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserStatus;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.apiuser.*;
+import org.twins.core.domain.apiuser.ActAsUser;
+import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
+import org.twins.core.domain.apiuser.UserResolverGivenId;
 import org.twins.core.domain.auth.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.identityprovider.ClientLogoutData;
@@ -100,9 +102,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         TokenMetaData tokenMetaData = resolveAuthTokenMetaData(clientSideAuthData.getAuthToken());
         authService.getApiUser()
                 .setUserResolver(new UserResolverGivenId(tokenMetaData.getUserId()))
-                .setBusinessAccountResolver(new BusinessAccountResolverGivenId(tokenMetaData.getBusinessAccountId()))
-                .setMachineUserResolver(MachineUserResolverNotSpecified.instance)
-                .setMachineBusinessAccountResolver(MachineBusinessAccountResolverNotSpecified.instance);
+                .setBusinessAccountResolver(new BusinessAccountResolverGivenId(tokenMetaData.getBusinessAccountId()));
         if (authService.getApiUser().getDomain().getDomainType() == DomainType.b2b && tokenMetaData.getBusinessAccountId() == null) {
             //looks like we need to switch active BA
 

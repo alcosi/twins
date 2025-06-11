@@ -5,6 +5,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.identityprovider.TokenMetaData;
 import org.twins.core.service.HttpRequestService;
 import org.twins.core.service.auth.IdentityProviderService;
@@ -36,13 +37,25 @@ public class MainResolverAuthToken implements BusinessAccountResolver, UserResol
 
     @Override
     public UUID resolveCurrentMachineUserId() throws ServiceException {
-        resolve();
+        if (machineUserId != null)
+            return machineUserId;
+        if (hasActAsUserHeader()) {
+            resolve();
+        } else {
+            machineUserId = ApiUser.NOT_SPECIFIED;
+        }
         return machineUserId;
     }
 
     @Override
     public UUID resolveMachineBusinessAccountId() throws ServiceException {
-        resolve();
+        if (machineBusinessAccountId != null)
+            return machineBusinessAccountId;
+        if (hasActAsUserHeader()) {
+            resolve();
+        } else {
+            machineBusinessAccountId = ApiUser.NOT_SPECIFIED;
+        }
         return machineBusinessAccountId;
     }
 
@@ -57,12 +70,16 @@ public class MainResolverAuthToken implements BusinessAccountResolver, UserResol
             businessAccountId = result.getBusinessAccountId();
         } else {
             ActAsUser actAsUser = identityProviderService.resolveActAsUser(actAsUserHeader);
-            //todo check permission to act as user
+            //permission to act as user will be checked later
             machineUserId = result.getUserId();
             machineBusinessAccountId = result.getBusinessAccountId();
             userId = actAsUser.getUserId();
             businessAccountId = actAsUser.getBusinessAccountId();
         }
         resolved = true;
+    }
+
+    private boolean hasActAsUserHeader() {
+        return StringUtils.isNotEmpty(httpRequestService.getActAsUserFromRequest());
     }
 }
