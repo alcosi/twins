@@ -57,6 +57,8 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
             dst.setValue(date.getDate());
         } else if (src instanceof FieldValueInvisible) {
             dst.setValue("");
+        } else if (src instanceof FieldValueBoolean fieldValueBoolean) {
+            dst.setValue(String.valueOf(fieldValueBoolean.getValue()));
         } else if (src instanceof FieldValueSelect select) {
             StringJoiner stringJoiner = new StringJoiner(",");
             for (DataListOptionEntity dataListOptionEntity : select.getOptions()) {
