@@ -52,7 +52,7 @@ public class UserPermissionListController extends ApiController {
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
         PermissionListRsDTOv1 rs = new PermissionListRsDTOv1();
         try {
-            permissionService.checkUserIsCurrentAndHasPermission(userId, true, Permissions.USER_PERMISSION_VIEW, Permissions.USER_PERMISSION_MANAGE);
+            permissionService.checkUserIsCurrentOrHasPermission(userId, true, Permissions.USER_PERMISSION_VIEW, Permissions.USER_PERMISSION_MANAGE);
             rs.setPermissions(permissionRestDTOMapperV2.convertCollection(
                     permissionService.findPermissionsForUser(userId).getList(), mapperContext));
         } catch (ServiceException se) {

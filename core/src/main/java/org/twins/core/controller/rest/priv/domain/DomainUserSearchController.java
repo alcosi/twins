@@ -95,7 +95,7 @@ public class DomainUserSearchController extends ApiController {
             @Parameter(example = DTOExamples.USER_ID) @PathVariable("userId") UUID userId) {
         DomainUserViewRsDTOv1 rs = new DomainUserViewRsDTOv1();
         try {
-            permissionService.checkUserIsCurrentAndHasPermission(userId, true, Permissions.DOMAIN_USER_MANAGE, Permissions.DOMAIN_USER_VIEW);
+            permissionService.checkUserIsCurrentOrHasPermission(userId, true, Permissions.DOMAIN_USER_MANAGE, Permissions.DOMAIN_USER_VIEW);
             DomainUserEntity domainUser = domainUserService.findByUserId(userId);
             rs
                     .setUser(domainUserRestDTOMapperV2.convert(domainUser, mapperContext))
