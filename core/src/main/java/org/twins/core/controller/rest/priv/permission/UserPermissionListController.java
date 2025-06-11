@@ -20,7 +20,6 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionGroupedListRsDTOv1;
 import org.twins.core.dto.rest.permission.PermissionListRsDTOv1;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionGroupWithGroupRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapperV2;
@@ -53,7 +52,7 @@ public class UserPermissionListController extends ApiController {
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
         PermissionListRsDTOv1 rs = new PermissionListRsDTOv1();
         try {
-            permissionService.checkCurrentUserHasPermission(userId, true, Permissions.USER_PERMISSION_VIEW, Permissions.USER_PERMISSION_MANAGE);
+            permissionService.checkUserIsCurrentAndHasPermission(userId, true, Permissions.USER_PERMISSION_VIEW, Permissions.USER_PERMISSION_MANAGE);
             rs.setPermissions(permissionRestDTOMapperV2.convertCollection(
                     permissionService.findPermissionsForUser(userId).getList(), mapperContext));
         } catch (ServiceException se) {

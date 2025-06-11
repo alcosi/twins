@@ -439,7 +439,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return permissionSchemaId;
     }
 
-    public void checkCurrentUserHasPermission(UUID userId, boolean anyOf, Permissions... permissions) throws ServiceException {
+    public void checkUserIsCurrentAndHasPermission(UUID userId, boolean anyOf, Permissions... permissions) throws ServiceException {
         Set<UUID> permissionIds = Arrays.stream(permissions)
                 .map(Permissions::getId)
                 .collect(Collectors.toSet());
