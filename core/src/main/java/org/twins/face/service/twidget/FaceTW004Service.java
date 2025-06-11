@@ -65,18 +65,24 @@ public class FaceTW004Service extends FaceTwidgetService<FaceTW004Entity> {
     }
 
     public List<FaceTW004TwinClassField> loadFields(UUID twinClassId, TwidgetConfig<FaceTW004Entity> twidgetConfig) throws ServiceException {
-        FieldFinder fieldFinder = featurerService.getFeaturer(twidgetConfig.getConfig().getFieldFinderFeaturer(), FieldFinder.class);
+        FieldFinder fieldFinder = featurerService.getFeaturer(twidgetConfig.getConfig().getFieldFinderFeaturerId(), FieldFinder.class);
         TwinClassFieldSearch twinClassFieldSearch = fieldFinder.createSearch(twidgetConfig.getConfig().getFieldFinderParams(), twinClassId);
         twinClassFieldSearch.setExcludeSystemFields(false);
         List<TwinClassFieldEntity> fields = twinClassFieldSearchService.findTwinClassField(twinClassFieldSearch, new SimplePagination().setLimit(250).setOffset(0)).getList();
 
-        FieldFilter fieldFilter = featurerService.getFeaturer(twidgetConfig.getConfig().getFieldFilterFeaturer(), FieldFilter.class);
-        Kit<TwinClassFieldEntity, UUID> fieldsKit = fieldFilter.filterFields(twidgetConfig.getConfig().getFieldFilterParams(), fields, twidgetConfig.getTargetTwin());
-        Set<UUID> editableFieldIds = fieldsKit.getIdSetSafe();
+        Set<UUID> editableFieldIds = null;
+
+        if (twidgetConfig.getConfig().getFieldFilterFeaturerId() != null) {
+            FieldFilter fieldFilter = featurerService.getFeaturer(twidgetConfig.getConfig().getFieldFilterFeaturerId(), FieldFilter.class);
+            Kit<TwinClassFieldEntity, UUID> fieldsKit = fieldFilter.filterFields(twidgetConfig.getConfig().getFieldFilterParams(), fields, twidgetConfig.getTargetTwin());
+            editableFieldIds = fieldsKit.getIdSetSafe();
+        }
 
         List<FaceTW004TwinClassField> result = new ArrayList<>(fields.size());
         for (TwinClassFieldEntity field : fields) {
-            result.add(new FaceTW004TwinClassField(field, editableFieldIds.contains(field.getId())));
+            boolean isEditable = editableFieldIds == null || editableFieldIds.contains(field.getId());
+
+            result.add(new FaceTW004TwinClassField(field, isEditable));
         }
         return result;
     }

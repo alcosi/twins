@@ -28,19 +28,15 @@ public class FaceTW004Entity implements EasyLoggable, FaceTwidget {
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     private FaceEntity face;
 
-    @FeaturerList(type = FieldFinder.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "field_finder_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity fieldFinderFeaturer;
+    @Column(name = "field_finder_featurer_id", insertable = false, updatable = false)
+    private Integer fieldFinderFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "field_finder_params", columnDefinition = "hstore")
     private HashMap<String, String> fieldFinderParams;
 
-    @FeaturerList(type = FieldFinder.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "field_filter_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity fieldFilterFeaturer;
+    @Column(name = "field_filter_featurer_id", insertable = false, updatable = false)
+    private Integer fieldFilterFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "field_filter_params", columnDefinition = "hstore")
