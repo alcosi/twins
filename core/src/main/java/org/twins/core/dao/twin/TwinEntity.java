@@ -178,6 +178,13 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    private Collection<TwinFieldBooleanEntity> fieldsBoolean;
+
+    //needed for specification
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
     private Collection<TwinFieldDataListEntity> fieldsList;
 
     //needed for specification
@@ -248,6 +255,10 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
     @Transient
     @EqualsAndHashCode.Exclude
     private KitGrouped<TwinFieldI18nEntity, UUID, UUID> twinFieldI18nKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinFieldBooleanEntity, UUID> twinFieldBooleanKit;
 
     /*
      we have to use TwinClassFieldId as key, not id. Also, multiple values supported, that is why kit inside a ki
