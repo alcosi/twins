@@ -18,13 +18,13 @@ import java.util.UUID;
         description = "Filter class fields")
 @Slf4j
 public abstract class FieldFilter extends FeaturerTwins {
-    public  Kit<TwinClassFieldEntity, UUID> filterFields(HashMap<String, String> fieldFilterParams, List<TwinClassFieldEntity> fields, TwinEntity twin) throws ServiceException {
+    public Kit<TwinClassFieldEntity, UUID> filterFields(HashMap<String, String> fieldFilterParams, List<TwinClassFieldEntity> fields, TwinEntity twin) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, fieldFilterParams, new HashMap<>());
         log.info("Running featurer[{}].filterFields with params: {}", this.getClass().getSimpleName(), properties.toString());
-        Kit<TwinClassFieldEntity, UUID> fieldsKit = new Kit<>(fields, TwinClassFieldEntity::getId);
-        filterFields(properties, fieldsKit, twin);
+        Kit<TwinClassFieldEntity, UUID> fieldsKit = new Kit<>(TwinClassFieldEntity::getId);
+        filterFields(properties, fieldsKit, twin, fields);
         return fieldsKit;
     }
 
-    public abstract void filterFields(Properties properties, Kit<TwinClassFieldEntity, UUID> fieldsKit, TwinEntity twin) throws ServiceException;
+    public abstract void filterFields(Properties properties, Kit<TwinClassFieldEntity, UUID> unfilteredFieldsKit, TwinEntity twin, List<TwinClassFieldEntity> fields) throws ServiceException;
 }

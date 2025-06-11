@@ -5,7 +5,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
@@ -13,6 +12,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -26,9 +26,9 @@ public class FieldFilterInStatus extends FieldFilter {
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
     @Override
-    public void filterFields(Properties properties, Kit<TwinClassFieldEntity, UUID> fieldsKit, TwinEntity twin) throws ServiceException {
-        if (statusIds.extract(properties).contains(twin.getTwinStatusId())) {
-            fieldsKit.clear();
+    public void filterFields(Properties properties, Kit<TwinClassFieldEntity, UUID> unfilteredFieldsKit, TwinEntity twin, List<TwinClassFieldEntity> fields) throws ServiceException {
+        if (!statusIds.extract(properties).contains(twin.getTwinStatusId())) {
+            unfilteredFieldsKit.addAll(fields);
         }
     }
 }

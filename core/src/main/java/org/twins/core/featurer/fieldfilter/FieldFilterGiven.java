@@ -12,6 +12,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinClassFieldId;
 
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
@@ -26,7 +27,13 @@ public class FieldFilterGiven extends FieldFilter {
     public static final FeaturerParamUUIDSet filteredFieldIds = new FeaturerParamUUIDSetTwinsTwinClassFieldId("filteredFieldIds");
 
     @Override
-    public void filterFields(Properties properties, Kit<TwinClassFieldEntity, UUID> fieldsKit, TwinEntity twin) throws ServiceException {
-        fieldsKit.removeIf(field -> filteredFieldIds.extract(properties).contains(field.getId()));
+    public void filterFields(Properties properties, Kit<TwinClassFieldEntity, UUID> unfilteredFieldsKit, TwinEntity twin, List<TwinClassFieldEntity> fields) throws ServiceException {
+        Set<UUID> excludedFieldIds = filteredFieldIds.extract(properties);
+
+        for (TwinClassFieldEntity field : fields) {
+            if (!excludedFieldIds.contains(field.getId())) {
+                unfilteredFieldsKit.add(field);
+            }
+        }
     }
 }
