@@ -96,11 +96,7 @@ public class DomainUserSearchController extends ApiController {
             @Parameter(example = DTOExamples.USER_ID) @PathVariable("userId") UUID userId) {
         DomainUserViewRsDTOv1 rs = new DomainUserViewRsDTOv1();
         try {
-            if (!userId.equals(authService.getApiUser().getUserId())
-                    && permissionService.currentUserHasPermission(Permissions.DOMAIN_USER_MANAGE, Permissions.DOMAIN_USER_VIEW)) {
-                throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "User does not have required permissions ["
-                        + Permissions.DOMAIN_USER_MANAGE.name() + "] or [" + Permissions.DOMAIN_USER_VIEW.name() + "]");
-            }
+            permissionService.checkCurrentUserHasPermission(userId, true, Permissions.DOMAIN_USER_MANAGE, Permissions.DOMAIN_USER_VIEW);
             DomainUserEntity domainUser = domainUserService.findByUserId(userId);
             rs
                     .setUser(domainUserRestDTOMapperV2.convert(domainUser, mapperContext))

@@ -53,10 +53,7 @@ public class UserPermissionListController extends ApiController {
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
         PermissionListRsDTOv1 rs = new PermissionListRsDTOv1();
         try {
-            if (!userId.equals(authService.getApiUser().getUserId())
-                    && permissionService.currentUserHasPermission(Permissions.USER_PERMISSION_VIEW, Permissions.USER_PERMISSION_MANAGE)) {
-                throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "User does not have required permissions]");
-            }
+            permissionService.checkCurrentUserHasPermission(userId, true, Permissions.USER_PERMISSION_VIEW, Permissions.USER_PERMISSION_MANAGE);
             rs.setPermissions(permissionRestDTOMapperV2.convertCollection(
                     permissionService.findPermissionsForUser(userId).getList(), mapperContext));
         } catch (ServiceException se) {
