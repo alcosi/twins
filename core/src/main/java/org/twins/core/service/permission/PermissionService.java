@@ -460,7 +460,16 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     public void loadUserPermissions(UserEntity user) throws ServiceException {
         if (user.getPermissions() != null)
             return;
-        UUID permissionSchemaId = detectPermissionSchemaId(authService.getApiUser());
+        ApiUser apiUser = authService.getApiUser();
+        // we check it here and not in loadCurrentUserPermissions method for more safety
+        if (user.getId().equals(apiUser.getUserId()) && apiUser.getActAsUserStep() == ApiUser.ActAsUserStep.PERMISSION_CHECK_NEEDED) {
+            loadUserPermissions(apiUser.getMachineUser()); // self-call, be careful
+            if (!apiUser.getMachineUser().getPermissions().contains(Permissions.ACT_AS_USER.getId())) {
+                throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "Current user has not ACT_AS_USER permission");
+            }
+            apiUser.setActAsUserStep(ApiUser.ActAsUserStep.USER_GROUP_INVOLVE_NEEDED);
+        }
+        UUID permissionSchemaId = detectPermissionSchemaId(apiUser);
         userGroupService.loadGroups(user);
         Set<UUID> userGroupIds = user.getUserGroups().getIdSetSafe();
         List<UUID> permissionList = permissionGrantUserRepository.findAllPermissionsForUser(permissionSchemaId, user.getId(), collectionUuidsToSqlArray(userGroupIds));

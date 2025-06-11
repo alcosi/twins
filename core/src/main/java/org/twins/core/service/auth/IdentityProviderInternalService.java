@@ -88,7 +88,7 @@ public class IdentityProviderInternalService {
         if (StringUtils.isEmpty(clientId) || StringUtils.isEmpty(clientSecret)) {
             throw new ServiceException(ErrorCodeTwins.IDP_EMPTY_CLIENT_ID_OR_SECRET);
         }
-        IdentityProviderInternalUserEntity user = identityProviderInternalUserRepository.findByUser_Email(clientId);
+        IdentityProviderInternalUserEntity user = identityProviderInternalUserRepository.findByUserId(UUID.fromString(clientId));
         if (user == null || !passwordEncoder.matches(clientSecret, user.getPasswordHash())) {
             throw new ServiceException(ErrorCodeTwins.IDP_UNAUTHORIZED);
         } else if (!user.isActive()) {

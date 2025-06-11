@@ -27,6 +27,7 @@ import java.util.function.Function;
 public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntity> {
     final UserGroupRepository userGroupRepository;
     final UserGroupTypeRepository userGroupTypeRepository;
+    final UserGroupActAsUserInvolveRepository actAsUserInvolveRepository;
     final FeaturerService featurerService;
     @Lazy
     final AuthService authService;
@@ -69,6 +70,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
 
     public void loadGroups(Collection<UserEntity> userEntityList) throws ServiceException {
         Kit<UserEntity, UUID> needLoad = new Kit<>(UserEntity::getId);
+        ApiUser apiUser = authService.getApiUser();
         for (UserEntity userEntity : userEntityList) {
             if (userEntity.getUserGroups() == null) {
                 userEntity.setUserGroups(new Kit<>(UserGroupEntity::getId));
@@ -77,7 +79,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         }
         if (CollectionUtils.isEmpty(needLoad))
             return;
-        ApiUser apiUser = authService.getApiUser();
+
         UUID businessAccountId = apiUser.isBusinessAccountSpecified() ? apiUser.getBusinessAccountId() : ApiUser.NOT_SPECIFIED; // this will help to call next query
         List<UserGroupTypeEntity> userGroupTypes = userGroupTypeRepository.findValidTypes(apiUser.getDomainId(), businessAccountId);
         if (CollectionUtils.isEmpty(userGroupTypes))
@@ -92,6 +94,24 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
                         needLoad.get(userGroupMap.getUserId()).getUserGroups().add(userGroupMap.getUserGroup());
                 }
         }
+        userGroupsForActAsUserInvolve();
+    }
+
+    private void userGroupsForActAsUserInvolve() throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (apiUser.getActAsUserStep() != ApiUser.ActAsUserStep.USER_GROUP_INVOLVE_NEEDED) {
+            return;
+        }
+        UserEntity actAsUser = apiUser.getUser();
+        List<UserGroupActAsUserInvolveEntity> actAsUserInvolveList = actAsUserInvolveRepository.findByMachineUserIdAndDomainId(apiUser.getMachineUserId(), apiUser.getDomainId());
+        if (CollectionUtils.isEmpty(actAsUserInvolveList)) {
+            log.info("Current machine user has not act as user involve");
+            return;
+        }
+        List<UserGroupEntity> involvedInGroups = actAsUserInvolveList.stream().map(UserGroupActAsUserInvolveEntity::getInvolveInUserGroup).toList();
+        actAsUser.getUserGroups().addAll(involvedInGroups);
+        log.info("Act-as-user was involved into: {}", involvedInGroups.size());
+        apiUser.setActAsUserStep(ApiUser.ActAsUserStep.READY);
     }
 
     public void enterGroups(Set<UUID> userGroupIds) throws ServiceException {

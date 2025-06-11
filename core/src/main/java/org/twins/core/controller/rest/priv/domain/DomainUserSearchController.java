@@ -40,7 +40,6 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.DOMAIN_USER_MANAGE, Permissions.DOMAIN_USER_VIEW})
 public class DomainUserSearchController extends ApiController {
     private final DomainUserSearchService domainUserSearchService;
     private final DomainUserSearchDTOReverseMapper domainUserSearchDTOReverseMapper;
@@ -49,6 +48,7 @@ public class DomainUserSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final DomainUserService domainUserService;
 
+    @ProtectedBy({Permissions.DOMAIN_USER_MANAGE, Permissions.DOMAIN_USER_VIEW})
     @ParametersApiUserHeaders
     @Operation(operationId = "domainUserSearchListV1", summary = "Return a list of users by current domain")
     @ApiResponses(value = {
@@ -77,6 +77,7 @@ public class DomainUserSearchController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
+    @ProtectedBy({Permissions.DOMAIN_USER_MANAGE, Permissions.DOMAIN_USER_VIEW})
     @ParametersApiUserHeaders
     @Operation(operationId = "domainUserViewV1", summary = "Return the user by id")
     @ApiResponses(value = {
