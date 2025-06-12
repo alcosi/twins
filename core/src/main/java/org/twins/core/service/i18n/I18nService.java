@@ -121,8 +121,10 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
             i18nTranslationEntity = i18nTranslationRepository.findByI18nIdAndLocale(i18nId, locale);
             if (i18nTranslationEntity.isPresent() && StringUtils.isNotBlank(i18nTranslationEntity.get().getTranslation()))
                 return i18nTranslationEntity.get();
-            else
+            else {
+                log.info("I18n[{}] translation is missing for locale[{}]", i18nId, locale);
                 i18nTranslationRepository.incrementUsageCounter(i18nId, locale.getLanguage());
+            }
         }
         //if not translation was found for given locale we will load it for default
         if (defaultLocale != null && !defaultLocale.equals(locale)) {
