@@ -190,7 +190,7 @@ public class IdentityProviderInternalService {
             token.setActiveBusinessAccountId(businessAccountId);
             identityProviderInternalTokenRepository.save(token);
         }
-        DomainUserEntity domainUserEntity = domainUserService.getDomainUser();
+        DomainUserEntity domainUserEntity = domainUserService.getDomainUserV2();
         if (!businessAccountId.equals(domainUserEntity.getLastActiveBusinessAccountId())) {
             domainUserEntity.setLastActiveBusinessAccountId(businessAccountId);
             domainUserService.saveSafe(domainUserEntity);

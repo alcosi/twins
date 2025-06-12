@@ -15,10 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.domain.DomainUserEntity;
-import org.twins.core.dao.domain.DomainUserNoRelationProjection;
-import org.twins.core.dao.domain.DomainUserRepository;
+import org.twins.core.dao.domain.*;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -133,7 +130,12 @@ public class DomainUserService extends EntitySecureFindServiceImpl<DomainUserEnt
         return domainUserRepository.findByDomainIdAndUserId(authService.getApiUser().getDomain().getId(), userId, DomainUserNoRelationProjection.class);
     }
 
-    public DomainUserEntity getDomainUser() throws ServiceException {
+    public DomainUserNoCollectionProjection getDomainUser() throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        return domainUserRepository.findByDomainIdAndUserId(apiUser.getDomainId(), apiUser.getUserId(), DomainUserNoCollectionProjection.class);
+    }
+
+    public DomainUserEntity getDomainUserV2() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         return domainUserRepository.findByDomainIdAndUserId(apiUser.getDomainId(), apiUser.getUserId());
     }
