@@ -49,6 +49,7 @@ import org.twins.core.service.user.UserService;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
 
@@ -438,16 +439,38 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return permissionSchemaId;
     }
 
+    public void checkUserIsCurrentOrHasPermission(UUID userId, boolean anyOf, Permissions... permissions) throws ServiceException {
+        if (userId.equals(authService.getApiUser().getUserId())) {
+            return;
+        }
+        Set<UUID> permissionIds = Arrays.stream(permissions)
+                .map(Permissions::getId)
+                .collect(Collectors.toSet());
+        if (!currentUserHasPermission(anyOf, permissionIds)) {
+            throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "User does not have required permissions");
+        }
+    }
+
     public boolean currentUserHasPermission(UUID permissionId) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (!apiUser.isUserSpecified())
-            return false;
-        loadUserPermissions(apiUser.getUser());
-        return apiUser.getUser().getPermissions().contains(permissionId);
+       return currentUserHasPermission(false, Set.of(permissionId));
     }
 
     public boolean currentUserHasPermission(Permissions permission) throws ServiceException {
-        return currentUserHasPermission(permission.getId());
+        return currentUserHasPermission(false, Set.of(permission.getId()));
+    }
+
+    public boolean currentUserHasPermission(boolean anyOf, Set<UUID> permissions) throws ServiceException {
+        if (CollectionUtils.isEmpty(permissions))
+            return false;
+
+        ApiUser apiUser = authService.getApiUser();
+        if (!apiUser.isUserSpecified())
+            return false;
+
+        loadUserPermissions(apiUser.getUser());
+        return anyOf 
+            ? apiUser.getUser().getPermissions().stream().anyMatch(permissions::contains)
+            : apiUser.getUser().getPermissions().containsAll(permissions);
     }
 
     public void loadCurrentUserPermissions() throws ServiceException {
