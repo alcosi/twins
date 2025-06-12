@@ -50,4 +50,13 @@ public class TwinFieldSimpleNonIndexedEntity implements TwinFieldStorage, EasyLo
             default -> "twinFieldNonIndexed[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + ", value:" + value + "]";
         };
     }
+
+    public TwinFieldSimpleNonIndexedEntity cloneFor(TwinEntity dstTwinEntity) {
+        return new TwinFieldSimpleNonIndexedEntity()
+                .setTwin(dstTwinEntity)
+                .setTwinId(dstTwinEntity.getId())
+                .setTwinClassField(twinClassField)
+                .setTwinClassFieldId(twinClassFieldId)
+                .setValue(value);
+    }
 }
