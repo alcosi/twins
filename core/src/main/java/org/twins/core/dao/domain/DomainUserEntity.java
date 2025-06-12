@@ -15,6 +15,7 @@ import org.twins.core.dao.user.UserEntity;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -58,7 +59,7 @@ public class DomainUserEntity implements EasyLoggable {
     @JoinColumn(name = "domain_id", referencedColumnName = "domain_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Collection<DomainBusinessAccountEntity> domainBusinessAccountsByDomainId;
+    private Set<DomainBusinessAccountEntity> domainBusinessAccountsByDomainId;
 
 //    needed for specification
     @Deprecated
@@ -66,7 +67,7 @@ public class DomainUserEntity implements EasyLoggable {
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Collection<BusinessAccountUserEntity> businessAccountUsersByUserId;
+    private Set<BusinessAccountUserEntity> businessAccountUsersByUserId;
 
     @Transient
     @EqualsAndHashCode.Exclude

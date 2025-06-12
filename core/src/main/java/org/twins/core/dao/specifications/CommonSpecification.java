@@ -160,77 +160,77 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             Predicate rootPredicateBusiness = cb.equal(fromTwin.get(TwinEntity.Fields.ownerBusinessAccountId), finalBusinessAccountId);
 
             Predicate systemLevelPredicate = cb.isFalse(cb.literal(true));
-//            switch (dbuMembershipCheck) {
-//                case DBU_FOR_USER:
-//                    domain = cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId));
-//                    Join domainUser = fromTwin.join(TwinEntity.Fields.domainUsers, JoinType.INNER);
-//                    Join businessAccountUser = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwins, JoinType.INNER);
-//                    Subquery<DomainBusinessAccountEntity> subqueryUsers = cb.createQuery().subquery(DomainBusinessAccountEntity.class);
-//                    Root<DomainBusinessAccountEntity> subRootUsers = subqueryUsers.from(DomainBusinessAccountEntity.class);
-//                    subqueryUsers.select(subRootUsers);
-//                    subqueryUsers.where(
-//                            cb.and(
-//                                    cb.equal(subRootUsers.get(DomainBusinessAccountEntity.Fields.domainId), finalDomainId),
-//                                    cb.equal(subRootUsers.get(DomainBusinessAccountEntity.Fields.businessAccountId), finalBusinessAccountId)
-//                            )
-//                    );
-//                    systemLevelPredicate = cb.and(
-//                            cb.equal(domainUser.get(DomainUserEntity.Fields.domainId), finalDomainId),
-////                            cb.equal(domainUser.get(DomainUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id)),
-//                            cb.equal(businessAccountUser.get(BusinessAccountUserEntity.Fields.businessAccountId), finalBusinessAccountId),
-////                            cb.equal(businessAccountUser.get(BusinessAccountUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id)),
-//                            cb.exists(subqueryUsers)
-//                    );
-//                    break;
-//                case DBU_FOR_BUSINESS_ACCOUNT:
-//                    domain = cb.or(
-//                            cb.equal(twinClass.get(TwinClassEntity.Fields.domainId), finalDomainId),
-//                            cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId))
-//                    );
-//                    Join businessAccountUser2 = fromTwin.join(TwinEntity.Fields.businessAccountUsersBusinessAccountTwins, JoinType.INNER);
-//                    Join domainBusinessAccount = fromTwin.join(TwinEntity.Fields.domainBusinessAccounts, JoinType.INNER);
-//                    Subquery<DomainUserEntity> subqueryBusinessAccount = cb.createQuery().subquery(DomainUserEntity.class);
-//                    Root<DomainUserEntity> subRootBusinessAccount = subqueryBusinessAccount.from(DomainUserEntity.class);
-//                    subqueryBusinessAccount.select(subRootBusinessAccount);
-//                    subqueryBusinessAccount.where(
-//                            cb.and(
-//                                    cb.equal(subRootBusinessAccount.get(DomainUserEntity.Fields.domainId), finalDomainId),
-//                                    cb.equal(subRootBusinessAccount.get(DomainUserEntity.Fields.userId), finalUserId)
-//                            )
-//                    );
-//                    systemLevelPredicate = cb.and(
-//                            cb.exists(subqueryBusinessAccount),
-//                            cb.equal(businessAccountUser2.get(BusinessAccountUserEntity.Fields.userId), finalUserId),
-////                            cb.equal(businessAccountUser2.get(BusinessAccountUserEntity.Fields.businessAccountId), fromTwin.get(TwinEntity.Fields.id)),
-//                            cb.equal(domainBusinessAccount.get(DomainBusinessAccountEntity.Fields.domainId), finalDomainId)
-////                            cb.equal(domainBusinessAccount2.get(DomainBusinessAccountEntity.Fields.businessAccountId), fromTwin.get(TwinEntity.Fields.id))
-//                    );
-//                    break;
-//                case DB:
-//                    // Join for business accounts linked to domain
-//                    Join domainBusinessAccountMap = fromTwin.join(TwinEntity.Fields.domainBusinessAccounts, JoinType.INNER);
-//                    List<Predicate> dbPredicates = new java.util.ArrayList<>();
-//                    dbPredicates.add(cb.equal(domainBusinessAccountMap.get(DomainBusinessAccountEntity.Fields.domainId), finalDomainId));
-//                    dbPredicates.add(cb.equal(domainBusinessAccountMap.get(DomainBusinessAccountEntity.Fields.businessAccountId), fromTwin.get(TwinEntity.Fields.id)));
-//                    systemLevelPredicate = cb.and(dbPredicates.toArray(new Predicate[0]));
-//                    break;
-//                case DU:
-//                    // Join for users linked to domain
-//                    Join domainUserDU = fromTwin.join(TwinEntity.Fields.domainUsers, JoinType.INNER);
-//                    systemLevelPredicate = cb.and(
-//                            cb.equal(domainUserDU.get(DomainUserEntity.Fields.domainId), finalDomainId)
-////                            cb.equal(domainUserDU.get(DomainUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id))
-//                    );
-//                    break;
-//                case BU:
-//                    // Join for users linked to business account
-//                    Join businessAccountUserBU = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwins, JoinType.INNER);
-//                    systemLevelPredicate = cb.and(
-//                            cb.equal(businessAccountUserBU.get(BusinessAccountUserEntity.Fields.businessAccountId), finalBusinessAccountId)
-////                            cb.equal(businessAccountUserBU.get(BusinessAccountUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id))
-//                    );
-//                    break;
-//            }
+            switch (dbuMembershipCheck) {
+                case DBU_FOR_USER:
+                    domain = cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId));
+                    Join domainUser = fromTwin.join(TwinEntity.Fields.domainUsers, JoinType.INNER);
+                    Join businessAccountUser = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwins, JoinType.INNER);
+                    Subquery<DomainBusinessAccountEntity> subqueryUsers = cb.createQuery().subquery(DomainBusinessAccountEntity.class);
+                    Root<DomainBusinessAccountEntity> subRootUsers = subqueryUsers.from(DomainBusinessAccountEntity.class);
+                    subqueryUsers.select(subRootUsers);
+                    subqueryUsers.where(
+                            cb.and(
+                                    cb.equal(subRootUsers.get(DomainBusinessAccountEntity.Fields.domainId), finalDomainId),
+                                    cb.equal(subRootUsers.get(DomainBusinessAccountEntity.Fields.businessAccountId), finalBusinessAccountId)
+                            )
+                    );
+                    systemLevelPredicate = cb.and(
+                            cb.equal(domainUser.get(DomainUserEntity.Fields.domainId), finalDomainId),
+//                            cb.equal(domainUser.get(DomainUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id)),
+                            cb.equal(businessAccountUser.get(BusinessAccountUserEntity.Fields.businessAccountId), finalBusinessAccountId),
+//                            cb.equal(businessAccountUser.get(BusinessAccountUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id)),
+                            cb.exists(subqueryUsers)
+                    );
+                    break;
+                case DBU_FOR_BUSINESS_ACCOUNT:
+                    domain = cb.or(
+                            cb.equal(twinClass.get(TwinClassEntity.Fields.domainId), finalDomainId),
+                            cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId))
+                    );
+                    Join businessAccountUser2 = fromTwin.join(TwinEntity.Fields.businessAccountUsersBusinessAccountTwins, JoinType.INNER);
+                    Join domainBusinessAccount = fromTwin.join(TwinEntity.Fields.domainBusinessAccounts, JoinType.INNER);
+                    Subquery<DomainUserEntity> subqueryBusinessAccount = cb.createQuery().subquery(DomainUserEntity.class);
+                    Root<DomainUserEntity> subRootBusinessAccount = subqueryBusinessAccount.from(DomainUserEntity.class);
+                    subqueryBusinessAccount.select(subRootBusinessAccount);
+                    subqueryBusinessAccount.where(
+                            cb.and(
+                                    cb.equal(subRootBusinessAccount.get(DomainUserEntity.Fields.domainId), finalDomainId),
+                                    cb.equal(subRootBusinessAccount.get(DomainUserEntity.Fields.userId), finalUserId)
+                            )
+                    );
+                    systemLevelPredicate = cb.and(
+                            cb.exists(subqueryBusinessAccount),
+                            cb.equal(businessAccountUser2.get(BusinessAccountUserEntity.Fields.userId), finalUserId),
+//                            cb.equal(businessAccountUser2.get(BusinessAccountUserEntity.Fields.businessAccountId), fromTwin.get(TwinEntity.Fields.id)),
+                            cb.equal(domainBusinessAccount.get(DomainBusinessAccountEntity.Fields.domainId), finalDomainId)
+//                            cb.equal(domainBusinessAccount2.get(DomainBusinessAccountEntity.Fields.businessAccountId), fromTwin.get(TwinEntity.Fields.id))
+                    );
+                    break;
+                case DB:
+                    // Join for business accounts linked to domain
+                    Join domainBusinessAccountMap = fromTwin.join(TwinEntity.Fields.domainBusinessAccounts, JoinType.INNER);
+                    List<Predicate> dbPredicates = new java.util.ArrayList<>();
+                    dbPredicates.add(cb.equal(domainBusinessAccountMap.get(DomainBusinessAccountEntity.Fields.domainId), finalDomainId));
+                    dbPredicates.add(cb.equal(domainBusinessAccountMap.get(DomainBusinessAccountEntity.Fields.businessAccountId), fromTwin.get(TwinEntity.Fields.id)));
+                    systemLevelPredicate = cb.and(dbPredicates.toArray(new Predicate[0]));
+                    break;
+                case DU:
+                    // Join for users linked to domain
+                    Join domainUserDU = fromTwin.join(TwinEntity.Fields.domainUsers, JoinType.INNER);
+                    systemLevelPredicate = cb.and(
+                            cb.equal(domainUserDU.get(DomainUserEntity.Fields.domainId), finalDomainId)
+//                            cb.equal(domainUserDU.get(DomainUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id))
+                    );
+                    break;
+                case BU:
+                    // Join for users linked to business account
+                    Join businessAccountUserBU = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwins, JoinType.INNER);
+                    systemLevelPredicate = cb.and(
+                            cb.equal(businessAccountUserBU.get(BusinessAccountUserEntity.Fields.businessAccountId), finalBusinessAccountId)
+//                            cb.equal(businessAccountUserBU.get(BusinessAccountUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id))
+                    );
+                    break;
+            }
 
             return cb.and(
                     domain,
