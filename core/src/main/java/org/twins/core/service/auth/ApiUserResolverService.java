@@ -82,12 +82,12 @@ public class ApiUserResolverService {
                         .setBusinessAccount(domainBusinessAccountEntity.getBusinessAccount());
                 return;
             } else if (isDomainSpecified(domainId) && isUserSpecified(userId) && (dbu.getDomain() == null || dbu.getUser() == null)) {
-                DomainUserEntity domainUserEntity = domainUserRepository.findByDomainIdAndUserId(domainId, userId, DomainUserEntity.class);
+                DomainUserNoCollectionProjection domainUserEntity = domainUserRepository.findByDomainIdAndUserId(domainId, userId, DomainUserNoCollectionProjection.class);
                 if (domainUserEntity == null)
                     throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "User[" + userId + "] is not registered in domain[" + domainId + "]");
                 dbu
-                        .setDomain(domainUserEntity.getDomain())
-                        .setUser(domainUserEntity.getUser());
+                        .setDomain(domainUserEntity.domain())
+                        .setUser(domainUserEntity.user());
                 return;
             } else if (isBusinessAccountSpecified(businessAccountId) && isUserSpecified(userId) && (dbu.getBusinessAccount() == null || dbu.getUser() == null)) {
                 BusinessAccountUserEntity businessAccountUserEntity = businessAccountUserRepository.findByBusinessAccountIdAndUserId(businessAccountId, userId, BusinessAccountUserEntity.class);
