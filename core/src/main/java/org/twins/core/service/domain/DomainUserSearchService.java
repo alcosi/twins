@@ -20,8 +20,6 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 
-import java.util.UUID;
-
 import static org.twins.core.dao.specifications.domain.DomainUserSpecification.*;
 
 @Slf4j
