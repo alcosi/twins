@@ -6,6 +6,7 @@ import com.alcosi.identity.exception.parser.ids.IdentityInvalidCredentialsParser
 import com.alcosi.identity.exception.parser.ids.IdentityInvalidRefreshTokenParserException;
 import com.alcosi.identity.service.error.IdentityErrorParser;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -32,17 +33,16 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.identityprovider.ClientLogoutData;
 import org.twins.core.featurer.identityprovider.ClientSideAuthData;
 import org.twins.core.featurer.identityprovider.TokenMetaData;
+import org.twins.core.service.auth.AuthService;
 
 import java.net.URI;
 import java.net.URLEncoder;
-import java.util.List;
-import java.util.Properties;
-import java.util.StringJoiner;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.springframework.http.HttpMethod.GET;
-import static org.springframework.http.HttpMethod.POST;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.springframework.http.HttpMethod.*;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -58,7 +58,8 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final IdentityErrorParser.Implementation parser = new IdentityErrorParser.Implementation();
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final AuthService authService;
 
     @FeaturerParam(name = "Identity server token base uri")
     public static final FeaturerParamString identityServerTokenBaseUri = new FeaturerParamString("identityServerTokenBaseUri");
@@ -119,25 +120,28 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
 
         URI url = URI.create(identityServerTokenBaseUri.extract(properties) + "/introspect");
         String requestBody = "token=" + token;
-        HttpHeaders httpHeaders = getHttpHeaders(APPLICATION_FORM_URLENCODED);
-        httpHeaders.setBasicAuth(clientIntrospectionId.extract(properties), clientIntrospectionSecret.extract(properties));
+        HttpHeaders httpHeaders = getHttpHeaders(clientIntrospectionId.extract(properties), clientIntrospectionSecret.extract(properties));
         RequestEntity<String> requestEntity = new RequestEntity<>(requestBody, httpHeaders, POST, url);
         ResponseEntity<String> responseEntity = makeRequest(requestEntity, String.class);
 
-        JsonNode claims = getClaims(responseEntity.getBody());
+        JsonNode claims = toJsonNode(responseEntity.getBody());
         if (responseEntity.getStatusCode().value() != OK.value() || !isActive(claims.get("active"))) {
             throw new ServiceException(IDP_PROVIDED_TOKEN_IS_NOT_ACTIVE);
         }
-        try {
-            UUID userId = UUID.fromString(claims.get("sub").asText());
-            String property = activeBusinessAccountClaimName.extract(properties);
-            UUID businessAccountId = property == null ? null : UUID.fromString(claims.get(property).asText());
-            return new TokenMetaData()
-                    .setUserId(userId)
-                    .setBusinessAccountId(businessAccountId);
-        } catch (Exception exception) {
-            throw new ServiceException(IDP_PROVIDED_TOKEN_IS_NOT_ACTIVE);
+
+        UUID userId = UUID.fromString(claims.get("sub").asText());
+        JsonNode claim = claims.get(activeBusinessAccountClaimName.extract(properties));
+        UUID businessAccountId = null;
+        if (claim != null) {
+            String value = claim.asText();
+            Map<UUID, UUID> domainIdToBusinessAccountIdMap = toObject(value, new TypeReference<>() {
+            });
+            UUID domainId = authService.getApiUser().getDomainId();
+            businessAccountId = domainIdToBusinessAccountIdMap.get(domainId);
         }
+        return new TokenMetaData()
+                .setUserId(userId)
+                .setBusinessAccountId(businessAccountId);
     }
 
     @Override
@@ -163,9 +167,7 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
         String token = getToken(properties);
         try {
             URI url = URI.create(identityServerBaseUri.extract(properties) + "/user/register");
-            HttpHeaders httpHeaders = getHttpHeaders(APPLICATION_JSON);
-            httpHeaders.setBearerAuth(token);
-            httpHeaders.add("x-api-version", "2.0");
+            HttpHeaders httpHeaders = getHttpHeaders(token);
             UserRegistrationRequest requestBody = new UserRegistrationRequest(authSignup.getTwinsUserId(), authSignup.getEmail(), authSignup.getPassword());
             RequestEntity<UserRegistrationRequest> requestEntity = new RequestEntity<>(requestBody, httpHeaders, POST, url);
             makeRequest(requestEntity, Void.class);
@@ -173,7 +175,7 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
             return new EmailVerificationByTwins()
                     .setIdpUserActivateCode(activationCode);
         } finally {
-            revokeToken(token, TokenType.ACCESS_TOKEN, properties);
+            revokeTokenAsync(token, TokenType.ACCESS_TOKEN, properties);
         }
     }
 
@@ -183,25 +185,60 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
         String token = getToken(properties);
         try {
             URI url = URI.create(identityServerBaseUri.extract(properties) + "/user" + URLEncoder.encode(email, UTF_8) + "/activate");
-            HttpHeaders httpHeaders = getHttpHeaders(APPLICATION_JSON);
-            httpHeaders.setBearerAuth(token);
-            httpHeaders.add("x-api-version", "2.0");
+            HttpHeaders httpHeaders = getHttpHeaders(token);
             UserActivationRequest requestBody = new UserActivationRequest(idpUserActivateToken);
             RequestEntity<UserActivationRequest> requestEntity = new RequestEntity<>(requestBody, httpHeaders, POST, url);
             makeRequest(requestEntity, Void.class);
         } finally {
-            revokeToken(token, TokenType.ACCESS_TOKEN, properties);
+            revokeTokenAsync(token, TokenType.ACCESS_TOKEN, properties);
         }
     }
 
     @Override
     public void switchActiveBusinessAccount(Properties properties, String authToken, UUID domainId, UUID businessAccountId) throws ServiceException {
-        throw new ServiceException(IDP_SWITCH_ACTIVE_BUSINESS_ACCOUNT_NOT_SUPPORTED);
+
+        String token = getToken(properties);
+        try {
+            UUID userId = authService.getApiUser().getUserId();
+            User user = getUser(userId, token, properties);
+            String claimType = activeBusinessAccountClaimName.extract(properties);
+            Claim claim = getClaim(claimType, user.claims);
+            if (claim == null) {
+                String value = toString(Map.of(domainId, businessAccountId));
+                Claim newClaim = new Claim(claimType, value);
+                addClaim(newClaim, token, userId, properties);
+            } else {
+                Map<UUID, UUID> domainIdToBusinessAccountIdMap = toObject(claim.value, new TypeReference<>() {
+                });
+                domainIdToBusinessAccountIdMap.put(domainId, businessAccountId);
+                String value = toString(domainIdToBusinessAccountIdMap);
+                Claim newClaim = new Claim(claimType, value);
+                editClaim(claim, newClaim, token, userId, properties);
+            }
+        } finally {
+            revokeTokenAsync(token, TokenType.ACCESS_TOKEN, properties);
+        }
     }
 
     @Override
     protected ClientSideAuthData m2mAuth(Properties properties, String clientId, String clientSecret) throws ServiceException {
         return login(properties, clientId, clientSecret, null);
+    }
+
+    private Claim getClaim(String claimType, List<Claim> claims) {
+        if (isEmpty(claims)) return null;
+        return claims.stream()
+                .filter(claim -> Objects.equals(claimType, claim.type))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private User getUser(UUID userId, String token, Properties properties) throws ServiceException {
+
+        URI url = URI.create(identityServerBaseUri.extract(properties) + "/user/" + userId);
+        HttpHeaders httpHeaders = getHttpHeaders(token);
+        RequestEntity<Void> requestEntity = new RequestEntity<>(null, httpHeaders, GET, url);
+        return makeRequest(requestEntity, User.class).getBody();
     }
 
     private record TokenResponse(@JsonProperty("access_token") String accessToken,
@@ -219,6 +256,18 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
     private record ActivationTokenResponse(@JsonProperty("token") String token) {
     }
 
+    private record User(@JsonProperty("id") UUID id,
+                        @JsonProperty("claims") List<Claim> claims) {
+    }
+
+    private record Claim(@JsonProperty("type") String type,
+                         @JsonProperty("value") String value) {
+    }
+
+    private record ClaimUpdateRequest(@JsonProperty("oldClaim") Claim oldClaim,
+                                      @JsonProperty("newClaim") Claim newClaim) {
+    }
+
     private enum TokenType {
         ACCESS_TOKEN,
         REFRESH_TOKEN
@@ -233,10 +282,25 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
         TokenResponse responseBody = responseEntity.getBody();
 
         ClientSideAuthData authData = new ClientSideAuthData();
-        authData.put("accessToken", responseBody.accessToken);
-        authData.put("refreshToken", responseBody.refreshToken);
+        authData.putAuthToken(responseBody.accessToken);
+        authData.putRefreshToken(responseBody.refreshToken);
 
         return authData;
+    }
+
+    private HttpHeaders getHttpHeaders(String token) {
+
+        HttpHeaders httpHeaders = getHttpHeaders(APPLICATION_JSON);
+        httpHeaders.setBearerAuth(token);
+        httpHeaders.add("x-api-version", "2.0");
+        return httpHeaders;
+    }
+
+    private HttpHeaders getHttpHeaders(String id, String secret) {
+
+        HttpHeaders httpHeaders = getHttpHeaders(APPLICATION_FORM_URLENCODED);
+        httpHeaders.setBasicAuth(id, secret);
+        return httpHeaders;
     }
 
     private HttpHeaders getHttpHeaders(MediaType mediaType) {
@@ -246,11 +310,30 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
         return httpHeaders;
     }
 
-    private JsonNode getClaims(String content) throws ServiceException {
+    private JsonNode toJsonNode(String content) throws ServiceException {
         try {
             return objectMapper.readTree(content);
         } catch (Exception exception) {
-            throw new ServiceException(IDP_AUTHENTICATION_EXCEPTION);
+            log.error("Error processing JSON", exception);
+            throw new ServiceException(IDP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private String toString(Object value) throws ServiceException {
+        try {
+            return objectMapper.writeValueAsString(value);
+        } catch (Exception exception) {
+            log.error("Error processing JSON", exception);
+            throw new ServiceException(IDP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private <T> T toObject(String content, TypeReference<T> valueTypeRef) throws ServiceException {
+        try {
+            return objectMapper.readValue(content, valueTypeRef);
+        } catch (Exception exception) {
+            log.error("Error processing JSON", exception);
+            throw new ServiceException(IDP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -266,10 +349,20 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
                 .add("token=" + token)
                 .add("token_type_hint=" + tokenType.name().toLowerCase())
                 .toString();
-        HttpHeaders httpHeaders = getHttpHeaders(APPLICATION_FORM_URLENCODED);
-        httpHeaders.setBasicAuth(clientId.extract(properties), clientSecret.extract(properties));
+        HttpHeaders httpHeaders = getHttpHeaders(clientId.extract(properties), clientSecret.extract(properties));
         RequestEntity<String> requestEntity = new RequestEntity<>(requestBody, httpHeaders, POST, url);
         makeRequest(requestEntity, Void.class);
+    }
+
+    private void revokeTokenAsync(String token, TokenType tokenType, Properties properties) {
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                revokeToken(token, tokenType, properties);
+            } catch (Exception exception) {
+                log.error("Error while revoking token");
+            }
+        });
     }
 
     private <T> ResponseEntity<T> makeRequest(RequestEntity<?> requestEntity, Class<T> responseType) throws ServiceException {
@@ -315,8 +408,7 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
     private String getEmailActivationCode(String email, String token, Properties properties) throws ServiceException {
 
         URI url = URI.create(identityServerBaseUri.extract(properties) + "/user/" + URLEncoder.encode(email, UTF_8) + "/activate");
-        HttpHeaders httpHeaders = getHttpHeaders(APPLICATION_JSON);
-        httpHeaders.setBearerAuth(token);
+        HttpHeaders httpHeaders = getHttpHeaders(token);
         RequestEntity<Void> requestEntity = new RequestEntity<>(null, httpHeaders, GET, url);
         return makeRequest(requestEntity, ActivationTokenResponse.class).getBody().token;
     }
@@ -334,5 +426,22 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
         RequestEntity<String> requestEntity = new RequestEntity<>(requestBody, httpHeaders, POST, url);
         ResponseEntity<TokenResponse> responseEntity = makeRequest(requestEntity, TokenResponse.class);
         return responseEntity.getBody().accessToken;
+    }
+
+    private void addClaim(Claim claim, String token, UUID userId, Properties properties) throws ServiceException {
+
+        URI url = URI.create(identityServerBaseUri.extract(properties) + "/user/" + userId + "/claim");
+        HttpHeaders httpHeaders = getHttpHeaders(token);
+        RequestEntity<Claim> requestEntity = new RequestEntity<>(claim, httpHeaders, POST, url);
+        makeRequest(requestEntity, Void.class);
+    }
+
+    private void editClaim(Claim oldClaim, Claim newclaim, String token, UUID userId, Properties properties) throws ServiceException {
+
+        URI url = URI.create(identityServerBaseUri.extract(properties) + "/user/" + userId + "/claim");
+        HttpHeaders httpHeaders = getHttpHeaders(token);
+        ClaimUpdateRequest requestBody = new ClaimUpdateRequest(oldClaim, newclaim);
+        RequestEntity<ClaimUpdateRequest> requestEntity = new RequestEntity<>(requestBody, httpHeaders, PUT, url);
+        makeRequest(requestEntity, Void.class);
     }
 }
