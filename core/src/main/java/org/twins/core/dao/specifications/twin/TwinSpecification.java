@@ -294,20 +294,19 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
 
             Predicate include;
             if (CollectionUtils.isNotEmpty(search.getIdList())) {
-                include = twinFieldUserJoin.in(search.getIdList());
+                include = twinFieldUserJoin.get(TwinFieldUserEntity.Fields.userId).in(search.getIdList());
             } else {
                 include = cb.conjunction();
             }
 
             Predicate exclude;
             if (CollectionUtils.isNotEmpty(search.getIdExcludeList())) {
-                exclude = cb.not(twinFieldUserJoin.in(search.getIdExcludeList()));
+                exclude = cb.not(twinFieldUserJoin.get(TwinFieldUserEntity.Fields.userId).in(search.getIdExcludeList()));
             } else {
                 exclude = cb.conjunction();
             }
 
             return cb.and(include, exclude);
-
         };
     }
 }
