@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -120,6 +121,9 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
             size -= delete.getSize();
             count--;
             result.getAttachmentsForUD().add(delete);
+        }
+        if (CollectionUtils.isEmpty(updates) && CollectionUtils.isEmpty(creates)) {
+            return;
         }
         List<UUID> updateIds = updates.stream().map(TwinAttachmentEntity::getId).collect(Collectors.toList());
         Kit<TwinAttachmentEntity, UUID> existingEntities = attachmentService.findEntitiesSafe(updateIds);
