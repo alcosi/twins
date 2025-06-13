@@ -35,6 +35,9 @@ import org.twins.core.featurer.identityprovider.connector.IdentityProviderConnec
 import org.twins.core.featurer.identityprovider.trustor.Trustor;
 import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.domain.DomainUserService;
+import org.twins.core.service.event.Event;
+import org.twins.core.service.event.Events;
+import org.twins.core.service.notification.NotificationEmailService;
 import org.twins.core.service.user.UserService;
 
 import java.security.NoSuchAlgorithmException;
@@ -57,6 +60,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
     private final ApiUserResolverService apiUserResolverService;
     @Lazy
     private final DomainUserService domainUserService;
+    private final NotificationEmailService notificationEmailService;
 
     @Override
     public CrudRepository<IdentityProviderEntity, UUID> entityRepository() {
@@ -191,7 +195,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         }
     }
 
-    public AuthSignup.Result signupByEmailInitiate(AuthSignup authSignup) throws ServiceException {
+    public EmailVerificationType signupByEmailInitiate(AuthSignup authSignup) throws ServiceException {
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
         if (authSignup.getPublicKeyId() != null) {
             authSignup.setPassword(decryptPassword(authSignup.getPassword(), authSignup.getPublicKeyId()));
@@ -206,20 +210,22 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         }
         authSignup.setTwinsUserId(user.getId());
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
-        EmailVerificationMode emailVerificationMode = identityProviderConnector.signupByEmailInitiate(identityProvider.getIdentityProviderConnectorParams(), authSignup);
+        EmailVerificationHolder emailVerificationHolder = identityProviderConnector.signupByEmailInitiate(identityProvider.getIdentityProviderConnectorParams(), authSignup);
         UserEmailVerificationEntity userEmailVerificationEntity = new UserEmailVerificationEntity()
                 .setId(UUID.randomUUID())
                 .setEmail(authSignup.getEmail())
                 .setIdentityProviderId(identityProvider.getId())
                 .setUserId(user.getId())
                 .setCreatedAt(Timestamp.from(Instant.now()));
-        if (emailVerificationMode instanceof EmailVerificationByTwins emailVerificationByTwins) {
+        if (emailVerificationHolder instanceof EmailVerificationByTwins emailVerificationByTwins) {
             userEmailVerificationEntity
                     .setVerificationCodeIDP(emailVerificationByTwins.getIdpUserActivateCode());
-            //todo send email
+            Event event = new Event(Events.SIGNUP_EMAIL_VERIFICATION_CODE)
+                    .addContext("email.verification.code", userEmailVerificationEntity.getId().toString());
+            notificationEmailService.notify(event, authSignup.getEmail());
         }
         userEmailVerificationRepository.save(userEmailVerificationEntity);
-        return AuthSignup.Result.EMAIL_VERIFICATION_REQUIRED;
+        return EmailVerificationType.BY_CODE;
     }
 
     //todo create scheduler to delete old UserEmailVerificationEntity

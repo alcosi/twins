@@ -14,10 +14,4 @@ public class AuthSignup {
     private String email;
     private String password;
     private UUID publicKeyId;
-
-    public enum Result {
-        SIGNED_UP,
-        EMAIL_VERIFICATION_REQUIRED,
-        AWAITING_APPROVAL
-    }
 }

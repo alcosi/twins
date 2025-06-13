@@ -7,6 +7,6 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true)
-public class EmailVerificationByTwins extends EmailVerificationMode {
+public class EmailVerificationByTwins extends EmailVerificationHolder {
     public String idpUserActivateCode;
 }

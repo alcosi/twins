@@ -6,7 +6,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.auth.AuthSignup;
-import org.twins.core.domain.auth.EmailVerificationMode;
+import org.twins.core.domain.auth.EmailVerificationHolder;
 import org.twins.core.domain.auth.method.AuthMethod;
 import org.twins.core.domain.auth.method.AuthMethodStub;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -66,7 +66,7 @@ public class IdentityProviderStub extends IdentityProviderConnector {
     }
 
     @Override
-    public EmailVerificationMode signupByEmailInitiate(Properties properties, AuthSignup authSignup) throws ServiceException {
+    public EmailVerificationHolder signupByEmailInitiate(Properties properties, AuthSignup authSignup) throws ServiceException {
         throw new ServiceException(ErrorCodeTwins.IDP_SIGNUP_NOT_SUPPORTED);
     }
 

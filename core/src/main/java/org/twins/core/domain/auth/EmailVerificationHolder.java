@@ -5,5 +5,5 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public abstract class EmailVerificationMode {
+public abstract class EmailVerificationHolder {
 }

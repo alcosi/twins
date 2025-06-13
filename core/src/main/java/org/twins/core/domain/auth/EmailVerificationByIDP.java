@@ -7,5 +7,5 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true)
-public class EmailVerificationByIDP extends EmailVerificationMode {
+public class EmailVerificationByIDP extends EmailVerificationHolder {
 }

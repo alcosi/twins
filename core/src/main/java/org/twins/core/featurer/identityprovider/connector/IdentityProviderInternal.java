@@ -8,7 +8,7 @@ import org.cambium.featurer.params.FeaturerParamInt;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.auth.AuthSignup;
 import org.twins.core.domain.auth.EmailVerificationByTwins;
-import org.twins.core.domain.auth.EmailVerificationMode;
+import org.twins.core.domain.auth.EmailVerificationHolder;
 import org.twins.core.domain.auth.method.AuthMethod;
 import org.twins.core.domain.auth.method.AuthMethodPassword;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -73,7 +73,7 @@ public class IdentityProviderInternal extends IdentityProviderConnector {
     }
 
     @Override
-    public EmailVerificationMode signupByEmailInitiate(Properties properties, AuthSignup authSignup) throws ServiceException {
+    public EmailVerificationHolder signupByEmailInitiate(Properties properties, AuthSignup authSignup) throws ServiceException {
         identityProviderInternalService.signupByEmailInitiate(authSignup);
         return new EmailVerificationByTwins()
                 .setIdpUserActivateCode(UUID.randomUUID().toString());

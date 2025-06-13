@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.domain.auth.EmailVerificationType;
 import org.twins.core.dto.rest.Response;
 
 @Data
@@ -11,4 +12,6 @@ import org.twins.core.dto.rest.Response;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "AuthSignupByEmailRsV1")
 public class AuthSignupByEmailRsDTOv1 extends Response {
+    @Schema(description = "Email verification type (code or link)")
+    public EmailVerificationType verificationType;
 }

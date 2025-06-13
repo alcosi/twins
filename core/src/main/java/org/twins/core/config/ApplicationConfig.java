@@ -13,10 +13,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.service.EntitySmartService;
-import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
-import org.jasypt.iv.RandomIvGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.CacheManager;
@@ -39,6 +36,8 @@ import org.twins.core.config.filter.LoggingFilter;
 import org.twins.core.config.filter.UncaughtExceptionFilter;
 
 import javax.sql.DataSource;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 
@@ -165,6 +164,11 @@ public class ApplicationConfig {
         if (taskDecorator != null) executor.setTaskDecorator(taskDecorator);
         executor.initialize();
         return executor;
+    }
+
+    @Bean(name = "emailTaskExecutor")
+    public Executor taskExecutor() {
+        return Executors.newFixedThreadPool(10);
     }
 
 //    @Bean(name = "cacheManagerRequestScope")
