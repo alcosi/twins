@@ -45,7 +45,7 @@ public class AuthSignupByEmailController extends ApiController {
         AuthSignupByEmailRsDTOv1 rs = new AuthSignupByEmailRsDTOv1();
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
-            identityProviderService.signupByEmailInitiate(authSignUpRestDTOReverseMapper.convert(request));
+            rs.setVerificationType(identityProviderService.signupByEmailInitiate(authSignUpRestDTOReverseMapper.convert(request)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
