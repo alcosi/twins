@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.StringUtils;
-import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -17,6 +16,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.email.EmailSenderService;
 import org.twins.core.service.event.Event;
+import org.twins.core.service.event.context.ContextLoaderDomainData;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.template.TemplateGeneratorService;
 
@@ -29,7 +29,6 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class NotificationEmailService extends EntitySecureFindServiceImpl<NotificationEmailEntity> {
     private final NotificationEmailRepository notificationEmailRepository;
-    private final FeaturerService featurerService;
     private final TemplateGeneratorService templateGeneratorService;
     private final I18nService i18nService;
     @Lazy
@@ -73,6 +72,7 @@ public class NotificationEmailService extends EntitySecureFindServiceImpl<Notifi
             log.error("{} is inactive", event.getEvent().getId());
             return;
         }
+        ContextLoaderDomainData.INSTANCE.load(event, authService.getApiUser().getDomain());
         String subject = null, body = null;
         if (notificationEmailEntity.getSubjectTemplateGeneratorId() != null) {
             subject = templateGeneratorService.generate(notificationEmailEntity.getSubjectTemplateGenerator(), notificationEmailEntity.getSubjectI18nId(), event.getContext());
@@ -94,6 +94,6 @@ public class NotificationEmailService extends EntitySecureFindServiceImpl<Notifi
                 notificationEmailEntity.getEmailSender(),
                 emailDst,
                 subject,
-                body);
+                body, notificationEmailEntity.isAsync());
     }
 }

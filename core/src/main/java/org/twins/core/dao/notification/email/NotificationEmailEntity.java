@@ -50,6 +50,9 @@ public class NotificationEmailEntity implements EasyLoggable {
     @Column(name = "active")
     private boolean active;
 
+    @Column(name = "async")
+    private boolean async;
+
     @Column(name = "created_at")
     private Timestamp createdAt;
 

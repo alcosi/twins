@@ -6,6 +6,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,8 @@ import org.twins.core.service.auth.AuthService;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 @Slf4j
@@ -28,6 +31,8 @@ public class EmailSenderService extends EntitySecureFindServiceImpl<EmailSenderE
     @Lazy
     private final AuthService authService;
     private final FeaturerService featurerService;
+    @Qualifier("emailTaskExecutor")
+    private final Executor emailTaskExecutor;
 
     @Override
     public CrudRepository<EmailSenderEntity, UUID> entityRepository() {
@@ -54,13 +59,25 @@ public class EmailSenderService extends EntitySecureFindServiceImpl<EmailSenderE
         return true;
     }
 
-    public void sendEmail(EmailSenderEntity emailSender, String dstEmail, String subject, String body) throws ServiceException {
-        sendEmail(emailSender,  dstEmail, subject, body, null);
+    public void sendEmail(EmailSenderEntity emailSender, String dstEmail, String subject, String body, boolean async) throws ServiceException {
+        sendEmail(emailSender,  dstEmail, subject, body, null, async);
     }
 
-    public void sendEmail(EmailSenderEntity emailSender, String dstEmail, String subject, String body, Map<String, String> templateVars) throws ServiceException {
+    public void sendEmail(EmailSenderEntity emailSender, String dstEmail, String subject, String body, Map<String, String> templateVars, boolean async) throws ServiceException {
         Emailer emailer = featurerService.getFeaturer(emailSender.getEmailerFeaturerId(), Emailer.class);
-        emailer.sendMail(emailSender.getId(), emailSender.getEmailerParams(), emailSender.getSrcEmail(), dstEmail, subject, body, templateVars);
+        if (async) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    emailer.sendMail(emailSender.getId(), emailSender.getEmailerParams(), emailSender.getSrcEmail(), dstEmail, subject, body, templateVars);;
+                } catch (ServiceException e) {
+                    log.error("Failed to send email", e);
+                    throw new RuntimeException(e);
+                }
+            }, emailTaskExecutor);
+        } else {
+            emailer.sendMail(emailSender.getId(), emailSender.getEmailerParams(), emailSender.getSrcEmail(), dstEmail, subject, body, templateVars);
+        }
+
     }
 
 }

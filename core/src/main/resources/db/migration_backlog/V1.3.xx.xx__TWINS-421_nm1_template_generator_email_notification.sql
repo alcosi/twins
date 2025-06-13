@@ -77,8 +77,8 @@ create table if not exists email_sender
     created_at          timestamp default CURRENT_TIMESTAMP
 );
 
-INSERT INTO email_sender (id, domain_id, src_email, name, description, emailer_featurer_id, emailer_params, created_at, src_email, active)
-VALUES ('00000000-0000-0000-0009-000000000001', null, '', 'Internal', 'System internal email sender ', 3301, null, '2025-05-25 16:49:12.539132', null, true) on conflict (id) do nothing;
+INSERT INTO email_sender (id, domain_id,  name, description, emailer_featurer_id, emailer_params, created_at, src_email, active)
+VALUES ('00000000-0000-0000-0009-000000000001', null, 'Internal', 'System internal email sender ', 3301, null, '2025-05-25 16:49:12.539132', 'no-reply@twinsbox.iou', true) on conflict (id) do nothing;
 
 
 create index if not exists email_sender_emailer_featurer_id_index
@@ -121,6 +121,7 @@ create table if not exists notification_email
             references template_generator
             on update cascade on delete cascade,
     active boolean not null default true,
+    async boolean not null default true,
     created_at           timestamp default CURRENT_TIMESTAMP
 );
 
@@ -154,7 +155,7 @@ insert into i18n (id, name, key, i18n_type_id) VALUES
                                         on conflict (id) do update set name = excluded.name, key = excluded.key, i18n_type_id = excluded.i18n_type_id;
 
 insert into i18n_translation (i18n_id, locale, translation, usage_counter) VALUES
-        ('c84ff233-d986-4eba-a398-080a70966865', 'en', 'Welcome to ${domain.name}', 0),
+        ('c84ff233-d986-4eba-a398-080a70966865', 'en', 'Welcome to ${domain.name.else.key}', 0),
         ('1e6cc220-b513-47a4-8ad4-2850302ffa9a', 'en', 'Your email verification code: ${email.verification.code}', 0)
                                         on conflict (i18n_id,locale) do update set translation = excluded.translation, usage_counter = excluded.usage_counter;;
 
