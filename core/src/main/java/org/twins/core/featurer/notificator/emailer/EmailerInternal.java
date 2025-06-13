@@ -5,6 +5,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
+import org.cambium.featurer.params.FeaturerParamEncrypted;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.mail.SimpleMailMessage;
@@ -32,7 +33,7 @@ public class EmailerInternal extends EmailerCachedSender<JavaMailSender> {
     public static final FeaturerParamString username = new FeaturerParamString("username");
 
     @FeaturerParam(name = "Password", description = "Password", order = 4)
-    public static final FeaturerParamString password = new FeaturerParamString("password");
+    public static final FeaturerParamEncrypted password = new FeaturerParamEncrypted("password");
 
     @FeaturerParam(name = "Auth", description = "Is smtp auth enabled", order = 5, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean auth = new FeaturerParamBoolean("auth");
