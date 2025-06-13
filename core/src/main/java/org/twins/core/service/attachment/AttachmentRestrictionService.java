@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -137,6 +138,9 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         for (TwinAttachmentEntity create : creates) {
             size += create.getSize();
             count++;
+        }
+        if (CollectionUtils.isEmpty(updates) && CollectionUtils.isEmpty(creates)) {
+            return;
         }
         if (tierQuotas.getQuotaSize() > 0 && size > tierQuotas.getQuotaSize())
             throw new ServiceException(ErrorCodeTwins.TIER_SIZE_QUOTA_REACHED)
