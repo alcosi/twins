@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.Response;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "AppInfoRsV1")
+@Schema(name = "CacheRsV1")
 public class CacheRsDTOv1 extends Response {
     @Schema(description = "size in mb")
     public Double sizeInMb;
