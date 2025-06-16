@@ -59,8 +59,7 @@ public class CacheUtils {
     public static long estimateSize(Cache cache) {
         long totalSize = 0;
 
-        com.github.benmanes.caffeine.cache.Cache<Object, Object> nativeCache =
-                ((CaffeineCache) cache).getNativeCache();
+        com.github.benmanes.caffeine.cache.Cache<Object, Object> nativeCache = ((CaffeineCache) cache).getNativeCache();
 
         for (Object key : nativeCache.asMap().keySet()) {
             Object value = nativeCache.getIfPresent(key);
