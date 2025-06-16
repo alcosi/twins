@@ -28,7 +28,6 @@ DO $$
                 SELECT COUNT(*) INTO rows_moved FROM inserted_rows;
 
                 RAISE NOTICE 'Rows migrated: %', rows_moved;
-                COMMIT;
 
                 PERFORM pg_sleep(0.1);
             END LOOP;
