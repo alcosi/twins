@@ -22,6 +22,8 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 
+import java.util.UUID;
+
 @Tag(description = "", name = ApiTag.SYSTEM)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -49,7 +51,7 @@ public class CacheEvictController extends ApiController {
             }
 
             if (recordKey != null) {
-                cache.evict(recordKey);
+                cache.evict(UUID.fromString(recordKey));
                 log.info("Evicted record '{}' from cache '{}'", recordKey, cacheKey);
             } else {
                 cache.clear();
