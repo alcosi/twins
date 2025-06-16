@@ -25,7 +25,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.twins.core.domain.auth.AuthSignup;
 import org.twins.core.domain.auth.EmailVerificationByTwins;
-import org.twins.core.domain.auth.EmailVerificationMode;
+import org.twins.core.domain.auth.EmailVerificationHolder;
 import org.twins.core.domain.auth.method.AuthMethod;
 import org.twins.core.domain.auth.method.AuthMethodPassword;
 import org.twins.core.featurer.FeaturerTwins;
@@ -158,7 +158,7 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
     }
 
     @Override
-    public EmailVerificationMode signupByEmailInitiate(Properties properties, AuthSignup authSignup) throws ServiceException {
+    public EmailVerificationHolder signupByEmailInitiate(Properties properties, AuthSignup authSignup) throws ServiceException {
 
         String token = getToken(properties);
         try {

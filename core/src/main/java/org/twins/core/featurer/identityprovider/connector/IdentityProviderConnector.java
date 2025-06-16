@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.twins.core.domain.auth.AuthSignup;
-import org.twins.core.domain.auth.EmailVerificationMode;
+import org.twins.core.domain.auth.EmailVerificationHolder;
 import org.twins.core.domain.auth.method.AuthMethod;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.identityprovider.ClientLogoutData;
@@ -64,12 +64,12 @@ public abstract class IdentityProviderConnector extends FeaturerTwins {
 
     public abstract void logout(Properties properties, ClientLogoutData clientLogoutData) throws ServiceException;
 
-    public EmailVerificationMode signupByEmailInitiate(HashMap<String, String> identityProviderConnectorParams, AuthSignup authSignup) throws ServiceException {
+    public EmailVerificationHolder signupByEmailInitiate(HashMap<String, String> identityProviderConnectorParams, AuthSignup authSignup) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, identityProviderConnectorParams, new HashMap<>());
         return signupByEmailInitiate(properties, authSignup);
     }
 
-    public abstract EmailVerificationMode signupByEmailInitiate(Properties properties, AuthSignup authSignup) throws ServiceException;
+    public abstract EmailVerificationHolder signupByEmailInitiate(Properties properties, AuthSignup authSignup) throws ServiceException;
 
     public void signupByEmailActivate(HashMap<String, String> identityProviderConnectorParams, UUID twinsUserId, String email, String idpUserActivateToken) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, identityProviderConnectorParams, new HashMap<>());

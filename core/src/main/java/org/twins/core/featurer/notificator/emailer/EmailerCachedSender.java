@@ -9,21 +9,21 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class EmailerCachedSender<S> extends Emailer {
+//    @Override
+//    protected void sendMail(UUID emailSenderId, Properties properties, String dstEmail, String subject, String text) throws ServiceException {
+//        S sender = getSender(emailSenderId, properties);
+//        sendMail(sender, properties, dstEmail, subject, text);
+//    }
+//
+//    protected abstract void sendMail(S sender, Properties properties, String dstEmail, String subject, String text) throws ServiceException;
+
     @Override
-    protected void sendMail(UUID emailSenderId, Properties properties, String dstEmail, String subject, String text) throws ServiceException {
+    protected void sendMail(UUID emailSenderId, Properties properties, String srcEmail, String dstEmail, String subjectOrTemplateId, String bodyOrTemplateId, Map<String, String> templateVars) throws ServiceException {
         S sender = getSender(emailSenderId, properties);
-        sendMail(sender, properties, dstEmail, subject, text);
+        sendMail(sender, properties, dstEmail, srcEmail, subjectOrTemplateId, bodyOrTemplateId, templateVars);
     }
 
-    protected abstract void sendMail(S sender, Properties properties, String dstEmail, String subject, String text) throws ServiceException;
-
-    @Override
-    protected void sendMail(UUID emailSenderId, Properties properties, String dstEmail, String subject, String templateId, Map<String, String> templateVars) throws ServiceException {
-        S sender = getSender(emailSenderId, properties);
-        sendMail(sender, properties, dstEmail, subject, templateId, templateVars);
-    }
-
-    protected abstract void sendMail(S sender, Properties properties, String dstEmail, String subject, String templateId, Map<String, String> templateVars) throws ServiceException;
+    protected abstract void sendMail(S sender, Properties properties, String dstEmail, String srcEmail, String subject, String body, Map<String, String> templateVars) throws ServiceException;
 
     public S createSender(HashMap<String, String> emailerParams) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, emailerParams, new HashMap<>());
