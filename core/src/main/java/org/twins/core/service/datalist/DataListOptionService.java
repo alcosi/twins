@@ -8,9 +8,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.StringUtils;
-import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
-import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +19,14 @@ import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListOptionCreate;
 import org.twins.core.domain.datalist.DataListOptionUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.i18n.I18nService;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -96,7 +96,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                             dataListOptionCreate.getNameI18n()).getId())
                     .setStatus(DataListOptionEntity.Status.active)
                     .setBackgroundColor(dataListOptionCreate.getBackgroundColor())
-                    .setFontColor(dataListOptionCreate.getFontColor());
+                    .setFontColor(dataListOptionCreate.getFontColor())
+                    .setExternalId(dataListOptionCreate.getExternalId());
 
             createAttributes(dataList, dataListOption, dataListOptionCreate.getAttributes());
 
