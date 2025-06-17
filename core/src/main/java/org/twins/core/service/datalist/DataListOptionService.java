@@ -257,10 +257,12 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         if (businessAccountId != null)
             dataListOptionSearch.addBusinessAccountId(businessAccountId, false);
 
-        for (var option : options) {
+        Iterator<DataListOptionEntity> iterator = options.iterator();
+        while (iterator.hasNext()) {
+            DataListOptionEntity option = iterator.next();
             if (option.getId() == null && StringUtils.isNotEmpty(option.getExternalId())) {
                 dataListOptionSearch.addExternalId(option.getExternalId(), false);
-                options.remove(option);
+                iterator.remove(); // безопасное удаление
             }
         }
         if (CollectionUtils.isEmpty(dataListOptionSearch.getExternalIdLikeList())) {
