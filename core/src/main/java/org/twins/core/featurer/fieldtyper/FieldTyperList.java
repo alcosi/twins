@@ -55,7 +55,10 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
         UUID fieldListId = listUUID.extract(properties);
 
         List<DataListOptionEntity> dataListOptionEntityList = dataListOptionService.reloadOptionsOnDataListAbsent(value.getOptions());
-
+        for (var option : value.getOptions()) {
+            if (!option.getDataListId().equals(fieldListId))
+                throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " optionId[" + option.getId() + "] is not valid for list[" + fieldListId + "]");
+        }
         Map<UUID, TwinFieldDataListEntity> storedOptions = null;
         twinService.loadTwinFields(twin);
         if (twin.getTwinFieldDatalistKit().containsGroupedKey(value.getTwinClassField().getId()))
@@ -89,8 +92,6 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
         }
         HistoryItem<HistoryContextDatalistMultiChange> historyItem = historyService.fieldChangeDataListMulti(value.getTwinClassField());
         for (DataListOptionEntity dataListOptionEntity : dataListOptionEntityList) {
-            if (!dataListOptionEntity.getDataListId().equals(fieldListId))
-                throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " optionId[" + dataListOptionEntity.getId() + "] is not valid for list[" + fieldListId + "]");
             if (FieldValueChangeHelper.notSaved(dataListOptionEntity.getId(), storedOptions)) { // no values were saved before
                 if (twinChangesCollector.isHistoryCollectorEnabled())
                     historyItem.getContext().shotAddedDataListOption(dataListOptionEntity, i18nService);
@@ -124,6 +125,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     }
 
     public static final String LIST_SPLITTER = "<@2@>";
+    public static final String EXTERNAL_ID_PREFIX = "#externalId=";
 
     @Override
     protected FieldValueSelect deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
