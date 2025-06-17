@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,8 +20,8 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
+import org.twins.core.service.system.CacheService;
 
-import java.util.UUID;
 
 @Tag(description = "", name = ApiTag.SYSTEM)
 @RestController
@@ -30,7 +29,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class CacheEvictController extends ApiController {
-    private final CacheManager cacheManager;
+    private final CacheService cacheService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "cacheEvictV1", summary = "Evict cache or specific record")
@@ -42,22 +41,10 @@ public class CacheEvictController extends ApiController {
     @GetMapping(value = "/private/system/cache/{cacheKey}/evict")
     public ResponseEntity<?> cacheEvictV1(
             @Parameter(example = DTOExamples.CACHE_KEY) @PathVariable String cacheKey,
-            @RequestParam(required = false) UUID recordKey) {
+            @RequestParam(required = false) String recordKey) {
         Response rs = new Response();
         try {
-            CaffeineCache cache = (CaffeineCache) cacheManager.getCache(cacheKey);
-            if (cache == null) {
-                throw new ServiceException(ErrorCodeCommon.CACHE_WRONG_KEY, "Cannot find cache by key [" + cacheKey + "]");
-            }
-
-            if (recordKey != null) {
-                cache.evict(recordKey);
-                log.info("Evicted record '{}' from cache '{}'", recordKey, cacheKey);
-            } else {
-                cache.clear();
-                log.info("Cleared entire cache '{}'", cacheKey);
-            }
-
+            cacheService.evictCacheRecord(cacheKey, recordKey);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

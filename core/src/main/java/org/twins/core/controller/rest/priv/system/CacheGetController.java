@@ -9,12 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.CacheUtils;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -26,6 +21,8 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.system.CacheRsDTOv1;
+import org.twins.core.mappers.rest.system.CacheRestDTOMapper;
+import org.twins.core.service.system.CacheService;
 
 
 @Tag(description = "", name = ApiTag.SYSTEM)
@@ -34,7 +31,8 @@ import org.twins.core.dto.rest.system.CacheRsDTOv1;
 @RequiredArgsConstructor
 @Slf4j
 public class CacheGetController extends ApiController {
-    private final CacheManager cacheManager;
+    private final CacheService cacheService;
+    private final CacheRestDTOMapper cacheRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "cacheInfoV1", summary = "Returns cache info")
@@ -48,23 +46,7 @@ public class CacheGetController extends ApiController {
             @Parameter(example = DTOExamples.CACHE_KEY) @PathVariable String cacheKey) {
         CacheRsDTOv1 rs = new CacheRsDTOv1();
         try {
-            Cache cache = cacheManager.getCache(cacheKey);
-            if (cache == null) {
-                throw new ServiceException(ErrorCodeCommon.CACHE_WRONG_KEY, "Cannot find cache by key [" + cacheKey + "]");
-            }
-
-            long itemCount = 0;
-            double sizeInMb = 0;
-
-            if (cache instanceof CaffeineCache) {
-                Object nativeCache = cache.getNativeCache();
-                itemCount = ((com.github.benmanes.caffeine.cache.Cache<?, ?>) nativeCache).estimatedSize();
-                sizeInMb = (double) CacheUtils.estimateSize(cache) / (1024 * 1024);
-            }
-
-            rs
-                    .setItemsCount(itemCount)
-                    .setSizeInMb(sizeInMb);
+            rs = cacheRestDTOMapper.convert(cacheService.getCacheInfo(cacheKey));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
