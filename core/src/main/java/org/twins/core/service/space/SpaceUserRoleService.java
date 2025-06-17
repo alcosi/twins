@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.pagination.PaginationResult;
@@ -132,19 +133,29 @@ public class SpaceUserRoleService {
 
     @Transactional
     public void overrideSpaceRoleUsers(UUID spaceId, UUID roleId, List<UUID> overrideList) throws ServiceException {
+        ImmutablePair<Set<UUID>, Set<UUID>> spaceRoleUserSets = calculateSpaceRoleUserChanges(spaceId, roleId, overrideList);
+        applySpaceRoleUserChanges(spaceId, roleId, spaceRoleUserSets);
+    }
+
+    public ImmutablePair<Set<UUID>, Set<UUID>> calculateSpaceRoleUserChanges(UUID spaceId, UUID roleId, List<UUID> overrideList) {
         // if overrideList is null or empty we need to remove all users from space role
         Set<UUID> overrideSet = overrideList != null ? new HashSet<>(overrideList) : new HashSet<>();
         Set<UUID> usersToDelete = new HashSet<>();
         Kit<SpaceRoleUserEntity, UUID> existingUserKit = getExistingUsers(spaceId, roleId);
 
         for (UUID existingUserId : existingUserKit.getIdSet()) {
-            if (overrideSet.contains(existingUserId))
+            if (overrideSet.contains(existingUserId)) {
                 overrideSet.remove(existingUserId); // this user is already in space so we can skip
-            else
+            } else {
                 usersToDelete.add(existingUserId);
+            }
         }
-        addUsersToSpaceRole(spaceId, roleId, overrideSet);
-        deleteUsersFromSpaceRole(spaceId, roleId, usersToDelete);
+        return new ImmutablePair<>(overrideSet, usersToDelete);
+    }
+
+    public void applySpaceRoleUserChanges(UUID spaceId, UUID roleId, ImmutablePair<Set<UUID>, Set<UUID>> setsForSave) throws ServiceException {
+        addUsersToSpaceRole(spaceId, roleId, setsForSave.getLeft());
+        deleteUsersFromSpaceRole(spaceId, roleId, setsForSave.getRight());
     }
 
     private void addUsersToSpaceRole(UUID spaceId, UUID roleId, Set<UUID> userList) throws ServiceException {
@@ -168,7 +179,7 @@ public class SpaceUserRoleService {
             entitySmartService.saveAllAndLog(listToAdd, spaceRoleUserRepository);
     }
 
-    private void deleteUsersFromSpaceRole(UUID spaceId, UUID roleId, Set<UUID> deleteUserList) {
+    public void deleteUsersFromSpaceRole(UUID spaceId, UUID roleId, Set<UUID> deleteUserList) {
         if (CollectionUtils.isEmpty(deleteUserList))
             return;
         spaceRoleUserRepository.deleteBySpaceIdAndSpaceRoleIdAndUserIdIn(spaceId, roleId, deleteUserList);
