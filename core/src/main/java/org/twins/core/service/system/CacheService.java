@@ -32,7 +32,6 @@ public class CacheService {
 
         long itemCount = 0;
         double sizeInMb = 0;
-        String cacheType = cache.getClass().getSimpleName();
 
         if (cache instanceof CaffeineCache) {
             Object nativeCache = cache.getNativeCache();
@@ -43,7 +42,7 @@ public class CacheService {
             itemCount = nativeCache.size();
             sizeInMb = (double) CacheUtils.estimateSize(cache) / (1024 * 1024);
         } else {
-            throw new ServiceException(ErrorCodeCommon.CACHE_TYPE_UNSUPPORTED, "Unsupported cache type: [" + cacheType + "]");
+            throw new ServiceException(ErrorCodeCommon.CACHE_TYPE_UNSUPPORTED, "Unsupported cache type: [" + cache.getClass().getSimpleName() + "]");
         }
 
         return new CacheInfo()
