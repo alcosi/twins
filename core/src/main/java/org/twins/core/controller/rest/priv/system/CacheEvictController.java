@@ -42,7 +42,7 @@ public class CacheEvictController extends ApiController {
     @GetMapping(value = "/private/system/cache/{cacheKey}/evict")
     public ResponseEntity<?> cacheEvictV1(
             @Parameter(example = DTOExamples.CACHE_KEY) @PathVariable String cacheKey,
-            @RequestParam(required = false) String recordKey) {
+            @RequestParam(required = false) UUID recordKey) {
         Response rs = new Response();
         try {
             CaffeineCache cache = (CaffeineCache) cacheManager.getCache(cacheKey);
@@ -51,7 +51,7 @@ public class CacheEvictController extends ApiController {
             }
 
             if (recordKey != null) {
-                cache.evict(UUID.fromString(recordKey));
+                cache.evict(recordKey);
                 log.info("Evicted record '{}' from cache '{}'", recordKey, cacheKey);
             } else {
                 cache.clear();

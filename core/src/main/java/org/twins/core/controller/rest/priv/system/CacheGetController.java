@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CacheUtils;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.http.HttpStatus;
@@ -47,16 +48,23 @@ public class CacheGetController extends ApiController {
             @Parameter(example = DTOExamples.CACHE_KEY) @PathVariable String cacheKey) {
         CacheRsDTOv1 rs = new CacheRsDTOv1();
         try {
-            CaffeineCache cache = (CaffeineCache) cacheManager.getCache(cacheKey);
+            Cache cache = cacheManager.getCache(cacheKey);
             if (cache == null) {
                 throw new ServiceException(ErrorCodeCommon.CACHE_WRONG_KEY, "Cannot find cache by key [" + cacheKey + "]");
             }
 
-            com.github.benmanes.caffeine.cache.Cache<Object, Object> nativeCache = cache.getNativeCache();
+            long itemCount = 0;
+            double sizeInMb = 0;
+
+            if (cache instanceof CaffeineCache) {
+                Object nativeCache = cache.getNativeCache();
+                itemCount = ((com.github.benmanes.caffeine.cache.Cache<?, ?>) nativeCache).estimatedSize();
+                sizeInMb = (double) CacheUtils.estimateSize(cache) / (1024 * 1024);
+            }
 
             rs
-                    .setItemsCount(nativeCache.estimatedSize())
-                    .setSizeInMb((double)CacheUtils.estimateSize(cache) / (1024 * 1024));
+                    .setItemsCount(itemCount)
+                    .setSizeInMb(sizeInMb);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
