@@ -1090,8 +1090,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             for (String dataListOption : value.split(FieldTyperList.LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(dataListOption)) continue;
                 DataListOptionEntity dataListOptionEntity = new DataListOptionEntity();
-                if (UuidUtils.isUUID(dataListOption)) dataListOptionEntity.setId(UUID.fromString(dataListOption));
-                else dataListOptionEntity.setOption(dataListOption);
+                if (UuidUtils.isUUID(dataListOption)) {
+                    dataListOptionEntity.setId(UUID.fromString(dataListOption));
+                } else if (dataListOption.startsWith(FieldTyperList.EXTERNAL_ID_PREFIX)) {
+                    dataListOptionEntity.setExternalId(StringUtils.substringAfter(dataListOption, FieldTyperList.EXTERNAL_ID_PREFIX));
+                } else {
+                    dataListOptionEntity.setOption(dataListOption);
+                }
                 fieldValueSelect.add(dataListOptionEntity);
             }
         }

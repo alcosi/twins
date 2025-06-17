@@ -7,6 +7,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -24,6 +25,7 @@ import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListOptionCreate;
 import org.twins.core.domain.datalist.DataListOptionUpdate;
+import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
@@ -43,6 +45,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     @Lazy
     @Autowired
     private DataListService dataListService;
+    @Autowired
+    private DataListOptionSearchService dataListOptionSearchService;
 
     @Override
     public CrudRepository<DataListOptionEntity, UUID> entityRepository() {
@@ -246,5 +250,25 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         return new Kit<>(dataListOptionEntityList, DataListOptionEntity::getId);
     }
 
+
+    public List<DataListOptionEntity> processExternalOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId) throws ServiceException {
+        DataListOptionSearch dataListOptionSearch = new DataListOptionSearch()
+                .addDataListId(dataListId, false);
+        if (businessAccountId != null)
+            dataListOptionSearch.addBusinessAccountId(businessAccountId, false);
+
+        for (var option : options) {
+            if (option.getId() == null && StringUtils.isNotEmpty(option.getExternalId())) {
+                dataListOptionSearch.addExternalId(option.getExternalId(), false);
+                options.remove(option);
+            }
+        }
+        if (CollectionUtils.isEmpty(dataListOptionSearch.getExternalIdLikeList())) {
+            return options;
+        }
+        List<DataListOptionEntity> externalOptions = dataListOptionSearchService.findDataListOptions(dataListOptionSearch);
+        options.addAll(externalOptions);
+        return options;
+    }
     //todo move *options methods from  DataListService
 }

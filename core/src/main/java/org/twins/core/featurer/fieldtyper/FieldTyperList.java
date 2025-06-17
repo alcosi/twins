@@ -124,6 +124,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     }
 
     public static final String LIST_SPLITTER = "<@2@>";
+    public static final String EXTERNAL_ID_PREFIX = "#externalId=";
 
     @Override
     protected FieldValueSelect deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
