@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
+import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -100,8 +101,7 @@ public class TwinUpdateController extends ApiController {
                 filesMap.put(fileName, file);
             });
         });
-        TwinUpdateRqDTOv1 mappedRequest = objectMapper.readValue(requestBytes, TwinUpdateRqDTOv1.class);
-        return updateTwin(mapperContext, twinId, mappedRequest, filesMap);
+        return updateTwin(mapperContext, twinId, mapRequest(requestBytes, TwinUpdateRqDTOv1.class), filesMap);
     }
 
 
@@ -127,5 +127,13 @@ public class TwinUpdateController extends ApiController {
             return createErrorRs(e, rs);
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    protected <T> T mapRequest(byte[] bytes, Class<T> clazz) {
+        try {
+            return objectMapper.readValue(bytes, clazz);
+        } catch (Throwable t) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, t.getMessage());
+        }
     }
 }
