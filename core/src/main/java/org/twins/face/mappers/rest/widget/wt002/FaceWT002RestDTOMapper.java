@@ -9,14 +9,17 @@ import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.face.dao.widget.wt002.FaceWT002Entity;
+import org.twins.face.domain.twidget.wt002.FaceWT002ButtonTwin;
+import org.twins.face.domain.twidget.wt002.FaceWT002Twin;
 import org.twins.face.dto.rest.widget.wt002.FaceWT002DTOv1;
 import org.twins.face.service.widget.FaceWT002Service;
 
 import java.util.Collection;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class FaceWT002RestDTOMapper extends RestSimpleDTOMapper<FaceWT002Entity, FaceWT002DTOv1> {
+public class FaceWT002RestDTOMapper extends RestSimpleDTOMapper<FaceWT002Twin, FaceWT002DTOv1> {
     protected final FaceRestDTOMapper faceRestDTOMapper;
     protected final FaceWT002Service faceWT002Service;
 
@@ -24,24 +27,28 @@ public class FaceWT002RestDTOMapper extends RestSimpleDTOMapper<FaceWT002Entity,
     protected final FaceWT002ButtonRestDTOMapper faceWT002ButtonRestDTOMapper;
 
     @Override
-    public void map(FaceWT002Entity src, FaceWT002DTOv1 dst, MapperContext mapperContext) throws Exception {
-        faceRestDTOMapper.map(src.getFace(), dst, mapperContext);
+    public void map(FaceWT002Twin src, FaceWT002DTOv1 dst, MapperContext mapperContext) throws Exception {
+        faceRestDTOMapper.map(src.getEntity().getFace(), dst, mapperContext);
         switch (mapperContext.getModeOrUse(FaceMode.SHORT)) {
             case SHORT -> dst
-                    .setKey(src.getKey());
+                    .setKey(src.getEntity().getKey());
             case DETAILED -> {
-                faceWT002Service.loadButtons(src);
+                faceWT002Service.loadButtons(src.getEntity());
+
+                List<FaceWT002ButtonTwin> buttonTwinList = src.getEntity().getButtons().stream().map(button -> new FaceWT002ButtonTwin(button, src.getCurrentTwinId())).toList();
+
                 dst
-                        .setKey(src.getKey())
-                        .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "))
-                        .setButtons(faceWT002ButtonRestDTOMapper.convertCollection(src.getButtons(), mapperContext));
+                        .setKey(src.getEntity().getKey())
+                        .setStyleClasses(StringUtils.splitToSet(src.getEntity().getStyleClasses(), " "))
+                        .setButtons(faceWT002ButtonRestDTOMapper.convertCollection(buttonTwinList, mapperContext));
             }
         }
     }
 
     @Override
-    public void beforeCollectionConversion(Collection<FaceWT002Entity> srcCollection, MapperContext mapperContext) throws Exception {
+    public void beforeCollectionConversion(Collection<FaceWT002Twin> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        faceWT002Service.loadButtons(srcCollection);
+        Collection<FaceWT002Entity> entities = srcCollection.stream().map(FaceWT002Twin::getEntity).toList();
+        faceWT002Service.loadButtons(entities);
     }
 }
