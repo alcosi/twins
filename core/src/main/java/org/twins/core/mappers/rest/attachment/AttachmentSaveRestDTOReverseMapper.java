@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.attachment;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.twins.core.exception.ErrorCodeTwins.BAD_REQUEST_MULTIPART_FILE_IS_NOT_PRESENTED;
+
 
 @Component
 @RequiredArgsConstructor
@@ -32,39 +35,51 @@ public class AttachmentSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Atta
 
     @SneakyThrows
     public void preProcessAttachments(List<AttachmentSaveDTOv1> attachments, Map<String, MultipartFile> files) {
-        ApiUser apiUser = authService.getApiUser();
-        StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getAttachmentsStorageId());
-        StorageEntity externalLinkStorage = storageService.findEntitySafe(externalLinkStorageId);
+        try {
+            ApiUser apiUser = authService.getApiUser();
+            StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getAttachmentsStorageId());
+            StorageEntity externalLinkStorage = storageService.findEntitySafe(externalLinkStorageId);
 
-        if (attachments != null && !attachments.isEmpty()) {
-            attachments.forEach(att -> {
-                boolean haveLink = att.storageLink != null && !att.storageLink.isBlank();
-                boolean isMultipart = haveLink && att.storageLink.toLowerCase().startsWith("multipart://");
-                boolean isExternalLink = !isMultipart;
-                if (isExternalLink) {
-                    att.setStorage(externalLinkStorage);
-                } else {
-                    att.setStorage(storage);
-                }
-                if (haveLink && isMultipart) {
-                    MultipartFile file = files.get(att.storageLink.replaceFirst("multipart://", ""));
-                    if (file == null) {
-                        throw new RuntimeException("File not found for link " + att.storageLink);
-                    }
-                    try {
-                        DomainFile domainFile = new DomainFile(file.getInputStream(), file.getOriginalFilename(), file.getSize());
-                        att.setDomainFile(domainFile);
-                        if (att.size == null || att.size < 1) {
-                            att.size = domainFile.fileSize();
-                        }
-                    } catch (Throwable t) {
-                        log.error("Error while processing multipart link {}", att.storageLink, t);
-                        throw new RuntimeException("Error while processing multipart link " + att.storageLink, t);
-                    }
-                }
-            });
+            if (attachments != null && !attachments.isEmpty()) {
+                attachments.forEach(att -> {
+                    processAttribute(files, att, externalLinkStorage, storage);
+                });
+            }
+        } catch (Throwable t) {
+            log.error("Error while pre-processing attachments", t);
+            throw t;
         }
     }
+
+    @SneakyThrows
+    protected void processAttribute(Map<String, MultipartFile> files, AttachmentSaveDTOv1 att, StorageEntity externalLinkStorage, StorageEntity storage) {
+        boolean haveLink = att.storageLink != null && !att.storageLink.isBlank();
+        boolean isMultipart = haveLink && att.storageLink.toLowerCase().startsWith("multipart://");
+        boolean isExternalLink = !isMultipart;
+        if (isExternalLink) {
+            att.setStorage(externalLinkStorage);
+        } else {
+            att.setStorage(storage);
+        }
+        if (haveLink && isMultipart) {
+            String fileKey = att.storageLink.replaceFirst("multipart://", "");
+            MultipartFile file = files.get(fileKey);
+            if (file == null) {
+                throw new ServiceException(BAD_REQUEST_MULTIPART_FILE_IS_NOT_PRESENTED, "File not found " + fileKey);
+            }
+            try {
+                DomainFile domainFile = new DomainFile(file.getInputStream(), file.getOriginalFilename(), file.getSize());
+                att.setDomainFile(domainFile);
+                if (att.size == null || att.size < 1) {
+                    att.size = domainFile.fileSize();
+                }
+            } catch (Throwable t) {
+                log.error("Error while processing multipart link {}", att.storageLink, t);
+                throw new ServiceException(BAD_REQUEST_MULTIPART_FILE_IS_NOT_PRESENTED, "Error while processing multipart link " + att.storageLink + " ." + t.getClass().getSimpleName());
+            }
+        }
+    }
+
     @Override
     public void map(AttachmentSaveDTOv1 src, TwinAttachmentEntity dst, MapperContext mapperContext) throws Exception {
         dst

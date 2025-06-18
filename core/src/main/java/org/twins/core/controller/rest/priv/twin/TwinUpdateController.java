@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
@@ -76,7 +77,9 @@ public class TwinUpdateController extends ApiController {
      * The DTO is expected as a JSON string in the 'request' part.
      * You could also add other parts, e.g., @RequestPart("file") MultipartFile file.
      */
-    @Operation(summary = "twinUpdateV1Multipart", description = "Updates a twin using a multipart form. The twin data should be a JSON string in the 'request' form field.")
+    @SneakyThrows
+    @ParametersApiUserHeaders
+    @Operation(summary = "twinUpdateV1", description = "Updates a twin using a multipart form. The twin data should be a JSON string in the 'request' form field.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TwinRsDTOv2.class))
@@ -97,7 +100,7 @@ public class TwinUpdateController extends ApiController {
                 filesMap.put(fileName, file);
             });
         });
-        TwinUpdateRqDTOv1 mappedRequest = objectMapper.convertValue(requestBytes, TwinUpdateRqDTOv1.class);
+        TwinUpdateRqDTOv1 mappedRequest = objectMapper.readValue(requestBytes, TwinUpdateRqDTOv1.class);
         return updateTwin(mapperContext, twinId, mappedRequest, filesMap);
     }
 

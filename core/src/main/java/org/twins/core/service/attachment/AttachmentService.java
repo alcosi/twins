@@ -85,8 +85,8 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     public void addAttachments(List<TwinAttachmentEntity> attachments, TwinChangesCollector twinChangesCollector) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         loadTwins(attachments);
-        final UUID uuid = UUID.randomUUID();
         for (TwinAttachmentEntity attachmentEntity : attachments) {
+            final UUID uuid = UUID.randomUUID();
             twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
             saveFile(attachmentEntity, uuid);
             attachmentEntity
@@ -300,8 +300,10 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 dbAttachmentEntity.setTitle(attachmentEntity.getTitle());
             }
             if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.storageFileKey, dbAttachmentEntity.getStorageFileKey(), attachmentEntity.getStorageFileKey())) {
-                historyItem.getContext().setNewStorageFileKey(attachmentEntity.getStorageFileKey());
+                deleteFile(dbAttachmentEntity);
+                saveFile(attachmentEntity, dbAttachmentEntity.getId());
                 dbAttachmentEntity.setStorageFileKey(attachmentEntity.getStorageFileKey());
+                historyItem.getContext().setNewStorageFileKey(attachmentEntity.getStorageFileKey());
             }
             if (KitUtils.isNotEmpty(attachmentEntity.getModifications())) {
                 updateAttachmentModifications(attachmentEntity, dbAttachmentEntity, twinChangesCollector);

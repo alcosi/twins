@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +51,7 @@ public class AttachementPublicController extends ApiController {
     public ResponseEntity<?> getPublicResourceFile(
             @Schema(implementation = UUID.class, description = "Attachment Id", example = DTOExamples.ATTACHMENT_ID)
             @PathVariable("id") UUID attachmentId,
-            HttpServletRequest serverRq, HttpServletResponse serverRs
+            @Schema(hidden = true) HttpServletResponse serverRs
     ) {
         Long time = System.currentTimeMillis();
         log.info("Started attachment " + attachmentId + " download");
