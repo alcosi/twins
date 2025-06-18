@@ -14,7 +14,7 @@ public class EncryptionConfig {
     private static StandardPBEStringEncryptor encryptor;
     private static String password;
 
-    @Value("${twin.field.password.key}")
+    @Value("${twin.field.password.key:secret}")
     private String secretKey;
 
     @Bean
@@ -34,7 +34,7 @@ public class EncryptionConfig {
         return encryptor;
     }
 
-    @Value("${featurer.param.encrypt.key}")
+    @Value("${featurer.param.encrypt.key:secret}")
     public void setKey(String key) {
         if (EncryptionConfig.password != null) return;
         EncryptionConfig.password = key;
