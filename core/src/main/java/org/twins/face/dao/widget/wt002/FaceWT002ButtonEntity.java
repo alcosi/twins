@@ -34,11 +34,8 @@ public class FaceWT002ButtonEntity {
     @Column(name = "style_classes")
     private String styleClasses;
 
-    @Column(name = "twin_class_id")
-    private UUID twinClassId;
-
-    @Column(name = "extends_depth")
-    private Integer extendsDepth;
+    @Column(name = "face_twin_create_id")
+    private UUID faceTwinCreateId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
@@ -51,8 +48,4 @@ public class FaceWT002ButtonEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconResource;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "twin_class_id", insertable = false, updatable = false)
-    private TwinClassEntity twinClass;
 }
