@@ -50,7 +50,7 @@ public class FactoryMultiplierCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory/{factoryId}/factory_multiplier/v1")
     public ResponseEntity<?> factoryMultiplierCreateV1(
-            @MapperContextBinding(roots = FactoryMultiplierRestDTOMapperV2.class, response = FactoryMultiplierRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryMultiplierRestDTOMapperV2.class, response = FactoryMultiplierRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_ID) @PathVariable UUID factoryId,
             @RequestBody FactoryMultiplierCreateRqDTOv1 request) {
         FactoryMultiplierRsDTOv1 rs = new FactoryMultiplierRsDTOv1();

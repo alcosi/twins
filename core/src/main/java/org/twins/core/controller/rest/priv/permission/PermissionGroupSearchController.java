@@ -59,7 +59,7 @@ public class PermissionGroupSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_group/search/v1")
     public ResponseEntity<?> permissionGroupSearchListV1(
-            @MapperContextBinding(roots = PermissionGroupRestDTOMapper.class, response = PermissionGroupSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGroupRestDTOMapper.class, response = PermissionGroupSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody PermissionGroupSearchRqDTOv1 request) {
         PermissionGroupSearchRsDTOv1 rs = new PermissionGroupSearchRsDTOv1();
@@ -87,7 +87,7 @@ public class PermissionGroupSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/permission_group/{groupId}/v1")
     public ResponseEntity<?> permissionGroupViewV1(
-            @MapperContextBinding(roots = PermissionGroupRestDTOMapper.class, response = PermissionGroupViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGroupRestDTOMapper.class, response = PermissionGroupViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GROUP_ID) @PathVariable("groupId") UUID groupId) {
         PermissionGroupViewRsDTOv1 rs = new PermissionGroupViewRsDTOv1();
         try {
@@ -115,7 +115,7 @@ public class PermissionGroupSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/permission_group_by_key/{groupKey}/v1")
     public ResponseEntity<?> permissionGroupViewByKeyV1(
-            @MapperContextBinding(roots = PermissionGroupRestDTOMapper.class, response = PermissionGroupViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGroupRestDTOMapper.class, response = PermissionGroupViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GROUP_KEY) @PathVariable("groupKey") String groupKey) {
         PermissionGroupViewRsDTOv1 rs = new PermissionGroupViewRsDTOv1();
         try {

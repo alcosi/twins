@@ -48,7 +48,7 @@ public class TwinFieldViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin/{twinId}/field/{fieldKey}/v1")
     public ResponseEntity<?> twinFieldByKeyViewV1(
-            @MapperContextBinding(roots = TwinFieldRestDTOMapper.class, response = TwinFieldRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinFieldRestDTOMapper.class, response = TwinFieldRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @Parameter(example = DTOExamples.TWIN_FIELD_KEY) @PathVariable String fieldKey) {
         TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();

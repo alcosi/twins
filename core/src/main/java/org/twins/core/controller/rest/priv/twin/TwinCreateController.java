@@ -104,7 +104,7 @@ public class TwinCreateController extends ApiController {
     /**
      * Endpoint for creating a twin from a JSON request body.
      */
-    @Operation(summary = "Create new twin from JSON", description = "Creates a new twin using a standard JSON payload.")
+    @Operation(summary = "twinCreateV2", description = "Creates a new twin using a standard JSON payload.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TwinCreateRsDTOv1.class))
@@ -122,7 +122,7 @@ public class TwinCreateController extends ApiController {
      * The DTO is expected as a JSON string in the 'request' part.
      * You could also add other parts, e.g., @RequestPart("file") MultipartFile file.
      */
-    @Operation(summary = "Create new twin from multipart/form-data", description = "Creates a new twin using a multipart form. The twin data should be a JSON string in the 'request' form field.")
+    @Operation(summary = "twinCreateV2Multipart", description = "Creates a new twin using a multipart form. The twin data should be a JSON string in the 'request' form field.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TwinCreateRsDTOv1.class))
@@ -130,7 +130,7 @@ public class TwinCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")
     })
     @PostMapping(value = "/private/twin/v2", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> twinCreateFromMultipart(@Schema(hidden = true) MultipartHttpServletRequest request, @RequestPart("request") byte[] requestBytes) {
+    public ResponseEntity<?> twinCreateFromMultipart(@Schema(hidden = true) MultipartHttpServletRequest request, @Schema(implementation = TwinCreateRqDTOv2.class) @RequestPart("request") byte[] requestBytes) {
         // Spring can automatically convert the JSON part to your DTO
         // if a proper HttpMessageConverter (like MappingJackson2HttpMessageConverter) is configured.
         Map<String, MultipartFile> filesMap = new HashMap<>();

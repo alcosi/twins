@@ -57,7 +57,7 @@ public class TierSearchController extends ApiController {
     })
     @PostMapping(value = "/private/tier/search/v1")
     public ResponseEntity<?> tierSearchV1(
-            @MapperContextBinding(roots = TierRestDTOMapperV2.class, response = TierSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TierRestDTOMapperV2.class, response = TierSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody TierSearchRqDTOv1 request,
             @SimplePaginationParams SimplePagination pagination) {
 

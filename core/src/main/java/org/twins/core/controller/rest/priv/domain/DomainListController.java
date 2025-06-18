@@ -18,9 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
-import org.twins.core.controller.rest.annotation.ParametersApiUserNoDomainHeaders;
-import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.domain.apiuser.UserResolverAuthToken;
@@ -31,7 +30,6 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainUserService;
-import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.permission.Permissions;
 
 @Tag(description = "", name = ApiTag.DOMAIN)
@@ -56,7 +54,7 @@ public class DomainListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/domain/list/v1")
     public ResponseEntity<?> domainListV1(
-            @MapperContextBinding(roots = DomainViewRestDTOMapper.class, response = DomainListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DomainViewRestDTOMapper.class, response = DomainListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination) {
         DomainListRsDTOv1 rs = new DomainListRsDTOv1();
         try {

@@ -47,7 +47,7 @@ public class TierCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/tier/v1")
     public ResponseEntity<?> tierCreateV1(
-            @MapperContextBinding(roots = TierRestDTOMapperV2.class, response = TierSaveRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TierRestDTOMapperV2.class, response = TierSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody TierCreateRqDTOv1 request) {
         TierSaveRsDTOv1 rs = new TierSaveRsDTOv1();
         try {

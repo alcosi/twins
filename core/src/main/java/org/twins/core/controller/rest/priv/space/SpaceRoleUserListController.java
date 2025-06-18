@@ -61,7 +61,7 @@ public class SpaceRoleUserListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/space/{spaceId}/role/{roleId}/users/v1")
     public ResponseEntity<?> spaceRoleForUserListV1(
-            @MapperContextBinding(roots = UserRestDTOMapper.class, response = UserListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = UserRestDTOMapper.class, response = UserListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.SPACE_ID) @PathVariable UUID spaceId,
             @Parameter(example = DTOExamples.ROLE_ID) @PathVariable UUID roleId) {
         UserListRsDTOv1 rs = new UserListRsDTOv1();
@@ -84,7 +84,7 @@ public class SpaceRoleUserListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/space/{spaceId}/users/list/v1")
     public ResponseEntity<?> spaceUserListV1(
-            @MapperContextBinding(roots = UserRefSpaceRoleDTOMapper.class, response = UserWithinSpaceRolesListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = UserRefSpaceRoleDTOMapper.class, response = UserWithinSpaceRolesListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.SPACE_ID) @PathVariable UUID spaceId,
             @SimplePaginationParams(sortAsc = false, sortField = TwinEntity.Fields.createdAt) SimplePagination pagination) {
         UserWithinSpaceRolesListRsDTOv1 rs = new UserWithinSpaceRolesListRsDTOv1();
@@ -111,7 +111,7 @@ public class SpaceRoleUserListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/space/{spaceId}/users/search/v1")
     public ResponseEntity<?> spaceRoleUserSearchV1(
-            @MapperContextBinding(roots = UserRefSpaceRoleDTOMapper.class, response = UserWithinSpaceRolesListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = UserRefSpaceRoleDTOMapper.class, response = UserWithinSpaceRolesListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.SPACE_ID) @PathVariable UUID spaceId,
             @SimplePaginationParams(sortAsc = false, sortField = TwinEntity.Fields.createdAt) SimplePagination pagination,
             @RequestBody UserRefSpaceRoleSearchDTOv1 request) {
@@ -138,7 +138,7 @@ public class SpaceRoleUserListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/space/{spaceId}/users/{userId}/v1")
     public ResponseEntity<?> spaceRoleUserViewV1(
-            @MapperContextBinding(roots = UserRefSpaceRoleDTOMapper.class, response = UserWithinSpaceRolesViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = UserRefSpaceRoleDTOMapper.class, response = UserWithinSpaceRolesViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.SPACE_ID) @PathVariable UUID spaceId,
             @Parameter(example = DTOExamples.PERMISSION_ID) @PathVariable("userId") UUID userId) {
         UserWithinSpaceRolesViewRsDTOv1 rs = new UserWithinSpaceRolesViewRsDTOv1();

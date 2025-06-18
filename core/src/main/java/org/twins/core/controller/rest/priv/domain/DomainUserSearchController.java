@@ -62,7 +62,7 @@ public class DomainUserSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/domain/user/search/v1")
     public ResponseEntity<?> domainUserSearchListV1(
-            @MapperContextBinding(roots = DomainUserRestDTOMapperV2.class, response = DomainUserSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DomainUserRestDTOMapperV2.class, response = DomainUserSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody DomainUserSearchRqDTOv1 request,
             @SimplePaginationParams SimplePagination pagination) {
         DomainUserSearchRsDTOv1 rs = new DomainUserSearchRsDTOv1();
@@ -91,7 +91,7 @@ public class DomainUserSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/domain/user/{userId}/v1")
     public ResponseEntity<?> domainUserViewV1(
-            @MapperContextBinding(roots = DomainUserRestDTOMapperV2.class, response = DomainUserViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DomainUserRestDTOMapperV2.class, response = DomainUserViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.USER_ID) @PathVariable("userId") UUID userId) {
         DomainUserViewRsDTOv1 rs = new DomainUserViewRsDTOv1();
         try {

@@ -49,7 +49,7 @@ public class PermissionGrantTwinRoleCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/twin_role/v1")
     public ResponseEntity<?> permissionGrantTwinRoleCreateV1(
-            @MapperContextBinding(roots = PermissionGrantTwinRoleRestDTOMapperV2.class, response = PermissionGrantTwinRoleRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantTwinRoleRestDTOMapperV2.class, response = PermissionGrantTwinRoleRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody PermissionGrantTwinRoleCreateRqDTOv1 request) {
         PermissionGrantTwinRoleRsDTOv1 rs = new PermissionGrantTwinRoleRsDTOv1();
         try {

@@ -52,7 +52,7 @@ public class FactoryCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory/v1")
     public ResponseEntity<?> factoryCreateV1(
-            @MapperContextBinding(roots = FactoryRestDTOMapperV2.class, response = FactoryRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryRestDTOMapperV2.class, response = FactoryRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody FactoryCreateRqDTOv1 request) {
         FactoryRsDTOv1 rs = new FactoryRsDTOv1();
         try {

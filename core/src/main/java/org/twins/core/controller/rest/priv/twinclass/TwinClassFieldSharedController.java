@@ -48,7 +48,7 @@ public class TwinClassFieldSharedController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class_field/{twinClassFieldId}/data_list_shared_in_head/{headTwinId}/v1")
     public ResponseEntity<?> twinClassFieldDataListSharedInHeadV1(
-            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_FIELD_SHARED_IN_HEAD_ID) @PathVariable UUID twinClassFieldId,
             @Parameter(example = DTOExamples.HEAD_TWIN_ID) @PathVariable UUID headTwinId) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
