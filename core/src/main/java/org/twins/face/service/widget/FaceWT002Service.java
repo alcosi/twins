@@ -5,21 +5,27 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.domain.search.TwinClassFieldSearch;
+import org.twins.core.featurer.fieldfinder.FieldFinder;
+import org.twins.core.featurer.pointer.Pointer;
+import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassFieldSearchService;
 import org.twins.face.dao.widget.wt002.FaceWT002ButtonEntity;
 import org.twins.face.dao.widget.wt002.FaceWT002ButtonRepository;
 import org.twins.face.dao.widget.wt002.FaceWT002Entity;
 import org.twins.face.dao.widget.wt002.FaceWT002Repository;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -29,6 +35,9 @@ import java.util.function.Function;
 public class FaceWT002Service extends EntitySecureFindServiceImpl<FaceWT002Entity> {
     private final FaceWT002Repository faceWT002Repository;
     private final FaceWT002ButtonRepository faceWT002ButtonRepository;
+    private final FeaturerService featurerService;
+    private final TwinClassFieldSearchService twinClassFieldSearchService;
+    private final TwinService twinService;
 
     @Override
     public CrudRepository<FaceWT002Entity, UUID> entityRepository() {
@@ -72,5 +81,21 @@ public class FaceWT002Service extends EntitySecureFindServiceImpl<FaceWT002Entit
         for (var entry : loadedKit.getGroupedMap().entrySet()) {
             needLoad.get(entry.getKey()).getButtons().addAll(entry.getValue());
         }
+    }
+
+    public List<TwinClassFieldEntity> loadFields(UUID twinClassId, FaceWT002ButtonEntity buttonEntity) throws ServiceException {
+        FieldFinder fieldFinder = featurerService.getFeaturer(buttonEntity.getFieldFinderFeaturerId(), FieldFinder.class);
+        TwinClassFieldSearch twinClassFieldSearch = fieldFinder.createSearch(buttonEntity.getFieldFinderParams(), twinClassId);
+        twinClassFieldSearch.setExcludeSystemFields(false);
+        return twinClassFieldSearchService.findTwinClassField(twinClassFieldSearch, new SimplePagination().setLimit(250).setOffset(0)).getList();
+    }
+
+    public TwinEntity getHeadTwin(UUID currentTwinId, FaceWT002ButtonEntity buttonEntity) throws ServiceException {
+        if (currentTwinId == null) {
+            return null;
+        }
+        TwinEntity currentTwin = twinService.findEntitySafe(currentTwinId);
+        Pointer pointer = featurerService.getFeaturer(buttonEntity.getHeadPointerFeaturer(), Pointer.class);
+        return pointer.point(buttonEntity.getHeadPointerParams(), currentTwin);
     }
 }

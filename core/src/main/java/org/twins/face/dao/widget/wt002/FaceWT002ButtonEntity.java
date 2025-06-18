@@ -1,13 +1,19 @@
 package org.twins.face.dao.widget.wt002;
 
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.cambium.featurer.annotations.FeaturerList;
+import org.cambium.featurer.dao.FeaturerEntity;
+import org.hibernate.annotations.Type;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.featurer.pointer.Pointer;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 @Getter
@@ -39,6 +45,20 @@ public class FaceWT002ButtonEntity {
 
     @Column(name = "extends_depth")
     private Integer extendsDepth;
+
+    @Column(name = "head_pointer_featurer_id")
+    private Integer headPointerFeaturer;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "head_pointer_params", columnDefinition = "hstore")
+    private HashMap<String, String> headPointerParams;
+
+    @Column(name = "field_finder_featurer_id")
+    private Integer fieldFinderFeaturerId;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "field_finder_params", columnDefinition = "hstore")
+    private HashMap<String, String> fieldFinderParams;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
