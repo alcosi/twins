@@ -71,13 +71,13 @@ public class FaceTC001Service extends EntitySecureFindServiceImpl<FaceTC001Entit
 
     public void loadFields(Collection<FaceTC001Entity> entities) throws ServiceException {
         for (FaceTC001Entity entity : entities) {
-            if (entity.getFieldFinderFeaturerId() == null) {
-                return;
+            if (entity.getFields() != null) {
+                continue;
             }
             FieldFinder fieldFinder = featurerService.getFeaturer(entity.getFieldFinderFeaturerId(), FieldFinder.class);
             TwinClassFieldSearch twinClassFieldSearch = fieldFinder.createSearch(entity.getFieldFinderParams(), entity.getTwinClassId());
             twinClassFieldSearch.setExcludeSystemFields(false);
-            Kit<TwinClassFieldEntity, UUID> fields = new Kit<>(twinClassFieldSearchService.findTwinClassField(twinClassFieldSearch, new SimplePagination().setLimit(250).setOffset(0)).getList(), TwinClassFieldEntity::getId);
+            Kit<TwinClassFieldEntity, UUID> fields = new Kit<>(twinClassFieldSearchService.findTwinClassField(twinClassFieldSearch).getList(), TwinClassFieldEntity::getId);
             entity.setFields(fields);
         }
     }

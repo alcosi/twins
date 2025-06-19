@@ -43,6 +43,7 @@ public class FaceTC001RestDTOMapper extends RestSimpleDTOMapper<FaceTC001Twin, F
             case SHORT -> dst
                     .setKey(src.getEntity().getKey());
             case DETAILED -> {
+                faceTC001Service.loadFields(src.getEntity());
                 TwinEntity headTwin = faceTC001Service.getHeadTwin(src.getTwinId(), src.getEntity());
                 dst
                         .setKey(src.getEntity().getKey())
@@ -51,7 +52,8 @@ public class FaceTC001RestDTOMapper extends RestSimpleDTOMapper<FaceTC001Twin, F
                         .setIcon(resourceService.getResourceUri(src.getEntity().getIconResource()))
                         .setTwinClassId(src.getEntity().getTwinClassId())
                         .setExtendsDepth(src.getEntity().getExtendsDepth())
-                        .setPointedHeadTwinId(headTwin == null ? null : headTwin.getId());
+                        .setPointedHeadTwinId(headTwin == null ? null : headTwin.getId())
+                        .setFields(faceTC001FieldRestDTOMapper.convertCollection(src.getEntity().getFields()));
 
                 if (mapperContext.hasModeButNot(FaceTC001Modes.FaceTC0012TwinClassMode.HIDE)) {
                     twinClassRestDTOMapper.postpone(src.getEntity().getTwinClass(), mapperContext.forkOnPoint(FaceTC001Modes.FaceTC0012TwinClassMode.SHORT));

@@ -16,6 +16,8 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.List;
+
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecification.*;
 
@@ -32,6 +34,21 @@ public class TwinClassFieldSearchService {
         Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
         Page<TwinClassFieldEntity> ret = twinClassFieldRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
+    }
+
+
+    public PaginationResult<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search) throws ServiceException {
+        Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
+
+        List<TwinClassFieldEntity> allResults = twinClassFieldRepository.findAll(spec);
+
+        PaginationResult<TwinClassFieldEntity> result = new PaginationResult<>();
+        result.setList(allResults);
+        result.setTotal(allResults.size());
+        result.setLimit(allResults.size());
+        result.setOffset(0);
+
+        return result;
     }
 
     private Specification<TwinClassFieldEntity> createTwinClassFieldSearchSpecification(TwinClassFieldSearch search) throws ServiceException {
