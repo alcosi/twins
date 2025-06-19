@@ -20,6 +20,7 @@ public interface SpaceRoleUserRepository extends CrudRepository<SpaceRoleUserEnt
 
     List<SpaceRoleUserEntity> findAllByTwinIdAndUserId(UUID twinId, UUID userId);
     List<SpaceRoleUserEntity> findAllByTwinIdAndSpaceRoleId(UUID spaceId, UUID spaceRoleId);
+    List<SpaceRoleUserEntity> findAllByTwinIdAndSpaceRoleIdAndUserId(UUID spaceId, UUID spaceRoleId, UUID userId);
 
     @Modifying
     @Query("DELETE FROM SpaceRoleUserEntity sru WHERE sru.spaceRoleId = :roleId AND sru.twinId = :spaceId AND sru.userId IN :userIds")
