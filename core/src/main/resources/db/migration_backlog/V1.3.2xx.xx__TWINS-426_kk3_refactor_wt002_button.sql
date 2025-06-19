@@ -1,3 +1,5 @@
+INSERT INTO public.face_component (id, face_component_type_id, name, description) VALUES ('WT002', 'WIDGET', 'Create twin button widget', null) on conflict (id) do nothing;
+
 DO $$
     BEGIN
         IF EXISTS (

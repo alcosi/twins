@@ -1,7 +1,6 @@
 CREATE TABLE IF NOT EXISTS face_tc001
 (
-    id                       UUID    NOT NULL PRIMARY KEY,
-    face_id                  UUID    NOT NULL REFERENCES face
+    face_id                  UUID    NOT NULL PRIMARY KEY REFERENCES face
     ON UPDATE CASCADE ON DELETE CASCADE,
     key                      VARCHAR NOT NULL,
     header_i18n_id           UUID    REFERENCES i18n

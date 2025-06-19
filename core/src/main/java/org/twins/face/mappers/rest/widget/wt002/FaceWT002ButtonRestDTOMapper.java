@@ -18,22 +18,14 @@ public class FaceWT002ButtonRestDTOMapper extends RestSimpleDTOMapper<FaceWT002B
     private final I18nService i18nService;
     private final ResourceService resourceService;
 
-    @MapperModePointerBinding(modes = FaceWT002Modes.FaceWT002Button2TwinClassMode.class)
-    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
-
     @Override
     public void map(FaceWT002ButtonEntity src, FaceWT002ButtonDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
                 .setId(src.getId())
                 .setKey(src.getKey())
-                .setLabel(i18nService.translateToLocale(src.getLabelI18nId() != null ? src.getLabelI18nId() : src.getTwinClass().getNameI18NId()))
+                .setLabel(i18nService.translateToLocale(src.getLabelI18nId()))
                 .setIcon(resourceService.getResourceUri(src.getIconResource()))
                 .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "))
-                .setTwinClassId(src.getTwinClassId())
-                .setExtendsDepth(src.getExtendsDepth());
-
-       if (mapperContext.hasModeButNot(FaceWT002Modes.FaceWT002Button2TwinClassMode.HIDE)) {
-           twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(FaceWT002Modes.FaceWT002Button2TwinClassMode.SHORT));
-       }
+                .setFaceTwinCreateId(src.getFaceTwinCreateId());
     }
 }
