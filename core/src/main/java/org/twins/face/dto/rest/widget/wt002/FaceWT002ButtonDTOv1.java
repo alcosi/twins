@@ -26,6 +26,6 @@ public class FaceWT002ButtonDTOv1 {
     @Schema(description = "widget layout")
     public Set<String> styleClasses;
 
-    @Schema(description = "face tc id")
-    public UUID faceTwinCreateId;
+    @Schema(description = "face modal id")
+    public UUID modalFaceId;
 }

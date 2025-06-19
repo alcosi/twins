@@ -21,6 +21,8 @@ import org.twins.core.service.twinclass.TwinClassFieldSearchService;
 import org.twins.face.dao.tc.tc001.FaceTC001Entity;
 import org.twins.face.dao.tc.tc001.FaceTC001Repository;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -63,14 +65,20 @@ public class FaceTC001Service extends EntitySecureFindServiceImpl<FaceTC001Entit
         return pointer.point(entity.getHeadPointerParams(), currentTwin);
     }
 
-    public void loadFields(UUID twinClassId, FaceTC001Entity entity) throws ServiceException {
-        if (entity.getFieldFinderFeaturerId() == null) {
-            return;
+    public void loadFields(FaceTC001Entity entity) throws ServiceException {
+        loadFields(Collections.singletonList(entity));
+    }
+
+    public void loadFields(Collection<FaceTC001Entity> entities) throws ServiceException {
+        for (FaceTC001Entity entity : entities) {
+            if (entity.getFieldFinderFeaturerId() == null) {
+                return;
+            }
+            FieldFinder fieldFinder = featurerService.getFeaturer(entity.getFieldFinderFeaturerId(), FieldFinder.class);
+            TwinClassFieldSearch twinClassFieldSearch = fieldFinder.createSearch(entity.getFieldFinderParams(), entity.getTwinClassId());
+            twinClassFieldSearch.setExcludeSystemFields(false);
+            Kit<TwinClassFieldEntity, UUID> fields = new Kit<>(twinClassFieldSearchService.findTwinClassField(twinClassFieldSearch, new SimplePagination().setLimit(250).setOffset(0)).getList(), TwinClassFieldEntity::getId);
+            entity.setFields(fields);
         }
-        FieldFinder fieldFinder = featurerService.getFeaturer(entity.getFieldFinderFeaturerId(), FieldFinder.class);
-        TwinClassFieldSearch twinClassFieldSearch = fieldFinder.createSearch(entity.getFieldFinderParams(), twinClassId);
-        twinClassFieldSearch.setExcludeSystemFields(false);
-        Kit<TwinClassFieldEntity, UUID> fields =  new Kit<>(twinClassFieldSearchService.findTwinClassField(twinClassFieldSearch, new SimplePagination().setLimit(250).setOffset(0)).getList(), TwinClassFieldEntity::getId);
-        entity.setFields(fields);
     }
 }

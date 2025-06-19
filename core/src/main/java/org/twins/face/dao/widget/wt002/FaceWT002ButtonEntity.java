@@ -1,12 +1,13 @@
 package org.twins.face.dao.widget.wt002;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.UUID;
 
@@ -34,8 +35,8 @@ public class FaceWT002ButtonEntity {
     @Column(name = "style_classes")
     private String styleClasses;
 
-    @Column(name = "face_twin_create_id")
-    private UUID faceTwinCreateId;
+    @Column(name = "modal_face_id")
+    private UUID modalFaceId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
@@ -48,4 +49,8 @@ public class FaceWT002ButtonEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconResource;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "modal_face_id", insertable = false, updatable = false)
+    private FaceEntity modalFace;
 }

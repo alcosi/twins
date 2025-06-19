@@ -27,7 +27,7 @@ import org.twins.face.service.tc.FaceTC001Service;
 
 import java.util.UUID;
 
-@Tag(description = "Get WT0002 config by id", name = ApiTag.FACE)
+@Tag(description = "Get TC0001 config by id", name = ApiTag.FACE)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -44,7 +44,7 @@ public class FaceTC001Controller extends ApiController {
                     @Schema(implementation = FaceTC001ViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/face/tc001/{faceId}/v1")
-    public ResponseEntity<?> faceWT002ViewV1(
+    public ResponseEntity<?> faceTC001ViewV1(
             @MapperContextBinding(roots = FaceTC001RestDTOMapper.class, response = FaceTC001ViewRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACE_ID) @PathVariable UUID faceId,
             @RequestParam(required = false) UUID twinId) {

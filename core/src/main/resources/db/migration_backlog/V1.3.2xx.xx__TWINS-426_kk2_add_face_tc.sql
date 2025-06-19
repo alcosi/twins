@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS face_tc001
     extends_depth            INTEGER DEFAULT 0 NOT NULL,
     head_pointer_featurer_id INTEGER REFERENCES featurer,
     head_pointer_params      HSTORE,
-    field_finder_featurer_id INTEGER REFERENCES featurer,
+    field_finder_featurer_id INTEGER REFERENCES featurer NOT NULL,
     field_finder_params      HSTORE
 );
 

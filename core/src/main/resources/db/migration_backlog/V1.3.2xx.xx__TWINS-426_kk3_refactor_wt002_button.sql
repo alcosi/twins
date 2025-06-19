@@ -1,53 +1,30 @@
-INSERT INTO public.face_component (id, face_component_type_id, name, description) VALUES ('WT002', 'WIDGET', 'Create twin button widget', null) on conflict (id) do nothing;
+INSERT INTO public.face_component (id, face_component_type_id, name, description)
+VALUES ('WT002', 'WIDGET', 'Create twin button widget', null)
+on conflict (id) do nothing;
 
-DO $$
+
+ALTER TABLE face_widget_wt002_button
+    DROP COLUMN IF EXISTS twin_class_id,
+    DROP COLUMN IF EXISTS extends_depth;
+
+
+ALTER TABLE face_widget_wt002_button
+    ADD COLUMN IF NOT EXISTS modal_face_id UUID;
+
+DO
+$$
     BEGIN
-        IF EXISTS (
-            SELECT 1 FROM information_schema.columns
-            WHERE table_name = 'face_widget_wt002_button'
-              AND column_name = 'twin_class_id'
-        ) THEN
-            ALTER TABLE face_widget_wt002_button DROP COLUMN twin_class_id;
-        END IF;
-
-        IF EXISTS (
-            SELECT 1 FROM information_schema.columns
-            WHERE table_name = 'face_widget_wt002_button'
-              AND column_name = 'extends_depth'
-        ) THEN
-            ALTER TABLE face_widget_wt002_button DROP COLUMN extends_depth;
-        END IF;
-    END $$;
-
-DO $$
-    BEGIN
-        IF NOT EXISTS (
-            SELECT 1 FROM information_schema.columns
-            WHERE table_name = 'face_widget_wt002_button'
-              AND column_name = 'face_twin_create_id'
-        ) THEN
+        IF NOT EXISTS (SELECT 1
+                       FROM pg_constraint
+                       WHERE conname = 'fk_face_widget_modal_face'
+                         AND conrelid = 'face_widget_wt002_button'::regclass) THEN
             ALTER TABLE face_widget_wt002_button
-                ADD COLUMN face_twin_create_id UUID;
-
-            IF NOT EXISTS (
-                SELECT 1 FROM pg_constraint
-                WHERE conrelid = 'face_widget_wt002_button'::regclass
-                  AND conname = 'face_widget_wt002_button_twin_create_face_id_fkey'
-            ) THEN
-                ALTER TABLE face_widget_wt002_button
-                    ADD CONSTRAINT fk_face_widget_wt002_button_face
-                        FOREIGN KEY (face_twin_create_id)
-                            REFERENCES face(id)
-                            ON UPDATE CASCADE ON DELETE CASCADE ;
-            END IF;
-
-            IF NOT EXISTS (
-                SELECT 1 FROM pg_indexes
-                WHERE tablename = 'face_widget_wt002_button'
-                  AND indexname = 'idx_face_widget_wt002_button_face_twin_create_id'
-            ) THEN
-                CREATE INDEX idx_face_widget_wt002_button_face_twin_create_id
-                    ON face_widget_wt002_button(face_twin_create_id);
-            END IF;
+                ADD CONSTRAINT fk_face_widget_modal_face
+                    FOREIGN KEY (modal_face_id)
+                        REFERENCES face (id);
         END IF;
-    END $$;
+    END;
+$$;
+
+CREATE INDEX IF NOT EXISTS idx_face_widget_wt002_button_modal_face_id
+    ON face_widget_wt002_button (modal_face_id);
