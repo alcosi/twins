@@ -60,7 +60,7 @@ public class FactoryEraserSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory_eraser/search/v1")
     public ResponseEntity<?> factoryEraserSearchV1(
-            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody FactoryEraserSearchRqDTOv1 request) {
         FactoryEraserSearchRsDTOv1 rs = new FactoryEraserSearchRsDTOv1();
@@ -89,7 +89,7 @@ public class FactoryEraserSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/factory_eraser/{eraserId}/v1")
     public ResponseEntity<?> factoryEraserViewV1(
-            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @Parameter(example = DTOExamples.FACTORY_ERASER_ID) @PathVariable("eraserId") UUID eraserId) {
         FactoryEraserViewRsDTOv1 rs = new FactoryEraserViewRsDTOv1();

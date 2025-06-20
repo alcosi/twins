@@ -55,7 +55,7 @@ public class CommentListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/comment/twin/{twinId}/v1")
     public ResponseEntity<?> twinCommentListV1(
-            @MapperContextBinding(roots = CommentRestDTOMapper.class, response = CommentListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = CommentRestDTOMapper.class, response = CommentListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams(sortAsc = false, sortField = TwinCommentEntity.Fields.createdAt) SimplePagination pagination,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         CommentListRsDTOv1 rs = new CommentListRsDTOv1();

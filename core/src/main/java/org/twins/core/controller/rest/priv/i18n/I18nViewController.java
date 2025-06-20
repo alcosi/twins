@@ -48,7 +48,7 @@ public class I18nViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/i18n/{i18nId}/v1")
     public ResponseEntity<?> i18nViewV1(
-            @MapperContextBinding(roots = I18nRestDTOMapper.class, response = I18nViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = I18nRestDTOMapper.class, response = I18nViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.I18N_ID) @PathVariable UUID i18nId) {
         I18nViewRsDTOv1 rs = new I18nViewRsDTOv1();
         try {

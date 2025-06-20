@@ -58,7 +58,7 @@ public class PermissionSchemaSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_schema/search/v1")
     public ResponseEntity<?> permissionSchemaSearchV1(
-            @MapperContextBinding(roots = PermissionSchemaRestDTOMapperV2.class, response = PermissionSchemaSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionSchemaRestDTOMapperV2.class, response = PermissionSchemaSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody PermissionSchemaSearchRqDTOv1 request) {
         PermissionSchemaSearchRsDTOv1 rs = new PermissionSchemaSearchRsDTOv1();
@@ -86,7 +86,7 @@ public class PermissionSchemaSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/permission_schema/{schemaId}/v1")
     public ResponseEntity<?> permissionSchemaViewV1(
-            @MapperContextBinding(roots = PermissionSchemaRestDTOMapperV2.class, response = PermissionSchemaViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionSchemaRestDTOMapperV2.class, response = PermissionSchemaViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_SCHEMA_ID) @PathVariable("schemaId") UUID schemaId) {
         PermissionSchemaViewRsDTOv1 rs = new PermissionSchemaViewRsDTOv1();
         try {

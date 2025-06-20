@@ -50,7 +50,7 @@ public class PermissionGrantSpaceRoleUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/permission_grant/space_role/{permissionGrantSpaceRoleId}/v1")
     public ResponseEntity<?> permissionGrantSpaceRoleV1(
-            @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapperV2.class, response = PermissionGrantSpaceRoleRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapperV2.class, response = PermissionGrantSpaceRoleRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GRANT_SPACE_ROLE_ID) @PathVariable UUID permissionGrantSpaceRoleId,
             @RequestBody PermissionGrantSpaceRoleUpdateRqDTOv1 request) {
 

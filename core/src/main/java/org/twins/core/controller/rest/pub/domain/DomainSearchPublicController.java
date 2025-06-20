@@ -48,7 +48,7 @@ public class DomainSearchPublicController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/public/domain/search/v1")
     public ResponseEntity<?> domainSearchPublicV1(
-            @MapperContextBinding(roots = DomainViewPublicRestDTOMapper.class, response = DomainPublicSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DomainViewPublicRestDTOMapper.class, response = DomainPublicSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody DomainPublicSearchRqDTOv1 request) {
         DomainPublicSearchRsDTOv1 rs = new DomainPublicSearchRsDTOv1();
