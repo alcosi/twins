@@ -11,7 +11,9 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.face.FaceService;
+import org.twins.core.service.face.FaceTwinPointerValidatorRuleService;
 import org.twins.face.dao.page.pg001.FacePG001Entity;
 import org.twins.face.dao.page.pg001.FacePG001Repository;
 import org.twins.face.dao.page.pg001.FacePG001WidgetEntity;
@@ -19,6 +21,7 @@ import org.twins.face.dao.page.pg001.FacePG001WidgetRepository;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -30,6 +33,7 @@ public class FacePG001Service extends EntitySecureFindServiceImpl<FacePG001Entit
     private final FacePG001Repository facePG001Repository;
     private final FacePG001WidgetRepository facePG001WidgetRepository;
     private final FaceService faceService;
+    private final FaceTwinPointerValidatorRuleService faceTwinPointerValidatorRuleService;
 
     @Override
     public CrudRepository<FacePG001Entity, UUID> entityRepository() {
@@ -44,6 +48,27 @@ public class FacePG001Service extends EntitySecureFindServiceImpl<FacePG001Entit
     @Override
     public boolean isEntityReadDenied(FacePG001Entity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         return faceService.isEntityReadDenied(entity.getFace());
+    }
+
+    public FacePG001Entity findSuitableEntity(UUID faceId) throws ServiceException {
+        List<FacePG001Entity> pg001List = facePG001Repository.findByFaceId(faceId);
+        if (pg001List.size() == 1 && pg001List.getFirst().getFaceTwinPointerValidatorRuleId() == null) {
+            return pg001List.getFirst();
+        }
+        FacePG001Entity ret = null;
+        for (var pg001Entity : pg001List) {
+            if (pg001Entity.getFaceTwinPointerValidatorRuleId() == null || faceTwinPointerValidatorRuleService.isValid(pg001Entity.getFaceTwinPointerValidatorRuleId())) {
+                if (ret == null) {
+                    ret = pg001Entity;
+                } else {
+                    throw new ServiceException(ErrorCodeTwins.FACE_CONFIG_IS_NOT_UNIQ);
+                }
+            }
+        }
+        if (ret == null) {
+            throw new ServiceException(ErrorCodeTwins.FACE_NO_CONFIG_IS_SUITABLE);
+        }
+        return ret;
     }
 
     @Override

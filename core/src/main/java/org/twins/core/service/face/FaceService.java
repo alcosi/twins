@@ -1,5 +1,6 @@
 package org.twins.core.service.face;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -30,6 +31,8 @@ public class FaceService extends EntitySecureFindServiceImpl<FaceEntity> {
     @Lazy
     private final AuthService authService;
     private final TwinService twinService;
+    @Getter
+    private final RequestFacePointers requestFacePointers;
 
     @Override
     public CrudRepository<FaceEntity, UUID> entityRepository() {

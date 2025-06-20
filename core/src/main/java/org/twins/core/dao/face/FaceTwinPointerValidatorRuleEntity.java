@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
 
 import java.util.UUID;
@@ -12,7 +13,7 @@ import java.util.UUID;
 @Entity
 @Accessors(chain = true)
 @Table(name = "face_twin_pointer_validator_rule")
-public class FaceTwinPointerValidatorRuleEntity implements EasyLoggable {
+public class FaceTwinPointerValidatorRuleEntity implements ContainsTwinValidatorSet, EasyLoggable {
     @Id
     @Column(name = "id")
     private UUID id;
