@@ -23,6 +23,8 @@ public class DraftCounterService {
     private final DraftTwinAttachmentRepository draftTwinAttachmentRepository;
     private final DraftTwinLinkRepository draftTwinLinkRepository;
     private final DraftTwinFieldSimpleRepository draftTwinFieldSimpleRepository;
+    private final DraftTwinFieldSimpleNonIndexedRepository draftTwinFieldSimpleNonIndexedRepository;
+    private final DraftTwinFieldBooleanRepository draftTwinFieldBooleanRepository;
     private final DraftTwinFieldUserRepository draftTwinFieldUserRepository;
     private final DraftTwinFieldDataListRepository draftTwinFieldDataListRepository;
     private final DraftTwinPersistRepository draftTwinPersistRepository;
@@ -47,6 +49,8 @@ public class DraftCounterService {
 
     private void syncFields(DraftEntity draftEntity) throws ServiceException {
         syncFieldsSimple(draftEntity);
+        syncFieldsSimpleNonIndexed(draftEntity);
+        syncFieldsBoolean(draftEntity);
         syncFieldsUser(draftEntity);
         syncFieldsDatalist(draftEntity);
     }
@@ -58,6 +62,30 @@ public class DraftCounterService {
         draftEntity.getCounters().set(FIELD_SIMPLE_CREATE, countersMap.getOrDefault(CUD.CREATE, 0));
         draftEntity.getCounters().set(FIELD_SIMPLE_UPDATE, countersMap.getOrDefault(CUD.UPDATE, 0));
         draftEntity.getCounters().set(FIELD_SIMPLE_DELETE, countersMap.getOrDefault(CUD.DELETE, 0));
+    }
+
+    private void syncFieldsSimpleNonIndexed(DraftEntity draftEntity) throws ServiceException {
+        if (draftEntity.getCounters().isValid(FIELDS_SIMPLE_NON_INDEXED)) {
+            return;
+        }
+
+        Map<Object, Integer> countersMap = toMap(draftTwinFieldSimpleNonIndexedRepository.getCounters(draftEntity.getId()));
+
+        draftEntity.getCounters().set(FIELD_SIMPLE_NON_INDEXED_CREATE, countersMap.getOrDefault(CUD.CREATE, 0));
+        draftEntity.getCounters().set(FIELD_SIMPLE_NON_INDEXED_UPDATE, countersMap.getOrDefault(CUD.UPDATE, 0));
+        draftEntity.getCounters().set(FIELD_SIMPLE_NON_INDEXED_DELETE, countersMap.getOrDefault(CUD.DELETE, 0));
+    }
+
+    private void syncFieldsBoolean(DraftEntity draftEntity) throws ServiceException {
+        if (draftEntity.getCounters().isValid(FIELDS_BOOLEAN)) {
+            return;
+        }
+
+        Map<Object, Integer> countersMap = toMap(draftTwinFieldBooleanRepository.getCounters(draftEntity.getId()));
+
+        draftEntity.getCounters().set(FIELD_BOOLEAN_CREATE, countersMap.getOrDefault(CUD.CREATE, 0));
+        draftEntity.getCounters().set(FIELD_BOOLEAN_UPDATE, countersMap.getOrDefault(CUD.UPDATE, 0));
+        draftEntity.getCounters().set(FIELD_BOOLEAN_DELETE, countersMap.getOrDefault(CUD.DELETE, 0));
     }
 
     private void syncFieldsUser(DraftEntity draftEntity) throws ServiceException {
