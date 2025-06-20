@@ -41,6 +41,9 @@ public class FaceWT001Entity implements EasyLoggable{
     @Column(name = "show_create_button", nullable = false)
     private boolean showCreateButton;
 
+    @Column(name = "modal_face_id")
+    private UUID modalFaceId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "label_i18n_id", nullable = false, insertable = false, updatable = false)
     private I18nEntity labelI18n;
@@ -48,6 +51,10 @@ public class FaceWT001Entity implements EasyLoggable{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_class_id", nullable = false, insertable = false, updatable = false)
     private TwinClassEntity twinClass;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "modal_face_id", insertable = false, updatable = false)
+    private FaceEntity modalFace;
 
     @Transient
     @EqualsAndHashCode.Exclude

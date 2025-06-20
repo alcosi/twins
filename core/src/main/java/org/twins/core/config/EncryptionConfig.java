@@ -10,18 +10,21 @@ import org.springframework.context.event.EventListener;
 
 @Configuration
 public class EncryptionConfig {
-
     private static StandardPBEStringEncryptor encryptor;
-    private static String password;
+    private static String featurerParamCryptAlgorithm = "PBEWithMD5AndDES";
+    private static String featurerParamCryptPassword;
 
     @Value("${twin.field.password.key}")
     private String secretKey;
+
+    @Value("${twin.field.password.algorithm}")
+    private String cryptoAlgorithm = "PBEWithMD5AndDES";
 
     @Bean
     public StandardPBEStringEncryptor secretEncryptor() {
         StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
         encryptor.setPassword(secretKey);
-        encryptor.setAlgorithm("PBEWithHMACSHA512AndAES_256");
+        encryptor.setAlgorithm(cryptoAlgorithm);
         encryptor.setIvGenerator(new RandomIvGenerator());
         return encryptor;
     }
@@ -29,16 +32,23 @@ public class EncryptionConfig {
     public static StandardPBEStringEncryptor getEncryptor() {
         if (encryptor != null) return encryptor;
         encryptor = new StandardPBEStringEncryptor();
-        encryptor.setPassword(password);
-        encryptor.setAlgorithm("PBEWithMD5AndTripleDES");
+        encryptor.setPassword(featurerParamCryptPassword);
+        encryptor.setAlgorithm(featurerParamCryptAlgorithm);
         return encryptor;
     }
 
     @Value("${featurer.param.encrypt.key}")
     public void setKey(String key) {
-        if (EncryptionConfig.password != null) return;
-        EncryptionConfig.password = key;
+        if (EncryptionConfig.featurerParamCryptPassword != null) return;
+        EncryptionConfig.featurerParamCryptPassword = key;
     }
+
+    @Value("${featurer.param.encrypt.algorithm}")
+    public void setAlgorithm(String algorithm) {
+        if (EncryptionConfig.featurerParamCryptAlgorithm != null) return;
+        EncryptionConfig.featurerParamCryptAlgorithm = algorithm;
+    }
+
 
     @EventListener
     private void initializeConfigurableStaticFields(ContextRefreshedEvent event) {

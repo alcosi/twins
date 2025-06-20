@@ -160,7 +160,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     IDP_INTERNAL_SERVER_ERROR(12725, "internal server error", HttpStatus.INTERNAL_SERVER_ERROR),
     IDP_EMPTY_CLIENT_ID_OR_SECRET(12726, "empty clientId or secret", HttpStatus.UNAUTHORIZED),
     ACT_AS_USER_INCORRECT(12801, "act as user authentication error", HttpStatus.UNAUTHORIZED),
-    ACT_AS_USER_NONCE_IS_NOT_UNIQ(12801, "act as user authentication error", HttpStatus.UNAUTHORIZED);
+    ACT_AS_USER_NONCE_IS_NOT_UNIQ(12801, "act as user authentication error", HttpStatus.UNAUTHORIZED),
+    NOTIFICATION_CONFIGURATION_ERROR(12901, "something wrong with notification configuration"),;
 
     private final int code;
     private final String message;
