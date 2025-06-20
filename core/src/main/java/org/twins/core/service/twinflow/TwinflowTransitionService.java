@@ -706,6 +706,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
     //todo optimize for collection processing
     public boolean runTransitionValidators(TwinflowTransitionEntity twinflowTransitionEntity, List<TwinflowTransitionValidatorRuleEntity> transitionValidatorEntityList, TwinEntity twinEntity) throws ServiceException {
+        // validator rules -> OR
+        // validators -> AND
         boolean validationResultOfRule = true;
         for (TwinflowTransitionValidatorRuleEntity transitionValidatorRuleEntity : transitionValidatorEntityList) {
             validationResultOfRule = true;
@@ -729,6 +731,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     break;
                 }
             }
+            if (validationResultOfRule)
+                break;
         }
         return validationResultOfRule;
     }
