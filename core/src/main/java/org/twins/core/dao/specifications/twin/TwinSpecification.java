@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
+import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.specifications.AbstractTwinEntityBasicSearchSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldBooleanEntity;
@@ -307,6 +308,36 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
             }
 
             return cb.and(include, exclude);
+        };
+    }
+
+    public static Specification<TwinEntity> checkSpaceRoleUser(final TwinFieldSearchSpaceRoleUser search) {
+        return (root, query, cb) -> {
+            if(search.isEmptySearch()) return cb.conjunction();
+            
+            Join<TwinEntity, SpaceRoleUserEntity> spaceRoleUserJoin = root.join(TwinEntity.Fields.spaceRoleUsers, JoinType.INNER);
+
+            Predicate roleInclude = cb.conjunction();
+            if (CollectionUtils.isNotEmpty(search.getRoleIdList())) {
+                roleInclude = spaceRoleUserJoin.get(SpaceRoleUserEntity.Fields.spaceRoleId).in(search.getRoleIdList());
+            }
+
+            Predicate roleExclude = cb.conjunction();
+            if (CollectionUtils.isNotEmpty(search.getRoleIdExcludeList())) {
+                roleExclude = cb.not(spaceRoleUserJoin.get(SpaceRoleUserEntity.Fields.spaceRoleId).in(search.getRoleIdExcludeList()));
+            }
+
+            Predicate userInclude = cb.conjunction();
+            if (CollectionUtils.isNotEmpty(search.getUserIdList())) {
+                userInclude = spaceRoleUserJoin.get(SpaceRoleUserEntity.Fields.userId).in(search.getUserIdList());
+            }
+
+            Predicate userExclude = cb.conjunction();
+            if (CollectionUtils.isNotEmpty(search.getUserIdExcludeList())) {
+                userExclude = cb.not(spaceRoleUserJoin.get(SpaceRoleUserEntity.Fields.userId).in(search.getUserIdExcludeList()));
+            }
+
+            return cb.and(roleInclude, roleExclude, userInclude, userExclude);
         };
     }
 }
