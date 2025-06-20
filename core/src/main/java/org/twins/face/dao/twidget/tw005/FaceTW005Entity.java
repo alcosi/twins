@@ -15,9 +15,12 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "face_twidget_tw005")
+@Table(name = "face_tw005")
 public class FaceTW005Entity implements EasyLoggable, FaceTwidget {
     @Id
+    @Column(name = "id")
+    private UUID id;
+
     @Column(name = "face_id")
     private UUID faceId;
 

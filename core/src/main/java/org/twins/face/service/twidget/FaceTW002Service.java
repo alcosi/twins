@@ -68,7 +68,7 @@ public class FaceTW002Service extends FaceTwidgetService<FaceTW002Entity> {
         if (needLoad.isEmpty())
             return;
         KitGrouped<FaceTW002AccordionItemEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                faceTW002AccordionItemRepository.findByFaceIdIn(needLoad.getIdSet()), FaceTW002AccordionItemEntity::getId, FaceTW002AccordionItemEntity::getFaceId);
+                faceTW002AccordionItemRepository.findByFaceIdIn(needLoad.getIdSet()), FaceTW002AccordionItemEntity::getId, FaceTW002AccordionItemEntity::getFaceTW002Id);
         for (var entry : loadedKit.getGroupedMap().entrySet()) {
             needLoad.get(entry.getKey()).getAccordionItems().addAll(entry.getValue());
         }

@@ -11,9 +11,12 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "face_widget_wt003")
+@Table(name = "face_wt003")
 public class FaceWT003Entity {
     @Id
+    @Column(name = "id")
+    private UUID id;
+
     @Column(name = "face_id")
     private UUID faceId;
 

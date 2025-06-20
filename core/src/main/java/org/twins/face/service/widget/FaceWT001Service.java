@@ -67,7 +67,7 @@ public class FaceWT001Service extends EntitySecureFindServiceImpl<FaceWT001Entit
         if (needLoad.isEmpty())
             return;
         KitGrouped<FaceWT001ColumnEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                faceWT001ColumnRepository.findByFaceIdIn(needLoad.getIdSet()), FaceWT001ColumnEntity::getId, FaceWT001ColumnEntity::getFaceId);
+                faceWT001ColumnRepository.findByFaceIdIn(needLoad.getIdSet()), FaceWT001ColumnEntity::getId, FaceWT001ColumnEntity::getFaceWT001Id);
         for (var entry : loadedKit.getGroupedMap().entrySet()) {
             needLoad.get(entry.getKey()).getColumns().addAll(entry.getValue());
         }

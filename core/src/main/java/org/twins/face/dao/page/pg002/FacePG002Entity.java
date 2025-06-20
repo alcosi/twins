@@ -15,7 +15,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "face_page_pg002")
+@Table(name = "face_pg002")
 public class FacePG002Entity implements EasyLoggable {
     @Id
     @Column(name = "face_id")
@@ -24,7 +24,7 @@ public class FacePG002Entity implements EasyLoggable {
     @Column(name = "title_i18n_id")
     private UUID titleI18nId;
 
-    @Column(name = "face_page_pg002_layout_id")
+    @Column(name = "face_pg002_layout_id")
     @Enumerated(EnumType.STRING)
     private Layout layout;
 

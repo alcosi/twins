@@ -68,7 +68,7 @@ public class FaceTW005Service extends FaceTwidgetService<FaceTW005Entity> {
         if (needLoad.isEmpty())
             return;
         KitGrouped<FaceTW005ButtonEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                faceTW005ButtonRepository.findByFaceIdIn(needLoad.getIdSet()), FaceTW005ButtonEntity::getId, FaceTW005ButtonEntity::getFaceId);
+                faceTW005ButtonRepository.findByFaceIdIn(needLoad.getIdSet()), FaceTW005ButtonEntity::getId, FaceTW005ButtonEntity::getFaceTW005Id);
         for (var entry : loadedKit.getGroupedMap().entrySet()) {
             needLoad.get(entry.getKey()).getButtons().addAll(entry.getValue());
         }

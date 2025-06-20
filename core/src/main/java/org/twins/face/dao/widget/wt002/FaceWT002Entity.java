@@ -1,6 +1,5 @@
 package org.twins.face.dao.widget.wt002;
 
-import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -14,9 +13,12 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "face_widget_wt002")
+@Table(name = "face_wt002")
 public class FaceWT002Entity {
     @Id
+    @Column(name = "id")
+    private UUID id;
+
     @Column(name = "face_id")
     private UUID faceId;
 

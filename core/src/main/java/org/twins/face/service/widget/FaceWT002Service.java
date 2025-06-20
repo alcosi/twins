@@ -16,7 +16,6 @@ import org.twins.face.dao.widget.wt002.FaceWT002ButtonRepository;
 import org.twins.face.dao.widget.wt002.FaceWT002Entity;
 import org.twins.face.dao.widget.wt002.FaceWT002Repository;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
@@ -68,7 +67,7 @@ public class FaceWT002Service extends EntitySecureFindServiceImpl<FaceWT002Entit
         if (needLoad.isEmpty())
             return;
         KitGrouped<FaceWT002ButtonEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                faceWT002ButtonRepository.findByFaceIdIn(needLoad.getIdSet()), FaceWT002ButtonEntity::getId, FaceWT002ButtonEntity::getFaceId);
+                faceWT002ButtonRepository.findByFaceIdIn(needLoad.getIdSet()), FaceWT002ButtonEntity::getId, FaceWT002ButtonEntity::getFaceWT002Id);
         for (var entry : loadedKit.getGroupedMap().entrySet()) {
             needLoad.get(entry.getKey()).getButtons().addAll(entry.getValue());
         }

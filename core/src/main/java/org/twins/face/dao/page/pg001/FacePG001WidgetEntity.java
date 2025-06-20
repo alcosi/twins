@@ -5,20 +5,24 @@ import lombok.Getter;
 import lombok.Setter;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.face.FaceEntity;
+import org.twins.core.dao.face.FaceTwinPointerValidatorRuleEntity;
 
 import java.util.UUID;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "face_page_pg001_widget")
+@Table(name = "face_pg001_widget")
 public class FacePG001WidgetEntity implements EasyLoggable {
     @Id
     @Column(name = "id")
     private UUID id;
 
-    @Column(name = "face_id")
-    private UUID faceId;
+    @Column(name = "face_pg001_id")
+    private UUID facePG001Id;
+
+    @Column(name = "face_twin_pointer_validator_rule_id")
+    private UUID faceTwinPointerValidatorRuleId;
 
     @Column(name = "widget_face_id")
     private UUID widgetFaceId;
@@ -33,13 +37,17 @@ public class FacePG001WidgetEntity implements EasyLoggable {
     @JoinColumn(name = "widget_face_id", nullable = false, insertable = false, updatable = false)
     private FaceEntity widgetFace;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "face_twin_pointer_validator_rule_id", insertable = false, updatable = false)
+    private FaceTwinPointerValidatorRuleEntity faceTwinPointerValidatorRule;
+
     @Override
     public String easyLog(Level level) {
         switch (level) {
             case SHORT:
                 return "facePG001Widget[" + id + "]";
             default:
-                return "facePG001Widget[id:" + id + ", faceId:" + faceId + "]";
+                return "facePG001Widget[id:" + id + ", faceId:" + facePG001Id + "]";
         }
     }
 }

@@ -12,14 +12,14 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "face_widget_wt001_column")
+@Table(name = "face_wt001_column")
 public class FaceWT001ColumnEntity {
     @Id
     @Column(name = "id")
     private UUID id;
 
-    @Column(name = "face_id")
-    private UUID faceId;
+    @Column(name = "face_wt001_id")
+    private UUID faceWT001Id;
 
     @Column(name = "twin_class_field_id")
     private UUID twinClassFieldId;

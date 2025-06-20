@@ -1,10 +1,8 @@
 package org.twins.face.dao.widget.wt002;
 
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
@@ -14,14 +12,14 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "face_widget_wt002_button")
+@Table(name = "face_wt002_button")
 public class FaceWT002ButtonEntity {
     @Id
     @Column(name = "id")
     private UUID id;
 
-    @Column(name = "face_id", nullable = false)
-    private UUID faceId;
+    @Column(name = "face_wt002_id", nullable = false)
+    private UUID faceWT002Id;
 
     @Column(name = "key", nullable = false)
     private String key;
