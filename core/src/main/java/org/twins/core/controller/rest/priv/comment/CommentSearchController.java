@@ -53,7 +53,7 @@ public class CommentSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/comment/search/v1")
     public ResponseEntity<?> commentSearchV1(
-            @MapperContextBinding(roots = CommentRestDTOMapper.class, response = CommentSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = CommentRestDTOMapper.class, response = CommentSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody CommentSearchRqDTOv1 request) {
         CommentSearchRsDTOv1 rs = new CommentSearchRsDTOv1();

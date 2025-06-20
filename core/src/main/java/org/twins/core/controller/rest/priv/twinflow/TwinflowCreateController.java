@@ -55,7 +55,7 @@ public class TwinflowCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_class/{twinClassId}/twinflow/v1")
     public ResponseEntity<?> twinflowCreateV1(
-            @MapperContextBinding(roots = TwinflowBaseV2RestDTOMapper.class, response = TwinflowCreateRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinflowBaseV2RestDTOMapper.class, response = TwinflowCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
             @RequestBody TwinflowCreateRqDTOv1 request) {
         TwinflowCreateRsDTOv1 rs = new TwinflowCreateRsDTOv1();

@@ -55,7 +55,7 @@ public class TwinflowUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twinflow/{twinflowId}/v1")
     public ResponseEntity<?> twinflowUpdateV1(
-            @MapperContextBinding(roots = TwinflowBaseV2RestDTOMapper.class, response = TwinflowRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinflowBaseV2RestDTOMapper.class, response = TwinflowRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_ID) @PathVariable UUID twinflowId,
             @RequestBody TwinflowUpdateRqDTOv1 request) {
         TwinflowRsDTOv1 rs = new TwinflowRsDTOv1();

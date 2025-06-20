@@ -59,7 +59,7 @@ public class PermissionGrantAssigneePropagationSearchController extends ApiContr
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/assignee_propagation/search/v1")
     public ResponseEntity<?> permissionGrantAssigneePropagationSearchV1(
-            @MapperContextBinding(roots = PermissionGrantAssigneePropagationRestDTOMapperV2.class, response = PermissionGrantAssigneePropagationSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantAssigneePropagationRestDTOMapperV2.class, response = PermissionGrantAssigneePropagationSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody PermissionGrantAssigneePropagationSearchRqDTOv1 request) {
         PermissionGrantAssigneePropagationSearchRsDTOv1 rs = new PermissionGrantAssigneePropagationSearchRsDTOv1();
@@ -87,7 +87,7 @@ public class PermissionGrantAssigneePropagationSearchController extends ApiContr
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/permission_grant/assignee_propagation/{grantId}/v1")
     public ResponseEntity<?> permissionGrantAssigneePropagationViewV1(
-            @MapperContextBinding(roots = PermissionGrantAssigneePropagationRestDTOMapperV2.class, response = PermissionGrantAssigneePropagationViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantAssigneePropagationRestDTOMapperV2.class, response = PermissionGrantAssigneePropagationViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_ID) @PathVariable("grantId") UUID grentId) {
         PermissionGrantAssigneePropagationViewRsDTOv1 rs = new PermissionGrantAssigneePropagationViewRsDTOv1();
         try {

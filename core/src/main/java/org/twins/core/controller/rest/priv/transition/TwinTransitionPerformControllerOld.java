@@ -68,7 +68,7 @@ public class TwinTransitionPerformControllerOld extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/transition/{transitionId}/perform/v1")
     public ResponseEntity<?> twinTransitionPerformV1(
-            @MapperContextBinding(roots = TwinTransitionPerformRsRestDTOMapperV1.class, response = TwinTransitionPerformRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinTransitionPerformRsRestDTOMapperV1.class, response = TwinTransitionPerformRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ID) @PathVariable UUID transitionId,
             @RequestBody TwinTransitionPerformRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
@@ -99,7 +99,7 @@ public class TwinTransitionPerformControllerOld extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/transition_by_alias/{transitionAlias}/perform/v1")
     public ResponseEntity<?> twinTransitionByAliasPerformV1(
-            @MapperContextBinding(roots = TwinTransitionPerformRsRestDTOMapperV1.class, response = TwinTransitionPerformRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinTransitionPerformRsRestDTOMapperV1.class, response = TwinTransitionPerformRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ALIAS) @PathVariable String transitionAlias,
             @RequestBody TwinTransitionPerformRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
@@ -129,7 +129,7 @@ public class TwinTransitionPerformControllerOld extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/transition/{transitionId}/perform/batch/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinTransitionPerformBatchV1(
-            @MapperContextBinding(roots = TwinTransitionPerformRsRestDTOMapperV1.class, response = TwinTransitionPerformRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinTransitionPerformRsRestDTOMapperV1.class, response = TwinTransitionPerformRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ID) @PathVariable UUID transitionId,
             @RequestBody TwinTransitionPerformBatchRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
@@ -164,7 +164,7 @@ public class TwinTransitionPerformControllerOld extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/transition_by_alias/{transitionAlias}/perform/batch/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinTransitionByAliasPerformBatchV1(
-            @MapperContextBinding(roots = TwinTransitionPerformRsRestDTOMapperV1.class, response = TwinTransitionPerformRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinTransitionPerformRsRestDTOMapperV1.class, response = TwinTransitionPerformRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ALIAS) @PathVariable String transitionAlias,
             @RequestBody TwinTransitionPerformBatchRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();

@@ -19,9 +19,8 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
-import org.twins.core.controller.rest.annotation.ParametersApiUserNoDomainHeaders;
-import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.domain.apiuser.UserResolverAuthToken;
 import org.twins.core.dto.rest.DTOExamples;
@@ -57,7 +56,7 @@ public class DomainViewController extends ApiController {
     @GetMapping(value = "/private/domain/{domainId}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> domainViewV1(
-            @MapperContextBinding(roots = DomainViewRestDTOMapper.class, response = DomainViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DomainViewRestDTOMapper.class, response = DomainViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainId) {
 
         DomainViewRsDTOv1 rs = new DomainViewRsDTOv1();

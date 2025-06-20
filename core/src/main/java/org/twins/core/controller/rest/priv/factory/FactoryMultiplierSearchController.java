@@ -59,7 +59,7 @@ public class FactoryMultiplierSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory_multiplier/search/v1")
     public ResponseEntity<?> factoryMultiplierSearchV1(
-            @MapperContextBinding(roots = FactoryMultiplierRestDTOMapperV2.class, response = FactoryMultiplierSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryMultiplierRestDTOMapperV2.class, response = FactoryMultiplierSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody FactoryMultiplierSearchRqDTOv1 request) {
         FactoryMultiplierSearchRsDTOv1 rs = new FactoryMultiplierSearchRsDTOv1();
@@ -87,7 +87,7 @@ public class FactoryMultiplierSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/factory_multiplier/{multiplierId}/v1")
     public ResponseEntity<?> factoryMultiplierViewV1(
-            @MapperContextBinding(roots = FactoryMultiplierRestDTOMapperV2.class, response = FactoryMultiplierViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryMultiplierRestDTOMapperV2.class, response = FactoryMultiplierViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.MULTIPLIER_ID) @PathVariable("multiplierId") UUID multiplierId) {
         FactoryMultiplierViewRsDTOv1 rs = new FactoryMultiplierViewRsDTOv1();
         try {

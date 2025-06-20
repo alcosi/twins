@@ -51,7 +51,7 @@ public class AttachmentCUDValidateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/attachment/validate_cud/v1")
     public ResponseEntity<?> attachmentValidateV1(
-            @MapperContextBinding(roots = AttachmentCUDValidateRestDTOMapper.class, response = AttachmentCUDValidateRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = AttachmentCUDValidateRestDTOMapper.class, response = AttachmentCUDValidateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody AttachmentCUDValidateRqDTOv1 request) {
         AttachmentCUDValidateRsDTOv1 rs = new AttachmentCUDValidateRsDTOv1();
         try {

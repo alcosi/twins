@@ -54,7 +54,7 @@ public class AttachmentSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/attachment/search/v1")
     public ResponseEntity<?> attachmentSearchV1(
-            @MapperContextBinding(roots = AttachmentRestDTOMapper.class, response = AttachmentSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = AttachmentRestDTOMapper.class, response = AttachmentSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody AttachmentSearchRqDTOv1 request) {
         AttachmentSearchRsDTOv1 rs = new AttachmentSearchRsDTOv1();

@@ -58,7 +58,7 @@ public class PermissionGrantUserSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/user/search/v1")
     public ResponseEntity<?> permissionGrantUserSearchV1(
-            @MapperContextBinding(roots = PermissionGrantUserRestDTOMapperV2.class, response = PermissionGrantUserSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantUserRestDTOMapperV2.class, response = PermissionGrantUserSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody PermissionGrantUserSearchRqDTOv1 request) {
         PermissionGrantUserSearchRsDTOv1 rs = new PermissionGrantUserSearchRsDTOv1();
@@ -87,7 +87,7 @@ public class PermissionGrantUserSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/user/{grantId}/v1")
     public ResponseEntity<?> permissionGrantUserViewV1(
-            @MapperContextBinding(roots = PermissionGrantUserRestDTOMapperV2.class, response = PermissionGrantUserViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantUserRestDTOMapperV2.class, response = PermissionGrantUserViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GRANT_USER_ID) @PathVariable("grantId") UUID grantId) {
 
         PermissionGrantUserViewRsDTOv1 rs = new PermissionGrantUserViewRsDTOv1();

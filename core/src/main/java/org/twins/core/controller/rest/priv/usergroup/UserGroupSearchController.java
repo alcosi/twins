@@ -54,7 +54,7 @@ public class UserGroupSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/user_group/search/v1")
     public ResponseEntity<?> userGroupSearchV1(
-            @MapperContextBinding(roots = UserGroupRestDTOMapperV2.class, response = UserGroupSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = UserGroupRestDTOMapperV2.class, response = UserGroupSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody UserGroupSearchRqDTOv1 request) {
         UserGroupSearchRsDTOv1 rs = new UserGroupSearchRsDTOv1();

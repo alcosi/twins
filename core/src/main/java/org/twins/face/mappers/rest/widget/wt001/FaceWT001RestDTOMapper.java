@@ -18,12 +18,14 @@ import java.util.Collection;
 @Component
 @RequiredArgsConstructor
 public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<FaceWT001Entity, FaceWT001DTOv1> {
-    protected final FaceRestDTOMapper faceRestDTOMapper;
     protected final FaceWT001Service faceWT001Service;
     private final I18nService i18nService;
 
     @MapperModePointerBinding(modes = FaceWT001Modes.FaceWT001Column2TwinClassFieldMode.class)
     protected final FaceWT001ColumnRestDTOMapper faceWT001ColumnRestDTOMapper;
+
+    @MapperModePointerBinding(modes = FaceMode.ModalFace2FaceMode.class)
+    protected final FaceRestDTOMapper faceRestDTOMapper;
 
 
     @Override
@@ -41,6 +43,11 @@ public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<FaceWT001Entity,
                     .setSearchId(src.getSearchId())
                     .setShowCreateButton(src.isShowCreateButton())
                     .setColumns(faceWT001ColumnRestDTOMapper.convertCollection(src.getColumns(), mapperContext));}
+        }
+
+        if (mapperContext.hasModeButNot(FaceMode.ModalFace2FaceMode.HIDE)) {
+            faceRestDTOMapper.postpone(src.getModalFace(), mapperContext.forkOnPoint(FaceMode.ModalFace2FaceMode.SHORT));
+            dst.setModalFaceId(src.getModalFaceId());
         }
     }
 
