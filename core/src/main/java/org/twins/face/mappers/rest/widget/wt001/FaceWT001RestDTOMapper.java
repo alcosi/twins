@@ -2,6 +2,7 @@ package org.twins.face.mappers.rest.widget.wt001;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
@@ -17,6 +18,7 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = {FaceMode.class})
 public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<FaceWT001Entity, FaceWT001DTOv1> {
     protected final FaceWT001Service faceWT001Service;
     private final I18nService i18nService;
@@ -26,7 +28,6 @@ public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<FaceWT001Entity,
 
     @MapperModePointerBinding(modes = FaceMode.ModalFace2FaceMode.class)
     protected final FaceRestDTOMapper faceRestDTOMapper;
-
 
     @Override
     public void map(FaceWT001Entity src, FaceWT001DTOv1 dst, MapperContext mapperContext) throws Exception {
