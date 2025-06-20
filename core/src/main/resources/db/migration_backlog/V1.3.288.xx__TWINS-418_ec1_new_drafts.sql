@@ -11,7 +11,7 @@ create table if not exists draft_twin_field_simple_non_indexed
         constraint draft_twin_field_simple_non_indexed_cud_id_fk
             references cud
             on update cascade,
-    twin_field_simple_id uuid,
+    twin_field_simple_non_indexed_id uuid,
     twin_id              uuid    not null,
     twin_class_field_id  uuid    not null,
     value                text
@@ -36,7 +36,7 @@ create table if not exists draft_twin_field_boolean
         constraint draft_twin_field_boolean_cud_id_fk
             references cud
             on update cascade,
-    twin_field_simple_id uuid,
+    twin_field_boolean_id uuid,
     twin_id              uuid    not null,
     twin_class_field_id  uuid    not null,
     value                boolean
