@@ -37,16 +37,9 @@ public class TwinClassFieldSearchService {
     }
 
 
-    public PaginationResult<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search) throws ServiceException {
+    public List<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search) throws ServiceException {
         Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
-
-        List<TwinClassFieldEntity> allResults = twinClassFieldRepository.findAll(spec);
-
-        PaginationResult<TwinClassFieldEntity> result = new PaginationResult<>();
-        result.setList(allResults);
-        result.setTotal(allResults.size());
-        result.setLimit(allResults.size());
-        result.setOffset(0);
+        List<TwinClassFieldEntity> result = twinClassFieldRepository.findAll(spec);
 
         return result;
     }

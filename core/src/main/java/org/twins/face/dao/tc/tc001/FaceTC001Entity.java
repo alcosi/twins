@@ -28,6 +28,12 @@ public class FaceTC001Entity {
     @Column(name = "key", nullable = false)
     private String key;
 
+    @Column(name = "class_selector_label_i18n_id")
+    private UUID classSelectorLabelI18nId;
+
+    @Column(name = "save_button_label_i18n_id")
+    private UUID saveButtonLabelI18nId;
+
     @Column(name = "header_i18n_id")
     private UUID headerI18nId;
 

@@ -18,6 +18,12 @@ public class FaceTC001DTOv1 extends FaceDTOv1 {
     @Schema(description = "uniq key")
     public String key;
 
+    @Schema(description = "class selector label")
+    public String classSelectorLabel;
+
+    @Schema(description = "save button label")
+    public String saveButtonLabel;
+
     @Schema(description = "header")
     public String header;
 

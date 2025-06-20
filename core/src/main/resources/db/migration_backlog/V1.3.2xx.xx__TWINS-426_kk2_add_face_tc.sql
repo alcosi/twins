@@ -3,6 +3,10 @@ CREATE TABLE IF NOT EXISTS face_tc001
     face_id                  UUID    NOT NULL PRIMARY KEY REFERENCES face
     ON UPDATE CASCADE ON DELETE CASCADE,
     key                      VARCHAR NOT NULL,
+    class_selector_label_i18n_id           UUID    REFERENCES i18n
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    save_button_label_i18n_id           UUID    REFERENCES i18n
+        ON UPDATE CASCADE ON DELETE RESTRICT,
     header_i18n_id           UUID    REFERENCES i18n
     ON UPDATE CASCADE ON DELETE RESTRICT,
     header_icon_resource_id  UUID    REFERENCES resource
@@ -19,6 +23,12 @@ CREATE TABLE IF NOT EXISTS face_tc001
 
 CREATE INDEX IF NOT EXISTS idx_face_tc001_face_id
     ON face_tc001 (face_id);
+
+CREATE INDEX IF NOT EXISTS idx_face_tc001_class_selector_label_i18n_id
+    ON face_tc001 (class_selector_label_i18n_id);
+
+CREATE INDEX IF NOT EXISTS idx_face_tc001_save_button_label_i18n_id
+    ON face_tc001 (save_button_label_i18n_id);
 
 CREATE INDEX IF NOT EXISTS idx_face_tc001_header_i18n_id
     ON face_tc001 (header_i18n_id);

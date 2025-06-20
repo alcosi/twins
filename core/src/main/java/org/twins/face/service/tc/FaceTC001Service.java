@@ -77,7 +77,7 @@ public class FaceTC001Service extends EntitySecureFindServiceImpl<FaceTC001Entit
             FieldFinder fieldFinder = featurerService.getFeaturer(entity.getFieldFinderFeaturerId(), FieldFinder.class);
             TwinClassFieldSearch twinClassFieldSearch = fieldFinder.createSearch(entity.getFieldFinderParams(), entity.getTwinClassId());
             twinClassFieldSearch.setExcludeSystemFields(false);
-            Kit<TwinClassFieldEntity, UUID> fields = new Kit<>(twinClassFieldSearchService.findTwinClassField(twinClassFieldSearch).getList(), TwinClassFieldEntity::getId);
+            Kit<TwinClassFieldEntity, UUID> fields = new Kit<>(twinClassFieldSearchService.findTwinClassField(twinClassFieldSearch), TwinClassFieldEntity::getId);
             entity.setFields(fields);
         }
     }

@@ -48,6 +48,8 @@ public class FaceTC001RestDTOMapper extends RestSimpleDTOMapper<FaceTC001Twin, F
                 dst
                         .setKey(src.getEntity().getKey())
                         .setStyleClasses(StringUtils.splitToSet(src.getEntity().getStyleClasses(), " "))
+                        .setSaveButtonLabel(i18nService.translateToLocale(src.getEntity().getSaveButtonLabelI18nId()))
+                        .setClassSelectorLabel(i18nService.translateToLocale(src.getEntity().getClassSelectorLabelI18nId()))
                         .setHeader(i18nService.translateToLocale(src.getEntity().getHeaderI18nId() != null ? src.getEntity().getHeaderI18nId() : src.getEntity().getTwinClass().getNameI18NId()))
                         .setIcon(resourceService.getResourceUri(src.getEntity().getIconResource()))
                         .setTwinClassId(src.getEntity().getTwinClassId())
