@@ -125,6 +125,6 @@ public interface DTOExamples {
     String I18N_NAME = "name";
     String EMAIL = "user@example.com";
     String PASSWORD = "secret";
-
+    String CACHE_KEY = "TwinClassRepository.findById";
 
 }
