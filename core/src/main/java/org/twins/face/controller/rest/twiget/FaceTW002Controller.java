@@ -45,7 +45,7 @@ public class FaceTW002Controller extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/face/tw002/{faceId}/v1")
     public ResponseEntity<?> faceTW002ViewV1(
-            @MapperContextBinding(roots = FaceTW002RestDTOMapper.class, response = FaceTW002ViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FaceTW002RestDTOMapper.class, response = FaceTW002ViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACE_ID) @PathVariable UUID faceId,
             @RequestParam UUID twinId) {
         FaceTW002ViewRsDTOv1 rs = new FaceTW002ViewRsDTOv1();

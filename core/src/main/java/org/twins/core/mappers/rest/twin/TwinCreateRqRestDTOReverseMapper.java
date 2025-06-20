@@ -1,6 +1,7 @@
 package org.twins.core.mappers.rest.twin;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
@@ -19,6 +20,7 @@ import java.util.HashSet;
 import java.util.Optional;
 
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCreateRqDTOv2, TwinCreate> {
@@ -26,9 +28,9 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
     private final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
     private final AttachmentCreateRestDTOReverseMapper attachmentCreateRestDTOReverseMapper;
     private final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
-
     private final UserService userService;
     private final AuthService authService;
+
 
     @Override
     public void map(TwinCreateRqDTOv2 src, TwinCreate dst, MapperContext mapperContext) throws Exception {
@@ -53,4 +55,6 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
                         .map(TwinTagAddDTOv1::existingTags)
                         .orElseGet(HashSet::new));
     }
+
+
 }

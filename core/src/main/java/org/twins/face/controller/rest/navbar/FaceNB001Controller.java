@@ -47,7 +47,7 @@ public class FaceNB001Controller extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/face/nb001/{faceId}/v1")
     public ResponseEntity<?> faceNB001ViewV1(
-            @MapperContextBinding(roots = FaceNB001RestDTOMapper.class, response = FaceNB001ViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FaceNB001RestDTOMapper.class, response = FaceNB001ViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACE_ID) @PathVariable UUID faceId) {
         FaceNB001ViewRsDTOv1 rs = new FaceNB001ViewRsDTOv1();
         try {

@@ -14,7 +14,7 @@ public class EncryptionConfig {
     private static String featurerParamCryptAlgorithm = "PBEWithMD5AndDES";
     private static String featurerParamCryptPassword;
 
-    @Value("${twin.field.password.key}")
+    @Value("${twin.field.password.key:secret}")
     private String secretKey;
 
     @Value("${twin.field.password.algorithm:PBEWithMD5AndDES}")
@@ -37,7 +37,7 @@ public class EncryptionConfig {
         return encryptor;
     }
 
-    @Value("${featurer.param.encrypt.key}")
+    @Value("${featurer.param.encrypt.key:secret}")
     public void setKey(String key) {
         if (EncryptionConfig.featurerParamCryptPassword != null) return;
         EncryptionConfig.featurerParamCryptPassword = key;
