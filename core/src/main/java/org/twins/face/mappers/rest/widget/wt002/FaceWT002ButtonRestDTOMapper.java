@@ -5,8 +5,9 @@ import org.cambium.common.util.StringUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.resource.ResourceService;
 import org.twins.face.dao.widget.wt002.FaceWT002ButtonEntity;
@@ -18,22 +19,21 @@ public class FaceWT002ButtonRestDTOMapper extends RestSimpleDTOMapper<FaceWT002B
     private final I18nService i18nService;
     private final ResourceService resourceService;
 
-    @MapperModePointerBinding(modes = FaceWT002Modes.FaceWT002Button2TwinClassMode.class)
-    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
+    @MapperModePointerBinding(modes = FaceMode.ModalFace2FaceMode.class)
+    protected final FaceRestDTOMapper faceRestDTOMapper;
 
     @Override
     public void map(FaceWT002ButtonEntity src, FaceWT002ButtonDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
                 .setId(src.getId())
                 .setKey(src.getKey())
-                .setLabel(i18nService.translateToLocale(src.getLabelI18nId() != null ? src.getLabelI18nId() : src.getTwinClass().getNameI18NId()))
+                .setLabel(i18nService.translateToLocale(src.getLabelI18nId()))
                 .setIcon(resourceService.getResourceUri(src.getIconResource()))
-                .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "))
-                .setTwinClassId(src.getTwinClassId())
-                .setExtendsDepth(src.getExtendsDepth());
+                .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "));
 
-       if (mapperContext.hasModeButNot(FaceWT002Modes.FaceWT002Button2TwinClassMode.HIDE)) {
-           twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(FaceWT002Modes.FaceWT002Button2TwinClassMode.SHORT));
-       }
+        if (mapperContext.hasModeButNot(FaceMode.ModalFace2FaceMode.HIDE)) {
+            faceRestDTOMapper.postpone(src.getModalFace(), mapperContext.forkOnPoint(FaceMode.ModalFace2FaceMode.SHORT));
+            dst.setModalFaceId(src.getModalFaceId());
+        }
     }
 }
