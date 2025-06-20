@@ -2,6 +2,7 @@ package org.twins.face.dto.rest.widget.wt001;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.face.FaceDTOv1;
@@ -9,8 +10,10 @@ import org.twins.core.dto.rest.face.FaceDTOv1;
 import java.util.List;
 import java.util.UUID;
 
+
 @Data
 @Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 @Schema(name = "FaceWT001v1")
 public class FaceWT001DTOv1 extends FaceDTOv1 {
     @Schema(description = "uniq key")
@@ -30,4 +33,7 @@ public class FaceWT001DTOv1 extends FaceDTOv1 {
 
     @Schema(description = "show given columns from table and filter")
     public List<FaceWT001ColumnDTOv1> columns;
+
+    @Schema(description = "face modal id")
+    public UUID modalFaceId;
 }
