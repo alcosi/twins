@@ -50,7 +50,7 @@ public class TwinPermissionCheckOverviewController extends ApiController {
     @PostMapping(value = "/private/twin/{twinId}/permisson_check_overview/v1")
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> permissonCheckOverview(
-            @MapperContextBinding(roots = PermissionCheckOverviewDTOMapper.class, response = PermissionCheckOverviewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionCheckOverviewDTOMapper.class, response = PermissionCheckOverviewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestBody PermissionCheckOverviewRqDTOv1 request) {
         PermissionCheckOverviewRsDTOv1 rs = new PermissionCheckOverviewRsDTOv1();

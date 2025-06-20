@@ -54,7 +54,7 @@ public class TwinflowListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twinflow/search/v1")
     public ResponseEntity<?> twinflowSearchV1(
-            @MapperContextBinding(roots = TwinflowBaseV3RestDTOMapper.class, response = TwinflowSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinflowBaseV3RestDTOMapper.class, response = TwinflowSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody TwinflowSearchRqDTOv1 request) {
         TwinflowSearchRsDTOv1 rs = new TwinflowSearchRsDTOv1();

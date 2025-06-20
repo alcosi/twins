@@ -58,7 +58,7 @@ public class PermissionSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission/search/v1")
     public ResponseEntity<?> permissionSearchListV1(
-            @MapperContextBinding(roots = PermissionRestDTOMapperV2.class, response = PermissionSearchRsDTOv2.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionRestDTOMapperV2.class, response = PermissionSearchRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody PermissionSearchRqDTOv1 request,
             @SimplePaginationParams SimplePagination pagination) {
         PermissionSearchRsDTOv2 rs = new PermissionSearchRsDTOv2();
@@ -86,7 +86,7 @@ public class PermissionSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/permission/{permissionId}/v1")
     public ResponseEntity<?> permissionViewV1(
-            @MapperContextBinding(roots = PermissionRestDTOMapperV2.class, response = PermissionViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionRestDTOMapperV2.class, response = PermissionViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_ID) @PathVariable("permissionId") UUID permissionId) {
         PermissionViewRsDTOv1 rs = new PermissionViewRsDTOv1();
         try {
@@ -111,7 +111,7 @@ public class PermissionSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/permission_by_key/{permissionKey}/v1")
     public ResponseEntity<?> permissionViewByKeyV1(
-            @MapperContextBinding(roots = PermissionRestDTOMapperV2.class, response = PermissionViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionRestDTOMapperV2.class, response = PermissionViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_KEY) @PathVariable("permissionKey") String permissionKey) {
         PermissionViewRsDTOv1 rs = new PermissionViewRsDTOv1();
         try {

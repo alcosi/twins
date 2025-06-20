@@ -20,7 +20,6 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserAnonymousHeaders;
-import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.datalist.DataListOptionSearchRqDTOv1;
@@ -32,7 +31,6 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListOptionSearchService;
-import org.twins.core.service.permission.Permissions;
 
 @Tag(name = ApiTag.DATA_LIST)
 @RestController
@@ -55,7 +53,7 @@ public class DataListOptionSearchPublicController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/public/data_list_option/search/v1")
     public ResponseEntity<?> dataListOptionSearchPublicListV1(
-            @MapperContextBinding(roots = DataListOptionRestDTOMapperV3.class, response = DataListOptionSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListOptionRestDTOMapperV3.class, response = DataListOptionSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody DataListOptionSearchRqDTOv1 request,
             @SimplePaginationParams(sortField = DataListOptionEntity.Fields.option) SimplePagination pagination) {
         DataListOptionSearchRsDTOv1 rs = new DataListOptionSearchRsDTOv1();

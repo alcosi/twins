@@ -58,7 +58,7 @@ public class FactorySearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory/search/v1")
     public ResponseEntity<?> factorySearchListV1(
-            @MapperContextBinding(roots = FactoryRestDTOMapperV2.class, response = FactorySearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryRestDTOMapperV2.class, response = FactorySearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody FactorySearchRqDTOv1 request) {
         FactorySearchRsDTOv1 rs = new FactorySearchRsDTOv1();
@@ -86,7 +86,7 @@ public class FactorySearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/factory/{factoryId}/v1")
     public ResponseEntity<?> factoryViewV1(
-            @MapperContextBinding(roots = FactoryRestDTOMapperV2.class, response = FactoryViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryRestDTOMapperV2.class, response = FactoryViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_ID) @PathVariable("factoryId") UUID factoryId) {
         FactoryViewRsDTOv1 rs = new FactoryViewRsDTOv1();
         try {

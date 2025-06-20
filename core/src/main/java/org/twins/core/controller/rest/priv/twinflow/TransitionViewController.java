@@ -49,7 +49,7 @@ public class TransitionViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/transition/{transitionId}/v1")
     public ResponseEntity<?> transitionViewV1(
-            @MapperContextBinding(roots = TransitionBaseV3RestDTOMapper.class, response = TransitionViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TransitionBaseV3RestDTOMapper.class, response = TransitionViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ID) @PathVariable UUID transitionId) {
         TransitionViewRsDTOv1 rs = new TransitionViewRsDTOv1();
         try {

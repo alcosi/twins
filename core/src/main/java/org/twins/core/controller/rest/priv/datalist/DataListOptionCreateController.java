@@ -58,7 +58,7 @@ public class DataListOptionCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/data_list_option/v1")
     public ResponseEntity<?> dataListOptionCreateV1(
-            @MapperContextBinding(roots = DataListOptionRestDTOMapperV3.class, response = DataListOptionRsDTOv3.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListOptionRestDTOMapperV3.class, response = DataListOptionRsDTOv3.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody DataListOptionCreateRqDTOv1 request) {
         DataListOptionRsDTOv3 rs = new DataListOptionRsDTOv3();
         try {
