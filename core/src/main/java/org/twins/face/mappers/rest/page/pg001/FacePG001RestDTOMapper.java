@@ -12,6 +12,7 @@ import org.twins.core.service.i18n.I18nService;
 import org.twins.face.dao.page.pg001.FacePG001Entity;
 import org.twins.face.dto.rest.page.pg001.FacePG001DTOv1;
 import org.twins.face.service.page.FacePG001Service;
+import org.twins.face.service.page.FacePG001WidgetService;
 
 import java.util.Collection;
 
@@ -24,6 +25,7 @@ public class FacePG001RestDTOMapper extends RestSimpleDTOMapper<FacePG001Entity,
     protected final FaceRestDTOMapper faceRestDTOMapper;
     protected final FacePG001WidgetRestDTOMapper facePG001WidgetRestDTOMapper;
     protected final FacePG001Service facePG001Service;
+    protected final FacePG001WidgetService facePG001WidgetService;
 
     @Override
     public void map(FacePG001Entity src, FacePG001DTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -36,8 +38,8 @@ public class FacePG001RestDTOMapper extends RestSimpleDTOMapper<FacePG001Entity,
                     .setTitle(i18nService.translateToLocale(src.getTitleI18nId()));
         }
         if (mapperContext.hasModeButNot(FacePG001Modes.FacePG001WidgetCollectionMode.HIDE)) {
-            facePG001Service.loadWidgets(src);
-            dst.setWidgets(facePG001WidgetRestDTOMapper.convertCollection(src.getWidgets(), mapperContext));
+            facePG001WidgetService.loadWidgets(src);
+            dst.setWidgets(facePG001WidgetRestDTOMapper.convertCollection(facePG001WidgetService.filterVariants(src.getWidgets()), mapperContext));
         }
     }
 
@@ -45,7 +47,7 @@ public class FacePG001RestDTOMapper extends RestSimpleDTOMapper<FacePG001Entity,
     public void beforeCollectionConversion(Collection<FacePG001Entity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasModeButNot(FacePG001Modes.FacePG001WidgetCollectionMode.HIDE)) {
-            facePG001Service.loadWidgets(srcCollection);
+            facePG001WidgetService.loadWidgets(srcCollection);
         }
     }
 }

@@ -9,6 +9,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceTwinPointerValidatorRuleEntity;
+import org.twins.core.dao.face.FaceVariant;
 import org.twins.core.dao.i18n.I18nEntity;
 
 import java.util.UUID;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "face_pg001")
-public class FacePG001Entity implements EasyLoggable {
+public class FacePG001Entity implements EasyLoggable, FaceVariant {
     @Id
     @Column(name = "id")
     private UUID id;

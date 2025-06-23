@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.twins.core.dao.face.FaceEntity;
+import org.twins.core.dao.face.FaceTwinPointerValidatorRuleEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 
 import java.util.UUID;
@@ -19,6 +20,9 @@ public class FaceWT003Entity {
 
     @Column(name = "face_id")
     private UUID faceId;
+
+    @Column(name = "face_twin_pointer_validator_rule_id")
+    private UUID faceTwinPointerValidatorRuleId;
 
     @Column(name = "level")
     @Enumerated(EnumType.STRING)
@@ -39,6 +43,10 @@ public class FaceWT003Entity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     private FaceEntity face;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "face_twin_pointer_validator_rule_id", insertable = false, updatable = false)
+    private FaceTwinPointerValidatorRuleEntity faceTwinPointerValidatorRule;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_resource_id", insertable = false, updatable = false)

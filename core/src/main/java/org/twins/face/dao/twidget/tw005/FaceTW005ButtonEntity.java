@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.face.FaceTwinPointerValidatorRuleEntity;
+import org.twins.core.dao.face.FaceVariant;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
@@ -15,7 +16,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "face_tw005_button")
-public class FaceTW005ButtonEntity implements EasyLoggable {
+public class FaceTW005ButtonEntity implements EasyLoggable, FaceVariant {
     @Id
     @Column(name = "id")
     private UUID id;

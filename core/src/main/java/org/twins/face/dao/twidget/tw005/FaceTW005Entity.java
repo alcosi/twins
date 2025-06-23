@@ -9,6 +9,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceTwidget;
+import org.twins.core.dao.face.FaceTwinPointerValidatorRuleEntity;
 
 import java.util.UUID;
 
@@ -24,6 +25,9 @@ public class FaceTW005Entity implements EasyLoggable, FaceTwidget {
     @Column(name = "face_id")
     private UUID faceId;
 
+    @Column(name = "face_twin_pointer_validator_rule_id")
+    private UUID faceTwinPointerValidatorRuleId;
+
     @Column(name = "align_vertical", nullable = false)
     private boolean alignVertical;
 
@@ -34,6 +38,10 @@ public class FaceTW005Entity implements EasyLoggable, FaceTwidget {
     private String styleClasses;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "face_twin_pointer_validator_rule_id", insertable = false, updatable = false)
+    private FaceTwinPointerValidatorRuleEntity faceTwinPointerValidatorRule;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     private FaceEntity face;
 
@@ -41,7 +49,6 @@ public class FaceTW005Entity implements EasyLoggable, FaceTwidget {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     Kit<FaceTW005ButtonEntity, UUID> buttons;
-
 
     @Override
     public String easyLog(Level level) {

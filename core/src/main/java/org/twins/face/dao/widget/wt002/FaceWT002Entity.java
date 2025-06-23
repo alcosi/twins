@@ -7,6 +7,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.face.FaceEntity;
+import org.twins.core.dao.face.FaceTwinPointerValidatorRuleEntity;
 
 import java.util.UUID;
 
@@ -22,6 +23,9 @@ public class FaceWT002Entity {
     @Column(name = "face_id")
     private UUID faceId;
 
+    @Column(name = "face_twin_pointer_validator_rule_id")
+    private UUID faceTwinPointerValidatorRuleId;
+
     @Column(name = "key", nullable = false)
     private String key;
 
@@ -31,6 +35,10 @@ public class FaceWT002Entity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     private FaceEntity face;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "face_twin_pointer_validator_rule_id", insertable = false, updatable = false)
+    private FaceTwinPointerValidatorRuleEntity faceTwinPointerValidatorRule;
 
     @Transient
     @EqualsAndHashCode.Exclude

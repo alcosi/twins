@@ -19,7 +19,7 @@ public abstract class TwinValidator extends FeaturerTwins {
 
     public ValidationResult isValid(HashMap<String, String> validatorParams, TwinEntity twinEntity, boolean invert) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, validatorParams, new HashMap<>());
-        log.info("Running " + (invert ? "inverted " : "") + " validator[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
+        log.info("Running {} validator[{}] with params: {}", invert ? "inverted " : "", this.getClass().getSimpleName(), properties.toString());
         return isValid(properties, twinEntity, invert);
     }
 

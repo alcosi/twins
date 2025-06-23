@@ -11,6 +11,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.face.FaceTwinPointerValidatorRuleEntity;
 import org.twins.core.dao.face.FaceTwinPointerValidatorRuleRepository;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.service.twin.TwinValidatorSetService;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -23,6 +25,7 @@ public class FaceTwinPointerValidatorRuleService extends EntitySecureFindService
     private final FaceTwinPointerValidatorRuleRepository faceTwinPointerValidatorRuleRepository;
     private final FaceTwinPointerService faceTwinPointerService;
     private final FaceService faceService;
+    private final TwinValidatorSetService twinValidatorSetService;
 
     @Override
     public CrudRepository<FaceTwinPointerValidatorRuleEntity, UUID> entityRepository() {
@@ -57,7 +60,10 @@ public class FaceTwinPointerValidatorRuleService extends EntitySecureFindService
         }
         FaceTwinPointerValidatorRuleEntity faceTwinPointerValidatorRuleEntity = faceTwinPointerValidatorRuleRepository.findById(faceTwinPointerValidatorRuleId)
                 .orElseThrow(() -> new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION));
-
-        return false;
+        twinValidatorSetService.loadTwinValidatorSet(faceTwinPointerValidatorRuleEntity);
+        TwinEntity pointedTwin = faceTwinPointerService.getPointer(faceTwinPointerValidatorRuleEntity.getFaceTwinPointer());
+        boolean result = twinValidatorSetService.isValid(pointedTwin, faceTwinPointerValidatorRuleEntity, faceTwinPointerValidatorRuleEntity.getTwinValidators());
+        requestFacePointers.setValidationResult(faceTwinPointerValidatorRuleId, result);
+        return result;
     }
 }

@@ -7,12 +7,12 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.service.face.FaceService;
-import org.twins.core.service.face.FaceTwidgetService;
+import org.twins.core.service.face.FaceVariantsService;
 import org.twins.face.dao.twidget.tw001.FaceTW001Entity;
 import org.twins.face.dao.twidget.tw001.FaceTW001Repository;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -20,7 +20,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceTW001Service extends FaceTwidgetService<FaceTW001Entity> {
+public class FaceTW001Service extends FaceVariantsService<FaceTW001Entity> {
     private final FaceTW001Repository faceTW001Repository;
     private final FaceService faceService;
 
@@ -31,7 +31,7 @@ public class FaceTW001Service extends FaceTwidgetService<FaceTW001Entity> {
 
     @Override
     public Function<FaceTW001Entity, UUID> entityGetIdFunction() {
-        return FaceTW001Entity::getFaceId;
+        return FaceTW001Entity::getId;
     }
 
     @Override
@@ -45,7 +45,7 @@ public class FaceTW001Service extends FaceTwidgetService<FaceTW001Entity> {
     }
 
     @Override
-    public FaceTW001Entity getConfig(UUID faceId, TwinEntity currentTwin, TwinEntity targetTwin) throws ServiceException {
-        return findEntitySafe(faceId);
+    public List<FaceTW001Entity> getVariants(UUID of) {
+        return faceTW001Repository.findByFaceId(of);
     }
 }

@@ -19,7 +19,6 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.face.FaceService;
 import org.twins.face.dao.page.pg001.FacePG001Entity;
 import org.twins.face.dto.rest.page.pg001.FacePG001ViewRsDTOv1;
 import org.twins.face.mappers.rest.page.pg001.FacePG001RestDTOMapper;
@@ -35,7 +34,6 @@ public class FacePG001Controller extends ApiController {
     private final FacePG001Service facePG001Service;
     private final FacePG001RestDTOMapper facePG001RestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
-    private final FaceService faceService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "facePG001ViewV1", summary = "Returns PG001 page config: single column layout")
@@ -51,8 +49,7 @@ public class FacePG001Controller extends ApiController {
             @RequestParam(required = false) UUID twinId) {
         FacePG001ViewRsDTOv1 rs = new FacePG001ViewRsDTOv1();
         try {
-            faceService.getRequestFacePointers().setCurrentTwinId(twinId);
-            FacePG001Entity facePG001Entity = facePG001Service.findEntitySafe(faceId);
+            FacePG001Entity facePG001Entity = facePG001Service.findSingleVariant(faceId, twinId);
             rs
                     .setPage(facePG001RestDTOMapper.convert(facePG001Entity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

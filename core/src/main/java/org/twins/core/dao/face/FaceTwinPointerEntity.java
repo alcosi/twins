@@ -1,13 +1,13 @@
 package org.twins.core.dao.face;
 
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
-import org.twins.core.dao.featurer.FeaturerEntity;
 
-import java.util.Map;
+import java.util.HashMap;
 import java.util.UUID;
 
 @Data
@@ -25,9 +25,9 @@ public class FaceTwinPointerEntity implements EasyLoggable {
     @Column(name = "pointer_featurer_id")
     private Integer pointerFeaturerId;
 
-    @Type(value = org.hibernate.type.MapType.class)
+    @Type(PostgreSQLHStoreType.class)
     @Column(name = "pointer_params")
-    private Map<String, String> pointerParams;
+    private HashMap<String, String> pointerParams;
 
     @Column(name = "name")
     private String name;
@@ -35,10 +35,6 @@ public class FaceTwinPointerEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", insertable = false, updatable = false)
     private FaceEntity face;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pointer_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity pointerFeaturer;
 
     @Override
     public String easyLog(Level level) {

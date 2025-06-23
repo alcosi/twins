@@ -25,7 +25,6 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class FacePG002Service extends EntitySecureFindServiceImpl<FacePG002Entity> {
     private final FacePG002Repository facePG001Repository;
-    private final FacePG002TabRepository facePG001TabRepository;
     private final FacePG002WidgetRepository facePG002widgetRepository;
     private final FaceService faceService;
 
@@ -47,28 +46,6 @@ public class FacePG002Service extends EntitySecureFindServiceImpl<FacePG002Entit
     @Override
     public boolean validateEntity(FacePG002Entity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
-    }
-
-    public void loadTabs(FacePG002Entity src) {
-        loadTabs(Collections.singletonList(src));
-    }
-
-    public void loadTabs(Collection<FacePG002Entity> srcList) {
-        if (CollectionUtils.isEmpty(srcList))
-            return;
-        Kit<FacePG002Entity, UUID> needLoad = new Kit<>(FacePG002Entity::getFaceId);
-        for (var facePG002Entity : srcList)
-            if (facePG002Entity.getTabs() == null) {
-                facePG002Entity.setTabs(new Kit<>(FacePG002TabEntity::getId));
-                needLoad.add(facePG002Entity);
-            }
-        if (needLoad.isEmpty())
-            return;
-        KitGrouped<FacePG002TabEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                facePG001TabRepository.findByFaceIdIn(needLoad.getIdSet()), FacePG002TabEntity::getId, FacePG002TabEntity::getFacePG002Id);
-        for (var entry : loadedKit.getGroupedMap().entrySet()) {
-            needLoad.get(entry.getKey()).getTabs().addAll(entry.getValue());
-        }
     }
 
     public void loadWidgets(FacePG002TabEntity src) {
