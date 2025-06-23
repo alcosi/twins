@@ -9,10 +9,8 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.face.FaceVariant;
 import org.twins.core.exception.ErrorCodeTwins;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.ToIntFunction;
 
 @Slf4j
 @Service
@@ -55,6 +53,12 @@ public abstract class FaceVariantsService<T extends FaceVariant> extends EntityS
 
     public List<T> filterVariants(Kit<T, UUID> variants) throws ServiceException {
         return filterVariants(variants.getCollection());
+    }
+
+    public List<T> filterVariants(Kit<T, UUID> variants, ToIntFunction<? super T> getOrderFunction) throws ServiceException {
+        return filterVariants(variants.getCollection()).stream()
+                .sorted(Comparator.comparingInt(getOrderFunction))
+                .toList();
     }
 
     public List<T> filterVariants(Collection<T> variants) throws ServiceException {

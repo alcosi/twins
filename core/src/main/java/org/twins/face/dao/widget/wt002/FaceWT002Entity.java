@@ -5,9 +5,11 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceTwinPointerValidatorRuleEntity;
+import org.twins.core.dao.face.FaceVariant;
 
 import java.util.UUID;
 
@@ -15,7 +17,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "face_wt002")
-public class FaceWT002Entity {
+public class FaceWT002Entity implements EasyLoggable, FaceVariant {
     @Id
     @Column(name = "id")
     private UUID id;
@@ -44,4 +46,14 @@ public class FaceWT002Entity {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     Kit<FaceWT002ButtonEntity, UUID> buttons;
+
+    @Override
+    public String easyLog(Level level) {
+        switch (level) {
+            case SHORT:
+                return "faceWT002[" + faceId + "]";
+            default:
+                return "faceWT002[id:" + faceId + ", componentId:" + face.getFaceComponentId() + "]";
+        }
+    }
 }

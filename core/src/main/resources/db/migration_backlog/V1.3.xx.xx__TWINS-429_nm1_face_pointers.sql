@@ -27,9 +27,6 @@ create table if not exists face_twin_pointer_validator_rule
 );
 
 
-
-
-
 CREATE TABLE if not exists face_pg001
 (
     id                                  UUID PRIMARY KEY,
@@ -551,6 +548,81 @@ create index if not exists face_wt003_message_i18n_id_idx
 create index if not exists face_wt003_icon_resource_id_idx
     on face_wt003 (icon_resource_id);
 
+DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_name = 'face_tc001'
+              AND column_name = 'id'
+        ) THEN
+            EXECUTE 'DROP TABLE IF EXISTS face_tc001';
+        END IF;
+    END
+$$;
+
+create table if not exists face_tc001
+(
+    id                                  uuid    not null
+        primary key,
+    face_id                      uuid              not null
+        references face
+            on update cascade on delete cascade,
+    face_twin_pointer_validator_rule_id UUID
+        references face_twin_pointer_validator_rule
+            on update cascade on delete cascade,
+    key                          varchar           not null,
+    class_selector_label_i18n_id uuid
+        references i18n
+            on update cascade on delete restrict,
+    save_button_label_i18n_id    uuid
+        references i18n
+            on update cascade on delete restrict,
+    header_i18n_id               uuid
+        references i18n
+            on update cascade on delete restrict,
+    header_icon_resource_id      uuid
+        references resource
+            on update cascade on delete restrict,
+    style_classes                varchar,
+    twin_class_id                uuid              not null
+        references twin_class
+            on update cascade on delete cascade,
+    extends_depth                integer default 0 not null,
+    head_pointer_featurer_id     integer
+        references featurer,
+    head_pointer_params          hstore,
+    field_finder_featurer_id     integer           not null
+        references featurer,
+    field_finder_params          hstore
+);
+
+create index if not exists idx_face_tc001_face_id
+    on face_tc001 (face_id);
+
+create index if not exists idx_face_tc001_face_twin_pointer_validator_rule_id
+    on face_tc001 (face_twin_pointer_validator_rule_id);
+
+create index if not exists idx_face_tc001_class_selector_label_i18n_id
+    on face_tc001 (class_selector_label_i18n_id);
+
+create index if not exists idx_face_tc001_save_button_label_i18n_id
+    on face_tc001 (save_button_label_i18n_id);
+
+create index if not exists idx_face_tc001_header_i18n_id
+    on face_tc001 (header_i18n_id);
+
+create index if not exists idx_face_tc001_header_icon_resource_id
+    on face_tc001 (header_icon_resource_id);
+
+create index if not exists idx_face_tc001_twin_class_id
+    on face_tc001 (twin_class_id);
+
+create index if not exists idx_face_tc001_head_pointer_featurer_id
+    on face_tc001 (head_pointer_featurer_id);
+
+create index if not exists idx_face_tc001_field_finder_featurer_id
+    on face_tc001 (field_finder_featurer_id);
 
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

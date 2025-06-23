@@ -9,6 +9,7 @@ import org.hibernate.annotations.Type;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceTwidget;
 import org.twins.core.dao.face.FaceTwinPointerValidatorRuleEntity;
+import org.twins.core.dao.face.FaceVariant;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "face_tw004")
-public class FaceTW004Entity implements EasyLoggable, FaceTwidget {
+public class FaceTW004Entity implements EasyLoggable, FaceTwidget, FaceVariant {
     @Id
     @Column(name = "id")
     private UUID id;

@@ -12,6 +12,7 @@ import org.twins.core.service.i18n.I18nService;
 import org.twins.face.dao.page.pg002.FacePG002TabEntity;
 import org.twins.face.dto.rest.page.pg002.FacePG002TabDTOv1;
 import org.twins.face.service.page.FacePG002Service;
+import org.twins.face.service.page.FacePG002WidgetService;
 
 import java.util.Collection;
 
@@ -24,6 +25,7 @@ public class FacePG002TabRestDTOMapper extends RestSimpleDTOMapper<FacePG002TabE
     protected final FaceRestDTOMapper faceRestDTOMapper;
     protected final FacePG002WidgetRestDTOMapper facePG002WidgetRestDTOMapper;
     protected final FacePG002Service facePG002Service;
+    protected final FacePG002WidgetService facePG002WidgetService;
 
     @Override
     public void map(FacePG002TabEntity src, FacePG002TabDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -38,8 +40,8 @@ public class FacePG002TabRestDTOMapper extends RestSimpleDTOMapper<FacePG002TabE
                     .setOrder(src.getOrder());
         }
         if (mapperContext.hasModeButNot(FacePG002Modes.FacePG002TabWidgetCollectionMode.HIDE)) {
-            facePG002Service.loadWidgets(src);
-            dst.setWidgets(facePG002WidgetRestDTOMapper.convertCollection(src.getWidgets(), mapperContext));
+            facePG002WidgetService.loadWidgets(src);
+            dst.setWidgets(facePG002WidgetRestDTOMapper.convertCollection(facePG002WidgetService.filterVariants(src.getWidgets()), mapperContext));
         }
     }
 
@@ -47,7 +49,7 @@ public class FacePG002TabRestDTOMapper extends RestSimpleDTOMapper<FacePG002TabE
     public void beforeCollectionConversion(Collection<FacePG002TabEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasModeButNot(FacePG002Modes.FacePG002TabWidgetCollectionMode.HIDE)) {
-            facePG002Service.loadWidgets(srcCollection);
+            facePG002WidgetService.loadWidgets(srcCollection);
         }
     }
 }

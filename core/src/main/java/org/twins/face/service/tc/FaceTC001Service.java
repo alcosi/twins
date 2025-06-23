@@ -4,9 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.pagination.SimplePagination;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -16,6 +14,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.featurer.fieldfinder.FieldFinder;
 import org.twins.core.featurer.pointer.Pointer;
+import org.twins.core.service.face.FaceVariantsService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldSearchService;
 import org.twins.face.dao.tc.tc001.FaceTC001Entity;
@@ -23,6 +22,7 @@ import org.twins.face.dao.tc.tc001.FaceTC001Repository;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -30,7 +30,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceTC001Service extends EntitySecureFindServiceImpl<FaceTC001Entity> {
+public class FaceTC001Service extends FaceVariantsService<FaceTC001Entity> {
     private final FaceTC001Repository faceTC001Repository;
     private final FeaturerService featurerService;
     private final TwinClassFieldSearchService twinClassFieldSearchService;
@@ -80,5 +80,10 @@ public class FaceTC001Service extends EntitySecureFindServiceImpl<FaceTC001Entit
             Kit<TwinClassFieldEntity, UUID> fields = new Kit<>(twinClassFieldSearchService.findTwinClassField(twinClassFieldSearch), TwinClassFieldEntity::getId);
             entity.setFields(fields);
         }
+    }
+
+    @Override
+    public List<FaceTC001Entity> getVariants(UUID of) {
+        return faceTC001Repository.findByFaceId(of);
     }
 }

@@ -3,14 +3,15 @@ package org.twins.face.service.widget;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.service.face.FaceVariantsService;
 import org.twins.face.dao.widget.wt003.FaceWT003Entity;
 import org.twins.face.dao.widget.wt003.FaceWT003Repository;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -18,7 +19,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceWT003Service extends EntitySecureFindServiceImpl<FaceWT003Entity> {
+public class FaceWT003Service extends FaceVariantsService<FaceWT003Entity> {
     private final FaceWT003Repository faceWT003Repository;
 
     @Override
@@ -39,5 +40,10 @@ public class FaceWT003Service extends EntitySecureFindServiceImpl<FaceWT003Entit
     @Override
     public boolean validateEntity(FaceWT003Entity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
+    }
+
+    @Override
+    public List<FaceWT003Entity> getVariants(UUID of) {
+        return faceWT003Repository.findByFaceId(of);
     }
 }

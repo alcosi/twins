@@ -3,8 +3,9 @@ package org.twins.face.dao.widget.wt001;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.twins.core.dao.face.FaceEntity;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.face.FaceTwinPointerValidatorRuleEntity;
+import org.twins.core.dao.face.FaceVariant;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "face_wt001_column")
-public class FaceWT001ColumnEntity {
+public class FaceWT001ColumnEntity implements EasyLoggable, FaceVariant{
     @Id
     @Column(name = "id")
     private UUID id;
@@ -38,10 +39,6 @@ public class FaceWT001ColumnEntity {
     private Boolean showByDefault;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
-    private FaceEntity face;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_twin_pointer_validator_rule_id", insertable = false, updatable = false)
     private FaceTwinPointerValidatorRuleEntity faceTwinPointerValidatorRule;
 
@@ -52,4 +49,9 @@ public class FaceWT001ColumnEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "label_i18n_id", insertable = false, updatable = false)
     private I18nEntity labelI18n;
+
+    @Override
+    public String easyLog(Level level) {
+        return "faceWT001Column[" + id + "]";
+    }
 }

@@ -3,8 +3,10 @@ package org.twins.face.dao.widget.wt002;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceTwinPointerValidatorRuleEntity;
+import org.twins.core.dao.face.FaceVariant;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 
@@ -14,7 +16,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "face_wt002_button")
-public class FaceWT002ButtonEntity {
+public class FaceWT002ButtonEntity implements EasyLoggable, FaceVariant {
     @Id
     @Column(name = "id")
     private UUID id;
@@ -41,10 +43,6 @@ public class FaceWT002ButtonEntity {
     private UUID modalFaceId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
-    private FaceEntity face;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_twin_pointer_validator_rule_id", insertable = false, updatable = false)
     private FaceTwinPointerValidatorRuleEntity faceTwinPointerValidatorRule;
 
@@ -59,4 +57,14 @@ public class FaceWT002ButtonEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "modal_face_id", insertable = false, updatable = false)
     private FaceEntity modalFace;
+
+    @Override
+    public String easyLog(Level level) {
+        switch (level) {
+            case SHORT:
+                return "faceWT002Button[" + id + "]";
+            default:
+                return "faceWT002Button[id:" + id + ", componentId:" + face.getFaceComponentId() + "]";
+        }
+    }
 }

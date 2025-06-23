@@ -11,11 +11,9 @@ import org.twins.core.service.i18n.I18nService;
 import org.twins.face.dao.page.pg002.FacePG002Entity;
 import org.twins.face.dao.page.pg002.FacePG002TabEntity;
 import org.twins.face.dto.rest.page.pg002.FacePG002DTOv1;
-import org.twins.face.service.page.FacePG002Service;
 import org.twins.face.service.page.FacePG002TabService;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 
 
@@ -26,7 +24,6 @@ public class FacePG002RestDTOMapper extends RestSimpleDTOMapper<FacePG002Entity,
     protected final I18nService i18nService;
     protected final FaceRestDTOMapper faceRestDTOMapper;
     protected final FacePG002TabRestDTOMapper facePG002TabRestDTOMapper;
-    protected final FacePG002Service facePG002Service;
     protected final FacePG002TabService facePG002TabService;
 
     @Override
@@ -41,9 +38,7 @@ public class FacePG002RestDTOMapper extends RestSimpleDTOMapper<FacePG002Entity,
         }
         if (mapperContext.hasModeButNot(FacePG002Modes.FacePG002TabCollectionMode.HIDE)) {
             facePG002TabService.loadTabs(src);
-            List<FacePG002TabEntity> sortedList = facePG002TabService.filterVariants(src.getTabs()).stream()
-                    .sorted(Comparator.comparingInt(FacePG002TabEntity::getOrder))
-                    .toList();
+            List<FacePG002TabEntity> sortedList = facePG002TabService.filterVariants(src.getTabs(), FacePG002TabEntity::getOrder);
             dst.setTabs(facePG002TabRestDTOMapper.convertCollection(sortedList, mapperContext));
         }
     }

@@ -5,9 +5,12 @@ import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.face.FaceEntity;
+import org.twins.core.dao.face.FaceTwinPointerValidatorRuleEntity;
+import org.twins.core.dao.face.FaceVariant;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -20,10 +23,16 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "face_tc001")
-public class FaceTC001Entity {
+public class FaceTC001Entity implements EasyLoggable, FaceVariant {
     @Id
+    @Column(name = "id")
+    private UUID id;
+
     @Column(name = "face_id", nullable = false)
     private UUID faceId;
+
+    @Column(name = "face_twin_pointer_validator_rule_id")
+    private UUID faceTwinPointerValidatorRuleId;
 
     @Column(name = "key", nullable = false)
     private String key;
@@ -63,6 +72,9 @@ public class FaceTC001Entity {
     @Column(name = "field_finder_params", columnDefinition = "hstore")
     private HashMap<String, String> fieldFinderParams;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "face_twin_pointer_validator_rule_id", insertable = false, updatable = false)
+    private FaceTwinPointerValidatorRuleEntity faceTwinPointerValidatorRule;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
@@ -83,4 +95,14 @@ public class FaceTC001Entity {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinClassFieldEntity, UUID> fields;
+
+    @Override
+    public String easyLog(EasyLoggable.Level level) {
+        switch (level) {
+            case SHORT:
+                return "faceTC001[" + faceId + "]";
+            default:
+                return "faceTC001[id:" + faceId + ", componentId:" + face.getFaceComponentId() + "]";
+        }
+    }
 }
