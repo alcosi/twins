@@ -62,7 +62,7 @@ public class TwinListController extends ApiController {
     @PostMapping(value = "/private/twin/search/v1")
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchV1(
-            @MapperContextBinding(roots = TwinRestDTOMapper.class, response = TwinSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapper.class, response = TwinSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams(sortAsc = false, sortField = TwinEntity.Fields.createdAt) SimplePagination pagination,
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv1 rs = new TwinSearchRsDTOv1();
@@ -90,7 +90,7 @@ public class TwinListController extends ApiController {
     @PostMapping(value = "/private/twin/search/v2")
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchV2(
-            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams(sortAsc = false, sortField = TwinEntity.Fields.createdAt) SimplePagination pagination,
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
@@ -118,7 +118,7 @@ public class TwinListController extends ApiController {
     @PostMapping(value = "/private/twin/search/v3")
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchV3(
-            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams(sortAsc = false, sortField = TwinEntity.Fields.createdAt) SimplePagination pagination,
             @RequestBody List<TwinSearchRqDTOv1> request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
@@ -150,7 +150,7 @@ public class TwinListController extends ApiController {
     @PostMapping(value = "/private/twin/search_by_alias/{searchAlias}/v1")
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchByAliasV1(
-            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.SEARCH_ALIAS) @PathVariable String searchAlias,
             @SimplePaginationParams(sortAsc = false, sortField = TwinEntity.Fields.createdAt) SimplePagination pagination,
             @RequestBody TwinSearchByAliasRqDTOv1 request) {
@@ -179,7 +179,7 @@ public class TwinListController extends ApiController {
     @PostMapping(value = "/private/twin/search/{searchId}/v1")
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchByIdV1(
-            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams(sortAsc = false, sortField = TwinEntity.Fields.createdAt) SimplePagination pagination,
             @Parameter(example = DTOExamples.SEARCH_ID) @PathVariable UUID searchId,
             @RequestBody TwinSearchByAliasRqDTOv1 request) {

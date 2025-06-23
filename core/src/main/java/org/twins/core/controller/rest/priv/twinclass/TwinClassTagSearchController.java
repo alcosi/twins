@@ -67,7 +67,7 @@ public class TwinClassTagSearchController extends ApiController {
     @PostMapping(value = "/private/twin_class/{twinClassId}/tag/search/v1")
     public ResponseEntity<?> tagSearchV1(
             @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = TagSearchRsDTOv1.class)
-            MapperContext mapperContext,
+            @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
             @RequestBody TagSearchRqDTOv1 request) {

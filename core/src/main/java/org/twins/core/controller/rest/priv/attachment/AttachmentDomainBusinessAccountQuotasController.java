@@ -47,7 +47,7 @@ public class AttachmentDomainBusinessAccountQuotasController extends ApiControll
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/attachment/quotas/domain_business_account/v1")
     public ResponseEntity<?> attachmentDomainBusinessAccountQuotasV1(
-            @MapperContextBinding(roots = AttachmentQuotasRestDTOMapper.class, response = AttachmentQuotasRsDTOv1.class) MapperContext mapperContext) {
+            @MapperContextBinding(roots = AttachmentQuotasRestDTOMapper.class, response = AttachmentQuotasRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext) {
         AttachmentQuotasRsDTOv1 rs = new AttachmentQuotasRsDTOv1();
         try {
             rs.setQuotas(

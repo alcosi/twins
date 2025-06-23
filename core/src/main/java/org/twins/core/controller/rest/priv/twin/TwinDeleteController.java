@@ -47,7 +47,7 @@ public class TwinDeleteController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @DeleteMapping(value = "/private/twin/{twinId}/v1")
     public ResponseEntity<?> twinDeleteV1(
-            @MapperContextBinding(roots = DraftRestDTOMapper.class, response = DraftRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DraftRestDTOMapper.class, response = DraftRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         DraftRsDTOv1 rs = new DraftRsDTOv1();
         try {
@@ -70,7 +70,7 @@ public class TwinDeleteController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/delete/v1")
     public ResponseEntity<?> twinDeleteBatchV1(
-            @MapperContextBinding(roots = DraftRestDTOMapper.class, response = DraftRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DraftRestDTOMapper.class, response = DraftRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody TwinDeleteRqDTOv1 twinDeleteRqDTOv1) {
         DraftRsDTOv1 rs = new DraftRsDTOv1();
         try {
@@ -93,7 +93,7 @@ public class TwinDeleteController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @DeleteMapping(value = "/private/twin/{twinId}/delete_drafted/v1")
     public ResponseEntity<?> twinDeleteDraftedV1(
-            @MapperContextBinding(roots = DraftRestDTOMapper.class, response = DraftRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DraftRestDTOMapper.class, response = DraftRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         DraftRsDTOv1 rs = new DraftRsDTOv1();
         try {

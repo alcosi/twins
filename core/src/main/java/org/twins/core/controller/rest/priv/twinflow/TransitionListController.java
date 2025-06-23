@@ -12,7 +12,10 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -51,7 +54,7 @@ public class TransitionListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/transition/search/v1")
     public ResponseEntity<?> transitionSearchV1(
-            @MapperContextBinding(roots = TransitionBaseV2RestDTOMapper.class, response = TransitionSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TransitionBaseV2RestDTOMapper.class, response = TransitionSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody TransitionSearchRqDTOv1 request) {
         TransitionSearchRsDTOv1 rs = new TransitionSearchRsDTOv1();

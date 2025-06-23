@@ -49,7 +49,7 @@ public class PermissionGrantAssigneePropagationCreateController extends ApiContr
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/assignee_propagation/v1")
     public ResponseEntity<?> permissionGrantAssigneePropagationCreateV1(
-            @MapperContextBinding(roots = PermissionGrantAssigneePropagationRestDTOMapperV2.class, response = PermissionGrantAssigneePropagationRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantAssigneePropagationRestDTOMapperV2.class, response = PermissionGrantAssigneePropagationRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody PermissionGrantAssigneePropagationCreateRqDTOv1 request) {
         PermissionGrantAssigneePropagationRsDTOv1 rs = new PermissionGrantAssigneePropagationRsDTOv1();
         try {

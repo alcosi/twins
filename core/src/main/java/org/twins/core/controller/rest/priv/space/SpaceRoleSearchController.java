@@ -54,7 +54,7 @@ public class SpaceRoleSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/space_role/search/v1")
     public ResponseEntity<?> spaceRoleSearchListV1(
-            @MapperContextBinding(roots = SpaceRoleDTOMapperV2.class, response = SpaceRoleSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = SpaceRoleDTOMapperV2.class, response = SpaceRoleSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody SpaceRoleSearchRqDTOv1 request,
             @SimplePaginationParams SimplePagination pagination) {
         SpaceRoleSearchRsDTOv1 rs = new SpaceRoleSearchRsDTOv1();

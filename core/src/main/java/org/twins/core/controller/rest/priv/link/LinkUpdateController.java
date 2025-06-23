@@ -55,7 +55,7 @@ public class LinkUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/link/{linkId}/v1")
     public ResponseEntity<?> linkUpdateV1(
-            @MapperContextBinding(roots = {LinkForwardRestDTOV3Mapper.class}, response = LinkUpdateRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = {LinkForwardRestDTOV3Mapper.class}, response = LinkUpdateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.LINK_ID) @PathVariable UUID linkId,
             @RequestBody LinkUpdateDTOv1 request) {
         LinkUpdateRsDTOv1 rs = new LinkUpdateRsDTOv1();

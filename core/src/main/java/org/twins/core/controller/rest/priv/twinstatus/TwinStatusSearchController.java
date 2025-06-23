@@ -54,7 +54,7 @@ public class TwinStatusSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_status/search/v1")
     public ResponseEntity<?> twinStatusSearchV1(
-            @MapperContextBinding(roots = TwinStatusRestDTOMapperV2.class, response = TwinStatusSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinStatusRestDTOMapperV2.class, response = TwinStatusSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody TwinStatusSearchRqDTOv1 request) {
         TwinStatusSearchRsDTOv1 rs = new TwinStatusSearchRsDTOv1();
