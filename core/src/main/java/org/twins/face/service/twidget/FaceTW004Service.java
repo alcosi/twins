@@ -15,7 +15,8 @@ import org.twins.core.domain.face.PointedFace;
 import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.featurer.fieldfilter.FieldFilter;
 import org.twins.core.featurer.fieldfinder.FieldFinder;
-import org.twins.core.service.face.FaceTwidgetService;
+import org.twins.core.service.face.FacePointedService;
+import org.twins.core.service.face.FaceService;
 import org.twins.core.service.twinclass.TwinClassFieldSearchService;
 import org.twins.face.dao.twidget.tw004.FaceTW004Entity;
 import org.twins.face.dao.twidget.tw004.FaceTW004Repository;
@@ -31,10 +32,11 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceTW004Service extends FaceTwidgetService<FaceTW004Entity> {
+public class FaceTW004Service extends FacePointedService<FaceTW004Entity> {
     private final FaceTW004Repository faceTW004Repository;
     private final FeaturerService featurerService;
     private final TwinClassFieldSearchService twinClassFieldSearchService;
+    private final FaceService faceService;
 
     @Override
     public CrudRepository<FaceTW004Entity, UUID> entityRepository() {
@@ -48,7 +50,7 @@ public class FaceTW004Service extends FaceTwidgetService<FaceTW004Entity> {
 
     @Override
     public boolean isEntityReadDenied(FaceTW004Entity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
+        return faceService.isEntityReadDenied(entity.getFace());
     }
 
     @Override

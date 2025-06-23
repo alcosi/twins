@@ -609,39 +609,37 @@ create table if not exists face_tc001
         references twin_class
             on update cascade on delete cascade,
     extends_depth                integer default 0 not null,
-    head_pointer_featurer_id     integer
-        references featurer,
-    head_pointer_params          hstore,
+    head_twin_face_pointer_id     uuid,
     field_finder_featurer_id     integer           not null
         references featurer,
     field_finder_params          hstore
 );
 
-create index if not exists idx_face_tc001_face_id
+create index if not exists face_tc001_face_id_idx
     on face_tc001 (face_id);
 
-create index if not exists idx_face_tc001_face_pointer_validator_rule_id
+create index if not exists face_tc001_face_pointer_validator_rule_id_idx
     on face_tc001 (face_pointer_validator_rule_id);
 
-create index if not exists idx_face_tc001_class_selector_label_i18n_id
+create index if not exists face_tc001_class_selector_label_i18n_id_idx
     on face_tc001 (class_selector_label_i18n_id);
 
-create index if not exists idx_face_tc001_save_button_label_i18n_id
+create index if not exists face_tc001_save_button_label_i18n_id_idx
     on face_tc001 (save_button_label_i18n_id);
 
-create index if not exists idx_face_tc001_header_i18n_id
+create index if not exists face_tc001_header_i18n_id_idx
     on face_tc001 (header_i18n_id);
 
-create index if not exists idx_face_tc001_header_icon_resource_id
+create index if not exists face_tc001_header_icon_resource_id_idx
     on face_tc001 (header_icon_resource_id);
 
-create index if not exists idx_face_tc001_twin_class_id
+create index if not exists face_tc001_twin_class_id_idx
     on face_tc001 (twin_class_id);
 
-create index if not exists idx_face_tc001_head_pointer_featurer_id
-    on face_tc001 (head_pointer_featurer_id);
+create index if not exists face_tc001_head_twin_face_pointer_id_idx
+    on face_tc001 (head_twin_face_pointer_id);
 
-create index if not exists idx_face_tc001_field_finder_featurer_id
+create index if not exists face_tc001_field_finder_featurer_id_idx
     on face_tc001 (field_finder_featurer_id);
 
 
@@ -978,7 +976,6 @@ $$
     END;
 $$;
 
--- drop table if exists face_tw004;
 -- drop table if exists face_page_pg001;
 -- drop table if exists face_page_pg001_widget;
 -- drop table if exists face_page_pg002;

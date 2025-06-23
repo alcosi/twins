@@ -14,7 +14,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @Lazy
-public abstract class FaceTwidgetService<T extends FacePointedEntity> extends FaceVariantsService<T> {
+public abstract class FacePointedService<T extends FacePointedEntity> extends FaceVariantsService<T> {
     @Autowired
     private FaceService faceService;
 

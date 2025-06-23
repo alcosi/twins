@@ -10,8 +10,8 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.service.face.FacePointedService;
 import org.twins.core.service.face.FaceService;
-import org.twins.core.service.face.FaceTwidgetService;
 import org.twins.face.dao.twidget.tw002.FaceTW002AccordionItemEntity;
 import org.twins.face.dao.twidget.tw002.FaceTW002AccordionItemRepository;
 import org.twins.face.dao.twidget.tw002.FaceTW002Entity;
@@ -27,7 +27,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceTW002Service extends FaceTwidgetService<FaceTW002Entity> {
+public class FaceTW002Service extends FacePointedService<FaceTW002Entity> {
     private final FaceTW002Repository faceTW002Repository;
     private final FaceTW002AccordionItemRepository faceTW002AccordionItemRepository;
     private final FaceService faceService;

@@ -10,7 +10,8 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.service.face.FaceTwidgetService;
+import org.twins.core.service.face.FacePointedService;
+import org.twins.core.service.face.FaceService;
 import org.twins.face.dao.twidget.tw005.FaceTW005ButtonEntity;
 import org.twins.face.dao.twidget.tw005.FaceTW005ButtonRepository;
 import org.twins.face.dao.twidget.tw005.FaceTW005Entity;
@@ -26,9 +27,10 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceTW005Service extends FaceTwidgetService<FaceTW005Entity> {
+public class FaceTW005Service extends FacePointedService<FaceTW005Entity> {
     private final FaceTW005Repository faceTW005Repository;
     private final FaceTW005ButtonRepository faceTW005ButtonRepository;
+    private final FaceService faceService;
 
     @Override
     public CrudRepository<FaceTW005Entity, UUID> entityRepository() {
@@ -42,7 +44,7 @@ public class FaceTW005Service extends FaceTwidgetService<FaceTW005Entity> {
 
     @Override
     public boolean isEntityReadDenied(FaceTW005Entity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
+        return faceService.isEntityReadDenied(entity.getFace());
     }
 
     @Override

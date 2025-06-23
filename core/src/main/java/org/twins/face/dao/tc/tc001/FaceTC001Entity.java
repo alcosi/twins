@@ -58,12 +58,8 @@ public class FaceTC001Entity implements EasyLoggable, FaceVariant {
     @Column(name = "extends_depth")
     private Integer extendsDepth;
 
-    @Column(name = "head_pointer_featurer_id")
-    private Integer headPointerFeaturerId;
-
-    @Type(PostgreSQLHStoreType.class)
-    @Column(name = "head_pointer_params", columnDefinition = "hstore")
-    private HashMap<String, String> headPointerParams;
+    @Column(name = "head_twin_face_pointer_id")
+    private UUID headTwinFacePointerId;
 
     @Column(name = "field_finder_featurer_id")
     private Integer fieldFinderFeaturerId;

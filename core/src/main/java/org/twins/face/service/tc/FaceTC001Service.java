@@ -9,11 +9,9 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.featurer.fieldfinder.FieldFinder;
-import org.twins.core.featurer.pointer.Pointer;
 import org.twins.core.service.face.FaceService;
 import org.twins.core.service.face.FaceVariantsService;
 import org.twins.core.service.twin.TwinService;
@@ -56,15 +54,6 @@ public class FaceTC001Service extends FaceVariantsService<FaceTC001Entity> {
     @Override
     public boolean validateEntity(FaceTC001Entity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
-    }
-
-    public TwinEntity getHeadTwin(UUID currentTwinId, FaceTC001Entity entity) throws ServiceException {
-        if (currentTwinId == null) {
-            return null;
-        }
-        TwinEntity currentTwin = twinService.findEntitySafe(currentTwinId);
-        Pointer pointer = featurerService.getFeaturer(entity.getHeadPointerFeaturerId(), Pointer.class);
-        return pointer.point(entity.getHeadPointerParams(), currentTwin);
     }
 
     public void loadFields(FaceTC001Entity entity) throws ServiceException {

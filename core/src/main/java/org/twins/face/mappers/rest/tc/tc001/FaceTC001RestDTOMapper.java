@@ -11,60 +11,61 @@ import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
+import org.twins.core.service.face.FacePointerService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.resource.ResourceService;
 import org.twins.face.dao.tc.tc001.FaceTC001Entity;
-import org.twins.face.domain.tc.tc001.FaceTC001Twin;
 import org.twins.face.dto.rest.tc.tc001.FaceTC001DTOv1;
 import org.twins.face.service.tc.FaceTC001Service;
 
 import java.util.Collection;
-import java.util.List;
 
 
 @Component
 @RequiredArgsConstructor
-public class FaceTC001RestDTOMapper extends RestSimpleDTOMapper<FaceTC001Twin, FaceTC001DTOv1> {
+public class FaceTC001RestDTOMapper extends RestSimpleDTOMapper<FaceTC001Entity, FaceTC001DTOv1> {
     protected final FaceRestDTOMapper faceRestDTOMapper;
     private final I18nService i18nService;
     private final ResourceService resourceService;
     private final FaceTC001Service faceTC001Service;
+    private final FacePointerService facePointerService;
     private final FaceTC001FieldRestDTOMapper faceTC001FieldRestDTOMapper;
 
     @MapperModePointerBinding(modes = FaceTC001Modes.FaceTC0012TwinClassMode.class)
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @Override
-    public void map(FaceTC001Twin src, FaceTC001DTOv1 dst, MapperContext mapperContext) throws Exception {
-        faceRestDTOMapper.map(src.getEntity().getFace(), dst, mapperContext);
+    public void map(FaceTC001Entity src, FaceTC001DTOv1 dst, MapperContext mapperContext) throws Exception {
+        faceRestDTOMapper.map(src.getFace(), dst, mapperContext);
         switch (mapperContext.getModeOrUse(FaceMode.SHORT)) {
             case SHORT -> dst
-                    .setKey(src.getEntity().getKey());
+                    .setKey(src.getKey());
             case DETAILED -> {
-                TwinEntity headTwin = faceTC001Service.getHeadTwin(src.getTwinId(), src.getEntity());
+                TwinEntity headTwin = facePointerService.getPointer(src.getHeadTwinFacePointerId());
                 dst
-                        .setKey(src.getEntity().getKey())
-                        .setStyleClasses(StringUtils.splitToSet(src.getEntity().getStyleClasses(), " "))
-                        .setSaveButtonLabel(i18nService.translateToLocale(src.getEntity().getSaveButtonLabelI18nId()))
-                        .setClassSelectorLabel(i18nService.translateToLocale(src.getEntity().getClassSelectorLabelI18nId()))
-                        .setHeader(i18nService.translateToLocale(src.getEntity().getHeaderI18nId() != null ? src.getEntity().getHeaderI18nId() : src.getEntity().getTwinClass().getNameI18NId()))
-                        .setIcon(resourceService.getResourceUri(src.getEntity().getIconResource()))
-                        .setTwinClassId(src.getEntity().getTwinClassId())
-                        .setExtendsDepth(src.getEntity().getExtendsDepth())
+                        .setKey(src.getKey())
+                        .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "))
+                        .setSaveButtonLabel(i18nService.translateToLocale(src.getSaveButtonLabelI18nId()))
+                        .setClassSelectorLabel(i18nService.translateToLocale(src.getClassSelectorLabelI18nId()))
+                        .setHeader(i18nService.translateToLocale(src.getHeaderI18nId() != null ? src.getHeaderI18nId() : src.getTwinClass().getNameI18NId()))
+                        .setIcon(resourceService.getResourceUri(src.getIconResource()))
+                        .setTwinClassId(src.getTwinClassId())
+                        .setExtendsDepth(src.getExtendsDepth())
                         .setPointedHeadTwinId(headTwin == null ? null : headTwin.getId())
-                        .setFields(faceTC001FieldRestDTOMapper.convertCollection(src.getEntity().getFields()));
+                        .setFields(faceTC001FieldRestDTOMapper.convertCollection(src.getFields()));
 
                 if (mapperContext.hasModeButNot(FaceTC001Modes.FaceTC0012TwinClassMode.HIDE)) {
-                    faceTC001Service.loadFields(src.getEntity());
-                    twinClassRestDTOMapper.postpone(src.getEntity().getTwinClass(), mapperContext.forkOnPoint(FaceTC001Modes.FaceTC0012TwinClassMode.SHORT));
+                    faceTC001Service.loadFields(src);
+                    twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(FaceTC001Modes.FaceTC0012TwinClassMode.SHORT));
                 }
             }
         }
     }
 
     @Override
-    public void beforeCollectionConversion(Collection<FaceTC001Twin> srcCollection, MapperContext mapperContext) throws ServiceException {
-        List<FaceTC001Entity> entities = srcCollection.stream().map(FaceTC001Twin::getEntity).toList();
-        faceTC001Service.loadFields(entities);
+    public void beforeCollectionConversion(Collection<FaceTC001Entity> srcCollection, MapperContext mapperContext) throws ServiceException {
+        if (mapperContext.hasModeButNot(FaceTC001Modes.FaceTC0012TwinClassMode.HIDE)) {
+            faceTC001Service.loadFields(srcCollection);
+        }
     }
 }
