@@ -31,7 +31,7 @@ public class FacePG002Service extends FaceVariantsService<FacePG002Entity> {
 
     @Override
     public Function<FacePG002Entity, UUID> entityGetIdFunction() {
-        return FacePG002Entity::getFaceId;
+        return FacePG002Entity::getId;
     }
 
     @Override

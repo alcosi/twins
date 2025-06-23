@@ -25,8 +25,8 @@ public class FacePG002Entity implements EasyLoggable, FaceVariant {
     @Column(name = "face_id")
     private UUID faceId;
 
-    @Column(name = "face_twin_pointer_validator_rule_id")
-    private UUID faceTwinPointerValidatorRuleId;
+    @Column(name = "face_pointer_validator_rule_id")
+    private UUID facePointerValidatorRuleId;
 
     @Column(name = "title_i18n_id")
     private UUID titleI18nId;

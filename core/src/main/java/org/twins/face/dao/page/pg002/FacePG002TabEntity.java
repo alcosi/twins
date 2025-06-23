@@ -7,7 +7,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
-import org.twins.core.dao.face.FaceTwinPointerValidatorRuleEntity;
+import org.twins.core.dao.face.FacePointerValidatorRuleEntity;
 import org.twins.core.dao.face.FaceVariant;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
@@ -26,8 +26,8 @@ public class FacePG002TabEntity implements EasyLoggable, FaceVariant {
     @Column(name = "face_pg002_id")
     private UUID facePG002Id;
 
-    @Column(name = "face_twin_pointer_validator_rule_id")
-    private UUID faceTwinPointerValidatorRuleId;
+    @Column(name = "face_pointer_validator_rule_id")
+    private UUID facePointerValidatorRuleId;
 
     @Column(name = "title_i18n_id")
     private UUID titleI18nId;
@@ -42,8 +42,8 @@ public class FacePG002TabEntity implements EasyLoggable, FaceVariant {
     private UUID iconResourceId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "face_twin_pointer_validator_rule_id", insertable = false, updatable = false)
-    private FaceTwinPointerValidatorRuleEntity faceTwinPointerValidatorRule;
+    @JoinColumn(name = "face_pointer_validator_rule_id", insertable = false, updatable = false)
+    private FacePointerValidatorRuleEntity facePointerValidatorRule;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "title_i18n_id", nullable = false, insertable = false, updatable = false)

@@ -13,8 +13,8 @@ import java.util.UUID;
 @Data
 @Entity
 @Accessors(chain = true)
-@Table(name = "face_twin_pointer")
-public class FaceTwinPointerEntity implements EasyLoggable {
+@Table(name = "face_pointer")
+public class FacePointerEntity implements EasyLoggable {
     @Id
     @Column(name = "id")
     private UUID id;

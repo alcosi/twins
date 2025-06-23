@@ -60,7 +60,7 @@ public class FaceWT001ColumnService extends FaceVariantsService<FaceWT001ColumnE
     public void loadColumns(Collection<FaceWT001Entity> srcList) {
         if (CollectionUtils.isEmpty(srcList))
             return;
-        Kit<FaceWT001Entity, UUID> needLoad = new Kit<>(FaceWT001Entity::getFaceId);
+        Kit<FaceWT001Entity, UUID> needLoad = new Kit<>(FaceWT001Entity::getId);
         for (var faceWT001Entity : srcList)
             if (faceWT001Entity.getColumns() == null) {
                 faceWT001Entity.setColumns(new Kit<>(FaceWT001ColumnEntity::getId));

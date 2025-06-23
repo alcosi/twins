@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.service.face.FaceService;
-import org.twins.core.service.face.FaceVariantsService;
+import org.twins.core.service.face.FaceTwidgetService;
 import org.twins.face.dao.twidget.tw001.FaceTW001Entity;
 import org.twins.face.dao.twidget.tw001.FaceTW001Repository;
 
@@ -20,7 +20,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceTW001Service extends FaceVariantsService<FaceTW001Entity> {
+public class FaceTW001Service extends FaceTwidgetService<FaceTW001Entity> {
     private final FaceTW001Repository faceTW001Repository;
     private final FaceService faceService;
 

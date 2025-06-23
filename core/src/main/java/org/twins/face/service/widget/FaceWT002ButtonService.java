@@ -55,7 +55,7 @@ public class FaceWT002ButtonService extends FaceVariantsService<FaceWT002ButtonE
     public void loadButtons(Collection<FaceWT002Entity> srcList) {
         if (CollectionUtils.isEmpty(srcList))
             return;
-        Kit<FaceWT002Entity, UUID> needLoad = new Kit<>(FaceWT002Entity::getFaceId);
+        Kit<FaceWT002Entity, UUID> needLoad = new Kit<>(FaceWT002Entity::getId);
 
         for (var faceWT002Entity : srcList)
             if (faceWT002Entity.getButtons() == null) {

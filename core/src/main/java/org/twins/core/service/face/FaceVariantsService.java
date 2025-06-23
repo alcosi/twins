@@ -6,6 +6,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceVariant;
 import org.twins.core.exception.ErrorCodeTwins;
 
@@ -16,28 +17,29 @@ import java.util.function.ToIntFunction;
 @Service
 public abstract class FaceVariantsService<T extends FaceVariant> extends EntitySecureFindServiceImpl<T> {
     @Autowired
-    private FaceTwinPointerValidatorRuleService faceTwinPointerValidatorRuleService;
+    private FacePointerValidatorRuleService facePointerValidatorRuleService;
 
     @Autowired
     private FaceService faceService;
 
     public T findSingleVariant(UUID faceId) throws ServiceException {
+        FaceEntity face = faceService.findEntitySafe(faceId);
         List<T> variants = getVariants(faceId);
-        if (variants.size() == 1 && variants.getFirst().getFaceTwinPointerValidatorRuleId() == null) {
+        if (variants.size() == 1 && variants.getFirst().getFacePointerValidatorRuleId() == null) {
             return variants.getFirst();
         }
         T ret = null;
         for (var variant : variants) {
-            if (variant.getFaceTwinPointerValidatorRuleId() == null || faceTwinPointerValidatorRuleService.isValid(variant.getFaceTwinPointerValidatorRuleId())) {
+            if (variant.getFacePointerValidatorRuleId() == null || facePointerValidatorRuleService.isValid(variant.getFacePointerValidatorRuleId())) {
                 if (ret == null) {
                     ret = variant;
                 } else {
-                    throw new ServiceException(ErrorCodeTwins.FACE_CONFIG_IS_NOT_UNIQ);
+                    throw new ServiceException(ErrorCodeTwins.FACE_CONFIG_IS_NOT_UNIQ, "to many suitable configs variant were found for " + face.logNormal());
                 }
             }
         }
         if (ret == null) {
-            throw new ServiceException(ErrorCodeTwins.FACE_NO_CONFIG_IS_SUITABLE);
+            throw new ServiceException(ErrorCodeTwins.FACE_NO_CONFIG_IS_SUITABLE, "not suitable config variant was found for " + face.logNormal());
         }
         return ret;
     }
@@ -64,8 +66,8 @@ public abstract class FaceVariantsService<T extends FaceVariant> extends EntityS
     public List<T> filterVariants(Collection<T> variants) throws ServiceException {
         List<T> filteredVariants = new ArrayList<>();
         for (T variant : variants) {
-            if (variant.getFaceTwinPointerValidatorRuleId() == null ||
-                    faceTwinPointerValidatorRuleService.isValid(variant.getFaceTwinPointerValidatorRuleId())) {
+            if (variant.getFacePointerValidatorRuleId() == null ||
+                    facePointerValidatorRuleService.isValid(variant.getFacePointerValidatorRuleId())) {
                 filteredVariants.add(variant);
             }
         }

@@ -10,7 +10,6 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.service.face.FaceService;
 import org.twins.core.service.face.FaceVariantsService;
 import org.twins.face.dao.page.pg001.FacePG001Entity;
 import org.twins.face.dao.page.pg001.FacePG001WidgetEntity;
@@ -28,7 +27,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class FacePG001WidgetService extends FaceVariantsService<FacePG001WidgetEntity> {
     private final FacePG001WidgetRepository facePG001WidgetRepository;
-    private final FaceService faceService;
+    private final FacePG001Service facePG001Service;
 
     @Override
     public CrudRepository<FacePG001WidgetEntity, UUID> entityRepository() {
@@ -57,7 +56,7 @@ public class FacePG001WidgetService extends FaceVariantsService<FacePG001WidgetE
     public void loadWidgets(Collection<FacePG001Entity> srcList) {
         if (CollectionUtils.isEmpty(srcList))
             return;
-        Kit<FacePG001Entity, UUID> needLoad = new Kit<>(FacePG001Entity::getFaceId);
+        Kit<FacePG001Entity, UUID> needLoad = new Kit<>(FacePG001Entity::getId);
         for (var facePG001Entity : srcList)
             if (facePG001Entity.getWidgets() == null) {
                 facePG001Entity.setWidgets(new Kit<>(FacePG001WidgetEntity::getId));

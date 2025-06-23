@@ -19,6 +19,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.face.dao.tc.tc001.FaceTC001Entity;
 import org.twins.face.domain.tc.tc001.FaceTC001Twin;
 import org.twins.face.dto.rest.tc.tc001.FaceTC001ViewRsDTOv1;
 import org.twins.face.mappers.rest.tc.tc001.FaceTC001RestDTOMapper;
@@ -49,6 +50,7 @@ public class FaceTC001Controller extends ApiController {
             @RequestParam(required = false) UUID twinId) {
         FaceTC001ViewRsDTOv1 rs = new FaceTC001ViewRsDTOv1();
         try {
+            FaceTC001Entity faceTC001Entity = faceTC001Service.findSingleVariant(faceId, twinId);
             FaceTC001Twin faceTC001Twin = new FaceTC001Twin(faceTC001Service.findSingleVariant(faceId, twinId), twinId);
             rs
                     .setFaceTwinCreate(faceTC001RestDTOMapper.convert(faceTC001Twin, mapperContext))

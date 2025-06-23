@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.UuidUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 import org.twins.core.dao.twin.TwinEntity;
@@ -29,8 +30,12 @@ public class RequestFacePointers {
         if (this.currentTwinId != null) {
             throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "twin id already set");
         }
-        this.currentTwinId = currentTwinId;
-        this.currentTwin = twinService.findEntitySafe(currentTwinId);
+        if (currentTwinId == null) {
+            this.currentTwinId = UuidUtils.NULLIFY_MARKER;
+        } else {
+            this.currentTwinId = currentTwinId;
+            this.currentTwin = twinService.findEntitySafe(currentTwinId);
+        }
     }
 
     public boolean isAlreadyValidated(UUID faceTwinPointerValidatorRuleId) {

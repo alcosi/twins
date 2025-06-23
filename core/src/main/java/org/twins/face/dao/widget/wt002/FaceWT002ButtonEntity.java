@@ -5,7 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.face.FaceEntity;
-import org.twins.core.dao.face.FaceTwinPointerValidatorRuleEntity;
+import org.twins.core.dao.face.FacePointerValidatorRuleEntity;
 import org.twins.core.dao.face.FaceVariant;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
@@ -24,8 +24,8 @@ public class FaceWT002ButtonEntity implements EasyLoggable, FaceVariant {
     @Column(name = "face_wt002_id", nullable = false)
     private UUID faceWT002Id;
 
-    @Column(name = "face_twin_pointer_validator_rule_id")
-    private UUID faceTwinPointerValidatorRuleId;
+    @Column(name = "face_pointer_validator_rule_id")
+    private UUID facePointerValidatorRuleId;
 
     @Column(name = "key", nullable = false)
     private String key;
@@ -43,8 +43,8 @@ public class FaceWT002ButtonEntity implements EasyLoggable, FaceVariant {
     private UUID modalFaceId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "face_twin_pointer_validator_rule_id", insertable = false, updatable = false)
-    private FaceTwinPointerValidatorRuleEntity faceTwinPointerValidatorRule;
+    @JoinColumn(name = "face_pointer_validator_rule_id", insertable = false, updatable = false)
+    private FacePointerValidatorRuleEntity facePointerValidatorRule;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "label_i18n_id", insertable = false, updatable = false)
@@ -60,11 +60,6 @@ public class FaceWT002ButtonEntity implements EasyLoggable, FaceVariant {
 
     @Override
     public String easyLog(Level level) {
-        switch (level) {
-            case SHORT:
-                return "faceWT002Button[" + id + "]";
-            default:
-                return "faceWT002Button[id:" + id + ", componentId:" + face.getFaceComponentId() + "]";
-        }
+        return "faceWT002Button[" + id + "]";
     }
 }

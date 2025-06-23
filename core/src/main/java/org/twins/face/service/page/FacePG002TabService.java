@@ -62,7 +62,7 @@ public class FacePG002TabService extends FaceVariantsService<FacePG002TabEntity>
     public void loadTabs(Collection<FacePG002Entity> srcList) {
         if (CollectionUtils.isEmpty(srcList))
             return;
-        Kit<FacePG002Entity, UUID> needLoad = new Kit<>(FacePG002Entity::getFaceId);
+        Kit<FacePG002Entity, UUID> needLoad = new Kit<>(FacePG002Entity::getId);
         for (var facePG002Entity : srcList)
             if (facePG002Entity.getTabs() == null) {
                 facePG002Entity.setTabs(new Kit<>(FacePG002TabEntity::getId));
@@ -71,7 +71,7 @@ public class FacePG002TabService extends FaceVariantsService<FacePG002TabEntity>
         if (needLoad.isEmpty())
             return;
         KitGrouped<FacePG002TabEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                facePG002TabRepository.findByFaceIdIn(needLoad.getIdSet()), FacePG002TabEntity::getId, FacePG002TabEntity::getFacePG002Id);
+                facePG002TabRepository.findByFacePG002IdIn(needLoad.getIdSet()), FacePG002TabEntity::getId, FacePG002TabEntity::getFacePG002Id);
         for (var entry : loadedKit.getGroupedMap().entrySet()) {
             needLoad.get(entry.getKey()).getTabs().addAll(entry.getValue());
         }
