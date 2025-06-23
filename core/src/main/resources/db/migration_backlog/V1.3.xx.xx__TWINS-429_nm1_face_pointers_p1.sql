@@ -13,7 +13,7 @@ create table if not exists face_pointer
     name                varchar
 );
 
-INSERT INTO face_pointer (id, face_id, pointer_featurer_id, pointer_params, name) VALUES ('c6f4e857-b87e-4fe6-8614-459721826912', null, 3101, null, 'Current twin point')
+INSERT INTO face_pointer (id, face_id, pointer_featurer_id, pointer_params, name) VALUES ('00000000-0000-0000-0012-000000000001', null, 3101, null, 'Current twin pointer')
 on conflict do nothing;
 
 insert into featurer(id, featurer_type_id, class, name, description)
@@ -975,21 +975,3 @@ $$
         END IF;
     END;
 $$;
-
--- drop table if exists face_page_pg001;
--- drop table if exists face_page_pg001_widget;
--- drop table if exists face_page_pg002;
--- drop table if exists face_page_pg002_layout;
--- drop table if exists face_page_pg002_tab;
--- drop table if exists face_page_pg002_widget;
--- drop table if exists face_twidget_tw001;
--- drop table if exists face_twidget_tw002;
--- drop table if exists face_twidget_tw002_accordion_item;
--- drop table if exists face_twidget_tw004;
--- drop table if exists face_twidget_tw005;
--- drop table if exists face_twidget_tw005_button;
--- drop table if exists face_widget_wt001;
--- drop table if exists face_widget_wt001_column;
--- drop table if exists face_widget_wt002;
--- drop table if exists face_widget_wt002_button;
--- drop table if exists face_widget_wt003;
