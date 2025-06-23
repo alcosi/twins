@@ -1,5 +1,6 @@
 package org.twins.core.domain;
 
+import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import org.cambium.common.util.ChangesHelper;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
@@ -26,6 +27,10 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
     public TwinChangesCollector(boolean historyCollectorEnabled) {
         super();
         this.historyCollectorEnabled = historyCollectorEnabled;
+    }
+
+    public TwinChangesCollector(boolean detachNeeded, EntityManager em) {
+        super(detachNeeded, em);
     }
 
     public HistoryCollector getHistoryCollector(TwinEntity twinEntity) {

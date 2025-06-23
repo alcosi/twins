@@ -450,7 +450,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     }
 
     public DraftCollector draftTwinUpdate(DraftCollector draftCollector, TwinUpdate twinUpdate) throws ServiceException {
-        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector(true, entityManager);
         DraftTwinPersistEntity draftTwinPersistEntity = new DraftTwinPersistEntity().setCreateElseUpdate(false);
         ChangesRecorder<TwinEntity, DraftTwinPersistEntity> changesRecorder = new ChangesRecorder<>(
                 twinUpdate.getDbTwinEntity(),

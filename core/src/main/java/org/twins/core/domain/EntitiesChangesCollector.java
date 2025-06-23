@@ -1,18 +1,35 @@
 package org.twins.core.domain;
 
+import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import org.cambium.common.util.ChangesHelper;
 
 import java.util.*;
 
-@Getter
 public class EntitiesChangesCollector {
+
+    @Getter
     Map<Class<?>, Map<Object, ChangesHelper>> saveEntityMap = new HashMap<>();
-//    Map<Class<?>, Set<UUID>> deleteEntityIdMap = new HashMap<>(); id's is not enough for drafting
+    @Getter
     Map<Class<?>, Set<Object>> deleteEntityMap = new HashMap<>();
+    //    Map<Class<?>, Set<UUID>> deleteEntityIdMap = new HashMap<>(); id's is not enough for drafting
+    private Boolean detachNeeded;
+    private EntityManager entityManager;
+
+    public EntitiesChangesCollector() {}
+
+    public EntitiesChangesCollector(Boolean detachNeeded, EntityManager entityManager) {
+        this.detachNeeded = detachNeeded;
+        this.entityManager = entityManager;
+    }
 
     protected ChangesHelper detectChangesHelper(Object entity) {
+        if (detachNeeded) {
+            entityManager.detach(entity);
+        }
+
         Map<Object, ChangesHelper> entityClassChanges = saveEntityMap.computeIfAbsent(entity.getClass(), k -> new HashMap<>());
+
         return entityClassChanges.computeIfAbsent(entity, k -> new ChangesHelper());
     }
 
