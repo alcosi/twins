@@ -17,3 +17,4 @@ drop table if exists face_widget_wt001_column;
 drop table if exists face_widget_wt002;
 drop table if exists face_widget_wt002_button;
 drop table if exists face_widget_wt003;
+drop table if exists face_twidget;
