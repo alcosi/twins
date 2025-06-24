@@ -20,7 +20,7 @@ public interface DraftTwinFieldBooleanRepository extends CrudRepository<DraftTwi
     @Transactional
     @Modifying
     @Query(nativeQuery = true, value =
-            "delete from draft_twin_field_boolean dtfb" +
+            "delete from draft_twin_field_boolean dtfb " +
                     "using draft_twin_erase dte " +
                     "where dtfb.draft_id = :draftId and dtfb.draft_id = dte.draft_id " +
                     "and dtfb.twin_id = dte.twin_id and dte.draft_twin_erase_status_id is null " +

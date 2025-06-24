@@ -20,7 +20,7 @@ public interface DraftTwinFieldSimpleNonIndexedRepository extends CrudRepository
     @Transactional
     @Modifying
     @Query(nativeQuery = true, value =
-            "delete from draft_twin_field_simple_non_indexed dtfsni" +
+            "delete from draft_twin_field_simple_non_indexed dtfsni " +
                     "using draft_twin_erase dte " +
                     "where dtfsni.draft_id = :draftId and dtfsni.draft_id = dte.draft_id " +
                     "and dtfsni.twin_id = dte.twin_id and dte.draft_twin_erase_status_id is null " +
