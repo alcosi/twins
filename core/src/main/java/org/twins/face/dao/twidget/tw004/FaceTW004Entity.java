@@ -5,12 +5,10 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.annotations.FeaturerList;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.face.FaceEntity;
-import org.twins.core.dao.face.FaceTwidget;
-import org.twins.core.featurer.fieldfinder.FieldFinder;
+import org.twins.core.dao.face.FacePointedEntity;
+import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -18,15 +16,20 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
-@Table(name = "face_twidget_tw004")
-public class FaceTW004Entity implements EasyLoggable, FaceTwidget {
+@Table(name = "face_tw004")
+public class FaceTW004Entity implements EasyLoggable, FacePointedEntity {
     @Id
+    @Column(name = "id")
+    private UUID id;
+
     @Column(name = "face_id")
     private UUID faceId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
-    private FaceEntity face;
+    @Column(name = "twin_pointer_validator_rule_id")
+    private UUID twinPointerValidatorRuleId;
+
+    @Column(name = "target_twin_pointer_id")
+    private UUID targetTwinPointerId;
 
     @Column(name = "field_finder_featurer_id", insertable = false, updatable = false)
     private Integer fieldFinderFeaturerId;
@@ -41,6 +44,14 @@ public class FaceTW004Entity implements EasyLoggable, FaceTwidget {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "editable_field_filter_params", columnDefinition = "hstore")
     private HashMap<String, String> fieldFilterParams;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
+    private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
+    private FaceEntity face;
 
     @Override
     public String easyLog(Level level) {
