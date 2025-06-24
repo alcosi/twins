@@ -21,6 +21,7 @@ import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.DetachedTwinChangesCollector;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.draft.DraftCollector;
 import org.twins.core.domain.factory.*;
@@ -450,7 +451,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     }
 
     public DraftCollector draftTwinUpdate(DraftCollector draftCollector, TwinUpdate twinUpdate) throws ServiceException {
-        TwinChangesCollector twinChangesCollector = new TwinChangesCollector(true, entityManager);
+        DetachedTwinChangesCollector twinChangesCollector = new DetachedTwinChangesCollector(entityManager);
         DraftTwinPersistEntity draftTwinPersistEntity = new DraftTwinPersistEntity().setCreateElseUpdate(false);
         ChangesRecorder<TwinEntity, DraftTwinPersistEntity> changesRecorder = new ChangesRecorder<>(
                 twinUpdate.getDbTwinEntity(),
