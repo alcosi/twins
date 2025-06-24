@@ -99,7 +99,8 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
     public FieldDescriptorUser getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         UUID userFilterId = userFilterUUID.extract(properties);
         int listSize = userFilterService.countFilterResult(userFilterId);
-        FieldDescriptorUser fieldDescriptorUser = new FieldDescriptorUser();
+        FieldDescriptorUser fieldDescriptorUser = new FieldDescriptorUser()
+                .multiple(true);
         if (listSize > getLongListThreshold(properties))
             fieldDescriptorUser.userFilterId(userFilterId);
         else {
@@ -112,7 +113,7 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
     protected FieldValueUser deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         TwinEntity twinEntity = twinField.getTwin();
         twinService.loadTwinFields(twinEntity);
-        UUID roleId = FieldTyperSpaceRoleUsers.spaceRoleId.extract(properties);
+        UUID roleId = spaceRoleId.extract(properties);
         List<UserEntity> spaceRoleUserEntityList = spaceUserRoleService.findUserBySpaceIdAndRoleId(twinEntity.getId(), roleId);
         FieldValueUser ret = new FieldValueUser(twinField.getTwinClassField());
         if (spaceRoleUserEntityList != null)
