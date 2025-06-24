@@ -1,4 +1,4 @@
-package org.twins.core.dao.face;
+package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -14,21 +14,21 @@ import java.util.UUID;
 @Data
 @Entity
 @Accessors(chain = true)
-@Table(name = "face_pointer_validator_rule")
-public class FacePointerValidatorRuleEntity implements ContainsTwinValidatorSet, EasyLoggable {
+@Table(name = "twin_pointer_validator_rule")
+public class TwinPointerValidatorRuleEntity implements ContainsTwinValidatorSet, EasyLoggable {
     @Id
     @Column(name = "id")
     private UUID id;
 
-    @Column(name = "face_pointer")
-    private UUID faceTwinPointer;
+    @Column(name = "twin_pointer_id")
+    private UUID twinPointerId;
 
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "face_pointer", insertable = false, updatable = false)
-    private FacePointerEntity facePointer;
+    @JoinColumn(name = "twin_pointer_id", insertable = false, updatable = false)
+    private TwinPointerEntity twinPointer;
 
     @Transient
     private TwinValidatorSetEntity twinValidatorSet;
@@ -41,9 +41,9 @@ public class FacePointerValidatorRuleEntity implements ContainsTwinValidatorSet,
     public String easyLog(Level level) {
         switch (level) {
             case SHORT:
-                return "faceTwinPointerValidatorRule[" + id + "]";
+                return "twinPointerValidatorRule[" + id + "]";
             default:
-                return "faceTwinPointerValidatorRule[id:" + id + ", faceTwinPointer:" + faceTwinPointer + "]";
+                return "twinPointerValidatorRule[id:" + id + ", twinPointerId:" + twinPointerId + "]";
         }
     }
 }

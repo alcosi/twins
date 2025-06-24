@@ -19,16 +19,16 @@ public abstract class FacePointedService<T extends FacePointedEntity> extends Fa
     private FaceService faceService;
 
     @Autowired
-    private FacePointerService facePointerService;
+    private FaceTwinPointerService faceTwinPointerService;
 
     public PointedFace<T> findPointedFace(UUID faceId, UUID currentTwinId) throws ServiceException {
         T singleVariant = findSingleVariant(faceId, currentTwinId);
         TwinEntity currentTwin = faceService.getRequestFacePointers().getCurrentTwin();
         TwinEntity targetTwin = null;
-        if (singleVariant.getTargetTwinFacePointerId() == null) {
+        if (singleVariant.getTargetTwinPointerId() == null) {
             targetTwin = currentTwin;
         } else {
-            targetTwin = facePointerService.getPointer(singleVariant.getTargetTwinFacePointerId());
+            targetTwin = faceTwinPointerService.getPointer(singleVariant.getTargetTwinPointerId());
         }
         PointedFace<T> ret = new PointedFace<>();
         ret

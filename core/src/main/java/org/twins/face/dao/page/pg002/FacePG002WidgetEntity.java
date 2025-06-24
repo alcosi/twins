@@ -5,8 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.face.FaceEntity;
-import org.twins.core.dao.face.FacePointerValidatorRuleEntity;
-import org.twins.core.dao.face.FaceVariant;
+import org.twins.core.dao.face.FaceVariantEntity;
+import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 
 import java.util.UUID;
 
@@ -14,7 +14,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "face_pg002_widget")
-public class FacePG002WidgetEntity implements EasyLoggable, FaceVariant {
+public class FacePG002WidgetEntity implements EasyLoggable, FaceVariantEntity {
     @Id
     @Column(name = "id")
     private UUID id;
@@ -22,8 +22,8 @@ public class FacePG002WidgetEntity implements EasyLoggable, FaceVariant {
     @Column(name = "face_pg002_tab_id")
     private UUID facePagePG002TabId;
 
-    @Column(name = "face_pointer_validator_rule_id")
-    private UUID facePointerValidatorRuleId;
+    @Column(name = "twin_pointer_validator_rule_id")
+    private UUID twinPointerValidatorRuleId;
 
     @Column(name = "widget_face_id")
     private UUID widgetFaceId;
@@ -39,8 +39,8 @@ public class FacePG002WidgetEntity implements EasyLoggable, FaceVariant {
     private FaceEntity widgetFace;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "face_pointer_validator_rule_id", insertable = false, updatable = false)
-    private FacePointerValidatorRuleEntity facePointerValidatorRule;
+    @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
+    private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
     @Override
     public String easyLog(Level level) {

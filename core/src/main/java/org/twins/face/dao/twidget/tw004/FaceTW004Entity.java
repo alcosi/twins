@@ -8,7 +8,7 @@ import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FacePointedEntity;
-import org.twins.core.dao.face.FacePointerValidatorRuleEntity;
+import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -25,11 +25,11 @@ public class FaceTW004Entity implements EasyLoggable, FacePointedEntity {
     @Column(name = "face_id")
     private UUID faceId;
 
-    @Column(name = "face_pointer_validator_rule_id")
-    private UUID facePointerValidatorRuleId;
+    @Column(name = "twin_pointer_validator_rule_id")
+    private UUID twinPointerValidatorRuleId;
 
-    @Column(name = "target_twin_face_pointer_id")
-    private UUID targetTwinFacePointerId;
+    @Column(name = "target_twin_pointer_id")
+    private UUID targetTwinPointerId;
 
     @Column(name = "field_finder_featurer_id", insertable = false, updatable = false)
     private Integer fieldFinderFeaturerId;
@@ -46,8 +46,8 @@ public class FaceTW004Entity implements EasyLoggable, FacePointedEntity {
     private HashMap<String, String> fieldFilterParams;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "face_pointer_validator_rule_id", insertable = false, updatable = false)
-    private FacePointerValidatorRuleEntity facePointerValidatorRule;
+    @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
+    private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)

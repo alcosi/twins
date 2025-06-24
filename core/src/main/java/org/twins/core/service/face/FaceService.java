@@ -32,7 +32,7 @@ public class FaceService extends EntitySecureFindServiceImpl<FaceEntity> {
     private final AuthService authService;
     private final TwinService twinService;
     @Getter
-    private final RequestFacePointers requestFacePointers;
+    private final RequestTwinPointers requestFacePointers;
 
     @Override
     public CrudRepository<FaceEntity, UUID> entityRepository() {

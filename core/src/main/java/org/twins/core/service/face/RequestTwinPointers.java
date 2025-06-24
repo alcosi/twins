@@ -17,7 +17,7 @@ import java.util.UUID;
 @Component
 @RequestScope
 @RequiredArgsConstructor
-public class RequestFacePointers {
+public class RequestTwinPointers {
     private final TwinService twinService;
     @Getter
     private UUID currentTwinId;

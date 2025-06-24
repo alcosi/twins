@@ -11,7 +11,7 @@ import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.service.face.FacePointerService;
+import org.twins.core.service.face.FaceTwinPointerService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.resource.ResourceService;
 import org.twins.face.dao.tc.tc001.FaceTC001Entity;
@@ -28,7 +28,7 @@ public class FaceTC001RestDTOMapper extends RestSimpleDTOMapper<FaceTC001Entity,
     private final I18nService i18nService;
     private final ResourceService resourceService;
     private final FaceTC001Service faceTC001Service;
-    private final FacePointerService facePointerService;
+    private final FaceTwinPointerService faceTwinPointerService;
     private final FaceTC001FieldRestDTOMapper faceTC001FieldRestDTOMapper;
 
     @MapperModePointerBinding(modes = FaceTC001Modes.FaceTC0012TwinClassMode.class)
@@ -41,7 +41,7 @@ public class FaceTC001RestDTOMapper extends RestSimpleDTOMapper<FaceTC001Entity,
             case SHORT -> dst
                     .setKey(src.getKey());
             case DETAILED -> {
-                TwinEntity headTwin = facePointerService.getPointer(src.getHeadTwinFacePointerId());
+                TwinEntity headTwin = faceTwinPointerService.getPointer(src.getHeadTwinPointerId());
                 dst
                         .setKey(src.getKey())
                         .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "))
