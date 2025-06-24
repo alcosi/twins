@@ -742,7 +742,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             validateTransition(transitionContext);
             fillAttachmentsTransition(transitionContext);
         }
-        runFactories(transitionContextBatch);
         DraftCollector draftCollector = draftService.beginDraft();
         try {
             draftService.draftFactoryResult(draftCollector, transitionContextBatch.getFactoried().values());

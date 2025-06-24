@@ -9,9 +9,12 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.*;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
+import org.cambium.common.util.KeyUtils;
+import org.cambium.common.util.MapUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.featurer.dao.FeaturerRepository;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -38,6 +41,7 @@ import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
+import org.cambium.common.util.CacheUtils;
 
 import java.util.*;
 import java.util.function.Function;
@@ -247,7 +251,19 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         return twinClassFieldRepository.findByTwinClassIdAndFieldTyperIdInAndFieldTyperParamsLike(twinClassId, Set.of(FieldTyperLink.ID), "%" + linkId + "%");
     }
 
+    public Kit<TwinClassFieldEntity, UUID> getBaseFieldsKit() {
+        return new Kit<>(
+                twinClassFieldRepository.findBaseFieldByIdIn(Set.of(
+                        SystemEntityService.TWIN_CLASS_USER,
+                        SystemEntityService.TWIN_CLASS_BUSINESS_ACCOUNT,
+                        SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR)),
+                TwinClassFieldEntity::getId
+        );
+    }
+
     public TwinClassFieldEntity getTwinClassFieldOrNull(TwinClassEntity twinClass, UUID twinClassFieldId) {
+        if (SystemEntityService.isSystemField(twinClassFieldId))
+            return getBaseFieldsKit().get(twinClassFieldId);
         loadTwinClassFields(twinClass);
         return twinClass.getTwinClassFieldKit().get(twinClassFieldId);
     }
@@ -438,10 +454,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         if (changesHelper.isChanged(TwinClassFieldEntity.Fields.fieldTyperFeaturerId, dbTwinClassFieldEntity.getFieldTyperFeaturerId(), newFeaturerId)) {
             if (twinService.areFieldsOfTwinClassFieldExists(dbTwinClassFieldEntity))
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_UPDATE_RESTRICTED, "class field can not change fieldtyper featurer, because some twins with fields of given class are already exist");
-            FeaturerEntity newFieldTyperFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, FieldTyper.class);
+            featurerService.checkValid(newFeaturerId, newFeaturerParams, FieldTyper.class);
             dbTwinClassFieldEntity
-                    .setFieldTyperFeaturerId(newFieldTyperFeaturer.getId())
-                    .setFieldTyperFeaturer(newFieldTyperFeaturer);
+                    .setFieldTyperFeaturerId(newFeaturerId);
         }
         featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
         if (!MapUtils.areEqual(dbTwinClassFieldEntity.getFieldTyperParams(), newFeaturerParams)) {

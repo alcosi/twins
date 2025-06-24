@@ -8,6 +8,7 @@ import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.TwinBasicFields;
+import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
@@ -23,7 +24,7 @@ public class FactoryContext {
     private Collection<TwinEntity> inputTwinList;
     private Map<UUID, FieldValue> fields; // key: twinClassFieldId
     private Set<FactoryItem> factoryItemList = new HashSet<>();
-    private Map<UUID, FactoryItem> factoryItemWithTwinUpdates = new Hashtable<>(); // this will help to avoid conflict updates of same twin
+    private Map<UUID, FactoryItem> factoryItemsUniq = new Hashtable<>(); // this will help to avoid conflict updates of same twin
     private TwinBasicFields basics = null;
     private FactoryBranchId rootFactoryBranchId;
     private FactoryBranchId currentFactoryBranchId;
@@ -86,14 +87,17 @@ public class FactoryContext {
     }
 
     public void add(FactoryItem factoryItem) {
-        if (factoryItem.getOutput() instanceof TwinUpdate twinUpdate && factoryItemWithTwinUpdates.containsKey(twinUpdate.getTwinEntity().getId())) {
-            factoryItem = factoryItemWithTwinUpdates.get(twinUpdate.getTwinEntity().getId()); // we will use already existed factory item, but not new one
+        if (factoryItem.getOutput() instanceof TwinUpdate twinUpdate && factoryItemsUniq.containsKey(twinUpdate.getTwinEntity().getId())) {
+            factoryItem = factoryItemsUniq.get(twinUpdate.getTwinEntity().getId()); // we will use already existed factory item, but not new one
             log.warn("Repeated factory item load. Factory context already has {}. ContextFactoryItemList from new item will be skipped", factoryItem);
         } else {
             factoryItem.setFactoryBranchId(currentFactoryBranchId != null ? currentFactoryBranchId : rootFactoryBranchId);
             factoryItemList.add(factoryItem);
-            if (factoryItem.getOutput() instanceof TwinUpdate twinUpdate)
-                factoryItemWithTwinUpdates.put(twinUpdate.getTwinEntity().getId(), factoryItem);
+            if (factoryItem.getOutput() instanceof TwinUpdate twinUpdate) {
+                factoryItemsUniq.put(twinUpdate.getTwinEntity().getId(), factoryItem);
+            } else if (factoryItem.getOutput() instanceof TwinCreate twinCreate && factoryItem.getOutput().getTwinEntity().getId() != null) {
+                factoryItemsUniq.put(twinCreate.getTwinEntity().getId(), factoryItem);
+            }
         }
         if (!pipelineScopes.isEmpty()) { //if factoryItem was created by multiplier we should also add it to current pipeline limited scope
             FactoryBranchId currentPipeline = currentFactoryBranchId.getCurrentPipeline();
@@ -148,6 +152,6 @@ public class FactoryContext {
         if (twinId == null)
             return null;
         // we have to check only updated twins
-        return factoryItemWithTwinUpdates.get(twinId);
+        return factoryItemsUniq.get(twinId);
     }
 }
