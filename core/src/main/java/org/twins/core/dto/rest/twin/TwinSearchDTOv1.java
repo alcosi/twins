@@ -4,7 +4,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.twin.TwinTouchEntity;
+import org.twins.core.dto.rest.DataTimeRangeDTOv1;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -122,4 +124,6 @@ public class TwinSearchDTOv1 {
     )
     public Map<UUID, TwinFieldSearchDTOv1> fields;
 
+    @Schema(description = "created at")
+    public DataTimeRangeDTOv1 createdAt;
 }

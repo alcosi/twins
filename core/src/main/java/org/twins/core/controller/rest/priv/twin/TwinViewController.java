@@ -54,7 +54,7 @@ public class TwinViewController extends ApiController {
     @GetMapping(value = "/private/twin/{twinId}/v1")
 
     public ResponseEntity<?> twinViewV1(
-            @MapperContextBinding(roots = TwinRestDTOMapper.class, response = TwinRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapper.class, response = TwinRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {
@@ -78,7 +78,7 @@ public class TwinViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin/{twinId}/v2")
     public ResponseEntity<?> twinViewV2(
-            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinRsDTOv2.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         TwinRsDTOv2 rs = new TwinRsDTOv2();
         try {
@@ -102,7 +102,7 @@ public class TwinViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_by_alias/{twinAlias}/v1")
     public ResponseEntity<?> twinViewByAliasV1(
-            @MapperContextBinding(roots = TwinRestDTOMapper.class, response = TwinRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapper.class, response = TwinRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable String twinAlias) {
         TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {
@@ -126,7 +126,7 @@ public class TwinViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_by_alias/{twinAlias}/v2")
     public ResponseEntity<?> twinViewByAliasV2(
-            @MapperContextBinding(roots = TwinRestDTOMapper.class, response = TwinRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapper.class, response = TwinRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable String twinAlias) {
         TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {

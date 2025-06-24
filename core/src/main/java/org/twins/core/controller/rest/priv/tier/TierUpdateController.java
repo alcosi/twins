@@ -50,7 +50,7 @@ public class TierUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/tier/{tierId}/v1")
     public ResponseEntity<?> tierUpdateV1(
-            @MapperContextBinding(roots = TierRestDTOMapper.class, response = TierSaveRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TierRestDTOMapper.class, response = TierSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TIER_ID) @PathVariable UUID tierId,
             @RequestBody TierUpdateRqDTOv1 request) {
         TierSaveRsDTOv1 rs = new TierSaveRsDTOv1();

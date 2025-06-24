@@ -50,7 +50,7 @@ public class TwinClassCardListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class/{twinClassId}/card/list/v1")
     public ResponseEntity<?> twinClassCardListV1(
-            @MapperContextBinding(roots = CardRestDTOMapper.class, response = CardListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = CardRestDTOMapper.class, response = CardListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         CardListRsDTOv1 rs = new CardListRsDTOv1();
         try {

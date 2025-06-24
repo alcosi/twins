@@ -16,7 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.domain.face.TwidgetConfig;
+import org.twins.core.domain.face.PointedFace;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -54,7 +54,7 @@ public class FaceTW004Controller extends ApiController {
             @RequestParam UUID twinId) {
         FaceTW004ViewRsDTOv1 rs = new FaceTW004ViewRsDTOv1();
         try {
-            TwidgetConfig<FaceTW004Entity> config = faceTW004Service.getConfig(faceId, twinId);
+            PointedFace<FaceTW004Entity> config = faceTW004Service.findPointedFace(faceId, twinId);
             rs
                     .setWidget(faceTW004RestDTOMapper.convert(config, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
@@ -80,7 +80,7 @@ public class FaceTW004Controller extends ApiController {
             @RequestParam UUID twinId) {
         FaceTW004ViewRsDTOv2 rs = new FaceTW004ViewRsDTOv2();
         try {
-            TwidgetConfig<FaceTW004Entity> config = faceTW004Service.getConfig(faceId, twinId);
+            PointedFace<FaceTW004Entity> config = faceTW004Service.findPointedFace(faceId, twinId);
             rs
                     .setWidget(faceTW004RestDTOMapperV2.convert(config, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

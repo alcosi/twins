@@ -52,7 +52,7 @@ public class FeaturerSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/featurer/search/v1")
     public ResponseEntity<?> featurerSearchV1(
-            @MapperContextBinding(roots = FeaturerRestDTOMapper.class, response = FeaturerSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FeaturerRestDTOMapper.class, response = FeaturerSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams(sortField = FeaturerEntity.Fields.name) SimplePagination pagination,
             @RequestBody FeaturerSearchRqDTOv1 request) {
         FeaturerSearchRsDTOv1 rs = new FeaturerSearchRsDTOv1();

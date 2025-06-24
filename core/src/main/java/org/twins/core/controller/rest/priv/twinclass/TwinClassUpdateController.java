@@ -16,12 +16,14 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.twinclass.TwinClassUpdate;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.twinclass.*;
+import org.twins.core.dto.rest.twinclass.TwinClassRsDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassUpdateRqDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassUpdateRqDTOv2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
@@ -55,7 +57,7 @@ public class TwinClassUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin_class/{twinClassId}/v1")
     public ResponseEntity<?> twinClassUpdateV1(
-            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
             @RequestBody TwinClassUpdateRqDTOv1 request) {
         TwinClassRsDTOv1 rs = new TwinClassRsDTOv1();

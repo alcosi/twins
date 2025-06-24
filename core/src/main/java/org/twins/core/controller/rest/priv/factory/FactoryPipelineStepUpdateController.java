@@ -50,7 +50,7 @@ public class FactoryPipelineStepUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/factory/factory_pipeline_step/{factoryPipelineStepId}/v1")
     public ResponseEntity<?> factoryPipelineStepUpdateV1(
-            @MapperContextBinding(roots = FactoryPipelineStepRestDTOMapperV2.class, response = FactoryPipelineStepSaveRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryPipelineStepRestDTOMapperV2.class, response = FactoryPipelineStepSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_PIPELINE_STEP_ID) @PathVariable UUID factoryPipelineStepId,
             @RequestBody FactoryPipelineStepUpdateRqDTOv1 request) {
         FactoryPipelineStepSaveRsDTOv1 rs = new FactoryPipelineStepSaveRsDTOv1();

@@ -58,7 +58,7 @@ public class DomainBusinessAccountListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/domain/business_account/search/v1")
     public ResponseEntity<?> domainBusinessAccountSearchV1(
-            @MapperContextBinding(roots = DomainBusinessAccountDTOMapper.class, response = DomainBusinessAccountSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DomainBusinessAccountDTOMapper.class, response = DomainBusinessAccountSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody DomainBusinessAccountSearchRqDTOv1 request) {
         DomainBusinessAccountSearchRsDTOv1 rs = new DomainBusinessAccountSearchRsDTOv1();
@@ -85,7 +85,7 @@ public class DomainBusinessAccountListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/domain/business_account/{businessAccountId}/v1")
     public ResponseEntity<?> domainBusinessAccountViewV1(
-            @MapperContextBinding(roots = DomainBusinessAccountDTOMapper.class, response = DomainBusinessAccountViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DomainBusinessAccountDTOMapper.class, response = DomainBusinessAccountViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable("businessAccountId") UUID businessAccountId) {
         DomainBusinessAccountViewRsDTOv1 rs = new DomainBusinessAccountViewRsDTOv1();
         try {

@@ -50,7 +50,7 @@ public class FactoryEraserUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/factory/factory_eraser/{factoryEraserId}/v1")
     public ResponseEntity<?> factoryEraserUpdateV1(
-            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserSaveRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_ERASER_ID) @PathVariable UUID factoryEraserId,
             @RequestBody FactoryEraserUpdateRqDTOv1 request) {
         FactoryEraserSaveRsDTOv1 rs = new FactoryEraserSaveRsDTOv1();

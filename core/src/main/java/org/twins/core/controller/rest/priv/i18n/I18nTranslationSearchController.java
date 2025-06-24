@@ -56,7 +56,7 @@ public class I18nTranslationSearchController extends ApiController {
     })
     @PostMapping(value = "/private/i18n_translation/search/v1")
     public ResponseEntity<?> i18nTranslationSearchV1(
-            @MapperContextBinding(roots = I18nTranslationRestDTOMapper.class, response = I18nTranslationListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = I18nTranslationRestDTOMapper.class, response = I18nTranslationListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody I18nTranslationSearchDTOv1 request,
             @SimplePaginationParams SimplePagination pagination) {
         I18nTranslationListRsDTOv1 rs = new I18nTranslationListRsDTOv1();

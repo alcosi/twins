@@ -268,8 +268,17 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         if (CollectionUtils.isEmpty(dataListOptionSearch.getExternalIdLikeList())) {
             return options;
         }
-        List<DataListOptionEntity> externalOptions = dataListOptionSearchService.findDataListOptions(dataListOptionSearch);
-        options.addAll(externalOptions);
+        Kit<DataListOptionEntity, String> externalOptions = new Kit<>(dataListOptionSearchService.findDataListOptions(dataListOptionSearch), DataListOptionEntity::getExternalId);
+        if (externalOptions.size() != dataListOptionSearch.getExternalIdLikeList().size()) {
+            StringJoiner stringJoiner = new StringJoiner(",", "[", "]");
+            for (var externalId : dataListOptionSearch.getExternalIdLikeList()) {
+                if (!externalOptions.containsKey(externalId)) {
+                    stringJoiner.add(externalId);
+                }
+            }
+            throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, "unknown external ids" + stringJoiner);
+        }
+        options.addAll(externalOptions.getCollection());
         return options;
     }
     //todo move *options methods from  DataListService

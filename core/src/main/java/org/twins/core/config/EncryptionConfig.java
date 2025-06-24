@@ -17,7 +17,7 @@ public class EncryptionConfig {
     @Value("${twin.field.password.key}")
     private String secretKey;
 
-    @Value("${twin.field.password.algorithm}")
+    @Value("${twin.field.password.algorithm:PBEWithMD5AndDES}")
     private String cryptoAlgorithm = "PBEWithMD5AndDES";
 
     @Bean
@@ -43,7 +43,7 @@ public class EncryptionConfig {
         EncryptionConfig.featurerParamCryptPassword = key;
     }
 
-    @Value("${featurer.param.encrypt.algorithm}")
+    @Value("${featurer.param.encrypt.algorithm:PBEWithMD5AndDES}")
     public void setAlgorithm(String algorithm) {
         if (EncryptionConfig.featurerParamCryptAlgorithm != null) return;
         EncryptionConfig.featurerParamCryptAlgorithm = algorithm;

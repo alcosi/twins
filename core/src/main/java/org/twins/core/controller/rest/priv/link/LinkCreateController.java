@@ -53,7 +53,7 @@ public class LinkCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/link/v1")
     public ResponseEntity<?> linkCreateV1(
-            @MapperContextBinding(roots = {LinkForwardRestDTOV3Mapper.class}, response = LinkCreateRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = {LinkForwardRestDTOV3Mapper.class}, response = LinkCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody LinkCreateDTOv1 request) {
         LinkCreateRsDTOv1 rs = new LinkCreateRsDTOv1();
         try {

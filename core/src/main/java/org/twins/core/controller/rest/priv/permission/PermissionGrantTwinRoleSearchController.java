@@ -58,7 +58,7 @@ public class PermissionGrantTwinRoleSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/twin_role/search/v1")
     public ResponseEntity<?> permissionGrantTwinRoleSearchV1(
-            @MapperContextBinding(roots = PermissionGrantTwinRoleRestDTOMapperV2.class, response = PermissionGrantTwinRoleSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantTwinRoleRestDTOMapperV2.class, response = PermissionGrantTwinRoleSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody PermissionGrantTwinRoleSearchRqDTOv1 request) {
         PermissionGrantTwinRoleSearchRsDTOv1 rs = new PermissionGrantTwinRoleSearchRsDTOv1();
@@ -86,7 +86,7 @@ public class PermissionGrantTwinRoleSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/permission_grant/twin_role/{grantId}/v1")
     public ResponseEntity<?> permissionGrantTwinRoleViewV1(
-            @MapperContextBinding(roots = PermissionGrantTwinRoleRestDTOMapperV2.class, response = PermissionGrantTwinRoleViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantTwinRoleRestDTOMapperV2.class, response = PermissionGrantTwinRoleViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GRANT_TWIN_ROLE_ID) @PathVariable("grantId") UUID grantId) {
         PermissionGrantTwinRoleViewRsDTOv1 rs = new PermissionGrantTwinRoleViewRsDTOv1();
         try {
