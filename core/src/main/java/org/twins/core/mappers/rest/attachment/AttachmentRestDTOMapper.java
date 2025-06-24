@@ -78,10 +78,10 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
                     .setSize(src.getSize())
                     .setTitle(src.getTitle())
                     .setExternalId(src.getExternalId())
-                    .setStorageLink(src.getStorageFileKey());
+                    .setStorageLink(attachmentService.getAttachmentUri(src));
             case SHORT -> dst
                     .setId(src.getId())
-                    .setStorageLink(src.getStorageFileKey());
+                    .setStorageLink(attachmentService.getAttachmentUri(src));
         }
         if (mapperContext.hasModeButNot(CommentMode.Attachment2CommentModeMode.HIDE)) {
             dst.setCommentId(src.getTwinCommentId());
