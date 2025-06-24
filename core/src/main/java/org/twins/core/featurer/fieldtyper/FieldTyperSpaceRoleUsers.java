@@ -25,7 +25,7 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchSpaceRoleUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorSpaceRoleUsers;
+import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUser;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.space.SpaceUserRoleService;
@@ -40,7 +40,7 @@ import java.util.*;
 @Featurer(id = FeaturerTwins.ID_1332,
         name = "Space role users",
         description = "")
-public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorSpaceRoleUsers, FieldValueUser, SpaceRoleUserEntity, TwinFieldSearchSpaceRoleUser> implements LongList {
+public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, FieldValueUser, SpaceRoleUserEntity, TwinFieldSearchSpaceRoleUser> implements LongList {
     @Autowired
     @Lazy
     UserFilterService userFilterService;
@@ -67,7 +67,7 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorSpaceRol
         }
         UUID userFilterId = userFilterUUID.extract(properties); //todo not implemented yet
         ApiUser apiUser = authService.getApiUser();
-        UUID roleId = FieldTyperSpaceRoleUsers.spaceRoleId.extract(properties);
+        UUID roleId = spaceRoleId.extract(properties);
 
         ImmutablePair<Set<UUID>, Set<UUID>> spaceRoleUserSets = spaceUserRoleService
                 .calculateSpaceRoleUserChanges(twin.getId(), roleId, value.getUsers().stream().map(UserEntity::getId).toList());
@@ -96,16 +96,16 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorSpaceRol
     }
 
     @Override
-    public FieldDescriptorSpaceRoleUsers getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
+    public FieldDescriptorUser getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         UUID userFilterId = userFilterUUID.extract(properties);
         int listSize = userFilterService.countFilterResult(userFilterId);
-        FieldDescriptorSpaceRoleUsers fieldDescriptorSpaceRoleUsers = new FieldDescriptorSpaceRoleUsers();
+        FieldDescriptorUser fieldDescriptorUser = new FieldDescriptorUser();
         if (listSize > getLongListThreshold(properties))
-            fieldDescriptorSpaceRoleUsers.userFilterId(userFilterId);
+            fieldDescriptorUser.userFilterId(userFilterId);
         else {
-            fieldDescriptorSpaceRoleUsers.validUsers(userFilterService.findUsers(userFilterId));
+            fieldDescriptorUser.validUsers(userFilterService.findUsers(userFilterId));
         }
-        return fieldDescriptorSpaceRoleUsers;
+        return fieldDescriptorUser;
     }
 
     @Override
