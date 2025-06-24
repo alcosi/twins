@@ -476,7 +476,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinCreate.isCheckCreatePermission())
             checkCreatePermission(twinEntity, authService.getApiUser());
         createTwinEntity(twinEntity, twinChangesCollector);
-        runFactory(twinCreate);
+        runInitFactory(twinCreate);
         saveTwinFields(twinEntity, twinCreate.getFields(), twinChangesCollector);
         if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
             attachmentService.checkAndSetAttachmentTwin(twinCreate.getAttachmentEntityList(), twinEntity);
@@ -491,17 +491,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
-    private void runFactory(TwinCreate twinCreate) throws ServiceException {
+    private void runInitFactory(TwinCreate twinCreate) throws ServiceException {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
         if (twinEntity.getTwinflow().getInitialTwinFactoryId() == null)
             return;
-        convertTwinFields(twinEntity, twinCreate.getFields(), new TwinChangesCollector());
         UUID initialTwinFactoryId = twinEntity.getTwinflow().getInitialTwinFactoryId();
         FactoryContext factoryContext = new FactoryContext(FactoryLauncher.twinCreate, FactoryBranchId.root(initialTwinFactoryId));
         factoryContext.add(new FactoryItem().setOutput(twinCreate));
         FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(initialTwinFactoryId, factoryContext);
         if (result.getCreates().size() > 1 || result.getUpdates().isEmpty() || result.getDeletes().isEmpty())
-            log.warn("During factory[{}] operation, some extra twins where modified (create, update, delete) but won't be saved", initialTwinFactoryId);
+            log.warn("During twin create init factory[{}] operation, some extra twins where modified, but they won't be saved. " +
+                    "Only current twin modification will make sense", initialTwinFactoryId);
     }
 
     private void setHeadSafe(TwinEntity twinEntity) throws ServiceException {
@@ -677,8 +677,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (TwinClassFieldEntity twinClassFieldEntity : twinEntity.getTwinClass().getTwinClassFieldKit().getCollection()) {
             serializeFieldValue(twinEntity, fields, twinChangesCollector, twinClassFieldEntity);
         }
-        for (TwinClassFieldEntity twinClassFieldEntity : twinClassFieldService.getBaseFieldsKit().getCollection()) {
-            serializeFieldValue(twinEntity, fields, twinChangesCollector, twinClassFieldEntity);
+        for (var twinClassFieldId : fields.keySet()) {
+            if (SystemEntityService.isSystemField(twinClassFieldId)) {
+                TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.getBaseField(twinClassFieldId);
+                serializeFieldValue(twinEntity, fields, twinChangesCollector, twinClassFieldEntity);
+            }
         }
         return twinChangesCollector;
     }

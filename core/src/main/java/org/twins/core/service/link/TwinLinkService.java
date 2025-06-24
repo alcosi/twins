@@ -406,4 +406,11 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             deleteTwinLinks(twinEntity.getId(), twinLinkCUD.getDeleteList(), twinChangesCollector);
         }
     }
+
+    public TwinEntity getDstTwinSafe(TwinLinkEntity twinLinkEntity) throws ServiceException {
+        if (twinLinkEntity.getDstTwin() == null && twinLinkEntity.getDstTwinId() != null) {
+            twinLinkEntity.setDstTwin(twinService.findEntity(twinLinkEntity.getDstTwinId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows));
+        }
+        return twinLinkEntity.getDstTwin();
+    }
 }

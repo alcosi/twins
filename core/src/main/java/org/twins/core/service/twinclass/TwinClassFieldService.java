@@ -9,11 +9,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.ChangesHelperMulti;
-import org.cambium.common.util.KeyUtils;
-import org.cambium.common.util.MapUtils;
-import org.cambium.common.util.UuidUtils;
+import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerRepository;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -41,7 +37,6 @@ import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
-import org.cambium.common.util.CacheUtils;
 
 import java.util.*;
 import java.util.function.Function;
@@ -253,17 +248,23 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     public Kit<TwinClassFieldEntity, UUID> getBaseFieldsKit() {
         return new Kit<>(
-                twinClassFieldRepository.findBaseFieldByIdIn(Set.of(
-                        SystemEntityService.TWIN_CLASS_USER,
-                        SystemEntityService.TWIN_CLASS_BUSINESS_ACCOUNT,
-                        SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR)),
+                twinClassFieldRepository.findBaseFields(),
                 TwinClassFieldEntity::getId
         );
     }
 
+    public TwinClassFieldEntity getBaseField(UUID twinClassFieldId) {
+        for (var baseField : twinClassFieldRepository.findBaseFields()) {
+            if (baseField.getId().equals(twinClassFieldId)) {
+                return baseField;
+            }
+        }
+        return null;
+    }
+
     public TwinClassFieldEntity getTwinClassFieldOrNull(TwinClassEntity twinClass, UUID twinClassFieldId) {
         if (SystemEntityService.isSystemField(twinClassFieldId))
-            return getBaseFieldsKit().get(twinClassFieldId);
+            return getBaseField(twinClassFieldId);
         loadTwinClassFields(twinClass);
         return twinClass.getTwinClassFieldKit().get(twinClassFieldId);
     }
