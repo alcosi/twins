@@ -2,7 +2,6 @@ package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.StringUtils;
@@ -32,7 +31,10 @@ import org.twins.core.service.space.SpaceUserRoleService;
 import org.twins.core.service.user.UserFilterService;
 import org.twins.core.service.user.UserService;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -65,22 +67,21 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
         if (!value.getTwinClassField().getTwinClass().getPermissionSchemaSpace()) {
             return;
         }
+        //todo add history support
         UUID userFilterId = userFilterUUID.extract(properties); //todo not implemented yet
         ApiUser apiUser = authService.getApiUser();
         UUID roleId = spaceRoleId.extract(properties);
 
-        ImmutablePair<Set<UUID>, Set<UUID>> spaceRoleUserSets = spaceUserRoleService
+        SpaceUserRoleService.SpaceRoleUserChanges spaceRoleUserChanges = spaceUserRoleService
                 .calculateSpaceRoleUserChanges(twin.getId(), roleId, value.getUsers().stream().map(UserEntity::getId).toList());
-        Set<UUID> collectionToAdd = spaceRoleUserSets.getLeft();
-        Set<UUID> collectionToDelete = spaceRoleUserSets.getRight();
 
-        if (CollectionUtils.isNotEmpty(collectionToAdd)) {
-            List<UUID> invalidUsers = userService.getUsersOutOfDomainAndBusinessAccount(collectionToAdd, apiUser.getBusinessAccountId(), apiUser.getDomainId());
+        if (CollectionUtils.isNotEmpty(spaceRoleUserChanges.getAddUsers())) {
+            List<UUID> invalidUsers = userService.getUsersOutOfDomainAndBusinessAccount(spaceRoleUserChanges.getAddUsers(), apiUser.getBusinessAccountId(), apiUser.getDomainId());
             if (CollectionUtils.isNotEmpty(invalidUsers)) {
                 throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "Users[" + StringUtils.join(invalidUsers, ",") + "] can not be added because they are out of current BA or Domain");
             }
             List<SpaceRoleUserEntity> listToAdd = new ArrayList<>();
-            for (UUID userId : collectionToAdd) {
+            for (UUID userId : spaceRoleUserChanges.getAddUsers()) {
                 listToAdd.add(new SpaceRoleUserEntity()
                         .setSpaceRoleId(roleId)
                         .setUserId(userId)
@@ -90,8 +91,8 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
             }
             twinChangesCollector.addAll(listToAdd);
         }
-        if (CollectionUtils.isNotEmpty(collectionToDelete)) {
-            spaceUserRoleService.deleteUsersFromSpaceRole(twin.getId(), roleId, collectionToDelete);
+        if (CollectionUtils.isNotEmpty(spaceRoleUserChanges.getDeleteUsers())) {
+            spaceUserRoleService.deleteUsersFromSpaceRole(twin.getId(), roleId, spaceRoleUserChanges.getDeleteUsers());
         }
     }
 
@@ -116,10 +117,9 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
         UUID roleId = spaceRoleId.extract(properties);
         List<UserEntity> spaceRoleUserEntityList = spaceUserRoleService.findUserBySpaceIdAndRoleId(twinEntity.getId(), roleId);
         FieldValueUser ret = new FieldValueUser(twinField.getTwinClassField());
-        if (spaceRoleUserEntityList != null)
-            for (UserEntity user : spaceRoleUserEntityList) {
-                ret.add(user);
-            }
+        if (spaceRoleUserEntityList != null) {
+            ret.getUsers().addAll(spaceRoleUserEntityList);
+        }
         return ret;
     }
 
