@@ -248,13 +248,13 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     public Kit<TwinClassFieldEntity, UUID> getBaseFieldsKit() {
         return new Kit<>(
-                twinClassFieldRepository.findBaseFields(),
+                twinClassFieldRepository.findBaseFields(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR),
                 TwinClassFieldEntity::getId
         );
     }
 
     public TwinClassFieldEntity getBaseField(UUID twinClassFieldId) {
-        for (var baseField : twinClassFieldRepository.findBaseFields()) {
+        for (var baseField : twinClassFieldRepository.findBaseFields(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR)) {
             if (baseField.getId().equals(twinClassFieldId)) {
                 return baseField;
             }

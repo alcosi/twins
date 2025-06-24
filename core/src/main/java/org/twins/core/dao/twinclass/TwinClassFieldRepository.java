@@ -19,8 +19,8 @@ public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldE
 
     String CACHE_SYSTEM_TWIN_CLASS_FIELDS = "TwinClassFieldRepository.findBaseFieldByIdIn";
     @Cacheable(value = CACHE_SYSTEM_TWIN_CLASS_FIELDS)
-    @Query("select f from TwinClassFieldEntity f where f.twinClassId = '00000000-0000-0000-0001-000000000004'")
-    List<TwinClassFieldEntity> findBaseFields();
+    @Query("select f from TwinClassFieldEntity f where f.twinClassId = :twinClassId")
+    List<TwinClassFieldEntity> findBaseFields(@Param("twinClassId") UUID twinClassId);
 
     @Query(value = "select field from TwinClassFieldEntity field where field.twinClassId = :twinClassId and field.fieldTyperFeaturerId in (:fieldTyperIds) and cast(field.fieldTyperParams as string) like :params")
     TwinClassFieldEntity findByTwinClassIdAndFieldTyperIdInAndFieldTyperParamsLike(@Param("twinClassId") UUID twinClassId, @Param("fieldTyperIds") Collection<Integer> fieldTyperIds, @Param("params") String params);
