@@ -12,7 +12,10 @@ import java.util.UUID;
 @Schema(name = TwinFieldSearchUserDTOv1.KEY)
 public class TwinFieldSearchUserDTOv1 implements TwinFieldSearchDTOv1 {
     public static final String KEY = "TwinFieldSearchUserV1";
-    public String type = KEY;
+    @Override
+    public String type() {
+        return KEY;
+    }
 
     @Schema(description = "User id list")
     public Set<UUID> idList;

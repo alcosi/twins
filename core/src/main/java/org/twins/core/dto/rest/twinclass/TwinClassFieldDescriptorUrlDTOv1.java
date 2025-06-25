@@ -9,5 +9,8 @@ import lombok.experimental.Accessors;
 @Schema(name =  "TwinClassFieldDescriptorUrlV1")
 public class TwinClassFieldDescriptorUrlDTOv1 implements TwinClassFieldDescriptorDTO {
     public static final String KEY = "urlV1";
-    public String fieldType = KEY;
+    @Override
+    public String fieldType() {
+        return KEY;
+    }
 }
