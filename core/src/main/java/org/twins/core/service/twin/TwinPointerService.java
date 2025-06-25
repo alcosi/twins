@@ -13,8 +13,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twin.TwinPointerRepository;
 import org.twins.core.featurer.pointer.Pointer;
-import org.twins.core.service.face.FaceService;
-import org.twins.core.service.face.RequestTwinPointers;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.UUID;
@@ -26,9 +24,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class TwinPointerService extends EntitySecureFindServiceImpl<TwinPointerEntity> {
     private final TwinPointerRepository twinPointerRepository;
-    private final RequestTwinPointers requestFacePointers;
     private final FeaturerService featurerService;
-    private final FaceService faceService;
     private final TwinClassService twinClassService;
 
     @Override

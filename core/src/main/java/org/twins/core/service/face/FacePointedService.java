@@ -28,6 +28,7 @@ public abstract class FacePointedService<T extends FacePointedEntity> extends Fa
         if (singleVariant.getTargetTwinPointerId() == null) {
             targetTwin = currentTwin;
         } else {
+            log.info("target twin pointer[{}] is configured for face[{}]", singleVariant.getTargetTwinPointerId(), faceId);
             targetTwin = faceTwinPointerService.getPointer(singleVariant.getTargetTwinPointerId());
         }
         PointedFace<T> ret = new PointedFace<>();
