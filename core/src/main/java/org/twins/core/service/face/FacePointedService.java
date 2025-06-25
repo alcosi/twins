@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.face.FacePointedEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.face.PointedFace;
+import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.UUID;
 
@@ -30,6 +31,9 @@ public abstract class FacePointedService<T extends FacePointedEntity> extends Fa
         } else {
             log.info("target twin pointer[{}] is configured for face[{}]", singleVariant.getTargetTwinPointerId(), faceId);
             targetTwin = faceTwinPointerService.getPointer(singleVariant.getTargetTwinPointerId());
+        }
+        if (targetTwin == null) {
+            throw new ServiceException(ErrorCodeTwins.POINTER_ON_NULL, "can not detect target twin");
         }
         PointedFace<T> ret = new PointedFace<>();
         ret
