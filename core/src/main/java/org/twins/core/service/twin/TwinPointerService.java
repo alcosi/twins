@@ -39,7 +39,7 @@ public class TwinPointerService extends EntitySecureFindServiceImpl<TwinPointerE
 
     @Override
     public boolean isEntityReadDenied(TwinPointerEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return entity.getTwinClassId() != null && !twinClassService.isEntityReadDenied(entity.getTwinClass());
+        return entity.getTwinClassId() != null && twinClassService.isEntityReadDenied(entity.getTwinClass());
     }
 
     @Override
