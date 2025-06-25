@@ -3,7 +3,6 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.DTOExamples;
 
 import java.time.LocalDateTime;
 
@@ -12,7 +11,10 @@ import java.time.LocalDateTime;
 @Schema(name =  "TwinClassFieldDescriptorDateScrollV1")
 public class TwinClassFieldDescriptorDateScrollDTOv1 implements TwinClassFieldDescriptorDTO {
     public static final String KEY = "dateScrollV1";
-    public String fieldType = KEY;
+    @Override
+    public String fieldType() {
+        return KEY;
+    }
 
     @Schema(description = "Date pattern (default: yyyy-MM-ddTHH:mm:ss)")
     public String pattern;
