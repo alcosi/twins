@@ -22,7 +22,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_1610,
+@Featurer(id = FeaturerTwins.ID_1612,
         name = "Current user is member of space",
         description = "")
 @Slf4j
