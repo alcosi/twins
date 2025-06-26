@@ -747,7 +747,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     private void runFactoryOnUpdate(TwinUpdate twinUpdate) throws ServiceException {
-        TwinEntity twinEntity = twinUpdate.getTwinEntity();
+        TwinEntity twinEntity = twinUpdate.getDbTwinEntity();
         twinflowService.loadTwinflow(twinEntity);
         if (twinEntity.getTwinflow().getOnUpdateTwinFactoryId() == null)
             return;
