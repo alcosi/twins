@@ -747,7 +747,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private void runFactoryDuringUpdate(TwinUpdate twinUpdate) throws ServiceException {
         TwinEntity twinEntity = twinUpdate.getTwinEntity();
         twinflowService.loadTwinflow(twinEntity);
-        if (twinEntity.getTwinflow().getOnCreateTwinFactoryId() == null)
+        if (twinEntity.getTwinflow().getOnUpdateTwinFactoryId() == null)
             return;
         UUID onUpdateTwinFactoryId = twinEntity.getTwinflow().getOnUpdateTwinFactoryId();
         FactoryContext factoryContext = new FactoryContext(FactoryLauncher.twinUpdate, FactoryBranchId.root(onUpdateTwinFactoryId));
