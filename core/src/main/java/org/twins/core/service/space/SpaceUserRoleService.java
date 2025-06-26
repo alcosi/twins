@@ -1,6 +1,8 @@
 package org.twins.core.service.space;
 
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -132,19 +134,29 @@ public class SpaceUserRoleService {
 
     @Transactional
     public void overrideSpaceRoleUsers(UUID spaceId, UUID roleId, List<UUID> overrideList) throws ServiceException {
+        SpaceRoleUserChanges spaceRoleUserChanges = calculateSpaceRoleUserChanges(spaceId, roleId, overrideList);
+        applySpaceRoleUserChanges(spaceId, roleId, spaceRoleUserChanges);
+    }
+
+    public SpaceRoleUserChanges calculateSpaceRoleUserChanges(UUID spaceId, UUID roleId, List<UUID> overrideList) {
         // if overrideList is null or empty we need to remove all users from space role
         Set<UUID> overrideSet = overrideList != null ? new HashSet<>(overrideList) : new HashSet<>();
         Set<UUID> usersToDelete = new HashSet<>();
         Kit<SpaceRoleUserEntity, UUID> existingUserKit = getExistingUsers(spaceId, roleId);
 
         for (UUID existingUserId : existingUserKit.getIdSet()) {
-            if (overrideSet.contains(existingUserId))
-                overrideSet.remove(existingUserId); // this user is already in space so we can skip
-            else
+            if (overrideSet.contains(existingUserId)) {
+                overrideSet.remove(existingUserId); // this user is already in space, so it should not be added one more time
+            } else {
                 usersToDelete.add(existingUserId);
+            }
         }
-        addUsersToSpaceRole(spaceId, roleId, overrideSet);
-        deleteUsersFromSpaceRole(spaceId, roleId, usersToDelete);
+        return new SpaceRoleUserChanges(overrideSet, usersToDelete);
+    }
+
+    public void applySpaceRoleUserChanges(UUID spaceId, UUID roleId, SpaceRoleUserChanges spaceRoleUserChanges) throws ServiceException {
+        addUsersToSpaceRole(spaceId, roleId, spaceRoleUserChanges.getAddUsers());
+        deleteUsersFromSpaceRole(spaceId, roleId, spaceRoleUserChanges.getDeleteUsers());
     }
 
     private void addUsersToSpaceRole(UUID spaceId, UUID roleId, Set<UUID> userList) throws ServiceException {
@@ -168,12 +180,19 @@ public class SpaceUserRoleService {
             entitySmartService.saveAllAndLog(listToAdd, spaceRoleUserRepository);
     }
 
-    private void deleteUsersFromSpaceRole(UUID spaceId, UUID roleId, Set<UUID> deleteUserList) {
+    public void deleteUsersFromSpaceRole(UUID spaceId, UUID roleId, Set<UUID> deleteUserList) {
         if (CollectionUtils.isEmpty(deleteUserList))
             return;
         spaceRoleUserRepository.deleteBySpaceIdAndSpaceRoleIdAndUserIdIn(spaceId, roleId, deleteUserList);
         for (UUID userId : deleteUserList) {
             log.info("user[{}] perhaps was deleted by space[{}}] and role[{}}]", userId, spaceId, roleId);
         }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class SpaceRoleUserChanges {
+        Set<UUID> addUsers;
+        Set<UUID> deleteUsers;
     }
 }

@@ -11,7 +11,10 @@ import java.util.UUID;
 @Schema(name =  "TwinClassFieldDescriptorUserLongV1")
 public class TwinClassFieldDescriptorUserLongDTOv1 implements TwinClassFieldDescriptorDTO {
     public static final String KEY = "selectUserLongV1";
-    public String fieldType = KEY;
+    @Override
+    public String fieldType() {
+        return KEY;
+    }
 
     @Schema(description = "Multiple choice support", example = "true")
     public Boolean multiple;

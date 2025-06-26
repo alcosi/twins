@@ -51,7 +51,7 @@ public class PermissionUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission/{permissionId}/v1")
     public ResponseEntity<?> permissionUpdateV1(
-            @MapperContextBinding(roots = PermissionRestDTOMapper.class, response = PermissionUpdateRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionRestDTOMapper.class, response = PermissionUpdateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_ID) @PathVariable UUID permissionId,
             @RequestBody PermissionUpdateRqDTOv1 request) {
         PermissionUpdateRsDTOv1 rs = new PermissionUpdateRsDTOv1();

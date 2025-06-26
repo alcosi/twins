@@ -48,7 +48,7 @@ public class UserGroupMemberManageController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/user/{userId}/user_group/manage/v1")
     public ResponseEntity<?> userGroupMemberManageV1(
-            @MapperContextBinding(roots = UserGroupRestDTOMapper.class, response = UserGroupListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = UserGroupRestDTOMapper.class, response = UserGroupListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId,
             @RequestBody UserGroupMemberManageRqDTOv1 request) {
         UserGroupListRsDTOv1 rs = new UserGroupListRsDTOv1();

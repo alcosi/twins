@@ -48,7 +48,7 @@ public class DraftCommitController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/draft/{draftId}/commit/v1")
     public ResponseEntity<?> draftCommitV1(
-            @MapperContextBinding(roots = DraftRestDTOMapper.class, response = DraftRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DraftRestDTOMapper.class, response = DraftRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DRAFT_ID) @PathVariable UUID draftId) {
         DraftRsDTOv1 rs = new DraftRsDTOv1();
         try {

@@ -57,7 +57,7 @@ public class FactoryBranchSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory_branch/search/v1")
     public ResponseEntity<?> factoryBranchSearchV1(
-            @MapperContextBinding(roots = FactoryBranchRestDTOMapperV2.class, response = FactoryBranchSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryBranchRestDTOMapperV2.class, response = FactoryBranchSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody FactoryBranchSearchRqDTOv1 request) {
         FactoryBranchSearchRsDTOv1 rs = new FactoryBranchSearchRsDTOv1();
@@ -85,7 +85,7 @@ public class FactoryBranchSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/factory_branch/{factoryBranchId}/v1")
     public ResponseEntity<?> factoryBranchViewV1(
-            @MapperContextBinding(roots = FactoryBranchRestDTOMapperV2.class, response = FactoryBranchViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryBranchRestDTOMapperV2.class, response = FactoryBranchViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_BRANCH_ID) @PathVariable("factoryBranchId")UUID factoryBranchId) {
         FactoryBranchViewRsDTOv1 rs = new FactoryBranchViewRsDTOv1();
         try {

@@ -6,15 +6,16 @@ import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
 
-import static org.twins.core.dto.rest.twin.TwinFieldSearchDateDTOv1.KEY;
-
 @Data
 @Accessors(fluent = true)
 @Schema(name = TwinFieldSearchDateDTOv1.KEY, description = "(less & more connected with AND) and after connected to equals with OR and to emty with OR")
 public class TwinFieldSearchDateDTOv1 implements TwinFieldSearchDTOv1 {
 
     public static final String KEY = "TwinFieldSearchDateV1";
-    public String type = KEY;
+    @Override
+    public String type() {
+        return KEY;
+    }
 
     @Schema(description = "Twin field date less then given date")
     public LocalDateTime lessThen;

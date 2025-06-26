@@ -55,7 +55,7 @@ public class UserSearchController extends ApiController {
     })
     @PostMapping(value = "/private/user/search/v1")
     public ResponseEntity<?> UserSearchV1(
-            @MapperContextBinding(roots = UserRestDTOMapper.class, response = UserSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = UserRestDTOMapper.class, response = UserSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody UserSearchRqDTOv1 request) {
         UserSearchRsDTOv1 rs = new UserSearchRsDTOv1();

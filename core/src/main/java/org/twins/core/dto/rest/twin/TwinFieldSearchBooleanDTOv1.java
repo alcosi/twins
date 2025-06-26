@@ -10,7 +10,10 @@ import lombok.experimental.Accessors;
 public class TwinFieldSearchBooleanDTOv1 implements TwinFieldSearchDTOv1 {
 
     public static final String KEY = "TwinFieldSearchBooleanV1";
-    public String type = KEY;
+    @Override
+    public String type() {
+        return KEY;
+    }
 
     @Schema(description = "include entities with empty or null values to result")
     public Boolean value;

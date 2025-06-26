@@ -54,7 +54,7 @@ public class TwinClassValidHeadController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_class/{twinClassId}/valid_heads/v1")
     public ResponseEntity<?> validHeadV1(
-            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
             @RequestBody TwinSearchSimpleDTOv1 search,
             @SimplePaginationParams SimplePagination pagination) {

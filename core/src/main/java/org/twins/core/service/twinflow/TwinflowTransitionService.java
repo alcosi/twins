@@ -36,7 +36,6 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleRepository;
 import org.twins.core.domain.ApiUser;
@@ -50,7 +49,6 @@ import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
-import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
@@ -59,6 +57,7 @@ import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
+import org.twins.core.service.twin.TwinValidatorSetService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
@@ -98,6 +97,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     private final PermissionService permissionService;
     private final UserService userService;
     private final I18nService i18nService;
+    private final TwinValidatorSetService twinValidatorSetService;
 
     @Autowired
     private CacheManager cacheManager;
@@ -715,27 +715,12 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 log.info(transitionValidatorRuleEntity.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
                 continue;
             }
-            List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(transitionValidatorRuleEntity.getTwinValidators());
-            sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
-            for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
-                if (!twinValidatorEntity.isActive()) {
-                    log.info(twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL) + " from " + transitionValidatorRuleEntity.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
-                    continue;
-                }
-
-                TwinValidator transitionValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
-                TwinValidator.ValidationResult validationResult = transitionValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
-                validationResultOfRule = validationResult.isValid();
-                if (!validationResultOfRule) {
-                    log.info(twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL) + " from " + transitionValidatorRuleEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not valid. " + validationResult.getMessage());
-                    break;
-                }
-            }
-            if (validationResultOfRule)
-                break;
+            validationResultOfRule = twinValidatorSetService.isValid(twinEntity, transitionValidatorRuleEntity, transitionValidatorRuleEntity.getTwinValidators());
         }
         return validationResultOfRule;
     }
+
+
 
     public DraftEntity draftTransition(TransitionContext transitionContext) throws ServiceException {
         return draftTransitions(new TransitionContextBatch(List.of(transitionContext)));

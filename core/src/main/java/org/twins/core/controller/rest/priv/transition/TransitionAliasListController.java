@@ -52,7 +52,7 @@ public class TransitionAliasListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/transition_alias/search/v1")
     public ResponseEntity<?> transitionAliasSearchV1(
-            @MapperContextBinding(roots = TransitionAliasRestDTOMapper.class, response = TransitionAliasSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TransitionAliasRestDTOMapper.class, response = TransitionAliasSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody TransitionAliasSearchRqDTOv1 request) {
         TransitionAliasSearchRsDTOv1 rs = new TransitionAliasSearchRsDTOv1();

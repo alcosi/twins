@@ -50,7 +50,7 @@ public class PermissionGrantSpaceRoleCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/space_role/v1")
     public ResponseEntity<?> permissionGrantSpaceRoleCreateV1(
-            @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapperV2.class, response = PermissionGrantSpaceRoleRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapperV2.class, response = PermissionGrantSpaceRoleRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody PermissionGrantSpaceRoleCreateRqDTOv1 request, ServletRequest servletRequest) {
         PermissionGrantSpaceRoleRsDTOv1 rs = new PermissionGrantSpaceRoleRsDTOv1();
         try {

@@ -16,6 +16,7 @@ import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
+import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
@@ -178,6 +179,13 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    private Collection<SpaceRoleUserEntity> spaceRoleUsers;
+
+    //needed for specification
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
     private Collection<TwinFieldBooleanEntity> fieldsBoolean;
 
     //needed for specification
@@ -227,7 +235,6 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
     @JoinColumn(name = "business_account_id", referencedColumnName = "id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     private Set<DomainBusinessAccountEntity> domainBusinessAccounts;
-
 
     @Transient
     @EqualsAndHashCode.Exclude

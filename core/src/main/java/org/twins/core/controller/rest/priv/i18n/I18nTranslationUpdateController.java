@@ -51,7 +51,7 @@ public class I18nTranslationUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/i18n_translation/v1")
     public ResponseEntity<?> i18nTranslationUpdateV1(
-            @MapperContextBinding(roots = I18nTranslationRestDTOMapper.class, response = I18nTranslationListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = I18nTranslationRestDTOMapper.class, response = I18nTranslationListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody I18nTranslationUpdateRqDTOv1 request) {
         I18nTranslationListRsDTOv1 rs = new I18nTranslationListRsDTOv1();
         try {

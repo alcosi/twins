@@ -10,9 +10,8 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.service.face.FacePointedService;
 import org.twins.core.service.face.FaceService;
-import org.twins.core.service.face.FaceTwidgetService;
 import org.twins.face.dao.twidget.tw002.FaceTW002AccordionItemEntity;
 import org.twins.face.dao.twidget.tw002.FaceTW002AccordionItemRepository;
 import org.twins.face.dao.twidget.tw002.FaceTW002Entity;
@@ -20,6 +19,7 @@ import org.twins.face.dao.twidget.tw002.FaceTW002Repository;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -27,7 +27,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceTW002Service extends FaceTwidgetService<FaceTW002Entity> {
+public class FaceTW002Service extends FacePointedService<FaceTW002Entity> {
     private final FaceTW002Repository faceTW002Repository;
     private final FaceTW002AccordionItemRepository faceTW002AccordionItemRepository;
     private final FaceService faceService;
@@ -39,7 +39,7 @@ public class FaceTW002Service extends FaceTwidgetService<FaceTW002Entity> {
 
     @Override
     public Function<FaceTW002Entity, UUID> entityGetIdFunction() {
-        return FaceTW002Entity::getFaceId;
+        return FaceTW002Entity::getId;
     }
 
     @Override
@@ -59,7 +59,7 @@ public class FaceTW002Service extends FaceTwidgetService<FaceTW002Entity> {
     public void loadAccordionItems(Collection<FaceTW002Entity> srcList) {
         if (CollectionUtils.isEmpty(srcList))
             return;
-        Kit<FaceTW002Entity, UUID> needLoad = new Kit<>(FaceTW002Entity::getFaceId);
+        Kit<FaceTW002Entity, UUID> needLoad = new Kit<>(FaceTW002Entity::getId);
         for (var faceNB001Entity : srcList)
             if (faceNB001Entity.getAccordionItems() == null) {
                 faceNB001Entity.setAccordionItems(new Kit<>(FaceTW002AccordionItemEntity::getId));
@@ -68,14 +68,14 @@ public class FaceTW002Service extends FaceTwidgetService<FaceTW002Entity> {
         if (needLoad.isEmpty())
             return;
         KitGrouped<FaceTW002AccordionItemEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                faceTW002AccordionItemRepository.findByFaceIdIn(needLoad.getIdSet()), FaceTW002AccordionItemEntity::getId, FaceTW002AccordionItemEntity::getFaceId);
+                faceTW002AccordionItemRepository.findByFaceTW002IdIn(needLoad.getIdSet()), FaceTW002AccordionItemEntity::getId, FaceTW002AccordionItemEntity::getFaceTW002Id);
         for (var entry : loadedKit.getGroupedMap().entrySet()) {
             needLoad.get(entry.getKey()).getAccordionItems().addAll(entry.getValue());
         }
     }
 
     @Override
-    public FaceTW002Entity getConfig(UUID faceId, TwinEntity currentTwin, TwinEntity targetTwin) throws ServiceException {
-        return findEntitySafe(faceId);
+    public List<FaceTW002Entity> getVariants(UUID of) {
+        return faceTW002Repository.findByFaceId(of);
     }
 }
