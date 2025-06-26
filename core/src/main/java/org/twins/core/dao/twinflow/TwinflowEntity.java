@@ -50,8 +50,11 @@ public class TwinflowEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @Column(name = "initial_twin_factory_id")
-    private UUID initialTwinFactoryId;
+    @Column(name = "on_create_twin_factory_id")
+    private UUID onCreateTwinFactoryId;
+
+    @Column(name = "on_update_twin_factory_id")
+    private UUID onUpdateTwinFactoryId;
 
     @ManyToOne
     @EqualsAndHashCode.Exclude
@@ -93,8 +96,14 @@ public class TwinflowEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "initial_twin_factory_id", insertable = false, updatable = false)
-    private TwinFactoryEntity initialTwinFactory;
+    @JoinColumn(name = "on_create_twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity onCreateTwinFactory;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "on_update_twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity onUpdateTwinFactory;
 
     @Transient
     @EqualsAndHashCode.Exclude
