@@ -13,16 +13,9 @@ DO $$
     END $$;
 
 
-DO $$
-    BEGIN
-        IF NOT EXISTS (
-            SELECT 1 FROM information_schema.columns
-            WHERE table_name='twinflow' AND column_name='on_update_twin_factory_id'
-        ) THEN
-            ALTER TABLE twinflow
-                ADD COLUMN on_update_twin_factory_id uuid;
-        END IF;
-    END $$;
+ALTER TABLE twinflow
+    ADD COLUMN IF NOT EXISTS on_update_twin_factory_id uuid;
+
 
 
 DO $$
@@ -40,16 +33,8 @@ DO $$
     END $$;
 
 
-DO $$
-    BEGIN
-        IF EXISTS (
-            SELECT 1 FROM information_schema.table_constraints
-            WHERE constraint_name='twinflow_initial_factory_id_fk'
-        ) THEN
-            ALTER TABLE twinflow
-                DROP CONSTRAINT twinflow_initial_factory_id_fk;
-        END IF;
-    END $$;
+ALTER TABLE twinflow
+    DROP CONSTRAINT IF EXISTS twinflow_initial_factory_id_fk;
 
 
 DO $$
