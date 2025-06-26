@@ -493,6 +493,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     private void runFactoryOnCreate(TwinCreate twinCreate) throws ServiceException {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
+        twinflowService.loadTwinflow(twinEntity);
         if (twinEntity.getTwinflow().getOnCreateTwinFactoryId() == null)
             return;
         UUID onCreateTwinFactoryId = twinEntity.getTwinflow().getOnCreateTwinFactoryId();
