@@ -733,6 +733,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         ApiUser apiUser = authService.getApiUser();
         if (twinUpdate.isCheckEditPermission())
             checkUpdatePermission(twinUpdate.getDbTwinEntity(), apiUser);
+        if (twinUpdate.getTwinEntity().getTwinClassId() == null && twinUpdate.getDbTwinEntity() != null) {
+            twinUpdate.getTwinEntity()
+                    .setTwinClassId(twinUpdate.getDbTwinEntity().getTwinClassId())
+                    .setTwinClass(twinUpdate.getDbTwinEntity().getTwinClass());
+        }
         runFactoryOnUpdate(twinUpdate);
         updateTwinBasics(twinChangesRecorder);
         if (twinChangesRecorder.hasChanges())
