@@ -1,10 +1,11 @@
 package org.twins.core.service.space;
 
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.pagination.PaginationResult;
@@ -133,11 +134,11 @@ public class SpaceUserRoleService {
 
     @Transactional
     public void overrideSpaceRoleUsers(UUID spaceId, UUID roleId, List<UUID> overrideList) throws ServiceException {
-        ImmutablePair<Set<UUID>, Set<UUID>> spaceRoleUserSets = calculateSpaceRoleUserChanges(spaceId, roleId, overrideList);
-        applySpaceRoleUserChanges(spaceId, roleId, spaceRoleUserSets);
+        SpaceRoleUserChanges spaceRoleUserChanges = calculateSpaceRoleUserChanges(spaceId, roleId, overrideList);
+        applySpaceRoleUserChanges(spaceId, roleId, spaceRoleUserChanges);
     }
 
-    public ImmutablePair<Set<UUID>, Set<UUID>> calculateSpaceRoleUserChanges(UUID spaceId, UUID roleId, List<UUID> overrideList) {
+    public SpaceRoleUserChanges calculateSpaceRoleUserChanges(UUID spaceId, UUID roleId, List<UUID> overrideList) {
         // if overrideList is null or empty we need to remove all users from space role
         Set<UUID> overrideSet = overrideList != null ? new HashSet<>(overrideList) : new HashSet<>();
         Set<UUID> usersToDelete = new HashSet<>();
@@ -145,17 +146,17 @@ public class SpaceUserRoleService {
 
         for (UUID existingUserId : existingUserKit.getIdSet()) {
             if (overrideSet.contains(existingUserId)) {
-                overrideSet.remove(existingUserId); // this user is already in space so we can skip
+                overrideSet.remove(existingUserId); // this user is already in space, so it should not be added one more time
             } else {
                 usersToDelete.add(existingUserId);
             }
         }
-        return new ImmutablePair<>(overrideSet, usersToDelete);
+        return new SpaceRoleUserChanges(overrideSet, usersToDelete);
     }
 
-    public void applySpaceRoleUserChanges(UUID spaceId, UUID roleId, ImmutablePair<Set<UUID>, Set<UUID>> setsForSave) throws ServiceException {
-        addUsersToSpaceRole(spaceId, roleId, setsForSave.getLeft());
-        deleteUsersFromSpaceRole(spaceId, roleId, setsForSave.getRight());
+    public void applySpaceRoleUserChanges(UUID spaceId, UUID roleId, SpaceRoleUserChanges spaceRoleUserChanges) throws ServiceException {
+        addUsersToSpaceRole(spaceId, roleId, spaceRoleUserChanges.getAddUsers());
+        deleteUsersFromSpaceRole(spaceId, roleId, spaceRoleUserChanges.getDeleteUsers());
     }
 
     private void addUsersToSpaceRole(UUID spaceId, UUID roleId, Set<UUID> userList) throws ServiceException {
@@ -186,5 +187,12 @@ public class SpaceUserRoleService {
         for (UUID userId : deleteUserList) {
             log.info("user[{}] perhaps was deleted by space[{}}] and role[{}}]", userId, spaceId, roleId);
         }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class SpaceRoleUserChanges {
+        Set<UUID> addUsers;
+        Set<UUID> deleteUsers;
     }
 }

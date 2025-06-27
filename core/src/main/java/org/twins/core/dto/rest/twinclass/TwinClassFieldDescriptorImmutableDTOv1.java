@@ -9,5 +9,8 @@ import lombok.experimental.Accessors;
 @Schema(name =  "TwinClassFieldDescriptorImmutableV1")
 public class TwinClassFieldDescriptorImmutableDTOv1 implements TwinClassFieldDescriptorDTO {
     public static final String KEY = "immutableV1";
-    public String fieldType = KEY;
+    @Override
+    public String fieldType() {
+        return KEY;
+    }
 }

@@ -15,6 +15,7 @@ import java.util.Properties;
         name = "Twin is not null",
         description = "")
 public class TwinValidatorNotNull extends TwinValidator {
+
     @Override
     protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
         return buildResult(
@@ -22,5 +23,10 @@ public class TwinValidatorNotNull extends TwinValidator {
                 invert,
                 "given twin is null",
                 "given twin is not null");
+    }
+
+    @Override
+    protected boolean nullable() {
+        return true;
     }
 }

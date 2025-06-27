@@ -10,7 +10,11 @@ import org.twins.core.featurer.fieldtyper.FieldTyperTextField;
 @Schema(name =  "TwinClassFieldDescriptorTextV1")
 public class TwinClassFieldDescriptorTextDTOv1 implements TwinClassFieldDescriptorDTO {
     public static final String KEY = "textV1";
-    public String fieldType = KEY;
+    @Override
+    public String fieldType() {
+        return KEY;
+    }
+
 
     @Schema(description = "Some validation regexp", example = ".*")
     public String regExp;

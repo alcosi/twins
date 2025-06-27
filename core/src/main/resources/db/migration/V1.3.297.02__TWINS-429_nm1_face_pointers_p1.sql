@@ -800,22 +800,22 @@ $$
     END;
 $$;
 
-DO
-$$
-    BEGIN
-        IF EXISTS (SELECT 1
-                   FROM information_schema.tables
-                   WHERE table_schema = 'public'
-                     AND table_name = 'face_twidget_tw002_accordion_item') THEN
-            INSERT INTO face_tw002_accordion_item (id, face_tw002_id, locale, label_i18n_id)
-            SELECT f.id,
-                   uuid_generate_v5('00000000-0000-0000-0000-000000000001', f.face_id::text),
-                   f.locale,
-                   f.label_i18n_id
-            FROM face_twidget_tw002_accordion_item f on conflict do nothing;
-        END IF;
-    END;
-$$;
+-- DO
+-- $$
+--     BEGIN
+--         IF EXISTS (SELECT 1
+--                    FROM information_schema.tables
+--                    WHERE table_schema = 'public'
+--                      AND table_name = 'face_twidget_tw002_accordion_item') THEN
+--             INSERT INTO face_tw002_accordion_item (id, face_tw002_id, locale, label_i18n_id)
+--             SELECT f.id,
+--                    uuid_generate_v5('00000000-0000-0000-0000-000000000001', f.face_id::text),
+--                    f.locale,
+--                    f.label_i18n_id
+--             FROM face_twidget_tw002_accordion_item f on conflict do nothing;
+--         END IF;
+--     END;
+-- $$;
 
 DO
 $$

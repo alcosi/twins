@@ -706,6 +706,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
     //todo optimize for collection processing
     public boolean runTransitionValidators(TwinflowTransitionEntity twinflowTransitionEntity, List<TwinflowTransitionValidatorRuleEntity> transitionValidatorEntityList, TwinEntity twinEntity) throws ServiceException {
+        // validator rules -> OR
+        // validators -> AND
         boolean validationResultOfRule = true;
         for (TwinflowTransitionValidatorRuleEntity transitionValidatorRuleEntity : transitionValidatorEntityList) {
             validationResultOfRule = true;
@@ -714,6 +716,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 continue;
             }
             validationResultOfRule = twinValidatorSetService.isValid(twinEntity, transitionValidatorRuleEntity, transitionValidatorRuleEntity.getTwinValidators());
+            if (validationResultOfRule)
+                break;
         }
         return validationResultOfRule;
     }
@@ -729,6 +733,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             validateTransition(transitionContext);
             fillAttachmentsTransition(transitionContext);
         }
+        runFactories(transitionContextBatch);
         DraftCollector draftCollector = draftService.beginDraft();
         try {
             draftService.draftFactoryResult(draftCollector, transitionContextBatch.getFactoried().values());

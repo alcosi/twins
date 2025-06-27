@@ -27,7 +27,7 @@ public class TwinClassFieldDTOv1 {
     @Schema(description = "description", example = "")
     public String description;
 
-    @Schema(description = "field descriptor", example = "", type = "object", additionalPropertiesSchema = TwinClassFieldDescriptorDTO.class)
+    @Schema(description = "field descriptor", example = "")
     public TwinClassFieldDescriptorDTO descriptor;
 
     @Schema(description = "twin class id", example = "")

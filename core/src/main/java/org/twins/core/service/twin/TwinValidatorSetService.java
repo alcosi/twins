@@ -82,7 +82,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
     public boolean isValid(TwinEntity twinEntity, EasyLoggable validationForEntity, Set<TwinValidatorEntity> validatorsSet) throws ServiceException {
         List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validatorsSet);
         sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
-        boolean validationResultOfRule = true;
+        boolean validationResultOfSet = true;
         for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
             if (!twinValidatorEntity.isActive()) {
                 log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.logNormal(), validationForEntity.logNormal());
@@ -91,12 +91,12 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
 
             TwinValidator transitionValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
             TwinValidator.ValidationResult validationResult = transitionValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
-            validationResultOfRule = validationResult.isValid();
-            if (!validationResultOfRule) {
+            validationResultOfSet = validationResult.isValid();
+            if (!validationResultOfSet) {
                 log.info("{} from {} is not valid. {}", twinValidatorEntity.logNormal(), validationForEntity.logNormal(), validationResult.getMessage());
                 break;
             }
         }
-        return validationResultOfRule;
+        return validationResultOfSet;
     }
 }
