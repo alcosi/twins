@@ -101,8 +101,12 @@ public class SpaceUserRoleService {
         return spaceRoleUserRepository.findByTwinIdAndSpaceRoleId(spaceId, roleId);
     }
 
-    public List<SpaceRoleUserEntity> findSpaceRoleUsersByTwinIdAndUserId(UUID twinId, UUID userId) throws ServiceException {
+    public List<SpaceRoleUserEntity> findSpaceRoleUsersByTwinIdAndUserId(UUID twinId, UUID userId) {
         return spaceRoleUserRepository.findAllByTwinIdAndUserId(twinId, userId);
+    }
+
+    public List<SpaceRoleUserEntity> findAllByTwinIdAndRoleIdAndUserIds(UUID twinId, UUID roleId, Collection<UUID> userIds) {
+        return spaceRoleUserRepository.findAllByTwinIdAndSpaceRoleIdAndUserIdIn(twinId, roleId, userIds);
     }
 
     private Kit<SpaceRoleUserEntity, UUID> getExistingUsers(UUID spaceId, UUID roleId) {
