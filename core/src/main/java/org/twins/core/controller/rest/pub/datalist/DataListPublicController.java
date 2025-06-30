@@ -57,7 +57,7 @@ public class DataListPublicController extends ApiController {
     @GetMapping(value = "/public/data_list/{dataListId}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListPublicViewV1(
-            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
@@ -82,7 +82,7 @@ public class DataListPublicController extends ApiController {
     @GetMapping(value = "/public/data_list_by_key/{dataListKey}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListPublicByKeyViewV1(
-            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_KEY) @PathVariable String dataListKey) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
@@ -108,7 +108,7 @@ public class DataListPublicController extends ApiController {
     @PostMapping(value = "/public/data_list/search/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListPublicSearchV1(
-            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody DataListSearchRqDTOv1 request) {
         DataListSearchRsDTOv1 rs = new DataListSearchRsDTOv1();

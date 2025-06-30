@@ -16,16 +16,18 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.comment.CommentUpdateRqDTOv1;
 import org.twins.core.dto.rest.comment.CommentRsDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.dto.rest.comment.CommentUpdateRqDTOv1;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.comment.CommentRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.comment.CommentService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -33,6 +35,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.COMMENT_MANAGE, Permissions.COMMENT_UPDATE})
 public class CommentUpdateController extends ApiController {
     private final CommentService commentService;
     private final CommentRestDTOMapper commentRestDTOMapper;
@@ -47,7 +50,7 @@ public class CommentUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/comment/{commentId}/v1")
     public ResponseEntity<?> twinCommentUpdateV1(
-            @MapperContextBinding(roots = CommentRestDTOMapper.class, response = CommentRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = CommentRestDTOMapper.class, response = CommentRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_COMMENT_ID) @PathVariable UUID commentId,
             @RequestBody CommentUpdateRqDTOv1 request) {
         CommentRsDTOv1 rs = new CommentRsDTOv1();

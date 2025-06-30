@@ -3,6 +3,7 @@ package org.twins.core.dao.twinflow;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -94,12 +95,14 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
     @Deprecated //for specification only
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity nameI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     @Deprecated //for specification only
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity descriptionI18n;
 
     @ManyToOne
@@ -126,10 +129,14 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     private UserEntity createdByUser;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inbuilt_twin_factory_id", insertable = false, updatable = false)
     private TwinFactoryEntity inbuiltFactory;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "drafting_twin_factory_id", insertable = false, updatable = false)
     private TwinFactoryEntity draftingFactory;

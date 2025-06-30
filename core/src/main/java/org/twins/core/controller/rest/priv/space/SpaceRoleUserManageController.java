@@ -15,11 +15,13 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.space.SpaceRoleUserRqDTOv1;
 import org.twins.core.dto.rest.user.UserListRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.space.SpaceUserRoleService;
 
 import java.util.UUID;
@@ -28,6 +30,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy(Permissions.SPACE_ROLE_MANAGE)
 public class SpaceRoleUserManageController extends ApiController {
     private final UserRestDTOMapper userRestDTOMapper;
     private final SpaceUserRoleService spaceUserRoleService;
@@ -41,7 +44,7 @@ public class SpaceRoleUserManageController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/space/{spaceId}/role/{roleId}/users/manage/v1")
     public ResponseEntity<?> spaceRoleUserManageV1(
-            @MapperContextBinding(roots = UserRestDTOMapper.class, response = UserListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = UserRestDTOMapper.class, response = UserListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID spaceId,
             @Parameter(example = DTOExamples.ROLE_ID) @PathVariable UUID roleId,
             @RequestBody SpaceRoleUserRqDTOv1 request) {

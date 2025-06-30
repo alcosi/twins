@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dto.rest.DTOExamples;
@@ -31,6 +32,7 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryPipelineSearchService;
 import org.twins.core.service.factory.FactoryPipelineService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -38,6 +40,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.PIPELINE_MANAGE, Permissions.PIPELINE_VIEW})
 public class FactoryPipelineSearchController extends ApiController {
 
     private final PaginationMapper paginationMapper;
@@ -56,7 +59,7 @@ public class FactoryPipelineSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory_pipeline/search/v1")
     public ResponseEntity<?> factoryPipelineSearchV1(
-            @MapperContextBinding(roots = FactoryPipelineRestDTOMapperV2.class, response = FactoryPipelineSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryPipelineRestDTOMapperV2.class, response = FactoryPipelineSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody FactoryPipelineSearchRqDTOv1 request) {
         FactoryPipelineSearchRsDTOv1 rs = new FactoryPipelineSearchRsDTOv1();
@@ -84,7 +87,7 @@ public class FactoryPipelineSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/factory_pipeline/{pipelineId}/v1")
     public ResponseEntity<?> factoryPipelineViewV1(
-            @MapperContextBinding(roots = FactoryPipelineRestDTOMapperV2.class, response = FactoryPipelineViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryPipelineRestDTOMapperV2.class, response = FactoryPipelineViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_PIPELINE_ID) @PathVariable("pipelineId") UUID pipelineId) {
         FactoryPipelineViewRsDTOv1 rs = new FactoryPipelineViewRsDTOv1();
         try {

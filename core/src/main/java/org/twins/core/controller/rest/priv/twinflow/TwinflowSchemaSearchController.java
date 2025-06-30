@@ -20,6 +20,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 import org.twins.core.dto.rest.twinflow.TwinflowSchemaSearchRqDTOv1;
@@ -29,12 +30,14 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinflow.TwinflowSchemaRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinflow.TwinflowSchemaSearchRestDTOReverseMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowSchemaSearchService;
 
 @Tag(name = ApiTag.TWINFLOW)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TWINFLOW_SCHEMA_MANAGE, Permissions.TWINFLOW_SCHEMA_VIEW})
 public class TwinflowSchemaSearchController extends ApiController {
     private final TwinflowSchemaSearchRestDTOReverseMapper twinflowSchemaSearchRestDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
@@ -51,7 +54,7 @@ public class TwinflowSchemaSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twinflow_schema/search/v1")
     public ResponseEntity<?> twinflowSchemaSearchV1(
-            @MapperContextBinding(roots = TwinflowSchemaRestDTOMapperV2.class, response = TwinflowSchemaSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinflowSchemaRestDTOMapperV2.class, response = TwinflowSchemaSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody TwinflowSchemaSearchRqDTOv1 request) {
         TwinflowSchemaSearchRsDTOv1 rs = new TwinflowSchemaSearchRsDTOv1();

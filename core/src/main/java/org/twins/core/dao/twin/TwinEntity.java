@@ -12,7 +12,11 @@ import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
+import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.domain.DomainBusinessAccountEntity;
+import org.twins.core.dao.domain.DomainUserEntity;
+import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
@@ -175,6 +179,20 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    private Collection<SpaceRoleUserEntity> spaceRoleUsers;
+
+    //needed for specification
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private Collection<TwinFieldBooleanEntity> fieldsBoolean;
+
+    //needed for specification
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
     private Collection<TwinFieldDataListEntity> fieldsList;
 
     //needed for specification
@@ -190,6 +208,33 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinTouchEntity> touches;
 
+    //needed for specification (USER & BA twins)
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private Set<DomainUserEntity> domainUsers;
+
+    //needed for specification (USER & BA twins)
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private Set<BusinessAccountUserEntity> businessAccountUsersUserTwins;
+
+    //needed for specification (USER & BA twins)
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_account_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private Set<BusinessAccountUserEntity> businessAccountUsersBusinessAccountTwins;
+
+    //needed for specification (USER & BA twins)
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_account_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private Set<DomainBusinessAccountEntity> domainBusinessAccounts;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -212,7 +257,15 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    private Kit<TwinFieldSimpleNonIndexedEntity , UUID> twinFieldSimpleNonIndexedKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
     private KitGrouped<TwinFieldI18nEntity, UUID, UUID> twinFieldI18nKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinFieldBooleanEntity, UUID> twinFieldBooleanKit;
 
     /*
      we have to use TwinClassFieldId as key, not id. Also, multiple values supported, that is why kit inside a ki

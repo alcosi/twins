@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "fieldType", visible = true)
 @JsonSubTypes({
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorTextDTOv1.class, name = TwinClassFieldDescriptorTextDTOv1.KEY),
+        @JsonSubTypes.Type(value = TwinClassFieldDescriptorSecretDTOv1.class, name = TwinClassFieldDescriptorSecretDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorDateScrollDTOv1.class, name = TwinClassFieldDescriptorDateScrollDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorColorHexDTOv1.class, name = TwinClassFieldDescriptorColorHexDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorUrlDTOv1.class, name = TwinClassFieldDescriptorUrlDTOv1.KEY),
@@ -22,9 +23,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorAttachmentDTOv1.class, name = TwinClassFieldDescriptorAttachmentDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorNumericDTOv1.class, name = TwinClassFieldDescriptorNumericDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorImmutableDTOv1.class, name = TwinClassFieldDescriptorImmutableDTOv1.KEY),
+        @JsonSubTypes.Type(value = TwinClassFieldDescriptorBooleanDTOv1.class, name = TwinClassFieldDescriptorBooleanDTOv1.KEY),
 })
 @Schema(description = "One of values", example = "", discriminatorProperty = "fieldType", discriminatorMapping = {
         @DiscriminatorMapping(value = TwinClassFieldDescriptorTextDTOv1.KEY, schema = TwinClassFieldDescriptorTextDTOv1.class),
+        @DiscriminatorMapping(value = TwinClassFieldDescriptorSecretDTOv1.KEY, schema = TwinClassFieldDescriptorSecretDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorDateScrollDTOv1.KEY, schema = TwinClassFieldDescriptorDateScrollDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorColorHexDTOv1.KEY, schema = TwinClassFieldDescriptorColorHexDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorUrlDTOv1.KEY, schema = TwinClassFieldDescriptorUrlDTOv1.class),
@@ -39,10 +42,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
         @DiscriminatorMapping(value = TwinClassFieldDescriptorAttachmentDTOv1.KEY, schema = TwinClassFieldDescriptorAttachmentDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorNumericDTOv1.KEY, schema = TwinClassFieldDescriptorNumericDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorImmutableDTOv1.KEY, schema = TwinClassFieldDescriptorImmutableDTOv1.class),
+        @DiscriminatorMapping(value = TwinClassFieldDescriptorBooleanDTOv1.KEY, schema = TwinClassFieldDescriptorBooleanDTOv1.class),
 })
 public interface TwinClassFieldDescriptorDTO {
     @Schema(description = "discriminator", requiredMode = Schema.RequiredMode.REQUIRED, examples = {
             TwinClassFieldDescriptorTextDTOv1.KEY,
+            TwinClassFieldDescriptorSecretDTOv1.KEY,
             TwinClassFieldDescriptorColorHexDTOv1.KEY,
             TwinClassFieldDescriptorUrlDTOv1.KEY,
             TwinClassFieldDescriptorDateScrollDTOv1.KEY,
@@ -57,6 +62,7 @@ public interface TwinClassFieldDescriptorDTO {
             TwinClassFieldDescriptorAttachmentDTOv1.KEY,
             TwinClassFieldDescriptorNumericDTOv1.KEY,
             TwinClassFieldDescriptorImmutableDTOv1.KEY,
+            TwinClassFieldDescriptorBooleanDTOv1.KEY,
     })
     public String fieldType();
 }

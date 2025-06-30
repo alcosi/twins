@@ -20,6 +20,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dto.rest.twinstatus.TwinStatusSearchRqDTOv1;
@@ -29,12 +30,14 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusSearchRestDTOReverseMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinStatusSearchService;
 
 @Tag(name = ApiTag.TWIN_STATUS)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TWIN_STATUS_MANAGE, Permissions.TWIN_STATUS_VIEW})
 public class TwinStatusSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final TwinStatusSearchRestDTOReverseMapper twinStatusSearchRestDTOReverseMapper;
@@ -51,7 +54,7 @@ public class TwinStatusSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_status/search/v1")
     public ResponseEntity<?> twinStatusSearchV1(
-            @MapperContextBinding(roots = TwinStatusRestDTOMapperV2.class, response = TwinStatusSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinStatusRestDTOMapperV2.class, response = TwinStatusSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody TwinStatusSearchRqDTOv1 request) {
         TwinStatusSearchRsDTOv1 rs = new TwinStatusSearchRsDTOv1();

@@ -7,8 +7,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.domain.DomainType;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserStatus;
@@ -29,8 +32,11 @@ import org.twins.core.domain.apiuser.UserResolverGivenId;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.user.UserAddRqDTOv1;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.businessaccount.BusinessAccountService;
+import org.twins.core.service.businessaccount.BusinessAccountUserService;
+import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.domain.DomainUserService;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.user.UserService;
 
 import java.util.UUID;
@@ -40,11 +46,17 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class UserAddController extends ApiController {
-    private final BusinessAccountService businessAccountService;
+    private final BusinessAccountUserService businessAccountUserService;
     private final DomainService domainService;
+    private final DomainUserService domainUserService;
+    private final DomainBusinessAccountService domainBusinessAccountService;
     private final UserService userService;
     private final AuthService authService;
 
+    @Value("${api.unsecured.enable}")
+    private boolean apiUnsecuredEnabled;
+
+    @Deprecated
     @ParameterChannelHeader
     @Operation(operationId = "userAddV1", summary = "Smart endpoint for adding new user. It will also" +
             " add user to domain and businessAccount if specified. If given businessAccount is not registered in domain, it will register it")
@@ -58,11 +70,13 @@ public class UserAddController extends ApiController {
             @RequestBody UserAddRqDTOv1 request) {
         Response rs = new Response();
         try {
+            if (!apiUnsecuredEnabled)
+                throw new ServiceException(ErrorCodeCommon.FORBIDDEN);
             // for deprecated fields
             UUID businessAccountId = request.getUser().getBusinessAccountId() != null ? request.getUser().getBusinessAccountId() : request.getBusinessAccountId();
             UUID domainId = request.getUser().getDomainId() != null ? request.getUser().getDomainId() : request.getDomainId();
             String locale = request.getUser().getLocale() != null ? request.getUser().getLocale() : request.getLocale();
-            domainService.checkDomainId(domainId, EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS);
+            domainService.checkId(domainId, EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS);
             ApiUser apiUser = authService.getApiUser();
             apiUser
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId))
@@ -70,7 +84,7 @@ public class UserAddController extends ApiController {
                     .setDomainResolver(new DomainResolverGivenId(domainId))
                     .setLocaleResolver(new LocaleResolverGivenOrSystemDefault(locale))
                     .setCheckMembershipMode(false);
-            userService.addUser(new UserEntity()
+            UserEntity userEntity = userService.addUser(new UserEntity()
                             .setId(request.user.id)
                             .setName(request.user.fullName)
                             .setEmail(request.user.email)
@@ -82,13 +96,13 @@ public class UserAddController extends ApiController {
             if (businessAccountId == null && domainId == null)
                 return new ResponseEntity<>(rs, HttpStatus.OK);
             if (businessAccountId != null) {
-                businessAccountService.addUser(businessAccountId, request.user.id, EntitySmartService.SaveMode.ifNotPresentCreate, EntitySmartService.SaveMode.none, true);
+                businessAccountUserService.addUserSmart(businessAccountId, request.user.id, EntitySmartService.SaveMode.ifNotPresentCreate, EntitySmartService.SaveMode.none, true);
             }
             if (domainId != null) {
-                domainService.addUser(domainId, request.user.id, EntitySmartService.SaveMode.none, true);
+                domainUserService.addUser(userEntity, true);
             }
             if (domainId != null && businessAccountId != null && apiUser.getDomain().getDomainType() == DomainType.b2b) {
-                domainService.addBusinessAccount(domainId, businessAccountId, null, null, EntitySmartService.SaveMode.none, true);
+                domainBusinessAccountService.addBusinessAccountSmart(businessAccountId, null, null, EntitySmartService.SaveMode.none, true);
             }
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

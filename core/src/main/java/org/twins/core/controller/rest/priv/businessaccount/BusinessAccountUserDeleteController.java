@@ -8,8 +8,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -19,12 +21,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
 import org.twins.core.domain.apiuser.UserResolverGivenId;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.businessaccount.BusinessAccountService;
+import org.twins.core.service.businessaccount.BusinessAccountUserService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -33,9 +37,13 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class BusinessAccountUserDeleteController extends ApiController {
-    private final BusinessAccountService businessAccountService;
+    private final BusinessAccountUserService businessAccountUserService;
     private final AuthService authService;
 
+    @Value("${api.unsecured.enable}")
+    private boolean apiUnsecuredEnabled;
+
+    @Deprecated
     @ParameterChannelHeader
     @Operation(operationId = "businessAccountUserDeleteV1", summary = "Delete user from businessAccount")
     @ApiResponses(value = {
@@ -49,11 +57,13 @@ public class BusinessAccountUserDeleteController extends ApiController {
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
         Response rs = new Response();
         try {
+            if (!apiUnsecuredEnabled)
+                throw new ServiceException(ErrorCodeCommon.FORBIDDEN);
             authService.getApiUser()
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId))
                     .setUserResolver(new UserResolverGivenId(userId));
-            businessAccountService.deleteUser(
-                    businessAccountService.checkBusinessAccountId(businessAccountId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
+            businessAccountUserService.deleteUser(
+                    businessAccountUserService.checkId(businessAccountId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
                     userId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

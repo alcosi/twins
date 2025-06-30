@@ -20,12 +20,14 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -33,6 +35,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.DATA_LIST_MANAGE, Permissions.DATA_LIST_VIEW})
 public class DataListController extends ApiController {
     private final AuthService authService;
     private final DataListService dataListService;
@@ -48,7 +51,7 @@ public class DataListController extends ApiController {
     @GetMapping(value = "/private/data_list/{dataListId}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListViewV1(
-            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
@@ -71,7 +74,7 @@ public class DataListController extends ApiController {
     @GetMapping(value = "/private/data_list_by_key/{dataListKey}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListByKeyViewV1(
-            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_KEY) @PathVariable String dataListKey) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {

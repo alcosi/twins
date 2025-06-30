@@ -19,6 +19,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dto.rest.DTOExamples;
@@ -32,13 +33,15 @@ import org.twins.core.mappers.rest.permission.PermissionGroupSearchDTOReverseMap
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGroupSearchService;
 import org.twins.core.service.permission.PermissionGroupService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
-@Tag(name = ApiTag.PERMISSION)
+@Tag(description = "Search permission group", name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.PERMISSION_GROUP_MANAGE, Permissions.PERMISSION_GROUP_VIEW})
 public class PermissionGroupSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;
@@ -56,7 +59,7 @@ public class PermissionGroupSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_group/search/v1")
     public ResponseEntity<?> permissionGroupSearchListV1(
-            @MapperContextBinding(roots = PermissionGroupRestDTOMapper.class, response = PermissionGroupSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGroupRestDTOMapper.class, response = PermissionGroupSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody PermissionGroupSearchRqDTOv1 request) {
         PermissionGroupSearchRsDTOv1 rs = new PermissionGroupSearchRsDTOv1();
@@ -84,7 +87,7 @@ public class PermissionGroupSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/permission_group/{groupId}/v1")
     public ResponseEntity<?> permissionGroupViewV1(
-            @MapperContextBinding(roots = PermissionGroupRestDTOMapper.class, response = PermissionGroupViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGroupRestDTOMapper.class, response = PermissionGroupViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GROUP_ID) @PathVariable("groupId") UUID groupId) {
         PermissionGroupViewRsDTOv1 rs = new PermissionGroupViewRsDTOv1();
         try {
@@ -112,7 +115,7 @@ public class PermissionGroupSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/permission_group_by_key/{groupKey}/v1")
     public ResponseEntity<?> permissionGroupViewByKeyV1(
-            @MapperContextBinding(roots = PermissionGroupRestDTOMapper.class, response = PermissionGroupViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGroupRestDTOMapper.class, response = PermissionGroupViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GROUP_KEY) @PathVariable("groupKey") String groupKey) {
         PermissionGroupViewRsDTOv1 rs = new PermissionGroupViewRsDTOv1();
         try {

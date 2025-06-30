@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dto.rest.DTOExamples;
@@ -31,6 +32,7 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryEraserSearchService;
 import org.twins.core.service.factory.FactoryEraserService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -39,6 +41,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.ERASER_MANAGE, Permissions.ERASER_VIEW})
 public class FactoryEraserSearchController extends ApiController {
 
     private final PaginationMapper paginationMapper;
@@ -57,7 +60,7 @@ public class FactoryEraserSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory_eraser/search/v1")
     public ResponseEntity<?> factoryEraserSearchV1(
-            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody FactoryEraserSearchRqDTOv1 request) {
         FactoryEraserSearchRsDTOv1 rs = new FactoryEraserSearchRsDTOv1();
@@ -86,7 +89,7 @@ public class FactoryEraserSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/factory_eraser/{eraserId}/v1")
     public ResponseEntity<?> factoryEraserViewV1(
-            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @Parameter(example = DTOExamples.FACTORY_ERASER_ID) @PathVariable("eraserId") UUID eraserId) {
         FactoryEraserViewRsDTOv1 rs = new FactoryEraserViewRsDTOv1();

@@ -1,4 +1,3 @@
-
 package org.twins.core.controller.rest.priv.twinclass;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassDuplicateRqDTOv1;
@@ -24,6 +24,7 @@ import org.twins.core.dto.rest.twinclass.TwinClassRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.UUID;
@@ -32,6 +33,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_VIEW})
 public class TwinClassDuplicateController extends ApiController {
     private final AuthService authService;
     private final TwinClassService twinClassService;
@@ -46,7 +48,7 @@ public class TwinClassDuplicateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_class/{twinClassId}/duplicate/v1")
     public ResponseEntity<?> twinClassDuplicateV1(
-            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
             @RequestBody TwinClassDuplicateRqDTOv1 request) {
         TwinClassRsDTOv1 rs = new TwinClassRsDTOv1();

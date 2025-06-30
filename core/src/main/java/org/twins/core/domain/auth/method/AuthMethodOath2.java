@@ -8,7 +8,5 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class AuthMethodOath2 extends AuthMethod {
-    private String iconUrl;
-    private String label;
     private String redirectUrl;
 }

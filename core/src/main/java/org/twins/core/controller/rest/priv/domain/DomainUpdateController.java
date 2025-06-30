@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dto.rest.domain.DomainUpdateRqDTOv1;
 import org.twins.core.dto.rest.domain.DomainViewRsDTOv1;
@@ -26,12 +27,14 @@ import org.twins.core.mappers.rest.domain.DomainViewRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.permission.Permissions;
 
 
-@Tag(name = ApiTag.DOMAIN)
+@Tag(description = "", name = ApiTag.DOMAIN)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.DOMAIN_MANAGE, Permissions.DOMAIN_UPDATE})
 public class DomainUpdateController extends ApiController {
     private final DomainUpdateRestDTOReverseMapper domainUpdateRestDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -47,7 +50,7 @@ public class DomainUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/domain/v1")
     public ResponseEntity<?> domainUpdateV1(
-            @MapperContextBinding(roots = DomainViewRestDTOMapper.class, response = DomainViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DomainViewRestDTOMapper.class, response = DomainViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody DomainUpdateRqDTOv1 request) {
         DomainViewRsDTOv1 rs = new DomainViewRsDTOv1();
         try {

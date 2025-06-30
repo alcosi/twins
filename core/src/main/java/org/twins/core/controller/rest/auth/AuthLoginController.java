@@ -18,10 +18,10 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterDomainHeader;
 import org.twins.core.dto.rest.auth.AuthLoginRqDTOv1;
-import org.twins.core.dto.rest.auth.AuthLoginRqDTOv2;
 import org.twins.core.dto.rest.auth.AuthLoginRsDTOv1;
 import org.twins.core.featurer.identityprovider.ClientSideAuthData;
-import org.twins.core.mappers.rest.auth.ClientSideAuthDateRestDTOMapper;
+import org.twins.core.mappers.rest.auth.AuthLoginRestDTOReverseMapper;
+import org.twins.core.mappers.rest.auth.ClientSideAuthDataRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.auth.IdentityProviderService;
 
@@ -32,10 +32,12 @@ import org.twins.core.service.auth.IdentityProviderService;
 public class AuthLoginController extends ApiController {
     private final AuthService authService;
     private final IdentityProviderService identityProviderService;
-    private final ClientSideAuthDateRestDTOMapper clientSideAuthDateRestDTOMapper;
+    private final ClientSideAuthDataRestDTOMapper clientSideAuthDataRestDTOMapper;
+    private final AuthLoginRestDTOReverseMapper authLoginRestDTOReverseMapper;
+
 
     @ParameterDomainHeader
-    @Operation(operationId = "authLoginV1", summary = "Returns auth/refresh tokens by username/password")
+    @Operation(operationId = "authLoginV1", summary = "Returns auth/refresh tokens by username/password and fingerprint (if required)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Login to ", content = {
                     @Content(mediaType = "application/json", schema =
@@ -46,30 +48,8 @@ public class AuthLoginController extends ApiController {
         AuthLoginRsDTOv1 rs = new AuthLoginRsDTOv1();
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
-            ClientSideAuthData clientSideAuthData = identityProviderService.login(request.getUsername(), request.getPassword());
-            rs.setAuthData(clientSideAuthDateRestDTOMapper.convert(clientSideAuthData));
-        } catch (ServiceException se) {
-            return createErrorRs(se, rs);
-        } catch (Exception e) {
-            return createErrorRs(e, rs);
-        }
-        return new ResponseEntity<>(rs, HttpStatus.OK);
-    }
-
-    @ParameterDomainHeader
-    @Operation(operationId = "authLoginV2", summary = "Returns auth/refresh tokens by username/password/fingerprint")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Login to ", content = {
-                    @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = AuthLoginRsDTOv1.class))}),
-            @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/auth/login/v2")
-    public ResponseEntity<?> authLoginV2(@RequestBody AuthLoginRqDTOv2 request) {
-        AuthLoginRsDTOv1 rs = new AuthLoginRsDTOv1();
-        try {
-            authService.getApiUser().setAnonymousWithDefaultLocale();
-            ClientSideAuthData clientSideAuthData = identityProviderService.login(request.getUsername(), request.getPassword(), request.getFingerprint());
-            rs.setAuthData(clientSideAuthDateRestDTOMapper.convert(clientSideAuthData));
+            ClientSideAuthData clientSideAuthData = identityProviderService.login(authLoginRestDTOReverseMapper.convert(request));
+            rs.setAuthData(clientSideAuthDataRestDTOMapper.convert(clientSideAuthData));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

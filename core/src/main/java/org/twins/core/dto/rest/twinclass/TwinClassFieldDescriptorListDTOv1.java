@@ -12,7 +12,10 @@ import java.util.*;
 @Schema(name =  "TwinClassFieldDescriptorListV1")
 public class TwinClassFieldDescriptorListDTOv1 implements TwinClassFieldDescriptorDTO {
     public static final String KEY = "selectListV1";
-    public String fieldType = KEY;
+    @Override
+    public String fieldType() {
+        return KEY;
+    }
 
     @Schema(description = "Can custom option be entered", example = "false")
     public Boolean supportCustom;

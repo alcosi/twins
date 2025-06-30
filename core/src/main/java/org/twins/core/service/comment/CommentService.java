@@ -28,10 +28,12 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
+import org.twins.core.domain.apiuser.DBUMembershipCheck;
 import org.twins.core.domain.search.CommentSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.domain.DBUService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
@@ -51,15 +53,16 @@ import static org.twins.core.dao.specifications.comment.CommentSpecification.*;
 @Lazy
 @RequiredArgsConstructor
 public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntity> {
-    final AuthService authService;
-    final EntitySmartService entitySmartService;
-    final AttachmentService attachmentService;
-    final TwinService twinService;
-    final PermissionService permissionService;
-    final TwinCommentRepository commentRepository;
-    final TwinAttachmentRepository attachmentRepository;
-    final CommentActionService commentActionService;
-    final UserGroupService userGroupService;
+    private final AuthService authService;
+    private final EntitySmartService entitySmartService;
+    private final AttachmentService attachmentService;
+    private final TwinService twinService;
+    private final PermissionService permissionService;
+    private final TwinCommentRepository commentRepository;
+    private final TwinAttachmentRepository attachmentRepository;
+    private final CommentActionService commentActionService;
+    private final UserGroupService userGroupService;
+    private final DBUService dbuService;
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinCommentEntity createComment(TwinCommentEntity comment, List<TwinAttachmentEntity> attachmentList) throws ServiceException {
@@ -203,7 +206,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
             userGroupService.loadGroupsForCurrentUser();
             specification = specification
                     .and(checkPermissions(apiUser.getDomainId(), apiUser.getBusinessAccountId(), apiUser.getUserId(), apiUser.getUser().getUserGroups().getIdSetSafe(),TwinCommentEntity.Fields.twin))
-                    .and(checkClass(List.of(),apiUser));
+                    .and(checkClass(List.of(), apiUser, DBUMembershipCheck.BLOCKED));
         } else {
             specification = specification
                     .and(checkFieldUuid(apiUser.getDomainId(), TwinCommentEntity.Fields.twin, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.domainId));

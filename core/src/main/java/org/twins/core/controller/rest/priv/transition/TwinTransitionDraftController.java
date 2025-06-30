@@ -17,6 +17,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.transition.TransitionContext;
@@ -32,6 +33,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.TwinCreateRqRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapperV2;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 
@@ -43,6 +45,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TRANSITION_MANAGE, Permissions.TRANSITION_DRAFT})
 public class TwinTransitionDraftController extends ApiController {
     private final TwinService twinService;
     private final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
@@ -53,19 +56,19 @@ public class TwinTransitionDraftController extends ApiController {
     private final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
     private final DraftRestDTOMapper draftRestDTOMapper;
 
-        @ParametersApiUserHeaders
-        @Operation(operationId = "twinTransitionDraftV1", summary = "Draft twin transition by transition id. Result will not be commited to db, and can be browsed by draftId")
-        @ApiResponses(value = {
-                @ApiResponse(responseCode = "200", description = "Twin data", content = {
+    @ParametersApiUserHeaders
+    @Operation(operationId = "twinTransitionDraftV1", summary = "Draft twin transition by transition id. Result will not be commited to db, and can be browsed by draftId")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinTransitionDraftRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/transition/{transitionId}/draft/v1")
     public ResponseEntity<?> twinTransitionDraftV1(
-            @MapperContextBinding(roots = DraftRestDTOMapper.class, response = TwinTransitionDraftRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DraftRestDTOMapper.class, response = TwinTransitionDraftRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ID) @PathVariable UUID transitionId,
             @RequestBody TwinTransitionDraftRqDTOv1 request) {
-            TwinTransitionDraftRsDTOv1 rs = new TwinTransitionDraftRsDTOv1();
+        TwinTransitionDraftRsDTOv1 rs = new TwinTransitionDraftRsDTOv1();
         try {
             TwinEntity dbTwinEntity = twinService.findEntity(request.getTwinId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
             TransitionContext transitionContext = twinflowTransitionService.createTransitionContext(dbTwinEntity, transitionId);
@@ -96,7 +99,7 @@ public class TwinTransitionDraftController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/transition_by_alias/{transitionAlias}/draft/v1")
     public ResponseEntity<?> twinTransitionByAliasDraftV1(
-            @MapperContextBinding(roots = DraftRestDTOMapper.class, response = TwinTransitionDraftRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DraftRestDTOMapper.class, response = TwinTransitionDraftRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ALIAS) @PathVariable String transitionAlias,
             @RequestBody TwinTransitionDraftRqDTOv1 request) {
         TwinTransitionDraftRsDTOv1 rs = new TwinTransitionDraftRsDTOv1();
@@ -130,7 +133,7 @@ public class TwinTransitionDraftController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/transition/{transitionId}/draft/batch/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinTransitionDraftBatchV1(
-            @MapperContextBinding(roots = DraftRestDTOMapper.class, response = TwinTransitionDraftRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DraftRestDTOMapper.class, response = TwinTransitionDraftRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ID) @PathVariable UUID transitionId,
             @RequestBody TwinTransitionDraftBatchRqDTOv1 request) {
         TwinTransitionDraftRsDTOv1 rs = new TwinTransitionDraftRsDTOv1();
@@ -169,7 +172,7 @@ public class TwinTransitionDraftController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/transition_by_alias/{transitionAlias}/draft/batch/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinTransitionByAliasDraftBatchV1(
-            @MapperContextBinding(roots = DraftRestDTOMapper.class, response = TwinTransitionDraftRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DraftRestDTOMapper.class, response = TwinTransitionDraftRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ALIAS) @PathVariable String transitionAlias,
             @RequestBody TwinTransitionDraftBatchRqDTOv1 request) {
         TwinTransitionDraftRsDTOv1 rs = new TwinTransitionDraftRsDTOv1();

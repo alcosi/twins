@@ -1,6 +1,7 @@
 package org.twins.core.dao.specifications;
 
 import jakarta.persistence.criteria.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Range;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
@@ -8,11 +9,15 @@ import org.cambium.common.util.LTreeUtils;
 import org.cambium.common.util.Ternary;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.domain.Specification;
+import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
+import org.twins.core.dao.domain.DomainBusinessAccountEntity;
+import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.DataTimeRange;
 import org.twins.core.domain.LongRange;
+import org.twins.core.domain.apiuser.DBUMembershipCheck;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -23,6 +28,7 @@ import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArr
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
 
+@Slf4j
 public class CommonSpecification<T> extends AbstractSpecification<T> {
     /**
      * Generates a Specification to check hierarchy of child elements based on the given parameters.
@@ -126,7 +132,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      * derived from the provided API user and inputs
      * @throws ServiceException if there is an error during specification creation or validation
      */
-    public static <T> Specification<T> checkClass(final Collection<UUID> twinClassUuids, final ApiUser apiUser, String... twinEntityFieldPath) throws ServiceException {
+    public static <T> Specification<T> checkClass(final Collection<UUID> twinClassUuids, final ApiUser apiUser, final DBUMembershipCheck dbuMembershipCheck, String... twinEntityFieldPath) throws ServiceException {
         UUID finalUserId = apiUser.isUserSpecified() ? apiUser.getUserId() : null;
         UUID finalBusinessAccountId = apiUser.isBusinessAccountSpecified() ? apiUser.getBusinessAccountId() : null;
         UUID finalDomainId = apiUser.getDomainId();
@@ -138,7 +144,6 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             List<Predicate> predicates = List.of(cb.conjunction());
             if (!CollectionUtils.isEmpty(twinClassUuids))
                 predicates = twinClassUuids.stream().map(twinClassId -> cb.equal(fromTwin.get(TwinEntity.Fields.twinClassId), twinClassId)).toList();
-
             Predicate joinPredicateSystemLevel = cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), SYSTEM);
             Predicate joinPredicateUserLevel = cb.or(
                     cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), USER),
@@ -154,16 +159,90 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             Predicate rootPredicateUser = cb.equal(fromTwin.get(TwinEntity.Fields.ownerUserId), finalUserId);
             Predicate rootPredicateBusiness = cb.equal(fromTwin.get(TwinEntity.Fields.ownerBusinessAccountId), finalBusinessAccountId);
 
-            return cb.and(domain,
+            Predicate systemLevelPredicate = cb.isFalse(cb.literal(true));
+            switch (dbuMembershipCheck) {
+                case DBU_FOR_USER:
+                    domain = cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId));
+                    Join domainUser = fromTwin.join(TwinEntity.Fields.domainUsers, JoinType.INNER);
+                    Join businessAccountUser = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwins, JoinType.INNER);
+                    Subquery<DomainBusinessAccountEntity> subqueryUsers = cb.createQuery().subquery(DomainBusinessAccountEntity.class);
+                    Root<DomainBusinessAccountEntity> subRootUsers = subqueryUsers.from(DomainBusinessAccountEntity.class);
+                    subqueryUsers.select(subRootUsers);
+                    subqueryUsers.where(
+                            cb.and(
+                                    cb.equal(subRootUsers.get(DomainBusinessAccountEntity.Fields.domainId), finalDomainId),
+                                    cb.equal(subRootUsers.get(DomainBusinessAccountEntity.Fields.businessAccountId), finalBusinessAccountId)
+                            )
+                    );
+                    systemLevelPredicate = cb.and(
+                            cb.equal(domainUser.get(DomainUserEntity.Fields.domainId), finalDomainId),
+//                            cb.equal(domainUser.get(DomainUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id)),
+                            cb.equal(businessAccountUser.get(BusinessAccountUserEntity.Fields.businessAccountId), finalBusinessAccountId),
+//                            cb.equal(businessAccountUser.get(BusinessAccountUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id)),
+                            cb.exists(subqueryUsers)
+                    );
+                    break;
+                case DBU_FOR_BUSINESS_ACCOUNT:
+                    domain = cb.or(
+                            cb.equal(twinClass.get(TwinClassEntity.Fields.domainId), finalDomainId),
+                            cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId))
+                    );
+                    Join businessAccountUser2 = fromTwin.join(TwinEntity.Fields.businessAccountUsersBusinessAccountTwins, JoinType.INNER);
+                    Join domainBusinessAccount = fromTwin.join(TwinEntity.Fields.domainBusinessAccounts, JoinType.INNER);
+                    Subquery<DomainUserEntity> subqueryBusinessAccount = cb.createQuery().subquery(DomainUserEntity.class);
+                    Root<DomainUserEntity> subRootBusinessAccount = subqueryBusinessAccount.from(DomainUserEntity.class);
+                    subqueryBusinessAccount.select(subRootBusinessAccount);
+                    subqueryBusinessAccount.where(
+                            cb.and(
+                                    cb.equal(subRootBusinessAccount.get(DomainUserEntity.Fields.domainId), finalDomainId),
+                                    cb.equal(subRootBusinessAccount.get(DomainUserEntity.Fields.userId), finalUserId)
+                            )
+                    );
+                    systemLevelPredicate = cb.and(
+                            cb.exists(subqueryBusinessAccount),
+                            cb.equal(businessAccountUser2.get(BusinessAccountUserEntity.Fields.userId), finalUserId),
+//                            cb.equal(businessAccountUser2.get(BusinessAccountUserEntity.Fields.businessAccountId), fromTwin.get(TwinEntity.Fields.id)),
+                            cb.equal(domainBusinessAccount.get(DomainBusinessAccountEntity.Fields.domainId), finalDomainId)
+//                            cb.equal(domainBusinessAccount2.get(DomainBusinessAccountEntity.Fields.businessAccountId), fromTwin.get(TwinEntity.Fields.id))
+                    );
+                    break;
+                case DB:
+                    // Join for business accounts linked to domain
+                    Join domainBusinessAccountMap = fromTwin.join(TwinEntity.Fields.domainBusinessAccounts, JoinType.INNER);
+                    List<Predicate> dbPredicates = new java.util.ArrayList<>();
+                    dbPredicates.add(cb.equal(domainBusinessAccountMap.get(DomainBusinessAccountEntity.Fields.domainId), finalDomainId));
+                    dbPredicates.add(cb.equal(domainBusinessAccountMap.get(DomainBusinessAccountEntity.Fields.businessAccountId), fromTwin.get(TwinEntity.Fields.id)));
+                    systemLevelPredicate = cb.and(dbPredicates.toArray(new Predicate[0]));
+                    break;
+                case DU:
+                    // Join for users linked to domain
+                    Join domainUserDU = fromTwin.join(TwinEntity.Fields.domainUsers, JoinType.INNER);
+                    systemLevelPredicate = cb.and(
+                            cb.equal(domainUserDU.get(DomainUserEntity.Fields.domainId), finalDomainId)
+//                            cb.equal(domainUserDU.get(DomainUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id))
+                    );
+                    break;
+                case BU:
+                    // Join for users linked to business account
+                    Join businessAccountUserBU = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwins, JoinType.INNER);
+                    systemLevelPredicate = cb.and(
+                            cb.equal(businessAccountUserBU.get(BusinessAccountUserEntity.Fields.businessAccountId), finalBusinessAccountId)
+//                            cb.equal(businessAccountUserBU.get(BusinessAccountUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id))
+                    );
+                    break;
+            }
+
+            return cb.and(
+                    domain,
                     getPredicate(cb, predicates, true),
                     cb.or(
                             cb.and(joinPredicateUserLevel, rootPredicateUser),
-                            cb.and(joinPredicateBusinessLevel, rootPredicateBusiness)
-                            //todo system level:  add Subquery to detect valid user and business account twins
+                            cb.and(joinPredicateBusinessLevel, rootPredicateBusiness),
+                            cb.and(joinPredicateSystemLevel, systemLevelPredicate)
                     )
             );
-        }
-                ;
+        };
+
     }
 
     /**
@@ -314,7 +393,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
     @Deprecated
     public static <T> Specification<T> checkFieldLikeContainsIn(final Collection<String> search,
                                                                 final boolean not, final boolean or, final String... fieldPath) {
-        return checkFieldLikeIn(CollectionUtils.isEmpty(search) ? search : search.stream().map(it -> "%" + it + "%").collect(Collectors.toSet()), not, or, fieldPath);
+        return checkFieldLikeIn(CollectionUtils.isEmpty(search) ? search : search.stream().map(it -> "%" + it + "%" ).collect(Collectors.toSet()), not, or, fieldPath);
     }
 
     public static <T> Specification<T> checkFieldLikeIn(final Collection<String> search, final boolean not,

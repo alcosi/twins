@@ -26,10 +26,10 @@ public class FaceEntity implements EasyLoggable {
     @Column(name = "face_component_id")
     private String faceComponentId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "face_component_id", nullable = false, insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "face_component_id", nullable = false, insertable = false, updatable = false)
     private FaceComponentTypeEntity faceComponent;
 
     @Column(name = "name")

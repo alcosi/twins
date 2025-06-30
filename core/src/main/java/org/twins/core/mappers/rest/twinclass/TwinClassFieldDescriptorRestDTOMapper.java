@@ -46,6 +46,9 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
             return new TwinClassFieldDescriptorTextDTOv1()
                     .regExp(textDescriptor.regExp())
                     .editorType(textDescriptor.editorType());
+        else if (fieldDescriptor instanceof FieldDescriptorSecret passwordDescriptor)
+            return new TwinClassFieldDescriptorSecretDTOv1()
+                    .regExp(passwordDescriptor.regExp());
         else if (fieldDescriptor instanceof FieldDescriptorColorPicker colorDescriptor)
             return new TwinClassFieldDescriptorColorHexDTOv1();
         else if (fieldDescriptor instanceof FieldDescriptorDate dateDescriptor)
@@ -88,6 +91,9 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                     .extensions(attachmentDescriptor.extensions())
                     .fileSizeMbLimit(attachmentDescriptor.fileSizeMbLimit())
                     .filenameRegExp(attachmentDescriptor.filenameRegExp());
+        else if (fieldDescriptor instanceof FieldDescriptorBoolean booleanDescriptor)
+            return new TwinClassFieldDescriptorBooleanDTOv1()
+                    .checkboxType(booleanDescriptor.checkboxType());
         else if (fieldDescriptor instanceof FieldDescriptorNumeric numericDescriptor)
             return new TwinClassFieldDescriptorNumericDTOv1()
                     .min(numericDescriptor.min())

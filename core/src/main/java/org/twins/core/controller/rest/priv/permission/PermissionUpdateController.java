@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionUpdateRqDTOv1;
@@ -25,13 +26,15 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionUpdateRestReverseDTOMapper;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
-@Tag(description = "", name = ApiTag.PERMISSION)
+@Tag(description = "Update permission", name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.PERMISSION_MANAGE, Permissions.PERMISSION_UPDATE})
 public class PermissionUpdateController extends ApiController {
 
     private final PermissionRestDTOMapper permissionRestDTOMapper;
@@ -48,7 +51,7 @@ public class PermissionUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission/{permissionId}/v1")
     public ResponseEntity<?> permissionUpdateV1(
-            @MapperContextBinding(roots = PermissionRestDTOMapper.class, response = PermissionUpdateRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionRestDTOMapper.class, response = PermissionUpdateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_ID) @PathVariable UUID permissionId,
             @RequestBody PermissionUpdateRqDTOv1 request) {
         PermissionUpdateRsDTOv1 rs = new PermissionUpdateRsDTOv1();

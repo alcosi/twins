@@ -3,22 +3,17 @@ package org.twins.face.service.widget;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.CollectionUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.service.face.FaceService;
-import org.twins.face.dao.widget.wt001.FaceWT001ColumnEntity;
+import org.twins.core.service.face.FaceVariantsService;
 import org.twins.face.dao.widget.wt001.FaceWT001ColumnRepository;
 import org.twins.face.dao.widget.wt001.FaceWT001Entity;
 import org.twins.face.dao.widget.wt001.FaceWT001Repository;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -26,7 +21,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceWT001Service extends EntitySecureFindServiceImpl<FaceWT001Entity> {
+public class FaceWT001Service extends FaceVariantsService<FaceWT001Entity> {
     private final FaceWT001Repository faceWT001Repository;
     private final FaceWT001ColumnRepository faceWT001ColumnRepository;
     private final FaceService faceService;
@@ -38,7 +33,7 @@ public class FaceWT001Service extends EntitySecureFindServiceImpl<FaceWT001Entit
 
     @Override
     public Function<FaceWT001Entity, UUID> entityGetIdFunction() {
-        return FaceWT001Entity::getFaceId;
+        return FaceWT001Entity::getId;
     }
 
     @Override
@@ -51,25 +46,8 @@ public class FaceWT001Service extends EntitySecureFindServiceImpl<FaceWT001Entit
         return true;
     }
 
-    public void loadColumns(FaceWT001Entity src) {
-        loadColumns(Collections.singletonList(src));
-    }
-
-    public void loadColumns(Collection<FaceWT001Entity> srcList) {
-        if (CollectionUtils.isEmpty(srcList))
-            return;
-        Kit<FaceWT001Entity, UUID> needLoad = new Kit<>(FaceWT001Entity::getFaceId);
-        for (var faceWT001Entity : srcList)
-            if (faceWT001Entity.getColumns() == null) {
-                faceWT001Entity.setColumns(new Kit<>(FaceWT001ColumnEntity::getId));
-                needLoad.add(faceWT001Entity);
-            }
-        if (needLoad.isEmpty())
-            return;
-        KitGrouped<FaceWT001ColumnEntity, UUID, UUID> loadedKit = new KitGrouped<>(
-                faceWT001ColumnRepository.findByFaceIdIn(needLoad.getIdSet()), FaceWT001ColumnEntity::getId, FaceWT001ColumnEntity::getFaceId);
-        for (var entry : loadedKit.getGroupedMap().entrySet()) {
-            needLoad.get(entry.getKey()).getColumns().addAll(entry.getValue());
-        }
+    @Override
+    public List<FaceWT001Entity> getVariants(UUID of) {
+        return faceWT001Repository.findByFaceId(of);
     }
 }

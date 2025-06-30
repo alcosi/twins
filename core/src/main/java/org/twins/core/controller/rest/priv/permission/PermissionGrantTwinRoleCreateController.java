@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.permission.PermissionGrantTwinRoleEntity;
 import org.twins.core.dto.rest.permission.PermissionGrantTwinRoleCreateRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGrantTwinRoleRsDTOv1;
@@ -26,11 +27,13 @@ import org.twins.core.mappers.rest.permission.PermissionGrantTwinRoleCreateDTORe
 import org.twins.core.mappers.rest.permission.PermissionGrantTwinRoleRestDTOMapperV2;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantTwinRoleService;
+import org.twins.core.service.permission.Permissions;
 
-@Tag(description = "", name = ApiTag.PERMISSION)
+@Tag(description = "Create permission grant twin role", name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.PERMISSION_GRANT_TWIN_ROLE_MANAGE, Permissions.PERMISSION_GRANT_TWIN_ROLE_CREATE})
 public class PermissionGrantTwinRoleCreateController extends ApiController {
     private final PermissionGrantTwinRoleService permissionGrantTwinRoleService;
     private final PermissionGrantTwinRoleRestDTOMapperV2 permissionGrantTwinRoleRestDTOMapper;
@@ -46,7 +49,7 @@ public class PermissionGrantTwinRoleCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/twin_role/v1")
     public ResponseEntity<?> permissionGrantTwinRoleCreateV1(
-            @MapperContextBinding(roots = PermissionGrantTwinRoleRestDTOMapperV2.class, response = PermissionGrantTwinRoleRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantTwinRoleRestDTOMapperV2.class, response = PermissionGrantTwinRoleRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody PermissionGrantTwinRoleCreateRqDTOv1 request) {
         PermissionGrantTwinRoleRsDTOv1 rs = new PermissionGrantTwinRoleRsDTOv1();
         try {

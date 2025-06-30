@@ -19,13 +19,15 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.card.CardListRsDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.card.CardRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.card.CardService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -33,6 +35,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TWIN_CLASS_CARD_MANAGE, Permissions.TWIN_CLASS_CARD_VIEW})
 public class TwinClassCardListController extends ApiController {
     private final AuthService authService;
     private final CardService cardService;
@@ -47,7 +50,7 @@ public class TwinClassCardListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class/{twinClassId}/card/list/v1")
     public ResponseEntity<?> twinClassCardListV1(
-            @MapperContextBinding(roots = CardRestDTOMapper.class, response = CardListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = CardRestDTOMapper.class, response = CardListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         CardListRsDTOv1 rs = new CardListRsDTOv1();
         try {

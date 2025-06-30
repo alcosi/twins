@@ -320,7 +320,7 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
     }
 
     public List<DataListOptionEntity> processNewOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId) {
-        Set<String> optionsForProcessing = options.stream().filter(option -> ObjectUtils.isEmpty(option.getId())).map(DataListOptionEntity::getOption).collect(Collectors.toSet());
+        Set<String> optionsForProcessing = options.stream().filter(option -> ObjectUtils.isEmpty(option.getId()) && ObjectUtils.isEmpty(option.getExternalId())).map(DataListOptionEntity::getOption).collect(Collectors.toSet());
         options.removeIf(o -> optionsForProcessing.contains(o.getOption()));
         List<DataListOptionEntity> processedOptions = processNewOptions(dataListId, optionsForProcessing, businessAccountId);
         options.addAll(processedOptions);

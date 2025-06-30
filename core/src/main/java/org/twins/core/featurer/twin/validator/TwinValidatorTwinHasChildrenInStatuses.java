@@ -23,7 +23,7 @@ import java.util.*;
         name = "Twin has children in statuses",
         description = "")
 public class TwinValidatorTwinHasChildrenInStatuses extends TwinValidator {
-    @FeaturerParam(name = "Status ids", description = "", order = 1)
+    @FeaturerParam(name = "Status ids", description = "", order = 1, optional = true)
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
     @Lazy

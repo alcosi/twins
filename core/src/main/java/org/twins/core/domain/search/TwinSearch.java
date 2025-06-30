@@ -7,7 +7,10 @@ import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.twin.TwinTouchEntity;
+import org.twins.core.domain.DataTimeRange;
+import org.twins.core.domain.apiuser.DBUMembershipCheck;
 
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -26,6 +29,7 @@ public class TwinSearch {
     private Set<UUID> twinIdExcludeList;
     private Set<UUID> twinClassIdList;
     private Set<UUID> twinClassIdExcludeList;
+    private DBUMembershipCheck dbuMembershipCheck; // this will take sense only if we search by TWIN_CLASS_USER or TWIN_CLASS_BUSINESS_ACCOUNT
     private Set<UUID> headTwinClassIdList;
     private Set<UUID> twinClassExtendsHierarchyContainsIdList;
     private Set<UUID> headTwinIdList;
@@ -49,6 +53,7 @@ public class TwinSearch {
     private Set<TwinTouchEntity.Touch> touchList;
     private Set<TwinTouchEntity.Touch> touchExcludeList;
     private List<TwinFieldSearch> fields;
+    private DataTimeRange createdAt;
 
     public boolean isEmpty() {
         return CollectionUtils.isEmpty(twinIdList) &&
@@ -83,7 +88,8 @@ public class TwinSearch {
                 CollectionUtils.isEmpty(markerDataListOptionIdExcludeList) &&
                 CollectionUtils.isEmpty(touchList) &&
                 CollectionUtils.isEmpty(touchExcludeList) &&
-                CollectionUtils.isEmpty(fields);
+                CollectionUtils.isEmpty(fields) &&
+                createdAt == null;
     }
 
     public TwinSearch addTwinId(UUID twinId, boolean exclude) {
@@ -124,8 +130,6 @@ public class TwinSearch {
         headTwinIdList = CollectionUtils.safeAdd(headTwinIdList, headerTwinIds);
         return this;
     }
-
-
 
     public TwinSearch addStatusId(UUID statusId, boolean exclude) {
         if (exclude)
@@ -194,6 +198,11 @@ public class TwinSearch {
 
     public TwinSearch addHierarchyTreeContainsId(UUID twinId) {
         hierarchyTreeContainsIdList = CollectionUtils.safeAdd(hierarchyTreeContainsIdList, twinId);
+        return this;
+    }
+
+    public TwinSearch addTwinClassExtendsHierarchyContainsId(UUID twinClassId) {
+        twinClassExtendsHierarchyContainsIdList = CollectionUtils.safeAdd(twinClassExtendsHierarchyContainsIdList, twinClassId);
         return this;
     }
 

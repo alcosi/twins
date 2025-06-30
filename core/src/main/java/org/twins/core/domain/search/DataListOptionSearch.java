@@ -3,6 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 
 import java.util.Set;
@@ -32,4 +33,28 @@ public class DataListOptionSearch {
     private Set<String> dataListSubsetKeyExcludeList;
     private Set<DataListOptionEntity.Status> statusIdList;
     private Set<DataListOptionEntity.Status> statusIdExcludeList;
+
+    public DataListOptionSearch addDataListId(UUID datalistId, boolean exclude) {
+        if (exclude)
+            dataListIdExcludeList = CollectionUtils.safeAdd(dataListIdExcludeList, datalistId);
+        else
+            dataListIdList = CollectionUtils.safeAdd(dataListIdList, datalistId);
+        return this;
+    }
+
+    public DataListOptionSearch addBusinessAccountId(UUID businessAccountId, boolean exclude) {
+        if (exclude)
+            businessAccountIdExcludeList = CollectionUtils.safeAdd(businessAccountIdExcludeList, businessAccountId);
+        else
+            businessAccountIdList = CollectionUtils.safeAdd(businessAccountIdList, businessAccountId);
+        return this;
+    }
+
+    public DataListOptionSearch addExternalId(String externalId, boolean exclude) {
+        if (exclude)
+            externalIdNotLikeList = CollectionUtils.safeAdd(externalIdNotLikeList, externalId);
+        else
+            externalIdLikeList = CollectionUtils.safeAdd(externalIdLikeList, externalId);
+        return this;
+    }
 }

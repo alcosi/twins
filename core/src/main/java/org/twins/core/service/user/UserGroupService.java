@@ -18,10 +18,7 @@ import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -30,6 +27,7 @@ import java.util.function.Function;
 public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntity> {
     final UserGroupRepository userGroupRepository;
     final UserGroupTypeRepository userGroupTypeRepository;
+    final UserGroupActAsUserInvolveRepository actAsUserInvolveRepository;
     final FeaturerService featurerService;
     @Lazy
     final AuthService authService;
@@ -72,6 +70,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
 
     public void loadGroups(Collection<UserEntity> userEntityList) throws ServiceException {
         Kit<UserEntity, UUID> needLoad = new Kit<>(UserEntity::getId);
+        ApiUser apiUser = authService.getApiUser();
         for (UserEntity userEntity : userEntityList) {
             if (userEntity.getUserGroups() == null) {
                 userEntity.setUserGroups(new Kit<>(UserGroupEntity::getId));
@@ -80,7 +79,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         }
         if (CollectionUtils.isEmpty(needLoad))
             return;
-        ApiUser apiUser = authService.getApiUser();
+
         UUID businessAccountId = apiUser.isBusinessAccountSpecified() ? apiUser.getBusinessAccountId() : ApiUser.NOT_SPECIFIED; // this will help to call next query
         List<UserGroupTypeEntity> userGroupTypes = userGroupTypeRepository.findValidTypes(apiUser.getDomainId(), businessAccountId);
         if (CollectionUtils.isEmpty(userGroupTypes))
@@ -95,29 +94,51 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
                         needLoad.get(userGroupMap.getUserId()).getUserGroups().add(userGroupMap.getUserGroup());
                 }
         }
+        userGroupsForActAsUserInvolve();
+    }
+
+    private void userGroupsForActAsUserInvolve() throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (apiUser.getActAsUserStep() != ApiUser.ActAsUserStep.USER_GROUP_INVOLVE_NEEDED) {
+            return;
+        }
+        UserEntity actAsUser = apiUser.getUser();
+        List<UserGroupActAsUserInvolveEntity> actAsUserInvolveList = actAsUserInvolveRepository.findByMachineUserIdAndDomainId(apiUser.getMachineUserId(), apiUser.getDomainId());
+        if (CollectionUtils.isEmpty(actAsUserInvolveList)) {
+            log.info("Current machine user has not act as user involve");
+            return;
+        }
+        List<UserGroupEntity> involvedInGroups = actAsUserInvolveList.stream().map(UserGroupActAsUserInvolveEntity::getInvolveInUserGroup).toList();
+        actAsUser.getUserGroups().addAll(involvedInGroups);
+        log.info("Act-as-user was involved into: {}", involvedInGroups.size());
+        apiUser.setActAsUserStep(ApiUser.ActAsUserStep.READY);
+    }
+
+    public void enterGroups(Set<UUID> userGroupIds) throws ServiceException {
+        manageForUser(authService.getApiUser().getUserId(), userGroupIds, null);
     }
 
     public void enterGroup(UUID userGroupId) throws ServiceException {
-        manageForUser(authService.getApiUser().getUserId(), Collections.singletonList(userGroupId), null);
+        manageForUser(authService.getApiUser().getUserId(), Collections.singleton(userGroupId), null);
     }
 
     public void enterGroup(UUID userId, UUID userGroupId) throws ServiceException {
-        manageForUser(userId, Collections.singletonList(userGroupId), null);
+        manageForUser(userId, Collections.singleton(userGroupId), null);
     }
 
     public void exitGroup(UUID userGroupId) throws ServiceException {
-        manageForUser(authService.getApiUser().getUserId(), null, Collections.singletonList(userGroupId));
+        manageForUser(authService.getApiUser().getUserId(), null, Collections.singleton(userGroupId));
     }
 
     public void exitGroup(UUID userId, UUID userGroupId) throws ServiceException {
-        manageForUser(userId, null, Collections.singletonList(userGroupId));
+        manageForUser(userId, null, Collections.singleton(userGroupId));
     }
 
-    public void manageForUser(UUID userId, List<UUID> userGroupEnterList, List<UUID> userGroupExitList) throws ServiceException {
+    public void manageForUser(UUID userId, Set<UUID> userGroupEnterList, Set<UUID> userGroupExitList) throws ServiceException {
         manageForUser(userService.findEntitySafe(userId), userGroupEnterList, userGroupExitList);
     }
 
-    public void manageForUser(UserEntity user, List<UUID> userGroupEnterList, List<UUID> userGroupExitList) throws ServiceException {
+    public void manageForUser(UserEntity user, Set<UUID> userGroupEnterList, Set<UUID> userGroupExitList) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         DomainEntity domainEntity = apiUser.getDomain();
         UserGroupManager userGroupManager = featurerService.getFeaturer(domainEntity.getUserGroupManagerFeaturer(), UserGroupManager.class);

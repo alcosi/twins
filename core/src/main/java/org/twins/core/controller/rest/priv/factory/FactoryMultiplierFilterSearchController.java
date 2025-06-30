@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterEntity;
 import org.twins.core.dto.rest.DTOExamples;
@@ -31,6 +32,7 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryMultiplierFilterSearchService;
 import org.twins.core.service.factory.FactoryMultiplierFilterService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -38,6 +40,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.MULTIPLIER_MANAGE, Permissions.MULTIPLIER_VIEW})
 public class FactoryMultiplierFilterSearchController extends ApiController {
 
     private final PaginationMapper paginationMapper;
@@ -56,7 +59,7 @@ public class FactoryMultiplierFilterSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory_multiplier_filter/search/v1")
     public ResponseEntity<?> factoryMultiplierFilterSearchV1(
-            @MapperContextBinding(roots = FactoryMultiplierFilterRestDTOMapperV2.class, response = FactoryMultiplierFilterSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryMultiplierFilterRestDTOMapperV2.class, response = FactoryMultiplierFilterSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody FactoryMultiplierFilterSearchRqDTOv1 request) {
         FactoryMultiplierFilterSearchRsDTOv1 rs = new FactoryMultiplierFilterSearchRsDTOv1();
@@ -84,7 +87,7 @@ public class FactoryMultiplierFilterSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/factory_multiplier_filter/{multiplierId}/v1")
     public ResponseEntity<?> factoryMultiplierFilterViewV1(
-            @MapperContextBinding(roots = FactoryMultiplierFilterRestDTOMapperV2.class, response = FactoryMultiplierFilterViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryMultiplierFilterRestDTOMapperV2.class, response = FactoryMultiplierFilterViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.MULTIPLIER_ID) @PathVariable("multiplierId") UUID multiplierId) {
         FactoryMultiplierFilterViewRsDTOv1 rs = new FactoryMultiplierFilterViewRsDTOv1();
         try {

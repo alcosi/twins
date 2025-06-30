@@ -13,7 +13,7 @@ import java.util.Properties;
         regexp = FeaturerParamStringTwinsEditorType.EDITOR_TYPE_REGEXP,
         example = "PLAIN")
 public class FeaturerParamStringTwinsEditorType extends FeaturerParam<FieldTyperTextField.TextEditorType> {
-    public static final String EDITOR_TYPE_REGEXP = "PLAIN|MARKDOWN_GITHUB|MARKDOWN_BASIC";
+    public static final String EDITOR_TYPE_REGEXP = "PLAIN|MARKDOWN_GITHUB|MARKDOWN_BASIC|HTML";
 
     public FeaturerParamStringTwinsEditorType(String key) {super(key);}
 

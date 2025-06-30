@@ -20,6 +20,17 @@ public class JsonUtils {
             .configure(JsonReadFeature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER.mappedFeature(), true)
             .configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature(), true);
 
+    public static String mask(String[] fieldNames, String message) {
+        for (String name : fieldNames) {
+            String regex = "(\"" + name + "\":\\s*\")([^\"]+)(\")";
+            Matcher matcher = Pattern.compile("(\"" + name + "\":\\s*\")([^\"]+)(\")").matcher(message);
+            while (matcher.find()) {
+                message = message.replaceAll(regex, "$1" + mask() + "$3");
+            }
+        }
+        return message;
+    }
+
     public static String mask(String[] nameList, String[] emailList, String message) {
         for (String name : nameList) {
             String regex = "(\"" + name + "\":\\s*\")([^\"]+)(\")";
@@ -70,5 +81,9 @@ public class JsonUtils {
         } catch (JsonProcessingException e) {
             return null;
         }
+    }
+
+    private static String mask() {
+        return "*******";
     }
 }

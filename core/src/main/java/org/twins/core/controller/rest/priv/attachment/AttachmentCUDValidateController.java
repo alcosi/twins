@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.attachment.AttachmentCUDValidateResult;
 import org.twins.core.dto.rest.attachment.AttachmentCUDValidateRqDTOv1;
 import org.twins.core.dto.rest.attachment.AttachmentCUDValidateRsDTOv1;
@@ -27,11 +28,13 @@ import org.twins.core.mappers.rest.attachment.AttachmentCUDValidateRestDTORevers
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.attachment.AttachmentRestrictionService;
+import org.twins.core.service.permission.Permissions;
 
 @Tag(description = "", name = ApiTag.ATTACHMENT)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.ATTACHMENT_MANAGE, Permissions.ATTACHMENT_VALIDATE})
 public class AttachmentCUDValidateController extends ApiController {
 
     private final AttachmentCUDValidateRestDTOReverseMapper attachmentCUDValidateRestDTOReverseMapper;
@@ -48,7 +51,7 @@ public class AttachmentCUDValidateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/attachment/validate_cud/v1")
     public ResponseEntity<?> attachmentValidateV1(
-            @MapperContextBinding(roots = AttachmentCUDValidateRestDTOMapper.class, response = AttachmentCUDValidateRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = AttachmentCUDValidateRestDTOMapper.class, response = AttachmentCUDValidateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody AttachmentCUDValidateRqDTOv1 request) {
         AttachmentCUDValidateRsDTOv1 rs = new AttachmentCUDValidateRsDTOv1();
         try {

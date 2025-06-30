@@ -19,19 +19,22 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
+import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.service.datalist.DataListService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
-@Tag(name = ApiTag.TWIN_CLASS)
+@Tag(description = "", name = ApiTag.TWIN_CLASS)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_VIEW})
 public class TwinClassFieldSharedController extends ApiController {
     private final DataListService dataListService;
     private final DataListRestDTOMapperV2 dataListRestDTOMapperV2;
@@ -45,7 +48,7 @@ public class TwinClassFieldSharedController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class_field/{twinClassFieldId}/data_list_shared_in_head/{headTwinId}/v1")
     public ResponseEntity<?> twinClassFieldDataListSharedInHeadV1(
-            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_FIELD_SHARED_IN_HEAD_ID) @PathVariable UUID twinClassFieldId,
             @Parameter(example = DTOExamples.HEAD_TWIN_ID) @PathVariable UUID headTwinId) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();

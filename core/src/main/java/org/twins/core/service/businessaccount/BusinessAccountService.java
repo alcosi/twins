@@ -11,11 +11,14 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.businessaccount.*;
+import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.businessaccount.BusinessAccountEntity;
+import org.twins.core.dao.businessaccount.BusinessAccountRepository;
+import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
+import org.twins.core.dao.businessaccount.BusinessAccountUserRepository;
 import org.twins.core.dao.domain.DomainUserEntity;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.domain.ApiUser;
-import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
+import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
@@ -60,34 +63,7 @@ public class BusinessAccountService extends EntitySecureFindServiceImpl<Business
         return true;
     }
 
-    public BusinessAccountEntity findById(UUID businessAccountId, EntitySmartService.FindMode findMode) throws ServiceException {
-        return entitySmartService.findById(businessAccountId, businessAccountRepository, findMode);
-    }
-
-    public UUID checkBusinessAccountId(UUID businessAccountId, EntitySmartService.CheckMode checkMode) throws ServiceException {
-        return entitySmartService.check(businessAccountId, businessAccountRepository, checkMode);
-    }
-
-    public void addUser(UUID businessAccountId, UUID userId, EntitySmartService.SaveMode businessAccountEntityCreateMode, EntitySmartService.SaveMode userCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
-        userService.addUser(userId, userCreateMode);
-        addBusinessAccount(businessAccountId, null, businessAccountEntityCreateMode);
-        BusinessAccountUserNoRelationProjection existed = businessAccountUserRepository.findByBusinessAccountIdAndUserId(businessAccountId, userId, BusinessAccountUserNoRelationProjection.class);
-        if (existed != null) {
-            if (ignoreAlreadyExists)
-                return;
-            else
-                throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_USER_ALREADY_EXISTS, "user[" + userId + "] is already registered in businessAccount[" + businessAccountId + "]");
-        }
-        BusinessAccountUserEntity businessAccountUserEntity = new BusinessAccountUserEntity()
-                .setBusinessAccountId(businessAccountId)
-                .setUserId(userId);
-        entitySmartService.save(businessAccountUserEntity, businessAccountUserRepository, EntitySmartService.SaveMode.saveAndLogOnException);
-    }
-
-    public BusinessAccountEntity addBusinessAccount(UUID businessAccountId, String name) throws ServiceException {
-        return addBusinessAccount(businessAccountId, name, EntitySmartService.SaveMode.saveAndLogOnException);
-    }
-
+    @Transactional(rollbackFor = Throwable.class)
     public BusinessAccountEntity addBusinessAccount(UUID businessAccountId, String name, EntitySmartService.SaveMode entityCreateMode) throws ServiceException {
         BusinessAccountEntity businessAccountEntity = new BusinessAccountEntity()
                 .setId(businessAccountId)
@@ -95,39 +71,19 @@ public class BusinessAccountService extends EntitySecureFindServiceImpl<Business
                 .setCreatedAt(Timestamp.from(Instant.now()));
         EntitySmartService.SaveResult<BusinessAccountEntity> saveResult = entitySmartService.saveWithResult(businessAccountId, businessAccountEntity, businessAccountRepository, entityCreateMode);
         if (saveResult.isWasCreated()) {
-            twinService.duplicateTwin(systemEntityService.getTwinIdTemplateForBusinessAccount(), businessAccountEntity.getId());
+            if (!authService.getApiUser().isBusinessAccountSpecified()) {
+                authService.getApiUser()
+                        .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId)) // welcome to new BA
+                        .setCheckMembershipMode(false); // BA is just created, so no sense to check BA - User membership
+            }
+            TwinDuplicate twinDuplicate = twinService.createDuplicateTwin(systemEntityService.getTwinIdTemplateForBusinessAccount(), businessAccountEntity.getId());
+            twinService.saveDuplicateTwin(twinDuplicate);
         }
         return saveResult.getSavedEntity();
     }
 
     public void updateBusinessAccount(BusinessAccountEntity businessAccountEntity) throws ServiceException {
         businessAccountRepository.save(businessAccountEntity);
-    }
-
-    public void deleteUser(UUID businessAccountId, UUID userId) throws ServiceException {
-        BusinessAccountUserNoRelationProjection businessAccountUserEntity = businessAccountUserRepository.findByBusinessAccountIdAndUserId(businessAccountId, userId, BusinessAccountUserNoRelationProjection.class);
-        if (businessAccountUserEntity == null)
-            throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_NOT_EXISTS, "user[" + userId + "] is not registered in businessAccount[" + businessAccountId + "] ");
-        entitySmartService.deleteAndLog(businessAccountUserEntity.id(), businessAccountUserRepository);
-    }
-
-    public Set<UUID> getValidBusinessAccountIdSetByTwinClass(TwinClassEntity twinClassEntity) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        List<UUID> businessAccountIdList = null;
-        switch (twinClassEntity.getOwnerType()) {
-            case DOMAIN_BUSINESS_ACCOUNT:
-            case DOMAIN_BUSINESS_ACCOUNT_USER:
-                businessAccountIdList = businessAccountRepository.findBusinessAccountIdByUserIdAndDomainId(apiUser.getUser().getId(), apiUser.getDomain().getId());
-                break;
-            case USER:
-                businessAccountIdList = businessAccountRepository.findBusinessAccountIdByUser(apiUser.getUser().getId());
-                break;
-            case DOMAIN_USER:
-            case DOMAIN:
-                businessAccountIdList = businessAccountRepository.findBusinessAccountIdByDomainId(apiUser.getDomain().getId());
-                break;
-        }
-        return businessAccountIdList != null ? Set.copyOf(businessAccountIdList) : null;
     }
 
     public void loadBusinessAccounts(DomainUserEntity domainUser) {

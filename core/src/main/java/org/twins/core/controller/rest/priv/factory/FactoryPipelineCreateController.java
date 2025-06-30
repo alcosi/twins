@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryPipelineCreateRqDTOv1;
@@ -25,6 +26,7 @@ import org.twins.core.mappers.rest.factory.FactoryPipelineRestDTOMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryPipelineService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -32,6 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.PIPELINE_MANAGE, Permissions.PIPELINE_CREATE})
 public class FactoryPipelineCreateController extends ApiController {
     private final FactoryPipelineRestDTOMapperV2 factoryPipelineRestDTOMapperV2;
     private final FactoryPipelineCreateDTOReverseMapper factoryPipelineCreateDTOReverseMapper;
@@ -47,7 +50,7 @@ public class FactoryPipelineCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory/{factoryId}/factory_pipeline/v1")
     public ResponseEntity<?> factoryPipelineCreateV1(
-            @MapperContextBinding(roots = FactoryPipelineRestDTOMapperV2.class, response = FactoryPipelineRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryPipelineRestDTOMapperV2.class, response = FactoryPipelineRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_ID) @PathVariable UUID factoryId,
             @RequestBody FactoryPipelineCreateRqDTOv1 request) {
         FactoryPipelineRsDTOv1 rs = new FactoryPipelineRsDTOv1();

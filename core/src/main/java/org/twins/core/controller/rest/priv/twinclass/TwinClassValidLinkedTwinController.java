@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
@@ -29,6 +30,7 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twin.TwinSearchSimpleDTOReverseMapper;
 import org.twins.core.service.link.TwinLinkService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -36,6 +38,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_VIEW})
 public class TwinClassValidLinkedTwinController extends ApiController {
     private final TwinLinkService twinLinkService;
     private final TwinSearchSimpleDTOReverseMapper twinSearchSimpleDTOReverseMapper;
@@ -51,7 +54,7 @@ public class TwinClassValidLinkedTwinController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_class/{twinClassId}/link/{linkId}/valid_twins/v1")
     public ResponseEntity<?> validLinkedTwinV1(
-            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
             @Parameter(example = DTOExamples.LINK_ID) @PathVariable UUID linkId,
             @RequestParam(required = false) UUID headTwinId,

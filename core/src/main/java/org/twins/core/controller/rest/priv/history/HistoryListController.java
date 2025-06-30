@@ -19,6 +19,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dto.rest.DTOExamples;
@@ -33,6 +34,7 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.history.HistorySearchService;
 import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -40,6 +42,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy(Permissions.HISTORY_VIEW)
 public class HistoryListController extends ApiController {
     private final HistoryService historyService;
     private final HistorySearchService historySearchService;
@@ -57,7 +60,7 @@ public class HistoryListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin/{twinId}/history/list/v1")
     public ResponseEntity<?> historyListV1(
-            @MapperContextBinding(roots = HistoryDTOMapperV1.class, response = HistoryListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = HistoryDTOMapperV1.class, response = HistoryListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.childDepth, defaultValue = "0") int childDepth,
             @SimplePaginationParams(sortAsc = false, sortField = HistoryEntity.Fields.createdAt) SimplePagination pagination) {
@@ -85,7 +88,7 @@ public class HistoryListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/history/search/v1")
     public ResponseEntity<?> historySearchV1(
-            @MapperContextBinding(roots = HistoryDTOMapperV1.class, response = HistorySearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = HistoryDTOMapperV1.class, response = HistorySearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams(sortAsc = false, sortField = HistoryEntity.Fields.createdAt) SimplePagination pagination,
             @RequestBody HistorySearchRqDTOv1 request) {
         HistorySearchRsDTOv1 rs = new HistorySearchRsDTOv1();
@@ -114,7 +117,7 @@ public class HistoryListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin/history/{historyId}/v1")
     public ResponseEntity<?> historyViewV1(
-            @MapperContextBinding(roots = HistoryDTOMapperV1.class, response = HistoryViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = HistoryDTOMapperV1.class, response = HistoryViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_HISTORY_ID) @PathVariable("historyId") UUID historyId) {
         HistoryViewRsDTOv1 rs = new HistoryViewRsDTOv1();
         try {

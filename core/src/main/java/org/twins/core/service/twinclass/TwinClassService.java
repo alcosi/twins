@@ -263,6 +263,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         List<TwinClassEntity> childClasses = twinClassRepository.findByDomainIdAndHeadHierarchyContains(authService.getApiUser().getDomainId(), String.join(",", classLTree));
         for (TwinClassEntity twinClass : needLoad) {
             for (TwinClassEntity childClass : childClasses) {
+                if (childClass.getId().equals(twinClass.getId()))
+                    continue;
                 if (childClass.getHeadHierarchyClassIdSet().contains(twinClass.getId()))
                     twinClass.getHeadHierarchyChildClassKit().add(childClass);
             }
@@ -384,6 +386,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
             if (twinClass.getHeadHunterFeaturerId() != null) {
                 featurerService.checkValid(twinClass.getHeadHunterFeaturerId(), twinClass.getHeadHunterParams(), HeadHunter.class);
+                featurerService.prepareForStore(twinClass.getHeadHunterFeaturerId(), twinClass.getHeadHunterParams());
             }
 
             if (twinClass.getExtendsTwinClassId() != null) {
@@ -415,11 +418,12 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
         for (TwinClassEntity savedClass : savedClasses) {
             Boolean autoCreatePerms = createByOriginalKey.get(savedClass.getKey()).getAutoCreatePermission();
+            Boolean autoCreateTwinflow = createByOriginalKey.get(savedClass.getKey()).getAutoCreateTwinflow();
 
             refreshExtendsHierarchyTree(savedClass);
             refreshHeadHierarchyTree(savedClass);
 
-            if (autoCreatePerms != null && autoCreatePerms) {
+            if (Boolean.TRUE.equals(autoCreatePerms)) {
                 Map<PermissionService.DefaultClassPermissionsPrefix, PermissionEntity> permissions =
                         permissionService.createDefaultPermissionsForNewInDomainClass(savedClass);
 
@@ -454,9 +458,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             refreshHeadHierarchyTree(savedClass);
 
             //todo batch create for twinStatus and twinflow
-            TwinStatusEntity status = twinStatusService.createStatus(savedClass, "init", "Initial status");
-            TwinflowEntity twinflow = twinflowService.createTwinflow(savedClass, status);
-            twinflowService.registerTwinflow(twinflow, apiUser.getDomain(), savedClass);
+            if (Boolean.TRUE.equals(autoCreateTwinflow)) {
+                TwinStatusEntity status = twinStatusService.createStatus(savedClass, "init", "Initial status");
+                TwinflowEntity twinflow = twinflowService.createTwinflow(savedClass, status);
+                twinflowService.registerTwinflow(twinflow, apiUser.getDomain(), savedClass);
+            }
         }
 
         if (!classesWithPermissions.isEmpty()) {
@@ -585,6 +591,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                     .setHeadHunterFeaturerId(newHeadHunterFeaturer.getId())
                     .setHeadHunterFeaturer(newHeadHunterFeaturer);
         }
+        featurerService.prepareForStore(newHeadhunterFeaturerId, headHunterParams);
         if (!MapUtils.areEqual(dbTwinClassEntity.getHeadHunterParams(), headHunterParams)) {
             changesHelper.add(TwinClassEntity.Fields.headHunterParams, dbTwinClassEntity.getHeadHunterParams(), headHunterParams);
             dbTwinClassEntity

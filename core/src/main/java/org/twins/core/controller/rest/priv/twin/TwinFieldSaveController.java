@@ -19,6 +19,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.TwinField;
 import org.twins.core.dto.rest.DTOExamples;
@@ -33,6 +34,7 @@ import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.List;
@@ -42,6 +44,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_UPDATE})
 public class TwinFieldSaveController extends ApiController {
     private final TwinService twinService;
     private final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
@@ -112,7 +115,7 @@ public class TwinFieldSaveController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/{twinId}/field_list/v1")
     public ResponseEntity<?> twinFieldListUpdateV1(
-            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinRsDTOv2.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestBody TwinFieldListUpdateRqDTOv1 request) {
         TwinRsDTOv2 rs = new TwinRsDTOv2();

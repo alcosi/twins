@@ -23,6 +23,7 @@ public class FieldLookuperFromItemOutputLinkedTwinFields extends FieldLookuperLi
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + linkedTwinByTwinClassFieldId + "] is empty for " + twinEntity);
         if (itemOutputFieldLink.getTwinLinks().size() > 1)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + linkedTwinByTwinClassFieldId + "] has " + itemOutputFieldLink.getTwinLinks().size() +  " linked twins in  " + twinEntity);
-        return getFreshestValue(itemOutputFieldLink.getTwinLinks().get(0).getDstTwin(), lookupTwinClassFieldId, factoryItem.getFactoryContext(), "TwinClassField[" + lookupTwinClassFieldId + "] is not present in output item linked twin fields");
+        TwinEntity linkDstTwin = twinLinkService.getDstTwinSafe(itemOutputFieldLink.getTwinLinks().getFirst());
+        return getFreshestValue(linkDstTwin, lookupTwinClassFieldId, factoryItem.getFactoryContext(), "TwinClassField[" + lookupTwinClassFieldId + "] is not present in output item linked twin fields");
     }
 }

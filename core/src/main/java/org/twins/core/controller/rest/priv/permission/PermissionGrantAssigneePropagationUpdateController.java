@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.permission.PermissionGrantAssigneePropagationEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionGrantAssigneePropagationRsDTOv1;
@@ -25,13 +26,15 @@ import org.twins.core.mappers.rest.permission.PermissionGrantAssigneePropagation
 import org.twins.core.mappers.rest.permission.PermissionGrantAssigneePropagationUpdateDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantAssigneePropagationService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
-@Tag(description = "", name = ApiTag.PERMISSION)
+@Tag(description = "Update permission grant assignee propagation", name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_MANAGE, Permissions.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_UPDATE})
 public class PermissionGrantAssigneePropagationUpdateController extends ApiController {
     private final PermissionGrantAssigneePropagationService permissionGrantAssigneePropagationService;
     private final PermissionGrantAssigneePropagationRestDTOMapperV2 permissionGrantAssigneePropagationRestDTOMapperV2;
@@ -47,7 +50,7 @@ public class PermissionGrantAssigneePropagationUpdateController extends ApiContr
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/permission_grant/assingee_propagation/{permissionGrantAssigneePropagationId}/v1")
     public ResponseEntity<?> permissionGrantAssigneePropagationUpdateV1(
-            @MapperContextBinding(roots = PermissionGrantAssigneePropagationRestDTOMapperV2.class, response = PermissionGrantAssigneePropagationRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantAssigneePropagationRestDTOMapperV2.class, response = PermissionGrantAssigneePropagationRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_ID) @PathVariable UUID permissionGrantAssigneePropagationId,
             @RequestBody PermissionGrantAssigneePropagationUpdateRqDTOv1 request) {
 

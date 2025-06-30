@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dto.rest.factory.FactoryCreateRqDTOv1;
@@ -28,11 +29,13 @@ import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.permission.Permissions;
 
 @Tag(name = ApiTag.FACTORY)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.FACTORY_MANAGE, Permissions.FACTORY_CREATE})
 public class FactoryCreateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final FactoryCreateDTOReverseMapper factoryCreateDTOReverseMapper;
@@ -49,7 +52,7 @@ public class FactoryCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory/v1")
     public ResponseEntity<?> factoryCreateV1(
-            @MapperContextBinding(roots = FactoryRestDTOMapperV2.class, response = FactoryRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryRestDTOMapperV2.class, response = FactoryRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody FactoryCreateRqDTOv1 request) {
         FactoryRsDTOv1 rs = new FactoryRsDTOv1();
         try {

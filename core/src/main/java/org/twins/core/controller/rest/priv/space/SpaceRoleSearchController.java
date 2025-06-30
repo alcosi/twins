@@ -20,6 +20,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dto.rest.space.SpaceRoleSearchRqDTOv1;
@@ -29,12 +30,14 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.space.SpaceRoleDTOMapperV2;
 import org.twins.core.mappers.rest.space.SpaceRoleSearchDTOReverseMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.space.SpaceRoleSearchService;
 
 @Tag(name = ApiTag.SPACE)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.SPACE_ROLE_MANAGE, Permissions.SPACE_ROLE_VIEW})
 public class SpaceRoleSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
@@ -51,7 +54,7 @@ public class SpaceRoleSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/space_role/search/v1")
     public ResponseEntity<?> spaceRoleSearchListV1(
-            @MapperContextBinding(roots = SpaceRoleDTOMapperV2.class, response = SpaceRoleSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = SpaceRoleDTOMapperV2.class, response = SpaceRoleSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody SpaceRoleSearchRqDTOv1 request,
             @SimplePaginationParams SimplePagination pagination) {
         SpaceRoleSearchRsDTOv1 rs = new SpaceRoleSearchRsDTOv1();

@@ -5,6 +5,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
+import org.twins.core.domain.auth.AuthSignup;
+import org.twins.core.domain.auth.EmailVerificationHolder;
 import org.twins.core.domain.auth.method.AuthMethod;
 import org.twins.core.domain.auth.method.AuthMethodStub;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -28,6 +30,11 @@ public class IdentityProviderStub extends IdentityProviderConnector {
 
     @Override
     protected ClientSideAuthData login(Properties properties, String username, String password, String fingerprint) throws ServiceException {
+        throw new ServiceException(ErrorCodeTwins.IDP_PASSWORD_LOGIN_NOT_SUPPORTED);
+    }
+
+    @Override
+    protected ClientSideAuthData m2mAuth(Properties properties, String clientId, String clientSecret) throws ServiceException {
         throw new ServiceException(ErrorCodeTwins.IDP_PASSWORD_LOGIN_NOT_SUPPORTED);
     }
 
@@ -56,5 +63,20 @@ public class IdentityProviderStub extends IdentityProviderConnector {
     @Override
     public void logout(Properties properties, ClientLogoutData clientLogoutData) throws ServiceException {
         throw new ServiceException(ErrorCodeTwins.IDP_LOGOUT_NOT_SUPPORTED);
+    }
+
+    @Override
+    public EmailVerificationHolder signupByEmailInitiate(Properties properties, AuthSignup authSignup) throws ServiceException {
+        throw new ServiceException(ErrorCodeTwins.IDP_SIGNUP_NOT_SUPPORTED);
+    }
+
+    @Override
+    public void signupByEmailActivate(Properties properties, UUID twinsUserId, String email, String idpUserActivateToken) throws ServiceException {
+        throw new ServiceException(ErrorCodeTwins.IDP_SIGNUP_NOT_SUPPORTED);
+    }
+
+    @Override
+    public void switchActiveBusinessAccount(Properties properties, String authToken, UUID domainId, UUID businessAccountId) throws ServiceException {
+        throw new ServiceException(ErrorCodeTwins.IDP_SWITCH_ACTIVE_BUSINESS_ACCOUNT_NOT_SUPPORTED);
     }
 }

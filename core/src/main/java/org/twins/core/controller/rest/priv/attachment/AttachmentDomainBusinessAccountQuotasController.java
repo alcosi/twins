@@ -17,17 +17,20 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.attachment.AttachmentQuotasRsDTOv1;
 import org.twins.core.mappers.rest.attachment.AttachmentQuotasRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.domain.TierService;
+import org.twins.core.service.permission.Permissions;
 
 
 @Tag(description = "", name = ApiTag.ATTACHMENT)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.DOMAIN_BUSINESS_ACCOUNT_MANAGE, Permissions.DOMAIN_BUSINESS_ACCOUNT_VIEW})
 public class AttachmentDomainBusinessAccountQuotasController extends ApiController {
 
     private final AttachmentQuotasRestDTOMapper attachmentQuotasRestDTOMapper;
@@ -44,7 +47,7 @@ public class AttachmentDomainBusinessAccountQuotasController extends ApiControll
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/attachment/quotas/domain_business_account/v1")
     public ResponseEntity<?> attachmentDomainBusinessAccountQuotasV1(
-            @MapperContextBinding(roots = AttachmentQuotasRestDTOMapper.class, response = AttachmentQuotasRsDTOv1.class) MapperContext mapperContext) {
+            @MapperContextBinding(roots = AttachmentQuotasRestDTOMapper.class, response = AttachmentQuotasRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext) {
         AttachmentQuotasRsDTOv1 rs = new AttachmentQuotasRsDTOv1();
         try {
             rs.setQuotas(

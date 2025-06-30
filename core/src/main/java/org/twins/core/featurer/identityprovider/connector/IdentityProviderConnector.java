@@ -3,6 +3,8 @@ package org.twins.core.featurer.identityprovider.connector;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
+import org.twins.core.domain.auth.AuthSignup;
+import org.twins.core.domain.auth.EmailVerificationHolder;
 import org.twins.core.domain.auth.method.AuthMethod;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.identityprovider.ClientLogoutData;
@@ -12,6 +14,7 @@ import org.twins.core.featurer.identityprovider.TokenMetaData;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
 
 @FeaturerType(id = FeaturerTwins.TYPE_19,
@@ -25,6 +28,13 @@ public abstract class IdentityProviderConnector extends FeaturerTwins {
     }
 
     protected abstract ClientSideAuthData login(Properties properties, String username, String password, String fingerprint) throws ServiceException;
+
+    public ClientSideAuthData m2mAuth(HashMap<String, String> identityProviderConnectorParams, String clientId, String clientSecret) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, identityProviderConnectorParams, new HashMap<>());
+        return m2mAuth(properties, clientId, clientSecret);
+    }
+
+    protected abstract ClientSideAuthData m2mAuth(Properties properties, String clientId, String clientSecret) throws ServiceException;
 
     public ClientSideAuthData refresh(HashMap<String, String> identityProviderConnectorParams, String refreshToken, String fingerprint) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, identityProviderConnectorParams, new HashMap<>());
@@ -51,5 +61,29 @@ public abstract class IdentityProviderConnector extends FeaturerTwins {
         Properties properties = featurerService.extractProperties(this, identityProviderConnectorParams, new HashMap<>());
         logout(properties, logoutData);
     }
+
     public abstract void logout(Properties properties, ClientLogoutData clientLogoutData) throws ServiceException;
+
+    public EmailVerificationHolder signupByEmailInitiate(HashMap<String, String> identityProviderConnectorParams, AuthSignup authSignup) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, identityProviderConnectorParams, new HashMap<>());
+        return signupByEmailInitiate(properties, authSignup);
+    }
+
+    public abstract EmailVerificationHolder signupByEmailInitiate(Properties properties, AuthSignup authSignup) throws ServiceException;
+
+    public void signupByEmailActivate(HashMap<String, String> identityProviderConnectorParams, UUID twinsUserId, String email, String idpUserActivateToken) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, identityProviderConnectorParams, new HashMap<>());
+        signupByEmailActivate(properties, twinsUserId, email, idpUserActivateToken);
+    }
+
+    public abstract void signupByEmailActivate(Properties properties, UUID twinsUserId, String email, String idpUserActivateToken) throws ServiceException;
+
+
+    public void switchActiveBusinessAccount(HashMap<String, String> identityProviderConnectorParams, String authToken, UUID domainId, UUID businessAccountId) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, identityProviderConnectorParams, new HashMap<>());
+        switchActiveBusinessAccount(properties, authToken, domainId, businessAccountId);
+    }
+
+    public abstract void switchActiveBusinessAccount(Properties properties, String authToken, UUID domainId, UUID businessAccountId) throws ServiceException;
+
 }

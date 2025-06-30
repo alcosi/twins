@@ -20,6 +20,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldSearchRqDTOv1;
@@ -29,12 +30,14 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldSearchDTOReverseMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassFieldSearchService;
 
-@Tag(name = ApiTag.TWIN_CLASS)
+@Tag(description = "", name = ApiTag.TWIN_CLASS)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_VIEW})
 public class TwinClassFieldSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final TwinClassFieldSearchDTOReverseMapper twinClassFieldSearchDTOReverseMapper;
@@ -51,7 +54,7 @@ public class TwinClassFieldSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_class_fields/search/v1")
     public ResponseEntity<?> twinClassFieldSearchV1(
-            @MapperContextBinding(roots = TwinClassFieldRestDTOMapperV2.class, response = TwinClassFieldSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinClassFieldRestDTOMapperV2.class, response = TwinClassFieldSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody TwinClassFieldSearchRqDTOv1 request) {
         TwinClassFieldSearchRsDTOv1 rs = new TwinClassFieldSearchRsDTOv1();

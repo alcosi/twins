@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dto.rest.DTOExamples;
@@ -31,6 +32,7 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactorySearchService;
 import org.twins.core.service.factory.FactoryService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -38,6 +40,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.FACTORY_MANAGE, Permissions.FACTORY_VIEW})
 public class FactorySearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;
@@ -55,7 +58,7 @@ public class FactorySearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory/search/v1")
     public ResponseEntity<?> factorySearchListV1(
-            @MapperContextBinding(roots = FactoryRestDTOMapperV2.class, response = FactorySearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryRestDTOMapperV2.class, response = FactorySearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody FactorySearchRqDTOv1 request) {
         FactorySearchRsDTOv1 rs = new FactorySearchRsDTOv1();
@@ -83,7 +86,7 @@ public class FactorySearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/factory/{factoryId}/v1")
     public ResponseEntity<?> factoryViewV1(
-            @MapperContextBinding(roots = FactoryRestDTOMapperV2.class, response = FactoryViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryRestDTOMapperV2.class, response = FactoryViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_ID) @PathVariable("factoryId") UUID factoryId) {
         FactoryViewRsDTOv1 rs = new FactoryViewRsDTOv1();
         try {

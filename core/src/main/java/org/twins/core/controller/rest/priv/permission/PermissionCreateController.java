@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dto.rest.permission.PermissionCreateRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionCreateRsDTOv1;
@@ -26,11 +27,13 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionCreateRestReverseDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.permission.Permissions;
 
-@Tag(description = "", name = ApiTag.PERMISSION)
+@Tag(description = "Create permission", name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.PERMISSION_MANAGE, Permissions.PERMISSION_CREATE})
 public class PermissionCreateController extends ApiController {
 
     private final PermissionRestDTOMapper permissionRestDTOMapper;
@@ -47,7 +50,7 @@ public class PermissionCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission/v1")
     public ResponseEntity<?> permissionCreateV1(
-            @MapperContextBinding(roots = PermissionRestDTOMapper.class, response = PermissionCreateRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionRestDTOMapper.class, response = PermissionCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody PermissionCreateRqDTOv1 request) {
         PermissionCreateRsDTOv1 rs = new PermissionCreateRsDTOv1();
         try {

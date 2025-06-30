@@ -16,21 +16,22 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.twinclass.*;
-import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldRsDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldSave;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldUpdateRqDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldUpdateRqDTOv2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapperV2;
-import org.twins.core.mappers.rest.twinclass.TwinClassFieldSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldUpdateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldUpdateRestDTOReverseMapperV2;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,6 +39,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_UPDATE})
 public class TwinClassFieldUpdateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final TwinClassFieldService twinClassFieldService;
@@ -55,7 +57,7 @@ public class TwinClassFieldUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin_class_field/{twinClassFieldId}/v1")
     public ResponseEntity<?> twinClassFieldUpdateV1(
-            @MapperContextBinding(roots = TwinClassFieldRestDTOMapperV2.class, response = TwinClassFieldRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinClassFieldRestDTOMapperV2.class, response = TwinClassFieldRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_FIELD_ID) @PathVariable UUID twinClassFieldId,
             @RequestBody TwinClassFieldUpdateRqDTOv1 request) {
         TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();

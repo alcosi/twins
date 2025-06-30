@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListOptionMapRqDTOv1;
@@ -25,6 +26,7 @@ import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapperV3;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.datalist.DataListOptionService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -32,6 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.DATA_LIST_OPTION_MANAGE, Permissions.DATA_LIST_OPTION_VIEW})
 public class DataListOptionController extends ApiController {
     private final DataListOptionService dataListOptionService;
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
@@ -46,7 +49,7 @@ public class DataListOptionController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/data_list_option/{dataListOptionId}/v1")
     public ResponseEntity<?> dataListOptionV1(
-            @MapperContextBinding(roots = DataListOptionRestDTOMapperV3.class, response = DataListOptionRsDTOv3.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListOptionRestDTOMapperV3.class, response = DataListOptionRsDTOv3.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_OPTION_ID) @PathVariable UUID dataListOptionId) {
         DataListOptionRsDTOv3 rs = new DataListOptionRsDTOv3();
         try {
@@ -70,7 +73,7 @@ public class DataListOptionController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/data_list_option/map/v1", method = RequestMethod.POST)
     public ResponseEntity<?> dataListsOptionsMapV1(
-            @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, response = DataListOptionMapRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, response = DataListOptionMapRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody DataListOptionMapRqDTOv1 request) {
         DataListOptionMapRsDTOv1 rs = new DataListOptionMapRsDTOv1();
         try {

@@ -18,20 +18,22 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryConditionSetSearchRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryConditionSetSearchRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryConditionSetViewRsDTOv1;
+import org.twins.core.mappers.rest.factory.FactoryConditionSetRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryConditionSetRestDTOMapperV2;
 import org.twins.core.mappers.rest.factory.FactoryConditionSetSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
-import org.twins.core.mappers.rest.factory.FactoryConditionSetRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryConditionSetSearchService;
 import org.twins.core.service.factory.FactoryConditionSetService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -39,6 +41,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.CONDITION_SET_MANAGE, Permissions.CONDITION_SET_VIEW})
 public class FactoryConditionSetSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
@@ -56,7 +59,7 @@ public class FactoryConditionSetSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory_condition_set/search/v1")
     public ResponseEntity<?> factoryConditionSetSearchV1(
-            @MapperContextBinding(roots = FactoryConditionSetRestDTOMapperV2.class, response = FactoryConditionSetSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryConditionSetRestDTOMapperV2.class, response = FactoryConditionSetSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody FactoryConditionSetSearchRqDTOv1 request) {
         FactoryConditionSetSearchRsDTOv1 rs = new FactoryConditionSetSearchRsDTOv1();
@@ -84,7 +87,7 @@ public class FactoryConditionSetSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/factory_condition_set/{factoryConditionSetId}/v1")
     public ResponseEntity<?> factoryConditionSetViewV1(
-            @MapperContextBinding(roots = FactoryConditionSetRestDTOMapper.class, response = FactoryConditionSetViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryConditionSetRestDTOMapper.class, response = FactoryConditionSetViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_CONDITION_SET_ID) @PathVariable("factoryConditionSetId") UUID factoryConditionSetId) {
         FactoryConditionSetViewRsDTOv1 rs = new FactoryConditionSetViewRsDTOv1();
         try {

@@ -24,6 +24,8 @@ public class DraftNormalizeService {
     private final DraftTwinAttachmentRepository draftTwinAttachmentRepository;
     private final DraftTwinLinkRepository draftTwinLinkRepository;
     private final DraftTwinFieldSimpleRepository draftTwinFieldSimpleRepository;
+    private final DraftTwinFieldSimpleNonIndexedRepository draftTwinFieldSimpleNonIndexedRepository;
+    private final DraftTwinFieldBooleanRepository draftTwinFieldBooleanRepository;
     private final DraftTwinFieldUserRepository draftTwinFieldUserRepository;
     private final DraftTwinFieldDataListRepository draftTwinFieldDataListRepository;
     private final DraftTwinPersistRepository draftTwinPersistRepository;
@@ -77,6 +79,18 @@ public class DraftNormalizeService {
             normalizeCount = draftTwinFieldSimpleRepository.normalizeDraft(draftCollector.getDraftId());
             draftCounters
                     .invalidateIfNotZero(FIELDS_SIMPLE, normalizeCount);
+        }
+        if (draftCounters.moreThenZero(FIELDS_SIMPLE_NON_INDEXED)) {
+            // we can delete all persisted draft twins fields simple npn indexed, if twins must be deleted in future
+            normalizeCount = draftTwinFieldSimpleNonIndexedRepository.normalizeDraft(draftCollector.getDraftId());
+            draftCounters
+                    .invalidateIfNotZero(FIELDS_SIMPLE_NON_INDEXED, normalizeCount);
+        }
+        if (draftCounters.moreThenZero(FIELDS_BOOLEAN)) {
+            // we can delete all persisted draft twins fields boolean, if twins must be deleted in future
+            normalizeCount = draftTwinFieldBooleanRepository.normalizeDraft(draftCollector.getDraftId());
+            draftCounters
+                    .invalidateIfNotZero(FIELDS_BOOLEAN, normalizeCount);
         }
         if (draftCounters.moreThenZero(FIELDS_USER)) {
             // we can delete all persisted draft twins fields user, if twins must be deleted in future

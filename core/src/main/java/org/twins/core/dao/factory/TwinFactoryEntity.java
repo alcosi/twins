@@ -3,11 +3,12 @@ package org.twins.core.dao.factory;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.hibernate.annotations.CreationTimestamp;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
@@ -49,11 +50,13 @@ public class TwinFactoryEntity implements EasyLoggable {
     private UserEntity createdByUser;
 
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
     private I18nEntity nameI18n;
 
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     private I18nEntity descriptionI18n;

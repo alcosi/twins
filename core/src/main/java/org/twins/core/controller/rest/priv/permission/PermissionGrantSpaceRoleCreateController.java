@@ -19,6 +19,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.permission.PermissionGrantSpaceRoleEntity;
 import org.twins.core.dto.rest.permission.PermissionGrantSpaceRoleCreateRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGrantSpaceRoleRsDTOv1;
@@ -27,11 +28,13 @@ import org.twins.core.mappers.rest.permission.PermissionGrantSpaceRoleCreateDTOR
 import org.twins.core.mappers.rest.permission.PermissionGrantSpaceRoleRestDTOMapperV2;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantSpaceRoleService;
+import org.twins.core.service.permission.Permissions;
 
-@Tag(name = ApiTag.PERMISSION)
+@Tag(description = "Create permission grant space role", name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.PERMISSION_GRANT_SPACE_ROLE_MANAGE, Permissions.PERMISSION_GRANT_SPACE_ROLE_CREATE})
 public class PermissionGrantSpaceRoleCreateController extends ApiController {
     private final PermissionGrantSpaceRoleService permissionGrantSpaceRoleService;
     private final PermissionGrantSpaceRoleRestDTOMapperV2 permissionGrantSpaceRoleRestDTOMapper;
@@ -47,7 +50,7 @@ public class PermissionGrantSpaceRoleCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/space_role/v1")
     public ResponseEntity<?> permissionGrantSpaceRoleCreateV1(
-            @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapperV2.class, response = PermissionGrantSpaceRoleRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapperV2.class, response = PermissionGrantSpaceRoleRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody PermissionGrantSpaceRoleCreateRqDTOv1 request, ServletRequest servletRequest) {
         PermissionGrantSpaceRoleRsDTOv1 rs = new PermissionGrantSpaceRoleRsDTOv1();
         try {

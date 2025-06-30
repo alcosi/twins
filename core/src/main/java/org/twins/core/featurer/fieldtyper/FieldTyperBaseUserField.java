@@ -32,7 +32,19 @@ public class FieldTyperBaseUserField extends FieldTyper<FieldDescriptorUser, Fie
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueUserSingle value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, value.getTwinClassField().logShort() + " can not be changed by field typer");
+        UUID fieldId = value.getTwinClassField().getId();
+        if (fieldId.equals(TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER)) {
+            twin.setAssignerUser(value.getUser());
+            twin.setAssignerUserId(value.getUser() != null ? value.getUser().getId() : null);
+        } else if (fieldId.equals(TWIN_CLASS_FIELD_TWIN_OWNER_USER)) {
+            twin.setOwnerUser(value.getUser());
+            twin.setOwnerUserId(value.getUser() != null ? value.getUser().getId() : null);
+        } else if (fieldId.equals(TWIN_CLASS_FIELD_TWIN_CREATOR_USER)) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, value.getTwinClassField().logShort() + " can not be changed by field typer");
+        } else {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
+                    "Field [" + value.getTwinClassField().logShort() + "] is not a supported base field for " + twin.logNormal());
+        }
     }
 
     @Override

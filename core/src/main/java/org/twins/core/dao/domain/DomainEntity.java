@@ -84,20 +84,22 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "business_account_initiator_featurer_id")
     private Integer businessAccountInitiatorFeaturerId;
 
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "business_account_initiator_params", columnDefinition = "hstore")
+    private HashMap<String, String> businessAccountInitiatorParams;
+
+    @Column(name = "domain_user_initiator_featurer_id")
+    private Integer domainUserInitiatorFeaturerId;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "domain_user_initiator_params", columnDefinition = "hstore")
+    private HashMap<String, String> domainUserInitiatorParams;
+
     @Column(name = "attachments_storage_used_count")
     private Long attachmentsStorageUsedCount;
 
     @Column(name = "attachments_storage_used_size")
     private Long attachmentsStorageUsedSize;
-
-    @FeaturerList(type = BusinessAccountInitiator.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "business_account_initiator_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity businessAccountInitiatorFeaturer;
-
-    @Type(PostgreSQLHStoreType.class)
-    @Column(name = "business_account_initiator_params", columnDefinition = "hstore")
-    private HashMap<String, String> businessAccountInitiatorParams;
 
     @Column(name = "user_group_manager_featurer_id")
     private Integer userGroupManagerFeaturerId;
@@ -133,27 +135,38 @@ public class DomainEntity implements EasyLoggable {
     @Convert(converter = DomainTypeConverter.class)
     private DomainType domainType;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_light_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconLightResource;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_dark_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconDarkResource;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attachments_storage_id", insertable = false, updatable = false)
     private StorageEntity attachmentsStorage;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resources_storage_id", insertable = false, updatable = false)
     private StorageEntity resourcesStorage;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "navbar_face_id", insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
     private FaceEntity navbarFace;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "identity_provider_id", insertable = false, updatable = false)
     private IdentityProviderEntity identityProvider;

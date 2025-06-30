@@ -18,7 +18,7 @@ import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.apiuser.DomainResolverHeaders;
 import org.twins.core.domain.apiuser.LocaleResolverDomainUser;
 import org.twins.core.domain.apiuser.LocaleResolverHeader;
-import org.twins.core.domain.apiuser.UserBusinessAccountResolverAuthToken;
+import org.twins.core.domain.apiuser.MainResolverAuthToken;
 import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.List;
@@ -44,7 +44,7 @@ public class ApiUserResolverService {
     @Getter
     final LocaleResolverHeader localeResolverHeader;
     @Getter
-    final UserBusinessAccountResolverAuthToken userBusinessAccountResolverAuthToken;
+    final MainResolverAuthToken mainResolverAuthToken;
 
     public DomainEntity findDomain(UUID domainId) throws ServiceException {
         return entitySmartService.findById(domainId, domainRepository, EntitySmartService.FindMode.ifEmptyThrows);
@@ -56,6 +56,10 @@ public class ApiUserResolverService {
 
     public UserEntity findUser(UUID userId) throws ServiceException {
         return entitySmartService.findById(userId, userRepository, EntitySmartService.FindMode.ifEmptyThrows);
+    }
+
+    public void checkDBU(UUID domainId, UUID businessAccountId, UUID userId) throws ServiceException {
+        loadDBU(domainId, businessAccountId, userId, new DBU(), true);
     }
 
     public void loadDBU(UUID domainId, UUID businessAccountId, UUID userId, DBU dbu, boolean checkMembershipMode) throws ServiceException {
@@ -78,12 +82,12 @@ public class ApiUserResolverService {
                         .setBusinessAccount(domainBusinessAccountEntity.getBusinessAccount());
                 return;
             } else if (isDomainSpecified(domainId) && isUserSpecified(userId) && (dbu.getDomain() == null || dbu.getUser() == null)) {
-                DomainUserEntity domainUserEntity = domainUserRepository.findByDomainIdAndUserId(domainId, userId, DomainUserEntity.class);
+                DomainUserNoCollectionProjection domainUserEntity = domainUserRepository.findByDomainIdAndUserId(domainId, userId, DomainUserNoCollectionProjection.class);
                 if (domainUserEntity == null)
                     throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "User[" + userId + "] is not registered in domain[" + domainId + "]");
                 dbu
-                        .setDomain(domainUserEntity.getDomain())
-                        .setUser(domainUserEntity.getUser());
+                        .setDomain(domainUserEntity.domain())
+                        .setUser(domainUserEntity.user());
                 return;
             } else if (isBusinessAccountSpecified(businessAccountId) && isUserSpecified(userId) && (dbu.getBusinessAccount() == null || dbu.getUser() == null)) {
                 BusinessAccountUserEntity businessAccountUserEntity = businessAccountUserRepository.findByBusinessAccountIdAndUserId(businessAccountId, userId, BusinessAccountUserEntity.class);
