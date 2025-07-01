@@ -70,7 +70,6 @@ public class I18nEntity {
         return this;
     }
 
-
     @Transient
     private Kit<I18nTranslationBinEntity, Locale> translationsBin;
 
