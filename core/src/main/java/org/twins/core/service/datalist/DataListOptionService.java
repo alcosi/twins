@@ -90,17 +90,12 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         }
         List<DataListOptionEntity> optionsToSave = new ArrayList<>();
         //Find all entities
-        Long time = System.currentTimeMillis();
         Map<UUID, DataListEntity> dataListsMap = dataListService.findEntitiesSafe(dataListOptionCreates.stream().map(DataListOptionCreate::getDataListId).collect(Collectors.toList())).getList().stream().collect(Collectors.toMap(DataListEntity::getId, a -> a));
-        log.debug("createDataListOptions find all data lists in {} ms", System.currentTimeMillis() - time);
-        time = System.currentTimeMillis();
         //And it's translations
         i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE,
                 dataListOptionCreates
                         .stream().map(DataListOptionCreate::getNameI18n)
                         .toList());
-        log.debug("createDataListOptions create i18n in {} ms", System.currentTimeMillis() - time);
-        time = System.currentTimeMillis();
         for (DataListOptionCreate dataListOptionCreate : dataListOptionCreates) {
             DataListEntity dataList = dataListsMap.get(dataListOptionCreate.getDataListId());
             loadDataListAttributeAccessors(dataList);
@@ -116,10 +111,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
             validateEntityAndThrow(dataListOption, EntitySmartService.EntityValidateMode.beforeSave);
             optionsToSave.add(dataListOption);
         }
-        log.debug("createDataListOptions create data list options in {} ms", System.currentTimeMillis() - time);
-        time = System.currentTimeMillis();
         List<DataListOptionEntity> result = StreamSupport.stream(entityRepository().saveAll(optionsToSave).spliterator(), false).toList();
-        log.debug("createDataListOptions save data list options in {} ms", System.currentTimeMillis() - time);
         return result;
     }
 
