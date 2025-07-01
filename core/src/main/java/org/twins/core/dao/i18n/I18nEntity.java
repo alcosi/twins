@@ -71,6 +71,9 @@ public class I18nEntity {
     }
 
     @Transient
+    private Object externalId;
+
+    @Transient
     private Kit<I18nTranslationBinEntity, Locale> translationsBin;
 
     @Override

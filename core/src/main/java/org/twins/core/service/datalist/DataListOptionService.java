@@ -31,8 +31,11 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -87,30 +90,41 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
             return Collections.emptyList();
         }
         List<DataListOptionEntity> optionsToSave = new ArrayList<>();
-
+        //Find all entities
+        Long time = System.currentTimeMillis();
+        Map<UUID, DataListEntity> dataListsMap = dataListService.findEntitiesSafe(dataListOptionCreates.stream().map(DataListOptionCreate::getDataListId).collect(Collectors.toList())).getList().stream().collect(Collectors.toMap(DataListEntity::getId, a -> a));
+        log.debug("createDataListOptions find all data lists in {} ms", System.currentTimeMillis() - time);
+        time = System.currentTimeMillis();
+        //And it's translations
+        List<I18nEntity> translations = i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE,
+                dataListOptionCreates
+                        .stream().map(DataListOptionCreate::getNameI18n)
+                        .toList());
+        log.debug("createDataListOptions create i18n in {} ms", System.currentTimeMillis() - time);
+        time = System.currentTimeMillis();
+        AtomicInteger atomicIndex = new AtomicInteger(0);
         for (DataListOptionCreate dataListOptionCreate : dataListOptionCreates) {
-            DataListEntity dataList = dataListService.findEntitySafe(dataListOptionCreate.getDataListId());
+            //Translations should have the same order as dataListOptionCreates, so map an option to it's translation
+            int index = atomicIndex.getAndIncrement();
+            var translation = translations.get(index);
+            DataListEntity dataList = dataListsMap.get(dataListOptionCreate.getDataListId());
             loadDataListAttributeAccessors(dataList);
-
             DataListOptionEntity dataListOption = new DataListOptionEntity()
+                    .setOptionI18NId(translation.getId())
                     .setDataListId(dataListOptionCreate.getDataListId())
                     .setIcon(dataListOptionCreate.getIcon())
-                    .setOptionI18NId(i18nService.createI18nAndTranslations(
-                            I18nType.DATA_LIST_OPTION_VALUE,
-                            dataListOptionCreate.getNameI18n()).getId())
                     .setStatus(DataListOptionEntity.Status.active)
                     .setBackgroundColor(dataListOptionCreate.getBackgroundColor())
                     .setFontColor(dataListOptionCreate.getFontColor())
                     .setExternalId(dataListOptionCreate.getExternalId());
-
             createAttributes(dataList, dataListOption, dataListOptionCreate.getAttributes());
-
             validateEntityAndThrow(dataListOption, EntitySmartService.EntityValidateMode.beforeSave);
             optionsToSave.add(dataListOption);
         }
-
-        List<DataListOptionEntity> result = new ArrayList<>();
-        entityRepository().saveAll(optionsToSave).forEach(result::add);
+        log.debug("createDataListOptions create data list options in {} ms", System.currentTimeMillis() - time);
+        time = System.currentTimeMillis();
+        List<DataListOptionEntity> result = StreamSupport.stream(entityRepository().saveAll(optionsToSave).spliterator(), false).toList();
+        log.debug("createDataListOptions save data list options in {} ms", System.currentTimeMillis() - time);
         return result;
     }
 
