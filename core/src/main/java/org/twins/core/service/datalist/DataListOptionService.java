@@ -31,7 +31,6 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -96,21 +95,17 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         log.debug("createDataListOptions find all data lists in {} ms", System.currentTimeMillis() - time);
         time = System.currentTimeMillis();
         //And it's translations
-        List<I18nEntity> translations = i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE,
+        i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE,
                 dataListOptionCreates
                         .stream().map(DataListOptionCreate::getNameI18n)
                         .toList());
         log.debug("createDataListOptions create i18n in {} ms", System.currentTimeMillis() - time);
         time = System.currentTimeMillis();
-        AtomicInteger atomicIndex = new AtomicInteger(0);
         for (DataListOptionCreate dataListOptionCreate : dataListOptionCreates) {
-            //Translations should have the same order as dataListOptionCreates, so map an option to it's translation
-            int index = atomicIndex.getAndIncrement();
-            var translation = translations.get(index);
             DataListEntity dataList = dataListsMap.get(dataListOptionCreate.getDataListId());
             loadDataListAttributeAccessors(dataList);
             DataListOptionEntity dataListOption = new DataListOptionEntity()
-                    .setOptionI18NId(translation.getId())
+                    .setOptionI18NId(dataListOptionCreate.getNameI18n().getId())
                     .setDataListId(dataListOptionCreate.getDataListId())
                     .setIcon(dataListOptionCreate.getIcon())
                     .setStatus(DataListOptionEntity.Status.active)
