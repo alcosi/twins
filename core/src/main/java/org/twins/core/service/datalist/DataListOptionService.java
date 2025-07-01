@@ -90,14 +90,14 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         }
         List<DataListOptionEntity> optionsToSave = new ArrayList<>();
         //Find all entities
-        Map<UUID, DataListEntity> dataListsMap = dataListService.findEntitiesSafe(dataListOptionCreates.stream().map(DataListOptionCreate::getDataListId).collect(Collectors.toList())).getList().stream().collect(Collectors.toMap(DataListEntity::getId, a -> a));
+        Kit<DataListEntity, UUID> dataListsKit = dataListService.findEntitiesSafe(dataListOptionCreates.stream().map(DataListOptionCreate::getDataListId).collect(Collectors.toSet()));
         //And it's translations
         i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE,
                 dataListOptionCreates
                         .stream().map(DataListOptionCreate::getNameI18n)
                         .toList());
         for (DataListOptionCreate dataListOptionCreate : dataListOptionCreates) {
-            DataListEntity dataList = dataListsMap.get(dataListOptionCreate.getDataListId());
+            DataListEntity dataList = dataListsKit.get(dataListOptionCreate.getDataListId());
             loadDataListAttributeAccessors(dataList);
             DataListOptionEntity dataListOption = new DataListOptionEntity()
                     .setOptionI18NId(dataListOptionCreate.getNameI18n().getId())
