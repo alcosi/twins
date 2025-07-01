@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -83,4 +84,14 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             @Param("excludedTwinIds") Collection<UUID> excludedTwinIds,
             @Param("statusIdList") Collection<UUID> statusIdList);
 
+    @Query(value = """
+    SELECT COUNT(*) = 0
+    FROM TwinFieldSimpleEntity tfs
+    WHERE tfs.twinClassFieldId = :twinClassFieldId
+    AND tfs.value = :value
+    """)
+    boolean isValueUnique(
+            @Param("twinClassFieldId") UUID twinClassFieldId,
+            @Param("value") String value
+    );
 }
