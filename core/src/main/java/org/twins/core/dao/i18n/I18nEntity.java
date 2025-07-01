@@ -70,8 +70,6 @@ public class I18nEntity {
         return this;
     }
 
-    @Transient
-    private Object externalId;
 
     @Transient
     private Kit<I18nTranslationBinEntity, Locale> translationsBin;
