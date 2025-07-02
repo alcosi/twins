@@ -17,6 +17,7 @@ import java.util.UUID;
 public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpleEntity, UUID>, JpaSpecificationExecutor<TwinFieldSimpleEntity> {
 
     boolean existsByTwinClassFieldId(UUID twinClassFieldId);
+    boolean existsByTwinClassFieldIdAndValue(UUID twinClassFieldId, String value);
 
     @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and child.twinStatusId in :childrenTwinStatusIdList")
     long countChildrenTwinsWithStatusIn(@Param("headTwinId") UUID headTwinId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
@@ -77,7 +78,7 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
       AND te.headTwinId IN :headerTwinIdList
       AND te.twinStatusId IN :statusIdList
       AND te.id NOT IN :excludedTwinIds
-""")
+    """)
     List<TwinFieldSimpleNoRelationsProjection> findTwinFieldSimpleEntityProjected(
             @Param("domainId") UUID domainId,
             @Param("headerTwinIdList") Collection<UUID> headerTwinIdList,
@@ -85,13 +86,16 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             @Param("statusIdList") Collection<UUID> statusIdList);
 
     @Query(value = """
-    SELECT COUNT(*) = 0
-    FROM TwinFieldSimpleEntity tfs
-    WHERE tfs.twinClassFieldId = :twinClassFieldId
-    AND tfs.value = :value
+        select COUNT(*) = 0 from TwinFieldSimpleEntity tfs
+        inner join TwinEntity t on tfs.twinId = t.id
+        where t.ownerUserId = :ownerUserId and tfs.value = :value and tfs.twinClassFieldId = :twinClassFieldId
     """)
-    boolean isValueUnique(
-            @Param("twinClassFieldId") UUID twinClassFieldId,
-            @Param("value") String value
-    );
+    boolean existsByTwinClassFieldIdAndValueAndOwnerUserId(UUID twinClassFieldId, String value, UUID ownerUserId);
+
+    @Query(value = """
+        select COUNT(*) = 0 from TwinFieldSimpleEntity tfs
+        inner join TwinEntity t on tfs.twinId = t.id
+        where t.ownerBusinessAccountId = :ownerBusinessAccountId and tfs.value = :value and tfs.twinClassFieldId = :twinClassFieldId
+    """)
+    boolean existsByTwinClassFieldIdAndValueAndOwnerBusinessAccountId(UUID twinClassFieldId, String value, UUID ownerBusinessAccountId);
 }

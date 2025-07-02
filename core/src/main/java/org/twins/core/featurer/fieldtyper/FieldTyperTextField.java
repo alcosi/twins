@@ -15,6 +15,7 @@ import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
@@ -61,8 +62,26 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + value.getValue() + "] does not match pattern[" + pattern + "]");
         }
 
-        if (unique.extract(properties).equals(true) && !twinFieldSimpleRepository.isValueUnique(twinFieldEntity.getTwinClassFieldId(), value.getValue())) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + value.getValue() + "] is not unique");
+        if (unique.extract(properties).equals(true)) {
+            TwinClassEntity.OwnerType ownerType = twinFieldEntity.getTwin().getTwinClass().getOwnerType();
+
+            switch (ownerType) {
+                case USER, DOMAIN_USER -> {
+                    if (!twinFieldSimpleRepository.existsByTwinClassFieldIdAndValueAndOwnerUserId(twinFieldEntity.getTwinClassFieldId(), value.getValue(), twinFieldEntity.getTwin().getOwnerUserId())) {
+                        throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + value.getValue() + "] is not unique");
+                    }
+                }
+                case BUSINESS_ACCOUNT, DOMAIN_BUSINESS_ACCOUNT -> {
+                    if (!twinFieldSimpleRepository.existsByTwinClassFieldIdAndValueAndOwnerBusinessAccountId(twinFieldEntity.getTwinClassFieldId(), value.getValue(), twinFieldEntity.getTwin().getOwnerBusinessAccountId())) {
+                        throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + value.getValue() + "] is not unique");
+                    }
+                }
+                default -> {
+                    if (!twinFieldSimpleRepository.existsByTwinClassFieldIdAndValue(twinFieldEntity.getTwinClassFieldId(), value.getValue())) {
+                        throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + value.getValue() + "] is not unique");
+                    }
+                }
+            }
         }
 
         detectValueChange(twinFieldEntity, twinChangesCollector, value.getValue());
