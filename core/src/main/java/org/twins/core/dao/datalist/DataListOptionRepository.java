@@ -1,5 +1,7 @@
 package org.twins.core.dao.datalist;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -13,6 +15,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+//Log calls that took more then 2 seconds
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Repository
 public interface DataListOptionRepository extends CrudRepository<DataListOptionEntity, UUID>, JpaSpecificationExecutor<DataListOptionEntity> {
     String CACHE_DATA_LIST_OPTIONS = "DataListOptionRepository.findByDataListId";
