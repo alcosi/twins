@@ -1417,16 +1417,4 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         int deletedCount = twinRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
         log.info(deletedCount + " number of twins were deleted");
     }
-
-    public boolean isUniqueTextField(UUID twinClassFieldId, String value) {
-        return twinFieldSimpleRepository.existsByTwinClassFieldIdAndValue(twinClassFieldId, value);
-    }
-
-    public boolean isUniqueTextFieldForOwnerUserId(UUID twinClassFieldId, String value, UUID ownerUserId) {
-        return twinFieldSimpleRepository.existsByTwinClassFieldIdAndValueAndOwnerUserId(twinClassFieldId, value, ownerUserId);
-    }
-
-    public boolean isUniqueTextFieldForOwnerBusinessAccId(UUID twinClassFieldId, String value, UUID ownerBusinessAccountId) {
-        return twinFieldSimpleRepository.existsByTwinClassFieldIdAndValueAndOwnerBusinessAccountId(twinClassFieldId, value, ownerBusinessAccountId);
-    }
 }
