@@ -8,13 +8,11 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamStringTwinsEditorType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
@@ -38,9 +36,6 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
     public static final FeaturerParamStringTwinsEditorType editorType = new FeaturerParamStringTwinsEditorType("editorType");
     @FeaturerParam(name = "Unique", description = "", order = 3, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean unique = new FeaturerParamBoolean("unique");
-
-    @Autowired
-    private TwinFieldSimpleRepository twinFieldSimpleRepository;
 
     @Override
     public FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -67,17 +62,17 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
 
             switch (ownerType) {
                 case USER, DOMAIN_USER -> {
-                    if (!twinFieldSimpleRepository.existsByTwinClassFieldIdAndValueAndOwnerUserId(twinFieldEntity.getTwinClassFieldId(), value.getValue(), twinFieldEntity.getTwin().getOwnerUserId())) {
+                    if (!twinService.isUniqueTextFieldForOwnerUserId(twinFieldEntity.getTwinClassFieldId(), value.getValue(), twinFieldEntity.getTwin().getOwnerUserId())) {
                         throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + value.getValue() + "] is not unique");
                     }
                 }
                 case BUSINESS_ACCOUNT, DOMAIN_BUSINESS_ACCOUNT -> {
-                    if (!twinFieldSimpleRepository.existsByTwinClassFieldIdAndValueAndOwnerBusinessAccountId(twinFieldEntity.getTwinClassFieldId(), value.getValue(), twinFieldEntity.getTwin().getOwnerBusinessAccountId())) {
+                    if (!twinService.isUniqueTextFieldForOwnerBusinessAccId(twinFieldEntity.getTwinClassFieldId(), value.getValue(), twinFieldEntity.getTwin().getOwnerBusinessAccountId())) {
                         throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + value.getValue() + "] is not unique");
                     }
                 }
                 default -> {
-                    if (!twinFieldSimpleRepository.existsByTwinClassFieldIdAndValue(twinFieldEntity.getTwinClassFieldId(), value.getValue())) {
+                    if (!twinService.isUniqueTextField(twinFieldEntity.getTwinClassFieldId(), value.getValue())) {
                         throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + value.getValue() + "] is not unique");
                     }
                 }
