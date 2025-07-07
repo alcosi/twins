@@ -15,7 +15,8 @@ public enum ErrorCodeCommon implements ErrorCode {
     FEATURER_IS_NULL(600, "Got featurer is null"),
     FEATURER_ID_UNKNOWN(601, "featurer id is unknown"),
     FEATURER_INCORRECT_TYPE(602, "featurer type is incorrect"),
-    FEATURER_WRONG_PARAMS(604, "featurer type is incorrect");
+    FEATURER_WRONG_PARAMS(604, "featurer type is incorrect"),
+    FEATURER_WITHOUT_SERIALIZATION(605, "featurer has no serialization"),;
 
     private final int code;
     private final String message;

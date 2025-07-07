@@ -9,9 +9,11 @@ import org.cambium.featurer.params.FeaturerParamStringTwinsEditorType;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchText;
 import org.twins.core.featurer.FeaturerTwins;
@@ -20,18 +22,21 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.util.Properties;
 
+import static org.cambium.common.exception.ErrorCodeCommon.FEATURER_WITHOUT_SERIALIZATION;
+
 @Component
 @Featurer(id = FeaturerTwins.ID_1333,
         name = "Projection text",
         description = "")
-public abstract class FieldTyperProjectionHeadTextField extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldSimpleEntity, TwinFieldSearchText> {
+public class FieldTyperProjectionHeadTextField extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldSimpleEntity, TwinFieldSearchText> {
 
+    //todo delete Regexp and EditorType params and take them from head twin
     @FeaturerParam(name = "Regexp", description = "", order = 1)
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
     @FeaturerParam(name = "EditorType", description = "", order = 2, optional = true, defaultValue = "PLAIN")
     public static final FeaturerParamStringTwinsEditorType editorType = new FeaturerParamStringTwinsEditorType("editorType");
-    @FeaturerParam(name = "TwinClassFieldId", description = "", order = 3)
-    public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUID("twinClassFieldId");
+    @FeaturerParam(name = "HeadTwinClassFieldId", description = "", order = 3)
+    public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUID("headTwinClassFieldId");
 
     @Autowired
     private TwinFieldSimpleRepository twinFieldSimpleRepository;
@@ -42,6 +47,11 @@ public abstract class FieldTyperProjectionHeadTextField extends FieldTyper<Field
         return new FieldDescriptorText()
                 .regExp(regexp.extract(properties))
                 .editorType(editorType.extract(properties));
+    }
+
+    @Override
+    protected void serializeValue(Properties properties, TwinEntity twin, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        throw new ServiceException(FEATURER_WITHOUT_SERIALIZATION, "You can't change this field from this " + twin.logNormal() + ". Try to do that in head twin");
     }
 
     @Override
