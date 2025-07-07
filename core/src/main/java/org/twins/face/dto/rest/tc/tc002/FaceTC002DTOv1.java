@@ -1,4 +1,4 @@
-package org.twins.face.dto.rest.tc.tc001;
+package org.twins.face.dto.rest.tc.tc002;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -13,8 +13,8 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "FaceTC001v1")
-public class FaceTC001DTOv1 extends FaceDTOv1 {
+@Schema(name = "FaceTC002v1")
+public class FaceTC002DTOv1 extends FaceDTOv1 {
     @Schema(description = "uniq key")
     public String key;
 
@@ -43,5 +43,5 @@ public class FaceTC001DTOv1 extends FaceDTOv1 {
     public UUID pointedHeadTwinId;
 
     @Schema(description = "twin fields")
-    public List<FaceTC001FieldDTOv1> fields;
+    public List<FaceTC002FieldDTOv1> fields;
 }
