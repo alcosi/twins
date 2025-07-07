@@ -1,3 +1,6 @@
+INSERT INTO INSERT INTO public.face_component (id, face_component_type_id, name, description) VALUES ('TC002', 'TWIN_CREATE', 'Create twin sketch button widget', null) on conflict (id) do nothing;
+
+
 CREATE TABLE IF NOT EXISTS face_tc002 (
                             id UUID PRIMARY KEY NOT NULL,
                             face_id UUID NOT NULL REFERENCES face(id),
