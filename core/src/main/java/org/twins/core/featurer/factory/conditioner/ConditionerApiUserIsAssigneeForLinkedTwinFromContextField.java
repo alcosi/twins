@@ -43,6 +43,8 @@ public class ConditionerApiUserIsAssigneeForLinkedTwinFromContextField extends C
         FieldValue fieldValue = factoryItem.getOutput().getFields().get(extractedTwinClassFieldId);
         if (!(fieldValue instanceof FieldValueLink itemOutputFieldLink))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + extractedTwinClassFieldId + "] is not of type link");
+        if (itemOutputFieldLink.getTwinLinks().size() > 1)
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + extractedTwinClassFieldId + "] has " + itemOutputFieldLink.getTwinLinks().size() +  " linked twins in twinId[" + factoryItem.getOutput().getTwinId() + "]");
         TwinEntity linkDstTwin = twinLinkService.getDstTwinSafe(itemOutputFieldLink.getTwinLinks().getFirst());
         return linkDstTwin.getAssignerUserId().equals(authService.getApiUser().getUserId());
     }
