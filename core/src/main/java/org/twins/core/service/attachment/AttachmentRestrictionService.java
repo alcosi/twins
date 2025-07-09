@@ -87,8 +87,8 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         TwinClassEntity twinClass;
         if (twinId != null) {
             twin = twinService.findEntitySafe(twinId);
+            twinClass = twin.getTwinClass();
             attachmentService.loadAttachmentsCount(twin);
-            twinClass = twinClassService.findEntitySafe(twin.getTwinClassId());
         } else {
             twinClass = twinClassService.findEntitySafe(twinClassId);
         }
@@ -137,9 +137,8 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
                 throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Updatable attachment [" + update.getId() + "] is not exists");
             if (!existingEntity.getTwinId().equals(twinId))
                 throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Deletable attachment [" + update.getId() + "] is not added to twin[" + twinId + "]");
-            updates.add(existingEntity);
             result.getAttachmentsForUD().add(existingEntity);
-            size = size - existingEntity.getSize() + update.getSize();
+            size -= existingEntity.getSize() - update.getSize();
         }
         for (TwinAttachmentEntity create : creates) {
             size += create.getSize();
@@ -217,7 +216,7 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
             return;
 
         TwinAttachmentRestrictionEntity commentRestriction = findEntitySafe(twinClass.getCommentAttachmentRestrictionId());
-        int currentCount = twin.getTwinAttachmentsCount().getFromComments();
+        int currentCount = twin == null ? 0 : twin.getTwinAttachmentsCount().getFromComments();
         validateAttachmentRestrictions(currentCount, commentRestriction, cud, result);
     }
 
@@ -279,17 +278,17 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
 
         currentCount = currentCount + toCreate - toDelete;
 
-        if (restriction.getMinCount() > currentCount) {
+        if (restriction.getMinCount() > 0 && restriction.getMinCount() > currentCount) {
             result.getCudProblems().getGlobalProblems().add(new AttachmentGlobalProblem().setProblem(MIN_COUNT_NOT_REACHED));
         }
 
-        if (restriction.getMaxCount() < currentCount) {
+        if (restriction.getMaxCount() > 0 && restriction.getMaxCount() < currentCount) {
             result.getCudProblems().getGlobalProblems().add(new AttachmentGlobalProblem().setProblem(MAX_COUNT_EXCEEDED));
         }
     }
 
     private void validateAttachmentsSize(TwinAttachmentRestrictionEntity restriction, EntityCUD<TwinAttachmentEntity> cud, AttachmentCUDValidateResult result) {
-        if (restriction.getFileSizeMbLimit() == null)
+        if (restriction.getFileSizeMbLimit() == 0)
             return;
 
         if (cud.getCreateList() != null) {

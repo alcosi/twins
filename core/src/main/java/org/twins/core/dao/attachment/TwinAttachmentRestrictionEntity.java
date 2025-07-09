@@ -28,13 +28,13 @@ public class TwinAttachmentRestrictionEntity implements EasyLoggable {
     private UUID domainId;
 
     @Column(name = "min_count")
-    private Integer minCount;
+    private int minCount;
 
     @Column(name = "max_count")
-    private Integer maxCount;
+    private int maxCount;
 
     @Column(name = "file_size_mb_limit")
-    private Integer fileSizeMbLimit;
+    private int fileSizeMbLimit;
 
     @Column(name = "file_extension_list")
     private String fileExtensionLimit;

@@ -20,12 +20,10 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.attachment.AttachmentCUDValidateResult;
-import org.twins.core.dto.rest.attachment.AttachmentCUDValidateRqDTOv1;
-import org.twins.core.dto.rest.attachment.AttachmentCUDValidateRsDTOv1;
 import org.twins.core.dto.rest.attachment.AttachmentCreateValidateRqDTOv1;
+import org.twins.core.dto.rest.attachment.AttachmentCreateValidateRsDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.mappers.rest.attachment.AttachmentCUDValidateRestDTOMapper;
-import org.twins.core.mappers.rest.attachment.AttachmentCUDValidateRestDTOReverseMapper;
+import org.twins.core.mappers.rest.attachment.AttachmentCreateValidateRestDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentCreateValidateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -40,7 +38,7 @@ import org.twins.core.service.permission.Permissions;
 public class AttachmentCreateValidateController extends ApiController {
 
     private final AttachmentCreateValidateRestDTOReverseMapper attachmentCreateValidateRestDTOReverseMapper;
-    private final AttachmentCUDValidateRestDTOMapper attachmentCUDValidateRestDTOMapper;
+    private final AttachmentCreateValidateRestDTOMapper attachmentCreateValidateRestDTOMapper;
     private final AttachmentRestrictionService attachmentRestrictionService;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
@@ -49,16 +47,16 @@ public class AttachmentCreateValidateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Attachment validation result", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = AttachmentCUDValidateRsDTOv1.class))}),
+                    @Schema(implementation = AttachmentCreateValidateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/attachment/validate_create/v1")
     public ResponseEntity<?> attachmentValidateV1(
-            @MapperContextBinding(roots = AttachmentCUDValidateRestDTOMapper.class, response = AttachmentCUDValidateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = AttachmentCreateValidateRestDTOMapper.class, response = AttachmentCreateValidateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody AttachmentCreateValidateRqDTOv1 request) {
-        AttachmentCUDValidateRsDTOv1 rs = new AttachmentCUDValidateRsDTOv1();
+        AttachmentCreateValidateRsDTOv1 rs = new AttachmentCreateValidateRsDTOv1();
         try {
             AttachmentCUDValidateResult result = attachmentRestrictionService.validateAttachments(null, request.getTwinClassId(), attachmentCreateValidateRestDTOReverseMapper.convert(request, mapperContext));
-            rs = attachmentCUDValidateRestDTOMapper.convert(result, mapperContext);
+            rs = attachmentCreateValidateRestDTOMapper.convert(result, mapperContext);
             rs
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
             if (result.hasProblems())
