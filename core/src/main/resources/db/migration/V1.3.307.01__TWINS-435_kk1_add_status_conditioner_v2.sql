@@ -1,0 +1,1 @@
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2433, 24, '', '', null, false) on conflict (id) do nothing;

@@ -70,9 +70,22 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     private T checkResult(EntitySmartService.ReadPermissionCheckMode permissionCheckMode, EntitySmartService.EntityValidateMode entityValidateMode, T entity) throws ServiceException {
         if (entity == null)
             return null;
-        if (!permissionCheckMode.equals(EntitySmartService.ReadPermissionCheckMode.none)
-                && isEntityReadDenied(entity, permissionCheckMode))
-            return null;
+        switch (permissionCheckMode) {
+            case none:
+                break;
+            case ifDeniedThrows:
+                if (isEntityReadDenied(entity, permissionCheckMode)) {
+                    //normally detailed exception must be thrown from isEntityReadDenied method
+                    EntitySmartService.entityReadDenied(permissionCheckMode, "read is denied for " + entity);
+                }
+                break;
+            case ifDeniedLog:
+                if (isEntityReadDenied(entity, permissionCheckMode)) {
+                    //logging must be implemented in isEntityReadDenied method
+                    return null;
+                }
+                break;
+        }
         validateEntityAndThrow(entity, entityValidateMode);
         return entity;
     }

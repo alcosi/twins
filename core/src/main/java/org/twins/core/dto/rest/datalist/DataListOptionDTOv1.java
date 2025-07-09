@@ -33,4 +33,7 @@ public class DataListOptionDTOv1 {
 
     @Schema(description = "font color", example = DTOExamples.COLOR_HEX)
     public String fontColor;
+
+    @Schema(description = "external id [optional]")
+    public String externalId;
 }

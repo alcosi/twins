@@ -72,7 +72,7 @@ public class UserPermissionListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/user/permission/v1")
     public ResponseEntity<?> currentUserPermissionListV1(
-            @MapperContextBinding(roots = PermissionRestDTOMapperV2.class, response = PermissionListRsDTOv1.class) MapperContext mapperContext) {
+            @MapperContextBinding(roots = PermissionRestDTOMapperV2.class, response = PermissionListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext) {
         PermissionListRsDTOv1 rs = new PermissionListRsDTOv1();
         try {
             rs.setPermissions(permissionRestDTOMapperV2.convertCollection(
@@ -119,7 +119,7 @@ public class UserPermissionListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/user/permission_group/v1", method = RequestMethod.GET)
     public ResponseEntity<?> currentUserPermissionGroupedListV1(
-            @MapperContextBinding(roots = PermissionGroupWithGroupRestDTOMapper.class, response = PermissionGroupedListRsDTOv1.class) MapperContext mapperContext) {
+            @MapperContextBinding(roots = PermissionGroupWithGroupRestDTOMapper.class, response = PermissionGroupedListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext) {
         PermissionGroupedListRsDTOv1 rs = new PermissionGroupedListRsDTOv1();
         try {
             rs.permissionGroups = permissionGroupWithGroupRestDTOMapper.convertCollection(

@@ -7,10 +7,8 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.StringUtils;
-import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
-import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,15 +20,21 @@ import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListOptionCreate;
 import org.twins.core.domain.datalist.DataListOptionUpdate;
+import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.i18n.I18nService;
 
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -43,6 +47,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     @Lazy
     @Autowired
     private DataListService dataListService;
+    @Autowired
+    private DataListOptionSearchService dataListOptionSearchService;
 
     @Override
     public CrudRepository<DataListOptionEntity, UUID> entityRepository() {
@@ -83,29 +89,29 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
             return Collections.emptyList();
         }
         List<DataListOptionEntity> optionsToSave = new ArrayList<>();
-
+        //Find all entities
+        Kit<DataListEntity, UUID> dataListsKit = dataListService.findEntitiesSafe(dataListOptionCreates.stream().map(DataListOptionCreate::getDataListId).collect(Collectors.toSet()));
+        //And it's translations
+        i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE,
+                dataListOptionCreates
+                        .stream().map(DataListOptionCreate::getNameI18n)
+                        .toList());
         for (DataListOptionCreate dataListOptionCreate : dataListOptionCreates) {
-            DataListEntity dataList = dataListService.findEntitySafe(dataListOptionCreate.getDataListId());
+            DataListEntity dataList = dataListsKit.get(dataListOptionCreate.getDataListId());
             loadDataListAttributeAccessors(dataList);
-
             DataListOptionEntity dataListOption = new DataListOptionEntity()
+                    .setOptionI18NId(dataListOptionCreate.getNameI18n().getId())
                     .setDataListId(dataListOptionCreate.getDataListId())
                     .setIcon(dataListOptionCreate.getIcon())
-                    .setOptionI18NId(i18nService.createI18nAndTranslations(
-                            I18nType.DATA_LIST_OPTION_VALUE,
-                            dataListOptionCreate.getNameI18n()).getId())
                     .setStatus(DataListOptionEntity.Status.active)
                     .setBackgroundColor(dataListOptionCreate.getBackgroundColor())
-                    .setFontColor(dataListOptionCreate.getFontColor());
-
+                    .setFontColor(dataListOptionCreate.getFontColor())
+                    .setExternalId(dataListOptionCreate.getExternalId());
             createAttributes(dataList, dataListOption, dataListOptionCreate.getAttributes());
-
             validateEntityAndThrow(dataListOption, EntitySmartService.EntityValidateMode.beforeSave);
             optionsToSave.add(dataListOption);
         }
-
-        List<DataListOptionEntity> result = new ArrayList<>();
-        entityRepository().saveAll(optionsToSave).forEach(result::add);
+        List<DataListOptionEntity> result = StreamSupport.stream(entityRepository().saveAll(optionsToSave).spliterator(), false).toList();
         return result;
     }
 
@@ -245,5 +251,36 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         return new Kit<>(dataListOptionEntityList, DataListOptionEntity::getId);
     }
 
+
+    public List<DataListOptionEntity> processExternalOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId) throws ServiceException {
+        DataListOptionSearch dataListOptionSearch = new DataListOptionSearch()
+                .addDataListId(dataListId, false);
+        if (businessAccountId != null)
+            dataListOptionSearch.addBusinessAccountId(businessAccountId, false);
+
+        Iterator<DataListOptionEntity> iterator = options.iterator();
+        while (iterator.hasNext()) {
+            DataListOptionEntity option = iterator.next();
+            if (option.getId() == null && StringUtils.isNotEmpty(option.getExternalId())) {
+                dataListOptionSearch.addExternalId(option.getExternalId(), false);
+                iterator.remove(); // безопасное удаление
+            }
+        }
+        if (CollectionUtils.isEmpty(dataListOptionSearch.getExternalIdLikeList())) {
+            return options;
+        }
+        Kit<DataListOptionEntity, String> externalOptions = new Kit<>(dataListOptionSearchService.findDataListOptions(dataListOptionSearch), DataListOptionEntity::getExternalId);
+        if (externalOptions.size() != dataListOptionSearch.getExternalIdLikeList().size()) {
+            StringJoiner stringJoiner = new StringJoiner(",", "[", "]");
+            for (var externalId : dataListOptionSearch.getExternalIdLikeList()) {
+                if (!externalOptions.containsKey(externalId)) {
+                    stringJoiner.add(externalId);
+                }
+            }
+            throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, "unknown external ids" + stringJoiner);
+        }
+        options.addAll(externalOptions.getCollection());
+        return options;
+    }
     //todo move *options methods from  DataListService
 }

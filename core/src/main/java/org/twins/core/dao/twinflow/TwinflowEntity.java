@@ -9,6 +9,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.eraseflow.EraseflowEntity;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -49,6 +50,12 @@ public class TwinflowEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @Column(name = "on_create_twin_factory_id")
+    private UUID onCreateTwinFactoryId;
+
+    @Column(name = "on_update_twin_factory_id")
+    private UUID onUpdateTwinFactoryId;
+
     @ManyToOne
     @EqualsAndHashCode.Exclude
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
@@ -85,6 +92,18 @@ public class TwinflowEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Collection<TwinflowSchemaMapEntity> schemaMappings;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "on_create_twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity onCreateTwinFactory;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "on_update_twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity onUpdateTwinFactory;
 
     @Transient
     @EqualsAndHashCode.Exclude

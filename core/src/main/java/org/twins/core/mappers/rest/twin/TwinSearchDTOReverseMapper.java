@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.dto.rest.twin.TwinSearchByLinkDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchDTOv1;
+import org.twins.core.mappers.rest.DataTimeRangeDTOReverseMapper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
@@ -13,8 +14,8 @@ import static org.cambium.common.util.CollectionUtils.convertToSetSafe;
 @Component
 @RequiredArgsConstructor
 public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDTOv1, BasicSearch> {
-
     private final TwinFieldSearchMapDTOReverseMapper twinFieldSearchMapDTOReverseMapper;
+    private final DataTimeRangeDTOReverseMapper dataTimeRangeDTOReverseMapper;
 
     @Override
     public void map(TwinSearchDTOv1 src, BasicSearch dst, MapperContext mapperContext) throws Exception {
@@ -44,7 +45,8 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                 .setMarkerDataListOptionIdList(convertToSetSafe(src.getMarkerDataListOptionIdList()))
                 .setMarkerDataListOptionIdExcludeList(convertToSetSafe(src.getMarkerDataListOptionIdExcludeList()))
                 .setTouchList(convertToSetSafe(src.getTouchList()))
-                .setTouchExcludeList(convertToSetSafe(src.getTouchExcludeList()));
+                .setTouchExcludeList(convertToSetSafe(src.getTouchExcludeList()))
+                .setCreatedAt(dataTimeRangeDTOReverseMapper.convert(src.getCreatedAt()));
         if (src.getLinksAnyOfList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO : src.getLinksAnyOfList()) {
                 dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList(), false, true);

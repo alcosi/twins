@@ -7,6 +7,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
+import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -93,6 +94,9 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                     .setId(uuid) // need for history
                     .setCreatedByUserId(apiUser.getUserId())
                     .setCreatedByUser(apiUser.getUser());
+            if (StringUtils.isEmpty(attachmentEntity.getStorageFileKey())) {
+                throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "storageFileKey is empty");
+            }
             twinChangesCollector.add(attachmentEntity);
             if (twinChangesCollector.isHistoryCollectorEnabled())
                 twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentCreate(attachmentEntity));
@@ -300,6 +304,10 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 dbAttachmentEntity.setTitle(attachmentEntity.getTitle());
             }
             if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.storageFileKey, dbAttachmentEntity.getStorageFileKey(), attachmentEntity.getStorageFileKey())) {
+                if (StringUtils.isEmpty(attachmentEntity.getStorageFileKey())) {
+                    throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "storageFileKey is empty");
+                }
+                historyItem.getContext().setNewStorageFileKey(attachmentEntity.getStorageFileKey());
                 deleteFile(dbAttachmentEntity);
                 saveFile(attachmentEntity, dbAttachmentEntity.getId());
                 dbAttachmentEntity.setStorageFileKey(attachmentEntity.getStorageFileKey());
@@ -328,6 +336,9 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         List<TwinAttachmentModificationEntity> toCreate = new ArrayList<>();
 
         for (TwinAttachmentModificationEntity incomingMod : incomingMods) {
+            if (StringUtils.isEmpty(incomingMod.getStorageFileKey())) {
+                throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "storageFileKey is empty for modification");
+            }
             incomingMod
                     .setTwinAttachmentId(dbAttachmentEntity.getId())
                     .setTwinAttachment(dbAttachmentEntity); // for sure

@@ -11,6 +11,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinSearch;
 
+import java.sql.Timestamp;
 import java.util.*;
 
 import static org.cambium.common.util.ArrayUtils.concatArray;
@@ -32,7 +33,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] twinClassIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.twinClassId);
         String[] twinClassFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.twinClass);
         String[] twinClassExtendsHierarchyTreeFieldPath = concatArray(twinClassFieldPath, TwinClassEntity.Fields.extendsHierarchyTree);
-
+        String[] createdAtFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.createdAt);
         String[] tagsFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.tags, TwinTagEntity.Fields.tagDataListOptionId);
         String[] markersFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.markers, TwinMarkerEntity.Fields.markerDataListOptionId);
         String[] touchFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.touches);
@@ -64,6 +65,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkHierarchyContainsAny(twinSearch.getTwinClassExtendsHierarchyContainsIdList(), twinClassExtendsHierarchyTreeFieldPath),
                 checkTouchSearch(userId,false,twinSearch.getTouchList(),touchFieldPath),
                 checkTouchSearch(userId,true,twinSearch.getTouchExcludeList(),touchFieldPath),
+                checkFieldLocalDateTimeBetween(twinSearch.getCreatedAt(), TwinEntity.Fields.createdAt)
         };
 
         return Specification.allOf(concatArray(commonSpecifications, getTwinSearchFieldsSpecifications(twinSearch.getFields())));
@@ -178,10 +180,4 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
             return cb.and(include, exclude);
         };
     }
-
-
-
-
-
-
 }

@@ -9,7 +9,10 @@ import lombok.experimental.Accessors;
 @Schema(name =  "TwinClassFieldDescriptorListSharedInHeadV1")
 public class TwinClassFieldDescriptorListSharedInHeadDTOv1 implements TwinClassFieldDescriptorDTO {
     public static final String KEY = "selectSharedInHeadV1";
-    public String fieldType = KEY;
+    @Override
+    public String fieldType() {
+        return KEY;
+    }
 
     @Schema(description = "Multiple choice support", example = "true")
     public Boolean multiple;

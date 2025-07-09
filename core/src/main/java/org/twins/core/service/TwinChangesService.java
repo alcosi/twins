@@ -13,6 +13,8 @@ import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationRepository;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
+import org.twins.core.dao.space.SpaceRoleUserEntity;
+import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
@@ -21,6 +23,8 @@ import org.twins.core.service.history.HistoryService;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
+import static org.twins.core.domain.TwinChangesCollector.TwinInvalidate;
 
 @Service
 @Slf4j
@@ -39,6 +43,7 @@ public class TwinChangesService {
     private final TwinFieldI18nRepository twinFieldI18nRepository;
     private final TwinFieldBooleanRepository twinFieldBooleanRepository;
     private final TwinAttachmentModificationRepository twinAttachmentModificationRepository;
+    private final SpaceRoleUserRepository spaceRoleUserRepository;
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
 
@@ -60,6 +65,7 @@ public class TwinChangesService {
         saveEntities(twinChangesCollector, TwinAttachmentModificationEntity.class, twinAttachmentModificationRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldI18nEntity.class, twinFieldI18nRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldBooleanEntity.class, twinFieldBooleanRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, SpaceRoleUserEntity.class, spaceRoleUserRepository, changesApplyResult);
         if (!twinChangesCollector.getSaveEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Map<Object, ChangesHelper>> classChanges : twinChangesCollector.getSaveEntityMap().entrySet()) {
                 log.warn("Unsupported entity class[{}] for saving", classChanges.getKey().getSimpleName());
@@ -76,6 +82,7 @@ public class TwinChangesService {
         deleteEntities(twinChangesCollector, TwinFieldI18nEntity.class, twinFieldI18nRepository);
         deleteEntities(twinChangesCollector, TwinAttachmentModificationEntity.class, twinAttachmentModificationRepository);
         deleteEntities(twinChangesCollector, TwinFieldBooleanEntity.class, twinFieldBooleanRepository);
+        deleteEntities(twinChangesCollector, SpaceRoleUserEntity.class, spaceRoleUserRepository);
         if (!twinChangesCollector.getDeleteEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Set<Object>> classChanges : twinChangesCollector.getDeleteEntityMap().entrySet()) {
                 log.warn("Unsupported entity class[{}] for deletion", classChanges.getKey().getSimpleName());
@@ -91,45 +98,23 @@ public class TwinChangesService {
             if (entry.getKey() instanceof TwinEntity twinEntity) {
                 for (TwinChangesCollector.TwinInvalidate invalidation : entry.getValue()) {
                     switch (invalidation) {
-                        case tagsKit:
-                            twinEntity.setTwinTagKit(null);
-                            break;
-                        case markersKit:
-                            twinEntity.setTwinMarkerKit(null);
-                            break;
-                        case twinFieldSimpleKit:
-                            twinEntity.setTwinFieldSimpleKit(null);
-                            break;
-                        case twinFieldUserKit:
-                            twinEntity.setTwinFieldUserKit(null);
-                            break;
-                        case twinFieldDatalistKit:
-                            twinEntity.setTwinFieldDatalistKit(null);
-                            break;
-                        case twinLinks:
-                            twinEntity.setTwinLinks(null);
-                            break;
-                        case fieldValuesKit:
-                            twinEntity.setFieldValuesKit(null);
-                            break;
-                        case twinAttachments:
-                            twinEntity.setAttachmentKit(null);
-                            break;
-                        case twinFieldI18nKit:
-                            twinEntity.setTwinFieldI18nKit(null);
-                            break;
-                        case twinFieldBooleanKit:
-                            twinEntity.setTwinFieldBooleanKit(null);
-                            break;
+                        case tagsKit -> twinEntity.setTwinTagKit(null);
+                        case markersKit -> twinEntity.setTwinMarkerKit(null);
+                        case twinFieldSimpleKit -> twinEntity.setTwinFieldSimpleKit(null);
+                        case twinFieldSimpleNonIndexedKit -> twinEntity.setTwinFieldSimpleNonIndexedKit(null);
+                        case twinFieldUserKit -> twinEntity.setTwinFieldUserKit(null);
+                        case twinFieldDatalistKit -> twinEntity.setTwinFieldDatalistKit(null);
+                        case twinLinks -> twinEntity.setTwinLinks(null);
+                        case fieldValuesKit -> twinEntity.setFieldValuesKit(null);
+                        case twinAttachments -> twinEntity.setAttachmentKit(null);
+                        case twinFieldI18nKit -> twinEntity.setTwinFieldI18nKit(null);
+                        case twinFieldBooleanKit -> twinEntity.setTwinFieldBooleanKit(null);
                     }
                 }
-                continue;
             } else if (entry.getKey() instanceof TwinAttachmentEntity twinAttachmentEntity) {
-                for (TwinChangesCollector.TwinInvalidate invalidation : entry.getValue()) {
-                    switch (invalidation) {
-                        case twinAttachmentModifications:
-                            twinAttachmentEntity.setModifications(null);
-                            break;
+                for (TwinInvalidate invalidation : entry.getValue()) {
+                    if (invalidation == TwinInvalidate.twinAttachmentModifications) {
+                        twinAttachmentEntity.setModifications(null);
                     }
                 }
             }

@@ -33,7 +33,8 @@ public class DomainViewPublicRestDTOMapper extends RestSimpleDTOMapper<DomainEnt
                         .setKey(src.getKey())
                         .setDescription(src.getDescription())
                         .setIconDark(resourceService.getResourceUri(src.getIconDarkResource()))
-                        .setIconLight(resourceService.getResourceUri(src.getIconLightResource()));
+                        .setIconLight(resourceService.getResourceUri(src.getIconLightResource()))
+                        .setName(src.getName());
                 break;
             case SHORT:
                 dst

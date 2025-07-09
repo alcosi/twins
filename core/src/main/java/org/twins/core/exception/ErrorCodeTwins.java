@@ -162,7 +162,9 @@ public enum ErrorCodeTwins implements ErrorCode {
     IDP_EMPTY_CLIENT_ID_OR_SECRET(12726, "empty clientId or secret", HttpStatus.UNAUTHORIZED),
     ACT_AS_USER_INCORRECT(12801, "act as user authentication error", HttpStatus.UNAUTHORIZED),
     ACT_AS_USER_NONCE_IS_NOT_UNIQ(12801, "act as user authentication error", HttpStatus.UNAUTHORIZED),
-    NOTIFICATION_CONFIGURATION_ERROR(12901, "something wrong with notification configuration"),;
+    NOTIFICATION_CONFIGURATION_ERROR(12901, "something wrong with notification configuration"),
+    FACE_CONFIG_IS_NOT_UNIQ(13001, "face has few config variants"),
+    FACE_NO_CONFIG_IS_SUITABLE(13002, "no suitable face config found"),;
 
     private final int code;
     private final String message;

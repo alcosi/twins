@@ -49,7 +49,7 @@ public class FacePG001Controller extends ApiController {
             @RequestParam(required = false) UUID twinId) {
         FacePG001ViewRsDTOv1 rs = new FacePG001ViewRsDTOv1();
         try {
-            FacePG001Entity facePG001Entity = facePG001Service.findEntitySafe(faceId);
+            FacePG001Entity facePG001Entity = facePG001Service.findSingleVariant(faceId, twinId);
             rs
                     .setPage(facePG001RestDTOMapper.convert(facePG001Entity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

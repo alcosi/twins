@@ -2,7 +2,6 @@ package org.twins.core.dao.notification.email;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -50,8 +49,9 @@ public class NotificationEmailEntity implements EasyLoggable {
     @Column(name = "active")
     private boolean active;
 
-    @Column(name = "async")
-    private boolean async;
+    @Column(name = "notification_mode_id")
+    @Enumerated(EnumType.STRING)
+    private NotificationMode notificationMode;
 
     @Column(name = "created_at")
     private Timestamp createdAt;
@@ -82,11 +82,5 @@ public class NotificationEmailEntity implements EasyLoggable {
 
     public String easyLog(Level level) {
         return "notificationEmail[id:" + id + "]";
-    }
-
-    @Getter
-    public enum EmailSenderStatus {
-        ACTIVE,
-        DISABLED
     }
 }

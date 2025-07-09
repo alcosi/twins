@@ -12,7 +12,10 @@ import java.util.Set;
 @Schema(name = TwinFieldSearchTextDTOv1.KEY)
 public class TwinFieldSearchTextDTOv1 implements TwinFieldSearchDTOv1 {
     public static final String KEY = "TwinFieldSearchTextV1";
-    public String type = KEY;
+    @Override
+    public String type() {
+        return KEY;
+    }
 
     @Schema(description = "Include like given strings. AND join. Add % symbols manual to use LIKE features.")
     public Set<String> valueLikeAllOfList;

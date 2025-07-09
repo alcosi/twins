@@ -94,6 +94,6 @@ public class NotificationEmailService extends EntitySecureFindServiceImpl<Notifi
                 notificationEmailEntity.getEmailSender(),
                 emailDst,
                 subject,
-                body, notificationEmailEntity.isAsync());
+                body, notificationEmailEntity.getNotificationMode());
     }
 }

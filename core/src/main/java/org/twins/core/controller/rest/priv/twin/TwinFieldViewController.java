@@ -63,7 +63,7 @@ public class TwinFieldViewController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
-    private void fillResponse(TwinField twinField, MapperContext mapperContext, TwinFieldRsDTOv1 rs) throws Exception {
+    private void fillResponse(TwinField twinField, @Schema(hidden = true) MapperContext mapperContext, TwinFieldRsDTOv1 rs) throws Exception {
         rs
                 .twinId(twinField.getTwinId())
                 .field(twinFieldRestDTOMapper.convert(
