@@ -16,6 +16,6 @@ public class AttachmentCreateValidateRestDTOMapper extends RestSimpleDTOMapper<A
     @Override
     public void map(AttachmentCUDValidateResult src, AttachmentCreateValidateRsDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
-                .setCudProblems(attachmentProblemsRestDTOMapper.convert(src.getCudProblems(), mapperContext));
+                .setCreateProblems(attachmentProblemsRestDTOMapper.convert(src.getCudProblems(), mapperContext));
     }
 }

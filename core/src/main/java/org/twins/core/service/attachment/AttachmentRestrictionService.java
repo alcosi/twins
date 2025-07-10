@@ -226,7 +226,7 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
             return;
 
         Kit<TwinClassFieldEntity, UUID> fieldsKit = twinClassFieldService.findEntitiesSafe(fieldIds);
-        Map<UUID, Integer> currentCounts = attachmentService.countByTwinAndFields(twin.getId(), fieldIds);
+        Map<UUID, Integer> currentCounts = attachmentService.countByTwinAndFields(twin, fieldIds);
 
         Map<UUID, UUID> fieldToRestrictionMap = new HashMap<>();
         Set<UUID> restrictionIds = new HashSet<>();
