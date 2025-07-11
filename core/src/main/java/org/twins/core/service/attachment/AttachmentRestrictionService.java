@@ -12,6 +12,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.attachment.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -24,6 +25,7 @@ import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperAttachment;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.twin.TwinActionService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -50,6 +52,7 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
     private final AttachmentService attachmentService;
     private final FeaturerService featurerService;
     private final AuthService authService;
+    private final TwinActionService twinActionService;
 
     @Override
     public CrudRepository<TwinAttachmentRestrictionEntity, UUID> entityRepository() {
@@ -89,8 +92,10 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
             twin = twinService.findEntitySafe(twinId);
             twinClass = twin.getTwinClass();
             attachmentService.loadAttachmentsCount(twin);
+            twinActionService.checkAllowed(twin, TwinAction.ATTACHMENT_ADD);
         } else {
             twinClass = twinClassService.findEntitySafe(twinClassId);
+            //todo check permission for class
         }
         EntityCUD<TwinAttachmentEntity> generalCud = new EntityCUD<>();
         EntityCUD<TwinAttachmentEntity> commentCud = new EntityCUD<>();
@@ -244,28 +249,25 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
             restrictionIds.add(restrictionId);
         }
 
-        if (!restrictionIds.isEmpty()) {
-            Kit<TwinAttachmentRestrictionEntity, UUID> restrictionsKit = findEntitiesSafe(restrictionIds);
-            for (var entry : fieldCudMap.entrySet()) {
-                UUID fieldId = entry.getKey();
-                UUID restrictionId = fieldToRestrictionMap.get(fieldId);
-                if (restrictionId == null) {
-                    continue;
-                }
-                TwinAttachmentRestrictionEntity restriction = restrictionsKit.get(restrictionId);
-                if (restriction == null) {
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "incorrect restriction id[" + restrictionId + "]");
-                }
-                int currentCount = currentCounts.getOrDefault(fieldId, 0);
-                validateAttachmentRestrictions(currentCount, restriction, entry.getValue(), result);
+        if (restrictionIds.isEmpty())
+            return;
+        Kit<TwinAttachmentRestrictionEntity, UUID> restrictionsKit = findEntitiesSafe(restrictionIds);
+        for (var entry : fieldCudMap.entrySet()) {
+            UUID fieldId = entry.getKey();
+            UUID restrictionId = fieldToRestrictionMap.get(fieldId);
+            if (restrictionId == null) {
+                continue;
             }
+            TwinAttachmentRestrictionEntity restriction = restrictionsKit.get(restrictionId);
+            if (restriction == null) {
+                throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "incorrect restriction id[" + restrictionId + "]");
+            }
+            int currentCount = currentCounts.getOrDefault(fieldId, 0);
+            validateAttachmentRestrictions(currentCount, restriction, entry.getValue(), result);
         }
     }
 
     private void validateAttachmentRestrictions(int currentCount, TwinAttachmentRestrictionEntity restriction, EntityCUD<TwinAttachmentEntity> cud, AttachmentCUDValidateResult result) {
-        if (restriction == null)
-            return;
-
         validateAttachmentsCount(currentCount, restriction, cud, result);
         validateAttachmentsSize(restriction, cud, result);
         validateAttachmentsNameRegexp(restriction, cud, result);
