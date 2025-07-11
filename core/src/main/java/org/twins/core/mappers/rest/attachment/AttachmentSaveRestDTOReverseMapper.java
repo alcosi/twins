@@ -20,9 +20,9 @@ import org.twins.core.service.storage.StorageService;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static org.twins.core.exception.ErrorCodeTwins.BAD_REQUEST_MULTIPART_FILE_IS_NOT_PRESENTED;
+import static org.twins.core.service.SystemEntityService.TWIN_ATTACHMENT_EXTERNAL_URI_STORAGER_ID;
 
 
 @Component
@@ -31,14 +31,13 @@ import static org.twins.core.exception.ErrorCodeTwins.BAD_REQUEST_MULTIPART_FILE
 public class AttachmentSaveRestDTOReverseMapper extends RestSimpleDTOMapper<AttachmentSaveDTOv1, TwinAttachmentEntity> {
     protected final StorageService storageService;
     protected final AuthService authService;
-    protected final UUID externalLinkStorageId = UUID.fromString("01977e27-e455-70b4-abf7-0907b0b9c7dc");
 
     @SneakyThrows
     public void preProcessAttachments(List<AttachmentSaveDTOv1> attachments, Map<String, MultipartFile> files) {
         try {
             ApiUser apiUser = authService.getApiUser();
             StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getAttachmentsStorageId());
-            StorageEntity externalLinkStorage = storageService.findEntitySafe(externalLinkStorageId);
+            StorageEntity externalLinkStorage = storageService.findEntitySafe(TWIN_ATTACHMENT_EXTERNAL_URI_STORAGER_ID);
 
             if (attachments != null && !attachments.isEmpty()) {
                 attachments.forEach(att -> {

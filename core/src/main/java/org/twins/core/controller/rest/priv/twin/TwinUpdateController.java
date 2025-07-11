@@ -1,6 +1,5 @@
 package org.twins.core.controller.rest.priv.twin;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -54,7 +52,6 @@ public class TwinUpdateController extends ApiController {
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     private final TwinUpdateRestDTOReverseMapper twinUpdateRestDTOReverseMapper;
     private final AttachmentCUDRestDTOReverseMapper twinAttachmentCUDRestDTOReverseMapper;
-    private final ObjectMapper objectMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
@@ -92,8 +89,6 @@ public class TwinUpdateController extends ApiController {
             @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @Schema(hidden = true) MultipartHttpServletRequest request, @Schema(implementation = TwinUpdateRqDTOv1.class) @RequestPart("request") byte[] requestBytes) {
-        // Spring can automatically convert the JSON part to your DTO
-        // if a proper HttpMessageConverter (like MappingJackson2HttpMessageConverter) is configured.
         Map<String, MultipartFile> filesMap = new HashMap<>();
         request.getFileNames().forEachRemaining(fileName -> {
             List<MultipartFile> files = request.getFiles(fileName);
@@ -129,11 +124,4 @@ public class TwinUpdateController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
-    protected <T> T mapRequest(byte[] bytes, Class<T> clazz) {
-        try {
-            return objectMapper.readValue(bytes, clazz);
-        } catch (Throwable t) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, t.getMessage());
-        }
-    }
 }

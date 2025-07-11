@@ -1,6 +1,5 @@
 package org.twins.core.controller.rest.priv.twin;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -17,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
@@ -48,7 +46,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_CREATE})
 public class TwinCreateController extends ApiController {
-    private final ObjectMapper objectMapper;
     private final AuthService authService;
     private final TwinService twinService;
     private final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
@@ -116,7 +113,6 @@ public class TwinCreateController extends ApiController {
     })
     @PostMapping(value = "/private/twin/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinCreateFromJson(@RequestBody TwinCreateRqDTOv2 request) {
-        // Your logic to create the twin
         return createTwinV2(request, Map.of());
     }
 
@@ -138,8 +134,6 @@ public class TwinCreateController extends ApiController {
     public ResponseEntity<?> twinCreateFromMultipart(
             @Schema(hidden = true) MultipartHttpServletRequest request,
             @Schema(implementation = TwinCreateRqDTOv2.class) @RequestPart("request") byte[] requestBytes) {
-        // Spring can automatically convert the JSON part to your DTO
-        // if a proper HttpMessageConverter (like MappingJackson2HttpMessageConverter) is configured.
         Map<String, MultipartFile> filesMap = new HashMap<>();
         request.getFileNames().forEachRemaining(fileName -> {
             List<MultipartFile> files = request.getFiles(fileName);
@@ -221,11 +215,4 @@ public class TwinCreateController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
-    protected <T> T mapRequest(byte[] bytes, Class<T> clazz) {
-        try {
-            return objectMapper.readValue(bytes, clazz);
-        } catch (Throwable t) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, t.getMessage());
-        }
-    }
 }
