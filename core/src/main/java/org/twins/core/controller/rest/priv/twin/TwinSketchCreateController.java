@@ -18,11 +18,11 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
-import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.twinoperation.TwinSketchCreate;
+import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.twin.*;
-import org.twins.core.mappers.rest.twin.TwinSketchCreateRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinSketchCreateRestDTOReverseMapper;
+import org.twins.core.mappers.rest.twin.TwinCreateRqRestDTOReverseMapper;
+import org.twins.core.mappers.rest.twin.TwinCreateRsRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinSketchService;
 
@@ -34,8 +34,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_CREATE})
 public class TwinSketchCreateController extends ApiController {
-    private final TwinSketchCreateRestDTOReverseMapper twinSketchCreateRestDTOReverseMapper;
-    private final TwinSketchCreateRestDTOMapper twinSketchCreateRestDTOMapper;
+    private final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
     private final TwinSketchService twinSketchService;
 
 
@@ -44,15 +43,15 @@ public class TwinSketchCreateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin sketch created", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinSketchListRsDTOv1.class))}),
+                    @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/sketch/v1")
     public ResponseEntity<?> twinSketchCreateV1(
-            @RequestBody TwinSketchCreateRqDTOv1 request) {
-        TwinSketchListRsDTOv1 rs = new TwinSketchListRsDTOv1();
+            @RequestBody TwinBatchCreateRqDTOv1 request) {
+        Response rs = new Response();
         try {
-            rs
-                    .setTwinSketches(twinSketchCreateRestDTOMapper.convertCollection(twinSketchService.createTwinSketch(twinSketchCreateRestDTOReverseMapper.convertCollection(request.getTwinSketches()))));
+            List<TwinCreate> twinCreates = twinCreateRqRestDTOReverseMapper.convertCollection(request.getTwins());
+            twinSketchService.createTwinSketch(twinCreates);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

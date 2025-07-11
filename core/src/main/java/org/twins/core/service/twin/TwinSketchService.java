@@ -14,8 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.TwinChangesCollector;
-import org.twins.core.domain.twinoperation.TwinSketchCreate;
+import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
@@ -41,7 +40,7 @@ public class TwinSketchService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinFieldSimpleRepository twinFieldSimpleRepository;
     private final AuthService authService;
 
-    private static final UUID SKETCH_STATUS_ID = UUID.fromString("38120cb0-5611-4839-8b40-7c1f27142b8e");
+    private static final UUID SKETCH_STATUS_ID = UUID.fromString("00000001-0000-0000-0000-000000000001");
 
     @Override
     public CrudRepository<TwinEntity, UUID> entityRepository() {
@@ -67,22 +66,24 @@ public class TwinSketchService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     @Transactional
-    public TwinEntity createTwinSketch(TwinSketchCreate twinSketchCreate) throws ServiceException {
+    public TwinEntity createTwinSketch(TwinCreate twinSketchCreate) throws ServiceException {
         return createTwinSketch(List.of(twinSketchCreate)).getFirst();
     }
 
     @Transactional
-    public List<TwinEntity> createTwinSketch(List<TwinSketchCreate> twinSketchCreateList) throws ServiceException {
+    public List<TwinEntity> createTwinSketch(List<TwinCreate> twinSketchCreateList) throws ServiceException {
+        //todo refactor, take all the functionality from TwinService, avoiding checks
         ApiUser apiUser = authService.getApiUser();
 
         List<TwinEntity> entities = new ArrayList<>();
         List<Object> fieldEntities = new ArrayList<>();
 
-        for (TwinSketchCreate sketch : twinSketchCreateList) {
+        for (TwinCreate sketch : twinSketchCreateList) {
             TwinEntity twinEntity = new TwinEntity()
                     .setId(UUID.randomUUID())
-                    .setTwinClassId(sketch.getTwinClassId())
+                    .setTwinClassId(sketch.getTwinEntity().getTwinClassId())
                     .setName("")
+                    .setHeadTwinId(sketch.getTwinEntity().getHeadTwinId())
                     .setCreatedAt(Timestamp.from(Instant.now()))
                     .setTwinStatusId(SKETCH_STATUS_ID)
                     .setCreatedByUserId(apiUser.getUserId());
