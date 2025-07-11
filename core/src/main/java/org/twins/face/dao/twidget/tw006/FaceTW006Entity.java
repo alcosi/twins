@@ -32,6 +32,9 @@ public class FaceTW006Entity implements EasyLoggable, FacePointedEntity {
     @Column(name = "style_classes")
     private String styleClasses;
 
+    @Column(name = "ui_type")
+    private String uiType;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;

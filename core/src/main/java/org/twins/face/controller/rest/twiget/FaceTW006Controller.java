@@ -36,6 +36,7 @@ public class FaceTW006Controller extends ApiController {
 
     private final FaceTW006Service faceTW006Service;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
+    private final FaceTW006RestDTOMapper faceTW006RestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "faceTW006ViewV1", summary = "Returns TW006 widget config: twin actions widget")
@@ -48,16 +49,13 @@ public class FaceTW006Controller extends ApiController {
     public ResponseEntity<?> faceTW006ViewV1(
             @MapperContextBinding(roots = FaceTW006RestDTOMapper.class, response = FaceTW006ViewRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACE_ID) @PathVariable UUID faceId,
-            @RequestParam UUID twinId
-    ) {
+            @RequestParam UUID twinId) {
         FaceTW006ViewRsDTOv1 rs = new FaceTW006ViewRsDTOv1();
-        FaceTW006DTOv1 widget = new FaceTW006DTOv1();
         try {
             PointedFace<FaceTW006Entity> config = faceTW006Service.findPointedFace(faceId, twinId);
-            widget.setPointedTwinId(config.getTargetTwinId());
 
             rs
-                    .setWidget(widget)
+                    .setWidget(faceTW006RestDTOMapper.convert(config, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

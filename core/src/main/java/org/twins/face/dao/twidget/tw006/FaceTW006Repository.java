@@ -11,4 +11,3 @@ import java.util.UUID;
 public interface FaceTW006Repository extends CrudRepository<FaceTW006Entity, UUID>, JpaSpecificationExecutor<FaceTW006Entity> {
     List<FaceTW006Entity> findByFaceId(UUID faceId);
 }
-
