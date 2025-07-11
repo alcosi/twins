@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.Type;
@@ -37,9 +38,6 @@ public class FaceTC002Entity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "key", nullable = false)
     private String key;
 
-    @Column(name = "class_selector_label_i18n_id")
-    private UUID classSelectorLabelI18nId;
-
     @Column(name = "save_button_label_i18n_id")
     private UUID saveButtonLabelI18nId;
 
@@ -51,22 +49,6 @@ public class FaceTC002Entity implements EasyLoggable, FaceVariantEntity {
 
     @Column(name = "style_classes")
     private String styleClasses;
-
-    @Column(name = "twin_class_id")
-    private UUID twinClassId;
-
-    @Column(name = "extends_depth")
-    private Integer extendsDepth;
-
-    @Column(name = "head_twin_pointer_id")
-    private UUID headTwinPointerId;
-
-    @Column(name = "field_finder_featurer_id")
-    private Integer fieldFinderFeaturerId;
-
-    @Type(PostgreSQLHStoreType.class)
-    @Column(name = "field_finder_params", columnDefinition = "hstore")
-    private HashMap<String, String> fieldFinderParams;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
@@ -84,13 +66,10 @@ public class FaceTC002Entity implements EasyLoggable, FaceVariantEntity {
     @JoinColumn(name = "header_icon_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconResource;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "twin_class_id", insertable = false, updatable = false)
-    private TwinClassEntity twinClass;
-
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinClassFieldEntity, UUID> fields;
+    @ToString.Exclude
+    private Kit<FaceTC002OptionEntity, UUID> options;
 
     @Override
     public String easyLog(EasyLoggable.Level level) {

@@ -4,18 +4,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.featurer.FeaturerService;
+import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.search.TwinClassFieldSearch;
-import org.twins.core.featurer.fieldfinder.FieldFinder;
 import org.twins.core.service.face.FaceService;
 import org.twins.core.service.face.FaceVariantsService;
-import org.twins.core.service.twinclass.TwinClassFieldSearchService;
 import org.twins.face.dao.tc.tc002.FaceTC002Entity;
+import org.twins.face.dao.tc.tc002.FaceTC002OptionEntity;
+import org.twins.face.dao.tc.tc002.FaceTC002OptionRepository;
 import org.twins.face.dao.tc.tc002.FaceTC002Repository;
 
 import java.util.Collection;
@@ -30,10 +29,8 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class FaceTC002Service extends FaceVariantsService<FaceTC002Entity> {
     private final FaceTC002Repository faceTC002Repository;
-    private final FeaturerService featurerService;
-    private final TwinClassFieldSearchService twinClassFieldSearchService;
     private final FaceService faceService;
-
+    private final FaceTC002OptionRepository faceTC002OptionRepository;
 
     @Override
     public CrudRepository<FaceTC002Entity, UUID> entityRepository() {
@@ -60,20 +57,31 @@ public class FaceTC002Service extends FaceVariantsService<FaceTC002Entity> {
         return faceTC002Repository.findByFaceId(of);
     }
 
-    public void loadFields(FaceTC002Entity entity) throws ServiceException {
-        loadFields(Collections.singletonList(entity));
+    public void loadOptions(FaceTC002Entity src) {
+        loadOptions(Collections.singletonList(src));
     }
 
-    public void loadFields(Collection<FaceTC002Entity> entities) throws ServiceException {
-        for (FaceTC002Entity entity : entities) {
-            if (entity.getFields() != null) {
-                continue;
+    public void loadOptions(Collection<FaceTC002Entity> srcList) {
+        if (CollectionUtils.isEmpty(srcList)) {
+            return;
+        }
+
+        Kit<FaceTC002Entity, UUID> needLoad = new Kit<>(FaceTC002Entity::getId);
+
+        for (FaceTC002Entity entity : srcList ) {
+            if (entity.getOptions() == null){
+                entity.setOptions(new Kit<>(FaceTC002OptionEntity::getId));
+                needLoad.add(entity);
             }
-            FieldFinder fieldFinder = featurerService.getFeaturer(entity.getFieldFinderFeaturerId(), FieldFinder.class);
-            TwinClassFieldSearch twinClassFieldSearch = fieldFinder.createSearch(entity.getFieldFinderParams(), entity.getTwinClassId());
-            twinClassFieldSearch.setExcludeSystemFields(false);
-            Kit<TwinClassFieldEntity, UUID> fields = new Kit<>(twinClassFieldSearchService.findTwinClassField(twinClassFieldSearch), TwinClassFieldEntity::getId);
-            entity.setFields(fields);
+        }
+        if (needLoad.isEmpty()) {
+            return;
+        }
+
+        KitGrouped<FaceTC002OptionEntity, UUID, UUID> loadedKit = new KitGrouped<>(
+                faceTC002OptionRepository.findByFaceTC002IdIn(needLoad.getIdSet()), FaceTC002OptionEntity::getId, FaceTC002OptionEntity::getFaceTC002Id);
+        for (var entry : loadedKit.getGroupedMap().entrySet()) {
+            needLoad.get(entry.getKey()).getOptions().addAll(entry.getValue());
         }
     }
 }
