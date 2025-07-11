@@ -32,7 +32,7 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            this.id = UUID.randomUUID();
+            this.id = UUID.nameUUIDFromBytes((key + twinClassId).getBytes());
         }
     }
 

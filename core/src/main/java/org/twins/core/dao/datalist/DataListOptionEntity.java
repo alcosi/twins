@@ -24,8 +24,14 @@ import java.util.function.Function;
 @Table(name = "data_list_option")
 public class DataListOptionEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UUID.nameUUIDFromBytes((dataListId + option + optionI18NId).getBytes());
+        }
+    }
 
     @Column(name = "data_list_id")
     private UUID dataListId;
