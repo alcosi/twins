@@ -11,6 +11,7 @@ import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.resource.ResourceService;
 import org.twins.face.dao.tc.tc002.FaceTC002Entity;
 import org.twins.face.dto.rest.tc.tc002.FaceTC002DTOv1;
+import org.twins.face.service.tc.FaceTC002OptionService;
 import org.twins.face.service.tc.FaceTC002Service;
 
 import java.util.Collection;
@@ -23,6 +24,7 @@ public class FaceTC002RestDTOMapper extends RestSimpleDTOMapper<FaceTC002Entity,
     private final ResourceService resourceService;
     private final FaceTC002OptionRestDTOMapper faceTC002OptionRestDTOMapper;
     private final FaceTC002Service faceTC002Service;
+    private final FaceTC002OptionService faceTC002OptionService;
 
     @Override
     public void map(FaceTC002Entity src, FaceTC002DTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -38,7 +40,7 @@ public class FaceTC002RestDTOMapper extends RestSimpleDTOMapper<FaceTC002Entity,
                         .setSaveButtonLabel(i18nService.translateToLocale(src.getSaveButtonLabelI18nId()))
                         .setHeader(i18nService.translateToLocale(src.getHeaderI18nId()))
                         .setIcon(resourceService.getResourceUri(src.getIconResource()))
-                        .setOptions(faceTC002OptionRestDTOMapper.convertCollection(src.getOptions(), mapperContext));
+                        .setOptions(faceTC002OptionRestDTOMapper.convertCollection(faceTC002OptionService.filterVariants(src.getOptions()), mapperContext));
             }
         }
     }

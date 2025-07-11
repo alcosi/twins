@@ -1,28 +1,24 @@
 package org.twins.face.dao.tc.tc002;
 
-import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
-import org.hibernate.annotations.Type;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceVariantEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-
-import java.util.HashMap;
 import java.util.UUID;
 
 @Getter
 @Setter
 @Entity
+@Accessors(chain = true)
 @Table(name = "face_tc002")
 public class FaceTC002Entity implements EasyLoggable, FaceVariantEntity {
     @Id

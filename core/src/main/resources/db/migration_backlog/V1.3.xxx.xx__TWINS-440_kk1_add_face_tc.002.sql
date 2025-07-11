@@ -1,5 +1,5 @@
 INSERT INTO public.face_component (id, face_component_type_id, name, description)
-VALUES ('TC002', 'TWIN_CREATE', 'Create twin sketch button widget', null)
+VALUES ('TC002', 'TWIN_CREATE', 'Create twin sketch modal widget', null)
     ON CONFLICT (id) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS face_tc002 (
@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS face_tc002 (
 CREATE TABLE IF NOT EXISTS face_tc002_option (
     id UUID PRIMARY KEY NOT NULL,
     face_tc002_id UUID NOT NULL REFERENCES face_tc002(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    twin_pointer_validator_rule_id UUID REFERENCES twin_pointer_validator_rule,
     class_selector_label_i18n_id UUID REFERENCES i18n ON UPDATE CASCADE ON DELETE RESTRICT,
     twin_class_id UUID NOT NULL REFERENCES twin_class ON UPDATE CASCADE ON DELETE CASCADE,
     extends_depth INTEGER NOT NULL DEFAULT 0,

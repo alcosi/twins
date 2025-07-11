@@ -5,11 +5,13 @@ import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.face.FaceVariantEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
@@ -19,14 +21,18 @@ import java.util.UUID;
 @Getter
 @Setter
 @Entity
+@Accessors(chain = true)
 @Table(name = "face_tc002_option")
-public class FaceTC002OptionEntity implements EasyLoggable {
+public class FaceTC002OptionEntity implements EasyLoggable, FaceVariantEntity {
     @Id
     @Column(name = "id")
     private UUID id;
 
     @Column(name = "face_tc002_id", nullable = false)
     private UUID faceTC002Id;
+
+    @Column(name = "twin_pointer_validator_rule_id")
+    private UUID twinPointerValidatorRuleId;
 
     @Column(name = "class_selector_label_i18n_id")
     private UUID classSelectorLabelI18nId;
@@ -42,6 +48,10 @@ public class FaceTC002OptionEntity implements EasyLoggable {
 
     @Column(name = "field_finder_featurer_id", nullable = false)
     private Integer fieldFinderFeaturerId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
+    private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "field_finder_params", columnDefinition = "hstore")
