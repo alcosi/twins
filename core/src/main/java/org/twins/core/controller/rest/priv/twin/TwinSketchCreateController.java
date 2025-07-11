@@ -32,7 +32,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_CREATE})
+@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_SKETCH_CREATE})
 public class TwinSketchCreateController extends ApiController {
     private final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
     private final TwinSketchService twinSketchService;
