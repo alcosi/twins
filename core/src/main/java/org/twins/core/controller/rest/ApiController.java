@@ -1,21 +1,26 @@
 package org.twins.core.controller.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCode;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
-import org.twins.core.service.i18n.I18nService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.dao.error.ErrorEntity;
 import org.twins.core.dao.error.ErrorRepository;
 import org.twins.core.dto.rest.Response;
+import org.twins.core.service.i18n.I18nService;
 
 import java.util.Hashtable;
 
 @Slf4j
 public abstract class ApiController {
+    @Autowired
+    protected ObjectMapper objectMapper;
+
     @Autowired
     private ErrorRepository errorRepository;
 
@@ -66,5 +71,13 @@ public abstract class ApiController {
 
     public ResponseEntity<Response> createErrorRs(Exception ex) {
         return createErrorRs(ex, new Response());
+    }
+
+    protected <T> T mapRequest(byte[] bytes, Class<T> clazz) {
+        try {
+            return objectMapper.readValue(bytes, clazz);
+        } catch (Throwable t) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, t.getMessage());
+        }
     }
 }
