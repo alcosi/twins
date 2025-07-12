@@ -1,0 +1,1 @@
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (3203, 32, 'org.twins.core.featurer.fieldfinder.FieldFinderRequired', 'Required fields', '', false) on conflict do nothing;
