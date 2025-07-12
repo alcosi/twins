@@ -24,15 +24,15 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @Featurer(id = FeaturerTwins.ID_3604,
-        name = "Filter given fields by boolean field",
-        description = "")
+        name = "Filter fields by boolean field",
+        description = "Filter depending on given boolean field value")
 public class FieldFilterDependOnBooleanField extends FieldFilter{
     private final TwinService twinService;
 
-    @FeaturerParam(name = "Boolean field id", description = "", order = 1)
+    @FeaturerParam(name = "Boolean field id", description = "Given boolean field by witch fields filtering", order = 1)
     public static final FeaturerParamUUID booleanFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("booleanFieldId");
 
-    @FeaturerParam(name = "Exclude on true", description = "", optional = true, defaultValue = "true")
+    @FeaturerParam(name = "Exclude on true", description = "If true, filter fields by boolean field value true, if false - by field value false", order = 2, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeOnTrue = new FeaturerParamBoolean("excludeOnTrue");
 
     @Override
