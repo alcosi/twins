@@ -97,4 +97,7 @@ public class TwinClassBaseDTOv1 {
 
     @Schema(description = "external id")
     public String externalId;
+
+    @Schema(description = "face relative path")
+    private String faceRelativePath;
 }

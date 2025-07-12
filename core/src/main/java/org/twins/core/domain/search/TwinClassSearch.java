@@ -21,6 +21,8 @@ public class TwinClassSearch {
     private Set<String> descriptionI18nNotLikeList;
     private Set<String> externalIdLikeList;
     private Set<String> externalIdNotLikeList;
+    private Set<String> faceRelativePathLikeList;
+    private Set<String> faceRelativePathNotLikeList;
 
     private HierarchySearch headHierarchyChildsForTwinClassSearch;
     private HierarchySearch headHierarchyParentsForTwinClassSearch;

@@ -157,6 +157,9 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "external_id")
     private String externalId;
 
+    @Column(name = "face_relative_path")
+    private String faceRelativePath;
+
 //    @ManyToOne
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
 //    private DomainEntity domain;
