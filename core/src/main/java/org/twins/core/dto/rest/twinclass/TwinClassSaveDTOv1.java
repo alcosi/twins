@@ -67,4 +67,7 @@ public class TwinClassSaveDTOv1 {
 
     @Schema(description = "[optional] external id")
     public String externalId;
+
+    @Schema(description = "[optional] face relative path")
+    private String faceRelativePath;
 }
