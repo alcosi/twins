@@ -1,0 +1,1 @@
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (3604, 36, 'org.twins.core.featurer.fieldfilter.FieldFilterDependOnBooleanField', 'Filter given fields by boolean field', '', false) on conflict do nothing;
