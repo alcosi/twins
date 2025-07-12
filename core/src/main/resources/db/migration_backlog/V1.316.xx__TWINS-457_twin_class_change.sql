@@ -1,2 +1,2 @@
 alter table twin_class
-    add column face_relative_path varchar;
+    add column if not exists face_relative_path varchar;
