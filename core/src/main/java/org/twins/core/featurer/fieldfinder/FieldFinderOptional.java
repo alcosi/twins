@@ -13,14 +13,13 @@ import java.util.UUID;
 
 @Slf4j
 @Component
-@Featurer(id = FeaturerTwins.ID_3203,
-        name = "Required fields",
+@Featurer(id = FeaturerTwins.ID_3204,
+        name = "Optional fields",
         description = "")
-public class FieldFinderRequired extends FieldFinder {
+public class FieldFinderOptional extends FieldFinder {
 
     @Override
     protected void createSearch(Properties properties, UUID twinClassId, TwinClassFieldSearch fieldSearch) throws ServiceException {
-        fieldSearch.setRequired(Ternary.ONLY);
-
+        fieldSearch.setRequired(Ternary.ONLY_NOT);
     }
 }
