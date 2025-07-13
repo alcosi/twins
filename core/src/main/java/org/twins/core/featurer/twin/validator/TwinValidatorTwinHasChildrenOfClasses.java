@@ -32,18 +32,18 @@ public class TwinValidatorTwinHasChildrenOfClasses extends TwinValidator {
 
     @Override
     protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
-        Set<UUID> statusIdSet = classIds.extract(properties);
+        Set<UUID> classIdSet = classIds.extract(properties);
         BasicSearch search = new BasicSearch();
         search
                 .addHeadTwinId(twinEntity.getId())
-                .addTwinClassId(statusIdSet, false);
+                .addTwinClassId(classIdSet, false);
         long count = twinSearchService.count(search);
         boolean isValid = count > 0;
         return buildResult(
                 isValid,
                 invert,
-                twinEntity.logShort() + " has no children of classes[" + StringUtils.join(statusIdSet, ",") + "]",
-                twinEntity.logShort() + " has " + count + " children of classes[" + StringUtils.join(statusIdSet, ",") + "]");
+                twinEntity.logShort() + " has no children of classes[" + StringUtils.join(classIdSet, ",") + "]",
+                twinEntity.logShort() + " has " + count + " children of classes[" + StringUtils.join(classIdSet, ",") + "]");
     }
 
     @Override
