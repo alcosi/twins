@@ -22,8 +22,14 @@ import java.util.UUID;
 @FieldNameConstants
 public class DataListEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UUID.nameUUIDFromBytes((key + domainId).getBytes());
+        }
+    }
 
     @Column(name = "name_i18n_id")
     private UUID nameI18nId;
