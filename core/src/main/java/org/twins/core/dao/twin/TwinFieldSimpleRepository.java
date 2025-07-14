@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -25,6 +24,8 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
     @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and not child.twinStatusId in :childrenTwinStatusIdList")
     long countChildrenTwinsWithStatusNotIn(@Param("headTwinId") UUID headTwinId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 
+    @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and child.twinClassId=:twinClassId")
+    long countChildrenTwinsByTwinClassId(@Param("headTwinId") UUID headTwinId, @Param("twinClassId") UUID twinClassId);
 
     @Query(value = """
             select coalesce(sum(cast(field.value as double)), 0)

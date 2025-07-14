@@ -19,9 +19,9 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1314,
-        name = "Count children twins (on fly)",
+        name = "Count children twins by child-status (on fly)",
         description = "Get count of child-twins by child-status(inc/exc) on fly")
-public class FieldTyperCountChildrenTwinsV1 extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageSpirit, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenTwins {
+public class FieldTyperCountChildrenByStatusV1 extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageSpirit, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenByStatus {
     public static final Integer ID = 1314;
 
     @Autowired
