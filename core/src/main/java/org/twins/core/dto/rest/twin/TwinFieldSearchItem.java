@@ -11,6 +11,6 @@ public class TwinFieldSearchItem {
     @Schema(description = "twin class field id")
     public UUID fieldId;
 
-    @Schema(description = "field search polymorph", additionalPropertiesSchema = TwinFieldSearchDTOv1.class)
+    @Schema(description = "field search polymorph")
     public TwinFieldSearchDTOv1 fieldSearch;
 }
