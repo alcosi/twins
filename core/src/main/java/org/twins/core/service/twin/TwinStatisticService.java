@@ -10,9 +10,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
-import org.twins.core.domain.Item;
-import org.twins.core.domain.TwinStatistic;
-import org.twins.core.domain.TwinStatisticProgressPercent;
+import org.twins.core.domain.statistic.TwinStatisticProgressPercent;
 
 import java.util.*;
 import java.util.function.Function;
@@ -46,16 +44,16 @@ public class TwinStatisticService extends EntitySecureFindServiceImpl<TwinEntity
         return true;
     }
 
-    public Map<UUID, TwinStatistic> calcStatistic(UUID statisticId, Set<UUID> twinIdSet) throws Exception {
+    public Map<UUID, TwinStatisticProgressPercent> calcStatistic(UUID statisticId, Set<UUID> twinIdSet) throws Exception {
         //todo mock object
-        Item item = new Item()
+        TwinStatisticProgressPercent.Item item = new TwinStatisticProgressPercent.Item()
                 .setLabel("In progress")
                 .setKey("inProgress")
                 .setPercent(30)
                 .setColorHex("#22FF00");
-        TwinStatistic statistic = new TwinStatisticProgressPercent()
+        TwinStatisticProgressPercent statistic = new TwinStatisticProgressPercent()
                 .setItems(List.of(item));
-        Map<UUID, TwinStatistic> statisticMap = new HashMap<>();
+        Map<UUID, TwinStatisticProgressPercent> statisticMap = new HashMap<>();
         for (UUID uuid : twinIdSet) {
             statisticMap.put(uuid, statistic);
         }
