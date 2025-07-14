@@ -7,14 +7,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
@@ -35,6 +36,7 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,10 +59,10 @@ public class TwinCreateController extends ApiController {
     @Operation(operationId = "twinCreateV1", summary = "Create new twin")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
-                    @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinCreateRsDTOv1.class))}),
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema =
+                    @Schema(implementation = TwinCreateRsDTOv1.class)),}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/twin/v1")
+    @PostMapping(value = "/private/twin/v1", consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinCreateV1(
             @RequestBody TwinCreateRqDTOv1 request) {
         TwinCreateRsDTOv1 rs = new TwinCreateRsDTOv1();
@@ -97,18 +99,55 @@ public class TwinCreateController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
+
+    /**
+     * Endpoint for creating a twin from a JSON request body.
+     */
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinCreateV2", summary = "Create new twin")
+    @Operation(summary = "twinCreateV2", description = "Creates a new twin using a standard JSON payload.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
-                    @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinCreateRsDTOv1.class))}),
-            @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/twin/v2")
-    public ResponseEntity<?> twinCreateV2(
-            @RequestBody TwinCreateRqDTOv2 request) {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TwinCreateRsDTOv1.class))
+            }),
+            @ApiResponse(responseCode = "401", description = "Access is denied")
+    })
+    @PostMapping(value = "/private/twin/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> twinCreateFromJson(@RequestBody TwinCreateRqDTOv2 request) {
+        return createTwinV2(request, Map.of());
+    }
+
+    /**
+     * Endpoint for creating a twin from a multipart/form-data request.
+     * The DTO is expected as a JSON string in the 'request' part.
+     * You could also add other parts, e.g., @RequestPart("file") MultipartFile file.
+     */
+    @SneakyThrows
+    @ParametersApiUserHeaders
+    @Operation(summary = "twinCreateV2", description = "Creates a new twin using a multipart form. The twin data should be a JSON string in the 'request' form field.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Twin data", content = {
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TwinCreateRsDTOv1.class))
+            }),
+            @ApiResponse(responseCode = "401", description = "Access is denied")
+    })
+    @PostMapping(value = "/private/twin/v2", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> twinCreateFromMultipart(
+            @Schema(hidden = true) MultipartHttpServletRequest request,
+            @Schema(implementation = TwinCreateRqDTOv2.class) @RequestPart("request") byte[] requestBytes) {
+        Map<String, MultipartFile> filesMap = new HashMap<>();
+        request.getFileNames().forEachRemaining(fileName -> {
+            List<MultipartFile> files = request.getFiles(fileName);
+            files.forEach(file -> {
+                filesMap.put(fileName, file);
+            });
+        });
+        return createTwinV2(mapRequest(requestBytes, TwinCreateRqDTOv2.class), filesMap);
+    }
+
+    protected ResponseEntity<Response> createTwinV2(TwinCreateRqDTOv2 request, Map<String, MultipartFile> filesMap) {
         TwinCreateRsDTOv1 rs = new TwinCreateRsDTOv1();
         try {
+            attachmentCreateRestDTOReverseMapper.preProcessAttachments(request.attachments, filesMap);
             TwinCreate twinCreate = twinCreateRqRestDTOReverseMapper.convert(request).setCheckCreatePermission(true);
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
@@ -128,11 +167,41 @@ public class TwinCreateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/twin/batch/v1")
+    @PostMapping(value = "/private/twin/batch/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinBatchCreateV1(
             @RequestBody TwinBatchCreateRqDTOv1 request) {
+        return processBatch(request, Map.of());
+    }
+
+    @SneakyThrows
+    @ParametersApiUserHeaders
+    @Operation(operationId = "twinBatchCreateV1", summary = "Create batch twins")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Import was completed successfully", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/private/twin/batch/v1", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> twinBatchCreateV1Multipart(
+            @Schema(hidden = true) MultipartHttpServletRequest request,
+            @Schema(implementation = TwinBatchCreateRqDTOv1.class) @RequestPart("request") byte[] requestBytes
+    ) {
+        Map<String, MultipartFile> filesMap = new HashMap<>();
+        request.getFileNames().forEachRemaining(fileName -> {
+            List<MultipartFile> files = request.getFiles(fileName);
+            files.forEach(file -> {
+                filesMap.put(fileName, file);
+            });
+        });
+        return processBatch(mapRequest(requestBytes, TwinBatchCreateRqDTOv1.class), filesMap);
+    }
+
+    protected ResponseEntity<Response> processBatch(TwinBatchCreateRqDTOv1 request, Map<String, MultipartFile> filesMap) {
         Response rs = new Response();
         try {
+            request.getTwins().forEach(twinCreateRqDTOv1 -> {
+                attachmentCreateRestDTOReverseMapper.preProcessAttachments(twinCreateRqDTOv1.attachments, filesMap);
+            });
             List<TwinCreate> twinCreates = twinCreateRqRestDTOReverseMapper.convertCollection(request.getTwins());
             for (TwinCreate twinCreate : twinCreates) {
                 twinCreate.setCheckCreatePermission(true);
@@ -145,4 +214,5 @@ public class TwinCreateController extends ApiController {
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
+
 }
