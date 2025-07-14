@@ -6,10 +6,10 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinClassFieldDescriptorListSharedInHeadV1")
+@Schema(name =  TwinClassFieldDescriptorListSharedInHeadDTOv1.KEY)
 public class TwinClassFieldDescriptorListSharedInHeadDTOv1 implements TwinClassFieldDescriptorDTO {
 
-    public static final String KEY = "selectSharedInHeadV1";
+    public static final String KEY = "TwinClassFieldDescriptorListSharedInHeadV1";
 
     public TwinClassFieldDescriptorListSharedInHeadDTOv1() {
         this.fieldType = KEY;

@@ -6,10 +6,10 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinClassFieldDescriptorColorHexV1")
+@Schema(name =  TwinClassFieldDescriptorColorHexDTOv1.KEY)
 public class TwinClassFieldDescriptorColorHexDTOv1 implements TwinClassFieldDescriptorDTO {
 
-    public static final String KEY = "colorHexV1";
+    public static final String KEY = "TwinClassFieldDescriptorColorHexV1";
 
     public TwinClassFieldDescriptorColorHexDTOv1() {
         this.fieldType = KEY;

@@ -11,10 +11,10 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinClassFieldDescriptorUserV1")
+@Schema(name =  TwinClassFieldDescriptorUserDTOv1.KEY)
 public class TwinClassFieldDescriptorUserDTOv1 implements TwinClassFieldDescriptorDTO {
 
-    public static final String KEY = "selectUserV1";
+    public static final String KEY = "TwinClassFieldDescriptorUserV1";
 
     public TwinClassFieldDescriptorUserDTOv1() {
         this.fieldType = KEY;

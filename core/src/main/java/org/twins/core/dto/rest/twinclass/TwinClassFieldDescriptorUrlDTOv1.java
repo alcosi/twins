@@ -6,10 +6,10 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinClassFieldDescriptorUrlV1")
+@Schema(name =  TwinClassFieldDescriptorUrlDTOv1.KEY)
 public class TwinClassFieldDescriptorUrlDTOv1 implements TwinClassFieldDescriptorDTO {
 
-    public static final String KEY = "urlV1";
+    public static final String KEY = "TwinClassFieldDescriptorUrlV1";
 
     public TwinClassFieldDescriptorUrlDTOv1() {
         this.fieldType = KEY;

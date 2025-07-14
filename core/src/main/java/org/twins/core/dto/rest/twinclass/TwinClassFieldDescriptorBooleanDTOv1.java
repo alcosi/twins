@@ -7,10 +7,10 @@ import org.twins.core.dao.twin.TwinFieldBooleanEntity;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name = "TwinClassFieldDescriptorBooleanV1")
+@Schema(name = TwinClassFieldDescriptorBooleanDTOv1.KEY)
 public class TwinClassFieldDescriptorBooleanDTOv1 implements TwinClassFieldDescriptorDTO {
 
-    public static final String KEY = "booleanV1";
+    public static final String KEY = "TwinClassFieldDescriptorBooleanV1";
 
     public TwinClassFieldDescriptorBooleanDTOv1() {
         this.fieldType = KEY;

@@ -8,10 +8,10 @@ import java.time.LocalDateTime;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinClassFieldDescriptorDateScrollV1")
+@Schema(name =  TwinClassFieldDescriptorDateScrollDTOv1.KEY)
 public class TwinClassFieldDescriptorDateScrollDTOv1 implements TwinClassFieldDescriptorDTO {
 
-    public static final String KEY = "dateScrollV1";
+    public static final String KEY = "TwinClassFieldDescriptorDateScrollV1";
 
     public TwinClassFieldDescriptorDateScrollDTOv1() {
         this.fieldType = KEY;

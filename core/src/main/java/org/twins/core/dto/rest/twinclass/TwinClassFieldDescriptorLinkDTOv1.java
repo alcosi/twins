@@ -10,10 +10,10 @@ import java.util.List;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinClassFieldDescriptorLinkV1")
+@Schema(name =  TwinClassFieldDescriptorLinkDTOv1.KEY)
 public class TwinClassFieldDescriptorLinkDTOv1 implements TwinClassFieldDescriptorDTO {
 
-    public static final String KEY = "selectLinkV1";
+    public static final String KEY = "TwinClassFieldDescriptorLinkV1";
 
     public TwinClassFieldDescriptorLinkDTOv1() {
         this.fieldType = KEY;
