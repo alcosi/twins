@@ -34,6 +34,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 import org.twins.core.config.filter.LoggingFilter;
 import org.twins.core.config.filter.UncaughtExceptionFilter;
+import org.twins.core.dto.rest.transition.TwinTransitionPerformResultDTO;
+import org.twins.core.dto.rest.transition.TwinTransitionPerformResultDTOMixIn;
+import org.twins.core.dto.rest.transition.TwinTransitionPerformResultMajorDTOv1;
+import org.twins.core.dto.rest.transition.TwinTransitionPerformResultMinorDTOv1;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.dto.rest.twinclass.*;
 
@@ -85,6 +89,11 @@ public class ApplicationConfig {
                 TwinClassFieldDescriptorNumericDTOv1.class,
                 TwinClassFieldDescriptorImmutableDTOv1.class,
                 TwinClassFieldDescriptorBooleanDTOv1.class
+        );
+        mapper.addMixIn(TwinTransitionPerformResultDTO.class, TwinTransitionPerformResultDTOMixIn.class);
+        mapper.registerSubtypes(
+                TwinTransitionPerformResultMinorDTOv1.class,
+                TwinTransitionPerformResultMajorDTOv1.class
         );
         return mapper;
     }

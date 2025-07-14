@@ -10,11 +10,18 @@ import java.util.Map;
 import java.util.UUID;
 
 @Data
-@Accessors(chain = true)
+@Accessors(fluent = true)
 @Schema(name =  "TwinTransitionPerformResultMinorRsV1")
 public class TwinTransitionPerformResultMinorDTOv1 implements TwinTransitionPerformResultDTO {
+
     public static final String KEY = "minor";
-    public String resultType = KEY;
+
+    public TwinTransitionPerformResultMinorDTOv1() {
+        this.resultType = KEY;
+    }
+
+    @Schema(description = "Field type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
+    public String resultType;
 
     @Schema(description = "list of twins from input")
     public List<TwinDTOv2> transitionedTwinList;
