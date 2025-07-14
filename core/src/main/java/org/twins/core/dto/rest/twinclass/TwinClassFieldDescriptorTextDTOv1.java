@@ -7,7 +7,7 @@ import org.twins.core.featurer.fieldtyper.FieldTyperTextField;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  TwinClassFieldDescriptorTextDTOv1.KEY)
+@Schema(name =  TwinClassFieldDescriptorTextDTOv1.KEY, oneOf = { TwinClassFieldDescriptorDTO.class })
 public class TwinClassFieldDescriptorTextDTOv1 implements TwinClassFieldDescriptorDTO {
 
     public static final String KEY = "TwinClassFieldDescriptorTextV1";

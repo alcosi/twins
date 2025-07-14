@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name = TwinFieldSearchListDTOv1.KEY)
+@Schema(name = TwinFieldSearchListDTOv1.KEY, oneOf = { TwinFieldSearchDTOv1.class })
 public class TwinFieldSearchListDTOv1 implements TwinFieldSearchDTOv1 {
 
     public static final String KEY = "TwinFieldSearchListV1";

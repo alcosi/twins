@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  HistoryContextLinkDTOv1.KEY)
+@Schema(name =  HistoryContextLinkDTOv1.KEY, oneOf = { HistoryContextDTO.class })
 public class HistoryContextLinkDTOv1 implements HistoryContextDTO {
 
     public static final String KEY = "HistoryContextLinkV1";

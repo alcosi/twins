@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  HistoryContextTwinMultiDTOv1.KEY)
+@Schema(name =  HistoryContextTwinMultiDTOv1.KEY, oneOf = { HistoryContextDTO.class })
 public class HistoryContextTwinMultiDTOv1 implements HistoryContextDTO {
 
     public static final String KEY = "HistoryContextTwinMultiV1";

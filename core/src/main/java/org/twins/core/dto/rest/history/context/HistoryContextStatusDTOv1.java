@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  HistoryContextStatusDTOv1.KEY)
+@Schema(name =  HistoryContextStatusDTOv1.KEY, oneOf = { HistoryContextDTO.class })
 public class HistoryContextStatusDTOv1 implements HistoryContextDTO {
 
     public static final String KEY = "HistoryContextStatusV1";

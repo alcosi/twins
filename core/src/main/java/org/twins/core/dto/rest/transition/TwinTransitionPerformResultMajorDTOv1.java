@@ -7,7 +7,7 @@ import org.twins.core.dto.rest.draft.DraftDTOv1;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinTransitionPerformResultMajorRsV1")
+@Schema(name =  "TwinTransitionPerformResultMajorRsV1", oneOf = { TwinTransitionPerformResultDTO.class })
 public class TwinTransitionPerformResultMajorDTOv1 implements TwinTransitionPerformResultDTO {
 
     public static final String KEY = "major";
