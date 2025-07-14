@@ -11,11 +11,15 @@ import java.util.UUID;
 @Accessors(fluent = true)
 @Schema(name = TwinFieldSearchUserDTOv1.KEY)
 public class TwinFieldSearchUserDTOv1 implements TwinFieldSearchDTOv1 {
+
     public static final String KEY = "TwinFieldSearchUserV1";
-    @Override
-    public String type() {
-        return KEY;
+
+    public TwinFieldSearchUserDTOv1() {
+        this.type = KEY;
     }
+
+    @Schema(description = "Search type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
+    public String type;
 
     @Schema(description = "User id list")
     public Set<UUID> idList;

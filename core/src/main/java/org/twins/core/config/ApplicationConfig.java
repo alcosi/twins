@@ -34,6 +34,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 import org.twins.core.config.filter.LoggingFilter;
 import org.twins.core.config.filter.UncaughtExceptionFilter;
+import org.twins.core.dto.rest.twin.*;
 
 import javax.sql.DataSource;
 import java.util.concurrent.Executor;
@@ -49,6 +50,23 @@ import java.util.concurrent.TimeUnit;
         @PropertySource(value = "classpath:/application.properties", ignoreResourceNotFound = true)})
 @EnableConfigurationProperties({I18nProperties.class})
 public class ApplicationConfig {
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.addMixIn(TwinFieldSearchDTOv1.class, TwinFieldSearchDTOv1MixIn.class);
+        mapper.registerSubtypes(
+                TwinFieldSearchTextDTOv1.class,
+                TwinFieldSearchDateDTOv1.class,
+                TwinFieldSearchNumericDTOv1.class,
+                TwinFieldSearchListDTOv1.class,
+                TwinFieldSearchIdDTOv1.class,
+                TwinFieldSearchBooleanDTOv1.class,
+                TwinFieldSearchUserDTOv1.class,
+                TwinFieldSearchSpaceRoleUserDTOv1.class
+        );
+        return mapper;
+    }
 
     @Bean
     public NamedParameterJdbcTemplate namedParameterJdbcTemplate(DataSource dataSource) {
