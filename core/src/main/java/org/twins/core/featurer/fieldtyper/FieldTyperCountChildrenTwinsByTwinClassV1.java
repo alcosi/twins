@@ -28,6 +28,7 @@ public class FieldTyperCountChildrenTwinsByTwinClassV1 extends FieldTyper<FieldD
     @Deprecated
     @Override
     public FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
+        //todo maybe need to change descriptor type
         return new FieldDescriptorText();
     }
 
