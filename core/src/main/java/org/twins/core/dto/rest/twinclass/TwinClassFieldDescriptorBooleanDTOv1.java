@@ -9,11 +9,15 @@ import org.twins.core.dao.twin.TwinFieldBooleanEntity;
 @Accessors(fluent = true)
 @Schema(name = "TwinClassFieldDescriptorBooleanV1")
 public class TwinClassFieldDescriptorBooleanDTOv1 implements TwinClassFieldDescriptorDTO {
+
     public static final String KEY = "booleanV1";
-    @Override
-    public String fieldType() {
-        return KEY;
+
+    public TwinClassFieldDescriptorBooleanDTOv1() {
+        this.fieldType = KEY;
     }
+
+    @Schema(description = "Field type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
+    public String fieldType;
 
     @Schema(description = "Checkbox type", example = "TOGGLE")
     public TwinFieldBooleanEntity.CheckboxType checkboxType;

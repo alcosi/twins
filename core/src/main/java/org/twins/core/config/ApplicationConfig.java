@@ -35,6 +35,7 @@ import org.springframework.web.client.RestTemplate;
 import org.twins.core.config.filter.LoggingFilter;
 import org.twins.core.config.filter.UncaughtExceptionFilter;
 import org.twins.core.dto.rest.twin.*;
+import org.twins.core.dto.rest.twinclass.*;
 
 import javax.sql.DataSource;
 import java.util.concurrent.Executor;
@@ -64,6 +65,26 @@ public class ApplicationConfig {
                 TwinFieldSearchBooleanDTOv1.class,
                 TwinFieldSearchUserDTOv1.class,
                 TwinFieldSearchSpaceRoleUserDTOv1.class
+        );
+        mapper.addMixIn(TwinClassFieldDescriptorDTO.class, TwinFieldSearchDTOv1MixIn.class);
+        mapper.registerSubtypes(
+                TwinClassFieldDescriptorTextDTOv1.class,
+                TwinClassFieldDescriptorSecretDTOv1.class,
+                TwinClassFieldDescriptorDateScrollDTOv1.class,
+                TwinClassFieldDescriptorColorHexDTOv1.class,
+                TwinClassFieldDescriptorUrlDTOv1.class,
+                TwinClassFieldDescriptorListDTOv1.class,
+                TwinClassFieldDescriptorListLongDTOv1.class,
+                TwinClassFieldDescriptorListSharedInHeadDTOv1.class,
+                TwinClassFieldDescriptorLinkDTOv1.class,
+                TwinClassFieldDescriptorLinkLongDTOv1.class,
+                TwinClassFieldDescriptorI18nDTOv1.class,
+                TwinClassFieldDescriptorUserDTOv1.class,
+                TwinClassFieldDescriptorUserLongDTOv1.class,
+                TwinClassFieldDescriptorAttachmentDTOv1.class,
+                TwinClassFieldDescriptorNumericDTOv1.class,
+                TwinClassFieldDescriptorImmutableDTOv1.class,
+                TwinClassFieldDescriptorBooleanDTOv1.class
         );
         return mapper;
     }

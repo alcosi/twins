@@ -12,11 +12,15 @@ import java.util.List;
 @Accessors(fluent = true)
 @Schema(name =  "TwinClassFieldDescriptorLinkV1")
 public class TwinClassFieldDescriptorLinkDTOv1 implements TwinClassFieldDescriptorDTO {
+
     public static final String KEY = "selectLinkV1";
-    @Override
-    public String fieldType() {
-        return KEY;
+
+    public TwinClassFieldDescriptorLinkDTOv1() {
+        this.fieldType = KEY;
     }
+
+    @Schema(description = "Field type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
+    public String fieldType;
 
     @Schema(description = "Multiple choice support", example = "true")
     public Boolean multiple;
