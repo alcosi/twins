@@ -14,7 +14,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 
 import java.util.Properties;
 
-public interface FieldTyperCountChildrenTwins {
+public interface FieldTyperCountChildrenByStatus {
 
     @FeaturerParam(name = "childrenTwinStatusIdList", description = "Twin.Status.IDs of child twin")
     FeaturerParamUUIDSet childrenTwinStatusIdList = new FeaturerParamUUIDSetTwinsStatusId("childrenTwinStatusIdList");
