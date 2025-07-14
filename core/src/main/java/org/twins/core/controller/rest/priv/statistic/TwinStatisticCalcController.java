@@ -32,7 +32,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_STATISTIC_MANAGE, Permissions.TWIN_STATISTIC_VIEW})
+@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_VIEW})
 public class TwinStatisticCalcController extends ApiController {
     private final TwinStatisticService twinStatisticService;
     private final StatisticRestDTOMapper statisticRestDTOMapper;
