@@ -11,7 +11,7 @@ on conflict do nothing;
 
 
 alter table public.twin_attachment
-    add column if not exists storage_id uuid references public.storage on update cascade default '01977e27-e455-70b4-abf7-0907b0b9c7dc' not null;
+    add column if not exists storage_id uuid references public.storage on update cascade default '00000000-0000-0000-0013-000000000002' not null;
 COMMENT ON COLUMN public.twin_attachment.storage_id IS 'Storage params that are used to create new attachments';
 
 
