@@ -34,6 +34,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 import org.twins.core.config.filter.LoggingFilter;
 import org.twins.core.config.filter.UncaughtExceptionFilter;
+import org.twins.core.dto.rest.history.context.*;
 import org.twins.core.dto.rest.transition.TwinTransitionPerformResultDTO;
 import org.twins.core.dto.rest.transition.TwinTransitionPerformResultDTOMixIn;
 import org.twins.core.dto.rest.transition.TwinTransitionPerformResultMajorDTOv1;
@@ -70,7 +71,7 @@ public class ApplicationConfig {
                 TwinFieldSearchUserDTOv1.class,
                 TwinFieldSearchSpaceRoleUserDTOv1.class
         );
-        mapper.addMixIn(TwinClassFieldDescriptorDTO.class, TwinFieldSearchDTOv1MixIn.class);
+        mapper.addMixIn(TwinClassFieldDescriptorDTO.class, TwinClassFieldDescriptorDTOMixIn.class);
         mapper.registerSubtypes(
                 TwinClassFieldDescriptorTextDTOv1.class,
                 TwinClassFieldDescriptorSecretDTOv1.class,
@@ -94,6 +95,20 @@ public class ApplicationConfig {
         mapper.registerSubtypes(
                 TwinTransitionPerformResultMinorDTOv1.class,
                 TwinTransitionPerformResultMajorDTOv1.class
+        );
+        mapper.addMixIn(HistoryContextDTO.class, HistoryContextDTOMixIn.class);
+        mapper.registerSubtypes(
+                HistoryContextUserDTOv1.class,
+                HistoryContextUserMultiDTOv1.class,
+                HistoryContextStatusDTOv1.class,
+                HistoryContextTwinDTOv1.class,
+                HistoryContextTwinMultiDTOv1.class,
+                HistoryContextAttachmentDTOv1.class,
+                HistoryContextAttachmentUpdateDTOv1.class,
+                HistoryContextLinkDTOv1.class,
+                HistoryContextLinkUpdateDTOv1.class,
+                HistoryContextListDTOv1.class,
+                HistoryContextListMultiDTOv1.class
         );
         return mapper;
     }
