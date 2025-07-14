@@ -7,10 +7,8 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.action.TwinActionRepository;
 import org.twins.core.service.face.FacePointedService;
 import org.twins.core.service.face.FaceService;
-import org.twins.face.dao.twidget.tw006.FaceTW006ActionRepository;
 import org.twins.face.dao.twidget.tw006.FaceTW006Entity;
 import org.twins.face.dao.twidget.tw006.FaceTW006Repository;
 

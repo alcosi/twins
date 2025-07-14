@@ -14,6 +14,6 @@ import java.util.UUID;
 public class FaceTW006ActionDTOv1 {
 
     private UUID faceTW006Id;
-    private String actionId;
+    private TwinAction actionId;
     private String label;
 }

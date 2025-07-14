@@ -1,3 +1,7 @@
+insert into face_component(id, face_component_type_id, name, description)
+values ('TW006', 'TWIDGET', 'Twin actions', '')
+on conflict do nothing;
+
 create table if not exists face_tw006
 (
     id                             uuid not null primary key,
@@ -37,7 +41,44 @@ create index if not exists face_tw006_action_label_i18n_id_idx
 
 
 insert into i18n_type(id, name)
-values ('twinAction', 'Twin action');
+values ('twinAction', 'Twin action')
+on conflict do nothing;
+
+insert into i18n_locale (locale, name, active, native_name, icon)
+values ('en', 'English', true, 'English', null)
+on conflict do nothing;
+
+insert into i18n_locale (locale, name, active, native_name, icon)
+values ('pl', 'Polish', true, 'Polski', null)
+on conflict do nothing;
+
+insert into i18n_locale (locale, name, active, native_name, icon)
+values ('ru', 'Russian', true, 'Русский', null)
+on conflict do nothing;
+
+insert into i18n_locale (locale, name, active, native_name, icon)
+values ('de', 'German', true, 'Deutsch', null)
+on conflict do nothing;
+
+insert into i18n_locale (locale, name, active, native_name, icon)
+values ('uk', 'Ukrainian', true, 'Українська', null)
+on conflict do nothing;
+
+insert into i18n_locale (locale, name, active, native_name, icon)
+values ('fr', 'French', true, 'Français', null)
+on conflict do nothing;
+
+insert into i18n_locale (locale, name, active, native_name, icon)
+values ('it', 'Italian', true, 'Italiano', null)
+on conflict do nothing;
+
+insert into i18n_locale (locale, name, active, native_name, icon)
+values ('es', 'Spanish', true, 'Español', null)
+on conflict do nothing;
+
+insert into i18n_locale (locale, name, active, native_name, icon)
+values ('cs', 'Czech', true, 'Čeština', null)
+on conflict do nothing;
 
 
 insert into i18n(id, name, key, i18n_type_id, domain_id)
@@ -48,7 +89,8 @@ values ('00000000-0000-0000-0012-000000000037', 'Edit', 'twin.actions.edit', 'tw
        ('00000000-0000-0000-0012-000000000041', 'Watch', 'twin.actions.watch', 'twinAction', null),
        ('00000000-0000-0000-0012-000000000042', 'Time tracking', 'twin.actions.time_track', 'twinAction', null),
        ('00000000-0000-0000-0012-000000000043', 'Add attachment', 'twin.actions.attachment_add', 'twinAction', null),
-       ('00000000-0000-0000-0012-000000000044', 'View history', 'twin.actions.history_view', 'twinAction', null);
+       ('00000000-0000-0000-0012-000000000044', 'View history', 'twin.actions.history_view', 'twinAction', null)
+on conflict do nothing;
 
 
 insert into i18n_translation(i18n_id, locale, translation, usage_counter)
@@ -130,13 +172,15 @@ values ('00000000-0000-0000-0012-000000000037', 'en', 'Edit', 0),
        ('00000000-0000-0000-0012-000000000044', 'it', 'Visualizza cronologia', 0),
        ('00000000-0000-0000-0012-000000000044', 'pl', 'Zobacz historię', 0),
        ('00000000-0000-0000-0012-000000000044', 'es', 'Ver historial', 0),
-       ('00000000-0000-0000-0012-000000000044', 'uk', 'Переглянути історію', 0);
+       ('00000000-0000-0000-0012-000000000044', 'uk', 'Переглянути історію', 0)
+on conflict do nothing;
 
 
 alter table twin_action
     add column if not exists name_i18n_id uuid references i18n on update cascade on delete restrict;
 
-create index twin_action_i18n_id_idx on twin_action (name_i18n_id);
+create index if not exists twin_action_i18n_id_idx
+    on twin_action (name_i18n_id);
 
 update twin_action
 set name_i18n_id='00000000-0000-0000-0012-000000000037'

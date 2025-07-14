@@ -24,7 +24,8 @@ public class FaceTW006ActionEntity implements EasyLoggable {
     private UUID faceTW006Id;
 
     @Column(name = "twin_action_id")
-    private String twinActionId;
+    @Enumerated(EnumType.STRING)
+    private TwinAction twinActionId;
 
     @Column(name = "label_i18n_id")
     private UUID labelI18nId;
