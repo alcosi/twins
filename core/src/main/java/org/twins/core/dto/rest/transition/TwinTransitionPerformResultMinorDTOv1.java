@@ -20,7 +20,7 @@ public class TwinTransitionPerformResultMinorDTOv1 implements TwinTransitionPerf
         this.resultType = KEY;
     }
 
-    @Schema(description = "Field type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Result type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
     public String resultType;
 
     @Schema(description = "list of twins from input")
