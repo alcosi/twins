@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.PROPERTY,
-        property = "fieldType"
+        property = "resultType"
 )
 @JsonSubTypes({
         @JsonSubTypes.Type(value = TwinTransitionPerformResultMinorDTOv1.class, name = TwinTransitionPerformResultMinorDTOv1.KEY),
