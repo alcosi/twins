@@ -6,6 +6,8 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.face.dto.rest.twidget.FaceTwidgetDTOv1;
 
+import java.util.List;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
@@ -13,5 +15,5 @@ import org.twins.face.dto.rest.twidget.FaceTwidgetDTOv1;
 public class FaceTW006DTOv1 extends FaceTwidgetDTOv1 {
 
     @Schema(description = "twin action")
-    private FaceTW006ActionDTOv1 actionDTOv1;
+    private List<FaceTW006ActionDTOv1> actions;
 }

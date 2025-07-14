@@ -15,12 +15,12 @@ public class TwinActionEntity {
 
     @Id
     @Column(name = "id")
-    private TwinAction id;
+    private String id;
 
-    @Column(name = "i18n_id")
-    private UUID i18nId;
+    @Column(name = "name_i18n_id")
+    private UUID nameI18nId;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "i18n_id", insertable = false, updatable = false)
-    private I18nEntity i18nEntity;
+    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
+    private I18nEntity nameI18nEntity;
 }
