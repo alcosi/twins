@@ -24,11 +24,11 @@ public class AttachmentProblemsRestDTOMapper extends RestSimpleDTOMapper<Attachm
     public void map(AttachmentCUDProblems src, AttachmentCUDProblemsDTOv1 dst, MapperContext mapperContext) throws Exception {
             if (mapperContext.hasModeButNot(AttachmentValidateProblemsMode.HIDE)) {
                 dst
-                        .setCreateProblems(attachmentCreateProblemsRestDTOMapper.convertCollection(src.getCreateProblems()))
                         .setUpdateProblems(attachmentUpdateProblemsRestDTOMapper.convertCollection(src.getUpdateProblems()))
                         .setDeleteProblems(attachmentDeleteProblemsRestDTOMapper.convertCollection(src.getDeleteProblems()))
                         .setFieldAttachmentProblems(attachmentFieldProblemsRestDTOMapper.convertCollection(src.getFieldAttachmentProblems()))
-                        .setCommentAttachmentProblems(attachmentCommentProblemsRestDTOMapper.convertCollection(src.getCommentAttachmentProblems()));
+                        .setCommentAttachmentProblems(attachmentCommentProblemsRestDTOMapper.convertCollection(src.getCommentAttachmentProblems()))
+                        .setCreateProblems(attachmentCreateProblemsRestDTOMapper.convertCollection(src.getCreateProblems()));
             }
     }
 

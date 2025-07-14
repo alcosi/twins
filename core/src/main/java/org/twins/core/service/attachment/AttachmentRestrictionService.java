@@ -5,12 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.InformationVolumeUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.attachment.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -23,6 +25,7 @@ import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperAttachment;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.twin.TwinActionService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -49,6 +52,7 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
     private final AttachmentService attachmentService;
     private final FeaturerService featurerService;
     private final AuthService authService;
+    private final TwinActionService twinActionService;
 
     @Override
     public CrudRepository<TwinAttachmentRestrictionEntity, UUID> entityRepository() {
@@ -76,18 +80,23 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         return true;
     }
 
-    public AttachmentCUDValidateResult validateAttachments(UUID twinId, EntityCUD<TwinAttachmentEntity> cud) throws ServiceException {
+    public AttachmentCUDValidateResult validateAttachments(UUID twinId, UUID twinClassId, EntityCUD<TwinAttachmentEntity> cud) throws ServiceException {
         AttachmentCUDValidateResult result = new AttachmentCUDValidateResult();
 
         AttachmentQuotas tierQuotas = domainService.getTierQuotas();
         validateTierQuotas(twinId, tierQuotas, cud, result);
-        if (twinId == null) //todo delete me when twin validation will be implemented
-            return result;
-        TwinEntity twin = twinService.findEntitySafe(twinId);
-        attachmentService.loadAttachmentsCount(twin);
 
-        TwinClassEntity twinClass = twinClassService.findEntitySafe(twin.getTwinClassId());
-
+        TwinEntity twin = null;
+        TwinClassEntity twinClass;
+        if (twinId != null) {
+            twin = twinService.findEntitySafe(twinId);
+            twinClass = twin.getTwinClass();
+            attachmentService.loadAttachmentsCount(twin);
+            twinActionService.checkAllowed(twin, TwinAction.ATTACHMENT_ADD);
+        } else {
+            twinClass = twinClassService.findEntitySafe(twinClassId);
+            //todo check permission for class
+        }
         EntityCUD<TwinAttachmentEntity> generalCud = new EntityCUD<>();
         EntityCUD<TwinAttachmentEntity> commentCud = new EntityCUD<>();
         Map<UUID, EntityCUD<TwinAttachmentEntity>> fieldCudMap = new HashMap<>();
@@ -103,14 +112,13 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         if (!fieldCudMap.isEmpty()) {
             validateFieldAttachmentsBatch(twin, fieldCudMap, result);
         }
-
         return result;
     }
 
     private void validateTierQuotas(UUID twinId, AttachmentQuotas tierQuotas, EntityCUD<TwinAttachmentEntity> cud, AttachmentCUDValidateResult result) throws ServiceException {
         List<TwinAttachmentEntity> deletes = cud.getDeleteListSafe();
         List<TwinAttachmentEntity> updates = cud.getUpdateListSafe();
-        List<TwinAttachmentEntity> creates = cud.getDeleteListSafe();
+        List<TwinAttachmentEntity> creates = cud.getCreateList();
 
         long size = tierQuotas.getUsedSize();
         long count = tierQuotas.getUsedCount();
@@ -122,9 +130,9 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
             count--;
             result.getAttachmentsForUD().add(delete);
         }
-        if (CollectionUtils.isEmpty(updates) && CollectionUtils.isEmpty(creates)) {
+        if (CollectionUtils.isEmpty(updates) && CollectionUtils.isEmpty(creates))
             return;
-        }
+
         List<UUID> updateIds = updates.stream().map(TwinAttachmentEntity::getId).collect(Collectors.toList());
         Kit<TwinAttachmentEntity, UUID> existingEntities = attachmentService.findEntitiesSafe(updateIds);
 
@@ -134,9 +142,8 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
                 throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Updatable attachment [" + update.getId() + "] is not exists");
             if (!existingEntity.getTwinId().equals(twinId))
                 throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Deletable attachment [" + update.getId() + "] is not added to twin[" + twinId + "]");
-            updates.add(existingEntity);
             result.getAttachmentsForUD().add(existingEntity);
-            size = size - existingEntity.getSize() + update.getSize();
+            size -= existingEntity.getSize() - update.getSize();
         }
         for (TwinAttachmentEntity create : creates) {
             size += create.getSize();
@@ -201,33 +208,30 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
     }
 
     private void validateGeneralAttachments(TwinEntity twin, TwinClassEntity twinClass, EntityCUD<TwinAttachmentEntity> cud, AttachmentCUDValidateResult result) throws ServiceException {
-        if (twinClass.getGeneralAttachmentRestrictionId() == null) {
+        if (twinClass.getGeneralAttachmentRestrictionId() == null)
             return;
-        }
-        TwinAttachmentRestrictionEntity generalRestriction = findEntitySafe(twinClass.getGeneralAttachmentRestrictionId());
-        int currentCount = twin.getTwinAttachmentsCount().getDirect();
 
+        TwinAttachmentRestrictionEntity generalRestriction = findEntitySafe(twinClass.getGeneralAttachmentRestrictionId());
+        int currentCount = twin == null ? 0 : twin.getTwinAttachmentsCount().getDirect();
         validateAttachmentRestrictions(currentCount, generalRestriction, cud, result);
     }
 
     private void validateCommentAttachments(TwinEntity twin, TwinClassEntity twinClass, EntityCUD<TwinAttachmentEntity> cud, AttachmentCUDValidateResult result) throws ServiceException {
-        if (twinClass.getCommentAttachmentRestrictionId() == null) {
+        if (twinClass.getCommentAttachmentRestrictionId() == null)
             return;
-        }
-        TwinAttachmentRestrictionEntity commentRestriction = findEntitySafe(twinClass.getCommentAttachmentRestrictionId());
-        int currentCount = twin.getTwinAttachmentsCount().getFromComments();
 
+        TwinAttachmentRestrictionEntity commentRestriction = findEntitySafe(twinClass.getCommentAttachmentRestrictionId());
+        int currentCount = twin == null ? 0 : twin.getTwinAttachmentsCount().getFromComments();
         validateAttachmentRestrictions(currentCount, commentRestriction, cud, result);
     }
 
     private void validateFieldAttachmentsBatch(TwinEntity twin, Map<UUID, EntityCUD<TwinAttachmentEntity>> fieldCudMap, AttachmentCUDValidateResult result) throws ServiceException {
         Set<UUID> fieldIds = fieldCudMap.keySet();
-        if (fieldIds.isEmpty()) {
+        if (fieldIds.isEmpty())
             return;
-        }
 
         Kit<TwinClassFieldEntity, UUID> fieldsKit = twinClassFieldService.findEntitiesSafe(fieldIds);
-        Map<UUID, Integer> currentCounts = attachmentService.countByTwinAndFields(twin.getId(), fieldIds);
+        Map<UUID, Integer> currentCounts = attachmentService.countByTwinAndFields(twin, fieldIds);
 
         Map<UUID, UUID> fieldToRestrictionMap = new HashMap<>();
         Set<UUID> restrictionIds = new HashSet<>();
@@ -245,28 +249,25 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
             restrictionIds.add(restrictionId);
         }
 
-        if (!restrictionIds.isEmpty()) {
-            Kit<TwinAttachmentRestrictionEntity, UUID> restrictionsKit = findEntitiesSafe(restrictionIds);
-            for (var entry : fieldCudMap.entrySet()) {
-                UUID fieldId = entry.getKey();
-                UUID restrictionId = fieldToRestrictionMap.get(fieldId);
-                if (restrictionId == null) {
-                    continue;
-                }
-                TwinAttachmentRestrictionEntity restriction = restrictionsKit.get(restrictionId);
-                if (restriction == null) {
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "incorrect restriction id[" + restrictionId + "]");
-                }
-                int currentCount = currentCounts.getOrDefault(fieldId, 0);
-                validateAttachmentRestrictions(currentCount, restriction, entry.getValue(), result);
+        if (restrictionIds.isEmpty())
+            return;
+        Kit<TwinAttachmentRestrictionEntity, UUID> restrictionsKit = findEntitiesSafe(restrictionIds);
+        for (var entry : fieldCudMap.entrySet()) {
+            UUID fieldId = entry.getKey();
+            UUID restrictionId = fieldToRestrictionMap.get(fieldId);
+            if (restrictionId == null) {
+                continue;
             }
+            TwinAttachmentRestrictionEntity restriction = restrictionsKit.get(restrictionId);
+            if (restriction == null) {
+                throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "incorrect restriction id[" + restrictionId + "]");
+            }
+            int currentCount = currentCounts.getOrDefault(fieldId, 0);
+            validateAttachmentRestrictions(currentCount, restriction, entry.getValue(), result);
         }
     }
 
     private void validateAttachmentRestrictions(int currentCount, TwinAttachmentRestrictionEntity restriction, EntityCUD<TwinAttachmentEntity> cud, AttachmentCUDValidateResult result) {
-        if (restriction == null) {
-            return;
-        }
         validateAttachmentsCount(currentCount, restriction, cud, result);
         validateAttachmentsSize(restriction, cud, result);
         validateAttachmentsNameRegexp(restriction, cud, result);
@@ -279,27 +280,30 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
 
         currentCount = currentCount + toCreate - toDelete;
 
-        if (restriction.getMinCount() > currentCount) {
+        if (restriction.getMinCount() > 0 && restriction.getMinCount() > currentCount) {
             result.getCudProblems().getGlobalProblems().add(new AttachmentGlobalProblem().setProblem(MIN_COUNT_NOT_REACHED));
         }
 
-        if (restriction.getMaxCount() < currentCount) {
+        if (restriction.getMaxCount() > 0 && restriction.getMaxCount() < currentCount) {
             result.getCudProblems().getGlobalProblems().add(new AttachmentGlobalProblem().setProblem(MAX_COUNT_EXCEEDED));
         }
     }
 
     private void validateAttachmentsSize(TwinAttachmentRestrictionEntity restriction, EntityCUD<TwinAttachmentEntity> cud, AttachmentCUDValidateResult result) {
+        if (restriction.getFileSizeMbLimit() == 0)
+            return;
+
         if (cud.getCreateList() != null) {
             cud.getCreateList().forEach(attachment -> {
-                if (attachment.getSize() > restriction.getFileSizeMbLimit()) {
-                    result.getCudProblems().getCreateProblems().add(new AttachmentCreateProblem().setId(attachment.getId().toString()).setProblem(INVALID_SIZE));
+                if (attachment.getSize() > InformationVolumeUtils.convertToBytes(restriction.getFileSizeMbLimit())) {
+                    result.getCudProblems().getCreateProblems().add(new AttachmentCreateProblem().setProblem(INVALID_SIZE));
                 }
             });
         }
 
         if (cud.getUpdateList() != null) {
             cud.getUpdateList().forEach(attachment -> {
-                if (attachment.getSize() > restriction.getFileSizeMbLimit()) {
+                if (attachment.getSize() > InformationVolumeUtils.convertToBytes(restriction.getFileSizeMbLimit())) {
                     result.getCudProblems().getUpdateProblems().add(new AttachmentUpdateProblem().setId(attachment.getId().toString()).setProblem(INVALID_SIZE));
                 }
             });
@@ -307,11 +311,14 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
     }
 
     private void validateAttachmentsNameRegexp(TwinAttachmentRestrictionEntity restriction, EntityCUD<TwinAttachmentEntity> cud, AttachmentCUDValidateResult result) {
+        if (restriction.getFileNameRegexp() == null)
+            return;
+
         if (cud.getCreateList() != null) {
             cud.getCreateList().forEach(attachment -> {
                 String fileName = attachment.getTitle();
                 if (fileName != null && !fileName.matches(restriction.getFileNameRegexp())) {
-                    result.getCudProblems().getCreateProblems().add(new AttachmentCreateProblem().setId(attachment.getId().toString()).setProblem(INVALID_NAME));
+                    result.getCudProblems().getCreateProblems().add(new AttachmentCreateProblem().setProblem(INVALID_NAME));
                 }
             });
         }
@@ -327,6 +334,9 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
     }
 
     private void validateAttachmentsExtensions(TwinAttachmentRestrictionEntity restriction, EntityCUD<TwinAttachmentEntity> cud, AttachmentCUDValidateResult result) {
+        if (restriction.getFileExtensionLimit() == null)
+            return;
+
         List<String> allowedExtensions = Arrays.asList(
                 restriction.getFileExtensionLimit().toLowerCase().split(",")
         );
@@ -336,7 +346,7 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
                 String ext = getFileExtension(attachment.getTitle()).toLowerCase();
                 if (!allowedExtensions.contains(ext)) {
                     result.getCudProblems().getCreateProblems().add(
-                            new AttachmentCreateProblem().setId(attachment.getId().toString()).setProblem(INVALID_TYPE));
+                            new AttachmentCreateProblem().setProblem(INVALID_TYPE));
                 }
             });
         }
@@ -353,9 +363,9 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
     }
 
     private String getFileExtension(String filename) {
-        if (filename == null) {
+        if (filename == null)
             return "";
-        }
+
         int lastDotIndex = filename.lastIndexOf('.');
         return lastDotIndex == -1 ? "" : filename.substring(lastDotIndex + 1);
     }

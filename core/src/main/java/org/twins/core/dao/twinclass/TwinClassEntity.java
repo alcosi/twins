@@ -51,7 +51,7 @@ public class TwinClassEntity implements EasyLoggable {
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            this.id = UUID.randomUUID();
+            this.id = UUID.nameUUIDFromBytes((key + domainId).getBytes());
         }
     }
 

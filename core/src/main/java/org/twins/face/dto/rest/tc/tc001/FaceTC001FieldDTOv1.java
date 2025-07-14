@@ -9,7 +9,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Schema(name = "FaceTC001FieldV1", description = "TC001 field config")
-public class FaceTC001FieldDTOV1 {
+public class FaceTC001FieldDTOv1 {
     @Schema(description = "uniq key")
     public String key;
 
