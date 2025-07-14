@@ -3,7 +3,6 @@ package org.twins.core.featurer.fieldtyper;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
-import org.twins.core.service.i18n.I18nService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.Specification;
@@ -18,6 +17,7 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -122,5 +122,4 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     public Specification<TwinEntity> searchBy(A twinFieldSearch) throws ServiceException {
         throw new ServiceException(ErrorCodeTwins.FIELD_TYPER_SEARCH_NOT_IMPLEMENTED, "Field of type: [" + this.getClass().getSimpleName() + "] do not support twin field search not implemented");
     }
-
 }

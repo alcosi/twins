@@ -3,21 +3,24 @@ package org.twins.core.featurer.fieldtyper.storage;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.kit.Kit;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.attachment.TwinAttachmentRepository;
 import org.twins.core.dao.twin.TwinEntity;
 
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class TwinFieldStorageSpirit implements TwinFieldStorage {
+public class TwinFieldStorageAttachment implements TwinFieldStorage {
+    private final TwinAttachmentRepository twinAttachmentRepository;
+
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) {
-
+        //nothing to load, because attachments should not be browsed as fields
     }
 
     @Override
     public boolean hasStrictValues(UUID twinClassFieldId) {
-        return false;
+        return twinAttachmentRepository.existByTwinClassFieldId(twinClassFieldId);
     }
 
     @Override
@@ -27,6 +30,6 @@ public class TwinFieldStorageSpirit implements TwinFieldStorage {
 
     @Override
     public void initEmpty(TwinEntity twinEntity) {
-
+        //nothing to init
     }
 }

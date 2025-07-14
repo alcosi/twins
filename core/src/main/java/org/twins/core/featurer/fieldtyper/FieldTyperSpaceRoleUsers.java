@@ -116,10 +116,10 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
         TwinEntity twinEntity = twinField.getTwin();
         twinService.loadTwinFields(twinEntity);
         UUID roleId = spaceRoleId.extract(properties);
-        List<UserEntity> spaceRoleUserEntityList = spaceUserRoleService.findUserBySpaceIdAndRoleId(twinEntity.getId(), roleId);
+        List<SpaceRoleUserEntity> spaceRoleUserEntityList = twinEntity.getTwinFieldSpaceUserKit().getGrouped(roleId);
         FieldValueUser ret = new FieldValueUser(twinField.getTwinClassField());
         if (spaceRoleUserEntityList != null) {
-            ret.getUsers().addAll(spaceRoleUserEntityList);
+            ret.getUsers().addAll(spaceRoleUserEntityList.stream().map(SpaceRoleUserEntity::getUser).toList());
         }
         return ret;
     }

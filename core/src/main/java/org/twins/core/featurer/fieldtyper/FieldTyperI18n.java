@@ -17,10 +17,13 @@ import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorI18n;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageI18n;
 import org.twins.core.featurer.fieldtyper.value.FieldValueI18n;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.*;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -29,10 +32,7 @@ import java.util.stream.Collectors;
 @Featurer(id = FeaturerTwins.ID_1320,
         name = "i18n",
         description = "")
-public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI18n, TwinFieldI18nEntity, TwinFieldSearchNotImplemented> {
-    public static final String ENTRY_SPLITTER = "<@2@>";
-    public static final String KEY_VALUE_SPLITTER = "<@3@>";
-
+public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI18n, TwinFieldStorageI18n, TwinFieldSearchNotImplemented> {
     @Lazy
     private final TwinService twinService;
 

@@ -22,12 +22,12 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinAttachmentsCount;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.link.TwinLinkService;
 
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -36,7 +36,7 @@ import java.util.UUID;
 @Data
 @Table(name = "twin")
 @FieldNameConstants
-public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
+public class TwinEntity implements Cloneable, EasyLoggable {
     @Id
     private UUID id;
 
@@ -277,6 +277,14 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
     @Transient
     @EqualsAndHashCode.Exclude
     private KitGrouped<TwinFieldUserEntity, UUID, UUID> twinFieldUserKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private KitGrouped<SpaceRoleUserEntity, UUID, UUID> twinFieldSpaceUserKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Map<String, String> twinFieldCalculated;
 
     @Transient
     @EqualsAndHashCode.Exclude

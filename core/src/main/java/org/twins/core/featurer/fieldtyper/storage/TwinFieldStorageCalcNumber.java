@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class TwinFieldStorageSpirit implements TwinFieldStorage {
+public class TwinFieldStorageCalcNumber implements TwinFieldStorage {
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) {
 

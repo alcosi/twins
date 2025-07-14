@@ -20,6 +20,7 @@ public interface TwinAttachmentRepository extends CrudRepository<TwinAttachmentE
     List<TwinAttachmentEntity> findByTwinIdIn(Collection<UUID> twinIdList);
     List<TwinAttachmentEntity> findByTwinCommentIdIn(Collection<UUID> twinCommentIdList);
     List<TwinAttachmentEntity> findByTwinIdAndTwinClassFieldIdIn(UUID twinId, Collection<UUID> twinClassFieldIds);
+    boolean existByTwinClassFieldId(UUID twinClassFieldId);
     List<TwinAttachmentEntity> findByTwinIdAndIdIn(UUID twinId, Collection<UUID> idList);
 
     void deleteAllByTwinIdAndIdIn(UUID twinId, Collection<UUID> idList);

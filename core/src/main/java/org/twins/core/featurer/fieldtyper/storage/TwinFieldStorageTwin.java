@@ -9,10 +9,10 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class TwinFieldStorageSpirit implements TwinFieldStorage {
+public class TwinFieldStorageTwin implements TwinFieldStorage {
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) {
-
+        //nothing to load, cause all data is already in TwinEntity
     }
 
     @Override
@@ -27,6 +27,6 @@ public class TwinFieldStorageSpirit implements TwinFieldStorage {
 
     @Override
     public void initEmpty(TwinEntity twinEntity) {
-
+        //nothing to init
     }
 }

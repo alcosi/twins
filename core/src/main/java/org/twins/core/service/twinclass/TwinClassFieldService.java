@@ -150,6 +150,17 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         }
     }
 
+    public void loadFieldStorages(TwinClassEntity twinClassEntity) throws ServiceException {
+        if (twinClassEntity.getFieldStoragesSet() != null) {
+            return;
+        }
+        twinClassEntity.setFieldStoragesSet(new HashSet<>());
+        for (TwinClassFieldEntity twinClassField : twinClassEntity.getTwinClassFieldKit().getCollection()) {
+            FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturer(), FieldTyper.class);
+            twinClassEntity.getFieldStoragesSet().add(fieldTyper.getStorageType());
+        }
+    }
+
     public TwinClassFieldEntity findByTwinClassIdAndKey(UUID twinClassId, String key) {
         return twinClassFieldRepository.findByTwinClassIdAndKey(twinClassId, key);
     }

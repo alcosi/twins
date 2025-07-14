@@ -9,10 +9,12 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class TwinFieldStorageSpirit implements TwinFieldStorage {
+public abstract class TwinFieldStorageCalculated implements TwinFieldStorage {
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) {
-
+        exclude.extract(properties) ?
+                twinFieldSimpleRepository.sumChildrenTwinFieldValuesWithStatusNotIn(twinEntity.getId(), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties)) :
+                twinFieldSimpleRepository.sumChildrenTwinFieldValuesWithStatusIn(twinEntity.getId(), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties));
     }
 
     @Override
