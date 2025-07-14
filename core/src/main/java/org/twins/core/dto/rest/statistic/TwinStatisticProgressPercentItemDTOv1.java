@@ -6,8 +6,8 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "ItemV1")
-public class ItemDTOv1 {
+@Schema(name = "TwinStatisticProgressPercentItemV1")
+public class TwinStatisticProgressPercentItemDTOv1 {
     @Schema(description = "label", example = "In progress")
     public String label;
     @Schema(description = "key", example = "inProgress")
