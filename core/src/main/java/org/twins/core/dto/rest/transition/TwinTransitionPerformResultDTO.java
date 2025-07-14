@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.transition;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+// On adding the new implementation, remember about TwinTransitionPerformResultDTOMixIn.class & ApplicationConfig.class
 @Schema(
         examples = {
                 TwinTransitionPerformResultMinorDTOv1.KEY,
