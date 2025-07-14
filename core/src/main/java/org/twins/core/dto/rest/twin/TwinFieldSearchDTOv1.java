@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.twin;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+// On adding new implementation, don't forget about TwinFieldSearchDTOv1MixIn.class & ApplicationConfig.class
 @Schema(
         examples = {
                 TwinFieldSearchTextDTOv1.KEY,
