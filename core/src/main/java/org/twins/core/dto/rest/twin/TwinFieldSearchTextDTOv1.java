@@ -11,7 +11,6 @@ import java.util.Set;
 @Data
 @Accessors(fluent = true)
 @Schema(name = TwinFieldSearchTextDTOv1.KEY)
-@JsonTypeName(TwinFieldSearchTextDTOv1.KEY)
 public class TwinFieldSearchTextDTOv1 implements TwinFieldSearchDTOv1 {
 
     public static final String KEY = "TwinFieldSearchTextV1";

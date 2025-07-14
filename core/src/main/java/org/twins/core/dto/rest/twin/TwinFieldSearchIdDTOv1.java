@@ -11,7 +11,6 @@ import java.util.UUID;
 @Data
 @Accessors(fluent = true)
 @Schema(name = TwinFieldSearchIdDTOv1.KEY)
-@JsonTypeName(TwinFieldSearchIdDTOv1.KEY)
 public class TwinFieldSearchIdDTOv1 implements TwinFieldSearchDTOv1 {
 
     public static final String KEY = "TwinFieldSearchIdV1";
