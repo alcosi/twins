@@ -753,6 +753,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         runFactoryOnUpdate(twinUpdate);
         updateTwinBasics(twinChangesRecorder);
+
         if (twinChangesRecorder.hasChanges())
             twinChangesCollector.add(twinChangesRecorder.getRecorder());
         if (MapUtils.isNotEmpty(twinUpdate.getFields()))
