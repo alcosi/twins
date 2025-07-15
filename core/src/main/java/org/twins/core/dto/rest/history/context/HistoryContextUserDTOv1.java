@@ -10,10 +10,17 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "HistoryContextUserV1")
+@Schema(name =  HistoryContextUserDTOv1.KEY)
 public class HistoryContextUserDTOv1 implements HistoryContextDTO {
-    public static final String KEY = "userV1";
-    public String contextType = KEY;
+
+    public static final String KEY = "HistoryContextUserV1";
+
+    public HistoryContextUserDTOv1() {
+        this.contextType = KEY;
+    }
+
+    @Schema(description = "Context type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
+    public String contextType;
 
     @Schema(description = "From user id", example = DTOExamples.USER_ID)
     public UUID fromUserId;

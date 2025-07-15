@@ -8,13 +8,17 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinClassFieldDescriptorListLongV1")
+@Schema(name =  TwinClassFieldDescriptorListLongDTOv1.KEY)
 public class TwinClassFieldDescriptorListLongDTOv1 implements TwinClassFieldDescriptorDTO {
-    public static final String KEY = "selectLongV1";
-    @Override
-    public String fieldType() {
-        return KEY;
+
+    public static final String KEY = "TwinClassFieldDescriptorListLongV1";
+
+    public TwinClassFieldDescriptorListLongDTOv1() {
+        this.fieldType = KEY;
     }
+
+    @Schema(description = "Field type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
+    public String fieldType;
 
     @Schema(description = "Can custom option be entered", example = "false")
     public Boolean supportCustom;

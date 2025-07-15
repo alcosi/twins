@@ -12,10 +12,13 @@ import java.util.UUID;
 @Schema(name = TwinFieldSearchSpaceRoleUserDTOv1.KEY)
 public class TwinFieldSearchSpaceRoleUserDTOv1 implements TwinFieldSearchDTOv1 {
     public static final String KEY = "TwinFieldSearchSpaceRoleUserV1";
-    @Override
-    public String type() {
-        return KEY;
+
+    public TwinFieldSearchSpaceRoleUserDTOv1() {
+        this.type = KEY;
     }
+
+    @Schema(description = "Search type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
+    public String type;
 
     @Schema(description = "Role id list")
     public Set<UUID> roleIdList;

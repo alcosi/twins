@@ -43,18 +43,18 @@ public class TwinTransitionPerformRsRestDTOMapperV2 extends RestSimpleDTOMapper<
                             List<TwinDTOv2> twinsGroupedByClass = processedGroupedByClass.computeIfAbsent(twinDTOv2.twinClassId(), k -> new ArrayList<>());
                             twinsGroupedByClass.add(twinDTOv2);
                         }
-                        transitionResultMinorDTO.setProcessedTwinList(processedGroupedByClass);
+                        transitionResultMinorDTO.processedTwinList(processedGroupedByClass);
                     }
-                    transitionResultMinorDTO.setTransitionedTwinList(twinRestDTOMapperV2.convertCollection(transitionResultMinor.getTransitionedTwinList(), mapperContext));
+                    transitionResultMinorDTO.transitionedTwinList(twinRestDTOMapperV2.convertCollection(transitionResultMinor.getTransitionedTwinList(), mapperContext));
                     break;
                 case SHORT:
-                    transitionResultMinorDTO.setTransitionedTwinList(twinRestDTOMapperV2.convertCollection(transitionResultMinor.getTransitionedTwinList(), mapperContext));
+                    transitionResultMinorDTO.transitionedTwinList(twinRestDTOMapperV2.convertCollection(transitionResultMinor.getTransitionedTwinList(), mapperContext));
                     break;
             }
             dst.setResult(transitionResultMinorDTO);
         } else if (src instanceof TransitionResultMajor transitionResultMajor) {
             TwinTransitionPerformResultMajorDTOv1 transitionResultMajorDTO = new TwinTransitionPerformResultMajorDTOv1()
-                    .setDraft(draftRestDTOMapper.convert(transitionResultMajor.getCommitedDraftEntity()));
+                    .draft(draftRestDTOMapper.convert(transitionResultMajor.getCommitedDraftEntity()));
             dst.setResult(transitionResultMajorDTO);
         } else
             throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED);

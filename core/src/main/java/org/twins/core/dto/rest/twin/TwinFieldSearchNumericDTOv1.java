@@ -9,10 +9,13 @@ import lombok.experimental.Accessors;
 @Schema(name = TwinFieldSearchNumericDTOv1.KEY, description = "(less & more connected with AND) and after connected to equals with OR")
 public class TwinFieldSearchNumericDTOv1 implements TwinFieldSearchDTOv1 {
     public static final String KEY = "TwinFieldSearchNumericV1";
-    @Override
-    public String type() {
-        return KEY;
+
+    public TwinFieldSearchNumericDTOv1() {
+        this.type = KEY;
     }
+
+    @Schema(description = "Search type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
+    public String type;
 
     @Schema(description = "Twin field numeric value less then given")
     public String lessThen;
