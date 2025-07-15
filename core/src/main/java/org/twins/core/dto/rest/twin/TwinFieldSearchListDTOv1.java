@@ -10,11 +10,15 @@ import java.util.UUID;
 @Accessors(fluent = true)
 @Schema(name = TwinFieldSearchListDTOv1.KEY)
 public class TwinFieldSearchListDTOv1 implements TwinFieldSearchDTOv1 {
+
     public static final String KEY = "TwinFieldSearchListV1";
-    @Override
-    public String type() {
-        return KEY;
+
+    public TwinFieldSearchListDTOv1() {
+        this.type = KEY;
     }
+
+    @Schema(description = "Search type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
+    public String type;
 
     @Schema(description = "Include options with given ids. AND join")
     public Set<UUID> optionsAllOfList;
