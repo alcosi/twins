@@ -31,7 +31,7 @@ public class FaceTC002OptionRestDTOMapper extends RestSimpleDTOMapper<FaceTC002O
 
     @Override
     public void map(FaceTC002OptionEntity src, FaceTC002OptionDTOv1 dst, MapperContext mapperContext) throws Exception {
-        TwinEntity headTwin = faceTwinPointerService.getPointer(src.getHeadTwinPointerId());
+        TwinEntity headTwin = src.getHeadTwinPointerId() == null ? null : faceTwinPointerService.getPointer(src.getHeadTwinPointerId());
         faceTC002OptionService.loadFields(src);
         dst
                 .setId(src.getId())
@@ -41,7 +41,7 @@ public class FaceTC002OptionRestDTOMapper extends RestSimpleDTOMapper<FaceTC002O
                 .setPointedHeadTwinId(headTwin == null ? null : headTwin.getId())
                 .setFields(faceTC002FieldRestDTOMapper.convertCollection(src.getFields()));
 
-        if (mapperContext.hasModeButNot(FaceTC002Modes.FaceTC0022TwinClassMode.HIDE)){
+        if (mapperContext.hasModeButNot(FaceTC002Modes.FaceTC0022TwinClassMode.HIDE)) {
             twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(FaceTC002Modes.FaceTC0022TwinClassFieldMode.SHORT));
         }
     }

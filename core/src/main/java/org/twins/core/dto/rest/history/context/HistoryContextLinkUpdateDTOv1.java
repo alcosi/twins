@@ -11,10 +11,17 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "HistoryContextLinkUpdateV1")
+@Schema(name =  HistoryContextLinkUpdateDTOv1.KEY)
 public class HistoryContextLinkUpdateDTOv1 implements HistoryContextDTO {
-    public static final String KEY = "linkUpdateV1";
-    public String contextType = KEY;
+
+    public static final String KEY = "HistoryContextLinkUpdateV1";
+
+    public HistoryContextLinkUpdateDTOv1() {
+        this.contextType = KEY;
+    }
+
+    @Schema(description = "Context type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
+    public String contextType;
 
     @Schema(description = "Link id", example = DTOExamples.LINK_ID)
     public UUID linkId;

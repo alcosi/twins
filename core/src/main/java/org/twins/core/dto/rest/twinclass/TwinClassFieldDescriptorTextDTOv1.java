@@ -7,14 +7,17 @@ import org.twins.core.featurer.fieldtyper.FieldTyperTextField;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinClassFieldDescriptorTextV1")
+@Schema(name =  TwinClassFieldDescriptorTextDTOv1.KEY)
 public class TwinClassFieldDescriptorTextDTOv1 implements TwinClassFieldDescriptorDTO {
-    public static final String KEY = "textV1";
-    @Override
-    public String fieldType() {
-        return KEY;
+
+    public static final String KEY = "TwinClassFieldDescriptorTextV1";
+
+    public TwinClassFieldDescriptorTextDTOv1() {
+        this.fieldType = KEY;
     }
 
+    @Schema(description = "Field type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
+    public String fieldType;
 
     @Schema(description = "Some validation regexp", example = ".*")
     public String regExp;

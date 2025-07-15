@@ -20,11 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.Loggable;
-import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.resource.ResourceService;
 
 import java.io.InputStream;
@@ -54,7 +52,7 @@ public class ResourcePublicController extends ApiController {
     public ResponseEntity<?> getPublicResourceFile(
             @Schema(implementation = UUID.class, description = "Resource Id", example = DTOExamples.RESOURCE_ID)
             @PathVariable("id") UUID resourceId,
-            HttpServletRequest serverRq, HttpServletResponse serverRs
+            @Schema(hidden = true) HttpServletRequest serverRq, @Schema(hidden = true) HttpServletResponse serverRs
     ) {
         Long time = System.currentTimeMillis();
         log.info("Started resource " + resourceId + " download");
