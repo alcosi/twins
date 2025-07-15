@@ -5,16 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 // On adding the new implementation, remember about TwinFieldSearchDTOv1MixIn.class & ApplicationConfig.class
 @Schema(
-        examples = {
-                TwinFieldSearchTextDTOv1.KEY,
-                TwinFieldSearchDateDTOv1.KEY,
-                TwinFieldSearchNumericDTOv1.KEY,
-                TwinFieldSearchListDTOv1.KEY,
-                TwinFieldSearchIdDTOv1.KEY,
-                TwinFieldSearchBooleanDTOv1.KEY,
-                TwinFieldSearchUserDTOv1.KEY,
-                TwinFieldSearchSpaceRoleUserDTOv1.KEY
-        },
         additionalProperties = Schema.AdditionalPropertiesValue.FALSE,
         description = "Polymorphic filter by field value",
         discriminatorProperty = "type",

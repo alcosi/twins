@@ -5,19 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 // On adding the new implementation, remember about HistoryContextDTOMixIn.class & ApplicationConfig.class
 @Schema(
-        examples = {
-                HistoryContextUserDTOv1.KEY,
-                HistoryContextUserMultiDTOv1.KEY,
-                HistoryContextStatusDTOv1.KEY,
-                HistoryContextTwinDTOv1.KEY,
-                HistoryContextTwinMultiDTOv1.KEY,
-                HistoryContextAttachmentDTOv1.KEY,
-                HistoryContextAttachmentUpdateDTOv1.KEY,
-                HistoryContextLinkDTOv1.KEY,
-                HistoryContextLinkUpdateDTOv1.KEY,
-                HistoryContextListDTOv1.KEY,
-                HistoryContextListMultiDTOv1.KEY
-        },
         additionalProperties = Schema.AdditionalPropertiesValue.FALSE,
         description = "Polymorphic history context",
         discriminatorProperty = "contextType",

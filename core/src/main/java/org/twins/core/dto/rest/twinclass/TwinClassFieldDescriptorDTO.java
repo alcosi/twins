@@ -5,25 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 // On adding the new implementation, remember about TwinClassFieldDescriptorDTOMixIn.class & ApplicationConfig.class
 @Schema(
-        examples = {
-                TwinClassFieldDescriptorTextDTOv1.KEY,
-                TwinClassFieldDescriptorSecretDTOv1.KEY,
-                TwinClassFieldDescriptorDateScrollDTOv1.KEY,
-                TwinClassFieldDescriptorColorHexDTOv1.KEY,
-                TwinClassFieldDescriptorUrlDTOv1.KEY,
-                TwinClassFieldDescriptorListDTOv1.KEY,
-                TwinClassFieldDescriptorListLongDTOv1.KEY,
-                TwinClassFieldDescriptorListSharedInHeadDTOv1.KEY,
-                TwinClassFieldDescriptorLinkDTOv1.KEY,
-                TwinClassFieldDescriptorLinkLongDTOv1.KEY,
-                TwinClassFieldDescriptorI18nDTOv1.KEY,
-                TwinClassFieldDescriptorUserDTOv1.KEY,
-                TwinClassFieldDescriptorUserLongDTOv1.KEY,
-                TwinClassFieldDescriptorAttachmentDTOv1.KEY,
-                TwinClassFieldDescriptorNumericDTOv1.KEY,
-                TwinClassFieldDescriptorImmutableDTOv1.KEY,
-                TwinClassFieldDescriptorBooleanDTOv1.KEY
-        },
         additionalProperties = Schema.AdditionalPropertiesValue.FALSE,
         description = "Polymorphic twin class field descriptor",
         discriminatorProperty = "fieldType",
