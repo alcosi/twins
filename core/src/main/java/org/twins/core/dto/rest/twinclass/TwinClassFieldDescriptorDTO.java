@@ -3,7 +3,7 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-// On adding the new implementation, remember about TwinClassFieldDescriptorDTOMixIn.class & ApplicationConfig.class
+// On adding the new implementation, remember about TwinClassFieldDescriptorDTOMixIn.class & JacksonConfig.class
 @Schema(
         additionalProperties = Schema.AdditionalPropertiesValue.FALSE,
         description = "Polymorphic twin class field descriptor",

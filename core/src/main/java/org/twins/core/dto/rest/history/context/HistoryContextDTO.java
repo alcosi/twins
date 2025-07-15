@@ -3,7 +3,7 @@ package org.twins.core.dto.rest.history.context;
 import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-// On adding the new implementation, remember about HistoryContextDTOMixIn.class & ApplicationConfig.class
+// On adding the new implementation, remember about HistoryContextDTOMixIn.class & JacksonConfig.class
 @Schema(
         additionalProperties = Schema.AdditionalPropertiesValue.FALSE,
         description = "Polymorphic history context",
