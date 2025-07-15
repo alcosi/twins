@@ -11,4 +11,5 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 public class FaceTW004TwinClassField {
     private TwinClassFieldEntity field;
     private boolean editable;
+    private int order;
 }
