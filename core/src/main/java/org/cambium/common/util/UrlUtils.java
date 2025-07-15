@@ -1,5 +1,8 @@
 package org.cambium.common.util;
 
+import lombok.SneakyThrows;
+import org.springframework.web.util.UriComponentsBuilder;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -22,4 +25,10 @@ public class UrlUtils {
             return false;
         }
     }
+
+    @SneakyThrows
+    public static URI toURI(String uriString) {
+        return UriComponentsBuilder.fromUriString(uriString).encode().build().toUri();
+    }
+
 }
