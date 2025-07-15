@@ -502,7 +502,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
         UUID onCreateTwinFactoryId = twinEntity.getTwinflow().getOnCreateTwinFactoryId();
         FactoryContext factoryContext = new FactoryContext(FactoryLauncher.twinCreate, FactoryBranchId.root(onCreateTwinFactoryId));
-        factoryContext.add(new FactoryItem().setOutput(twinCreate));
+        factoryContext.add(new FactoryItem().setOutput(twinCreate).setFactoryContext(factoryContext));
         FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(onCreateTwinFactoryId, factoryContext);
         if (result.getCreates().size() > 1 || !result.getUpdates().isEmpty() || !result.getDeletes().isEmpty()) {
             log.warn("During twin create init factory[{}] operation, some extra twins where modified, but they won't be saved. " +
@@ -763,7 +763,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
         UUID onUpdateTwinFactoryId = twinEntity.getTwinflow().getOnUpdateTwinFactoryId();
         FactoryContext factoryContext = new FactoryContext(FactoryLauncher.twinUpdate, FactoryBranchId.root(onUpdateTwinFactoryId));
-        factoryContext.add(new FactoryItem().setOutput(twinUpdate));
+        factoryContext.add(new FactoryItem().setOutput(twinUpdate).setFactoryContext(factoryContext));
         FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(onUpdateTwinFactoryId, factoryContext);
         if (result.getUpdates().size() > 1 || !result.getCreates().isEmpty() || !result.getDeletes().isEmpty()) {
             log.warn("During twin update factory[{}] operation, some extra twins where modified, but they won't be saved. " +

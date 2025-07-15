@@ -8,13 +8,17 @@ import java.time.LocalDateTime;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinClassFieldDescriptorDateScrollV1")
+@Schema(name =  TwinClassFieldDescriptorDateScrollDTOv1.KEY)
 public class TwinClassFieldDescriptorDateScrollDTOv1 implements TwinClassFieldDescriptorDTO {
-    public static final String KEY = "dateScrollV1";
-    @Override
-    public String fieldType() {
-        return KEY;
+
+    public static final String KEY = "TwinClassFieldDescriptorDateScrollV1";
+
+    public TwinClassFieldDescriptorDateScrollDTOv1() {
+        this.fieldType = KEY;
     }
+
+    @Schema(description = "Field type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
+    public String fieldType;
 
     @Schema(description = "Date pattern (default: yyyy-MM-ddTHH:mm:ss)")
     public String pattern;

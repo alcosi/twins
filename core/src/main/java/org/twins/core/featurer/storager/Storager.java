@@ -25,6 +25,8 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.cambium.common.util.UrlUtils.toURI;
+
 /**
  * Provides services for handling file uploads and resource management.
  * Includes functionalities for saving, retrieving, and deleting files, as well as validating file size and MIME types.
@@ -121,7 +123,7 @@ public abstract class Storager extends FeaturerTwins {
     public URI getFileUri(UUID fileId, String fileKey, HashMap<String, String> params) throws ServiceException {
         String domainId = getDomainId().map(UUID::toString).orElse("defaultDomain");
         String businessAccountId = getBusinessAccountId().map(UUID::toString).orElse("defaultBusinessAccount");
-        return URI.create(getFileControllerUri(params)
+        return toURI(getFileControllerUri(params)
                 .replace("{id}", fileId.toString())
                 .replace("{key}", fileKey)
                 .replace("{domainId}", domainId)
@@ -155,7 +157,7 @@ public abstract class Storager extends FeaturerTwins {
      */
     @SneakyThrows
     public AddedFileKey addExternalUrlFile(UUID fileId, String externalUrl, HashMap<String, String> params) throws ServiceException {
-        return addFile(fileId, getInputStreamHttpResponse(URI.create(externalUrl), params).body(), params);
+        return addFile(fileId, getInputStreamHttpResponse(toURI(externalUrl), params).body(), params);
     }
 
     /**

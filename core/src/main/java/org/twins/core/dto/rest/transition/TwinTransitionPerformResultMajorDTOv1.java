@@ -6,11 +6,18 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.draft.DraftDTOv1;
 
 @Data
-@Accessors(chain = true)
+@Accessors(fluent = true)
 @Schema(name =  "TwinTransitionPerformResultMajorRsV1")
 public class TwinTransitionPerformResultMajorDTOv1 implements TwinTransitionPerformResultDTO {
+
     public static final String KEY = "major";
-    public String resultType = KEY;
+
+    public TwinTransitionPerformResultMajorDTOv1() {
+        this.resultType = KEY;
+    }
+
+    @Schema(description = "Result type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
+    public String resultType;
 
     @Schema(description = "draft")
     public DraftDTOv1 draft;

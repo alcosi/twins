@@ -6,13 +6,17 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinClassFieldDescriptorNumericV1")
+@Schema(name =  TwinClassFieldDescriptorNumericDTOv1.KEY)
 public class TwinClassFieldDescriptorNumericDTOv1 implements TwinClassFieldDescriptorDTO {
-    public static final String KEY = "numericFieldV1";
-    @Override
-    public String fieldType() {
-        return KEY;
+
+    public static final String KEY = "TwinClassFieldDescriptorNumericV1";
+
+    public TwinClassFieldDescriptorNumericDTOv1() {
+        this.fieldType = KEY;
     }
+
+    @Schema(description = "Field type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
+    public String fieldType;
 
     @Schema(description = "Min possible value", example = "1")
     public Double min;
