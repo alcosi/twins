@@ -1,9 +1,12 @@
 package org.twins.core.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.history.context.*;
 import org.twins.core.dto.rest.transition.TwinTransitionPerformResultDTO;
 import org.twins.core.dto.rest.transition.TwinTransitionPerformResultDTOMixIn;
@@ -12,6 +15,8 @@ import org.twins.core.dto.rest.transition.TwinTransitionPerformResultMinorDTOv1;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.dto.rest.twinclass.*;
 
+import java.text.SimpleDateFormat;
+
 @Configuration
 public class JacksonConfig implements WebMvcConfigurer {
 
@@ -19,6 +24,12 @@ public class JacksonConfig implements WebMvcConfigurer {
     @Bean
     public ObjectMapper objectMapper() {
         ObjectMapper mapper = new ObjectMapper();
+
+
+        mapper.registerModule(new JavaTimeModule());
+        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.setDateFormat(new SimpleDateFormat(DTOConfig.DATE_FORMAT));
+
         mapper.addMixIn(TwinFieldSearchDTOv1.class, TwinFieldSearchDTOv1MixIn.class);
         mapper.registerSubtypes(
                 TwinFieldSearchTextDTOv1.class,
