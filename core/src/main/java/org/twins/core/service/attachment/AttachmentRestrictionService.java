@@ -2,6 +2,7 @@ package org.twins.core.service.attachment;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
@@ -80,6 +81,15 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         return true;
     }
 
+    public TwinAttachmentRestrictionEntity getTwinAttachmentRestrictionEntityById(UUID id) throws ServiceException {
+        if (id == null) {
+            throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "id can't be null");
+        }
+
+        return restrictionRepository.findById(id)
+                .orElseThrow(() -> new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "there is no restriction in db with id:[" + id + "]"));
+    }
+
     public AttachmentCUDValidateResult validateAttachments(UUID twinId, UUID twinClassId, EntityCUD<TwinAttachmentEntity> cud) throws ServiceException {
         AttachmentCUDValidateResult result = new AttachmentCUDValidateResult();
 
@@ -113,6 +123,10 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
             validateFieldAttachmentsBatch(twin, fieldCudMap, result);
         }
         return result;
+    }
+
+    public TwinAttachmentRestrictionEntity getRestrictionEntityFromFieldTyper(TwinClassFieldEntity fieldEntity) throws ServiceException {
+        return getTwinAttachmentRestrictionEntityById(getRestrictionIdFromFieldTyper(fieldEntity));
     }
 
     private void validateTierQuotas(UUID twinId, AttachmentQuotas tierQuotas, EntityCUD<TwinAttachmentEntity> cud, AttachmentCUDValidateResult result) throws ServiceException {
@@ -237,11 +251,7 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         Set<UUID> restrictionIds = new HashSet<>();
 
         for (TwinClassFieldEntity field : fieldsKit.getCollection()) {
-            FieldTyper<?, ?, ?, ?> fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturer(), FieldTyper.class);
-            if (fieldTyper.getStorageType() != TwinAttachmentEntity.class) {
-                throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Wrong fieldTyper for [" + field.getId() + "]");
-            }
-            UUID restrictionId = ((FieldTyperAttachment) fieldTyper).getRestrictionId(field.getFieldTyperParams());
+            UUID restrictionId = getRestrictionIdFromFieldTyper(field);
             if (restrictionId == null) {
                 continue;
             }
@@ -368,5 +378,15 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
 
         int lastDotIndex = filename.lastIndexOf('.');
         return lastDotIndex == -1 ? "" : filename.substring(lastDotIndex + 1);
+    }
+
+    private UUID getRestrictionIdFromFieldTyper(TwinClassFieldEntity fieldEntity) throws ServiceException {
+        FieldTyper<?, ?, ?, ?> fieldTyper = featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
+
+        if (fieldTyper.getStorageType() != TwinAttachmentEntity.class) {
+            throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Wrong fieldTyper for [" + fieldEntity.getId() + "]");
+        }
+
+        return ((FieldTyperAttachment) fieldTyper).getRestrictionId(fieldEntity.getFieldTyperParams());
     }
 }

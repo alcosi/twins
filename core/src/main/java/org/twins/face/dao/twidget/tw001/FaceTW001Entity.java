@@ -39,6 +39,9 @@ public class FaceTW001Entity implements EasyLoggable, FacePointedEntity {
     @Column(name = "images_twin_class_field_id")
     private UUID imagesTwinClassFieldId;
 
+    @Column(name = "uploadable")
+    private boolean uploadable;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     private FaceEntity face;
