@@ -6,6 +6,9 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
 import org.twins.core.dao.twin.TwinEntity;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -31,5 +34,10 @@ public class TwinFieldStorageAttachment implements TwinFieldStorage {
     @Override
     public void initEmpty(TwinEntity twinEntity) {
         //nothing to init
+    }
+
+    @Override
+    public Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet) {
+        return Collections.EMPTY_LIST;
     }
 }

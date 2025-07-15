@@ -9,6 +9,8 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldI18nEntity;
 import org.twins.core.dao.twin.TwinFieldI18nRepository;
 
+import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -40,5 +42,10 @@ public class TwinFieldStorageI18n implements TwinFieldStorage {
     @Override
     public void initEmpty(TwinEntity twinEntity) {
         twinEntity.setTwinFieldI18nKit(KitGrouped.EMPTY);
+    }
+
+    @Override
+    public Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet) {
+        return twinFieldI18nRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIdSet);
     }
 }

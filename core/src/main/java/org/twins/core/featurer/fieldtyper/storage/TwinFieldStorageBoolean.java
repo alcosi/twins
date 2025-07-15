@@ -9,6 +9,8 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldBooleanEntity;
 import org.twins.core.dao.twin.TwinFieldBooleanRepository;
 
+import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -40,5 +42,10 @@ public class TwinFieldStorageBoolean implements TwinFieldStorage {
     @Override
     public void initEmpty(TwinEntity twinEntity) {
         twinEntity.setTwinFieldBooleanKit(Kit.EMPTY);
+    }
+
+    @Override
+    public Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet) {
+        return twinFieldBooleanRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIdSet);
     }
 }

@@ -134,19 +134,21 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     }
 
     /**
-     * Override this method if fieldTyper has some load logic based on params.
-     * In this case an individual storage config should be created
+     * Override this method only if fieldTyper has some load logic based on params.
+     * In this case an individual storage config should be created.
+     * Storages with the same hash codes will load data at once,
+     * this helps to reduce db query count.
      *
      * @param twinClassFieldEntity
      * @param properties
      * @return
      */
     public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
-        // this will return not null only if storage was configured as spring @component
+        // This will return not null only if storage was configured as spring @component
         // and it was resolved by fieldStorageService. Otherwise, you need to override this method
         TwinFieldStorage twinFieldStorage = fieldStorageService.getConfig(getStorageType());
         if (twinFieldStorage == null) {
-            throw new ServiceException(ErrorCodeTwins.FIELD_TYPER_SEARCH_NOT_IMPLEMENTED, "Storage: [" + getStorageType().getSimpleName() + "] is not a Spring @component and can not be resolved automatically. Please override getStorage() method in " + this.getClass().getSimpleName());
+            throw new ServiceException(ErrorCodeTwins.FIELD_TYPER_STORAGE_NOT_INIT, "Storage: [" + getStorageType().getSimpleName() + "] is not a Spring @component and can not be resolved automatically. Please override getStorage() method in " + this.getClass().getSimpleName());
         }
         return twinFieldStorage;
     }

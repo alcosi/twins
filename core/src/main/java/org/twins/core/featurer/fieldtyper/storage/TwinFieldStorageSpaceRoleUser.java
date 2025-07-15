@@ -9,9 +9,7 @@ import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.twin.TwinEntity;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -49,5 +47,10 @@ public class TwinFieldStorageSpaceRoleUser implements TwinFieldStorage {
     @Override
     public void initEmpty(TwinEntity twinEntity) {
         twinEntity.setTwinFieldSpaceUserKit(KitGrouped.EMPTY);
+    }
+
+    @Override
+    public Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet) {
+        return Collections.EMPTY_LIST;
     }
 }

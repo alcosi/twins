@@ -9,7 +9,6 @@ import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -19,7 +18,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "space_role_user")
 @FieldNameConstants
-public class SpaceRoleUserEntity implements EasyLoggable, TwinFieldStorage {
+public class SpaceRoleUserEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;

@@ -9,6 +9,9 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldUserEntity;
 import org.twins.core.dao.twin.TwinFieldUserRepository;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -40,5 +43,10 @@ public class TwinFieldStorageUser implements TwinFieldStorage {
     @Override
     public void initEmpty(TwinEntity twinEntity) {
         twinEntity.setTwinFieldUserKit(KitGrouped.EMPTY);
+    }
+
+    @Override
+    public Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet) {
+        return Collections.EMPTY_LIST;
     }
 }

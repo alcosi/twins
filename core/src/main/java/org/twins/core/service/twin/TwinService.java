@@ -1150,52 +1150,25 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
 
         Set<UUID> inheritedTwinClassFieldIds = new HashSet<>();
-        Set<UUID> inheritedSimpleTwinClassFieldIds = new HashSet<>();
-        Set<UUID> inheritedSimpleNonIndexedTwinClassFieldIds = new HashSet<>();
-        Set<UUID> inheritedUserTwinClassFieldIds = new HashSet<>();
-        Set<UUID> inheritedDatalistTwinClassFieldIds = new HashSet<>();
-        Set<UUID> inheritedI18nTwinClassFieldIds = new HashSet<>();
-        Set<UUID> inheritedBooleanTwinClassFieldIds = new HashSet<>();
+        Map<TwinFieldStorage, Set<UUID>> inheritedTwinClassFieldIdsByStorage = new HashMap<>();
 
         for (TwinClassFieldEntity inheritedTwinClassFieldEntity : extendsTwinClassEntity.getTwinClassFieldKit().getCollection()) {
             if (skipFromTwinClass != null && skipFromTwinClass.getTwinClassFieldKit().containsKey(inheritedTwinClassFieldEntity.getId()))
                 continue;
             var fieldTyper = featurerService.getFeaturer(inheritedTwinClassFieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
-            if (fieldTyper.getStorageType() == TwinFieldSimpleEntity.class) {
-                inheritedSimpleTwinClassFieldIds.add(inheritedTwinClassFieldEntity.getId());
-            } else if (fieldTyper.getStorageType() == TwinFieldSimpleNonIndexedEntity.class) {
-                inheritedSimpleNonIndexedTwinClassFieldIds.add(inheritedTwinClassFieldEntity.getId());
-            } else if (fieldTyper.getStorageType() == TwinFieldUserEntity.class) {
-                inheritedUserTwinClassFieldIds.add(inheritedTwinClassFieldEntity.getId());
-            } else if (fieldTyper.getStorageType() == TwinFieldDataListEntity.class) {
-                inheritedDatalistTwinClassFieldIds.add(inheritedTwinClassFieldEntity.getId());
-            } else if (fieldTyper.getStorageType() == TwinFieldI18nEntity.class) {
-                inheritedI18nTwinClassFieldIds.add(inheritedTwinClassFieldEntity.getId());
-            } else if (fieldTyper.getStorageType() == TwinFieldBooleanEntity.class) {
-                inheritedBooleanTwinClassFieldIds.add(inheritedTwinClassFieldEntity.getId());
-            }
+            TwinFieldStorage twinFieldStorage = fieldTyper.getStorage(inheritedTwinClassFieldEntity);
+            inheritedTwinClassFieldIdsByStorage
+                    .computeIfAbsent(twinFieldStorage, k -> new HashSet<>())
+                    .add(inheritedTwinClassFieldEntity.getId());
         }
 
-        if (!inheritedSimpleTwinClassFieldIds.isEmpty()) {
-            inheritedTwinClassFieldIds.addAll(twinFieldSimpleRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedSimpleTwinClassFieldIds));
-        }
-        if (!inheritedSimpleNonIndexedTwinClassFieldIds.isEmpty()) {
-            inheritedSimpleNonIndexedTwinClassFieldIds.addAll(twinFieldSimpleNonIndexedRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedSimpleNonIndexedTwinClassFieldIds));
-        }
-        if (!inheritedUserTwinClassFieldIds.isEmpty()) {
-            inheritedTwinClassFieldIds.addAll(twinFieldUserRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedUserTwinClassFieldIds));
-        }
-        if (!inheritedDatalistTwinClassFieldIds.isEmpty()) {
-            inheritedTwinClassFieldIds.addAll(twinFieldDataListRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedDatalistTwinClassFieldIds));
-        }
-        if (!inheritedI18nTwinClassFieldIds.isEmpty()) {
-            inheritedTwinClassFieldIds.addAll(twinFieldI18nRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedI18nTwinClassFieldIds));
-        }
-        if (!inheritedBooleanTwinClassFieldIds.isEmpty()) {
-            inheritedTwinClassFieldIds.addAll(twinFieldBooleanRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedBooleanTwinClassFieldIds));
-        }
-        if (CollectionUtils.isEmpty(inheritedTwinClassFieldIds))
+        if (inheritedTwinClassFieldIdsByStorage.isEmpty()) {
             return result;
+        }
+
+        for (var entry : inheritedTwinClassFieldIdsByStorage.entrySet()) {
+            inheritedTwinClassFieldIds.addAll(entry.getKey().findUsedFields(twinClassEntity.getId(), entry.getValue()));
+        }
         for (TwinClassFieldEntity twinClassField : extendsTwinClassEntity.getTwinClassFieldKit().getCollection()) {
             if (inheritedTwinClassFieldIds.contains(twinClassField.getId())) {
                 result.add(twinClassField);

@@ -4,9 +4,7 @@ import org.cambium.common.kit.Kit;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldCalcProjection;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public abstract class TwinFieldStorageCalc implements TwinFieldStorage {
     protected final UUID twinClassFieldId;
@@ -40,5 +38,10 @@ public abstract class TwinFieldStorageCalc implements TwinFieldStorage {
         if (twinEntity.getTwinFieldCalculated() == null)
             twinEntity.setTwinFieldCalculated(new HashMap<>());
         twinEntity.getTwinFieldCalculated().put(twinClassFieldId, "0");
+    }
+
+    @Override
+    public Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet) {
+        return Collections.EMPTY_LIST;
     }
 }
