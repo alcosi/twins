@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  HistoryContextUserMultiDTOv1.KEY, oneOf = { HistoryContextDTO.class })
+@Schema(name =  HistoryContextUserMultiDTOv1.KEY)
 public class HistoryContextUserMultiDTOv1 implements HistoryContextDTO {
 
     public static final String KEY = "HistoryContextUserMultiV1";

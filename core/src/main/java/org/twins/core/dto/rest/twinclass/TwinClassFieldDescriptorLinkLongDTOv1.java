@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  TwinClassFieldDescriptorLinkLongDTOv1.KEY, oneOf = { TwinClassFieldDescriptorDTO.class })
+@Schema(name =  TwinClassFieldDescriptorLinkLongDTOv1.KEY)
 public class TwinClassFieldDescriptorLinkLongDTOv1 implements TwinClassFieldDescriptorDTO {
 
     public static final String KEY = "TwinClassFieldDescriptorLinkLongV1";

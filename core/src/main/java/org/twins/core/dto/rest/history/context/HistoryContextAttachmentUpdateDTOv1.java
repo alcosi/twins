@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  HistoryContextAttachmentUpdateDTOv1.KEY, oneOf = { HistoryContextDTO.class })
+@Schema(name =  HistoryContextAttachmentUpdateDTOv1.KEY)
 public class HistoryContextAttachmentUpdateDTOv1 implements HistoryContextDTO {
 
     public static final String KEY = "HistoryContextAttachmentUpdateV1";

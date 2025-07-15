@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name = TwinFieldSearchBooleanDTOv1.KEY, oneOf = { TwinFieldSearchDTOv1.class })
+@Schema(name = TwinFieldSearchBooleanDTOv1.KEY)
 public class TwinFieldSearchBooleanDTOv1 implements TwinFieldSearchDTOv1 {
 
     public static final String KEY = "TwinFieldSearchBooleanV1";

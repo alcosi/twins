@@ -9,7 +9,7 @@ import java.util.*;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  TwinClassFieldDescriptorListDTOv1.KEY, oneOf = { TwinClassFieldDescriptorDTO.class })
+@Schema(name =  TwinClassFieldDescriptorListDTOv1.KEY)
 public class TwinClassFieldDescriptorListDTOv1 implements TwinClassFieldDescriptorDTO {
 
     public static final String KEY = "TwinClassFieldDescriptorListV1";

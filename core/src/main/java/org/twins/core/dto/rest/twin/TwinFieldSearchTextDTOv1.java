@@ -1,5 +1,6 @@
 package org.twins.core.dto.rest.twin;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -9,7 +10,7 @@ import java.util.Set;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name = TwinFieldSearchTextDTOv1.KEY, oneOf = { TwinFieldSearchDTOv1.class })
+@Schema(name = TwinFieldSearchTextDTOv1.KEY)
 public class TwinFieldSearchTextDTOv1 implements TwinFieldSearchDTOv1 {
 
     public static final String KEY = "TwinFieldSearchTextV1";

@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name = TwinFieldSearchNumericDTOv1.KEY, oneOf = { TwinFieldSearchDTOv1.class }, description = "(less & more connected with AND) and after connected to equals with OR")
+@Schema(name = TwinFieldSearchNumericDTOv1.KEY, description = "(less & more connected with AND) and after connected to equals with OR")
 public class TwinFieldSearchNumericDTOv1 implements TwinFieldSearchDTOv1 {
     public static final String KEY = "TwinFieldSearchNumericV1";
 
