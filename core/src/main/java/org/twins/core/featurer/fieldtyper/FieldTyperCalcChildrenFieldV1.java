@@ -12,6 +12,7 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
+import org.twins.core.featurer.fieldtyper.storage.FieldStorageConfig;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpirit;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
@@ -44,5 +45,10 @@ public class FieldTyperCalcChildrenFieldV1 extends FieldTyper<FieldDescriptorTex
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         return new FieldValueText(twinField.getTwinClassField())
                 .setValue(fmt(getSumResult(properties, twinField.getTwin(), twinFieldSimpleRepository)));
+    }
+
+    @Override
+    public FieldStorageConfig getStorageConfig(Properties properties) {
+        return new FieldStorageConfig(fieldStorageConfigService.getConfig(getStorageType()));
     }
 }

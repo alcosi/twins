@@ -1,6 +1,7 @@
 package org.twins.core.featurer.fieldtyper;
 
 import org.cambium.common.exception.ServiceException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -14,6 +15,9 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import java.util.Properties;
 
 public abstract class FieldTyperSimple<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldSearch> extends FieldTyper<D, T, TwinFieldStorageSimple, A> {
+    @Autowired
+    TwinFieldStorageSimple twinFieldStorageSimple;
+
     protected void detectValueChange(TwinFieldSimpleEntity twinFieldEntity, TwinChangesCollector twinChangesCollector, String newValue) {
         if (twinChangesCollector.collectIfChanged(twinFieldEntity, "field[" + twinFieldEntity.getTwinClassField().getKey() + "]", twinFieldEntity.getValue(), newValue)) {
             if (twinChangesCollector.isHistoryCollectorEnabled())
@@ -47,6 +51,5 @@ public abstract class FieldTyperSimple<D extends FieldDescriptor, T extends Fiel
     }
 
     protected abstract T deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) throws ServiceException;
-
 
 }

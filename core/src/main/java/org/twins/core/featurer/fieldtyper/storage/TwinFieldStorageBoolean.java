@@ -9,6 +9,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldBooleanEntity;
 import org.twins.core.dao.twin.TwinFieldBooleanRepository;
 
+import java.util.Properties;
 import java.util.UUID;
 
 @Service
@@ -17,7 +18,7 @@ public class TwinFieldStorageBoolean implements TwinFieldStorage {
     private final TwinFieldBooleanRepository twinFieldBooleanRepository;
 
     @Override
-    public void load(Kit<TwinEntity, UUID> twinsKit) {
+    public void load(Kit<TwinEntity, UUID> twinsKit, Properties properties) {
         KitGrouped<TwinFieldBooleanEntity, UUID, UUID> allTwinsFieldGrouped = new KitGrouped<>(
                 twinFieldBooleanRepository.findByTwinIdIn(twinsKit.getIdSet()), TwinFieldBooleanEntity::getId, TwinFieldBooleanEntity::getTwinId);
         if (!KitUtils.isEmpty(allTwinsFieldGrouped)) {

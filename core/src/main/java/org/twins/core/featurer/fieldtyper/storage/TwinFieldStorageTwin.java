@@ -5,13 +5,14 @@ import org.cambium.common.kit.Kit;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 
+import java.util.Properties;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class TwinFieldStorageTwin implements TwinFieldStorage {
     @Override
-    public void load(Kit<TwinEntity, UUID> twinsKit) {
+    public void load(Kit<TwinEntity, UUID> twinsKit, Properties properties) {
         //nothing to load, cause all data is already in TwinEntity
     }
 

@@ -9,6 +9,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDataListEntity;
 import org.twins.core.dao.twin.TwinFieldDataListRepository;
 
+import java.util.Properties;
 import java.util.UUID;
 
 @Service
@@ -17,7 +18,7 @@ public class TwinFieldStorageDatalist implements TwinFieldStorage {
     private final TwinFieldDataListRepository twinFieldDataListRepository;
 
     @Override
-    public void load(Kit<TwinEntity, UUID> twinsKit) {
+    public void load(Kit<TwinEntity, UUID> twinsKit, Properties properties) {
         KitGrouped<TwinFieldDataListEntity, UUID, UUID> allTwinsFieldGrouped = new KitGrouped<>(
                 twinFieldDataListRepository.findByTwinIdIn(twinsKit.getIdSet()), TwinFieldDataListEntity::getId, TwinFieldDataListEntity::getTwinId);
         if (!KitUtils.isEmpty(allTwinsFieldGrouped)) {

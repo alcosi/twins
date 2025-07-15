@@ -2,19 +2,25 @@ package org.twins.core.featurer.fieldtyper.storage;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.kit.Kit;
-import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 
+import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 
-@Service
 @RequiredArgsConstructor
-public abstract class TwinFieldStorageCalculated implements TwinFieldStorage {
+public class TwinFieldStorageCalculated implements TwinFieldStorage {
+    private final TwinFieldSimpleRepository twinFieldSimpleRepository;
+    private final UUID childrenTwinClassFieldId;
+    private final Set<UUID> childrenTwinStatusIdSet;
+    private final boolean exclude;
+
     @Override
-    public void load(Kit<TwinEntity, UUID> twinsKit) {
-        exclude.extract(properties) ?
-                twinFieldSimpleRepository.sumChildrenTwinFieldValuesWithStatusNotIn(twinEntity.getId(), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties)) :
-                twinFieldSimpleRepository.sumChildrenTwinFieldValuesWithStatusIn(twinEntity.getId(), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties));
+    public void load(Kit<TwinEntity, UUID> twinsKit, Properties properties) {
+        exclude ?
+                twinFieldSimpleRepository.sumChildrenTwinFieldValuesWithStatusNotIn(twinEntity.getId(), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdSet.extract(properties)) :
+                twinFieldSimpleRepository.sumChildrenTwinFieldValuesWithStatusIn(twinEntity.getId(), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdSet.extract(properties));
     }
 
     @Override

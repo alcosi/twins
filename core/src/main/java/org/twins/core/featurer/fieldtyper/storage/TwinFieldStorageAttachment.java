@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
 import org.twins.core.dao.twin.TwinEntity;
 
+import java.util.Properties;
 import java.util.UUID;
 
 @Service
@@ -14,7 +15,7 @@ public class TwinFieldStorageAttachment implements TwinFieldStorage {
     private final TwinAttachmentRepository twinAttachmentRepository;
 
     @Override
-    public void load(Kit<TwinEntity, UUID> twinsKit) {
+    public void load(Kit<TwinEntity, UUID> twinsKit, Properties properties) {
         //nothing to load, because attachments should not be browsed as fields
     }
 

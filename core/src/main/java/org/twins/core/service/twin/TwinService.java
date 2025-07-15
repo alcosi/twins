@@ -42,7 +42,8 @@ import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
+import org.twins.core.featurer.fieldtyper.storage.FieldStorageConfig;
+import org.twins.core.featurer.fieldtyper.storage.FieldStorageConfigService;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.TwinChangesService;
@@ -115,7 +116,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Autowired
     private TwinClassFieldRepository twinClassFieldRepository;
     @Autowired
-    private TwinFieldStorageService twinFieldStorageService;
+    private FieldStorageConfigService fieldStorageConfigService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
@@ -224,8 +225,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public boolean areFieldsOfTwinClassFieldExists(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
         boolean result = false;
         FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
-        TwinFieldStorage twinFieldStorage = twinFieldStorageService.getFieldStorage(fieldTyper.getStorageType());
-        return twinFieldStorage.hasStrictValues(twinClassFieldEntity.getId());
+        FieldStorageConfig storageConfig = fieldTyper.getStorageConfig(twinClassFieldEntity);
+        return storageConfig.hasStrictValues(twinClassFieldEntity.getId());
     }
 
     /**
@@ -234,7 +235,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
      * @param twinEntityList
      */
     public void loadTwinFields(Collection<TwinEntity> twinEntityList) throws ServiceException {
-        Map<Class<?>, Kit<TwinEntity, UUID>> needFieldLoad = new HashMap<>();
+        Map<FieldStorageConfig, Kit<TwinEntity, UUID>> needFieldLoad = new HashMap<>();
 
         KitGroupedObj<TwinEntity, UUID, UUID, TwinClassEntity> twinsGroupedByClass = new KitGroupedObj<>(
                 twinEntityList, TwinEntity::getId, TwinEntity::getTwinClassId, TwinEntity::getTwinClass);
@@ -243,13 +244,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (TwinClassEntity twinClassEntity : twinsGroupedByClass.getGroupingObjectMap().values()) {
             twinClassFieldService.loadFieldStorages(twinClassEntity);
             for (TwinEntity twinEntity : twinsGroupedByClass.getGrouped(twinClassEntity.getId())) {
-                for (var fieldStorage : twinFieldStorageService.getAllFieldStorages()) {
-                    if (!fieldStorage.isLoaded(twinEntity)) {
-                        if (twinClassEntity.getFieldStoragesSet().contains(fieldStorage.getClass())) {
-                            needFieldLoad.computeIfAbsent(fieldStorage.getClass(), k -> new Kit<>(TwinEntity::getId))
+                for (var fieldStorageConfig : twinClassEntity.getFieldStorageConfigSet()) {
+                    if (!fieldStorageConfig.isLoaded(twinEntity)) {
+                        if (twinClassEntity.getFieldStorageConfigSet().contains(fieldStorageConfig)) {
+                            needFieldLoad.computeIfAbsent(fieldStorageConfig, k -> new Kit<>(TwinEntity::getId))
                                     .add(twinEntity);
                         } else {
-                            fieldStorage.initEmpty(twinEntity);
+                            fieldStorageConfig.initEmpty(twinEntity);
                         }
                     }
                 }
@@ -260,9 +261,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
 
         for (var needLoadEntry : needFieldLoad.entrySet()) {
-            TwinFieldStorage fieldStorage = twinFieldStorageService.getFieldStorage(needLoadEntry.getKey());
+            FieldStorageConfig fieldStorageConfig = needLoadEntry.getKey();
             if (KitUtils.isNotEmpty(needLoadEntry.getValue())) {
-                fieldStorage.load(needLoadEntry.getValue());
+                fieldStorageConfig.load(needLoadEntry.getValue());
             }
         }
     }

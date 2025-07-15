@@ -14,6 +14,8 @@ import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
+import org.twins.core.featurer.fieldtyper.storage.FieldStorageConfig;
+import org.twins.core.featurer.fieldtyper.storage.FieldStorageConfigService;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.history.HistoryService;
@@ -46,6 +48,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     @Lazy
     @Autowired
     TwinClassService twinClassService;
+
+    @Lazy
+    @Autowired
+    FieldStorageConfigService fieldStorageConfigService;
 
     private Class<T> valuetype = null;
     private Class<D> descriptorType = null;
@@ -121,5 +127,20 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     public Specification<TwinEntity> searchBy(A twinFieldSearch) throws ServiceException {
         throw new ServiceException(ErrorCodeTwins.FIELD_TYPER_SEARCH_NOT_IMPLEMENTED, "Field of type: [" + this.getClass().getSimpleName() + "] do not support twin field search not implemented");
+    }
+
+    public FieldStorageConfig getStorageConfig(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams(), new HashMap<>());
+        return getStorageConfig(properties);
+    }
+
+    /**
+     * Override this method if fieldTyper has some load logic based on params.
+     * In this case an individual storage config should be created
+     * @param properties
+     * @return
+     */
+    public FieldStorageConfig getStorageConfig(Properties properties) {
+        return fieldStorageConfigService.getConfig(getStorageType());
     }
 }

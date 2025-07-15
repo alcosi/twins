@@ -10,6 +10,7 @@ import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.twin.TwinEntity;
 
 import java.util.HashSet;
+import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
@@ -19,7 +20,7 @@ public class TwinFieldStorageSpaceRoleUser implements TwinFieldStorage {
     private final SpaceRoleUserRepository spaceRoleUserRepository;
 
     @Override
-    public void load(Kit<TwinEntity, UUID> twinsKit) {
+    public void load(Kit<TwinEntity, UUID> twinsKit, Properties properties) {
         Set<UUID> spaceSet = new HashSet<>();
         for (var twin : twinsKit) {
             spaceSet.add(twin.getPermissionSchemaSpaceId());
