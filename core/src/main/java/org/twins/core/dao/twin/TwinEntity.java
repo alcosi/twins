@@ -284,7 +284,7 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Map<String, String> twinFieldCalculated;
+    private Map<UUID, Object> twinFieldCalculated;
 
     @Transient
     @EqualsAndHashCode.Exclude

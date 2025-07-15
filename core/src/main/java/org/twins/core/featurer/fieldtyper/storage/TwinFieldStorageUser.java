@@ -4,21 +4,20 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldUserEntity;
 import org.twins.core.dao.twin.TwinFieldUserRepository;
 
-import java.util.Properties;
 import java.util.UUID;
 
-@Service
+@Component
 @RequiredArgsConstructor
 public class TwinFieldStorageUser implements TwinFieldStorage {
     private final TwinFieldUserRepository twinFieldUserRepository;
 
     @Override
-    public void load(Kit<TwinEntity, UUID> twinsKit, Properties properties) {
+    public void load(Kit<TwinEntity, UUID> twinsKit) {
         KitGrouped<TwinFieldUserEntity, UUID, UUID> allTwinsFieldGrouped = new KitGrouped<>(
                 twinFieldUserRepository.findByTwinIdIn(twinsKit.getIdSet()), TwinFieldUserEntity::getId, TwinFieldUserEntity::getTwinId);
         if (!KitUtils.isEmpty(allTwinsFieldGrouped)) {

@@ -4,23 +4,22 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.twin.TwinEntity;
 
 import java.util.HashSet;
-import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
-@Service
+@Component
 @RequiredArgsConstructor
 public class TwinFieldStorageSpaceRoleUser implements TwinFieldStorage {
     private final SpaceRoleUserRepository spaceRoleUserRepository;
 
     @Override
-    public void load(Kit<TwinEntity, UUID> twinsKit, Properties properties) {
+    public void load(Kit<TwinEntity, UUID> twinsKit) {
         Set<UUID> spaceSet = new HashSet<>();
         for (var twin : twinsKit) {
             spaceSet.add(twin.getPermissionSchemaSpaceId());

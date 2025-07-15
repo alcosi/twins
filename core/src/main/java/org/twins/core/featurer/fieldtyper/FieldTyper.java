@@ -14,8 +14,7 @@ import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
-import org.twins.core.featurer.fieldtyper.storage.FieldStorageConfig;
-import org.twins.core.featurer.fieldtyper.storage.FieldStorageConfigService;
+import org.twins.core.featurer.fieldtyper.storage.FieldStorageService;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.history.HistoryService;
@@ -51,7 +50,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     @Lazy
     @Autowired
-    FieldStorageConfigService fieldStorageConfigService;
+    FieldStorageService fieldStorageService;
 
     private Class<T> valuetype = null;
     private Class<D> descriptorType = null;
@@ -129,18 +128,26 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         throw new ServiceException(ErrorCodeTwins.FIELD_TYPER_SEARCH_NOT_IMPLEMENTED, "Field of type: [" + this.getClass().getSimpleName() + "] do not support twin field search not implemented");
     }
 
-    public FieldStorageConfig getStorageConfig(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams(), new HashMap<>());
-        return getStorageConfig(properties);
+        return getStorage(twinClassFieldEntity, properties);
     }
 
     /**
      * Override this method if fieldTyper has some load logic based on params.
      * In this case an individual storage config should be created
+     *
+     * @param twinClassFieldEntity
      * @param properties
      * @return
      */
-    public FieldStorageConfig getStorageConfig(Properties properties) {
-        return fieldStorageConfigService.getConfig(getStorageType());
+    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
+        // this will return not null only if storage was configured as spring @component
+        // and it was resolved by fieldStorageService. Otherwise, you need to override this method
+        TwinFieldStorage twinFieldStorage = fieldStorageService.getConfig(getStorageType());
+        if (twinFieldStorage == null) {
+            throw new ServiceException(ErrorCodeTwins.FIELD_TYPER_SEARCH_NOT_IMPLEMENTED, "Storage: [" + getStorageType().getSimpleName() + "] is not a Spring @component and can not be resolved automatically. Please override getStorage() method in " + this.getClass().getSimpleName());
+        }
+        return twinFieldStorage;
     }
 }

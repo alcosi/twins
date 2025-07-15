@@ -10,16 +10,16 @@ import java.util.Map;
 
 @Service
 @Slf4j
-public class FieldStorageConfigService {
-    private final Map<Class<?>, FieldStorageConfig> fieldStorageConfigNoPropertiesMap = new HashMap<>();
+public class FieldStorageService {
+    private final Map<Class<?>, TwinFieldStorage> fieldStorageBeanMap = new HashMap<>();
     @Autowired
     public void setFieldStorageList(List<TwinFieldStorage> storageList) {
         for (var storage : storageList) {
-            fieldStorageConfigNoPropertiesMap.put(storage.getClass(), new FieldStorageConfig(storage, null));
+            fieldStorageBeanMap.put(storage.getClass(), storage);
         }
     }
 
-    public FieldStorageConfig getConfig(Class<?> clazz) {
-        return fieldStorageConfigNoPropertiesMap.get(clazz);
+    public TwinFieldStorage getConfig(Class<?> clazz) {
+        return fieldStorageBeanMap.get(clazz);
     }
 }

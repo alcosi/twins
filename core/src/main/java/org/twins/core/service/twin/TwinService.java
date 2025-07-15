@@ -42,8 +42,8 @@ import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;
-import org.twins.core.featurer.fieldtyper.storage.FieldStorageConfig;
-import org.twins.core.featurer.fieldtyper.storage.FieldStorageConfigService;
+import org.twins.core.featurer.fieldtyper.storage.FieldStorageService;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.TwinChangesService;
@@ -116,7 +116,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Autowired
     private TwinClassFieldRepository twinClassFieldRepository;
     @Autowired
-    private FieldStorageConfigService fieldStorageConfigService;
+    private FieldStorageService fieldStorageService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
@@ -225,8 +225,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public boolean areFieldsOfTwinClassFieldExists(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
         boolean result = false;
         FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
-        FieldStorageConfig storageConfig = fieldTyper.getStorageConfig(twinClassFieldEntity);
-        return storageConfig.hasStrictValues(twinClassFieldEntity.getId());
+        TwinFieldStorage storage = fieldTyper.getStorage(twinClassFieldEntity);
+        return storage.hasStrictValues(twinClassFieldEntity.getId());
     }
 
     /**
@@ -235,7 +235,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
      * @param twinEntityList
      */
     public void loadTwinFields(Collection<TwinEntity> twinEntityList) throws ServiceException {
-        Map<FieldStorageConfig, Kit<TwinEntity, UUID>> needFieldLoad = new HashMap<>();
+        Map<TwinFieldStorage, Kit<TwinEntity, UUID>> needFieldLoad = new HashMap<>();
 
         KitGroupedObj<TwinEntity, UUID, UUID, TwinClassEntity> twinsGroupedByClass = new KitGroupedObj<>(
                 twinEntityList, TwinEntity::getId, TwinEntity::getTwinClassId, TwinEntity::getTwinClass);
@@ -244,14 +244,16 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (TwinClassEntity twinClassEntity : twinsGroupedByClass.getGroupingObjectMap().values()) {
             twinClassFieldService.loadFieldStorages(twinClassEntity);
             for (TwinEntity twinEntity : twinsGroupedByClass.getGrouped(twinClassEntity.getId())) {
-                for (var fieldStorageConfig : twinClassEntity.getFieldStorageConfigSet()) {
-                    if (!fieldStorageConfig.isLoaded(twinEntity)) {
-                        if (twinClassEntity.getFieldStorageConfigSet().contains(fieldStorageConfig)) {
-                            needFieldLoad.computeIfAbsent(fieldStorageConfig, k -> new Kit<>(TwinEntity::getId))
-                                    .add(twinEntity);
-                        } else {
-                            fieldStorageConfig.initEmpty(twinEntity);
-                        }
+                for (var fieldStorage : twinClassEntity.getFieldStorageSet()) {
+                    if (!fieldStorage.isLoaded(twinEntity)) {
+                        needFieldLoad.computeIfAbsent(fieldStorage, k -> new Kit<>(TwinEntity::getId))
+                                .add(twinEntity);
+//                        if (twinClassEntity.getFieldStorageSet().contains(fieldStorage)) {
+//                            needFieldLoad.computeIfAbsent(fieldStorage, k -> new Kit<>(TwinEntity::getId))
+//                                    .add(twinEntity);
+//                        } else {
+//                            fieldStorage.initEmpty(twinEntity);
+//                        }
                     }
                 }
             }
@@ -261,9 +263,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
 
         for (var needLoadEntry : needFieldLoad.entrySet()) {
-            FieldStorageConfig fieldStorageConfig = needLoadEntry.getKey();
+            TwinFieldStorage twinFieldsStorage = needLoadEntry.getKey();
             if (KitUtils.isNotEmpty(needLoadEntry.getValue())) {
-                fieldStorageConfig.load(needLoadEntry.getValue());
+                twinFieldsStorage.load(needLoadEntry.getValue());
             }
         }
     }
