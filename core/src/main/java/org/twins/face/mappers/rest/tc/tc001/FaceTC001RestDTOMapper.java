@@ -45,7 +45,9 @@ public class FaceTC001RestDTOMapper extends RestSimpleDTOMapper<FaceTC001Entity,
                     faceTC001Service.loadFields(src);
                     twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(FaceTC001Modes.FaceTC0012TwinClassMode.SHORT));
                 }
-                TwinEntity headTwin = faceTwinPointerService.getPointer(src.getHeadTwinPointerId());
+
+                TwinEntity headTwin = src.getHeadTwinPointerId() == null ? null : faceTwinPointerService.getPointer(src.getHeadTwinPointerId());
+
                 dst
                         .setKey(src.getKey())
                         .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "))
