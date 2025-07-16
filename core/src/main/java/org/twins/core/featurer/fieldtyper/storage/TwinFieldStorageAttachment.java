@@ -23,7 +23,7 @@ public class TwinFieldStorageAttachment extends TwinFieldStorage {
 
     @Override
     public boolean hasStrictValues(UUID twinClassFieldId) {
-        return twinAttachmentRepository.existByTwinClassFieldId(twinClassFieldId);
+        return twinAttachmentRepository.existsByTwinClassFieldId(twinClassFieldId);
     }
 
     @Override
@@ -39,6 +39,11 @@ public class TwinFieldStorageAttachment extends TwinFieldStorage {
     @Override
     public Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet) {
         return Collections.EMPTY_LIST;
+    }
+
+    @Override
+    public void replaceTwinClassFieldForTwinsOfClass(UUID twinClassId, UUID fromTwinClassFieldId, UUID toTwinClassFieldId) {
+        twinAttachmentRepository.replaceTwinClassFieldForTwinsOfClass(twinClassId, fromTwinClassFieldId, toTwinClassFieldId);
     }
 
     @Override

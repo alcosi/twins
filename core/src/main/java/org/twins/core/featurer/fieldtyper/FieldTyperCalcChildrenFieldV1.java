@@ -49,7 +49,7 @@ public class FieldTyperCalcChildrenFieldV1 extends FieldTyper<FieldDescriptorTex
     public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new TwinFieldStorageCalcSumField(
                 twinFieldSimpleRepository,
-                twinClassFieldEntity.getTwinClassId(),
+                twinClassFieldEntity.getId(),
                 childrenTwinClassFieldId.extract(properties),
                 childrenTwinStatusIdList.extract(properties),
                 exclude.extract(properties));

@@ -3,7 +3,6 @@ package org.twins.core.featurer.fieldtyper.storage;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.KitUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDataListEntity;
@@ -22,9 +21,11 @@ public class TwinFieldStorageDatalist extends TwinFieldStorage {
     public void load(Kit<TwinEntity, UUID> twinsKit) {
         KitGrouped<TwinFieldDataListEntity, UUID, UUID> allTwinsFieldGrouped = new KitGrouped<>(
                 twinFieldDataListRepository.findByTwinIdIn(twinsKit.getIdSet()), TwinFieldDataListEntity::getId, TwinFieldDataListEntity::getTwinId);
-        if (!KitUtils.isEmpty(allTwinsFieldGrouped)) {
-            for (var twinEntity : twinsKit) {
+        for (var twinEntity : twinsKit) {
+            if (allTwinsFieldGrouped.containsGroupedKey(twinEntity.getId())) {
                 twinEntity.setTwinFieldDatalistKit(new KitGrouped<>(allTwinsFieldGrouped.getGrouped(twinEntity.getId()), TwinFieldDataListEntity::getId, TwinFieldDataListEntity::getTwinClassFieldId));
+            } else {
+                initEmpty(twinEntity);
             }
         }
     }
@@ -47,6 +48,11 @@ public class TwinFieldStorageDatalist extends TwinFieldStorage {
     @Override
     public Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet) {
         return twinFieldDataListRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIdSet);
+    }
+
+    @Override
+    public void replaceTwinClassFieldForTwinsOfClass(UUID twinClassId, UUID fromTwinClassFieldId, UUID toTwinClassFieldId) {
+        twinFieldDataListRepository.replaceTwinClassFieldForTwinsOfClass(twinClassId, fromTwinClassFieldId, toTwinClassFieldId);
     }
 
     @Override

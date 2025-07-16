@@ -86,7 +86,7 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             @Param("headTwinId") UUID headTwinId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 
     @Query(value = """
-        select new org.twins.core.dao.twin.TwinFieldCalcProjection(twin.headTwinId, coalesce(sum(cast(field.value as double)), 0))
+        select new org.twins.core.dao.twin.TwinFieldCalcProjection(twin.headTwinId, cast(coalesce(sum(cast(field.value as double)), 0) as string ))
         from TwinFieldSimpleEntity field inner join TwinEntity twin on field.twinId = twin.id
         where twin.headTwinId in :headTwinIdList and field.twinClassFieldId = :twinClassFieldId and not twin.twinStatusId in :childrenTwinStatusIdList
         group by twin.headTwinId

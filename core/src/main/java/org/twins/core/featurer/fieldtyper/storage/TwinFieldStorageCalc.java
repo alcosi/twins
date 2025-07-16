@@ -41,6 +41,11 @@ public abstract class TwinFieldStorageCalc extends TwinFieldStorage {
     }
 
     @Override
+    public void replaceTwinClassFieldForTwinsOfClass(UUID twinClassId, UUID fromTwinClassFieldId, UUID toTwinClassFieldId) {
+        //nothing to replace
+    }
+
+    @Override
     public Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet) {
         return Collections.EMPTY_LIST;
     }

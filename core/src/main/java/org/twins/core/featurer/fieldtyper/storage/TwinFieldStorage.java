@@ -1,5 +1,6 @@
 package org.twins.core.featurer.fieldtyper.storage;
 
+import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.twin.TwinEntity;
 
@@ -8,15 +9,17 @@ import java.util.Set;
 import java.util.UUID;
 
 public abstract class TwinFieldStorage {
-    abstract void load(Kit<TwinEntity, UUID> twinsKit);
+    public abstract void load(Kit<TwinEntity, UUID> twinsKit) throws ServiceException;
 
-    abstract boolean hasStrictValues(UUID twinClassFieldId);
+    public abstract boolean hasStrictValues(UUID twinClassFieldId);
 
-    abstract boolean isLoaded(TwinEntity twinEntity);
+    public abstract boolean isLoaded(TwinEntity twinEntity);
 
-    abstract void initEmpty(TwinEntity twinEntity);
+    public abstract void initEmpty(TwinEntity twinEntity);
 
-    abstract Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet);
+    public abstract Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet);
+
+    public abstract void replaceTwinClassFieldForTwinsOfClass(UUID twinClassId, UUID fromTwinClassFieldId, UUID toTwinClassFieldId);
 
     @Override
     public boolean equals(Object obj) {

@@ -3,7 +3,6 @@ package org.twins.core.featurer.fieldtyper.storage;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.KitUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldI18nEntity;
@@ -22,9 +21,11 @@ public class TwinFieldStorageI18n extends TwinFieldStorage {
     public void load(Kit<TwinEntity, UUID> twinsKit) {
         KitGrouped<TwinFieldI18nEntity, UUID, UUID> allTwinsFieldGrouped = new KitGrouped<>(
                 twinFieldI18nRepository.findByTwinIdIn(twinsKit.getIdSet()), TwinFieldI18nEntity::getId, TwinFieldI18nEntity::getTwinId);
-        if (!KitUtils.isEmpty(allTwinsFieldGrouped)) {
-            for (var twinEntity : twinsKit) {
+        for (var twinEntity : twinsKit) {
+            if (allTwinsFieldGrouped.containsGroupedKey(twinEntity.getId())) {
                 twinEntity.setTwinFieldI18nKit(new KitGrouped<>(allTwinsFieldGrouped.getGrouped(twinEntity.getId()), TwinFieldI18nEntity::getId, TwinFieldI18nEntity::getTwinClassFieldId));
+            } else {
+                initEmpty(twinEntity);
             }
         }
     }
@@ -52,5 +53,10 @@ public class TwinFieldStorageI18n extends TwinFieldStorage {
     @Override
     boolean canBeMerged(Object o) {
         return isSameClass(o);
+    }
+
+    @Override
+    public void replaceTwinClassFieldForTwinsOfClass(UUID twinClassId, UUID fromTwinClassFieldId, UUID toTwinClassFieldId) {
+        twinFieldI18nRepository.replaceTwinClassFieldForTwinsOfClass(twinClassId, fromTwinClassFieldId, toTwinClassFieldId);
     }
 }

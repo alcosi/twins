@@ -49,7 +49,7 @@ public class FieldTyperCountChildrenOfTwinClassV1 extends FieldTyper<FieldDescri
     public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new TwinFieldStorageCalcChildrenOfClassCount(
                 twinFieldSimpleRepository,
-                twinClassFieldEntity.getTwinClassId(),
+                twinClassFieldEntity.getId(),
                 twinClassIds.extract(properties));
     }
 }

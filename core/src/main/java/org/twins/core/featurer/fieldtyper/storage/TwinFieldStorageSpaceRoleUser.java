@@ -3,7 +3,6 @@ package org.twins.core.featurer.fieldtyper.storage;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.KitUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
@@ -24,12 +23,14 @@ public class TwinFieldStorageSpaceRoleUser extends TwinFieldStorage {
         }
         KitGrouped<SpaceRoleUserEntity, UUID, UUID> allTwinsFieldGrouped = new KitGrouped<>(
                 spaceRoleUserRepository.findByTwinIdIn(spaceSet), SpaceRoleUserEntity::getId, SpaceRoleUserEntity::getTwinId);
-        if (!KitUtils.isEmpty(allTwinsFieldGrouped)) {
-            for (var twinEntity : twinsKit) {
+        for (var twinEntity : twinsKit) {
+            if (allTwinsFieldGrouped.containsGroupedKey(twinEntity.getId())) {
                 twinEntity.setTwinFieldSpaceUserKit(new KitGrouped<>(
                         allTwinsFieldGrouped.getGrouped(twinEntity.getPermissionSchemaSpaceId()),
                         SpaceRoleUserEntity::getId,
                         SpaceRoleUserEntity::getSpaceRoleId));
+            } else {
+                initEmpty(twinEntity);
             }
         }
     }
@@ -52,6 +53,11 @@ public class TwinFieldStorageSpaceRoleUser extends TwinFieldStorage {
     @Override
     public Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet) {
         return Collections.EMPTY_LIST;
+    }
+
+    @Override
+    public void replaceTwinClassFieldForTwinsOfClass(UUID twinClassId, UUID fromTwinClassFieldId, UUID toTwinClassFieldId) {
+        //nothing to replace
     }
 
     @Override

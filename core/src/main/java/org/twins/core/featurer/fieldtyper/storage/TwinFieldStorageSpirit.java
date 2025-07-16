@@ -42,4 +42,9 @@ public class TwinFieldStorageSpirit extends TwinFieldStorage {
     boolean canBeMerged(Object o) {
         return isSameClass(o);
     }
+
+    @Override
+    public void replaceTwinClassFieldForTwinsOfClass(UUID twinClassId, UUID fromTwinClassFieldId, UUID toTwinClassFieldId) {
+        //nothing to replace
+    }
 }
