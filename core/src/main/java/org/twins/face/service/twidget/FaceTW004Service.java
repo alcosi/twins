@@ -78,11 +78,14 @@ public class FaceTW004Service extends FacePointedService<FaceTW004Entity> {
         }
 
         List<FaceTW004TwinClassField> result = new ArrayList<>(fields.size());
+        int order = 0;
+
         for (TwinClassFieldEntity field : fields) {
             boolean isEditable = editableFieldIds == null || editableFieldIds.contains(field.getId());
 
-            result.add(new FaceTW004TwinClassField(field, isEditable));
+            result.add(new FaceTW004TwinClassField(field, isEditable, ++order));
         }
+
         return result;
     }
 }
