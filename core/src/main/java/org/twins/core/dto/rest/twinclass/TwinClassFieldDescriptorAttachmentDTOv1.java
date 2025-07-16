@@ -6,17 +6,13 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  TwinClassFieldDescriptorAttachmentDTOv1.KEY)
+@Schema(name =  "TwinClassFieldDescriptorAttachmentV1")
 public class TwinClassFieldDescriptorAttachmentDTOv1 implements TwinClassFieldDescriptorDTO {
-
-    public static final String KEY = "TwinClassFieldDescriptorAttachmentV1";
-
-    public TwinClassFieldDescriptorAttachmentDTOv1() {
-        this.fieldType = KEY;
+    public static final String KEY = "attachmentFieldV1";
+    @Override
+    public String fieldType() {
+        return KEY;
     }
-
-    @Schema(description = "Field type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
-    public String fieldType;
 
     @Schema(description = "Min count of files to upload", example = "1")
     public Integer minCount;

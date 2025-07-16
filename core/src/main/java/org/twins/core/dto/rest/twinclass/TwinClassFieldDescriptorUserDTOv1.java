@@ -11,17 +11,13 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  TwinClassFieldDescriptorUserDTOv1.KEY)
+@Schema(name =  "TwinClassFieldDescriptorUserV1")
 public class TwinClassFieldDescriptorUserDTOv1 implements TwinClassFieldDescriptorDTO {
-
-    public static final String KEY = "TwinClassFieldDescriptorUserV1";
-
-    public TwinClassFieldDescriptorUserDTOv1() {
-        this.fieldType = KEY;
+    public static final String KEY = "selectUserV1";
+    @Override
+    public String fieldType() {
+        return KEY;
     }
-
-    @Schema(description = "Field type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
-    public String fieldType;
 
     @Schema(description = "Multiple choice support", example = "true")
     public Boolean multiple;

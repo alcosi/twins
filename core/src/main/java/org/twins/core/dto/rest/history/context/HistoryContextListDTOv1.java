@@ -9,17 +9,10 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  HistoryContextListDTOv1.KEY)
+@Schema(name =  "HistoryContextListV1")
 public class HistoryContextListDTOv1 implements HistoryContextDTO {
-
-    public static final String KEY = "HistoryContextListV1";
-
-    public HistoryContextListDTOv1() {
-        this.contextType = KEY;
-    }
-
-    @Schema(description = "Context type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
-    public String contextType;
+    public static final String KEY = "listV1";
+    public String contextType = KEY;
 
     @Schema(description = "From data list option id")
     public UUID fromDatalistOptionId;
@@ -32,5 +25,6 @@ public class HistoryContextListDTOv1 implements HistoryContextDTO {
 
     @Schema(description = "To data list option")
     public DataListOptionDTOv1 toDatalistOption;
+
 
 }

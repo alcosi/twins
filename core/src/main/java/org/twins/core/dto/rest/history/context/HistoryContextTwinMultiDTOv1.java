@@ -10,17 +10,10 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  HistoryContextTwinMultiDTOv1.KEY)
+@Schema(name =  "HistoryContextTwinMultiV1")
 public class HistoryContextTwinMultiDTOv1 implements HistoryContextDTO {
-
-    public static final String KEY = "HistoryContextTwinMultiV1";
-
-    public HistoryContextTwinMultiDTOv1() {
-        this.contextType = KEY;
-    }
-
-    @Schema(description = "Context type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
-    public String contextType;
+    public static final String KEY = "multiTwinV1";
+    public String contextType = KEY;
 
     @Schema(description = "From twin id set")
     public Set<UUID> fromTwinIdSet;
@@ -33,5 +26,6 @@ public class HistoryContextTwinMultiDTOv1 implements HistoryContextDTO {
 
     @Schema(description = "To twin set")
     public Set<TwinBaseDTOv1> toTwinSet;
+
 
 }
