@@ -6,6 +6,7 @@ import org.twins.core.dao.twin.TwinFieldCalcProjection;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -29,5 +30,14 @@ public class TwinFieldStorageCalcSumField extends TwinFieldStorageCalc {
                 twinFieldSimpleRepository.sumChildrenTwinFieldValuesWithStatusNotIn(twinsKit.getIdSet(), childrenTwinClassFieldId, childrenTwinStatusIdSet) :
                 twinFieldSimpleRepository.sumChildrenTwinFieldValuesWithStatusIn(twinsKit.getIdSet(), childrenTwinClassFieldId, childrenTwinStatusIdSet);
         packResult(twinsKit, calc);
+    }
+
+    @Override
+    boolean canBeMerged(Object o) {
+        return isSameClass(o)
+                && Objects.equals(this.twinClassFieldId, ((TwinFieldStorageCalcSumField) o).twinClassFieldId)
+                && Objects.equals(this.childrenTwinClassFieldId, ((TwinFieldStorageCalcSumField) o).childrenTwinClassFieldId)
+                && Objects.equals(this.childrenTwinStatusIdSet, ((TwinFieldStorageCalcSumField) o).childrenTwinStatusIdSet)
+                && Objects.equals(this.exclude, ((TwinFieldStorageCalcSumField) o).exclude);
     }
 }

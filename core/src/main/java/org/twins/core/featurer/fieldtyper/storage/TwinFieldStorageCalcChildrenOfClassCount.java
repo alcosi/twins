@@ -6,6 +6,7 @@ import org.twins.core.dao.twin.TwinFieldCalcProjection;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -26,4 +27,10 @@ public class TwinFieldStorageCalcChildrenOfClassCount extends TwinFieldStorageCa
         packResult(twinsKit, calc);
     }
 
+    @Override
+    boolean canBeMerged(Object o) {
+        return isSameClass(o)
+                && Objects.equals(this.twinClassFieldId, ((TwinFieldStorageCalcChildrenOfClassCount) o).twinClassFieldId)
+                && Objects.equals(this.childrenTwinClassIdSet, ((TwinFieldStorageCalcChildrenOfClassCount) o).childrenTwinClassIdSet);
+    }
 }

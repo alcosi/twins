@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class TwinFieldStorageTwin implements TwinFieldStorage {
+public class TwinFieldStorageTwin extends TwinFieldStorage {
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) {
         //nothing to load, cause all data is already in TwinEntity
@@ -36,5 +36,10 @@ public class TwinFieldStorageTwin implements TwinFieldStorage {
     @Override
     public Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet) {
         return Collections.EMPTY_LIST;
+    }
+
+    @Override
+    boolean canBeMerged(Object o) {
+        return isSameClass(o);
     }
 }

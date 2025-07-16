@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class TwinFieldStorageAttachment implements TwinFieldStorage {
+public class TwinFieldStorageAttachment extends TwinFieldStorage {
     private final TwinAttachmentRepository twinAttachmentRepository;
 
     @Override
@@ -39,5 +39,10 @@ public class TwinFieldStorageAttachment implements TwinFieldStorage {
     @Override
     public Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet) {
         return Collections.EMPTY_LIST;
+    }
+
+    @Override
+    boolean canBeMerged(Object o) {
+        return isSameClass(o);
     }
 }

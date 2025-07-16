@@ -129,8 +129,11 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     }
 
     public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams(), new HashMap<>());
-        return getStorage(twinClassFieldEntity, properties);
+        if (twinClassFieldEntity.getFieldStorage() == null) {
+            Properties properties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams(), new HashMap<>());
+            twinClassFieldEntity.setFieldStorage(getStorage(twinClassFieldEntity, properties));
+        }
+        return twinClassFieldEntity.getFieldStorage();
     }
 
     /**

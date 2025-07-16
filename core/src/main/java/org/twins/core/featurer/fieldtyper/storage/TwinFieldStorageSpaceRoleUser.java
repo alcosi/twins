@@ -13,7 +13,7 @@ import java.util.*;
 
 @Component
 @RequiredArgsConstructor
-public class TwinFieldStorageSpaceRoleUser implements TwinFieldStorage {
+public class TwinFieldStorageSpaceRoleUser extends TwinFieldStorage {
     private final SpaceRoleUserRepository spaceRoleUserRepository;
 
     @Override
@@ -52,5 +52,10 @@ public class TwinFieldStorageSpaceRoleUser implements TwinFieldStorage {
     @Override
     public Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet) {
         return Collections.EMPTY_LIST;
+    }
+
+    @Override
+    boolean canBeMerged(Object o) {
+        return isSameClass(o);
     }
 }

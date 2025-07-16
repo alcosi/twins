@@ -6,7 +6,7 @@ import org.twins.core.dao.twin.TwinFieldCalcProjection;
 
 import java.util.*;
 
-public abstract class TwinFieldStorageCalc implements TwinFieldStorage {
+public abstract class TwinFieldStorageCalc extends TwinFieldStorage {
     protected final UUID twinClassFieldId;
 
     protected TwinFieldStorageCalc(UUID twinClassFieldId) {

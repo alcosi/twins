@@ -15,7 +15,7 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class TwinFieldStorageSimpleNonIndex implements TwinFieldStorage {
+public class TwinFieldStorageSimpleNonIndex extends TwinFieldStorage {
     private final TwinFieldSimpleNonIndexedRepository twinFieldSimpleNonIndexedRepository;
 
     @Override
@@ -47,5 +47,10 @@ public class TwinFieldStorageSimpleNonIndex implements TwinFieldStorage {
     @Override
     public Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet) {
         return twinFieldSimpleNonIndexedRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIdSet);
+    }
+
+    @Override
+    boolean canBeMerged(Object o) {
+        return isSameClass(o);
     }
 }
