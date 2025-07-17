@@ -370,7 +370,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinCreate.isCheckCreatePermission())
             checkCreatePermission(twinEntity, authService.getApiUser());
         createTwinEntity(twinEntity, twinChangesCollector);
-        runFactoryOnCreate(twinCreate);
+        runFactoryBeforeCreate(twinCreate);
         saveTwinFields(twinEntity, twinCreate.getFields(), twinChangesCollector);
         if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
             attachmentService.checkAndSetAttachmentTwin(twinCreate.getAttachmentEntityList(), twinEntity);
@@ -385,12 +385,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
-    private void runFactoryOnCreate(TwinCreate twinCreate) throws ServiceException {
+    private void runFactoryBeforeCreate(TwinCreate twinCreate) throws ServiceException {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
         twinflowService.loadTwinflow(twinEntity);
-        if (twinEntity.getTwinflow().getOnCreateTwinFactoryId() == null)
+        if (twinEntity.getTwinflow().getBeforeCreateTwinFactoryId() == null)
             return;
-        UUID onCreateTwinFactoryId = twinEntity.getTwinflow().getOnCreateTwinFactoryId();
+        UUID onCreateTwinFactoryId = twinEntity.getTwinflow().getBeforeCreateTwinFactoryId();
         FactoryContext factoryContext = new FactoryContext(FactoryLauncher.twinCreate, FactoryBranchId.root(onCreateTwinFactoryId));
         factoryContext.add(new FactoryItem().setOutput(twinCreate).setFactoryContext(factoryContext));
         FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(onCreateTwinFactoryId, factoryContext);
@@ -632,7 +632,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     .setTwinClassId(twinUpdate.getDbTwinEntity().getTwinClassId())
                     .setTwinClass(twinUpdate.getDbTwinEntity().getTwinClass());
         }
-        runFactoryOnUpdate(twinUpdate);
+        runFactoryBeforeUpdate(twinUpdate);
         updateTwinBasics(twinChangesRecorder);
 
         if (twinChangesRecorder.hasChanges())
@@ -646,12 +646,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinTagService.updateTwinTags(twinUpdate.getDbTwinEntity(), twinUpdate.getTagsDelete(), twinUpdate.getTagsAddNew(), twinUpdate.getTagsAddExisted(), twinChangesCollector);
     }
 
-    private void runFactoryOnUpdate(TwinUpdate twinUpdate) throws ServiceException {
+    private void runFactoryBeforeUpdate(TwinUpdate twinUpdate) throws ServiceException {
         TwinEntity twinEntity = twinUpdate.getDbTwinEntity();
         twinflowService.loadTwinflow(twinEntity);
-        if (twinEntity.getTwinflow().getOnUpdateTwinFactoryId() == null)
+        if (twinEntity.getTwinflow().getBeforeUpdateTwinFactoryId() == null)
             return;
-        UUID onUpdateTwinFactoryId = twinEntity.getTwinflow().getOnUpdateTwinFactoryId();
+        UUID onUpdateTwinFactoryId = twinEntity.getTwinflow().getBeforeUpdateTwinFactoryId();
         FactoryContext factoryContext = new FactoryContext(FactoryLauncher.twinUpdate, FactoryBranchId.root(onUpdateTwinFactoryId));
         factoryContext.add(new FactoryItem().setOutput(twinUpdate).setFactoryContext(factoryContext));
         FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(onUpdateTwinFactoryId, factoryContext);
