@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.dao.FeaturerEntity;
+import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.datalist.DataListEntity;
@@ -77,6 +78,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<TwinClassFieldEntity>> relatedTwinClassFieldMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinCommentEntity>> relatedCommentMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinAttachmentRestrictionEntity>> relatedAttachmentRestrictionMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
@@ -212,6 +215,8 @@ public class MapperContext {
             smartPut(relatedTwinClassFieldMap, twinClassField, twinClassField.getId());
         else if (relatedObject instanceof TwinCommentEntity entity)
             smartPut(relatedCommentMap, entity, entity.getId());
+        else if (relatedObject instanceof TwinAttachmentRestrictionEntity entity)
+            smartPut(relatedAttachmentRestrictionMap, entity, entity.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -407,6 +412,7 @@ public class MapperContext {
         dstMapperContext.relatedFeaturerMap = srcMapperContext.relatedFeaturerMap;
         dstMapperContext.relatedTwinClassFieldMap = srcMapperContext.relatedTwinClassFieldMap;
         dstMapperContext.relatedCommentMap = srcMapperContext.relatedCommentMap;
+        dstMapperContext.relatedAttachmentRestrictionMap = srcMapperContext.relatedAttachmentRestrictionMap;
     }
 
     public MapperContext cloneWithIsolatedModes(MapperModeCollection mapperModeCollection) {
