@@ -8,12 +8,12 @@ import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
 
 import java.util.Properties;
 
-public interface FieldTyperCountChildrenByTwinClass {
+public interface FieldTyperCountChildrenOfTwinClass {
 
     @FeaturerParam(name = "Twin class ids", description = "", order = 1)
     FeaturerParamUUIDSet twinClassIds = new FeaturerParamUUIDSetTwinsClassId("twinClassIds");
 
     default Long getCountResult(Properties properties, TwinEntity twinEntity, TwinFieldSimpleRepository twinFieldSimpleRepository) {
-        return twinFieldSimpleRepository.countChildrenTwinsByTwinClassIdIn(twinEntity.getId(), twinClassIds.extract(properties));
+        return twinFieldSimpleRepository.countChildrenTwinsOfTwinClassIdIn(twinEntity.getId(), twinClassIds.extract(properties));
     }
 }

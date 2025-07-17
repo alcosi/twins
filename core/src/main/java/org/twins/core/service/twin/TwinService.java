@@ -13,6 +13,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -41,6 +42,8 @@ import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;
+import org.twins.core.featurer.fieldtyper.storage.FieldStorageService;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.TwinChangesService;
@@ -112,6 +115,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private TwinFactoryService twinFactoryService;
     @Autowired
     private TwinClassFieldRepository twinClassFieldRepository;
+    @Autowired
+    private FieldStorageService fieldStorageService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
@@ -214,67 +219,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
 
     public void loadTwinFields(TwinEntity twinEntity) throws ServiceException {
-        if (twinEntity.getTwinFieldSimpleKit() != null && twinEntity.getTwinFieldUserKit() != null && twinEntity.getTwinFieldDatalistKit() != null && twinEntity.getTwinFieldI18nKit() != null && twinEntity.getTwinFieldBooleanKit() != null)
-            return;
-        twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
-        boolean hasBasicFields = false, hasBasicNonIndexedFields = false, hasUserFields = false,
-                hasDatalistFields = false, hasLinksFields = false, hasI18nFields = false, hasBooleanFields = false;
-        for (TwinClassFieldEntity twinClassField : twinEntity.getTwinClass().getTwinClassFieldKit().getCollection()) {
-            FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturer(), FieldTyper.class);
-
-            if (fieldTyper.getStorageType() == TwinFieldSimpleEntity.class) {
-                hasBasicFields = true;
-            } else if (fieldTyper.getStorageType() == TwinFieldSimpleNonIndexedEntity.class) {
-                hasBasicNonIndexedFields = true;
-            } else if (fieldTyper.getStorageType() == TwinFieldUserEntity.class) {
-                hasUserFields = true;
-            } else if (fieldTyper.getStorageType() == TwinFieldDataListEntity.class) {
-                hasDatalistFields = true;
-            } else if (fieldTyper.getStorageType() == TwinFieldI18nEntity.class) {
-                hasI18nFields = true;
-            } else if (fieldTyper.getStorageType() == TwinFieldBooleanEntity.class) {
-                hasBooleanFields = true;
-            }
-        }
-        if (twinEntity.getTwinFieldSimpleKit() == null)
-            twinEntity.setTwinFieldSimpleKit(
-                    new Kit<>(hasBasicFields ? twinFieldSimpleRepository.findByTwinId(twinEntity.getId()) : null, TwinFieldSimpleEntity::getTwinClassFieldId));
-        if (twinEntity.getTwinFieldSimpleNonIndexedKit() == null)
-            twinEntity.setTwinFieldSimpleNonIndexedKit(
-                    new Kit<>(hasBasicNonIndexedFields ? twinFieldSimpleNonIndexedRepository.findByTwinId(twinEntity.getId()) : null, TwinFieldSimpleNonIndexedEntity::getTwinClassFieldId));
-        if (twinEntity.getTwinFieldUserKit() == null)
-            twinEntity.setTwinFieldUserKit(
-                    new KitGrouped<>(hasUserFields ? twinFieldUserRepository.findByTwinId(twinEntity.getId()) : null, TwinFieldUserEntity::getId, TwinFieldUserEntity::getTwinClassFieldId));
-        if (twinEntity.getTwinFieldDatalistKit() == null)
-            twinEntity.setTwinFieldDatalistKit(
-                    new KitGrouped<>(hasDatalistFields ? twinFieldDataListRepository.findByTwinId(twinEntity.getId()) : null, TwinFieldDataListEntity::getId, TwinFieldDataListEntity::getTwinClassFieldId));
-        if (twinEntity.getTwinFieldI18nKit() == null)
-            twinEntity.setTwinFieldI18nKit(
-                    new KitGrouped<>(hasI18nFields ? twinFieldI18nRepository.findByTwinId(twinEntity.getId()) : null, TwinFieldI18nEntity::getId, TwinFieldI18nEntity::getTwinClassFieldId));
-        if (twinEntity.getTwinFieldBooleanKit() == null)
-            twinEntity.setTwinFieldBooleanKit(
-                    new Kit<>(hasBooleanFields ? twinFieldBooleanRepository.findByTwinId(twinEntity.getId()) : null, TwinFieldBooleanEntity::getTwinClassFieldId));
+        loadTwinFields(Collections.singletonList(twinEntity));
     }
 
     public boolean areFieldsOfTwinClassFieldExists(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
         boolean result = false;
         FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
-
-        if (fieldTyper.getStorageType() == TwinFieldSimpleEntity.class) {
-            result = twinFieldSimpleRepository.existsByTwinClassFieldId(twinClassFieldEntity.getId());
-        } else if (fieldTyper.getStorageType() == TwinFieldSimpleNonIndexedEntity.class) {
-            result = twinFieldSimpleNonIndexedRepository.existsByTwinClassFieldId(twinClassFieldEntity.getId());
-        } else if (fieldTyper.getStorageType() == TwinFieldUserEntity.class) {
-            result = twinFieldUserRepository.existsByTwinClassFieldId(twinClassFieldEntity.getId());
-        } else if (fieldTyper.getStorageType() == TwinFieldDataListEntity.class) {
-            result = twinFieldDataListRepository.existsByTwinClassFieldId(twinClassFieldEntity.getId());
-        } else if (fieldTyper.getStorageType() == TwinFieldI18nEntity.class) {
-            result = twinFieldI18nRepository.existsByTwinClassFieldId(twinClassFieldEntity.getId());
-        } else if (fieldTyper.getStorageType() == TwinFieldBooleanEntity.class) {
-            result = twinFieldBooleanRepository.existsByTwinClassFieldId(twinClassFieldEntity.getId());
-        }
-
-        return result;
+        TwinFieldStorage storage = fieldTyper.getStorage(twinClassFieldEntity);
+        return storage.hasStrictValues(twinClassFieldEntity.getId());
     }
 
     /**
@@ -282,100 +234,38 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
      *
      * @param twinEntityList
      */
-    public void loadTwinFields(Collection<TwinEntity> twinEntityList) {
-        Map<UUID, TwinEntity> needFieldSimpleLoad = new HashMap<>();
-        Map<UUID, TwinEntity> needFieldSimpleNonIndexedLoad = new HashMap<>();
-        Map<UUID, TwinEntity> needFieldUserLoad = new HashMap<>();
-        Map<UUID, TwinEntity> needFieldDatalistLoad = new HashMap<>();
-        Map<UUID, TwinEntity> needFieldI18nLoad = new HashMap<>();
-        Map<UUID, TwinEntity> needFieldBooleanLoad = new HashMap<>();
+    public void loadTwinFields(Collection<TwinEntity> twinEntityList) throws ServiceException {
+        Map<TwinFieldStorage, Kit<TwinEntity, UUID>> needFieldLoad = new HashMap<>();
 
-        for (TwinEntity twinEntity : twinEntityList) {
-            twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
-            if (twinEntity.getTwinFieldSimpleKit() == null) {
-                needFieldSimpleLoad.put(twinEntity.getId(), twinEntity);
-            }
-            if (twinEntity.getTwinFieldSimpleNonIndexedKit() == null) {
-                needFieldSimpleNonIndexedLoad.put(twinEntity.getId(), twinEntity);
-            }
-            if (twinEntity.getTwinFieldUserKit() == null) {
-                needFieldUserLoad.put(twinEntity.getId(), twinEntity);
-            }
-            if (twinEntity.getTwinFieldDatalistKit() == null) {
-                needFieldDatalistLoad.put(twinEntity.getId(), twinEntity);
-            }
-            if (twinEntity.getTwinFieldI18nKit() == null) {
-                needFieldI18nLoad.put(twinEntity.getId(), twinEntity);
-            }
-            if (twinEntity.getTwinFieldBooleanKit() == null) {
-                needFieldBooleanLoad.put(twinEntity.getId(), twinEntity);
+        KitGroupedObj<TwinEntity, UUID, UUID, TwinClassEntity> twinsGroupedByClass = new KitGroupedObj<>(
+                twinEntityList, TwinEntity::getId, TwinEntity::getTwinClassId, TwinEntity::getTwinClass);
+        twinClassFieldService.loadTwinClassFields(twinsGroupedByClass.getGroupingObjectMap().values());
+
+        for (TwinClassEntity twinClassEntity : twinsGroupedByClass.getGroupingObjectMap().values()) {
+            twinClassFieldService.loadFieldStorages(twinClassEntity);
+            for (TwinEntity twinEntity : twinsGroupedByClass.getGrouped(twinClassEntity.getId())) {
+                for (var fieldStorage : twinClassEntity.getFieldStorageSet()) {
+                    if (!fieldStorage.isLoaded(twinEntity)) {
+                        needFieldLoad.computeIfAbsent(fieldStorage, k -> new Kit<>(TwinEntity::getId))
+                                .add(twinEntity);
+//                        if (twinClassEntity.getFieldStorageSet().contains(fieldStorage)) {
+//                            needFieldLoad.computeIfAbsent(fieldStorage, k -> new Kit<>(TwinEntity::getId))
+//                                    .add(twinEntity);
+//                        } else {
+//                            fieldStorage.initEmpty(twinEntity);
+//                        }
+                    }
+                }
             }
         }
 
-        if (!needFieldSimpleLoad.isEmpty()) {
-            KitGrouped<TwinFieldSimpleEntity, UUID, UUID> allTwinsSimpleFieldsKit = new KitGrouped<>(
-                    twinFieldSimpleRepository.findByTwinIdIn(needFieldSimpleLoad.keySet()), TwinFieldSimpleEntity::getId, TwinFieldSimpleEntity::getTwinId);
-            if (!KitUtils.isEmpty(allTwinsSimpleFieldsKit)) {
-                TwinEntity twinEntity;
-                for (Map.Entry<UUID, TwinEntity> entry : needFieldSimpleLoad.entrySet()) {
-                    twinEntity = entry.getValue();
-                    twinEntity.setTwinFieldSimpleKit(new Kit<>(allTwinsSimpleFieldsKit.getGrouped(twinEntity.getId()), TwinFieldSimpleEntity::getTwinClassFieldId));
-                }
-            }
-        }
-        if (!needFieldSimpleNonIndexedLoad.isEmpty()) {
-            KitGrouped<TwinFieldSimpleNonIndexedEntity, UUID, UUID> allTwinsSimpleNonIndexedFieldsKit = new KitGrouped<>(
-                    twinFieldSimpleNonIndexedRepository.findByTwinIdIn(needFieldSimpleNonIndexedLoad.keySet()), TwinFieldSimpleNonIndexedEntity::getId, TwinFieldSimpleNonIndexedEntity::getTwinId);
-            if (!KitUtils.isEmpty(allTwinsSimpleNonIndexedFieldsKit)) {
-                TwinEntity twinEntity;
-                for (Map.Entry<UUID, TwinEntity> entry : needFieldSimpleLoad.entrySet()) {
-                    twinEntity = entry.getValue();
-                    twinEntity.setTwinFieldSimpleNonIndexedKit(new Kit<>(allTwinsSimpleNonIndexedFieldsKit.getGrouped(twinEntity.getId()), TwinFieldSimpleNonIndexedEntity::getTwinClassFieldId));
-                }
-            }
-        }
-        if (!needFieldUserLoad.isEmpty()) {
-            KitGrouped<TwinFieldUserEntity, UUID, UUID> allTwinsUserFieldsKit = new KitGrouped<>(
-                    twinFieldUserRepository.findByTwinIdIn(needFieldUserLoad.keySet()), TwinFieldUserEntity::getId, TwinFieldUserEntity::getTwinId);
-            if (!KitUtils.isEmpty(allTwinsUserFieldsKit)) {
-                TwinEntity twinEntity;
-                for (Map.Entry<UUID, TwinEntity> entry : needFieldUserLoad.entrySet()) {
-                    twinEntity = entry.getValue();
-                    twinEntity.setTwinFieldUserKit(new KitGrouped<>(allTwinsUserFieldsKit.getGrouped(twinEntity.getId()), TwinFieldUserEntity::getId, TwinFieldUserEntity::getTwinClassFieldId));
-                }
-            }
-        }
-        if (!needFieldDatalistLoad.isEmpty()) {
-            KitGrouped<TwinFieldDataListEntity, UUID, UUID> allTwinsDatalistFieldsKit = new KitGrouped<>(
-                    twinFieldDataListRepository.findByTwinIdIn(needFieldDatalistLoad.keySet()), TwinFieldDataListEntity::getId, TwinFieldDataListEntity::getTwinId);
-            if (!KitUtils.isEmpty(allTwinsDatalistFieldsKit)) {
-                TwinEntity twinEntity;
-                for (Map.Entry<UUID, TwinEntity> entry : needFieldDatalistLoad.entrySet()) {
-                    twinEntity = entry.getValue();
-                    twinEntity.setTwinFieldDatalistKit(new KitGrouped<>(allTwinsDatalistFieldsKit.getGrouped(twinEntity.getId()), TwinFieldDataListEntity::getId, TwinFieldDataListEntity::getTwinClassFieldId));
-                }
-            }
-        }
-        if (!needFieldI18nLoad.isEmpty()) {
-            KitGrouped<TwinFieldI18nEntity, UUID, UUID> allTwinsI18nFieldsKit = new KitGrouped<>(
-                    twinFieldI18nRepository.findByTwinIdIn(needFieldI18nLoad.keySet()), TwinFieldI18nEntity::getId, TwinFieldI18nEntity::getTwinId);
-            if (!KitUtils.isEmpty(allTwinsI18nFieldsKit)) {
-                TwinEntity twinEntity;
-                for (Map.Entry<UUID, TwinEntity> entry : needFieldI18nLoad.entrySet()) {
-                    twinEntity = entry.getValue();
-                    twinEntity.setTwinFieldI18nKit(new KitGrouped<>(allTwinsI18nFieldsKit.getGrouped(twinEntity.getId()), TwinFieldI18nEntity::getId, TwinFieldI18nEntity::getTwinClassFieldId));
-                }
-            }
-        }
-        if (!needFieldBooleanLoad.isEmpty()) {
-            KitGrouped<TwinFieldBooleanEntity, UUID, UUID> allTwinsBooLeanFieldsKit = new KitGrouped<>(
-                    twinFieldBooleanRepository.findByTwinIdIn(needFieldBooleanLoad.keySet()), TwinFieldBooleanEntity::getId, TwinFieldBooleanEntity::getTwinId);
-            if (!KitUtils.isEmpty(allTwinsBooLeanFieldsKit)) {
-                TwinEntity twinEntity;
-                for (Map.Entry<UUID, TwinEntity> entry : needFieldBooleanLoad.entrySet()) {
-                    twinEntity = entry.getValue();
-                    twinEntity.setTwinFieldBooleanKit(new Kit<>(allTwinsBooLeanFieldsKit.getGrouped(twinEntity.getId()), TwinFieldBooleanEntity::getTwinClassFieldId));
-                }
+        if (needFieldLoad.isEmpty())
+            return;
+
+        for (var needLoadEntry : needFieldLoad.entrySet()) {
+            TwinFieldStorage twinFieldsStorage = needLoadEntry.getKey();
+            if (KitUtils.isNotEmpty(needLoadEntry.getValue())) {
+                twinFieldsStorage.load(needLoadEntry.getValue());
             }
         }
     }
@@ -502,7 +392,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
         UUID onCreateTwinFactoryId = twinEntity.getTwinflow().getOnCreateTwinFactoryId();
         FactoryContext factoryContext = new FactoryContext(FactoryLauncher.twinCreate, FactoryBranchId.root(onCreateTwinFactoryId));
-        factoryContext.add(new FactoryItem().setOutput(twinCreate));
+        factoryContext.add(new FactoryItem().setOutput(twinCreate).setFactoryContext(factoryContext));
         FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(onCreateTwinFactoryId, factoryContext);
         if (result.getCreates().size() > 1 || !result.getUpdates().isEmpty() || !result.getDeletes().isEmpty()) {
             log.warn("During twin create init factory[{}] operation, some extra twins where modified, but they won't be saved. " +
@@ -763,7 +653,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
         UUID onUpdateTwinFactoryId = twinEntity.getTwinflow().getOnUpdateTwinFactoryId();
         FactoryContext factoryContext = new FactoryContext(FactoryLauncher.twinUpdate, FactoryBranchId.root(onUpdateTwinFactoryId));
-        factoryContext.add(new FactoryItem().setOutput(twinUpdate));
+        factoryContext.add(new FactoryItem().setOutput(twinUpdate).setFactoryContext(factoryContext));
         FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(onUpdateTwinFactoryId, factoryContext);
         if (result.getUpdates().size() > 1 || !result.getCreates().isEmpty() || !result.getDeletes().isEmpty()) {
             log.warn("During twin update factory[{}] operation, some extra twins where modified, but they won't be saved. " +
@@ -1260,52 +1150,25 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
 
         Set<UUID> inheritedTwinClassFieldIds = new HashSet<>();
-        Set<UUID> inheritedSimpleTwinClassFieldIds = new HashSet<>();
-        Set<UUID> inheritedSimpleNonIndexedTwinClassFieldIds = new HashSet<>();
-        Set<UUID> inheritedUserTwinClassFieldIds = new HashSet<>();
-        Set<UUID> inheritedDatalistTwinClassFieldIds = new HashSet<>();
-        Set<UUID> inheritedI18nTwinClassFieldIds = new HashSet<>();
-        Set<UUID> inheritedBooleanTwinClassFieldIds = new HashSet<>();
+        Map<TwinFieldStorage, Set<UUID>> inheritedTwinClassFieldIdsByStorage = new HashMap<>();
 
         for (TwinClassFieldEntity inheritedTwinClassFieldEntity : extendsTwinClassEntity.getTwinClassFieldKit().getCollection()) {
             if (skipFromTwinClass != null && skipFromTwinClass.getTwinClassFieldKit().containsKey(inheritedTwinClassFieldEntity.getId()))
                 continue;
             var fieldTyper = featurerService.getFeaturer(inheritedTwinClassFieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
-            if (fieldTyper.getStorageType() == TwinFieldSimpleEntity.class) {
-                inheritedSimpleTwinClassFieldIds.add(inheritedTwinClassFieldEntity.getId());
-            } else if (fieldTyper.getStorageType() == TwinFieldSimpleNonIndexedEntity.class) {
-                inheritedSimpleNonIndexedTwinClassFieldIds.add(inheritedTwinClassFieldEntity.getId());
-            } else if (fieldTyper.getStorageType() == TwinFieldUserEntity.class) {
-                inheritedUserTwinClassFieldIds.add(inheritedTwinClassFieldEntity.getId());
-            } else if (fieldTyper.getStorageType() == TwinFieldDataListEntity.class) {
-                inheritedDatalistTwinClassFieldIds.add(inheritedTwinClassFieldEntity.getId());
-            } else if (fieldTyper.getStorageType() == TwinFieldI18nEntity.class) {
-                inheritedI18nTwinClassFieldIds.add(inheritedTwinClassFieldEntity.getId());
-            } else if (fieldTyper.getStorageType() == TwinFieldBooleanEntity.class) {
-                inheritedBooleanTwinClassFieldIds.add(inheritedTwinClassFieldEntity.getId());
-            }
+            TwinFieldStorage twinFieldStorage = fieldTyper.getStorage(inheritedTwinClassFieldEntity);
+            inheritedTwinClassFieldIdsByStorage
+                    .computeIfAbsent(twinFieldStorage, k -> new HashSet<>())
+                    .add(inheritedTwinClassFieldEntity.getId());
         }
 
-        if (!inheritedSimpleTwinClassFieldIds.isEmpty()) {
-            inheritedTwinClassFieldIds.addAll(twinFieldSimpleRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedSimpleTwinClassFieldIds));
-        }
-        if (!inheritedSimpleNonIndexedTwinClassFieldIds.isEmpty()) {
-            inheritedSimpleNonIndexedTwinClassFieldIds.addAll(twinFieldSimpleNonIndexedRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedSimpleNonIndexedTwinClassFieldIds));
-        }
-        if (!inheritedUserTwinClassFieldIds.isEmpty()) {
-            inheritedTwinClassFieldIds.addAll(twinFieldUserRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedUserTwinClassFieldIds));
-        }
-        if (!inheritedDatalistTwinClassFieldIds.isEmpty()) {
-            inheritedTwinClassFieldIds.addAll(twinFieldDataListRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedDatalistTwinClassFieldIds));
-        }
-        if (!inheritedI18nTwinClassFieldIds.isEmpty()) {
-            inheritedTwinClassFieldIds.addAll(twinFieldI18nRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedI18nTwinClassFieldIds));
-        }
-        if (!inheritedBooleanTwinClassFieldIds.isEmpty()) {
-            inheritedTwinClassFieldIds.addAll(twinFieldBooleanRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedBooleanTwinClassFieldIds));
-        }
-        if (CollectionUtils.isEmpty(inheritedTwinClassFieldIds))
+        if (inheritedTwinClassFieldIdsByStorage.isEmpty()) {
             return result;
+        }
+
+        for (var entry : inheritedTwinClassFieldIdsByStorage.entrySet()) {
+            inheritedTwinClassFieldIds.addAll(entry.getKey().findUsedFields(twinClassEntity.getId(), entry.getValue()));
+        }
         for (TwinClassFieldEntity twinClassField : extendsTwinClassEntity.getTwinClassFieldKit().getCollection()) {
             if (inheritedTwinClassFieldIds.contains(twinClassField.getId())) {
                 result.add(twinClassField);
@@ -1334,7 +1197,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
 
         var fieldTyper = featurerService.getFeaturer(twinClassFieldForReplace.getFieldTyperFeaturer(), FieldTyper.class);
-
+        fieldTyper.getStorage(twinClassFieldForReplace).replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
         if (fieldTyper.getStorageType() == TwinFieldSimpleEntity.class) {
             twinFieldSimpleRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
         } else if (fieldTyper.getStorageType() == TwinFieldSimpleNonIndexedEntity.class) {

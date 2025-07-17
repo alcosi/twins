@@ -20,6 +20,7 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchList;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsDataListId;
 import org.twins.core.service.datalist.DataListOptionService;
@@ -34,7 +35,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
-public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldValueSelect, TwinFieldDataListEntity, TwinFieldSearchList> {
+public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldValueSelect, TwinFieldStorageDatalist, TwinFieldSearchList> {
 
     @Autowired
     @Lazy

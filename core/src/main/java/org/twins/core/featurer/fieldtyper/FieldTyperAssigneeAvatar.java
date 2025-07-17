@@ -5,12 +5,12 @@ import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorImmutable;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTwin;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.util.Properties;
@@ -19,7 +19,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1319,
         name = "Assignee avatar",
         description = "Return the avatar field to the user")
-public class FieldTyperAssigneeAvatar extends FieldTyper<FieldDescriptorImmutable, FieldValueText, UserEntity, TwinFieldSearchNotImplemented> {
+public class FieldTyperAssigneeAvatar extends FieldTyper<FieldDescriptorImmutable, FieldValueText, TwinFieldStorageTwin, TwinFieldSearchNotImplemented> {
 
     @Override
     protected FieldDescriptorImmutable getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {

@@ -25,6 +25,7 @@ import org.twins.core.domain.attachment.AttachmentQuotas;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperAttachment;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageAttachment;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.twin.TwinActionService;

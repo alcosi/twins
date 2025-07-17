@@ -35,6 +35,7 @@ import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionAlienValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionSelfValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleEntity;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.headhunter.HeadHunter;
 
 import java.sql.Timestamp;
@@ -209,6 +210,10 @@ public class TwinClassEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinClassFieldEntity, UUID> twinClassFieldKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Set<TwinFieldStorage> fieldStorageSet;
 
     @Transient
     @EqualsAndHashCode.Exclude
