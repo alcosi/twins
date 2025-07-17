@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.attachment.AttachmentRestrictionDTOv1;
 import org.twins.face.dto.rest.twidget.FaceTwidgetDTOv1;
 
 import java.util.UUID;
@@ -27,6 +26,6 @@ public class FaceTW001DTOv1 extends FaceTwidgetDTOv1 {
     @Schema(description = "boolean upload flag")
     public boolean uploadable;
 
-    @Schema(description = "dto for attachment restriction")
-    public AttachmentRestrictionDTOv1 restriction;
+    @Schema(description = "restriction id")
+    public UUID restrictionId;
 }

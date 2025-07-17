@@ -15,6 +15,7 @@ public class AttachmentRestrictionRestDTOMapper extends RestSimpleDTOMapper<Twin
     public void map(TwinAttachmentRestrictionEntity src, AttachmentRestrictionDTOv1 dst, MapperContext mapperContext) throws Exception {
         if (src != null) {
             dst
+                    .setId(src.getId())
                     .setMinCount(src.getMinCount())
                     .setMaxCount(src.getMaxCount())
                     .setFileSizeMbLimit(src.getFileSizeMbLimit())

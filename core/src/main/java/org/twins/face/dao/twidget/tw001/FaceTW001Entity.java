@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FacePointedEntity;
 import org.twins.core.dao.i18n.I18nEntity;
@@ -57,6 +58,9 @@ public class FaceTW001Entity implements EasyLoggable, FacePointedEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "images_twin_class_field_id", nullable = false, insertable = false, updatable = false)
     private TwinClassFieldEntity imagesTwinClassField;
+
+    @Transient
+    private TwinAttachmentRestrictionEntity twinAttachmentRestriction;
 
     @Override
     public String easyLog(Level level) {
