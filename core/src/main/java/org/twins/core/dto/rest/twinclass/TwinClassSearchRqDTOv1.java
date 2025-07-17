@@ -115,4 +115,10 @@ public class TwinClassSearchRqDTOv1 extends Request {
 
     @Schema(description = "external id not like list")
     public Set<String> externalIdNotLikeList;
+
+    @Schema(description = "face relative path like list")
+    public Set<String> faceRelativePathLikeList;
+
+    @Schema(description = "face relative path not like list")
+    public Set<String> faceRelativePathNotLikeList;
 }
