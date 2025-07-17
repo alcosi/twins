@@ -155,7 +155,7 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         for (var fieldEntity : twinClassFieldKit.getCollection()) {
             FieldTyper<?, ?, ?, ?> fieldTyper = featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
 
-            if (fieldTyper.getStorageType() != TwinAttachmentEntity.class) {
+            if (fieldTyper.getStorageType() != TwinFieldStorageAttachment.class) {
                 throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Wrong fieldTyper for [" + fieldEntity.getId() + "]");
             }
 
@@ -168,7 +168,7 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
     public UUID getRestrictionIdFromFieldTyper(TwinClassFieldEntity fieldEntity) throws ServiceException {
         FieldTyper<?, ?, ?, ?> fieldTyper = featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
 
-        if (fieldTyper.getStorageType() != TwinAttachmentEntity.class) {
+        if (fieldTyper.getStorageType() != TwinFieldStorageAttachment.class) {
             throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Wrong fieldTyper for [" + fieldEntity.getId() + "]");
         }
 
