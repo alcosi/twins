@@ -25,7 +25,7 @@ import java.util.Properties;
         name = "RabbitMqSendFieldsForOperation",
         description = "Trigger for sending fields to rabbit")
 @RequiredArgsConstructor
-public class TransitionTriggerRabbitMqSendFieldsForOperation extends TransitionTriggerRabbitMqConnection {
+public class TransitionTriggerRabbitMqSendFields extends TransitionTriggerRabbitMqConnection {
 
     private final AmpqManager ampqManager;
 
