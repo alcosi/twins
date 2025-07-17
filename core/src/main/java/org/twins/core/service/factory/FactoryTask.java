@@ -6,56 +6,74 @@ import org.cambium.common.util.LoggerUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.draft.DraftEntity;
-import org.twins.core.dao.draft.DraftStatus;
-import org.twins.core.domain.draft.DraftCollector;
+import org.twins.core.dao.factory.TwinFactoryTaskEntity;
+import org.twins.core.dao.factory.TwinFactoryTaskRepository;
+import org.twins.core.dao.factory.TwinFactoryTaskStatus;
+import org.twins.core.domain.factory.FactoryBranchId;
+import org.twins.core.domain.factory.FactoryContext;
+import org.twins.core.domain.factory.FactoryLauncher;
+import org.twins.core.domain.factory.FactoryResultUncommited;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.draft.DraftService;
+
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.Collections;
 
 @Component
 @Scope("prototype")
 @Slf4j
 public class FactoryTask implements Runnable {
-    private final DraftEntity draftEntity;
+    private final TwinFactoryTaskEntity factoryTaskEntity;
 
     @Autowired
-    private DraftService draftService;
-
+    private TwinFactoryService twinFactoryService;
+    @Autowired
+    private FactoryTaskService factoryTaskService;
+    @Autowired
+    private TwinFactoryTaskRepository  twinFactoryTaskRepository;
     @Autowired
     private AuthService authService;
 
 
-    public FactoryTask(DraftEntity draftEntity) {
-        this.draftEntity = draftEntity;
+    public FactoryTask(TwinFactoryTaskEntity factoryTaskEntity) {
+        this.factoryTaskEntity = factoryTaskEntity;
     }
 
     @Override
     public void run() {
-        DraftCollector draftCollector = new DraftCollector(draftEntity);
         try {
             LoggerUtils.logSession();
-            LoggerUtils.logController("draftEraseScopeCollect$");
-            LoggerUtils.logPrefix("DRAFT[" + draftEntity.getId() + "]:");
-            log.info("Performing draft erase scope collect: {}", draftEntity.logNormal());
-            authService.setThreadLocalApiUser(draftEntity.getDomainId(), draftEntity.getBusinessAccountId(), draftEntity.getCreatedByUserId());
-            draftService.createEraseScope(draftCollector);
+            LoggerUtils.logController("factoryTask$");
+            LoggerUtils.logPrefix("FACTORY_TASK[" + factoryTaskEntity.getId() + "]:");
+            log.info("Performing async factory run: {}", factoryTaskEntity.logNormal());
+            if (factoryTaskEntity.getInputTwin().getTwinClass().getDomainId() == null) {
+                throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "can not detect domain from input " + factoryTaskEntity.getInputTwin().logNormal());
+            }
+            authService.setThreadLocalApiUser(factoryTaskEntity.getInputTwin().getTwinClass().getDomainId(), factoryTaskEntity.getBusinessAccountId(), factoryTaskEntity.getCreatedByUserId());
+            FactoryContext factoryContext = new FactoryContext(FactoryLauncher.twinUpdate, FactoryBranchId.root(factoryTaskEntity.getTwinFactoryId()))
+                    .setInputTwinList(Collections.singletonList(factoryTaskEntity.getInputTwin()));
+//                    .setFields(transitionContext.getFields())
+//                    .setAttachmentCUD(transitionContext.getAttachmentCUD())
+//                    .setBasics(transitionContext.getBasics());
+            FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(factoryTaskEntity.getTwinFactoryId(), factoryContext);
+            twinFactoryService.commitResult(result);
+            factoryTaskEntity
+                    .setStatusId(TwinFactoryTaskStatus.DONE)
+                    .setDoneAt(Timestamp.from(Instant.now()));
         } catch (ServiceException e) {
             log.error(e.log());
-            draftCollector.getDraftEntity()
-                    .setStatus(DraftStatus.ERASE_SCOPE_COLLECT_EXCEPTION)
+            factoryTaskEntity
+                    .setStatusId(TwinFactoryTaskStatus.FAILED)
                     .setStatusDetails(e.log());
         } catch (Throwable e) {
             log.error("Exception: ", e);
-            draftCollector.getDraftEntity()
-                    .setStatus(DraftStatus.ERASE_SCOPE_COLLECT_EXCEPTION)
+            factoryTaskEntity
+                    .setStatusId(TwinFactoryTaskStatus.FAILED)
                     .setStatusDetails(e.getMessage());
         } finally {
-            try {
-                draftService.endDraft(draftCollector);
-            } catch (ServiceException e) {
-                log.error("End draft critical exception: ", e);
-            }
             authService.removeThreadLocalApiUser();
+            twinFactoryTaskRepository.save(factoryTaskEntity);
             LoggerUtils.cleanMDC();
         }
     }

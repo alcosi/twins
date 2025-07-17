@@ -94,28 +94,41 @@ create table if not exists twin_factory_task
     id                          uuid
         constraint twin_factory_task_pk
             primary key,
-    input_twin_id               uuid                                not null
-        constraint twin_factory_task_twin_id_fk
-            references twin,
     twin_factory_id             uuid                                not null
         constraint twin_factory_task_twin_factory_id_fk
             references twin_factory
             on update cascade on delete cascade,
+    input_twin_id               uuid                                not null
+        constraint twin_factory_task_twin_id_fk
+            references twin,
+    created_by_user_id                     uuid                                not null
+        constraint twin_factory_task_created_by_user_id_fk
+            references "user",
+    business_account_id                     uuid                                not null
+        constraint twin_factory_task_business_account_id_fk
+            references business_account,
     twin_factory_task_status_id varchar(20)                         not null
         constraint twin_factory_task_twin_factory_task_status_id_fk
             references twin_factory_task_status
             on update cascade on delete restrict,
+    twin_factory_task_status_details varchar,
     created_at                  timestamp default current_timestamp not null,
     done_at                     timestamp
 );
 
-create index twin_factory_task_input_twin_id_index
+create index if not exists twin_factory_task_input_twin_id_index
     on twin_factory_task (input_twin_id);
 
-create index twin_factory_task_twin_factory_id_index
+create index if not exists twin_factory_task_twin_factory_id_index
     on twin_factory_task (twin_factory_id);
 
-create index twin_factory_task_twin_factory_task_status_id_index
+create index if not exists twin_factory_task_created_by_user_id_index
+    on twin_factory_task (created_by_user_id);
+
+create index if not exists twin_factory_task_business_account_id_index
+    on twin_factory_task (business_account_id);
+
+create index if not exists twin_factory_task_twin_factory_task_status_id_index
     on twin_factory_task (twin_factory_task_status_id);
 
 
