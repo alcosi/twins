@@ -3,6 +3,7 @@ package org.twins.core.featurer.fieldtyper.storage;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.kit.Kit;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.attachment.TwinAttachmentRepository;
 import org.twins.core.dao.twin.TwinEntity;
 
 import java.util.Collection;
@@ -12,15 +13,17 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class TwinFieldStorageSpirit extends TwinFieldStorage {
+public class TwinFieldStorageAttachment extends TwinFieldStorage {
+    private final TwinAttachmentRepository twinAttachmentRepository;
+
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) {
-
+        //nothing to load, because attachments should not be browsed as fields
     }
 
     @Override
     public boolean hasStrictValues(UUID twinClassFieldId) {
-        return false;
+        return twinAttachmentRepository.existsByTwinClassFieldId(twinClassFieldId);
     }
 
     @Override
@@ -30,7 +33,7 @@ public class TwinFieldStorageSpirit extends TwinFieldStorage {
 
     @Override
     public void initEmpty(TwinEntity twinEntity) {
-
+        //nothing to init
     }
 
     @Override
@@ -39,12 +42,12 @@ public class TwinFieldStorageSpirit extends TwinFieldStorage {
     }
 
     @Override
-    boolean canBeMerged(Object o) {
-        return isSameClass(o);
+    public void replaceTwinClassFieldForTwinsOfClass(UUID twinClassId, UUID fromTwinClassFieldId, UUID toTwinClassFieldId) {
+        twinAttachmentRepository.replaceTwinClassFieldForTwinsOfClass(twinClassId, fromTwinClassFieldId, toTwinClassFieldId);
     }
 
     @Override
-    public void replaceTwinClassFieldForTwinsOfClass(UUID twinClassId, UUID fromTwinClassFieldId, UUID toTwinClassFieldId) {
-        //nothing to replace
+    boolean canBeMerged(Object o) {
+        return isSameClass(o);
     }
 }

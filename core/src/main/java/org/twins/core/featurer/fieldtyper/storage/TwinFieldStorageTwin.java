@@ -12,10 +12,10 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class TwinFieldStorageSpirit extends TwinFieldStorage {
+public class TwinFieldStorageTwin extends TwinFieldStorage {
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) {
-
+        //nothing to load, cause all data is already in TwinEntity
     }
 
     @Override
@@ -30,7 +30,7 @@ public class TwinFieldStorageSpirit extends TwinFieldStorage {
 
     @Override
     public void initEmpty(TwinEntity twinEntity) {
-
+        //nothing to init
     }
 
     @Override

@@ -26,6 +26,7 @@ import org.twins.core.domain.search.TwinFieldSearchUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUser;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageUser;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.user.UserFilterService;
@@ -44,7 +45,7 @@ import java.util.stream.Collectors;
 @Featurer(id = FeaturerTwins.ID_1311,
         name = "User",
         description = "")
-public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUser, TwinFieldUserEntity, TwinFieldSearchUser> implements LongList {
+public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUser, TwinFieldStorageUser, TwinFieldSearchUser> implements LongList {
     @Autowired
     @Lazy
     UserFilterService userFilterService;
