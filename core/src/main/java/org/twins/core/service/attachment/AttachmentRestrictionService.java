@@ -2,8 +2,10 @@ package org.twins.core.service.attachment;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.InformationVolumeUtils;
 import org.cambium.featurer.FeaturerService;
@@ -116,26 +118,38 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
     }
 
     public Map<UUID, TwinAttachmentRestrictionEntity> getRestrictionFromFieldTyper(Set<UUID> fieldIds) throws ServiceException {
-        Map<UUID, UUID> restrictionIdToFieldIdMap = getRestrictionIdFromFieldTyper(fieldIds);
+        Map<UUID, UUID> fieldToRestrictionMap = getRestrictionIdFromFieldTyper(fieldIds);
 
-        return findEntitiesSafe(restrictionIdToFieldIdMap.keySet()).getCollection().stream()
-                .collect(Collectors.toMap(
-                        k -> restrictionIdToFieldIdMap.get(k.getId()),
-                        v -> v
-                ));
+        Kit<TwinAttachmentRestrictionEntity, UUID> restrictions = findEntitiesSafe(new HashSet<>(fieldToRestrictionMap.values()));
+        Map<UUID, TwinAttachmentRestrictionEntity> ret = new HashMap<>();
+        for (var fieldRestrictionEntry : fieldToRestrictionMap.entrySet()) {
+            if (!restrictions.containsKey(fieldRestrictionEntry.getValue())) {
+                throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "twinClassField[" + fieldRestrictionEntry.getKey() + "] has unknown restriction[" + fieldRestrictionEntry.getValue() + "]");
+            }
+            ret.put(fieldRestrictionEntry.getKey(), restrictions.get(fieldRestrictionEntry.getValue()));
+        }
+        return ret;
     }
 
-    public Map<UUID, TwinAttachmentRestrictionEntity> getGeneralRestrictions(Set<UUID> fieldIds) throws ServiceException {
-        return findEntitiesSafe(fieldIds).getCollection().stream()
-                .collect(Collectors.toMap(
-                        TwinAttachmentRestrictionEntity::getId,
-                        v -> v
-                ));
+    public void loadGeneralRestrictions(Collection<TwinClassEntity> twinClasses) throws ServiceException {
+        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = null;
+        for (var twinClassEntity : twinClasses) {
+            if (twinClassEntity.getGeneralAttachmentRestrictionId() != null && twinClassEntity.getGeneralAttachmentRestriction() == null) {
+                if (needLoad == null) needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getGeneralAttachmentRestrictionId);
+                needLoad.add(twinClassEntity);
+            }
+        }
+        if (needLoad == null)
+            return;
+        Kit<TwinAttachmentRestrictionEntity, UUID> restrictions = findEntitiesSafe(needLoad.getGroupedKeySet());
+        for (var twinClassEntity : needLoad) {
+            twinClassEntity.setGeneralAttachmentRestriction(restrictions.get(twinClassEntity.getGeneralAttachmentRestrictionId()));
+        }
     }
 
-    private Map<UUID, UUID>  getRestrictionIdFromFieldTyper(Set<UUID> fieldIds) throws ServiceException {
+    private Map<UUID, UUID>  getRestrictionIdFromFieldTyper(Set<UUID> twinClassFieldIds) throws ServiceException {
         Map<UUID, UUID> result = new HashMap<>();
-        Kit<TwinClassFieldEntity, UUID> twinClassFieldKit = twinClassFieldService.findEntitiesSafe(fieldIds);
+        Kit<TwinClassFieldEntity, UUID> twinClassFieldKit = twinClassFieldService.findEntitiesSafe(twinClassFieldIds);
 
         for (var fieldEntity : twinClassFieldKit.getCollection()) {
             FieldTyper<?, ?, ?, ?> fieldTyper = featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
@@ -144,7 +158,7 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
                 throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Wrong fieldTyper for [" + fieldEntity.getId() + "]");
             }
 
-            result.put(((FieldTyperAttachment) fieldTyper).getRestrictionId(fieldEntity.getFieldTyperParams()), fieldEntity.getId());
+            result.put(fieldEntity.getId(), ((FieldTyperAttachment) fieldTyper).getRestrictionId(fieldEntity.getFieldTyperParams()));
         }
 
         return result;

@@ -3,11 +3,13 @@ package org.twins.face.service.twidget;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.face.PointedFace;
 import org.twins.core.service.attachment.AttachmentRestrictionService;
 import org.twins.core.service.face.FacePointedService;
@@ -80,17 +82,13 @@ public class FaceTW001Service extends FacePointedService<FaceTW001Entity> {
             return;
         }
 
-        Map<UUID, FaceTW001Entity> tw001Map = pointedFaceList.stream()
-                .map(PointedFace::getConfig)
-                .collect(Collectors.toMap(
-                        FaceTW001Entity::getImagesTwinClassFieldId,
-                        entity -> entity
-                ));
+        KitGrouped<FaceTW001Entity, UUID, UUID> faceTW001GroupedByImageFieldId = new KitGrouped<>(
+                pointedFaceList.stream().map(PointedFace::getConfig).toList(), FaceTW001Entity::getId, FaceTW001Entity::getImagesTwinClassFieldId);
 
-        Map<UUID, TwinAttachmentRestrictionEntity> restrictionMap = attachmentRestrictionService.getRestrictionFromFieldTyper(tw001Map.keySet());
+        Map<UUID, TwinAttachmentRestrictionEntity> restrictionMap = attachmentRestrictionService.getRestrictionFromFieldTyper(faceTW001GroupedByImageFieldId.getGroupedKeySet());
 
-        for (UUID key : restrictionMap.keySet()) {
-            tw001Map.get(key).setTwinAttachmentRestriction(restrictionMap.get(key));
+        for (var tw001 : faceTW001GroupedByImageFieldId) {
+            tw001.setTwinAttachmentRestriction(restrictionMap.get(tw001.getImagesTwinClassFieldId()));
         }
     }
 
@@ -99,50 +97,11 @@ public class FaceTW001Service extends FacePointedService<FaceTW001Entity> {
             return;
         }
 
-        Map<UUID, FaceTW001Entity> tw001Map = pointedFaceList.stream()
-                .collect(Collectors.toMap(
-                        k -> k.getTargetTwin().getTwinClass().getGeneralAttachmentRestrictionId(),
-                        PointedFace::getConfig
-                ));
+        attachmentRestrictionService.loadGeneralRestrictions(
+                pointedFaceList.stream().map(PointedFace::getTargetTwin).map(TwinEntity::getTwinClass).toList());
 
-        Map<UUID, TwinAttachmentRestrictionEntity> restrictionMap = attachmentRestrictionService.getGeneralRestrictions(tw001Map.keySet());
-
-        for (UUID key : restrictionMap.keySet()) {
-            tw001Map.get(key).setTwinAttachmentRestriction(restrictionMap.get(key));
+        for (var pointedFace : pointedFaceList) {
+            pointedFace.getConfig().setTwinAttachmentRestriction(pointedFace.getTargetTwin().getTwinClass().getGeneralAttachmentRestriction());
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//    public void loadRestriction1111(Collection<PointedFace<FaceTW001Entity>> pointedFaces) throws ServiceException {
-//        TwinAttachmentRestrictionEntity restrictionEntity;
-//
-//        for (PointedFace<FaceTW001Entity> pointedFace : pointedFaces) {
-//            if (pointedFace.getConfig().getImagesTwinClassFieldId() != null) {
-//                restrictionEntity = attachmentRestrictionService.getRestrictionFromFieldTyper(pointedFace.getConfig().getImagesTwinClassField());
-//            } else {
-//                restrictionEntity = attachmentRestrictionService.findEntitySafe(
-//                        pointedFace.getTargetTwin().getTwinClass().getGeneralAttachmentRestrictionId()
-//                );
-//            }
-//
-//            pointedFace.getConfig().setTwinAttachmentRestriction(restrictionEntity);
-//        }
-//    }
 }

@@ -100,6 +100,6 @@ public class RelatedObjectsDTOv1 {
     @Schema(description = "related class field map", example = "{class field map}")
     public Map<UUID, TwinClassFieldDTOv1> twinClassFieldMap;
 
-    @Schema(description = "related class field map", example = "{class field map}")
+    @Schema(description = "related attachment restriction map", example = "{attachment restriction map}")
     public Map<UUID, AttachmentRestrictionDTOv1> attachmentRestrictionMap;
 }

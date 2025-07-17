@@ -75,24 +75,4 @@ public enum AttachmentMode implements MapperMode {
             };
         }
     }
-
-    @Getter
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum AttachmentRestrictionMode implements MapperModePointer<AttachmentMode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        final int priority;
-
-        @Override
-        public AttachmentMode point() {
-            return switch (this) {
-                case HIDE -> AttachmentMode.HIDE;
-                case SHORT -> AttachmentMode.SHORT;
-                case DETAILED -> AttachmentMode.DETAILED;
-            };
-        }
-    }
 }

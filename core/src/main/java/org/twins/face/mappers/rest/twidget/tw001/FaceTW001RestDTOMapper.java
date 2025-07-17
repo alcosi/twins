@@ -8,7 +8,6 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentRestrictionRestDTOMapper;
 import org.twins.core.mappers.rest.face.FaceTwidgetRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.AttachmentMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.service.i18n.I18nService;
@@ -26,7 +25,7 @@ public class FaceTW001RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
     @MapperModePointerBinding(modes = FaceTW001Modes.FaceTW0012TwinClassFieldMode.class)
     private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
     private final FaceTW001Service faceTW001Service;
-    @MapperModePointerBinding(modes = AttachmentMode.AttachmentRestrictionMode.class)
+    @MapperModePointerBinding(modes = FaceTW001Modes.FaceTW0012AttachmentRestrictionMode.class)
     private final AttachmentRestrictionRestDTOMapper attachmentRestrictionRestDTOMapper;
 
     @Override
@@ -54,10 +53,10 @@ public class FaceTW001RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
             twinClassFieldRestDTOMapper.postpone(src.getConfig().getImagesTwinClassField(), mapperContext.forkOnPoint(FaceTW001Modes.FaceTW0012TwinClassFieldMode.SHORT));
         }
 
-        if (mapperContext.hasModeButNot(AttachmentMode.AttachmentRestrictionMode.HIDE)) {
+        if (mapperContext.hasModeButNot(FaceTW001Modes.FaceTW0012AttachmentRestrictionMode.HIDE)) {
             faceTW001Service.loadRestriction(src);
             dst.setRestrictionId(src.getConfig().getTwinAttachmentRestriction().getId());
-            attachmentRestrictionRestDTOMapper.postpone(src.getConfig().getTwinAttachmentRestriction(), mapperContext.forkOnPoint(FaceTW001Modes.FaceTW0012TwinClassFieldMode.SHORT));
+            attachmentRestrictionRestDTOMapper.postpone(src.getConfig().getTwinAttachmentRestriction(), mapperContext.forkOnPoint(FaceTW001Modes.FaceTW0012AttachmentRestrictionMode.SHOW));
         }
     }
 }
