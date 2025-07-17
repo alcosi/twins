@@ -16,12 +16,12 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
+import org.twins.core.featurer.transition.trigger.messaging.rabbitmq.payloads.RabbitMqMessagePayloadTwin;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.rabbit.AmpqManager;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 @Service
@@ -30,7 +30,7 @@ import java.util.Properties;
         name = "RabbitMqSendTwin",
         description = "Trigger for sending event to rabbit")
 @RequiredArgsConstructor
-public class TransitionTriggerRabbitMqSendTwinChildsInStatuses extends TransitionTriggerRabbitMqConnection {
+public class TransitionTriggerRabbitMqSendTwinChildrenInStatuses extends TransitionTriggerRabbitMqConnection {
 
     private final AmpqManager ampqManager;
 
@@ -38,10 +38,10 @@ public class TransitionTriggerRabbitMqSendTwinChildsInStatuses extends Transitio
 
     private final TwinSearchService  twinSearchService;
 
-    @FeaturerParam(name = "childrenTwinStatusIdList", description = "Twin.Status.IDs of child twin")
+    @FeaturerParam(name = "ChildrenTwinStatusIdList", description = "Twin.Status.IDs of child twin")
     public static final FeaturerParamUUIDSet childrenTwinStatusIdList = new FeaturerParamUUIDSetTwinsStatusId("childrenTwinStatusIdList");
 
-    @FeaturerParam(name = "exclude", description = "Exclude(true)/Include(false) child-field's Twin.Status.IDs from query result")
+    @FeaturerParam(name = "Exclude", description = "Exclude(true)/Include(false) child-field's Twin.Status.IDs from query result")
     public static final FeaturerParamBoolean exclude = new FeaturerParamBoolean("exclude");
 
     @FeaturerParam(name = "Exchange", description = "Name of exchange")
@@ -67,15 +67,16 @@ public class TransitionTriggerRabbitMqSendTwinChildsInStatuses extends Transitio
         ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(
                 TransitionTriggerRabbitMqConnection.url.extract(properties));
 
+        RabbitMqMessagePayloadTwin payload;
         for (TwinEntity child : children) {
-            Map<String, String> eventMap = Map.of(
-                    "twinId", child.getId().toString(),
-                    "userId", apiUser.getUserId().toString(),
-                    "domainId", apiUser.getDomainId().toString(),
-                    "businessAccountId", apiUser.getBusinessAccountId().toString(),
-                    "operation", operation.extract(properties)
+            payload = new RabbitMqMessagePayloadTwin(
+                    twinEntity.getId(),
+                    apiUser.getUserId(),
+                    apiUser.getDomainId(),
+                    apiUser.getBusinessAccountId(),
+                    operation.extract(properties)
             );
-            ampqManager.sendMessage(factory, exchange.extract(properties), queue.extract(properties), eventMap);
+            ampqManager.sendMessage(factory, exchange.extract(properties), queue.extract(properties), payload);
         }
         log.debug("Done sending to Rabbit");
     }

@@ -12,6 +12,8 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.transition.trigger.messaging.rabbitmq.payloads.RabbitMqMessagePayloadTranslation;
+import org.twins.core.featurer.transition.trigger.messaging.rabbitmq.payloads.RabbitMqMessagePayloadTwin;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.rabbit.AmpqManager;
 
@@ -48,14 +50,14 @@ public class TransitionTriggerRabbitMqSendTwin extends TransitionTriggerRabbitMq
         ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(
                 TransitionTriggerRabbitMqConnection.url.extract(properties));
 
-        Map<String, String> eventMap = Map.of(
-                "twinId", twinEntity.getId().toString(),
-                "userId", apiUser.getUserId().toString(),
-                "domainId", apiUser.getDomainId().toString(),
-                "businessAccountId", apiUser.getBusinessAccountId().toString(),
-                "operation", operation.extract(properties)
+        RabbitMqMessagePayloadTwin payload = new RabbitMqMessagePayloadTwin(
+                twinEntity.getId(),
+                apiUser.getUserId(),
+                apiUser.getDomainId(),
+                apiUser.getBusinessAccountId(),
+                operation.extract(properties)
         );
-        ampqManager.sendMessage(factory, exchange.extract(properties), queue.extract(properties), eventMap);
+        ampqManager.sendMessage(factory, exchange.extract(properties), queue.extract(properties), payload);
         log.debug("Done sending to Rabbit");
     }
 }
