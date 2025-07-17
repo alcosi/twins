@@ -7,6 +7,7 @@ import org.twins.core.dao.twin.TwinTouchEntity;
 import org.twins.core.dto.rest.DataTimeRangeDTOv1;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -104,8 +105,25 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Twin touch exclude list ids")
     public List<TwinTouchEntity.Touch> touchExcludeList;
 
-    @Schema(description = "Twin Field Searches.")
-    public List<TwinFieldSearchItem> fields;
+    @Schema(description = "Twin Field Search. Key TwinClassField id.",
+            type = "object",
+            additionalPropertiesSchema = TwinFieldSearchDTOv1.class,
+            example = """
+                    {
+                        "550e8400-e29b-41d4-a716-446655440000": {
+                            "type": "TwinFieldSearchNumericV1",
+                            "lessThen": "10",
+                            "moreThen": "5",
+                            "equals": "7"
+                        },
+                        "550e8400-e29b-41d4-a716-446655440001": {
+                            "type": "TwinFieldSearchTextV1",
+                            "valueLikeAllOfList": ["test%"]
+                        }
+                    }
+                    """
+    )
+    public Map<UUID, TwinFieldSearchDTOv1> fields;
 
     @Schema(description = "created at")
     public DataTimeRangeDTOv1 createdAt;

@@ -4,18 +4,19 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.i18n.LocaleConverter;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
-import java.util.*;
+import java.util.Locale;
+import java.util.UUID;
 
 @Entity
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_field_i18n")
-public class TwinFieldI18nEntity implements TwinFieldStorage {
+public class TwinFieldI18nEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -47,6 +48,11 @@ public class TwinFieldI18nEntity implements TwinFieldStorage {
     @ManyToOne
     @JoinColumn(name = "twin_class_field_id", insertable = false, updatable = false, nullable = false)
     private TwinClassFieldEntity twinClassField;
+
+    @Override
+    public String easyLog(Level level) {
+        return "twinFieldI18n[id:" + id + "]";
+    }
 
 
     public TwinFieldI18nEntity cloneFor(TwinEntity dstTwinEntity) {

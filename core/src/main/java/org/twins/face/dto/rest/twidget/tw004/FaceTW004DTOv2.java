@@ -13,6 +13,13 @@ import java.util.List;
 @Accessors(chain = true)
 @Schema(name = "FaceTW004v2", description = "Twin single field view/edit twidget")
 public class FaceTW004DTOv2 extends FaceTwidgetDTOv1 {
+
+    @Schema(description = "widget label")
+    public String label;
+
+    @Schema(description = "style classes")
+    public String styleClasses;
+
     @Schema(description = "twin fields")
     public List<FaceTW004FieldDTOv1> fields;
 }

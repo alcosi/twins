@@ -62,6 +62,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_CLASS_CYCLE(10422, "Twin class head_id or extends_id cant be equals id of class."),
     TWIN_CLASS_IS_ABSTRACT(10423, "Cant create twin of abstract twin class"),
     TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE(10424, "twin class field value is not unique"),
+    FIELD_TYPER_STORAGE_NOT_INIT(10425, "Field typer getStorage should be implemented"),
     TWINFLOW_SCHEMA_NOT_ALLOWED(10501, "twinflow schema is not allowed"),
     TWINFLOW_SCHEMA_NOT_CONFIGURED(10502, "twinflow schema is not configured"),
     TWINFLOW_TRANSACTION_INCORRECT(10503, "twinflow transition can not be performed"),

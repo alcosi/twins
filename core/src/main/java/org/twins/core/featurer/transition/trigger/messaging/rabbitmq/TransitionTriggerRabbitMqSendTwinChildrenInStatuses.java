@@ -5,30 +5,44 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
+import org.twins.core.featurer.transition.trigger.messaging.rabbitmq.payloads.RabbitMqMessagePayloadTwin;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.rabbit.AmpqManager;
+import org.twins.core.service.twin.TwinSearchService;
 
-import java.util.Map;
+import java.util.List;
 import java.util.Properties;
 
 @Service
 @Slf4j
-@Featurer(id = FeaturerTwins.ID_1504,
+@Featurer(id = FeaturerTwins.ID_1507,
         name = "RabbitMqSendTwin",
         description = "Trigger for sending event to rabbit")
 @RequiredArgsConstructor
-public class TransitionTriggerRabbitMqSendTwinForOperation extends TransitionTriggerRabbitMqConnection {
+public class TransitionTriggerRabbitMqSendTwinChildrenInStatuses extends TransitionTriggerRabbitMqConnection {
 
     private final AmpqManager ampqManager;
 
     private final AuthService authService;
+
+    private final TwinSearchService  twinSearchService;
+
+    @FeaturerParam(name = "ChildrenTwinStatusIdList", description = "Twin.Status.IDs of child twin")
+    public static final FeaturerParamUUIDSet childrenTwinStatusIdList = new FeaturerParamUUIDSetTwinsStatusId("childrenTwinStatusIdList");
+
+    @FeaturerParam(name = "Exclude", description = "Exclude(true)/Include(false) child-field's Twin.Status.IDs from query result")
+    public static final FeaturerParamBoolean exclude = new FeaturerParamBoolean("exclude");
 
     @FeaturerParam(name = "Exchange", description = "Name of exchange")
     public static final FeaturerParamString exchange = new FeaturerParamString("exchange");
@@ -43,19 +57,27 @@ public class TransitionTriggerRabbitMqSendTwinForOperation extends TransitionTri
     @Override
     public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
+        BasicSearch search = new BasicSearch();
+        search
+                .addHeadTwinId(twinEntity.getId())
+                .addStatusId(childrenTwinStatusIdList.extract(properties), exclude.extract(properties));
+        List<TwinEntity> children = twinSearchService.findTwins(search);
 
         log.debug("Sending to Rabbit");
         ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(
                 TransitionTriggerRabbitMqConnection.url.extract(properties));
 
-        Map<String, String> eventMap = Map.of(
-                "twinId", twinEntity.getId().toString(),
-                "userId", apiUser.getUserId().toString(),
-                "domainId", apiUser.getDomainId().toString(),
-                "businessAccountId", apiUser.getBusinessAccountId().toString(),
-                "operation", operation.extract(properties)
-        );
-        ampqManager.sendMessage(factory, exchange.extract(properties), queue.extract(properties), eventMap);
+        RabbitMqMessagePayloadTwin payload;
+        for (TwinEntity child : children) {
+            payload = new RabbitMqMessagePayloadTwin(
+                    twinEntity.getId(),
+                    apiUser.getUserId(),
+                    apiUser.getDomainId(),
+                    apiUser.getBusinessAccountId(),
+                    operation.extract(properties)
+            );
+            ampqManager.sendMessage(factory, exchange.extract(properties), queue.extract(properties), payload);
+        }
         log.debug("Done sending to Rabbit");
     }
 }

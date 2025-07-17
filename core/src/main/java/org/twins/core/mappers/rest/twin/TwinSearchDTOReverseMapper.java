@@ -14,7 +14,7 @@ import static org.cambium.common.util.CollectionUtils.convertToSetSafe;
 @Component
 @RequiredArgsConstructor
 public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDTOv1, BasicSearch> {
-    private final TwinFieldSearchItemListDTOReverseMapper twinFieldSearchItemListDTOReverseMapper;
+    private final TwinFieldSearchMapDTOReverseMapper twinFieldSearchMapDTOReverseMapper;
     private final DataTimeRangeDTOReverseMapper dataTimeRangeDTOReverseMapper;
 
     @Override
@@ -63,6 +63,6 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
             for (TwinSearchByLinkDTOv1 twinSearchByNoLinkDTO : src.getLinksNoAllOfList()) {
                 dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true, false);
             }
-        dst.setFields(twinFieldSearchItemListDTOReverseMapper.convert(src.getFields()));
+        dst.setFields(twinFieldSearchMapDTOReverseMapper.convert(src.getFields()));
     }
 }

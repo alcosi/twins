@@ -11,11 +11,15 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.twin.*;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinFieldSimpleEntity;
+import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.auth.AuthService;
@@ -122,7 +126,7 @@ public class TwinSketchService extends EntitySecureFindServiceImpl<TwinEntity> {
     private Object createFieldEntity(FieldTyper fieldTyper, TwinEntity twinEntity, FieldValue fieldValue) throws ServiceException {
         Class<?> storageType = fieldTyper.getStorageType();
 
-        if (storageType == TwinFieldSimpleEntity.class) {
+        if (storageType == TwinFieldStorageSimple.class) {
             return new TwinFieldSimpleEntity()
                     .setTwinId(twinEntity.getId())
                     .setTwinClassFieldId(fieldValue.getTwinClassField().getId())
