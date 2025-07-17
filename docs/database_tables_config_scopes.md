@@ -17,7 +17,7 @@ AUTO
 | data_list_subset                            |  MIXED   |           | data_list | data_list  |
 | data_list_subset_option                     |  MIXED   |           | data_list | data_list  |
 | domain                                      |  DOMAIN  |           |     -     |            |
-| domain_business_account                     |    ?     |           |     -     |            |
+| domain_business_account                     |  USER?   |           |     -     |            |
 | domain_locale                               |  DOMAIN  |           |     -     |            |
 | domain_status                               |  TWINS   |           |     -     |            |
 | domain_type                                 |  TWINS   |           |     -     |            |
@@ -111,10 +111,10 @@ AUTO
 | permission_group                            | T/DOMAIN |           |     -     |     +      |
 | permission_schema                           |  DOMAIN  |           |     -     |     +      |
 | resource                                    |  DOMAIN  |           |  upload   |     +      |
-| search                                      |  DOMAIN  |     !     |     -     |     -      |
-| search_alias                                |  DOMAIN  |     !     |     -     |     -      |
+| search                                      |  DOMAIN  |           |     -     |     sa     |
+| search_alias                                |  DOMAIN  |           |     -     |     +      |
 | search_field                                |  TWINS   |           |     -     |            |
-| search_predicate                            |  DOMAIN  |     !     |     -     |     -      |
+| search_predicate                            |  DOMAIN  |           |     -     |    s-sa    |
 | space                                       |   USER   |           |     -     |            |
 | space_role                                  |  DOMAIN  |           |     -     |            |
 | space_role_user                             |  USER?   |           |  create-  |            |
@@ -169,7 +169,7 @@ AUTO
 | twin_pointer                                |  DOMAIN  |     ?     |     -     |     tc     |
 | twin_pointer_validator_rule                 |  DOMAIN  |           |     -     |     tp     |
 | twin_role                                   |  TWINS   |           |     -     |            |
-| twin_status                                 |  DOMAIN  |           |  need_s   |     tc     |
+| twin_status                                 | DOMAIN?M |           |  need_s   |     tc     |
 | twin_status_group                           |   ???    |    ???    |     -     |            |
 | twin_status_group_map                       |   ???    |    ???    |     -     |            |
 | twin_status_transition_trigger              |  DOMAIN  |           |     -     |   ts-tc    |
