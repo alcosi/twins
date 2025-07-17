@@ -73,11 +73,11 @@ public class FaceTW001Service extends FacePointedService<FaceTW001Entity> {
         List<PointedFace<FaceTW001Entity>> facesWithImageFieldId = groupedFaces.get(true);
         List<PointedFace<FaceTW001Entity>> facesWithoutImageFieldId = groupedFaces.get(false);
 
-        loadRestrictionFromFieldTyper(facesWithImageFieldId);
-        loadGeneralAttachmentRestriction(facesWithoutImageFieldId);
+        loadRestrictionsFromFieldTyper(facesWithImageFieldId);
+        loadGeneralAttachmentRestrictions(facesWithoutImageFieldId);
     }
 
-    private void loadRestrictionFromFieldTyper(List<PointedFace<FaceTW001Entity>> pointedFaceList) throws ServiceException {
+    private void loadRestrictionsFromFieldTyper(List<PointedFace<FaceTW001Entity>> pointedFaceList) throws ServiceException {
         if (pointedFaceList.isEmpty()) {
             return;
         }
@@ -85,14 +85,14 @@ public class FaceTW001Service extends FacePointedService<FaceTW001Entity> {
         KitGrouped<FaceTW001Entity, UUID, UUID> faceTW001GroupedByImageFieldId = new KitGrouped<>(
                 pointedFaceList.stream().map(PointedFace::getConfig).toList(), FaceTW001Entity::getId, FaceTW001Entity::getImagesTwinClassFieldId);
 
-        Map<UUID, TwinAttachmentRestrictionEntity> restrictionMap = attachmentRestrictionService.getRestrictionFromFieldTyper(faceTW001GroupedByImageFieldId.getGroupedKeySet());
+        Map<UUID, TwinAttachmentRestrictionEntity> restrictionMap = attachmentRestrictionService.getRestrictionsFromFieldTyper(faceTW001GroupedByImageFieldId.getGroupedKeySet());
 
         for (var tw001 : faceTW001GroupedByImageFieldId) {
             tw001.setTwinAttachmentRestriction(restrictionMap.get(tw001.getImagesTwinClassFieldId()));
         }
     }
 
-    private void loadGeneralAttachmentRestriction(List<PointedFace<FaceTW001Entity>> pointedFaceList) throws ServiceException {
+    private void loadGeneralAttachmentRestrictions(List<PointedFace<FaceTW001Entity>> pointedFaceList) throws ServiceException {
         if (pointedFaceList.isEmpty()) {
             return;
         }

@@ -117,8 +117,8 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         return result;
     }
 
-    public Map<UUID, TwinAttachmentRestrictionEntity> getRestrictionFromFieldTyper(Set<UUID> fieldIds) throws ServiceException {
-        Map<UUID, UUID> fieldToRestrictionMap = getRestrictionIdFromFieldTyper(fieldIds);
+    public Map<UUID, TwinAttachmentRestrictionEntity> getRestrictionsFromFieldTyper(Set<UUID> fieldIds) throws ServiceException {
+        Map<UUID, UUID> fieldToRestrictionMap = getRestrictionIdsFromFieldTyper(fieldIds);
 
         Kit<TwinAttachmentRestrictionEntity, UUID> restrictions = findEntitiesSafe(new HashSet<>(fieldToRestrictionMap.values()));
         Map<UUID, TwinAttachmentRestrictionEntity> ret = new HashMap<>();
@@ -147,7 +147,7 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         }
     }
 
-    private Map<UUID, UUID>  getRestrictionIdFromFieldTyper(Set<UUID> twinClassFieldIds) throws ServiceException {
+    private Map<UUID, UUID> getRestrictionIdsFromFieldTyper(Set<UUID> twinClassFieldIds) throws ServiceException {
         Map<UUID, UUID> result = new HashMap<>();
         Kit<TwinClassFieldEntity, UUID> twinClassFieldKit = twinClassFieldService.findEntitiesSafe(twinClassFieldIds);
 
