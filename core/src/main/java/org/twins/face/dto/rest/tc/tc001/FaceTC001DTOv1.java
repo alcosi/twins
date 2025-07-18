@@ -42,6 +42,6 @@ public class FaceTC001DTOv1 extends FaceDTOv1 {
     @Schema(description = "head twin id")
     public UUID pointedHeadTwinId;
 
-    @Schema(description = "twin fields")
-    public List<FaceTC001FieldDTOv1> fields;
+    @Schema(description = "twin class field search id")
+    public UUID twinClassFieldSearchId;
 }
