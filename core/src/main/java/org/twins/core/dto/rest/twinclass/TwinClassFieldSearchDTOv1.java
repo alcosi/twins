@@ -6,18 +6,16 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Request;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-@Deprecated
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name =  "TwinClassFieldSearchRqV1")
-public class TwinClassFieldSearchRqDTOv1 extends Request {
+@Schema(name =  "TwinClassFieldSearchV1")
+public class TwinClassFieldSearchDTOv1 {
     @Schema(description = "id list")
     public Set<UUID> idList;
 

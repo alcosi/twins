@@ -160,9 +160,13 @@ public class StoragerS3StaticController extends StoragerAbstractChecked {
     @Override
     public String generateFileKey(UUID fileId, HashMap<String, String> params) throws ServiceException {
         Properties properties = extractProperties(params, false);
-        String domainId = addSlashAtTheEndIfNeeded(getDomainId().map(UUID::toString).orElse("defaultDomain"));
-        String businessAccount = addSlashAtTheEndIfNeeded(getBusinessAccountId().map(UUID::toString).orElse("defaultBusinessAccount"));
+        String domainId = getDomainId().map(UUID::toString).orElse("defaultDomain");
+        String businessAccount = getBusinessAccountId().map(UUID::toString).orElse("defaultBusinessAccount");
         String baseLocalPathString = addSlashAtTheEndIfNeeded(basePath.extract(properties));
-        return baseLocalPathString.replace("{domainId}", domainId).replace("{businessAccountId}", businessAccount) + addSlashAtTheEndIfNeeded(fileId.toString());
+        String key = baseLocalPathString
+                .replace("{domainId}", domainId)
+                .replace("{businessAccountId}", businessAccount) + addSlashAtStartIfNeeded(fileId.toString())
+                .replaceAll("\\/{2,}", "/");
+        return key;
     }
 }

@@ -57,20 +57,4 @@ public class FaceTC002OptionService extends FaceVariantsService<FaceTC002OptionE
         return faceTC002OptionRepository.findByFaceTC002Id(of);
     }
 
-    public void loadFields(FaceTC002OptionEntity entity) throws ServiceException {
-        loadFields(Collections.singletonList(entity));
-    }
-
-    public void loadFields(Collection<FaceTC002OptionEntity> entities) throws ServiceException {
-        for (FaceTC002OptionEntity entity : entities) {
-            if (entity.getFields() != null) {
-                continue;
-            }
-            FieldFinder fieldFinder = featurerService.getFeaturer(entity.getFieldFinderFeaturerId(), FieldFinder.class);
-            TwinClassFieldSearch twinClassFieldSearch = fieldFinder.createSearch(entity.getFieldFinderParams(), entity.getTwinClassId());
-            twinClassFieldSearch.setExcludeSystemFields(false);
-            Kit<TwinClassFieldEntity, UUID> fields = new Kit<>(twinClassFieldSearchService.findTwinClassField(twinClassFieldSearch), TwinClassFieldEntity::getId);
-            entity.setFields(fields);
-        }
-    }
 }

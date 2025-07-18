@@ -17,6 +17,7 @@ import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecification.*;
@@ -42,6 +43,11 @@ public class TwinClassFieldSearchService {
         List<TwinClassFieldEntity> result = twinClassFieldRepository.findAll(spec);
 
         return result;
+    }
+
+    public PaginationResult<TwinClassFieldEntity> findTwinClassField(UUID searchId, TwinClassFieldSearch narrow, SimplePagination pagination) throws ServiceException {
+        //todo implement configured search logic
+        return findTwinClassField(narrow, pagination);
     }
 
     private Specification<TwinClassFieldEntity> createTwinClassFieldSearchSpecification(TwinClassFieldSearch search) throws ServiceException {
