@@ -14,11 +14,14 @@ public class FaceTC002OptionDTOv1 {
     @Schema(description = "id")
     public UUID id;
 
-    @Schema(description = "class selector label")
-    public String classSelectorLabel;
+    @Schema(description = "option label")
+    public String label;
 
     @Schema(description = "extends hierarchy twin class id")
     public UUID twinClassId;
+
+    @Schema(description = "class selector label")
+    public String classSelectorLabel;
 
     @Schema(description = "hierarchy depth")
     public Integer extendsDepth;
@@ -26,6 +29,6 @@ public class FaceTC002OptionDTOv1 {
     @Schema(description = "head twin id")
     public UUID pointedHeadTwinId;
 
-    @Schema(description = "twin fields")
-    public List<FaceTC002FieldDTOv1> fields;
+    @Schema(description = "twin class field search id")
+    public UUID twinClassFieldSearchId;
 }
