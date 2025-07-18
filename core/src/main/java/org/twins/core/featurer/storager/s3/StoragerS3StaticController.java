@@ -165,8 +165,8 @@ public class StoragerS3StaticController extends StoragerAbstractChecked {
         String baseLocalPathString = addSlashAtTheEndIfNeeded(basePath.extract(properties));
         String key = baseLocalPathString
                 .replace("{domainId}", domainId)
-                .replace("{businessAccountId}", businessAccount) + addSlashAtStartIfNeeded(fileId.toString())
-                .replaceAll("\\/{2,}", "/");
+                .replace("{businessAccountId}", businessAccount) + fileId.toString()
+                .replaceAll("\\/+", "/");
         return key;
     }
 }
