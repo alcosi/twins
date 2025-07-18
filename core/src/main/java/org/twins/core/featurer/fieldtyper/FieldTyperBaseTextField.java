@@ -11,6 +11,7 @@ import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTwin;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.util.Properties;
@@ -22,7 +23,7 @@ import static org.twins.core.service.SystemEntityService.*;
 @Featurer(id = FeaturerTwins.ID_1321,
         name = "BaseText",
         description = "Field typer for base text twin fields (name, description, externalId)")
-public class FieldTyperBaseTextField extends FieldTyper<FieldDescriptorText, FieldValueText, TwinEntity, TwinFieldSearchNotImplemented> {
+public class FieldTyperBaseTextField extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageTwin, TwinFieldSearchNotImplemented> {
 
     @Override
     public FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {

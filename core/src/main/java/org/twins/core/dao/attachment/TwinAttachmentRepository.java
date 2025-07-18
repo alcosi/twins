@@ -1,10 +1,12 @@
 package org.twins.core.dao.attachment;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
@@ -20,6 +22,7 @@ public interface TwinAttachmentRepository extends CrudRepository<TwinAttachmentE
     List<TwinAttachmentEntity> findByTwinIdIn(Collection<UUID> twinIdList);
     List<TwinAttachmentEntity> findByTwinCommentIdIn(Collection<UUID> twinCommentIdList);
     List<TwinAttachmentEntity> findByTwinIdAndTwinClassFieldIdIn(UUID twinId, Collection<UUID> twinClassFieldIds);
+    boolean existsByTwinClassFieldId(UUID twinClassFieldId);
     List<TwinAttachmentEntity> findByTwinIdAndIdIn(UUID twinId, Collection<UUID> idList);
 
     void deleteAllByTwinIdAndIdIn(UUID twinId, Collection<UUID> idList);
@@ -59,5 +62,10 @@ public interface TwinAttachmentRepository extends CrudRepository<TwinAttachmentE
     List<Object[]> countAttachmentsGroupByField(
             @Param("twinId") UUID twinId,
             @Param("fieldIds") Collection<UUID> fieldIds);
+
+    @Transactional
+    @Modifying
+    @Query(value = "update TwinAttachmentEntity set twinClassFieldId = :toTwinClassFieldId where twinClassFieldId = :fromTwinClassFieldId and twin.twinClassId = :twinClassId")
+    void replaceTwinClassFieldForTwinsOfClass(@Param("twinClassId") UUID twinClassId, @Param("fromTwinClassFieldId") UUID fromTwinClassFieldId, @Param("toTwinClassFieldId") UUID toTwinClassFieldId);
 
 }

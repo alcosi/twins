@@ -25,6 +25,7 @@ import org.twins.core.domain.search.TwinFieldSearchSpaceRoleUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUser;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpaceRoleUser;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.space.SpaceUserRoleService;
@@ -42,7 +43,7 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_1332,
         name = "Space role users",
         description = "")
-public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, FieldValueUser, SpaceRoleUserEntity, TwinFieldSearchSpaceRoleUser> implements LongList {
+public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, FieldValueUser, TwinFieldStorageSpaceRoleUser, TwinFieldSearchSpaceRoleUser> implements LongList {
     @Autowired
     @Lazy
     UserFilterService userFilterService;
@@ -116,10 +117,10 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
         TwinEntity twinEntity = twinField.getTwin();
         twinService.loadTwinFields(twinEntity);
         UUID roleId = spaceRoleId.extract(properties);
-        List<UserEntity> spaceRoleUserEntityList = spaceUserRoleService.findUserBySpaceIdAndRoleId(twinEntity.getId(), roleId);
+        List<SpaceRoleUserEntity> spaceRoleUserEntityList = twinEntity.getTwinFieldSpaceUserKit().getGrouped(roleId);
         FieldValueUser ret = new FieldValueUser(twinField.getTwinClassField());
         if (spaceRoleUserEntityList != null) {
-            ret.getUsers().addAll(spaceRoleUserEntityList);
+            ret.getUsers().addAll(spaceRoleUserEntityList.stream().map(SpaceRoleUserEntity::getUser).toList());
         }
         return ret;
     }

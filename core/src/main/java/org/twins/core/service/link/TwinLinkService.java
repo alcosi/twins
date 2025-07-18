@@ -377,6 +377,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     @Data
     @Accessors(chain = true)
     public static class FindTwinLinksResult {
+        public static final FindTwinLinksResult EMPTY = new FindTwinLinksResult();
         UUID twinId;
         KitGrouped<TwinLinkEntity, UUID, UUID> forwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId);
         @Deprecated //backwardLinks should be taken from API with pagination support

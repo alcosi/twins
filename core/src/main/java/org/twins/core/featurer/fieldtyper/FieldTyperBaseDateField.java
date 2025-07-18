@@ -11,6 +11,7 @@ import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorImmutable;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTwin;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 
 import java.util.Properties;
@@ -22,7 +23,7 @@ import static org.twins.core.service.SystemEntityService.TWIN_CLASS_FIELD_TWIN_C
 @Featurer(id = FeaturerTwins.ID_1325,
         name = "BaseDate",
         description = "Field typer for base date twin field")
-public class FieldTyperBaseDateField extends FieldTyper<FieldDescriptorImmutable, FieldValueDate, TwinEntity, TwinFieldSearchNotImplemented> {
+public class FieldTyperBaseDateField extends FieldTyper<FieldDescriptorImmutable, FieldValueDate, TwinFieldStorageTwin, TwinFieldSearchNotImplemented> {
 
     @Override
     public FieldDescriptorImmutable getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {

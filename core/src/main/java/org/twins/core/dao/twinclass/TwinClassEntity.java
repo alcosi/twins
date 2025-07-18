@@ -19,6 +19,7 @@ import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.action.TwinActionPermissionEntity;
 import org.twins.core.dao.attachment.TwinAttachmentAction;
 import org.twins.core.dao.attachment.TwinAttachmentActionAlienPermissionEntity;
+import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
 import org.twins.core.dao.comment.TwinCommentAction;
 import org.twins.core.dao.comment.TwinCommentActionAlienPermissionEntity;
 import org.twins.core.dao.comment.TwinCommentActionSelfEntity;
@@ -34,6 +35,7 @@ import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionAlienValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionSelfValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleEntity;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.headhunter.HeadHunter;
 
 import java.sql.Timestamp;
@@ -211,6 +213,10 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    private Set<TwinFieldStorage> fieldStorageSet;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
     private Kit<TwinStatusEntity, UUID> twinStatusKit;
 
     @Transient
@@ -285,6 +291,10 @@ public class TwinClassEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private DataListEntity tagDataList;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private TwinAttachmentRestrictionEntity generalAttachmentRestriction;
 
 
     public Set<UUID> getExtendedClassIdSet() {
