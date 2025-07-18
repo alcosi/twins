@@ -7,17 +7,15 @@ import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Request;
 
 import java.util.Set;
 import java.util.UUID;
 
-@Deprecated
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "TwinClassListRqV1")
-public class TwinClassSearchRqDTOv1 extends Request {
+@Schema(name = "TwinClassSearchV1")
+public class TwinClassSearchDTOv1 {
     @Schema(description = "twin class id list")
     public Set<UUID> twinClassIdList;
 
