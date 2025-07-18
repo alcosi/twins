@@ -43,7 +43,7 @@ public class FaceTW001RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
                         .setLabel(i18nService.translateToLocale(tw001.getLabelI18nId()))
                         .setImagesTwinClassFieldId(tw001.getImagesTwinClassFieldId())
                         .setUploadable(tw001.isUploadable())
-                        .setRestrictionId(tw001.getTwinAttachmentRestriction().getId());
+                        .setRestrictionId(tw001.getTwinAttachmentRestriction() != null ? tw001.getTwinAttachmentRestriction().getId() : null);
 
             }
         }
@@ -55,8 +55,11 @@ public class FaceTW001RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
 
         if (mapperContext.hasModeButNot(FaceTW001Modes.FaceTW0012AttachmentRestrictionMode.HIDE)) {
             faceTW001Service.loadRestriction(src);
-            dst.setRestrictionId(src.getConfig().getTwinAttachmentRestriction().getId());
-            attachmentRestrictionRestDTOMapper.postpone(src.getConfig().getTwinAttachmentRestriction(), mapperContext.forkOnPoint(FaceTW001Modes.FaceTW0012AttachmentRestrictionMode.SHOW));
+
+            if (src.getConfig().getTwinAttachmentRestriction() != null) {
+                dst.setRestrictionId(src.getConfig().getTwinAttachmentRestriction().getId());
+                attachmentRestrictionRestDTOMapper.postpone(src.getConfig().getTwinAttachmentRestriction(), mapperContext.forkOnPoint(FaceTW001Modes.FaceTW0012AttachmentRestrictionMode.SHOW));
+            }
         }
     }
 }
