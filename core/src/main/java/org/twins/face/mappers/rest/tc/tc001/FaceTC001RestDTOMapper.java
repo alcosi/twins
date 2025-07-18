@@ -27,9 +27,7 @@ public class FaceTC001RestDTOMapper extends RestSimpleDTOMapper<FaceTC001Entity,
     protected final FaceRestDTOMapper faceRestDTOMapper;
     private final I18nService i18nService;
     private final ResourceService resourceService;
-    private final FaceTC001Service faceTC001Service;
     private final FaceTwinPointerService faceTwinPointerService;
-    private final FaceTC001FieldRestDTOMapper faceTC001FieldRestDTOMapper;
 
     @MapperModePointerBinding(modes = FaceTC001Modes.FaceTC0012TwinClassMode.class)
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
@@ -42,7 +40,6 @@ public class FaceTC001RestDTOMapper extends RestSimpleDTOMapper<FaceTC001Entity,
                     .setKey(src.getKey());
             case DETAILED -> {
                 if (mapperContext.hasModeButNot(FaceTC001Modes.FaceTC0012TwinClassMode.HIDE)) {
-                    faceTC001Service.loadFields(src);
                     twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(FaceTC001Modes.FaceTC0012TwinClassMode.SHORT));
                 }
 
@@ -58,15 +55,8 @@ public class FaceTC001RestDTOMapper extends RestSimpleDTOMapper<FaceTC001Entity,
                         .setTwinClassId(src.getTwinClassId())
                         .setExtendsDepth(src.getExtendsDepth())
                         .setPointedHeadTwinId(headTwin == null ? null : headTwin.getId())
-                        .setFields(faceTC001FieldRestDTOMapper.convertCollection(src.getFields()));
+                        .setTwinClassFieldSearchId(src.getTwinClassFieldSearchId());
             }
-        }
-    }
-
-    @Override
-    public void beforeCollectionConversion(Collection<FaceTC001Entity> srcCollection, MapperContext mapperContext) throws ServiceException {
-        if (mapperContext.hasModeButNot(FaceTC001Modes.FaceTC0012TwinClassMode.HIDE)) {
-            faceTC001Service.loadFields(srcCollection);
         }
     }
 }
