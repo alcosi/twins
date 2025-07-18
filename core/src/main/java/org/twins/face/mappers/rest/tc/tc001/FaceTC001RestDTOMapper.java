@@ -14,6 +14,8 @@ import org.twins.face.dto.rest.tc.tc001.FaceTC001DTOv1;
 import org.twins.face.service.tc.FaceTC001OptionService;
 import org.twins.face.service.tc.FaceTC001Service;
 
+import java.util.Collection;
+
 
 @Component
 @RequiredArgsConstructor
@@ -45,5 +47,11 @@ public class FaceTC001RestDTOMapper extends RestSimpleDTOMapper<FaceTC001Entity,
                         .setOptions(faceTC001OptionRestDTOMapper.convertCollection(faceTC001OptionService.filterVariants(src.getOptions()), mapperContext));
             }
         }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<FaceTC001Entity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        faceTC001Service.loadOptions(srcCollection);
     }
 }
