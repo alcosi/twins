@@ -59,7 +59,7 @@ public class AttachementPublicController extends ApiController {
             authService.getApiUser().setAnonymousWithDefaultLocale();
             var file = attachmentService.getAttachmentFile(attachmentId);
             serverRs.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
-            serverRs.setHeader(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(file.originalFileName()).build().toString());
+            serverRs.setHeader(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.inline().filename(file.originalFileName()).build().toString());
             if (file.fileSize() > 0) {
                 serverRs.setHeader(HttpHeaders.CONTENT_LENGTH, file.fileSize() + "");
             }
