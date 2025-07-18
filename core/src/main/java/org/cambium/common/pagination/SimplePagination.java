@@ -12,6 +12,8 @@ public class SimplePagination {
     protected int limit;
     protected boolean sortAsc;
     protected String sortField;
+    //todo drop me when fix search v3
+    protected int totalElements = 0;
 
     public static final SimplePagination SINGLE = new SimplePagination().setLimit(1).setOffset(0);
 }
