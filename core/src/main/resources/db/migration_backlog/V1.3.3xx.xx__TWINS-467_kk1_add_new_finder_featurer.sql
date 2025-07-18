@@ -1,0 +1,1 @@
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (3205, 32, 'org.twins.core.featurer.fieldfinder.FieldFinderStub', 'Stub (does not return fields)', '', false) on conflict do nothing;
