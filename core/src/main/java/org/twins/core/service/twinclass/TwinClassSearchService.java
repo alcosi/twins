@@ -19,9 +19,10 @@ import org.twins.core.service.auth.AuthService;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.springframework.data.jpa.domain.Specification.where;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.twinclass.TwinClassSpecification.*;
 
 @Slf4j
@@ -37,6 +38,11 @@ public class TwinClassSearchService {
             twinClassSearch = new TwinClassSearch(); //no filters
         Page<TwinClassEntity> twinClassList = twinClassRepository.findAll(createTwinClassEntitySearchSpecification(twinClassSearch), PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(twinClassList, pagination);
+    }
+
+    public PaginationResult<TwinClassEntity> findTwinClasses(UUID searchId, TwinClassSearch narrow, SimplePagination pagination) throws ServiceException {
+        //todo implement configured search
+        return findTwinClasses(narrow, pagination);
     }
 
     public List<TwinClassEntity> searchTwinClasses(TwinClassSearch twinClassSearch) throws ServiceException {

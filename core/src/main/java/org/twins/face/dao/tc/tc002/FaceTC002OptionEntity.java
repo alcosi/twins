@@ -46,28 +46,19 @@ public class FaceTC002OptionEntity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "head_twin_pointer_id")
     private UUID headTwinPointerId;
 
-    @Column(name = "field_finder_featurer_id", nullable = false)
-    private Integer fieldFinderFeaturerId;
+    @Column(name = "twin_class_field_search_id")
+    private UUID twinClassFieldSearchId;
+
+    @Column(name = "label_i18n_id")
+    private UUID labelI18nId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
-    @Type(PostgreSQLHStoreType.class)
-    @Column(name = "field_finder_params", columnDefinition = "hstore")
-    private HashMap<String, String> fieldFinderParams;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "class_selector_label_i18n_id", insertable = false, updatable = false)
-    private I18nEntity classSelectorLabelI18n;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_class_id", nullable = false, insertable = false, updatable = false)
     private TwinClassEntity twinClass;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    private Kit<TwinClassFieldEntity, UUID> fields;
 
     @Override
     public String easyLog(EasyLoggable.Level level) {
