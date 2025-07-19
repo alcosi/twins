@@ -13,7 +13,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-@Table(name = "twin_field_boolean")
+@Table(name = "twin_field_twin_class")
 public class TwinFieldTwinClassEntity implements EasyLoggable {
 
     @Id
