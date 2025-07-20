@@ -82,7 +82,7 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
                 if ((null != decimalPlacesValue && parts.length > 1 && parts[1].length() > decimalPlacesValue))
                     throw new Exception();
                 double doubleValue = Double.parseDouble(finalValue);
-                if ((null != minValue && doubleValue < minValue) || (null != maxValue && doubleValue > maxValue))
+                if ((null != minValue && doubleValue <= minValue) || (null != maxValue && doubleValue >= maxValue))
                     throw new Exception();
             } // else value setting null
         } catch (Exception e) {

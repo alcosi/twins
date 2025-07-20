@@ -1,6 +1,5 @@
 package org.twins.core.dto.rest.twin;
 
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -12,15 +11,11 @@ import java.util.Set;
 @Accessors(fluent = true)
 @Schema(name = TwinFieldSearchTextDTOv1.KEY)
 public class TwinFieldSearchTextDTOv1 implements TwinFieldSearchDTOv1 {
-
     public static final String KEY = "TwinFieldSearchTextV1";
-
-    public TwinFieldSearchTextDTOv1() {
-        this.type = KEY;
+    @Override
+    public String type() {
+        return KEY;
     }
-
-    @Schema(description = "Search type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
-    public String type;
 
     @Schema(description = "Include like given strings. AND join. Add % symbols manual to use LIKE features.")
     public Set<String> valueLikeAllOfList;

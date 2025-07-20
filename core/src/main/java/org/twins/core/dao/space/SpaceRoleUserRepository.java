@@ -10,6 +10,7 @@ import org.twins.core.dao.user.UserEntity;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -27,4 +28,5 @@ public interface SpaceRoleUserRepository extends CrudRepository<SpaceRoleUserEnt
     @Query("DELETE FROM SpaceRoleUserEntity sru WHERE sru.spaceRoleId = :roleId AND sru.twinId = :spaceId AND sru.userId IN :userIds")
     void deleteBySpaceIdAndSpaceRoleIdAndUserIdIn(@Param("spaceId") UUID spaceId, @Param("roleId") UUID roleId, @Param("userIds") Collection<UUID> userIds);
 
+    List<SpaceRoleUserEntity> findByTwinIdIn(Set<UUID> spaceSet);
 }

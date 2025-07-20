@@ -10,17 +10,10 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  HistoryContextAttachmentDTOv1.KEY)
+@Schema(name =  "HistoryContextAttachmentV1")
 public class HistoryContextAttachmentDTOv1 implements HistoryContextDTO {
-
-    public static final String KEY = "HistoryContextAttachmentV1";
-
-    public HistoryContextAttachmentDTOv1() {
-        this.contextType = KEY;
-    }
-
-    @Schema(description = "Context type", allowableValues = {KEY}, example = KEY, requiredMode = Schema.RequiredMode.REQUIRED)
-    public String contextType;
+    public static final String KEY = "attachmentV1";
+    public String contextType = KEY;
 
     @Schema(description = "Attachment id", example = DTOExamples.ATTACHMENT_ID)
     public UUID attachmentId;

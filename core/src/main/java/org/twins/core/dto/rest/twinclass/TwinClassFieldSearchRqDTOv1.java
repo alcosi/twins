@@ -8,10 +8,11 @@ import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
+@Deprecated
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
