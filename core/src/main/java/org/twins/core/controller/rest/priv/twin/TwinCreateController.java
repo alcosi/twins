@@ -33,6 +33,7 @@ import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twin.TwinSketchService;
 import org.twins.core.service.user.UserService;
 
 import java.util.ArrayList;
@@ -46,6 +47,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_CREATE})
 public class TwinCreateController extends ApiController {
+    private final TwinSketchService twinSketchService;
     private final AuthService authService;
     private final TwinService twinService;
     private final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
@@ -147,11 +149,16 @@ public class TwinCreateController extends ApiController {
     protected ResponseEntity<Response> createTwinV2(TwinCreateRqDTOv2 request, Map<String, MultipartFile> filesMap) {
         TwinCreateRsDTOv1 rs = new TwinCreateRsDTOv1();
         try {
-            attachmentCreateRestDTOReverseMapper.preProcessAttachments(request.attachments, filesMap);
-            TwinCreate twinCreate = twinCreateRqRestDTOReverseMapper.convert(request).setCheckCreatePermission(true);
-            rs = twinCreateRsRestDTOMapper
-                    .convert(twinService
-                            .createTwin(twinCreate));
+            if (Boolean.FALSE.equals(request.isSketch)) {
+                attachmentCreateRestDTOReverseMapper.preProcessAttachments(request.attachments, filesMap);
+                TwinCreate twinCreate = twinCreateRqRestDTOReverseMapper.convert(request).setCheckCreatePermission(true);
+                rs = twinCreateRsRestDTOMapper
+                        .convert(twinService
+                                .createTwin(twinCreate));
+            } else {
+                TwinCreate twinCreates = twinCreateRqRestDTOReverseMapper.convert(request);
+                twinSketchService.createTwinSketch(twinCreates);
+            }
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
