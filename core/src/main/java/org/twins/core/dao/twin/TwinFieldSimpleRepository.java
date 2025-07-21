@@ -15,6 +15,7 @@ import java.util.UUID;
 @Repository
 public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpleEntity, UUID>, JpaSpecificationExecutor<TwinFieldSimpleEntity> {
 
+    List<TwinFieldSimpleEntity> findByTwinIdInAndTwinClassFieldIdIn(Collection<UUID> twinIdSet, Collection<UUID> twinClassFieldIds);
     boolean existsByTwinClassFieldId(UUID twinClassFieldId);
     boolean existsByTwinClassFieldIdAndValue(UUID twinClassFieldId, String value);
 

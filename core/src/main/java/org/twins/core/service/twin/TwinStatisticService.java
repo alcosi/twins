@@ -3,16 +3,21 @@ package org.twins.core.service.twin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinRepository;
+import org.twins.core.dao.statistic.TwinStatisticEntity;
+import org.twins.core.dao.statistic.TwinStatisticRepository;
 import org.twins.core.domain.statistic.TwinStatisticProgressPercent;
+import org.twins.core.featurer.statistic.Statister;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 
 
@@ -20,44 +25,37 @@ import java.util.function.Function;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TwinStatisticService extends EntitySecureFindServiceImpl<TwinEntity> {
-
-    private final TwinRepository twinRepository;
+public class TwinStatisticService extends EntitySecureFindServiceImpl<TwinStatisticEntity> {
+    @Autowired
+    private TwinStatisticRepository twinStatisticRepository;
+    @Autowired
+    private FeaturerService featurerService;
 
     @Override
-    public CrudRepository<TwinEntity, UUID> entityRepository() {
-        return twinRepository;
+    public CrudRepository<TwinStatisticEntity, UUID> entityRepository() {
+        return twinStatisticRepository;
     }
 
     @Override
-    public Function<TwinEntity, UUID> entityGetIdFunction() {
-        return TwinEntity::getId;
+    public Function<TwinStatisticEntity, UUID> entityGetIdFunction() {
+        return TwinStatisticEntity::getId;
     }
 
     @Override
-    public boolean isEntityReadDenied(TwinEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+    public boolean isEntityReadDenied(TwinStatisticEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        //todo impl me check domain
         return false;
     }
 
     @Override
-    public boolean validateEntity(TwinEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+    public boolean validateEntity(TwinStatisticEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
     }
 
     public Map<UUID, TwinStatisticProgressPercent> calcStatistic(UUID statisticId, Set<UUID> twinIdSet) throws Exception {
-        //todo mock object
-        TwinStatisticProgressPercent.Item item = new TwinStatisticProgressPercent.Item()
-                .setLabel("In progress")
-                .setKey("inProgress")
-                .setPercent(30)
-                .setColorHex("#22FF00");
-        TwinStatisticProgressPercent statistic = new TwinStatisticProgressPercent()
-                .setItems(List.of(item));
-        Map<UUID, TwinStatisticProgressPercent> statisticMap = new HashMap<>();
-        for (UUID uuid : twinIdSet) {
-            statisticMap.put(uuid, statistic);
-        }
-        return statisticMap;
+        TwinStatisticEntity statisticEntity = findEntitySafe(statisticId);
+        Statister<?> statister = featurerService.getFeaturer(statisticEntity.getStatisterFeaturerId(), Statister.class);
+        return (Map<UUID, TwinStatisticProgressPercent>) statister.getStatistic(twinIdSet, statisticEntity.getStatisterParams());
     }
 
 }
