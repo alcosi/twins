@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.Request;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name =  "TwinClassFieldSearchConfiguredRqV1")
+@Schema(name =  "TwinClassFieldSearchRqV2")
 public class TwinClassFieldSearchConfiguredRqDTOv1 extends Request {
     @Schema(description = "search narrow")
     public TwinClassFieldSearchDTOv1 narrow;
