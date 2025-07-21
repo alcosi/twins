@@ -82,54 +82,80 @@ $$
     END
 $$;
 
-create table if not exists twin_factory_task_status
+create table if not exists twin_change_task_status
 (
     id varchar(20) not null
-        constraint twin_factory_task_status_pk
+        constraint twin_change_task_status_pk
             primary key
 );
 
-create table if not exists twin_factory_task
+insert into twin_change_task_status values ('NEED_START') on conflict do nothing;
+insert into twin_change_task_status values ('IN_PROGRESS') on conflict do nothing;
+insert into twin_change_task_status values ('DONE') on conflict do nothing;
+insert into twin_change_task_status values ('FAILED') on conflict do nothing;
+
+create table if not exists twin_factory_launcher
 (
-    id                          uuid
-        constraint twin_factory_task_pk
-            primary key,
-    twin_factory_id             uuid                                not null
-        constraint twin_factory_task_twin_factory_id_fk
-            references twin_factory
-            on update cascade on delete cascade,
-    input_twin_id               uuid                                not null
-        constraint twin_factory_task_twin_id_fk
-            references twin,
-    created_by_user_id                     uuid                                not null
-        constraint twin_factory_task_created_by_user_id_fk
-            references "user",
-    business_account_id                     uuid                                not null
-        constraint twin_factory_task_business_account_id_fk
-            references business_account,
-    twin_factory_task_status_id varchar(20)                         not null
-        constraint twin_factory_task_twin_factory_task_status_id_fk
-            references twin_factory_task_status
-            on update cascade on delete restrict,
-    twin_factory_task_status_details varchar,
-    created_at                  timestamp default current_timestamp not null,
-    done_at                     timestamp
+    id varchar(20) not null
+        constraint twin_factory_launcher_pk
+            primary key
 );
 
-create index if not exists twin_factory_task_input_twin_id_index
-    on twin_factory_task (input_twin_id);
+insert into twin_factory_launcher values ('transition') on conflict do nothing ;
+insert into twin_factory_launcher values ('targetDeletion') on conflict do nothing ;
+insert into twin_factory_launcher values ('cascadeDeletion') on conflict do nothing ;
+insert into twin_factory_launcher values ('beforeTwinCreate') on conflict do nothing ;
+insert into twin_factory_launcher values ('beforeTwinUpdate') on conflict do nothing ;
+insert into twin_factory_launcher values ('beforeTwinSketch') on conflict do nothing ;
+insert into twin_factory_launcher values ('afterTwinCreate') on conflict do nothing ;
+insert into twin_factory_launcher values ('afterTwinUpdate') on conflict do nothing ;
+insert into twin_factory_launcher values ('afterTwinSketch') on conflict do nothing ;
 
-create index if not exists twin_factory_task_twin_factory_id_index
-    on twin_factory_task (twin_factory_id);
+create table if not exists twin_change_task
+(
+    id                          uuid
+        constraint twin_change_task_pk
+            primary key,
+    twin_id               uuid                                not null
+        constraint twin_change_task_twin_id_fk
+            references twin,
+    twin_factory_id             uuid                                not null
+        constraint twin_change_task_twin_factory_id_fk
+            references twin_factory
+            on update cascade on delete cascade,
+    twin_factory_launcher_id      varchar(20)                         not null
+        constraint twin_change_task_twin_factory_launcher_id_fk
+            references twin_factory_launcher
+            on update cascade on delete restrict,
+    created_by_user_id              uuid                                not null
+        constraint twin_change_task_created_by_user_id_fk
+            references "user",
+    business_account_id             uuid
+        constraint twin_change_task_business_account_id_fk
+            references business_account,
+    twin_change_task_status_id      varchar(20)                         not null
+        constraint twin_change_task_twin_change_task_status_id_fk
+            references twin_change_task_status
+            on update cascade on delete restrict,
+    twin_change_task_status_details varchar,
+    created_at                      timestamp default current_timestamp not null,
+    done_at                         timestamp
+);
 
-create index if not exists twin_factory_task_created_by_user_id_index
-    on twin_factory_task (created_by_user_id);
+create index if not exists twin_change_task_input_twin_id_index
+    on twin_change_task (twin_id);
 
-create index if not exists twin_factory_task_business_account_id_index
-    on twin_factory_task (business_account_id);
+create index if not exists twin_change_task_twin_factory_id_index
+    on twin_change_task (twin_factory_id);
 
-create index if not exists twin_factory_task_twin_factory_task_status_id_index
-    on twin_factory_task (twin_factory_task_status_id);
+create index if not exists twin_change_task_created_by_user_id_index
+    on twin_change_task (created_by_user_id);
+
+create index if not exists twin_change_task_business_account_id_index
+    on twin_change_task (business_account_id);
+
+create index if not exists twin_change_task_twin_change_task_status_id_index
+    on twin_change_task (twin_change_task_status_id);
 
 
 

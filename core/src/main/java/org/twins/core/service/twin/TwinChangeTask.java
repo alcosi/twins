@@ -7,9 +7,9 @@ import org.cambium.common.util.LoggerUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.factory.TwinFactoryTaskStatus;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
 import org.twins.core.dao.twin.TwinChangeTaskRepository;
+import org.twins.core.dao.twin.TwinChangeTaskStatus;
 import org.twins.core.domain.factory.FactoryBranchId;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryLauncher;
@@ -48,13 +48,13 @@ public class TwinChangeTask implements Runnable {
             LoggerUtils.logSession();
             LoggerUtils.logController("twinChangeTask$");
             LoggerUtils.logPrefix("CHANGE_TASK[" + twinChangeTaskEntity.getId() + "]:");
-            log.info("Performing async twin change run: {}", twinChangeTaskEntity.logNormal());
-            if (twinChangeTaskEntity.getInputTwin().getTwinClass().getDomainId() == null) {
-                throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "can not detect domain from input " + twinChangeTaskEntity.getInputTwin().logNormal());
+            log.info("Performing async twin change run: {}", twinChangeTaskEntity.logDetailed());
+            if (twinChangeTaskEntity.getTwin().getTwinClass().getDomainId() == null) {
+                throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "can not detect domain from input " + twinChangeTaskEntity.getTwin().logNormal());
             }
-            authService.setThreadLocalApiUser(twinChangeTaskEntity.getInputTwin().getTwinClass().getDomainId(), twinChangeTaskEntity.getBusinessAccountId(), twinChangeTaskEntity.getCreatedByUserId());
+            authService.setThreadLocalApiUser(twinChangeTaskEntity.getTwin().getTwinClass().getDomainId(), twinChangeTaskEntity.getBusinessAccountId(), twinChangeTaskEntity.getCreatedByUserId());
             FactoryContext factoryContext = new FactoryContext(FactoryLauncher.beforeTwinUpdate, FactoryBranchId.root(twinChangeTaskEntity.getTwinFactoryId()))
-                    .setInputTwinList(Collections.singletonList(twinChangeTaskEntity.getInputTwin()));
+                    .setInputTwinList(Collections.singletonList(twinChangeTaskEntity.getTwin()));
 //                    .setFields(transitionContext.getFields())
 //                    .setAttachmentCUD(transitionContext.getAttachmentCUD())
 //                    .setBasics(transitionContext.getBasics());
@@ -62,19 +62,25 @@ public class TwinChangeTask implements Runnable {
             if (CollectionUtils.isNotEmpty(result.getDeletes())) {
                 throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "deletes are currently not supported by  tasks");
             }
+            for (var twinCreate : result.getCreates() ) {
+                twinCreate.setCanTriggerAfterOperationFactory(false);
+            }
+            for (var twinUpdate : result.getUpdates() ) {
+                twinUpdate.setCanTriggerAfterOperationFactory(false);
+            }
             twinFactoryService.commitResult(result);
             twinChangeTaskEntity
-                    .setStatusId(TwinFactoryTaskStatus.DONE)
+                    .setStatusId(TwinChangeTaskStatus.DONE)
                     .setDoneAt(Timestamp.from(Instant.now()));
         } catch (ServiceException e) {
             log.error(e.log());
             twinChangeTaskEntity
-                    .setStatusId(TwinFactoryTaskStatus.FAILED)
+                    .setStatusId(TwinChangeTaskStatus.FAILED)
                     .setStatusDetails(e.log());
         } catch (Throwable e) {
             log.error("Exception: ", e);
             twinChangeTaskEntity
-                    .setStatusId(TwinFactoryTaskStatus.FAILED)
+                    .setStatusId(TwinChangeTaskStatus.FAILED)
                     .setStatusDetails(e.getMessage());
         } finally {
             authService.removeThreadLocalApiUser();

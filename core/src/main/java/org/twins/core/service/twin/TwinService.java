@@ -403,15 +403,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     private void runFactoryAfterCreate(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (!twinCreate.isCanTriggerAfterOperationFactory())
+            return;
         TwinEntity twinEntity = twinCreate.getTwinEntity();
         twinflowService.loadTwinflow(twinEntity);
         UUID factoryId = twinCreate.isSketchMode() ? twinEntity.getTwinflow().getAfterSketchTwinFactoryId() : twinEntity.getTwinflow().getAfterCreateTwinFactoryId();
         if (factoryId == null)
             return;
-        twinChangesCollector.add(new TwinChangeTaskEntity()
-                .setTwinFactoryId(factoryId)
-                .setInputTwin(twinEntity)
-                .setInputTwinId(twinEntity.getId()));
+        twinChangesCollector.addPostponedChange(twinEntity.getId(), factoryId);
     }
 
     private void setHeadSafe(TwinEntity twinEntity) throws ServiceException {
@@ -658,6 +657,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinMarkerService.addMarkers(twinUpdate.getDbTwinEntity(), twinUpdate.getMarkersAdd(), twinChangesCollector);
         twinMarkerService.deleteMarkers(twinUpdate.getDbTwinEntity(), twinUpdate.getMarkersDelete(), twinChangesCollector);
         twinTagService.updateTwinTags(twinUpdate.getDbTwinEntity(), twinUpdate.getTagsDelete(), twinUpdate.getTagsAddNew(), twinUpdate.getTagsAddExisted(), twinChangesCollector);
+        runFactoryAfterUpdate(twinUpdate, twinChangesCollector);
     }
 
     private void runFactoryBeforeUpdate(TwinUpdate twinUpdate) throws ServiceException {
@@ -673,6 +673,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             log.warn("During twin update factory[{}] operation, some extra twins where modified, but they won't be saved. " +
                     "Only current twin modification will make sense", onUpdateTwinFactoryId);
         }
+    }
+
+    private void runFactoryAfterUpdate(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (!twinUpdate.isCanTriggerAfterOperationFactory())
+            return;
+        TwinEntity twinEntity = twinUpdate.getDbTwinEntity();
+        twinflowService.loadTwinflow(twinEntity);
+        UUID factoryId = twinEntity.getTwinflow().getAfterUpdateTwinFactoryId();
+        if (factoryId == null)
+            return;
+        twinChangesCollector.addPostponedChange(twinEntity.getId(), factoryId);
     }
 
     public void updateTwinBasics(ChangesRecorder<TwinEntity, ?> changesRecorder) throws ServiceException {

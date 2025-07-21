@@ -1,9 +1,9 @@
-package org.twins.core.dao.factory;
+package org.twins.core.dao.twin;
 
 import lombok.Getter;
 
 @Getter
-public enum TwinFactoryTaskStatus {
+public enum TwinChangeTaskStatus {
     NEED_START,
     IN_PROGRESS,
     DONE,

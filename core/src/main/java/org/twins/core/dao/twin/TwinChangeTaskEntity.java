@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.dao.factory.TwinFactoryTaskStatus;
+import org.twins.core.domain.factory.FactoryLauncher;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -20,11 +20,15 @@ public class TwinChangeTaskEntity implements EasyLoggable {
     @GeneratedValue(generator = "uuid")
     private UUID id;
 
-    @Column(name = "input_twin_id")
-    private UUID inputTwinId;
+    @Column(name = "twin_id")
+    private UUID twinId;
 
     @Column(name = "twin_factory_id")
     private UUID twinFactoryId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "twin_factory_launcher")
+    private FactoryLauncher launcher;
 
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
@@ -33,10 +37,10 @@ public class TwinChangeTaskEntity implements EasyLoggable {
     private UUID businessAccountId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "twin_factory_task_status_id")
-    private TwinFactoryTaskStatus statusId;
+    @Column(name = "twin_change_task_status_id")
+    private TwinChangeTaskStatus statusId;
 
-    @Column(name = "twin_factory_task_status_details")
+    @Column(name = "twin_change_task_status_details")
     private String statusDetails;
 
     @Column(name = "created_at")
@@ -46,11 +50,16 @@ public class TwinChangeTaskEntity implements EasyLoggable {
     private Timestamp doneAt;
 
     @ManyToOne
-    @JoinColumn(name = "input_twin_id", insertable = false, updatable = false, nullable = false)
-    private TwinEntity inputTwin;
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
+    private TwinEntity twin;
 
     @Override
     public String easyLog(Level level) {
-        return "twinFactoryTask[id:" + id + "]";
+        return switch (level) {
+            case NORMAL -> "twinChangeTask[id:" + id + ", twinId:" + twinId + ", factoryId:" + twinFactoryId + "]";
+            case DETAILED ->
+                    "twinChangeTask[id:" + id + ", twinId:" + twinId + ", factoryId:" + twinFactoryId + ", userId:" + createdByUserId + ", businessAccountId:" + businessAccountId + "]";
+            default -> "twinChangeTask[id:" + id + "]";
+        };
     }
 }
