@@ -1,5 +1,8 @@
 package org.twins.core.featurer.storager.s3;
 
+import io.github.breninsul.springHttpMessageConverter.inputStream.ContentDispositionType;
+import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
+import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponseMinIOExtensionKt;
 import io.minio.*;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -134,12 +137,12 @@ public class StoragerS3StaticController extends StoragerAbstractChecked {
     }
 
     @Override
-    public InputStream getFileAsStream(String fileKey, HashMap<String, String> params) throws ServiceException {
+    public InputStreamResponse getFileAsStream(String fileKey, HashMap<String, String> params) throws ServiceException {
         try {
             MinioClient s3Client = getS3MinioClient(params);
             Properties properties = extractProperties(params, false);
             GetObjectResponse object = s3Client.getObject(GetObjectArgs.builder().bucket(s3Bucket.extract(properties)).object(fileKey).build());
-            return object;
+            return InputStreamResponseMinIOExtensionKt.toMinIOResource(object, null, true, ContentDispositionType.INLINE, true);
         } catch (Throwable t) {
             throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Unable to get file from S3");
         }
@@ -165,8 +168,7 @@ public class StoragerS3StaticController extends StoragerAbstractChecked {
         String baseLocalPathString = addSlashAtTheEndIfNeeded(basePath.extract(properties));
         String key = baseLocalPathString
                 .replace("{domainId}", domainId)
-                .replace("{businessAccountId}", businessAccount) + fileId.toString()
-                .replaceAll("\\/+", "/");
-        return key;
+                .replace("{businessAccountId}", businessAccount) + fileId.toString();
+        return removeDoubleSlashes(key);
     }
 }
