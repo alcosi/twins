@@ -2,6 +2,7 @@ package org.twins.core.service.factory;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LoggerUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -51,12 +52,15 @@ public class FactoryTask implements Runnable {
                 throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "can not detect domain from input " + factoryTaskEntity.getInputTwin().logNormal());
             }
             authService.setThreadLocalApiUser(factoryTaskEntity.getInputTwin().getTwinClass().getDomainId(), factoryTaskEntity.getBusinessAccountId(), factoryTaskEntity.getCreatedByUserId());
-            FactoryContext factoryContext = new FactoryContext(FactoryLauncher.twinUpdate, FactoryBranchId.root(factoryTaskEntity.getTwinFactoryId()))
+            FactoryContext factoryContext = new FactoryContext(FactoryLauncher.beforeTwinUpdate, FactoryBranchId.root(factoryTaskEntity.getTwinFactoryId()))
                     .setInputTwinList(Collections.singletonList(factoryTaskEntity.getInputTwin()));
 //                    .setFields(transitionContext.getFields())
 //                    .setAttachmentCUD(transitionContext.getAttachmentCUD())
 //                    .setBasics(transitionContext.getBasics());
             FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(factoryTaskEntity.getTwinFactoryId(), factoryContext);
+            if (CollectionUtils.isNotEmpty(result.getDeletes())) {
+                throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "deletes are currently not supported by factoru tasks");
+            }
             twinFactoryService.commitResult(result);
             factoryTaskEntity
                     .setStatusId(TwinFactoryTaskStatus.DONE)
