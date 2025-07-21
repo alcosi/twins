@@ -312,6 +312,10 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    private Kit<TwinFieldTwinClassListEntity, UUID> twinFieldTwinClassListKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
     private Kit<TwinAliasEntity, TwinAliasType> twinAliases;
 
     @Transient

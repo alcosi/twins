@@ -53,4 +53,7 @@ public interface TwinClassRepository extends CrudRepository<TwinClassEntity, UUI
     boolean existsByDomainIdAndKey(UUID domainId, String key);
 
     List<TwinClassEntity> findByIdIn(Collection<UUID> ids);
+
+    @Query(value = "select count(distinct tc.id)=?#{#twinClassIds.size()} from TwinClassEntity tc where tc.id in :twinClassIds")
+    boolean existsAll(@Param("twinClassIds") List<UUID> twinClassIds);
 }

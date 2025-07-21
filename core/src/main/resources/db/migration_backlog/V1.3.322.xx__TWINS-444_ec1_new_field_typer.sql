@@ -1,15 +1,24 @@
 insert into featurer (id, featurer_type_id, class, name, description, deprecated)
-values (1334, 13, 'org.twins.core.featurer.fieldtyper.FieldTyperTwinClassIdField', 'Twin class id field', 'Field typer for twin class id field', false)
+values (1334, 13, 'org.twins.core.featurer.fieldtyper.FieldTyperTwinClassListFieldld', 'Twin class list field', 'Field typer for twin class list field', false)
 on conflict do nothing;
 
-create table if not exists twin_field_twin_class
+
+create table if not exists twin_field_twin_class_list
 (
     id                  UUID primary key,
     twin_id             UUID not null references twin (id) on update cascade on delete cascade,
-    twin_class_field_id UUID not null references  twin_class_field (id) on update cascade on delete cascade,
-    value               UUID
+    twin_class_field_id UUID not null references  twin_class_field (id) on update cascade on delete cascade
 );
 
-create index if not exists twin_field_twin_class_twin_class_field_id_value_index ON twin_field_twin_class (twin_class_field_id, value);
-create index if not exists twin_field_twin_class_twin_class_field_id_twin_id_uindex ON twin_field_twin_class (twin_id, twin_class_field_id);
+create index if not exists twin_field_twin_class_list_twin_class_field_id_idx
+    on twin_field_twin_class_list (twin_class_field_id);
+create unique index if not exists twin_field_twin_class_list_twin_class_field_id_twin_id_uidx
+    on twin_field_twin_class_list (twin_id, twin_class_field_id);
+
+
+alter table twin_class
+    add column if not exists twin_field_twin_class_id uuid references twin_field_twin_class_list on update cascade;
+
+create index if not exists twin_class_twin_field_twin_class_id
+    on twin_class (twin_field_twin_class_id);
 

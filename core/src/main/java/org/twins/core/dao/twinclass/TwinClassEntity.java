@@ -28,6 +28,7 @@ import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.twin.TwinFieldTwinClassListEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
@@ -162,6 +163,10 @@ public class TwinClassEntity implements EasyLoggable {
 //    @ManyToOne
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
 //    private DomainEntity domain;
+
+    @ManyToOne
+    @JoinColumn(name = "twin_field_twin_class_id", insertable = false, updatable = false)
+    private TwinFieldTwinClassListEntity twinFieldTwinClassListEntity;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)

@@ -906,6 +906,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 .setValue(value);
     }
 
+    public TwinFieldTwinClassListEntity createTwinFieldTwinClassEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, List<TwinClassEntity> value) {
+        return new TwinFieldTwinClassListEntity()
+                .setTwinClassField(twinClassFieldEntity)
+                .setTwinClassFieldId(twinClassFieldEntity.getId())
+                .setTwin(twinEntity)
+                .setTwinId(twinEntity.getId())
+                .setValue(value);
+    }
+
     public TwinEntity duplicateTwin(UUID srcTwinId, UUID newTwinId) throws ServiceException {
         return duplicateTwin(
                 findEntity(srcTwinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.none),
@@ -1015,6 +1024,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             fieldValue = new FieldValueI18n(twinClassFieldEntity);
         if (fieldTyper.getValueType() == FieldValueBoolean.class)
             fieldValue = new FieldValueBoolean(twinClassFieldEntity);
+        if (fieldTyper.getValueType() == FieldValueTwinClassList.class)
+            fieldValue = new FieldValueTwinClassList(twinClassFieldEntity);
         if (fieldValue == null)
             throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "unknown fieldValue[" + fieldTyper.getValueType() + "]");
 
@@ -1034,6 +1045,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             fieldValueDate.setDate(value);
         if (fieldValue instanceof FieldValueBoolean fieldValueBoolean)
             fieldValueBoolean.setValue(Boolean.parseBoolean(value));
+        if (fieldValue instanceof FieldValueTwinClassList fieldValueTwinClassList) {
+
+        }
         if (fieldValue instanceof FieldValueSelect fieldValueSelect) {
             for (String dataListOption : value.split(FieldTyperList.LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(dataListOption)) continue;

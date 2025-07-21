@@ -5,16 +5,18 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
+import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-@Table(name = "twin_field_twin_class")
-public class TwinFieldTwinClassEntity implements EasyLoggable {
+@Table(name = "twin_field_twin_class_list")
+public class TwinFieldTwinClassListEntity implements EasyLoggable {
 
     @Id
     private UUID id;
@@ -32,8 +34,9 @@ public class TwinFieldTwinClassEntity implements EasyLoggable {
     @Column(name = "twin_class_field_id")
     private UUID twinClassFieldId;
 
-    @Column(name = "value")
-    private UUID value;
+    @OneToMany
+    @JoinColumn(name = "twin_field_twin_class_id")
+    private List<TwinClassEntity> value;
 
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
@@ -48,8 +51,8 @@ public class TwinFieldTwinClassEntity implements EasyLoggable {
         return "twinFieldTwinClass[id:" + id + "]";
     }
 
-    public TwinFieldTwinClassEntity cloneFor(TwinEntity dstTwinEntity) {
-        return new TwinFieldTwinClassEntity()
+    public TwinFieldTwinClassListEntity cloneFor(TwinEntity dstTwinEntity) {
+        return new TwinFieldTwinClassListEntity()
                 .setTwin(dstTwinEntity)
                 .setTwinId(dstTwinEntity.getId())
                 .setTwinClassField(twinClassField)

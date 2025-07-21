@@ -53,7 +53,7 @@ public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolea
     @Override
     protected FieldValueBoolean deserializeValue(Properties properties, TwinField twinField, TwinFieldBooleanEntity twinFieldBooleanEntity) throws ServiceException {
         return new FieldValueBoolean(twinField.getTwinClassField())
-                .setValue(twinFieldBooleanEntity != null && twinFieldBooleanEntity.getValue() != null ? twinFieldBooleanEntity.getValue() : null);
+                .setValue(twinFieldBooleanEntity != null ? twinFieldBooleanEntity.getValue() : null);
     }
 
     @Override

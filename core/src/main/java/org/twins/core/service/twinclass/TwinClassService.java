@@ -851,4 +851,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
         return ret;
     }
+
+    public boolean allExist(List<UUID> twinClassIds) {
+        return twinClassRepository.existsAll(twinClassIds);
+    }
 }
