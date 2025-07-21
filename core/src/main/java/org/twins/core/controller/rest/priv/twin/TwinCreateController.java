@@ -149,15 +149,16 @@ public class TwinCreateController extends ApiController {
     protected ResponseEntity<Response> createTwinV2(TwinCreateRqDTOv2 request, Map<String, MultipartFile> filesMap) {
         TwinCreateRsDTOv1 rs = new TwinCreateRsDTOv1();
         try {
-            if (Boolean.FALSE.equals(request.isSketch)) {
+            //todo move this logic to service level
+            if (Boolean.TRUE.equals(request.isSketch)) {
+                TwinCreate twinCreates = twinCreateRqRestDTOReverseMapper.convert(request);
+                twinSketchService.createTwinSketch(twinCreates);
+            } else {
                 attachmentCreateRestDTOReverseMapper.preProcessAttachments(request.attachments, filesMap);
                 TwinCreate twinCreate = twinCreateRqRestDTOReverseMapper.convert(request).setCheckCreatePermission(true);
                 rs = twinCreateRsRestDTOMapper
                         .convert(twinService
                                 .createTwin(twinCreate));
-            } else {
-                TwinCreate twinCreates = twinCreateRqRestDTOReverseMapper.convert(request);
-                twinSketchService.createTwinSketch(twinCreates);
             }
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
