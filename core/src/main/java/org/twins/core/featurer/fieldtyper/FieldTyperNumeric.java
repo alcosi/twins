@@ -86,7 +86,8 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
                     throw new Exception();
                 }
                 double doubleValue = Double.parseDouble(finalValue);
-                if ((null != minValue && doubleValue <= minValue) || (null != maxValue && doubleValue >= maxValue))
+                if ((null != minValue && doubleValue < minValue) || (null != maxValue && doubleValue > maxValue)) {
+                    log.error("FieldTyperNumeric: value[" + value.getValue() + "] is less minimum value or greater then max value");
                     throw new Exception();
                 }
             } // else value setting null
