@@ -27,8 +27,8 @@ public class TwinChangeTaskEntity implements EasyLoggable {
     private UUID twinFactoryId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "twin_factory_launcher")
-    private FactoryLauncher launcher;
+    @Column(name = "twin_factory_launcher_id")
+    private FactoryLauncher twinFactorylauncher;
 
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;

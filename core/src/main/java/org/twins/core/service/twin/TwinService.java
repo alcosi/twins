@@ -410,7 +410,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         UUID factoryId = twinCreate.isSketchMode() ? twinEntity.getTwinflow().getAfterSketchTwinFactoryId() : twinEntity.getTwinflow().getAfterCreateTwinFactoryId();
         if (factoryId == null)
             return;
-        twinChangesCollector.addPostponedChange(twinEntity.getId(), factoryId);
+        twinChangesCollector.addPostponedChange(twinEntity.getId(), factoryId, FactoryLauncher.afterTwinCreate);
     }
 
     private void setHeadSafe(TwinEntity twinEntity) throws ServiceException {
@@ -683,7 +683,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         UUID factoryId = twinEntity.getTwinflow().getAfterUpdateTwinFactoryId();
         if (factoryId == null)
             return;
-        twinChangesCollector.addPostponedChange(twinEntity.getId(), factoryId);
+        twinChangesCollector.addPostponedChange(twinEntity.getId(), factoryId, FactoryLauncher.afterTwinUpdate);
     }
 
     public void updateTwinBasics(ChangesRecorder<TwinEntity, ?> changesRecorder) throws ServiceException {

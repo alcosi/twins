@@ -2,10 +2,12 @@ package org.twins.core.domain;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.ChangesHelper;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 import org.twins.core.dao.twin.*;
+import org.twins.core.domain.factory.FactoryLauncher;
 import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
 
@@ -17,7 +19,7 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
     private final HistoryCollectorMultiTwin historyCollector = new HistoryCollectorMultiTwin();
     private boolean historyCollectorEnabled = true; // in some cases we do not need to collect history changes (before drafting for example, currently we do not collect history, only after )
     private final Map<Object, Set<TwinInvalidate>> invalidationMap = new HashMap<>();
-    private final Map<UUID, UUID> postponedChanges = new HashMap<>();
+    private final Map<UUID, Pair<UUID, FactoryLauncher>> postponedChanges = new HashMap<>();
 
     public TwinChangesCollector() {
         super();
@@ -90,11 +92,11 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         }
     }
 
-    public TwinChangesCollector addPostponedChange(UUID twinId, UUID twinFactoryId) {
+    public TwinChangesCollector addPostponedChange(UUID twinId, UUID twinFactoryId, FactoryLauncher factoryLauncher) {
         if (postponedChanges.containsKey(twinId) && !postponedChanges.get(twinId).equals(twinFactoryId)) {
             log.warn("twin[{}] already has postponed changes by factory[{}]. Skipping changes by factory[{}]", twinId, postponedChanges.get(twinId), twinFactoryId);
         }
-        postponedChanges.put(twinId, twinFactoryId);
+        postponedChanges.put(twinId, Pair.of(twinFactoryId, factoryLauncher));
         return this;
     }
 

@@ -17,7 +17,7 @@ public abstract class TwinSave extends TwinOperation {
     protected Set<UUID> tagsAddExisted;
     //this flag helps to simply avoid recursion factory task call during creates/updates,
     //so currently we do not support cascade factory call during such operations
-    private boolean canTriggerAfterOperationFactory = false;
+    private boolean canTriggerAfterOperationFactory = true;
 
     public TwinSave addField(FieldValue fieldValue) {
         if (fields == null)
