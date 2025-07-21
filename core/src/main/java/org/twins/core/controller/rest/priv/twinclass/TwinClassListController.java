@@ -114,7 +114,7 @@ public class TwinClassListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinClassSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/twin_class/search/{searchId}/v2")
+    @PostMapping(value = "/private/twin_class/search/{searchId}/v1")
     public ResponseEntity<?> twinClassSearchConfiguredV1(
             @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams(sortField = TwinClassEntity.Fields.key) SimplePagination pagination,
