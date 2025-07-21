@@ -18,14 +18,14 @@ public class FaceTC001DTOv1 extends FaceDTOv1 {
     @Schema(description = "uniq key")
     public String key;
 
-    @Schema(description = "class selector label")
-    public String classSelectorLabel;
-
     @Schema(description = "save button label")
     public String saveButtonLabel;
 
     @Schema(description = "header")
-    public String header;
+    public String headerLabel;
+
+    @Schema(description = "optionSelectLabel")
+    public String optionSelectLabel;
 
     @Schema(description = "Header icon url. Might be relative")
     public String icon;
@@ -33,15 +33,12 @@ public class FaceTC001DTOv1 extends FaceDTOv1 {
     @Schema(description = "Style classes")
     public Set<String> styleClasses;
 
-    @Schema(description = "extends hierarchy twin class id")
-    public UUID twinClassId;
+    @Schema(description = "Sketch mode")
+    public Boolean sketchMode;
 
-    @Schema(description = "hierarchy depth")
-    public Integer extendsDepth;
+    @Schema(description = "Single option silent mode")
+    public Boolean singleOptionSilentMode;
 
-    @Schema(description = "head twin id")
-    public UUID pointedHeadTwinId;
-
-    @Schema(description = "twin fields")
-    public List<FaceTC001FieldDTOv1> fields;
+    @Schema(description = "options")
+    public List<FaceTC001OptionDTOv1> options;
 }

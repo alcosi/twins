@@ -32,7 +32,7 @@ import java.util.*;
         name = "RabbitMqSendI18nFieldValueWithLocaleForOperation",
         description = "Trigger for sending translations event to rabbit")
 @RequiredArgsConstructor
-public class TransitionTriggerRabbitMqSendI18nFieldValueWithLocaleForOperation extends TransitionTriggerRabbitMqConnection {
+public class TransitionTriggerRabbitMqSendI18nFieldValueWithLocale extends TransitionTriggerRabbitMqConnection {
 
     private final AmpqManager ampqManager;
 

@@ -47,6 +47,13 @@ public class KitGrouped<E, K, GK> extends Kit<E, K>{
         return groupedMap;
     }
 
+    public Set<GK> getGroupedKeySet() {
+        getGroupedMap();
+        if (groupedMap == null)
+            return Collections.EMPTY_SET;
+        return groupedMap.keySet();
+    }
+
     public boolean containsGroupedKey(GK key) {
         getGroupedMap();
         if (groupedMap == null)

@@ -19,6 +19,7 @@ import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.action.TwinActionPermissionEntity;
 import org.twins.core.dao.attachment.TwinAttachmentAction;
 import org.twins.core.dao.attachment.TwinAttachmentActionAlienPermissionEntity;
+import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
 import org.twins.core.dao.comment.TwinCommentAction;
 import org.twins.core.dao.comment.TwinCommentActionAlienPermissionEntity;
 import org.twins.core.dao.comment.TwinCommentActionSelfEntity;
@@ -290,6 +291,10 @@ public class TwinClassEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private DataListEntity tagDataList;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private TwinAttachmentRestrictionEntity generalAttachmentRestriction;
 
 
     public Set<UUID> getExtendedClassIdSet() {
