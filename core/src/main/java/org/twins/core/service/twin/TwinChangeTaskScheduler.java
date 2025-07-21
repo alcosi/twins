@@ -1,4 +1,4 @@
-package org.twins.core.service.factory;
+package org.twins.core.service.twin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,39 +9,39 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.factory.TwinFactoryTaskEntity;
-import org.twins.core.dao.factory.TwinFactoryTaskRepository;
 import org.twins.core.dao.factory.TwinFactoryTaskStatus;
+import org.twins.core.dao.twin.TwinChangeTaskEntity;
+import org.twins.core.dao.twin.TwinChangeTaskRepository;
 
 import java.util.List;
 
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class FactoryTaskScheduler {
+public class TwinChangeTaskScheduler {
     final ApplicationContext applicationContext;
-    @Qualifier("runFactoryTaskExecutor")
+    @Qualifier("twinChangeTaskExecutor")
     final TaskExecutor taskExecutor;
-    final TwinFactoryTaskRepository twinFactoryTaskRepository;
+    final TwinChangeTaskRepository twinChangeTaskRepository;
 
     @Scheduled(fixedDelayString = "${draft.erase.scope.collect.scheduler.delay:2000}")
     public void collectEraseScope() {
         try {
             LoggerUtils.logSession();
             LoggerUtils.logController("factoryTaskScheduler$");
-            log.debug("Loading run factory tasks from database");
-            List<TwinFactoryTaskEntity> taskEntityList = twinFactoryTaskRepository.findByStatusIdIn(List.of(TwinFactoryTaskStatus.NEED_START));
+            log.debug("Loading twin change tasks from database");
+            List<TwinChangeTaskEntity> taskEntityList = twinChangeTaskRepository.findByStatusIdIn(List.of(TwinFactoryTaskStatus.NEED_START));
             if (CollectionUtils.isEmpty(taskEntityList)) {
                 log.debug("No run factory tasks");
                 return;
             }
-            log.info("{} run factory task should be processed", taskEntityList.size());
+            log.info("{} twin change task(s) should be processed", taskEntityList.size());
             for (var taskEntity : taskEntityList) {
                 try {
-                    log.info("Running run factory task[{}] from status[{}]", taskEntity.getId(), taskEntity.getStatusId());
+                    log.info("Running twin change task[{}] from status[{}]", taskEntity.getId(), taskEntity.getStatusId());
                     taskEntity.setStatusId(TwinFactoryTaskStatus.IN_PROGRESS);
-                    twinFactoryTaskRepository.save(taskEntity);
-                    FactoryTask draftCommitTask = applicationContext.getBean(FactoryTask.class, taskEntity);
+                    twinChangeTaskRepository.save(taskEntity);
+                    TwinChangeTask draftCommitTask = applicationContext.getBean(TwinChangeTask.class, taskEntity);
                     taskExecutor.execute(draftCommitTask);
                 } catch (Exception e) {
                     log.error("Exception ex: {}", e.getMessage(), e);

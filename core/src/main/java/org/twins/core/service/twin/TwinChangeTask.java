@@ -1,4 +1,4 @@
-package org.twins.core.service.factory;
+package org.twins.core.service.twin;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -7,15 +7,16 @@ import org.cambium.common.util.LoggerUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.factory.TwinFactoryTaskEntity;
-import org.twins.core.dao.factory.TwinFactoryTaskRepository;
 import org.twins.core.dao.factory.TwinFactoryTaskStatus;
+import org.twins.core.dao.twin.TwinChangeTaskEntity;
+import org.twins.core.dao.twin.TwinChangeTaskRepository;
 import org.twins.core.domain.factory.FactoryBranchId;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryLauncher;
 import org.twins.core.domain.factory.FactoryResultUncommited;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.factory.TwinFactoryService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -24,60 +25,60 @@ import java.util.Collections;
 @Component
 @Scope("prototype")
 @Slf4j
-public class FactoryTask implements Runnable {
-    private final TwinFactoryTaskEntity factoryTaskEntity;
+public class TwinChangeTask implements Runnable {
+    private final TwinChangeTaskEntity twinChangeTaskEntity;
 
     @Autowired
     private TwinFactoryService twinFactoryService;
     @Autowired
-    private FactoryTaskService factoryTaskService;
+    private TwinChangeTaskService twinChangeTaskService;
     @Autowired
-    private TwinFactoryTaskRepository  twinFactoryTaskRepository;
+    private TwinChangeTaskRepository twinChangeTaskRepository;
     @Autowired
     private AuthService authService;
 
 
-    public FactoryTask(TwinFactoryTaskEntity factoryTaskEntity) {
-        this.factoryTaskEntity = factoryTaskEntity;
+    public TwinChangeTask(TwinChangeTaskEntity twinChangeTaskEntity) {
+        this.twinChangeTaskEntity = twinChangeTaskEntity;
     }
 
     @Override
     public void run() {
         try {
             LoggerUtils.logSession();
-            LoggerUtils.logController("factoryTask$");
-            LoggerUtils.logPrefix("FACTORY_TASK[" + factoryTaskEntity.getId() + "]:");
-            log.info("Performing async factory run: {}", factoryTaskEntity.logNormal());
-            if (factoryTaskEntity.getInputTwin().getTwinClass().getDomainId() == null) {
-                throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "can not detect domain from input " + factoryTaskEntity.getInputTwin().logNormal());
+            LoggerUtils.logController("twinChangeTask$");
+            LoggerUtils.logPrefix("CHANGE_TASK[" + twinChangeTaskEntity.getId() + "]:");
+            log.info("Performing async twin change run: {}", twinChangeTaskEntity.logNormal());
+            if (twinChangeTaskEntity.getInputTwin().getTwinClass().getDomainId() == null) {
+                throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "can not detect domain from input " + twinChangeTaskEntity.getInputTwin().logNormal());
             }
-            authService.setThreadLocalApiUser(factoryTaskEntity.getInputTwin().getTwinClass().getDomainId(), factoryTaskEntity.getBusinessAccountId(), factoryTaskEntity.getCreatedByUserId());
-            FactoryContext factoryContext = new FactoryContext(FactoryLauncher.beforeTwinUpdate, FactoryBranchId.root(factoryTaskEntity.getTwinFactoryId()))
-                    .setInputTwinList(Collections.singletonList(factoryTaskEntity.getInputTwin()));
+            authService.setThreadLocalApiUser(twinChangeTaskEntity.getInputTwin().getTwinClass().getDomainId(), twinChangeTaskEntity.getBusinessAccountId(), twinChangeTaskEntity.getCreatedByUserId());
+            FactoryContext factoryContext = new FactoryContext(FactoryLauncher.beforeTwinUpdate, FactoryBranchId.root(twinChangeTaskEntity.getTwinFactoryId()))
+                    .setInputTwinList(Collections.singletonList(twinChangeTaskEntity.getInputTwin()));
 //                    .setFields(transitionContext.getFields())
 //                    .setAttachmentCUD(transitionContext.getAttachmentCUD())
 //                    .setBasics(transitionContext.getBasics());
-            FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(factoryTaskEntity.getTwinFactoryId(), factoryContext);
+            FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(twinChangeTaskEntity.getTwinFactoryId(), factoryContext);
             if (CollectionUtils.isNotEmpty(result.getDeletes())) {
-                throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "deletes are currently not supported by factoru tasks");
+                throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "deletes are currently not supported by  tasks");
             }
             twinFactoryService.commitResult(result);
-            factoryTaskEntity
+            twinChangeTaskEntity
                     .setStatusId(TwinFactoryTaskStatus.DONE)
                     .setDoneAt(Timestamp.from(Instant.now()));
         } catch (ServiceException e) {
             log.error(e.log());
-            factoryTaskEntity
+            twinChangeTaskEntity
                     .setStatusId(TwinFactoryTaskStatus.FAILED)
                     .setStatusDetails(e.log());
         } catch (Throwable e) {
             log.error("Exception: ", e);
-            factoryTaskEntity
+            twinChangeTaskEntity
                     .setStatusId(TwinFactoryTaskStatus.FAILED)
                     .setStatusDetails(e.getMessage());
         } finally {
             authService.removeThreadLocalApiUser();
-            twinFactoryTaskRepository.save(factoryTaskEntity);
+            twinChangeTaskRepository.save(twinChangeTaskEntity);
             LoggerUtils.cleanMDC();
         }
     }

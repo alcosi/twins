@@ -167,11 +167,11 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public TaskExecutor runFactoryTaskExecutor(@Autowired(required = false) TaskDecorator taskDecorator) {
+    public TaskExecutor twinChangeTaskExecutor(@Autowired(required = false) TaskDecorator taskDecorator) {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(5); //todo move to settings
         executor.setMaxPoolSize(10);
-        executor.setThreadNamePrefix("draftCollectEraseScopeExecutor-");
+        executor.setThreadNamePrefix("twinChangeTaskExecutor-");
         if (taskDecorator != null) executor.setTaskDecorator(taskDecorator);
         executor.initialize();
         return executor;

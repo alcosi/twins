@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
-import org.twins.core.dao.factory.TwinFactoryTaskEntity;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -409,7 +408,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         UUID factoryId = twinCreate.isSketchMode() ? twinEntity.getTwinflow().getAfterSketchTwinFactoryId() : twinEntity.getTwinflow().getAfterCreateTwinFactoryId();
         if (factoryId == null)
             return;
-        twinChangesCollector.add(new TwinFactoryTaskEntity()
+        twinChangesCollector.add(new TwinChangeTaskEntity()
                 .setTwinFactoryId(factoryId)
                 .setInputTwin(twinEntity)
                 .setInputTwinId(twinEntity.getId()));

@@ -1,4 +1,4 @@
-package org.twins.core.service.factory;
+package org.twins.core.service.twin;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,8 +11,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.factory.TwinFactoryTaskEntity;
-import org.twins.core.dao.factory.TwinFactoryTaskRepository;
+import org.twins.core.dao.twin.TwinChangeTaskEntity;
+import org.twins.core.dao.twin.TwinChangeTaskRepository;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;
@@ -22,23 +22,23 @@ import java.util.function.Function;
 @Service
 @Lazy
 @AllArgsConstructor
-public class FactoryTaskService extends EntitySecureFindServiceImpl<TwinFactoryTaskEntity> {
+public class TwinChangeTaskService extends EntitySecureFindServiceImpl<TwinChangeTaskEntity> {
     @Getter
-    private final TwinFactoryTaskRepository repository;
+    private final TwinChangeTaskRepository repository;
     private final AuthService authService;
 
     @Override
-    public CrudRepository<TwinFactoryTaskEntity, UUID> entityRepository() {
+    public CrudRepository<TwinChangeTaskEntity, UUID> entityRepository() {
         return repository;
     }
 
     @Override
-    public Function<TwinFactoryTaskEntity, UUID> entityGetIdFunction() {
-        return TwinFactoryTaskEntity::getId;
+    public Function<TwinChangeTaskEntity, UUID> entityGetIdFunction() {
+        return TwinChangeTaskEntity::getId;
     }
 
     @Override
-    public boolean isEntityReadDenied(TwinFactoryTaskEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+    public boolean isEntityReadDenied(TwinChangeTaskEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         DomainEntity domain = authService.getApiUser().getDomain();
         boolean readDenied=!entity.getInputTwin().getTwinClass().getDomainId().equals(domain.getId());
         if (readDenied) {
@@ -48,7 +48,7 @@ public class FactoryTaskService extends EntitySecureFindServiceImpl<TwinFactoryT
     }
 
     @Override
-    public boolean validateEntity(TwinFactoryTaskEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+    public boolean validateEntity(TwinChangeTaskEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return !isEntityReadDenied(entity,EntitySmartService.ReadPermissionCheckMode.none);
     }
 }
