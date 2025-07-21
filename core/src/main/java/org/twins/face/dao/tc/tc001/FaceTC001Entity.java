@@ -46,9 +46,6 @@ public class FaceTC001Entity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "style_classes")
     private String styleClasses;
 
-    @Column(name = "head_twin_pointer_id")
-    private UUID headTwinPointerId;
-
     @Column(name = "option_select_i18n_id")
     private UUID optionSelectI18nId;
 
