@@ -1,7 +1,7 @@
 DROP TABLE IF EXISTS face_tc001;
 
 DO $$
-BEGIN
+    BEGIN
         IF EXISTS (
             SELECT 1 FROM information_schema.tables
             WHERE table_name = 'face_tc002'
