@@ -1,29 +1,44 @@
 package org.twins.core.featurer.fieldtyper;
 
 import org.cambium.common.exception.ServiceException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldTwinClassListEntity;
+import org.twins.core.dao.twin.TwinFieldTwinClassListRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTwinClass;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTwinClassList;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.service.twin.TwinService;
 
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
+import java.util.stream.Collectors;
 
-public abstract class FieldTyperTwinClassList<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldSearch> extends FieldTyper<D, T, TwinFieldStorageTwinClass, A> {
+public abstract class FieldTyperTwinClassList<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldSearch> extends FieldTyper<D, T, TwinFieldStorageTwinClassList, A> {
 
-    protected void detectValueChange(TwinFieldTwinClassListEntity twinFieldTwinClassListEntity, TwinChangesCollector twinChangesCollector, List<TwinClassEntity> newValue) {
-        if (twinChangesCollector.collectIfChanged(twinFieldTwinClassListEntity, "field[" + twinFieldTwinClassListEntity.getTwinClassField().getKey() + "]", twinFieldTwinClassListEntity.getValue(), newValue)) {
+//    @Autowired
+//    TwinFieldTwinClassListRepository twinFieldTwinClassListRepository;
+
+    protected void detectValueChange(TwinFieldTwinClassListEntity twinFieldTwinClassListEntity, TwinChangesCollector twinChangesCollector, Set<UUID> newValue) throws ServiceException {
+        if (twinChangesCollector.collectIfChanged(twinFieldTwinClassListEntity, "field[" + twinFieldTwinClassListEntity.getTwinClassField().getKey() + "]", twinFieldTwinClassListEntity.getTwinClassSet(), newValue)) {
             if (twinChangesCollector.isHistoryCollectorEnabled())
                 twinChangesCollector.getHistoryCollector(twinFieldTwinClassListEntity.getTwin()).add(
-                        historyService.fieldChangeSimple(twinFieldTwinClassListEntity.getTwinClassField(), String.valueOf(twinFieldTwinClassListEntity.getValue()), String.valueOf(newValue)));
+                        historyService.fieldChangeSimple(twinFieldTwinClassListEntity.getTwinClassField(), String.valueOf(twinFieldTwinClassListEntity.getTwinClassSet()), String.valueOf(newValue)));
 
-            twinFieldTwinClassListEntity.setValue(newValue);
+            Set<TwinClassEntity> twinClassSet = new HashSet<>(twinClassService.findEntitiesSafe(newValue).getCollection());
+            twinFieldTwinClassListEntity.setTwinClassSet(twinClassSet);
+
+            for (var twinClass : twinClassSet) {
+                twinClass.getTwinFieldTwinClassListSet().add(twinFieldTwinClassListEntity);
+                twinClassService.saveSafe(twinClass);
+            }
+
+//            twinFieldTwinClassListRepository.save(twinFieldTwinClassListEntity);
         }
     }
 

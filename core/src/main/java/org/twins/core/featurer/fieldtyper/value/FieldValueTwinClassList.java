@@ -5,12 +5,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Getter
 @Setter
@@ -18,7 +15,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class FieldValueTwinClassList extends FieldValue {
 
-    private List<TwinClassEntity> twinClassList = new ArrayList<>();
+    private Set<UUID> twinClassIdSet = new HashSet<>();
 
     public FieldValueTwinClassList(TwinClassFieldEntity twinClassFieldEntity) {
         super(twinClassFieldEntity);
@@ -26,29 +23,29 @@ public class FieldValueTwinClassList extends FieldValue {
 
     @Override
     public boolean isFilled() {
-        return twinClassList != null;
+        return !twinClassIdSet.isEmpty();
     }
 
     @Override
     public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueTwinClassList clone = new FieldValueTwinClassList(newTwinClassFieldEntity);
-        clone.twinClassList = this.twinClassList;
+        clone.twinClassIdSet = this.twinClassIdSet;
         return clone;
     }
 
     @Override
     public void nullify() {
-        twinClassList = null;
+        twinClassIdSet = null;
     }
 
     @Override
     public boolean isNullified() {
-        return twinClassList == null;
+        return twinClassIdSet == null;
     }
 
     @Override
     public boolean hasValue(String value) {
-        if (CollectionUtils.isEmpty(twinClassList)) {
+        if (CollectionUtils.isEmpty(twinClassIdSet)) {
             return false;
         }
 
@@ -59,8 +56,8 @@ public class FieldValueTwinClassList extends FieldValue {
             return false;
         }
 
-        for (var twinClass : twinClassList) {
-            if (twinClass.getId() != null && twinClass.getId().equals(valueUUID))
+        for (var id : twinClassIdSet) {
+            if (id.equals(valueUUID))
                 return true;
         }
 

@@ -164,9 +164,8 @@ public class TwinClassEntity implements EasyLoggable {
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
 //    private DomainEntity domain;
 
-    @ManyToOne
-    @JoinColumn(name = "twin_field_twin_class_id", insertable = false, updatable = false)
-    private TwinFieldTwinClassListEntity twinFieldTwinClassListEntity;
+    @ManyToMany(mappedBy = "twinClassSet")
+    private Set<TwinFieldTwinClassListEntity> twinFieldTwinClassListSet;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)

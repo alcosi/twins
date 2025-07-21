@@ -14,11 +14,12 @@ import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValueTwinClassList;
-import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 @Component
@@ -27,8 +28,6 @@ import java.util.UUID;
         name = "Twin class list field",
         description = "Field typer for twin class list field")
 public class FieldTyperTwinClassListField extends FieldTyperTwinClassList<FieldDescriptorTwinClassList, FieldValueTwinClassList, TwinFieldSearchNotImplemented> {
-
-    private final TwinClassService twinClassService;
 
     @Override
     protected FieldDescriptorTwinClassList getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
@@ -44,7 +43,7 @@ public class FieldTyperTwinClassListField extends FieldTyperTwinClassList<FieldD
             );
         }
 
-        List<UUID> valueUUIDList = value.getTwinClassList().stream().map(TwinClassEntity::getId).toList();
+        Set<UUID> valueUUIDList = value.getTwinClassIdSet();
         if (!twinClassService.allExist(valueUUIDList)) {
             throw new ServiceException(
                     ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN,
@@ -52,13 +51,19 @@ public class FieldTyperTwinClassListField extends FieldTyperTwinClassList<FieldD
             );
         }
 
-        detectValueChange(twinFieldTwinClassListEntity, twinChangesCollector, value.getTwinClassList());
+        //todo check for pointing on itself and check for uuid format via UUIDUtils
+
+        detectValueChange(twinFieldTwinClassListEntity, twinChangesCollector, value.getTwinClassIdSet());
     }
 
     @Override
     protected FieldValueTwinClassList deserializeValue(Properties properties, TwinField twinField, TwinFieldTwinClassListEntity twinFieldTwinClassListEntity) throws ServiceException {
         return new FieldValueTwinClassList(twinField.getTwinClassField())
-                .setTwinClassList(twinFieldTwinClassListEntity != null ? twinFieldTwinClassListEntity.getValue() : null);
+                .setTwinClassIdSet(
+                        twinFieldTwinClassListEntity != null
+                                ? twinFieldTwinClassListEntity.getTwinClassSet().stream().map(TwinClassEntity::getId).collect(Collectors.toSet())
+                                : null
+                );
     }
 
 //    @Override

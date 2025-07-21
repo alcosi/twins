@@ -12,14 +12,14 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
-public class TwinFieldStorageTwinClass extends TwinFieldStorage {
+public class TwinFieldStorageTwinClassList extends TwinFieldStorage {
 
-    private final TwinFieldTwinClassRepository twinFieldTwinClassRepository;
+    private final TwinFieldTwinClassListRepository twinFieldTwinClassListRepository;
 
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) {
         KitGrouped<TwinFieldTwinClassListEntity, UUID, UUID> allTwinsFieldGrouped = new KitGrouped<>(
-                twinFieldTwinClassRepository.findByTwinIdIn(twinsKit.getIdSet()), TwinFieldTwinClassListEntity::getId, TwinFieldTwinClassListEntity::getTwinId);
+                twinFieldTwinClassListRepository.findByTwinIdIn(twinsKit.getIdSet()), TwinFieldTwinClassListEntity::getId, TwinFieldTwinClassListEntity::getTwinId);
         for (var twinEntity : twinsKit) {
             if (allTwinsFieldGrouped.containsGroupedKey(twinEntity.getId())) {
                 twinEntity.setTwinFieldTwinClassListKit(new Kit<>(allTwinsFieldGrouped.getGrouped(twinEntity.getId()), TwinFieldTwinClassListEntity::getTwinClassFieldId));
@@ -31,27 +31,27 @@ public class TwinFieldStorageTwinClass extends TwinFieldStorage {
 
     @Override
     public boolean hasStrictValues(UUID twinClassFieldId) {
-        return twinFieldTwinClassRepository.existsByTwinClassFieldId(twinClassFieldId);
+        return twinFieldTwinClassListRepository.existsByTwinClassFieldId(twinClassFieldId);
     }
 
     @Override
     public boolean isLoaded(TwinEntity twinEntity) {
-        return twinEntity.getTwinFieldBooleanKit() != null;
+        return twinEntity.getTwinFieldTwinClassListKit() != null;
     }
 
     @Override
     public void initEmpty(TwinEntity twinEntity) {
-        twinEntity.setTwinFieldBooleanKit(Kit.EMPTY);
+        twinEntity.setTwinFieldTwinClassListKit(Kit.EMPTY);
     }
 
     @Override
     public Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet) {
-        return twinFieldTwinClassRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIdSet);
+        return twinFieldTwinClassListRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIdSet);
     }
 
     @Override
     public void replaceTwinClassFieldForTwinsOfClass(UUID twinClassId, UUID fromTwinClassFieldId, UUID toTwinClassFieldId) {
-        twinFieldTwinClassRepository.replaceTwinClassFieldForTwinsOfClass(twinClassId, fromTwinClassFieldId, toTwinClassFieldId);
+        twinFieldTwinClassListRepository.replaceTwinClassFieldForTwinsOfClass(twinClassId, fromTwinClassFieldId, toTwinClassFieldId);
     }
 
     @Override

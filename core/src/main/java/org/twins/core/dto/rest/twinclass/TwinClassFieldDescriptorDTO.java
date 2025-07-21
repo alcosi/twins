@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorNumericDTOv1.class, name = TwinClassFieldDescriptorNumericDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorImmutableDTOv1.class, name = TwinClassFieldDescriptorImmutableDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorBooleanDTOv1.class, name = TwinClassFieldDescriptorBooleanDTOv1.KEY),
+        @JsonSubTypes.Type(value = TwinClassFieldDescriptorTwinClassListDTOv1.class, name = TwinClassFieldDescriptorTwinClassListDTOv1.KEY)
 })
 @Schema(additionalProperties = Schema.AdditionalPropertiesValue.FALSE,
         description = "One of values",
@@ -65,6 +66,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
                 TwinClassFieldDescriptorNumericDTOv1.class,
                 TwinClassFieldDescriptorImmutableDTOv1.class,
                 TwinClassFieldDescriptorBooleanDTOv1.class,
+                TwinClassFieldDescriptorTwinClassListDTOv1.class
         }
 )
 public interface TwinClassFieldDescriptorDTO {

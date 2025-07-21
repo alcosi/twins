@@ -9,6 +9,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -34,9 +35,12 @@ public class TwinFieldTwinClassListEntity implements EasyLoggable {
     @Column(name = "twin_class_field_id")
     private UUID twinClassFieldId;
 
-    @OneToMany
-    @JoinColumn(name = "twin_field_twin_class_id")
-    private List<TwinClassEntity> value;
+    @ManyToMany
+    @JoinTable(
+            name = "twin_class_list",
+            joinColumns = @JoinColumn(name = "twin_field_twin_class_list_id"),
+            inverseJoinColumns = @JoinColumn(name = "twin_class_id"))
+    private Set<TwinClassEntity> twinClassSet;
 
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
@@ -57,6 +61,6 @@ public class TwinFieldTwinClassListEntity implements EasyLoggable {
                 .setTwinId(dstTwinEntity.getId())
                 .setTwinClassField(twinClassField)
                 .setTwinClassFieldId(twinClassFieldId)
-                .setValue(value);
+                .setTwinClassSet(twinClassSet);
     }
 }

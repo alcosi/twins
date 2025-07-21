@@ -15,10 +15,14 @@ create index if not exists twin_field_twin_class_list_twin_class_field_id_idx
 create unique index if not exists twin_field_twin_class_list_twin_class_field_id_twin_id_uidx
     on twin_field_twin_class_list (twin_id, twin_class_field_id);
 
+create table if not exists twin_class_list
+(
+    twin_field_twin_class_list_id UUID not null references twin_field_twin_class_list on update cascade on delete restrict,
+    twin_class_id                 UUID not null references twin_class on update cascade on delete restrict
+);
 
-alter table twin_class
-    add column if not exists twin_field_twin_class_id uuid references twin_field_twin_class_list on update cascade;
+create index if not exists twin_class_list_twin_field_twin_class_list_id_idx
+    on twin_class_list (twin_field_twin_class_list_id);
 
-create index if not exists twin_class_twin_field_twin_class_id
-    on twin_class (twin_field_twin_class_id);
-
+create index if not exists twin_class_list_twin_class_id_idx
+    on twin_class_list (twin_class_id);

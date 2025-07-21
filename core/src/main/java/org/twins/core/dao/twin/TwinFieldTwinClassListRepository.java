@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public interface TwinFieldTwinClassRepository extends CrudRepository<TwinFieldTwinClassListEntity, UUID>, JpaSpecificationExecutor<TwinFieldTwinClassListEntity> {
+public interface TwinFieldTwinClassListRepository extends CrudRepository<TwinFieldTwinClassListEntity, UUID>, JpaSpecificationExecutor<TwinFieldTwinClassListEntity> {
 
     List<TwinFieldTwinClassListEntity> findByTwinId(UUID twinId);
     boolean existsByTwinClassFieldId(UUID twinClassFieldId);

@@ -122,7 +122,6 @@ public class TwinCreateController extends ApiController {
      * You could also add other parts, e.g., @RequestPart("file") MultipartFile file.
      */
     @SneakyThrows
-    @ParametersApiUserHeaders
     @Operation(summary = "twinCreateV2", description = "Creates a new twin using a multipart form. The twin data should be a JSON string in the 'request' form field.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
