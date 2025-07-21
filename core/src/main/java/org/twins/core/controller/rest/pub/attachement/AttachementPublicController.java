@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -57,6 +59,7 @@ public class AttachementPublicController extends ApiController {
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
             var file = attachmentService.getAttachmentFile(attachmentId);
+            serverRs.setHeader(HttpHeaders.CACHE_CONTROL, CacheControl.maxAge(httpCacheLifetime).cachePublic().immutable().getHeaderValue());
             return ResponseEntity.ok(file);
         } catch (ServiceException se) {
             log.error("Error downloading attachment {}", attachmentId, se);
