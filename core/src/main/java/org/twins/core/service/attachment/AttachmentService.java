@@ -8,6 +8,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.StringUtils;
+import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -19,17 +20,23 @@ import org.twins.core.dao.attachment.*;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
+import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.*;
+import org.twins.core.domain.file.DomainFile;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.storager.AddedFileKey;
+import org.twins.core.featurer.storager.Storager;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.storage.StorageService;
 import org.twins.core.service.twin.TwinActionService;
 import org.twins.core.service.twin.TwinService;
 
+import java.io.InputStream;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -49,6 +56,8 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     @Lazy
     private final DomainService domainService;
     private final AttachmentActionService attachmentActionService;
+    private final FeaturerService featurerService;
+    private final StorageService storageService;
 
     public boolean checkOnDirect(TwinAttachmentEntity twinAttachmentEntity) {
         return twinAttachmentEntity.getTwinflowTransitionId() == null
@@ -78,8 +87,9 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         ApiUser apiUser = authService.getApiUser();
         loadTwins(attachments);
         for (TwinAttachmentEntity attachmentEntity : attachments) {
-            twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
             final UUID uuid = UUID.randomUUID();
+            twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
+            saveFile(attachmentEntity, uuid);
             attachmentEntity
                     .setId(uuid) // need for history
                     .setCreatedByUserId(apiUser.getUserId())
@@ -97,6 +107,18 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 });
                 twinChangesCollector.addAll(attachmentEntity.getModifications());
             }
+        }
+    }
+
+    protected void saveFile(TwinAttachmentEntity attachmentEntity, UUID uuid) throws ServiceException {
+        //Not just link, have to add file to storage
+        StorageEntity storage = attachmentEntity.getStorage();
+        Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
+        if (attachmentEntity.getAttachmentFile() != null) {
+            AddedFileKey addedFileKey = fileService.addFile(uuid, attachmentEntity.getAttachmentFile().content(), storage.getStoragerParams());
+            attachmentEntity.setStorageFileKey(addedFileKey.fileKey());
+        } else {
+            fileService.addExternalUrlFile(uuid, attachmentEntity.getStorageFileKey(), storage.getStoragerParams());
         }
     }
 
@@ -226,15 +248,17 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
     @Transactional
     public void deleteById(ApiUser apiUser, UUID attachmentId) throws ServiceException {
-        TwinAttachmentEntity attachmentEntity = twinAttachmentRepository.getById(attachmentId);
-        attachmentActionService.checkAllowed(attachmentEntity, TwinAttachmentAction.DELETE);
-        if (attachmentEntity == null)
+        TwinAttachmentEntity attachement = twinAttachmentRepository.getById(attachmentId);
+        attachmentActionService.checkAllowed(attachement, TwinAttachmentAction.DELETE);
+        if (attachement == null)
             return;
-        log.info(attachmentEntity.logDetailed() + " will be deleted");
+        log.info(attachement.logDetailed() + " will be deleted");
         entitySmartService.deleteAndLog(attachmentId, twinAttachmentRepository);
-        historyService.saveHistory(attachmentEntity.getTwin(), HistoryType.attachmentDelete, new HistoryContextAttachment()
-                .shotAttachment(attachmentEntity));
+        deleteFile(attachement);
+        historyService.saveHistory(attachement.getTwin(), HistoryType.attachmentDelete, new HistoryContextAttachment()
+                .shotAttachment(attachement));
     }
+
 
     @Transactional
     public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList, TwinEntity twinEntity) throws ServiceException {
@@ -284,7 +308,10 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                     throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "storageFileKey is empty");
                 }
                 historyItem.getContext().setNewStorageFileKey(attachmentEntity.getStorageFileKey());
+                deleteFile(dbAttachmentEntity);
+                saveFile(attachmentEntity, dbAttachmentEntity.getId());
                 dbAttachmentEntity.setStorageFileKey(attachmentEntity.getStorageFileKey());
+                historyItem.getContext().setNewStorageFileKey(attachmentEntity.getStorageFileKey());
             }
             if (KitUtils.isNotEmpty(attachmentEntity.getModifications())) {
                 updateAttachmentModifications(attachmentEntity, dbAttachmentEntity, twinChangesCollector);
@@ -361,6 +388,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             twinChangesCollector.delete(attachmentEntity);
             if (twinChangesCollector.isHistoryCollectorEnabled())
                 twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentDelete(attachmentEntity));
+            deleteFile(attachmentEntity);
         }
     }
 
@@ -381,12 +409,12 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         }
     }
 
-    public Map<UUID, Integer> countByTwinAndFields(UUID twinId, Collection<UUID> twinClassFieldIds) {
-        if (CollectionUtils.isEmpty(twinClassFieldIds)) {
+    public Map<UUID, Integer> countByTwinAndFields(TwinEntity twin, Collection<UUID> twinClassFieldIds) {
+        if (twin.getId() == null || CollectionUtils.isEmpty(twinClassFieldIds)) {
             return Collections.emptyMap();
         }
 
-        return twinAttachmentRepository.countAttachmentsGroupByField(twinId, twinClassFieldIds)
+        return twinAttachmentRepository.countAttachmentsGroupByField(twin.getId(), twinClassFieldIds)
                 .stream()
                 .collect(Collectors.toMap(
                         result -> (UUID) result[0],
@@ -418,4 +446,57 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         denied,
         allowed
     }
+
+
+    @Transactional(readOnly = true)
+    public DomainFile getAttachmentFile(UUID attachmentId) throws ServiceException {
+        var attachment = findEntitySafe(attachmentId);
+        StorageEntity storage = attachment.getStorage();
+        Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
+        var stream = fileService.getFileAsStream(attachment.getStorageFileKey(), storage.getStoragerParams());
+        return new DomainFile(stream, attachment.getTitle(), attachment.getSize());
+    }
+
+
+    @Transactional(readOnly = false, rollbackFor = Throwable.class)
+    public TwinAttachmentEntity transferAttachment(UUID attachmentId, UUID newStorageId) throws ServiceException {
+        UUID newAttachementId = UUID.randomUUID();
+
+        var attachement = findEntitySafe(attachmentId);
+        if (attachement.getStorageId().equals(newStorageId))
+            return attachement;
+        StorageEntity oldStorage = attachement.getStorage();
+        StorageEntity newStorage = storageService.findEntitySafe(newStorageId);
+
+        Storager oldStorager = featurerService.getFeaturer(oldStorage.getStorageFeaturer(), Storager.class);
+        Storager newStorager = featurerService.getFeaturer(newStorage.getStorageFeaturer(), Storager.class);
+        InputStream fileStream = oldStorager.getFileAsStream(attachement.getStorageFileKey(), oldStorage.getStoragerParams());
+        AddedFileKey addedFileKey = newStorager.addFile(newAttachementId, fileStream, newStorage.getStoragerParams());
+        TwinAttachmentEntity newAttachement = attachement.clone();
+        newAttachement.setId(attachmentId);
+        newAttachement.setStorageId(newStorageId);
+        newAttachement.setStorage(newStorage);
+        newAttachement.setStorageFileKey(addedFileKey.fileKey());
+        validateEntity(newAttachement, EntitySmartService.EntityValidateMode.beforeSave);
+        newAttachement = twinAttachmentRepository.save(newAttachement);
+        oldStorager.tryDeleteFile(attachement.getStorageFileKey(), oldStorage.getStoragerParams());
+        twinAttachmentRepository.delete(attachement);
+        return newAttachement;
+    }
+
+    public String getAttachmentUri(TwinAttachmentEntity attachment) throws ServiceException {
+        if (attachment != null) {
+            var featurer = featurerService.getFeaturer(attachment.getStorage().getStorageFeaturer(), Storager.class);
+            return featurer.getFileUri(attachment.getId(), attachment.getStorageFileKey(), attachment.getStorage().getStoragerParams()).toString();
+        }
+        return null;
+    }
+
+    protected void deleteFile(TwinAttachmentEntity attachment) throws ServiceException {
+        StorageEntity storage = attachment.getStorage();
+        Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
+        fileService.tryDeleteFile(attachment.getStorageFileKey(), storage.getStoragerParams());
+    }
+
+
 }

@@ -20,7 +20,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1315,
         name = "Count children twins",
         description = "Save count of child-twin by child-status(exl/inc) on serializeValue, and return saved total from database")
-public class FieldTyperCountChildrenTwinsV2 extends FieldTyperSimple<FieldDescriptorText, FieldValueText, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenTwins {
+public class FieldTyperCountChildrenByStatusV2 extends FieldTyperSimple<FieldDescriptorText, FieldValueText, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenByStatus {
     public static final Integer ID = 1315;
 
     @Autowired

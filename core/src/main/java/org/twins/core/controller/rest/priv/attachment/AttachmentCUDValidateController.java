@@ -55,7 +55,7 @@ public class AttachmentCUDValidateController extends ApiController {
             @RequestBody AttachmentCUDValidateRqDTOv1 request) {
         AttachmentCUDValidateRsDTOv1 rs = new AttachmentCUDValidateRsDTOv1();
         try {
-            AttachmentCUDValidateResult result = attachmentRestrictionService.validateAttachments(request.getTwinId(), attachmentCUDValidateRestDTOReverseMapper.convert(request, mapperContext));
+            AttachmentCUDValidateResult result = attachmentRestrictionService.validateAttachments(request.getTwinId(), null, attachmentCUDValidateRestDTOReverseMapper.convert(request, mapperContext));
             rs = attachmentCUDValidateRestDTOMapper.convert(result, mapperContext);
             rs
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

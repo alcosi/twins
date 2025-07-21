@@ -23,7 +23,8 @@ public class FaceTW004v2FieldRestDTOMapper extends RestSimpleDTOMapper<FaceTW004
                 .setKey(src.getField().getKey())
                 .setLabel(i18nService.translateToLocale(src.getField().getNameI18nId()))
                 .setTwinClassFieldId(src.getField().getId())
-                .setEditable(src.isEditable());
+                .setEditable(src.isEditable())
+                .setOrder(src.getOrder());
         if (mapperContext.hasModeButNot(FaceTW004Modes.FaceTW0042TwinClassFieldMode.HIDE)) {
             twinClassFieldRestDTOMapper.postpone(src.getField(), mapperContext.forkOnPoint(FaceTW004Modes.FaceTW0042TwinClassFieldMode.SHORT));
         }

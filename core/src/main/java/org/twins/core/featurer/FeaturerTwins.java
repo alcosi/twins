@@ -64,6 +64,7 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_1330 = 1330;
     public static final int ID_1331 = 1331;
     public static final int ID_1332 = 1332;
+    public static final int ID_1333 = 1333;
     public static final int ID_1401 = 1401;
     public static final int ID_1402 = 1402;
     public static final int ID_1403 = 1403;
@@ -74,6 +75,7 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_1504 = 1504;
     public static final int ID_1505 = 1505;
     public static final int ID_1506 = 1506;
+    public static final int ID_1507 = 1507;
     public static final int ID_1601 = 1601;
     public static final int ID_1602 = 1602;
     public static final int ID_1603 = 1603;
@@ -143,6 +145,7 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_2336 = 2336;
     public static final int ID_2337 = 2337;
     public static final int ID_2338 = 2338;
+    public static final int ID_2339 = 2339;
     public static final int ID_2401 = 2401;
     public static final int ID_2402 = 2402;
     public static final int ID_2403 = 2403;
@@ -177,6 +180,7 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_2432 = 2432;
     public static final int ID_2433 = 2433;
     public static final int ID_2434 = 2434;
+    public static final int ID_2435 = 2435;
     public static final int ID_2501 = 2501;
     public static final int ID_2502 = 2502;
     public static final int ID_2601 = 2601;
@@ -202,6 +206,8 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_3105 = 3105;
     public static final int ID_3201 = 3201;
     public static final int ID_3202 = 3202;
+    public static final int ID_3203 = 3203;
+    public static final int ID_3204 = 3204;
     public static final int ID_3301 = 3301;
     public static final int ID_3401 = 3401;
     public static final int ID_3402 = 3402;
@@ -210,5 +216,6 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_3601 = 3601;
     public static final int ID_3602 = 3602;
     public static final int ID_3603 = 3603;
+    public static final int ID_3604 = 3604;
     public static final int ID_3701 = 3701;
 }

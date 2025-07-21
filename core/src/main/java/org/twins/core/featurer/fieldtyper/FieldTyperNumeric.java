@@ -1,5 +1,6 @@
 package org.twins.core.featurer.fieldtyper;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
@@ -29,6 +30,7 @@ import java.util.regex.Pattern;
 import static org.cambium.common.util.MathUtils.EXPONENTIAL_FORM_REGEXP;
 
 @Component
+@Slf4j
 @Featurer(id = FeaturerTwins.ID_1317,
         name = "Numeric",
         description = "Numeric field")
@@ -79,11 +81,15 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
                 finalValue.replaceAll(Pattern.quote(thousandSeparatorValue), "")
                         .replaceAll(Pattern.quote(decimalSeparatorValue), ".");
                 String[] parts = finalValue.split("\\.");
-                if ((null != decimalPlacesValue && parts.length > 1 && parts[1].length() > decimalPlacesValue))
+                if ((null != decimalPlacesValue && parts.length > 1 && parts[1].length() > decimalPlacesValue)) {
+                    log.error("FieldTyperNumeric: value[" + value.getValue() + "] has more decimal places then parametrized");
                     throw new Exception();
+                }
                 double doubleValue = Double.parseDouble(finalValue);
-                if ((null != minValue && doubleValue < minValue) || (null != maxValue && doubleValue > maxValue))
+                if ((null != minValue && doubleValue < minValue) || (null != maxValue && doubleValue > maxValue)) {
+                    log.error("FieldTyperNumeric: value[" + value.getValue() + "] is less minimum value or greater then max value");
                     throw new Exception();
+                }
             } // else value setting null
         } catch (Exception e) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,

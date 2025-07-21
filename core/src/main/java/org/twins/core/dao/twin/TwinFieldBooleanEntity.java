@@ -5,8 +5,8 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -16,7 +16,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_field_boolean")
-public class TwinFieldBooleanEntity implements TwinFieldStorage {
+public class TwinFieldBooleanEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -43,6 +43,11 @@ public class TwinFieldBooleanEntity implements TwinFieldStorage {
     @ManyToOne
     @JoinColumn(name = "twin_class_field_id", insertable = false, updatable = false, nullable = false)
     private TwinClassFieldEntity twinClassField;
+
+    @Override
+    public String easyLog(Level level) {
+        return "twinFieldBoolean[id:" + id + "]";
+    }
 
     public TwinFieldBooleanEntity cloneFor(TwinEntity dstTwinEntity) {
         return new TwinFieldBooleanEntity()

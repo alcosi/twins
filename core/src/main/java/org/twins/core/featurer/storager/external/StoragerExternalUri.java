@@ -23,6 +23,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.cambium.common.util.UrlUtils.toURI;
+
 @Component
 @Featurer(id = FeaturerTwins.ID_2903,
         name = "StoragerExternalUri",
@@ -45,7 +47,7 @@ public class StoragerExternalUri extends StoragerAbstractChecked {
     }
     @Override
     public URI getFileUri(UUID fileId, String fileKey, HashMap<String, String> params) throws ServiceException {
-        return URI.create(fileKey);
+        return toURI(fileKey);
     }
 
     @Override
@@ -61,7 +63,7 @@ public class StoragerExternalUri extends StoragerAbstractChecked {
     @Override
     public InputStream getFileAsStream(String fileKey, HashMap<String, String> params) throws ServiceException {
         try {
-            HttpResponse<InputStream> response = getInputStreamHttpResponse(URI.create(fileKey), params);
+            HttpResponse<InputStream> response = getInputStreamHttpResponse(toURI(fileKey), params);
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
                 throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Failed to retrieve the file: HTTP Status " + response.statusCode());
             }
@@ -97,7 +99,7 @@ public class StoragerExternalUri extends StoragerAbstractChecked {
                 return new AddedFileKey(externalUri, -1);
             }
             //Have to make request
-            HttpResponse<InputStream> response = getInputStreamHttpResponse(URI.create(externalUri), params);
+            HttpResponse<InputStream> response = getInputStreamHttpResponse(toURI(externalUri), params);
             InputStream fileStream = response.body();
             Long contentLengthHeader = response.headers().firstValue(HttpHeaders.CONTENT_LENGTH).map(Long::valueOf).orElse(-1L);
             if (haveToCheckSize && contentLengthHeader > fileSizeLimit) {

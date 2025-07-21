@@ -11,4 +11,5 @@ import org.twins.core.featurer.fieldtyper.FieldTyperTextField;
 public class FieldDescriptorText extends FieldDescriptor {
     private String regExp;
     private FieldTyperTextField.TextEditorType editorType;
+    private boolean unique;
 }

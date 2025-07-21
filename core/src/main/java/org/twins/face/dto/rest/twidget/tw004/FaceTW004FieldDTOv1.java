@@ -21,4 +21,7 @@ public class FaceTW004FieldDTOv1 {
 
     @Schema(description = "is editable")
     public Boolean editable;
+
+    @Schema(description = "integer order")
+    public int order;
 }
