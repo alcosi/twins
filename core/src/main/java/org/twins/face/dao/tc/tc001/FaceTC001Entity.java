@@ -1,22 +1,19 @@
 package org.twins.face.dao.tc.tc001;
 
-import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
-import org.hibernate.annotations.Type;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceVariantEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
-import java.util.HashMap;
+
 import java.util.UUID;
 
 @Getter
@@ -37,9 +34,6 @@ public class FaceTC001Entity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "key", nullable = false)
     private String key;
 
-    @Column(name = "class_selector_label_i18n_id")
-    private UUID classSelectorLabelI18nId;
-
     @Column(name = "save_button_label_i18n_id")
     private UUID saveButtonLabelI18nId;
 
@@ -52,17 +46,17 @@ public class FaceTC001Entity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "style_classes")
     private String styleClasses;
 
-    @Column(name = "twin_class_id")
-    private UUID twinClassId;
-
-    @Column(name = "extends_depth")
-    private Integer extendsDepth;
-
     @Column(name = "head_twin_pointer_id")
     private UUID headTwinPointerId;
 
-    @Column(name = "twin_class_field_search_id")
-    private UUID twinClassFieldSearchId;
+    @Column(name = "option_select_i18n_id")
+    private UUID optionSelectI18nId;
+
+    @Column(name = "sketch_mode")
+    private Boolean sketchMode;
+
+    @Column(name = "single_option_silent_mode")
+    private Boolean singleOptionSilentMode;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
@@ -80,9 +74,9 @@ public class FaceTC001Entity implements EasyLoggable, FaceVariantEntity {
     @JoinColumn(name = "header_icon_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconResource;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "twin_class_id", insertable = false, updatable = false)
-    private TwinClassEntity twinClass;
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<FaceTC001OptionEntity, UUID> options;
 
     @Override
     public String easyLog(EasyLoggable.Level level) {
