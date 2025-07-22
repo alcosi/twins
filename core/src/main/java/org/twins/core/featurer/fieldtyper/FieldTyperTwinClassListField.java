@@ -4,13 +4,16 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.specifications.twin.TwinSpecification;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldTwinClassListEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
+import org.twins.core.domain.search.TwinFieldSearchTwinClassList;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValueTwinClassList;
@@ -26,7 +29,7 @@ import java.util.stream.Collectors;
 @Featurer(id = FeaturerTwins.ID_1334,
         name = "Twin class list field",
         description = "Field typer for twin class list field")
-public class FieldTyperTwinClassListField extends FieldTyperTwinClassList<FieldDescriptorTwinClassList, FieldValueTwinClassList, TwinFieldSearchNotImplemented> {
+public class FieldTyperTwinClassListField extends FieldTyperTwinClassList<FieldDescriptorTwinClassList, FieldValueTwinClassList, TwinFieldSearchTwinClassList> {
 
     @Override
     protected FieldDescriptorTwinClassList getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
@@ -70,8 +73,8 @@ public class FieldTyperTwinClassListField extends FieldTyperTwinClassList<FieldD
                 );
     }
 
-//    @Override
-//    public Specification<TwinEntity> searchBy(TwinFieldSearchBoolean twinFieldSearchBoolean) {
-//        return Specification.where(TwinSpecification.checkFieldBoolean(twinFieldSearchBoolean));
-//    }
+    @Override
+    public Specification<TwinEntity> searchBy(TwinFieldSearchTwinClassList searchTwinClassList) {
+        return Specification.where(TwinSpecification.checkFieldTwinClassList(searchTwinClassList));
+    }
 }
