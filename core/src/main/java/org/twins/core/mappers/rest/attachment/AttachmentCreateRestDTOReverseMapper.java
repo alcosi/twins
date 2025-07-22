@@ -10,7 +10,7 @@ import org.twins.core.dto.rest.attachment.AttachmentSaveDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -32,7 +32,7 @@ public class AttachmentCreateRestDTOReverseMapper extends RestSimpleDTOMapper<At
 
     @SneakyThrows
     public void preProcessAttachments(List<AttachmentCreateDTOv1> attachmentsRaw, Map<String, MultipartFile> files) {
-        List<AttachmentCreateDTOv1> createDTOv1List = attachmentsRaw == null ? new ArrayList<>() : attachmentsRaw;
+        List<AttachmentCreateDTOv1> createDTOv1List = attachmentsRaw == null ? Collections.emptyList() : attachmentsRaw;
         List<AttachmentSaveDTOv1> attachments = createDTOv1List.stream().map(it -> (AttachmentSaveDTOv1) it).toList();
         attachmentSaveRestDTOReverseMapper.preProcessAttachments(attachments, files);
     }

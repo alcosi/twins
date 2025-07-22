@@ -14,7 +14,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.attachment.AttachmentService;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -30,19 +30,20 @@ public class AttachmentCUDRestDTOReverseMapper extends RestSimpleDTOMapper<TwinU
 
     @SneakyThrows
     public void preProcessAttachments(AttachmentCudDTOv1 attachments, Map<String, MultipartFile> files) {
-        List<AttachmentUpdateDTOv1> updateDTOv1List = attachments == null ? new ArrayList<>() : attachments.update;
-        List<AttachmentCreateDTOv1> createDTOv1List = attachments == null ? new ArrayList<>() : attachments.create;
+        List<AttachmentUpdateDTOv1> updateDTOv1List = attachments == null ? Collections.emptyList() : attachments.update;
+        List<AttachmentCreateDTOv1> createDTOv1List = attachments == null ? Collections.emptyList() : attachments.create;
         attachmentUpdateRestDTOReverseMapper.preProcessAttachments(updateDTOv1List, files);
         attachmentCreateRestDTOReverseMapper.preProcessAttachments(createDTOv1List, files);
     }
+
     @Override
     public void map(TwinUpdateDTOv1 src, EntityCUD<TwinAttachmentEntity> dst, MapperContext mapperContext) throws Exception {
         if (null == src.getAttachments())
             return;
 
-        if(null != src.getAttachments().getCreate())
+        if (null != src.getAttachments().getCreate())
             src.getAttachments().getCreate().stream().filter(Objects::nonNull).forEach(ta -> ta.setTwinId(src.getTwinId()));
-        if(null != src.getAttachments().getUpdate())
+        if (null != src.getAttachments().getUpdate())
             src.getAttachments().getUpdate().stream().filter(Objects::nonNull).forEach(ta -> ta.setTwinId(src.getTwinId()));
 
         dst
