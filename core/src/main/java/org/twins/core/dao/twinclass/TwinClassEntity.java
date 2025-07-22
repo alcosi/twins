@@ -165,6 +165,7 @@ public class TwinClassEntity implements EasyLoggable {
 //    private DomainEntity domain;
 
     @ManyToMany(mappedBy = "twinClassSet")
+    @EqualsAndHashCode.Exclude
     private Set<TwinFieldTwinClassListEntity> twinFieldTwinClassListSet;
 
     @ManyToOne(fetch = FetchType.LAZY)

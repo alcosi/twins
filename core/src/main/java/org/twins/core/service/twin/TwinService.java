@@ -1056,7 +1056,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             fieldValueBoolean.setValue(Boolean.parseBoolean(value));
         if (fieldValue instanceof FieldValueTwinClassList fieldValueTwinClassList) {
             for (var id : value.split(LIST_SPLITTER)) {
-                fieldValueTwinClassList.getTwinClassIdSet().add(UUID.fromString(id));
+                if (StringUtils.isEmpty(id)) {
+                    continue;
+                }
+
+                UUID uuid;
+                try {
+                    uuid = UUID.fromString(id);
+                } catch (Exception e) {
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueTwinClassList.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect class id[" + id + "]");
+                }
+                fieldValueTwinClassList.getTwinClassIdSet().add(uuid);
             }
         }
         if (fieldValue instanceof FieldValueSelect fieldValueSelect) {

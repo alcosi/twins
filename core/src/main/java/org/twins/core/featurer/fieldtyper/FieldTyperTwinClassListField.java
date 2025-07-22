@@ -15,7 +15,6 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValueTwinClassList;
 
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
@@ -51,7 +50,12 @@ public class FieldTyperTwinClassListField extends FieldTyperTwinClassList<FieldD
             );
         }
 
-        //todo check for pointing on itself and check for uuid format via UUIDUtils
+        if (valueUUIDList.contains(twinFieldTwinClassListEntity.getTwin().getTwinClassId())) {
+            throw new ServiceException(
+                    ErrorCodeTwins.TWIN_CLASS_LIST_CYCLE,
+                    "You can't put classId[" + twinFieldTwinClassListEntity.getTwin().getTwinClassId() + "] to the class list because of cycle"
+            );
+        }
 
         detectValueChange(twinFieldTwinClassListEntity, twinChangesCollector, value.getTwinClassIdSet());
     }

@@ -1,11 +1,8 @@
 package org.twins.core.featurer.fieldtyper;
 
 import org.cambium.common.exception.ServiceException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldTwinClassListEntity;
-import org.twins.core.dao.twin.TwinFieldTwinClassListRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
@@ -14,15 +11,10 @@ import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTwinClassList;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.service.twin.TwinService;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public abstract class FieldTyperTwinClassList<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldSearch> extends FieldTyper<D, T, TwinFieldStorageTwinClassList, A> {
-
-//    @Autowired
-//    TwinFieldTwinClassListRepository twinFieldTwinClassListRepository;
 
     protected void detectValueChange(TwinFieldTwinClassListEntity twinFieldTwinClassListEntity, TwinChangesCollector twinChangesCollector, Set<UUID> newValue) throws ServiceException {
         if (twinChangesCollector.collectIfChanged(twinFieldTwinClassListEntity, "field[" + twinFieldTwinClassListEntity.getTwinClassField().getKey() + "]", twinFieldTwinClassListEntity.getTwinClassSet(), newValue)) {
@@ -35,10 +27,9 @@ public abstract class FieldTyperTwinClassList<D extends FieldDescriptor, T exten
 
             for (var twinClass : twinClassSet) {
                 twinClass.getTwinFieldTwinClassListSet().add(twinFieldTwinClassListEntity);
-                twinClassService.saveSafe(twinClass);
             }
 
-//            twinFieldTwinClassListRepository.save(twinFieldTwinClassListEntity);
+            twinClassService.saveAllSafe(twinClassSet);
         }
     }
 

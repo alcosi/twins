@@ -242,6 +242,14 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         return entityRepository().save(entity);
     }
 
+    public Iterable<T> saveAllSafe(Iterable<T> entities) throws ServiceException {
+        for (T entity : entities) {
+            validateEntityAndThrow(entity, EntitySmartService.EntityValidateMode.beforeSave);
+        }
+
+        return entityRepository().saveAll(entities);
+    }
+
     public T updateSafe(T entity, ChangesHelper changesHelper) throws ServiceException {
         if (changesHelper.hasChanges()) {
             validateEntity(entity, EntitySmartService.EntityValidateMode.beforeSave);

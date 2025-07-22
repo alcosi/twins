@@ -23,7 +23,7 @@ public class FieldValueTwinClassList extends FieldValue {
 
     @Override
     public boolean isFilled() {
-        return !twinClassIdSet.isEmpty();
+        return twinClassIdSet != null && !twinClassIdSet.isEmpty();
     }
 
     @Override
