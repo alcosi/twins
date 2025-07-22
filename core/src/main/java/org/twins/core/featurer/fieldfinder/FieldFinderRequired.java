@@ -9,7 +9,6 @@ import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.Properties;
-import java.util.UUID;
 
 @Slf4j
 @Component
@@ -19,7 +18,7 @@ import java.util.UUID;
 public class FieldFinderRequired extends FieldFinder {
 
     @Override
-    protected void createSearch(Properties properties, UUID twinClassId, TwinClassFieldSearch fieldSearch) throws ServiceException {
+    protected void createSearch(Properties properties, TwinClassFieldSearch fieldSearch) throws ServiceException {
         fieldSearch.setRequired(Ternary.ONLY);
 
     }

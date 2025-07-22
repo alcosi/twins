@@ -13,7 +13,6 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinClassFieldId;
 
 import java.util.Properties;
-import java.util.UUID;
 
 @Slf4j
 @Component
@@ -28,7 +27,7 @@ public class FieldFinderGiven extends FieldFinder {
     public static final FeaturerParamBoolean excludeGivenIds = new FeaturerParamBoolean("excludeGivenIds");
 
     @Override
-    protected void createSearch(Properties properties, UUID twinClassId, TwinClassFieldSearch fieldSearch) throws ServiceException {
+    protected void createSearch(Properties properties, TwinClassFieldSearch fieldSearch) throws ServiceException {
         if (excludeGivenIds.extract(properties)) {
             fieldSearch.setIdExcludeList(CollectionUtils.safeAdd(fieldSearch.getIdExcludeList(), fieldIds.extract(properties)));
         } else {

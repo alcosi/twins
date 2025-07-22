@@ -6,18 +6,23 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
+import org.cambium.featurer.FeaturerService;
+import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntitySmartService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldRepository;
+import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinClassFieldSearch;
+import org.twins.core.featurer.fieldfinder.FieldFinder;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecification.*;
@@ -26,10 +31,15 @@ import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecific
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TwinClassFieldSearchService {
-    private final AuthService authService;
+public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<TwinClassFieldSearchEntity> {
+
     private final TwinClassFieldRepository twinClassFieldRepository;
+    private final TwinClassFieldSearchRepository fieldSearchRepository;
+    private final TwinClassFieldSearchPredicateRepository fieldSearchPredicateRepository;
+
+    private final AuthService authService;
     private final TwinClassService twinClassService;
+    private final FeaturerService featurerService;
 
     public PaginationResult<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
@@ -47,6 +57,13 @@ public class TwinClassFieldSearchService {
 
     public PaginationResult<TwinClassFieldEntity> findTwinClassField(UUID searchId, TwinClassFieldSearch narrow, SimplePagination pagination) throws ServiceException {
         //todo implement configured search logic
+        TwinClassFieldSearchEntity searchEntity = fieldSearchRepository.findById(searchId).get();
+        List<TwinClassFieldSearchPredicateEntity> searchPredicates = fieldSearchPredicateRepository.findByTwinClassFieldSearchId(searchEntity.getId());
+
+        for(TwinClassFieldSearchPredicateEntity predicate: searchPredicates) {
+            FieldFinder fieldFinder = featurerService.getFeaturer(predicate.getFieldFinderFeaturerId(), FieldFinder.class);
+            fieldFinder.concatSearch(predicate.getFieldFinderParams(), narrow);
+        }
         return findTwinClassField(narrow, pagination);
     }
 
@@ -75,4 +92,28 @@ public class TwinClassFieldSearchService {
                 checkFieldLikeIn(search.getExternalIdNotLikeList(), true, true, TwinClassFieldEntity.Fields.externalId));
     }
 
+    @Override
+    public CrudRepository<TwinClassFieldSearchEntity, UUID> entityRepository() {
+        return fieldSearchRepository;
+    }
+
+    @Override
+    public Function<TwinClassFieldSearchEntity, UUID> entityGetIdFunction() {
+        return TwinClassFieldSearchEntity::getId;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(TwinClassFieldSearchEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        DomainEntity domain = authService.getApiUser().getDomain();
+        boolean readDenied = entity.getDomainId() != null && !entity.getDomainId().equals(domain.getId());
+        if (readDenied) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.logNormal() + " is not allowed in" + domain.logShort());
+        }
+        return readDenied;
+    }
+
+    @Override
+    public boolean validateEntity(TwinClassFieldSearchEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
+    }
 }
