@@ -104,6 +104,7 @@ public class SystemEntityService {
 
     public static final UUID TWIN_STATUS_USER = UUID.fromString("00000000-0000-0000-0003-000000000001");
     public static final UUID TWIN_STATUS_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0003-000000000003");
+    public static final UUID TWIN_STATUS_SKETCH = UUID.fromString("00000001-0000-0000-0000-000000000001"); //todo changge my id
 
     public static final UUID TWIN_TEMPLATE_USER = UUID.fromString("00000000-0000-0000-0002-000000000001");
     public static final UUID TWIN_TEMPLATE_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0002-000000000003");

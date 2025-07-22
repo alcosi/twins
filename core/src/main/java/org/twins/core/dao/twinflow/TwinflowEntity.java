@@ -50,11 +50,23 @@ public class TwinflowEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @Column(name = "on_create_twin_factory_id")
-    private UUID onCreateTwinFactoryId;
+    @Column(name = "before_sketch_twin_factory_id")
+    private UUID beforeSketchTwinFactoryId;
 
-    @Column(name = "on_update_twin_factory_id")
-    private UUID onUpdateTwinFactoryId;
+    @Column(name = "before_create_twin_factory_id")
+    private UUID beforeCreateTwinFactoryId;
+
+    @Column(name = "before_update_twin_factory_id")
+    private UUID beforeUpdateTwinFactoryId;
+
+    @Column(name = "after_sketch_twin_factory_id")
+    private UUID afterSketchTwinFactoryId;
+
+    @Column(name = "after_create_twin_factory_id")
+    private UUID afterCreateTwinFactoryId;
+
+    @Column(name = "after_update_twin_factory_id")
+    private UUID afterUpdateTwinFactoryId;
 
     @ManyToOne
     @EqualsAndHashCode.Exclude
@@ -96,14 +108,38 @@ public class TwinflowEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "on_create_twin_factory_id", insertable = false, updatable = false)
-    private TwinFactoryEntity onCreateTwinFactory;
+    @JoinColumn(name = "before_create_twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity beforeCreateTwinFactory;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "on_update_twin_factory_id", insertable = false, updatable = false)
-    private TwinFactoryEntity onUpdateTwinFactory;
+    @JoinColumn(name = "before_update_twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity beforeUpdateTwinFactory;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "before_sketch_twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity beforeSketchTwinFactory;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "after_create_twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity afterCreateTwinFactory;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "after_update_twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity afterUpdateTwinFactory;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "after_sketch_twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity afterSketchTwinFactory;
 
     @Transient
     @EqualsAndHashCode.Exclude
