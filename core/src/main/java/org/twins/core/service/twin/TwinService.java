@@ -369,7 +369,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         setHeadSafe(twinEntity);
         if (twinCreate.isCheckCreatePermission())
             checkCreatePermission(twinEntity, authService.getApiUser());
-        createTwinEntity(twinEntity, twinChangesCollector);
+        createTwinEntity(twinCreate, twinChangesCollector);
         runFactoryBeforeCreate(twinCreate);
         saveTwinFields(twinEntity, twinCreate.getFields(), twinChangesCollector);
         if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
@@ -419,11 +419,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         } else if (twinEntity.getTwinClass().getHeadTwinClassId() == null) {
             return;
         }
-        TwinEntity headTwin = twinHeadService.checkValidHeadForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass());    twinEntity
+        TwinEntity headTwin = twinHeadService.checkValidHeadForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass());
+        twinEntity
                 .setHeadTwinId(headTwin.getId())
                 .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin));
     }
-
 
 
     private static UUID getPermissionSchemaSpaceId(TwinEntity headTwin) {
@@ -431,10 +431,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 headTwin.getId() : headTwin.getPermissionSchemaSpaceId();
     }
 
-    public void createTwinEntity(TwinEntity twinEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    public void createTwinEntity(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        TwinEntity twinEntity = twinCreate.getTwinEntity();
         if (twinEntity.getId() == null)
             twinEntity.setId(UUID.randomUUID()); // this id is necessary for fields and links. Because entity is not stored currently
-        if (twinEntity.getTwinStatusId() == null) {
+        if (twinCreate.isSketchMode()) {
+            twinEntity.setTwinStatusId(SystemEntityService.TWIN_STATUS_SKETCH);
+        } else if (twinEntity.getTwinStatusId() == null) {
             TwinflowEntity twinflowEntity = twinflowService.loadTwinflow(twinEntity);
             twinEntity
                     .setTwinStatusId(twinflowEntity.getInitialTwinStatusId())
@@ -598,7 +601,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private void serializeFieldValue(TwinEntity twinEntity, Map<UUID, FieldValue> fields, TwinChangesCollector twinChangesCollector, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
         FieldValue fieldValue = fields.get(twinClassFieldEntity.getId());
         if (fieldValue == null || !fieldValue.isFilled())
-            if (twinClassFieldEntity.getRequired())
+            if (!twinEntity.isSketch() && twinClassFieldEntity.getRequired())
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinClassFieldEntity.easyLog(EasyLoggable.Level.NORMAL) + " is required");
             else
                 return;
@@ -1289,6 +1292,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             fieldI18nEntityList = CollectionUtils.safeAdd(fieldI18nEntityList, cloneTwinFieldI18nEntity);
             return this;
         }
+
         public CloneFieldsResult add(TwinFieldBooleanEntity cloneTwinFieldBooleanEntity) {
             fieldBooleanEntityList = CollectionUtils.safeAdd(fieldBooleanEntityList, cloneTwinFieldBooleanEntity);
             return this;

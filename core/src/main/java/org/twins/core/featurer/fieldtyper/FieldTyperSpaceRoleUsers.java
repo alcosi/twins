@@ -2,7 +2,6 @@ package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.annotations.Featurer;
@@ -63,8 +62,6 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueUser value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (value.getTwinClassField().getRequired() && CollectionUtils.isEmpty(value.getUsers()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         if (!value.getTwinClassField().getTwinClass().getPermissionSchemaSpace()) {
             return;
         }
