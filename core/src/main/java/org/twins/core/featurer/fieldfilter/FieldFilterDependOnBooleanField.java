@@ -40,7 +40,9 @@ public class FieldFilterDependOnBooleanField extends FieldFilter{
         twinService.loadTwinFields(twin);
         TwinFieldBooleanEntity booleanField = twin.getTwinFieldBooleanKit().get(booleanFieldId.extract(properties));
 
-        if (booleanField.getValue() == excludeOnTrue.extract(properties)) {
+        boolean booleanFieldValue = booleanField.getValue() != null && booleanField.getValue();
+
+        if (booleanFieldValue == excludeOnTrue.extract(properties)) {
             unfilteredFieldsKit.addAll(fields);
         }
     }
