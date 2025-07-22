@@ -3,11 +3,13 @@ package org.twins.core.domain;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.factory.FactoryLauncher;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
 
@@ -92,9 +94,10 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         }
     }
 
-    public TwinChangesCollector addPostponedChange(UUID twinId, UUID twinFactoryId, FactoryLauncher factoryLauncher) {
-        if (postponedChanges.containsKey(twinId) && !postponedChanges.get(twinId).equals(twinFactoryId)) {
-            log.warn("twin[{}] already has postponed changes by factory[{}]. Skipping changes by factory[{}]", twinId, postponedChanges.get(twinId), twinFactoryId);
+    public TwinChangesCollector addPostponedChange(UUID twinId, UUID twinFactoryId, FactoryLauncher factoryLauncher) throws ServiceException {
+        if (postponedChanges.containsKey(twinId) && !postponedChanges.get(twinId).getLeft().equals(twinFactoryId)) {
+            throw new ServiceException(ErrorCodeTwins.CONFIGURATION_IS_INVALID,
+                    "twin[{}] already has postponed changes by factory[{}]. Skipping changes by factory[{}]", twinId, postponedChanges.get(twinId), twinFactoryId);
         }
         postponedChanges.put(twinId, Pair.of(twinFactoryId, factoryLauncher));
         return this;
