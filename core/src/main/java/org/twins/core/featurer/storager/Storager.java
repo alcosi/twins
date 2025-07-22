@@ -1,5 +1,6 @@
 package org.twins.core.featurer.storager;
 
+import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -92,7 +93,7 @@ public abstract class Storager extends FeaturerTwins {
      * @return An InputStream representing the file's content.
      * @throws ServiceException If there is an error while retrieving the file or if the file cannot be found.
      */
-    abstract public InputStream getFileAsStream(String fileKey, HashMap<String, String> params) throws ServiceException;
+    abstract public InputStreamResponse getFileAsStream(String fileKey, HashMap<String, String> params) throws ServiceException;
 
     /**
      * Retrieves the contents of a file as a byte array.
@@ -105,7 +106,7 @@ public abstract class Storager extends FeaturerTwins {
      */
     @SneakyThrows
     public byte[] getFileBytes(String fileKey, HashMap<String, String> params) throws ServiceException {
-        try (InputStream stream = getFileAsStream(fileKey, params)) {
+        try (InputStream stream = getFileAsStream(fileKey, params).getContentStream()) {
             return stream.readAllBytes();
         }
     }
