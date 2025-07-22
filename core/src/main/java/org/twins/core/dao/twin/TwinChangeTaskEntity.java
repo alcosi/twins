@@ -23,6 +23,9 @@ public class TwinChangeTaskEntity implements EasyLoggable {
     @Column(name = "twin_id")
     private UUID twinId;
 
+    @Column(name = "request_id")
+    private UUID requestId;
+
     @Column(name = "twin_factory_id")
     private UUID twinFactoryId;
 

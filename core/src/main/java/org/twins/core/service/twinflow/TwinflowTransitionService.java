@@ -49,12 +49,14 @@ import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
+import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
 import org.twins.core.service.factory.TwinFactoryService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.twin.TwinChangeTaskService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twin.TwinValidatorSetService;
@@ -101,6 +103,10 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
     @Autowired
     private CacheManager cacheManager;
+    @Autowired
+    private TwinChangesService twinChangesService;
+    @Autowired
+    private TwinChangeTaskService twinChangeTaskService;
 
     @Override
     public CrudRepository<TwinflowTransitionEntity, UUID> entityRepository() {
@@ -787,6 +793,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     private TransitionResult storeMajorTransition(TransitionContextBatch transitionContextBatch) throws ServiceException {
         DraftEntity draftEntity = draftTransitions(transitionContextBatch);
         draftCommitService.commitNowOrInQueue(draftEntity);
+        //todo run after perform factorires
         TransitionResultMajor transitionResultMajor = new TransitionResultMajor();
         transitionResultMajor.setCommitedDraftEntity(draftEntity);
         return transitionResultMajor;
@@ -799,6 +806,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             transitionResultMinor.setTransitionedTwinList(transitionContext.getTargetTwinList().values().stream().toList());
         }
         commitFactoriesResult(transitionContextBatch.getFactoried(), transitionResultMinor); // without "drafting" we can get only minor results
+        //todo run after perform factorires
         return transitionResultMinor;
     }
 

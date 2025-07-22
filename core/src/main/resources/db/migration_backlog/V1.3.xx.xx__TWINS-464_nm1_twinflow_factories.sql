@@ -119,6 +119,7 @@ create table if not exists twin_change_task
     twin_id               uuid                                not null
         constraint twin_change_task_twin_id_fk
             references twin,
+    request_id               uuid                                not null,
     twin_factory_id             uuid                                not null
         constraint twin_change_task_twin_factory_id_fk
             references twin_factory
@@ -157,6 +158,22 @@ create index if not exists twin_change_task_business_account_id_index
 create index if not exists twin_change_task_twin_change_task_status_id_index
     on twin_change_task (twin_change_task_status_id);
 
+create unique index if not exists twin_change_task_twin_id_request_id_uindex
+    on twin_change_task (twin_id, request_id);
+
+alter table twin_change_task
+    add constraint twin_change_task_pk_2
+        unique (twin_id, request_id);
+
+
+alter table twinflow_transition
+    add if not exists after_perform_twin_factory_id uuid
+        constraint twinflow_transition_after_perform_twin_factory_id_fk
+            references public.twin_factory
+            on update cascade on delete restrict;
+
+create index if not exists twinflow_transition_after_perform_twin_factory_id_index
+    on twinflow_transition (after_perform_twin_factory_id);
 
 
 
