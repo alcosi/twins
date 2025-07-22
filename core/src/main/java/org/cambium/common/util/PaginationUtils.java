@@ -57,7 +57,7 @@ public class PaginationUtils {
         PaginationResult<T> result = new PaginationResult<>();
         result
             .setList(page.getContent())
-            .setTotal(pagination.getTotalElements())
+            .setTotal(page.getTotalElements())
             .setOffset(pagination.getOffset())
             .setLimit(pagination.getLimit());
         return result;

@@ -40,6 +40,7 @@ import org.twins.core.service.twinflow.TwinflowTransitionService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Tag(description = "", name = ApiTag.TRANSITION)
@@ -58,6 +59,7 @@ public class TwinTransitionPerformControllerOld extends ApiController {
     private final TwinTransitionPerformRsRestDTOMapperV1 twinTransitionPerformRsRestDTOMapperV1;
     private final TwinBasicFieldsRestDTOReverseMapper twinBasicFieldsRestDTOReverseMapper;
 
+
     @Deprecated
     @ParametersApiUserHeaders
     @Operation(operationId = "twinTransitionPerformV1", summary = "Perform twin transition by transition id. Transition will be performed only if current twin status is correct for given transition")
@@ -74,6 +76,7 @@ public class TwinTransitionPerformControllerOld extends ApiController {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
         try {
             TwinEntity dbTwinEntity = twinService.findEntitySafe(request.getTwinId());
+            attachmentCUDRestDTOReverseMapperV2.preProcessAttachments(request.context.attachments, Map.of());
             TransitionContext transitionContext = twinflowTransitionService.createTransitionContext(dbTwinEntity, transitionId);
             mapTransitionContext(transitionContext, request.getContext());
             TransitionResult transitionResult = twinflowTransitionService.performTransition(transitionContext);
@@ -105,6 +108,7 @@ public class TwinTransitionPerformControllerOld extends ApiController {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
         try {
             TwinEntity dbTwinEntity = twinService.findEntitySafe(request.getTwinId());
+            attachmentCUDRestDTOReverseMapperV2.preProcessAttachments(request.context.attachments, Map.of());
             TransitionContext transitionContext = twinflowTransitionService.createTransitionContext(dbTwinEntity, transitionAlias);
             mapTransitionContext(transitionContext, request.getContext());
             TransitionResult transitionResult = twinflowTransitionService.performTransition(transitionContext);
@@ -139,6 +143,7 @@ public class TwinTransitionPerformControllerOld extends ApiController {
                 TwinEntity dbTwinEntity = twinService.findEntitySafe(twinId);
                 twinEntities.add(dbTwinEntity);
             }
+            attachmentCUDRestDTOReverseMapperV2.preProcessAttachments(request.getBatchContext().attachments, Map.of());
             TransitionContext transitionContext = twinflowTransitionService.createTransitionContext(twinEntities, transitionId);
             mapTransitionContext(transitionContext, request.getBatchContext());
             TransitionResult transitionResult = twinflowTransitionService.performTransition(transitionContext);
@@ -174,6 +179,7 @@ public class TwinTransitionPerformControllerOld extends ApiController {
                 TwinEntity dbTwinEntity = twinService.findEntitySafe(twinId);
                 twinEntities.add(dbTwinEntity);
             }
+            attachmentCUDRestDTOReverseMapperV2.preProcessAttachments(request.getBatchContext().attachments, Map.of());
             TransitionContextBatch transitionContextBatch = twinflowTransitionService.createTransitionContext(twinEntities, transitionAlias);
             for (TransitionContext transitionContext : transitionContextBatch.getAll()) {
                 mapTransitionContext(transitionContext, request.getBatchContext());
