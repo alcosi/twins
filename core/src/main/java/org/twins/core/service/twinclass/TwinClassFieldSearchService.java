@@ -2,6 +2,7 @@ package org.twins.core.service.twinclass;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
@@ -21,9 +22,12 @@ import org.twins.core.featurer.fieldfinder.FieldFinder;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import static org.cambium.common.util.SetUtils.narrowSet;
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecification.*;
 
@@ -51,20 +55,20 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
     public List<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search) throws ServiceException {
         Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
         List<TwinClassFieldEntity> result = twinClassFieldRepository.findAll(spec);
-
         return result;
     }
 
-    public PaginationResult<TwinClassFieldEntity> findTwinClassField(UUID searchId, TwinClassFieldSearch narrow, SimplePagination pagination) throws ServiceException {
-        //todo implement configured search logic
-        TwinClassFieldSearchEntity searchEntity = fieldSearchRepository.findById(searchId).get();
+    public PaginationResult<TwinClassFieldEntity> findTwinClassField(UUID searchId, TwinClassFieldSearch narrowSearch, SimplePagination pagination) throws ServiceException {
+        TwinClassFieldSearchEntity searchEntity = findEntitySafe(searchId);
         List<TwinClassFieldSearchPredicateEntity> searchPredicates = fieldSearchPredicateRepository.findByTwinClassFieldSearchId(searchEntity.getId());
-
+        TwinClassFieldSearch mainSearch = new TwinClassFieldSearch()
+                .setExcludeSystemFields(false);
         for(TwinClassFieldSearchPredicateEntity predicate: searchPredicates) {
             FieldFinder fieldFinder = featurerService.getFeaturer(predicate.getFieldFinderFeaturerId(), FieldFinder.class);
-            fieldFinder.concatSearch(predicate.getFieldFinderParams(), narrow);
+            fieldFinder.concatSearch(predicate.getFieldFinderParams(), mainSearch);
         }
-        return findTwinClassField(narrow, pagination);
+        narrowSearch(mainSearch, narrowSearch);
+        return findTwinClassField(mainSearch, pagination);
     }
 
     private Specification<TwinClassFieldEntity> createTwinClassFieldSearchSpecification(TwinClassFieldSearch search) throws ServiceException {
@@ -115,5 +119,15 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
     @Override
     public boolean validateEntity(TwinClassFieldSearchEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
+    }
+
+    protected void narrowSearch(TwinClassFieldSearch mainSearch, TwinClassFieldSearch narrowSearch) {
+        if (narrowSearch == null)
+            return;
+        for (Pair<Function<TwinClassFieldSearch, Set>, BiConsumer<TwinClassFieldSearch, Set>> functioPair : TwinClassFieldSearch.FUNCTIONS) {
+            Set mainSet = functioPair.getKey().apply(mainSearch);
+            Set narrowSet = functioPair.getKey().apply(narrowSearch);
+            functioPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
+        }
     }
 }

@@ -7,10 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.annotations.FeaturerList;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
-import org.twins.core.featurer.fieldfinder.FieldFinder;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -20,7 +17,6 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_class_field_search_predicate")
 public class TwinClassFieldSearchPredicateEntity implements EasyLoggable {
-
     @Id
     private UUID id;
 
@@ -33,7 +29,6 @@ public class TwinClassFieldSearchPredicateEntity implements EasyLoggable {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "field_finder_params", columnDefinition = "hstore")
     private HashMap<String, String> fieldFinderParams;
-
 
     @ManyToOne
     @EqualsAndHashCode.Exclude
