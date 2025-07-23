@@ -18,3 +18,25 @@ create index if not exists twin_class_field_search_predicate_index1
 
 create index if not exists twin_class_field_search_predicate_index2
     on twin_class_field_search_predicate (twin_class_field_search_id);
+
+
+DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1
+            FROM information_schema.table_constraints
+            WHERE constraint_type = 'FOREIGN KEY'
+              AND constraint_name = 'face_tc001_option_twin_class_field_search_id_fk'
+              AND table_name = 'face_tc001_option'
+        ) THEN
+            insert into twin_class_field_search (id, domain_id, name) select twin_class_field_search_id, face.domain_id, ''
+                                                                             from face_tc001_option, face_tc001, face where face_tc001_option.face_tc001_id = face_tc001.id and face_tc001.face_id = face.id on conflict do nothing ;
+
+            ALTER TABLE face_tc001_option
+                ADD CONSTRAINT face_tc001_option_twin_class_field_search_id_fk
+                    FOREIGN KEY (twin_class_field_search_id)
+                        REFERENCES twin_class_field_search
+                        ON UPDATE CASCADE
+                        ON DELETE RESTRICT;
+        END IF;
+    END $$;
