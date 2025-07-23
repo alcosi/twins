@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -19,6 +20,9 @@ public class FaceTC001OptionDTOv1 {
     @Schema(description = "twin class search id")
     public UUID twinClassSearchId;
 
+    @Schema(description = "Search named params values")
+    public Map<String, String> twinClassSearchParams;
+
     @Schema(description = "class selector label")
     public String classSelectorLabel;
 
@@ -30,4 +34,7 @@ public class FaceTC001OptionDTOv1 {
 
     @Schema(description = "twin class field search id")
     public UUID twinClassFieldSearchId;
+
+    @Schema(description = "Search named params values")
+    public Map<String, String> twinClassFieldsSearchParams;
 }
