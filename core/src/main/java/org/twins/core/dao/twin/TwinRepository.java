@@ -57,4 +57,12 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
 
     @Query(value = "select t.id from TwinEntity t where t.twinClassId = :twinClassId and t.id in :ids")
     Set<UUID> findIdByTwinClassIdAndIdIn(@Param("twinClassId") UUID twinClassId, @Param("ids") Collection<UUID> ids);
+
+    @Query("""
+    select new org.twins.core.dao.twin.TwinChildCountProjection(t.headTwinId, t.id)
+    from TwinEntity t
+    where t.headTwinId in :headTwinIdSet
+""")
+    List<TwinChildCountProjection> childIds(@Param("headTwinIdSet") Collection<UUID> headTwinIdSet);
+
 }

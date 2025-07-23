@@ -13,5 +13,11 @@ import java.util.*;
         description = "Get statistic")
 @Slf4j
 public abstract class Statister<S extends TwinStatistic> extends FeaturerTwins {
-    public abstract Map<UUID, S> getStatistic(Set<UUID> forTwinIdSet, HashMap<String, String> statisterId) throws ServiceException;
+    public Map<UUID, S> getStatistic(HashMap<String, String> statisterParams, Set<UUID> forTwinIdSet) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, statisterParams, new HashMap<>());
+        log.info("Running featurer[{}].statister with params: {}", this.getClass().getSimpleName(), properties.toString());
+        return getStatistic(properties, forTwinIdSet);
+    }
+
+    public abstract Map<UUID, S> getStatistic(Properties properties, Set<UUID> forTwinIdSet) throws ServiceException;
 } 

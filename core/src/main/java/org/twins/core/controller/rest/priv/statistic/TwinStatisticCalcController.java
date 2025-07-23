@@ -53,7 +53,7 @@ public class TwinStatisticCalcController extends ApiController {
         StatisticCalcRsDTOv1 rs = new StatisticCalcRsDTOv1();
         try {
             rs
-                    .setStatistics(statisticRestDTOMapper.convert(twinStatisticService.calcStatistic(statisticId, request.getTwinIdSet())))
+                    .setStatistics(statisticRestDTOMapper.convert(twinStatisticService.calcStatisticProgressPercent(statisticId, request.getTwinIdSet())))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

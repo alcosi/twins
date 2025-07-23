@@ -152,4 +152,23 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
         where t.ownerBusinessAccountId = :ownerBusinessAccountId and tfs.value = :value and tfs.twinClassFieldId = :twinClassFieldId
     """)
     boolean existsByTwinClassFieldIdAndValueAndOwnerBusinessAccountId(UUID twinClassFieldId, String value, UUID ownerBusinessAccountId);
+
+    @Query(value = """
+        select new org.twins.core.dao.twin.TwinFieldHeadSumCountProjection(t.headTwinId, sum(cast(tfs.value as double)), count(tfs.id))
+        from TwinFieldSimpleEntity tfs, TwinEntity t
+        where tfs.twinId = t.id and t.headTwinId in :headTwinIdSet and tfs.twinClassFieldId = :twinClassFieldId
+        group by t.headTwinId
+        """)
+    List<TwinFieldHeadSumCountProjection> sumAndCountByHeadTwinId(
+            @Param("headTwinIdSet") Collection<UUID> headTwinIdSet,
+            @Param("twinClassFieldId") UUID twinClassFieldId);
+
+    @Query(value = """
+        select new org.twins.core.dao.twin.TwinFieldValueProjection(tfs.twinId, cast(tfs.value as double))
+        from TwinFieldSimpleEntity tfs
+        where tfs.twinId in :twinIdSet and tfs.twinClassFieldId = :twinClassFieldId
+        """)
+    List<TwinFieldValueProjection> valueByTwinId(
+            @Param("twinIdSet") Collection<UUID> twinIdSet,
+            @Param("twinClassFieldId") UUID twinClassFieldId);
 }

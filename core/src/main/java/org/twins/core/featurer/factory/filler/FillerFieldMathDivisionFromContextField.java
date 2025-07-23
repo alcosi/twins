@@ -6,14 +6,12 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.BigDecimalUtil;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.factory.FactoryItem;
-import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
@@ -40,8 +38,6 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
     public static final FeaturerParamUUID divisorTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("divisorTwinClassFieldId");
     @FeaturerParam(name = "Target twin class field id", description = "", order = 3)
     public static final FeaturerParamUUID targetTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("targetTwinClassFieldId");
-    @FeaturerParam(name = "Allow negative result", description = "", order = 4)
-    public static final FeaturerParamBoolean allowNegativeResult = new FeaturerParamBoolean("allowNegativeResult");
 
     @Lazy
     private final TwinService twinService;
@@ -58,7 +54,6 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
         if (!(dividendFieldValue instanceof FieldValueText)) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "dividendTwinClassField[" + paramDividendTwinClassFieldId + "] is not instance of text field and can not be converted to number");
         }
-
         FieldValue divisorFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields().lookupFieldValue(factoryItem, paramDivisorTwinClassFieldId);
         if (divisorFieldValue == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "divisorTwinClassField[" + paramDivisorTwinClassFieldId + "] can not be detected");
@@ -73,14 +68,8 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
             log.trace("divisorNumber: {} and dividendNumber {}", divisorNumber, dividendNumber);
             BigDecimal division = dividendNumber.divide(divisorNumber, 2, RoundingMode.HALF_UP);
             log.trace("division = {}", division);
-            if (!allowNegativeResult.extract(properties) && division.compareTo(BigDecimal.ZERO) < 0) {
-                log.warn("Negative result detected, skipping division");
-                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "negative division result");
-            }
 
             FieldValue targetFieldValue = factoryItem.getOutput().getField(paramTargetTwinClassFieldId);
-            if (targetFieldValue == null && factoryItem.getOutput() instanceof TwinCreate)
-                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Factory item is under creation and has no created field[" + paramTargetTwinClassFieldId + "]");
             if (factoryItem.getOutput() instanceof TwinUpdate) {
                 TwinField twinField = twinService.wrapField(factoryItem.getOutput().getTwinEntity(), paramTargetTwinClassFieldId);
                 if (twinField == null)

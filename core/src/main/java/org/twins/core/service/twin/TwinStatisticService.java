@@ -2,6 +2,7 @@ package org.twins.core.service.twin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -12,8 +13,10 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.statistic.TwinStatisticEntity;
 import org.twins.core.dao.statistic.TwinStatisticRepository;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.statistic.TwinStatisticProgressPercent;
 import org.twins.core.featurer.statistic.Statister;
+import org.twins.core.service.auth.AuthService;
 
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +33,8 @@ public class TwinStatisticService extends EntitySecureFindServiceImpl<TwinStatis
     private TwinStatisticRepository twinStatisticRepository;
     @Autowired
     private FeaturerService featurerService;
+    @Autowired
+    private AuthService authService;
 
     @Override
     public CrudRepository<TwinStatisticEntity, UUID> entityRepository() {
@@ -43,7 +48,11 @@ public class TwinStatisticService extends EntitySecureFindServiceImpl<TwinStatis
 
     @Override
     public boolean isEntityReadDenied(TwinStatisticEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        //todo impl me check domain
+        ApiUser apiUser = authService.getApiUser();
+        if (!entity.getDomainId().equals(apiUser.getDomain().getId())) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in " + apiUser.getDomain().logNormal());
+            return true;
+        }
         return false;
     }
 
@@ -52,10 +61,10 @@ public class TwinStatisticService extends EntitySecureFindServiceImpl<TwinStatis
         return true;
     }
 
-    public Map<UUID, TwinStatisticProgressPercent> calcStatistic(UUID statisticId, Set<UUID> twinIdSet) throws Exception {
+    public Map<UUID, TwinStatisticProgressPercent> calcStatisticProgressPercent(UUID statisticId, Set<UUID> twinIdSet) throws Exception {
         TwinStatisticEntity statisticEntity = findEntitySafe(statisticId);
         Statister<?> statister = featurerService.getFeaturer(statisticEntity.getStatisterFeaturerId(), Statister.class);
-        return (Map<UUID, TwinStatisticProgressPercent>) statister.getStatistic(twinIdSet, statisticEntity.getStatisterParams());
+        return (Map<UUID, TwinStatisticProgressPercent>) statister.getStatistic(statisticEntity.getStatisterParams(), twinIdSet);
     }
 
 }

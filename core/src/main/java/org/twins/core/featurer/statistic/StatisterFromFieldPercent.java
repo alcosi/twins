@@ -4,13 +4,18 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.featurer.annotations.Featurer;
+import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamString;
+import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinFieldValueProjection;
 import org.twins.core.domain.statistic.TwinStatisticProgressPercent;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.util.*;
 
@@ -20,33 +25,32 @@ import java.util.*;
         description = "Statistic for child twins")
 @RequiredArgsConstructor
 public class StatisterFromFieldPercent extends Statister<TwinStatisticProgressPercent> {
+    @FeaturerParam(name = "Twin class field id", description = "", order = 1)
+    public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
+    @FeaturerParam(name = "Key", description = "", order = 2)
+    public static final FeaturerParamString key = new FeaturerParamString("key");
+    @FeaturerParam(name = "Label", description = "", order = 3)
+    public static final FeaturerParamString label = new FeaturerParamString("label");
+    @FeaturerParam(name = "Color", description = "", order = 4)
+    public static final FeaturerParamString color = new FeaturerParamString("colorHex");
     @Autowired
     private TwinFieldSimpleRepository twinFieldSimpleRepository;
 
     @Override
-    public Map<UUID, TwinStatisticProgressPercent> getStatistic(Set<UUID> forTwinIdSet, HashMap<String, String> params) throws ServiceException {
-        UUID twinClassFieldId = UUID.fromString(params.get("twinClassFieldId"));
-        List<TwinFieldSimpleEntity> simpleFields = twinFieldSimpleRepository.findByTwinIdInAndTwinClassFieldIdIn(forTwinIdSet, List.of(twinClassFieldId));
-        Kit<TwinFieldSimpleEntity, UUID> twinFieldSimplekit = new Kit<>(simpleFields, TwinFieldSimpleEntity::getTwinId);
+    public Map<UUID, TwinStatisticProgressPercent> getStatistic(Properties properties, Set<UUID> forTwinIdSet) {
+        Kit<TwinFieldValueProjection, UUID> twinFieldSimplekit = new Kit<>(TwinFieldValueProjection::headTwinId);
+        List<TwinFieldValueProjection> forHeadTwinValues = twinFieldSimpleRepository.valueByTwinId(forTwinIdSet, twinClassFieldId.extract(properties));
+        twinFieldSimplekit.addAll(forHeadTwinValues);
+
 
         Map<UUID, TwinStatisticProgressPercent> ret = new HashMap<>();
         for (UUID twinId : forTwinIdSet) {
-            int percent;
-            TwinFieldSimpleEntity entity = twinFieldSimplekit.get(twinId);
-            if (entity != null) {
-                try {
-                    percent = (int) (Double.parseDouble(entity.getValue()) * 100);
-                } catch (NumberFormatException e) {
-                    throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_VALUE_INCORRECT, "Incorrect value for percent compare with field: [" + entity.getTwinClassFieldId().toString() + "]");
-                }
-            } else {
-                percent = 0;
-            }
+            TwinFieldValueProjection twin = twinFieldSimplekit.get(twinId);
             TwinStatisticProgressPercent.Item item = createItem(
-                    percent,
-                    params.get(TwinStatisticProgressPercent.Item.Fields.key),
-                    params.get(TwinStatisticProgressPercent.Item.Fields.label),
-                    params.get(TwinStatisticProgressPercent.Item.Fields.colorHex)
+                    (int) (twin.value() * 100),
+                    key.extract(properties),
+                    label.extract(properties),
+                    color.extract(properties)
             );
             ret.put(twinId, new TwinStatisticProgressPercent()
                     .setItems(List.of(item)));
