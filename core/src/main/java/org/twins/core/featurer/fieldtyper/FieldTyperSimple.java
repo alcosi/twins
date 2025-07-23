@@ -48,5 +48,4 @@ public abstract class FieldTyperSimple<D extends FieldDescriptor, T extends Fiel
     }
 
     protected abstract T deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) throws ServiceException;
-
 }

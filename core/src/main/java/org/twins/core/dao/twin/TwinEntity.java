@@ -23,6 +23,7 @@ import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.link.TwinLinkService;
 
 import java.sql.Timestamp;
@@ -331,6 +332,10 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinClassEntity, UUID> creatableChildTwinClasses;
+
+    public boolean isSketch() {
+        return SystemEntityService.TWIN_STATUS_SKETCH.equals(twinStatusId);
+    }
 
     @Override
     public String toString() {

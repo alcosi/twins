@@ -1,5 +1,6 @@
 package org.twins.core.service.resource;
 
+import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
@@ -12,7 +13,6 @@ import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.resource.ResourceRepository;
 import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.file.DomainFile;
 import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.Storager;
 import org.twins.core.service.auth.AuthService;
@@ -39,12 +39,12 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
      * @throws ServiceException if the resource with the specified {@code resourceId} is not found or any error occurs during file retrieval
      */
     @Transactional(readOnly = true)
-    public DomainFile getResourceFile(UUID resourceId) throws ServiceException {
+    public InputStreamResponse getResourceFile(UUID resourceId) throws ServiceException {
         var resource = findEntitySafe(resourceId);
         StorageEntity storage = resource.getStorage();
         Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
         var stream = fileService.getFileAsStream(resource.getStorageFileKey(), storage.getStoragerParams());
-        return new DomainFile(stream, resource.getOriginalFileName(), resource.getSizeInBytes());
+        return stream;
     }
 
     /**
@@ -149,8 +149,8 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
 
         Storager oldStorager = featurerService.getFeaturer(oldStorage.getStorageFeaturer(), Storager.class);
         Storager newStorager = featurerService.getFeaturer(newStorage.getStorageFeaturer(), Storager.class);
-        InputStream fileStream = oldStorager.getFileAsStream(resource.getStorageFileKey(), oldStorage.getStoragerParams());
-        AddedFileKey addedFileKey = newStorager.addFile(newResourceId, fileStream, newStorage.getStoragerParams());
+        InputStreamResponse fileStream = oldStorager.getFileAsStream(resource.getStorageFileKey(), oldStorage.getStoragerParams());
+        AddedFileKey addedFileKey = newStorager.addFile(newResourceId, fileStream.getContentStream(), newStorage.getStoragerParams());
         ResourceEntity newResource = new ResourceEntity()
                 .setId(resourceId)
                 .setStorageId(newStorageId)

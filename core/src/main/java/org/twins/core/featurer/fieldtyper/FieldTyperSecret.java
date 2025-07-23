@@ -1,7 +1,6 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.log4j.Log4j2;
-import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -40,13 +39,6 @@ public class FieldTyperSecret
     protected void serializeValue(Properties properties, TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity,
                                   FieldValueText value, TwinChangesCollector twinChangesCollector)
             throws ServiceException {
-        if (twinFieldSimpleNonIndexedEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(value.getValue())) {
-            throw new ServiceException(
-                    ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED,
-                    twinFieldSimpleNonIndexedEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required"
-            );
-        }
-
         String pattern = regexp.extract(properties);
 
         if (!value.getValue().matches(pattern)) {
