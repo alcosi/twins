@@ -21,6 +21,7 @@ import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.featurer.fieldfinder.FieldFinder;
+import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.List;
@@ -61,6 +62,9 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
     }
 
     public PaginationResult<TwinClassFieldEntity> findTwinClassField(UUID searchId, TwinClassFieldSearch narrowSearch, SimplePagination pagination) throws ServiceException {
+        if (SystemEntityService.TWIN_CLASS_FIELD_SEARCH_UNLIMITED.equals(searchId)) {
+            return findTwinClassField(narrowSearch, pagination);
+        }
         TwinClassFieldSearchEntity searchEntity = findEntitySafe(searchId);
         List<TwinClassFieldSearchPredicateEntity> searchPredicates = fieldSearchPredicateRepository.findByTwinClassFieldSearchId(searchEntity.getId());
         TwinClassFieldSearch mainSearch = new TwinClassFieldSearch()

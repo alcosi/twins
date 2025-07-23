@@ -5,6 +5,8 @@ create table if not exists twin_class_field_search
     name         varchar   not null
      );
 
+insert into twin_class_field_search (id, domain_id, name) values ('00000000-0000-0000-0014-000000000001', null, 'Unlimited class fields search') on conflict do nothing ;
+
 create table if not exists twin_class_field_search_predicate
 (
     id                  uuid      not null primary key,
