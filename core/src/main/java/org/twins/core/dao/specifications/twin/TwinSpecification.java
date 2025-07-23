@@ -286,83 +286,76 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
 
     public static Specification<TwinEntity> checkFieldTwinClassList(final TwinFieldSearchTwinClassList search) {
         return (root, query, cb) -> {
-            if (search.isEmptySearch()) return cb.conjunction();
-
-            Join<TwinEntity, TwinFieldTwinClassListEntity> twinFieldTwinClassListEntityJoin =
-                    root.join(TwinEntity.Fields.fieldsTwinClassList, JoinType.INNER);
-
-            twinFieldTwinClassListEntityJoin.on(
-                    cb.equal(
-                            twinFieldTwinClassListEntityJoin.get(TwinFieldTwinClassListEntity.Fields.twinClassFieldId),
-                            search.getTwinClassFieldEntity().getId()
-                    )
-            );
-
-            Predicate includeAll;
-            if (CollectionUtils.isNotEmpty(search.getIdIncludeAllSet())) {
-                Subquery<Long> includeSubquery = query.subquery(Long.class);
-                Root<TwinFieldTwinClassListEntity> includeRoot = includeSubquery.from(TwinFieldTwinClassListEntity.class);
-                Join<TwinFieldTwinClassListEntity, TwinClassEntity> includeJoin = includeRoot.join("twinClassSet");
-
-                includeSubquery.select(cb.count(includeJoin))
-                        .where(
-                                cb.equal(includeRoot, twinFieldTwinClassListEntityJoin),
-                                includeJoin.get("id").in(search.getIdIncludeAllSet())
-                        );
-
-                includeAll = cb.equal(includeSubquery, (long) search.getIdIncludeAllSet().size());
-            } else {
-                includeAll = cb.conjunction();
+            if(search.isEmptySearch()) {
+                return cb.conjunction();
             }
+
+            Join<TwinEntity, TwinFieldTwinClassEntity> twinFieldTwinClassJoin = root.join(TwinEntity.Fields.fieldsTwinClassList, JoinType.INNER);
+            twinFieldTwinClassJoin.on(cb.equal(twinFieldTwinClassJoin.get(TwinFieldTwinClassEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
 
             Predicate includeAny;
             if (CollectionUtils.isNotEmpty(search.getIdIncludeAnySet())) {
-                Join<TwinFieldTwinClassListEntity, TwinClassEntity> twinClassJoin =
-                        twinFieldTwinClassListEntityJoin.join("twinClassSet");
-
-                includeAny = twinClassJoin.get("id").in(search.getIdIncludeAnySet());
+                includeAny = twinFieldTwinClassJoin.get(TwinFieldTwinClassEntity.Fields.twinClassId).in(search.getIdIncludeAnySet());
             } else {
                 includeAny = cb.conjunction();
             }
 
-            Predicate include = cb.and(includeAny, includeAll);
-
-
-            Predicate excludeAll;
-            if (CollectionUtils.isNotEmpty(search.getIdExcludeAllSet())) {
-                Subquery<Long> matchCountSubquery = query.subquery(Long.class);
-                Root<TwinFieldTwinClassListEntity> matchRoot = matchCountSubquery.from(TwinFieldTwinClassListEntity.class);
-                Join<TwinFieldTwinClassListEntity, TwinClassEntity> matchJoin = matchRoot.join("twinClassSet", JoinType.LEFT);
-
-                matchCountSubquery.select(cb.count(matchJoin))
-                        .where(
-                                cb.equal(matchRoot, twinFieldTwinClassListEntityJoin),
-                                matchJoin.get("id").in(search.getIdExcludeAllSet())
-                        );
-
-                excludeAll = cb.not(cb.equal(matchCountSubquery, (long) search.getIdExcludeAllSet().size())
-                );
+            Predicate includeAll;
+            if (CollectionUtils.isNotEmpty(search.getIdIncludeAllSet())) {
+                List<Predicate> includeAllPredicates = new ArrayList<>();
+                for (UUID id : search.getIdIncludeAllSet()) {
+                    Subquery<Long> subquery = cb.createQuery().subquery(Long.class);
+                    Root<TwinFieldTwinClassEntity> subRoot = subquery.from(TwinFieldTwinClassEntity.class);
+                    subquery.select(cb.literal(1L));
+                    subquery.where(
+                            cb.equal(subRoot.get(TwinFieldTwinClassEntity.Fields.twinId), root.get(TwinEntity.Fields.id)),
+                            cb.equal(subRoot.get(TwinFieldTwinClassEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()),
+                            cb.equal(subRoot.get(TwinFieldTwinClassEntity.Fields.twinClassId), id)
+                    );
+                    includeAllPredicates.add(cb.exists(subquery));
+                }
+                includeAll = cb.and(includeAllPredicates.toArray(new Predicate[0]));
             } else {
-                excludeAll = cb.conjunction();
+                includeAll = cb.conjunction();
             }
 
             Predicate excludeAny;
             if (CollectionUtils.isNotEmpty(search.getIdExcludeAnySet())) {
-                Subquery<Long> excludeSubquery = query.subquery(Long.class);
-                Root<TwinFieldTwinClassListEntity> excludeRoot = excludeSubquery.from(TwinFieldTwinClassListEntity.class);
-                Join<TwinFieldTwinClassListEntity, TwinClassEntity> excludeJoin = excludeRoot.join("twinClassSet");
+                Subquery<UUID> excludeAnySubquery = cb.createQuery().subquery(UUID.class);
+                Root<TwinFieldTwinClassEntity> excludeAnyRoot = excludeAnySubquery.from(TwinFieldTwinClassEntity.class);
+                excludeAnySubquery.select(excludeAnyRoot.get(TwinFieldTwinClassEntity.Fields.twinId));
+                excludeAnySubquery.where(
+                        cb.equal(excludeAnyRoot.get(TwinFieldTwinClassEntity.Fields.twinId), root.get(TwinEntity.Fields.id)),
+                        cb.equal(excludeAnyRoot.get(TwinFieldTwinClassEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()),
+                        excludeAnyRoot.get(TwinFieldTwinClassEntity.Fields.twinClassId).in(search.getIdExcludeAnySet())
+                );
 
-                excludeSubquery.select(cb.literal(1L))
-                        .where(
-                                cb.equal(excludeRoot, twinFieldTwinClassListEntityJoin),
-                                excludeJoin.get("id").in(search.getIdExcludeAnySet())
-                        );
-
-                excludeAny = cb.not(cb.exists(excludeSubquery));
+                excludeAny = cb.not(cb.exists(excludeAnySubquery));
             } else {
                 excludeAny = cb.conjunction();
             }
 
+            Predicate excludeAll;
+            if (CollectionUtils.isNotEmpty(search.getIdExcludeAllSet())) {
+                List<Predicate> excludeAllConditions = new ArrayList<>();
+                for (UUID id : search.getIdExcludeAllSet()) {
+                    Subquery<Long> excludeAllSubquery = cb.createQuery().subquery(Long.class);
+                    Root<TwinFieldTwinClassEntity> excludeAllRoot = excludeAllSubquery.from(TwinFieldTwinClassEntity.class);
+                    excludeAllSubquery.select(cb.literal(1L));
+                    excludeAllSubquery.where(
+                            cb.equal(excludeAllRoot.get(TwinFieldTwinClassEntity.Fields.twinId), root.get(TwinEntity.Fields.id)),
+                            cb.equal(excludeAllRoot.get(TwinFieldTwinClassEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()),
+                            cb.equal(excludeAllRoot.get(TwinFieldTwinClassEntity.Fields.twinClassId), id)
+                    );
+                    excludeAllConditions.add(cb.exists(excludeAllSubquery));
+                }
+
+                excludeAll = cb.not(cb.and(excludeAllConditions.toArray(new Predicate[0])));
+            } else {
+                excludeAll = cb.conjunction();
+            }
+
+            Predicate include = cb.and(includeAny, includeAll);
             Predicate exclude = cb.and(excludeAny, excludeAll);
 
             return cb.and(include, exclude);

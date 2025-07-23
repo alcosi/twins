@@ -18,11 +18,11 @@ public class TwinFieldStorageTwinClassList extends TwinFieldStorage {
 
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) {
-        KitGrouped<TwinFieldTwinClassListEntity, UUID, UUID> allTwinsFieldGrouped = new KitGrouped<>(
-                twinFieldTwinClassListRepository.findByTwinIdIn(twinsKit.getIdSet()), TwinFieldTwinClassListEntity::getId, TwinFieldTwinClassListEntity::getTwinId);
+        KitGrouped<TwinFieldTwinClassEntity, UUID, UUID> allTwinsFieldGrouped = new KitGrouped<>(
+                twinFieldTwinClassListRepository.findByTwinIdIn(twinsKit.getIdSet()), TwinFieldTwinClassEntity::getId, TwinFieldTwinClassEntity::getTwinId);
         for (var twinEntity : twinsKit) {
             if (allTwinsFieldGrouped.containsGroupedKey(twinEntity.getId())) {
-                twinEntity.setTwinFieldTwinClassListKit(new Kit<>(allTwinsFieldGrouped.getGrouped(twinEntity.getId()), TwinFieldTwinClassListEntity::getTwinClassFieldId));
+                twinEntity.setTwinFieldTwinClassKit(new KitGrouped<>(allTwinsFieldGrouped.getGrouped(twinEntity.getId()), TwinFieldTwinClassEntity::getId,TwinFieldTwinClassEntity::getTwinClassFieldId));
             } else {
                 initEmpty(twinEntity);
             }
@@ -36,12 +36,12 @@ public class TwinFieldStorageTwinClassList extends TwinFieldStorage {
 
     @Override
     public boolean isLoaded(TwinEntity twinEntity) {
-        return twinEntity.getTwinFieldTwinClassListKit() != null;
+        return twinEntity.getTwinFieldTwinClassKit() != null;
     }
 
     @Override
     public void initEmpty(TwinEntity twinEntity) {
-        twinEntity.setTwinFieldTwinClassListKit(Kit.EMPTY);
+        twinEntity.setTwinFieldTwinClassKit(KitGrouped.EMPTY);
     }
 
     @Override

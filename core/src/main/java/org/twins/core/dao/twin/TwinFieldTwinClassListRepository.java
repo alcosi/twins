@@ -12,15 +12,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public interface TwinFieldTwinClassListRepository extends CrudRepository<TwinFieldTwinClassListEntity, UUID>, JpaSpecificationExecutor<TwinFieldTwinClassListEntity> {
+public interface TwinFieldTwinClassListRepository extends CrudRepository<TwinFieldTwinClassEntity, UUID>, JpaSpecificationExecutor<TwinFieldTwinClassEntity> {
 
-    List<TwinFieldTwinClassListEntity> findByTwinId(UUID twinId);
+    List<TwinFieldTwinClassEntity> findByTwinId(UUID twinId);
     boolean existsByTwinClassFieldId(UUID twinClassFieldId);
-    List<TwinFieldTwinClassListEntity> findByTwinIdIn(Set<UUID> twinIds);
+    List<TwinFieldTwinClassEntity> findByTwinIdIn(Set<UUID> twinIds);
 
     @Query(value = """
             select distinct field.twinClassFieldId
-            from TwinFieldTwinClassListEntity field where field.twin.twinClassId = :twinClassId and field.twinClassFieldId in (:twinClassFields)
+            from TwinFieldTwinClassEntity field where field.twin.twinClassId = :twinClassId and field.twinClassFieldId in (:twinClassFields)
             """)
     List<UUID> findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(@Param("twinClassId") UUID twinClassId, @Param("twinClassFields") Collection<UUID> twinClassFields);
 
@@ -28,7 +28,7 @@ public interface TwinFieldTwinClassListRepository extends CrudRepository<TwinFie
 
     @Transactional
     @Modifying
-    @Query(value = "update TwinFieldTwinClassListEntity set twinClassFieldId = :toTwinClassFieldId where twinClassFieldId = :fromTwinClassFieldId and twin.twinClassId = :twinClassId")
+    @Query(value = "update TwinFieldTwinClassEntity set twinClassFieldId = :toTwinClassFieldId where twinClassFieldId = :fromTwinClassFieldId and twin.twinClassId = :twinClassId")
     void replaceTwinClassFieldForTwinsOfClass(@Param("twinClassId") UUID twinClassId, @Param("fromTwinClassFieldId") UUID fromTwinClassFieldId, @Param("toTwinClassFieldId") UUID toTwinClassFieldId);
 
 }

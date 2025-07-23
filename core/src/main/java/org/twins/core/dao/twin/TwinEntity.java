@@ -207,7 +207,7 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
-    private Collection<TwinFieldTwinClassListEntity> fieldsTwinClassList;
+    private Collection<TwinFieldTwinClassEntity> fieldsTwinClassList;
 
     //needed for specification
     @Deprecated
@@ -291,6 +291,10 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    private KitGrouped<TwinFieldTwinClassEntity, UUID, UUID> twinFieldTwinClassKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
     private Map<UUID, Object> twinFieldCalculated;
 
     @Transient
@@ -316,10 +320,6 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<DataListOptionEntity, UUID> twinTagKit;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    private Kit<TwinFieldTwinClassListEntity, UUID> twinFieldTwinClassListKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
