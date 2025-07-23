@@ -10,8 +10,8 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.TwinField;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
@@ -19,6 +19,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -41,6 +42,7 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
 
     @Lazy
     private final TwinService twinService;
+    private final TwinClassFieldService twinClassFieldService;
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
@@ -70,22 +72,15 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
             log.trace("division = {}", division);
 
             FieldValue targetFieldValue = factoryItem.getOutput().getField(paramTargetTwinClassFieldId);
+            if (targetFieldValue == null) {
+                targetFieldValue = new FieldValueText(twinClassFieldService.findEntitySafe(paramTargetTwinClassFieldId));
+            }
+            if (factoryItem.getOutput() instanceof TwinCreate) {
+                factoryItem.getOutput().addField(((FieldValueText) targetFieldValue).setValue("0.0"));
+            }
             if (factoryItem.getOutput() instanceof TwinUpdate) {
-                TwinField twinField = twinService.wrapField(factoryItem.getOutput().getTwinEntity(), paramTargetTwinClassFieldId);
-                if (twinField == null)
-                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "targetTwinClassField[" + paramTargetTwinClassFieldId + "] is not present in " + factoryItem.getOutput().getTwinEntity().getId());
-                targetFieldValue = twinService.getTwinFieldValue(twinField);
+                factoryItem.getOutput().addField(((FieldValueText) targetFieldValue).setValue(BigDecimalUtil.getProcessedString(division)));
             }
-            if (targetFieldValue == null)
-                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "targetTwinClassField[" + paramTargetTwinClassFieldId + "] can not be detected");
-
-            if (targetFieldValue instanceof FieldValueText targetFieldValueText) {
-                factoryItem.getOutput().addField(targetFieldValueText.setValue(BigDecimalUtil.getProcessedString(division)));
-            } else {
-                log.warn("Incorrect result detected, skipping division");
-                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "targetTwinClassField[" + paramTargetTwinClassFieldId + "] is not instance of text field and can not be converted to number");
-            }
-
         } else {
             log.warn("Incorrect result detected, skipping division");
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "divisorTwinClassField[" + paramDivisorTwinClassFieldId + "] is not instance of text field and can not be converted to number");

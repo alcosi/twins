@@ -10,9 +10,12 @@ create table if not exists twin_statistic
     statister_featurer_id integer not null
         constraint twin_statistic_featurer_id_fk
         references featurer
-        on update cascade on delete cascade,
+        on update restrict on delete cascade,
     statister_params      hstore
 );
+
+create index if not exists twin_statistic_statister_domain_id_index
+    on twin_statistic (domain_id);
 
 create index if not exists twin_statistic_statister_featurer_id_index
     on twin_statistic (statister_featurer_id);

@@ -39,12 +39,12 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
 
     @Override
     public Map<UUID, TwinStatisticProgressPercent> getStatistic(Properties properties, Set<UUID> forTwinIdSet) {
-        List<TwinChildCountProjection> twinChildProjections = twinRepository.childIds(forTwinIdSet);
+        List<TwinNoRelationsProjection> twinChildProjections = twinRepository.findByHeadTwinIdIn(forTwinIdSet, TwinNoRelationsProjection.class);
         List<UUID> allChildTwinIds = new ArrayList<>();
         Map<UUID, List<UUID>> groupedByParentMap = new HashMap<>();
-        for (TwinChildCountProjection projection : twinChildProjections) {
-            groupedByParentMap.computeIfAbsent(projection.headTwinId(), k -> new ArrayList<>()).add(projection.childTwinId());
-            allChildTwinIds.add(projection.childTwinId());
+        for (TwinNoRelationsProjection projection : twinChildProjections) {
+            groupedByParentMap.computeIfAbsent(projection.getHeadTwinId(), k -> new ArrayList<>()).add(projection.getId());
+            allChildTwinIds.add(projection.getId());
         }
 
         Kit<TwinFieldHeadSumCountProjection, UUID> groupingByHead = new Kit<>(TwinFieldHeadSumCountProjection::headTwinId);
