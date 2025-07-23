@@ -6,3 +6,5 @@ drop table if exists public.card;
 drop table if exists public.card_layout_position;
 drop table if exists public.card_layout;
 drop table if exists public.widget;
+drop table if exists public.link_tree_node;
+drop table if exists public.link_tree;
