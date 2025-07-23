@@ -27,7 +27,7 @@ public class FieldFinderGiven extends FieldFinder {
     public static final FeaturerParamBoolean excludeGivenIds = new FeaturerParamBoolean("excludeGivenIds");
 
     @Override
-    protected void createSearch(Properties properties, TwinClassFieldSearch fieldSearch) throws ServiceException {
+    protected void concatSearch(Properties properties, TwinClassFieldSearch fieldSearch) throws ServiceException {
         if (excludeGivenIds.extract(properties)) {
             fieldSearch.setIdExcludeList(CollectionUtils.safeAdd(fieldSearch.getIdExcludeList(), fieldIds.extract(properties)));
         } else {

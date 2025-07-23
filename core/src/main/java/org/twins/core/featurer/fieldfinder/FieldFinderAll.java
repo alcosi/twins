@@ -21,7 +21,7 @@ public class FieldFinderAll extends FieldFinder {
     public static final FeaturerParamBoolean excludeSystemFields = new FeaturerParamBoolean("excludeSystemFields");
 
     @Override
-    protected void createSearch(Properties properties, TwinClassFieldSearch fieldSearch) throws ServiceException {
+    protected void concatSearch(Properties properties, TwinClassFieldSearch fieldSearch) throws ServiceException {
         fieldSearch.setExcludeSystemFields(excludeSystemFields.extract(properties));
     }
 }

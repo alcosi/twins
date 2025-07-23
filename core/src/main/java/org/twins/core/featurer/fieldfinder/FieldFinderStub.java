@@ -16,7 +16,7 @@ import java.util.Properties;
         description = "")
 public class FieldFinderStub extends FieldFinder {
     @Override
-    protected void createSearch(Properties properties, TwinClassFieldSearch fieldSearch) throws ServiceException {
+    protected void concatSearch(Properties properties, TwinClassFieldSearch fieldSearch) throws ServiceException {
         fieldSearch.setInactiveSearch(true);
     }
 }

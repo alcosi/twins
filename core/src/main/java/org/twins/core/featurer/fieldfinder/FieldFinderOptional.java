@@ -18,7 +18,7 @@ import java.util.Properties;
 public class FieldFinderOptional extends FieldFinder {
 
     @Override
-    protected void createSearch(Properties properties, TwinClassFieldSearch fieldSearch) throws ServiceException {
+    protected void concatSearch(Properties properties, TwinClassFieldSearch fieldSearch) throws ServiceException {
         fieldSearch.setRequired(Ternary.ONLY_NOT);
     }
 }

@@ -20,15 +20,15 @@ public abstract class FieldFinder extends FeaturerTwins {
         log.info("Running featurer[{}].findFields with params: {}", this.getClass().getSimpleName(), properties.toString());
         TwinClassFieldSearch twinClassFieldSearch = new TwinClassFieldSearch();
         twinClassFieldSearch.addTwinClassId(twinClassId, true, false);
-        createSearch(properties, twinClassFieldSearch);
+        concatSearch(properties, twinClassFieldSearch);
         return twinClassFieldSearch;
     }
 
     public void concatSearch(HashMap<String, String> fieldFinderParams, TwinClassFieldSearch fieldSearch) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, fieldFinderParams, new HashMap<>());
         log.info("Running featurer[{}].findFields with params: {}", this.getClass().getSimpleName(), properties.toString());
-        createSearch(properties, fieldSearch);
+        concatSearch(properties, fieldSearch);
     }
 
-    protected abstract void createSearch(Properties properties, TwinClassFieldSearch fieldSearch) throws ServiceException;
+    protected abstract void concatSearch(Properties properties, TwinClassFieldSearch fieldSearch) throws ServiceException;
 }
