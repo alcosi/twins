@@ -40,6 +40,7 @@ public class TwinClassFieldSearch {
     private Set<UUID> editPermissionIdExcludeList;
     private Ternary required;
     private boolean excludeSystemFields = true;
+    private boolean inactiveSearch = false;
 
     public TwinClassFieldSearch addTwinClassId(final UUID id, final boolean searchExtends, boolean exclude) {
         if (exclude) {

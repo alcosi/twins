@@ -49,16 +49,11 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
     private final FeaturerService featurerService;
 
     public PaginationResult<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search, SimplePagination pagination) throws ServiceException {
+        if (search.isInactiveSearch())
+            return PaginationResult.EMPTY;
         Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
         Page<TwinClassFieldEntity> ret = twinClassFieldRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
-    }
-
-
-    public List<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search) throws ServiceException {
-        Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
-        List<TwinClassFieldEntity> result = twinClassFieldRepository.findAll(spec);
-        return result;
     }
 
     public PaginationResult<TwinClassFieldEntity> findTwinClassField(UUID searchId, TwinClassFieldSearch narrowSearch, SimplePagination pagination) throws ServiceException {

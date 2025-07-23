@@ -6,11 +6,8 @@ import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.featurer.FeaturerTwins;
-import org.cambium.common.util.UuidUtils;
 
 import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
 
 @Slf4j
 @Component
@@ -18,9 +15,8 @@ import java.util.UUID;
         name = "Stub (does not return fields)",
         description = "")
 public class FieldFinderStub extends FieldFinder {
-
     @Override
-    protected void createSearch(Properties properties, UUID twinClassId, TwinClassFieldSearch fieldSearch) throws ServiceException {
-        fieldSearch.setIdList(Set.of(UuidUtils.NULLIFY_MARKER));
+    protected void createSearch(Properties properties, TwinClassFieldSearch fieldSearch) throws ServiceException {
+        fieldSearch.setInactiveSearch(true);
     }
 }
