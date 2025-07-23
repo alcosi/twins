@@ -31,6 +31,7 @@ import org.twins.core.dto.rest.transition.TwinTransitionPerformBatchRqDTOv1;
 import org.twins.core.dto.rest.transition.TwinTransitionPerformRqDTOv1;
 import org.twins.core.dto.rest.transition.TwinTransitionPerformRsDTOv2;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapperV2;
+import org.twins.core.mappers.rest.attachment.AttachmentCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.TwinLinkCUDRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -59,6 +60,7 @@ public class TwinTransitionPerformController extends ApiController {
     private final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
     private final TwinTransitionPerformRsRestDTOMapperV2 twinTransitionPerformRsRestDTOMapperV2;
     private final TwinBasicFieldsRestDTOReverseMapper twinBasicFieldsRestDTOReverseMapper;
+    private final AttachmentCreateRestDTOReverseMapper attachmentCreateRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinTransitionPerformV2", summary = "Perform twin transition by transition id. Transition will be performed only if current twin status is correct for given transition")
@@ -101,7 +103,12 @@ public class TwinTransitionPerformController extends ApiController {
     protected ResponseEntity<? extends Response> perform(MapperContext mapperContext, UUID transitionId, TwinTransitionPerformRqDTOv1 request, Map<String, MultipartFile> filesMap) {
         TwinTransitionPerformRsDTOv2 rs = new TwinTransitionPerformRsDTOv2();
         try {
-            attachmentCUDRestDTOReverseMapperV2.preProcessAttachments(request.getContext().getAttachments(), filesMap);
+            if (request.getContext() != null) {
+                attachmentCUDRestDTOReverseMapperV2.preProcessAttachments(request.context.attachments, filesMap);
+                if (request.getContext().getNewTwins() != null) {
+                    request.getContext().getNewTwins().forEach(it -> attachmentCreateRestDTOReverseMapper.preProcessAttachments(it.getAttachments(), filesMap));
+                }
+            }
             TwinEntity dbTwinEntity = twinService.findEntitySafe(request.getTwinId());
             TransitionContext transitionContext = twinflowTransitionService.createTransitionContext(dbTwinEntity, transitionId);
             mapTransitionContext(transitionContext, request.getContext());
@@ -160,7 +167,12 @@ public class TwinTransitionPerformController extends ApiController {
     protected ResponseEntity<? extends Response> performTransition(MapperContext mapperContext, String transitionAlias, TwinTransitionPerformRqDTOv1 request, Map<String, MultipartFile> filesMap) {
         TwinTransitionPerformRsDTOv2 rs = new TwinTransitionPerformRsDTOv2();
         try {
-            attachmentCUDRestDTOReverseMapperV2.preProcessAttachments(request.getContext().getAttachments(), filesMap);
+            if (request.getContext() != null) {
+                attachmentCUDRestDTOReverseMapperV2.preProcessAttachments(request.context.attachments, filesMap);
+                if (request.getContext().getNewTwins() != null) {
+                    request.getContext().getNewTwins().forEach(it -> attachmentCreateRestDTOReverseMapper.preProcessAttachments(it.getAttachments(), filesMap));
+                }
+            }
             TwinEntity dbTwinEntity = twinService.findEntitySafe(request.getTwinId());
             TransitionContext transitionContext = twinflowTransitionService.createTransitionContext(dbTwinEntity, transitionAlias);
             mapTransitionContext(transitionContext, request.getContext());
@@ -217,7 +229,12 @@ public class TwinTransitionPerformController extends ApiController {
     protected ResponseEntity<? extends Response> performBatchTransition(MapperContext mapperContext, UUID transitionId, TwinTransitionPerformBatchRqDTOv1 request, Map<String, MultipartFile> filesMap) {
         TwinTransitionPerformRsDTOv2 rs = new TwinTransitionPerformRsDTOv2();
         try {
-            attachmentCUDRestDTOReverseMapperV2.preProcessAttachments(request.getBatchContext().getAttachments(), filesMap);
+            if (request.getBatchContext() != null) {
+                attachmentCUDRestDTOReverseMapperV2.preProcessAttachments(request.getBatchContext().attachments, filesMap);
+                if (request.getBatchContext().getNewTwins() != null) {
+                    request.getBatchContext().getNewTwins().forEach(it -> attachmentCreateRestDTOReverseMapper.preProcessAttachments(it.getAttachments(), filesMap));
+                }
+            }
             List<TwinEntity> twinEntities = new ArrayList<>();
             for (UUID twinId : request.getTwinIdList()) {
                 TwinEntity dbTwinEntity = twinService.findEntitySafe(twinId);
@@ -280,7 +297,12 @@ public class TwinTransitionPerformController extends ApiController {
     protected ResponseEntity<? extends Response> performBatchTransition(MapperContext mapperContext, String transitionAlias, TwinTransitionPerformBatchRqDTOv1 request, Map<String, MultipartFile> filesMap) {
         TwinTransitionPerformRsDTOv2 rs = new TwinTransitionPerformRsDTOv2();
         try {
-            attachmentCUDRestDTOReverseMapperV2.preProcessAttachments(request.getBatchContext().getAttachments(), filesMap);
+            if (request.getBatchContext() != null) {
+                attachmentCUDRestDTOReverseMapperV2.preProcessAttachments(request.getBatchContext().attachments, filesMap);
+                if (request.getBatchContext().getNewTwins() != null) {
+                    request.getBatchContext().getNewTwins().forEach(it -> attachmentCreateRestDTOReverseMapper.preProcessAttachments(it.getAttachments(), filesMap));
+                }
+            }
             List<TwinEntity> twinEntities = new ArrayList<>();
             for (UUID twinId : request.getTwinIdList()) {
                 TwinEntity dbTwinEntity = twinService.findEntitySafe(twinId);
