@@ -166,6 +166,17 @@ public class ApplicationConfig {
         return executor;
     }
 
+    @Bean
+    public TaskExecutor twinChangeTaskExecutor(@Autowired(required = false) TaskDecorator taskDecorator) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5); //todo move to settings
+        executor.setMaxPoolSize(10);
+        executor.setThreadNamePrefix("twinChangeTaskExecutor-");
+        if (taskDecorator != null) executor.setTaskDecorator(taskDecorator);
+        executor.initialize();
+        return executor;
+    }
+
     @Bean(name = "emailTaskExecutor")
     public Executor taskExecutor() {
         return Executors.newFixedThreadPool(10);

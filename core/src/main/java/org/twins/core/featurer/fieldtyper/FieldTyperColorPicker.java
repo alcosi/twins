@@ -1,6 +1,5 @@
 package org.twins.core.featurer.fieldtyper;
 
-import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -31,8 +30,6 @@ public class FieldTyperColorPicker extends FieldTyperSimple<FieldDescriptorColor
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueColorHEX value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (twinFieldEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(value.getHex()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED,  twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         if (!value.getHex().matches(HEX_PATTERN))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) +  " hex[" + value.getHex() + "] does not match pattern[" + HEX_PATTERN + "]");
         detectValueChange(twinFieldEntity, twinChangesCollector, value.getHex());
