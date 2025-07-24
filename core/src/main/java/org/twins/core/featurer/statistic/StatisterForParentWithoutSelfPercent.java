@@ -14,7 +14,6 @@ import org.twins.core.dao.twin.*;
 import org.twins.core.domain.statistic.TwinStatisticProgressPercent;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
-import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsUserGroupId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.util.*;
@@ -30,7 +29,7 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
     @FeaturerParam(name = "Child twin class field id", description = "", order = 2)
     public static final FeaturerParamUUID grandChildTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("grandChildTwinClassFieldId");
     @FeaturerParam(name = "Twin class ids", description = "", order = 6)
-    public static final FeaturerParamUUIDSet twinClassIds = new FeaturerParamUUIDSetTwinsClassId("twinClassIds");
+    public static final FeaturerParamUUIDSet ofChildTwinClassIds = new FeaturerParamUUIDSetTwinsClassId("ofChildTwinClassIds");
     @FeaturerParam(name = "Key", description = "", order = 3)
     public static final FeaturerParamString key = new FeaturerParamString("key");
     @FeaturerParam(name = "Label", description = "", order = 4)
@@ -44,7 +43,7 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
 
     @Override
     public Map<UUID, TwinStatisticProgressPercent> getStatistic(Properties properties, Set<UUID> forTwinIdSet) {
-        List<TwinNoRelationsProjection> twinChildProjections = twinRepository.findByHeadTwinIdInAndTwinClassIdIn(forTwinIdSet, twinClassIds.extract(properties), TwinNoRelationsProjection.class);
+        List<TwinNoRelationsProjection> twinChildProjections = twinRepository.findByHeadTwinIdInAndTwinClassIdIn(forTwinIdSet, ofChildTwinClassIds.extract(properties), TwinNoRelationsProjection.class);
         List<UUID> allChildTwinIds = new ArrayList<>();
         Map<UUID, List<UUID>> groupedByParentMap = new HashMap<>();
         for (TwinNoRelationsProjection projection : twinChildProjections) {
