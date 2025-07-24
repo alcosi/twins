@@ -1,5 +1,6 @@
 package org.twins.core.service.attachment;
 
+import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -23,7 +24,6 @@ import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
 import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.*;
-import org.twins.core.domain.file.DomainFile;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.Storager;
@@ -449,12 +449,12 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
 
     @Transactional(readOnly = true)
-    public DomainFile getAttachmentFile(UUID attachmentId) throws ServiceException {
+    public InputStreamResponse getAttachmentFile(UUID attachmentId) throws ServiceException {
         var attachment = findEntitySafe(attachmentId);
         StorageEntity storage = attachment.getStorage();
         Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
         var stream = fileService.getFileAsStream(attachment.getStorageFileKey(), storage.getStoragerParams());
-        return new DomainFile(stream, attachment.getTitle(), attachment.getSize());
+        return stream;
     }
 
 
@@ -470,7 +470,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
         Storager oldStorager = featurerService.getFeaturer(oldStorage.getStorageFeaturer(), Storager.class);
         Storager newStorager = featurerService.getFeaturer(newStorage.getStorageFeaturer(), Storager.class);
-        InputStream fileStream = oldStorager.getFileAsStream(attachement.getStorageFileKey(), oldStorage.getStoragerParams());
+        InputStream fileStream = oldStorager.getFileAsStream(attachement.getStorageFileKey(), oldStorage.getStoragerParams()).getContentStream();
         AddedFileKey addedFileKey = newStorager.addFile(newAttachementId, fileStream, newStorage.getStoragerParams());
         TwinAttachmentEntity newAttachement = attachement.clone();
         newAttachement.setId(attachmentId);

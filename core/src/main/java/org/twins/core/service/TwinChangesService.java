@@ -20,9 +20,9 @@ import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.service.history.HistoryService;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.*;
 
 import static org.twins.core.domain.TwinChangesCollector.TwinInvalidate;
 
@@ -45,8 +45,10 @@ public class TwinChangesService {
     private final TwinFieldTwinClassListRepository twinFieldTwinClassListRepository;
     private final TwinAttachmentModificationRepository twinAttachmentModificationRepository;
     private final SpaceRoleUserRepository spaceRoleUserRepository;
+    private final TwinChangeTaskRepository twinChangeTaskRepository;
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
+    private final AuthService authService;
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinChangesApplyResult applyChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
@@ -93,11 +95,30 @@ public class TwinChangesService {
             for (Map.Entry<Class<?>, Set<Object>> classChanges : twinChangesCollector.getDeleteEntityMap().entrySet()) {
                 log.warn("Unsupported entity class[{}] for deletion", classChanges.getKey().getSimpleName());
             }
-
+        savePostponedChanges(twinChangesCollector);
         invalidate(twinChangesCollector.getInvalidationMap());
         historyService.saveHistory(twinChangesCollector.getHistoryCollector());
         twinChangesCollector.clear();
         return changesApplyResult;
+    }
+
+    private void savePostponedChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (twinChangesCollector.getPostponedChanges().isEmpty())
+            return;
+        ApiUser apiUser = authService.getApiUser();
+        List<TwinChangeTaskEntity> changeTaskList = new ArrayList<>();
+        for (var entry : twinChangesCollector.getPostponedChanges().entrySet()) {
+            changeTaskList.add(new TwinChangeTaskEntity()
+                    .setTwinId(entry.getKey())
+                    .setRequestId(apiUser.getRequestId()) //we have uniq index on twinId + requestId to avoid conflict runs
+                    .setTwinFactoryId(entry.getValue().getLeft())
+                    .setTwinFactorylauncher(entry.getValue().getRight())
+                    .setStatusId(TwinChangeTaskStatus.NEED_START)
+                    .setCreatedAt(Timestamp.from(Instant.now()))
+                    .setCreatedByUserId(apiUser.getUserId())
+                    .setBusinessAccountId(apiUser.getBusinessAccountId()));
+        }
+        entitySmartService.saveAllAndLog(changeTaskList, twinChangeTaskRepository);
     }
 
     private void invalidate(Map<Object, Set<TwinChangesCollector.TwinInvalidate>> invalidationMap) {

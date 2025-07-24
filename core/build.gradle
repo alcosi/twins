@@ -116,10 +116,10 @@ dependencies {
     implementation 'org.cache2k:cache2k-api:2.6.1.Final', 'org.cache2k:cache2k-core:2.6.1.Final', 'org.cache2k:cache2k-spring:2.6.1.Final'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.micrometer:micrometer-registry-prometheus'
-    implementation 'org.apache.tika:tika-core:3.0.0'
-    implementation 'io.github.breninsul:io-stream-commons:1.0.2'
     implementation 'io.github.breninsul:log-time-aspect-starter:1.0.1'
-    implementation 'io.minio:minio:8.5.12'
+    implementation 'io.github.breninsul:spring-input-stream-response-converter:1.1.4'
+
+    implementation 'io.minio:minio:8.5.17'
     implementation 'org.jasypt:jasypt:1.9.3'
     implementation 'com.alcosi:alcosi-identity-server-communication-error-parser:1.00-RELEASE'
 

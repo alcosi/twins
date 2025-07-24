@@ -8,6 +8,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.face.FaceDTOv1;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 
@@ -27,6 +28,9 @@ public class FaceWT001DTOv1 extends FaceDTOv1 {
 
     @Schema(description = "searchId")
     public UUID searchId;
+
+    @Schema(description = "Search named params values")
+    public Map<String, String> searchParams;
 
     @Schema(description = "show create button", example = DTOExamples.BOOLEAN_TRUE)
     public boolean showCreateButton = true;
