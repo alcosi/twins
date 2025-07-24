@@ -4,27 +4,27 @@ import org.cambium.common.EasyLoggable;
 
 import java.util.UUID;
 
-public interface TwinNoRelationsProjection extends EasyLoggable {
-
-    UUID getId();
-    UUID getTwinClassId();
-    UUID getHeadTwinId();
-    String getHierarchyTree();
-    String getExternalId();
-    UUID getOwnerBusinessAccountId();
-    UUID getOwnerUserId();
-    UUID getViewPermissionId();
-    UUID getPermissionSchemaSpaceId();
-    UUID getTwinflowSchemaSpaceId();
-    UUID getTwinClassSchemaSpaceId();
-    UUID getAliasSpaceId();
-    UUID getTwinStatusId();
-    String getName();
-    String getDescription();
-    UUID getCreatedByUserId();
-    UUID getAssignerUserId();
-
-    default String easyLog(Level level) {
-        return "twin[" + getId() + "]";
+public record TwinNoRelationsProjection(
+    UUID id,
+    UUID twinClassId,
+    UUID headTwinId,
+    String hierarchyTree,
+    String externalId,
+    UUID ownerBusinessAccountId,
+    UUID ownerUserId,
+    UUID viewPermissionId,
+    UUID permissionSchemaSpaceId,
+    UUID twinflowSchemaSpaceId,
+    UUID twinClassSchemaSpaceId,
+    UUID aliasSpaceId,
+    UUID twinStatusId,
+    String name,
+    String description,
+    UUID createdByUserId,
+    UUID assignerUserId
+) implements EasyLoggable {
+    @Override
+    public String easyLog(Level level) {
+        return "twin[" + id + "]";
     }
 }

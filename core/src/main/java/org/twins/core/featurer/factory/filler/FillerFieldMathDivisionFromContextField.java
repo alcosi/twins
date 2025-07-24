@@ -11,8 +11,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
-import org.twins.core.domain.twinoperation.TwinCreate;
-import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -75,12 +73,10 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
             if (targetFieldValue == null) {
                 targetFieldValue = new FieldValueText(twinClassFieldService.findEntitySafe(paramTargetTwinClassFieldId));
             }
-            if (factoryItem.getOutput() instanceof TwinCreate) {
-                factoryItem.getOutput().addField(((FieldValueText) targetFieldValue).setValue("0.0"));
+            if (!(targetFieldValue instanceof FieldValueText)) {
+                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "targetTwinClassField[" + paramTargetTwinClassFieldId + "] is not instance of text field and can not be converted to number");
             }
-            if (factoryItem.getOutput() instanceof TwinUpdate) {
-                factoryItem.getOutput().addField(((FieldValueText) targetFieldValue).setValue(BigDecimalUtil.getProcessedString(division)));
-            }
+            factoryItem.getOutput().addField(((FieldValueText) targetFieldValue).setValue(BigDecimalUtil.getProcessedString(division)));
         } else {
             log.warn("Incorrect result detected, skipping division");
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "divisorTwinClassField[" + paramDivisorTwinClassFieldId + "] is not instance of text field and can not be converted to number");
