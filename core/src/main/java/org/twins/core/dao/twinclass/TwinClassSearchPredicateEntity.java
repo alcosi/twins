@@ -30,13 +30,11 @@ public class TwinClassSearchPredicateEntity implements EasyLoggable {
     @Column(name = "class_finder_params", columnDefinition = "hstore")
     private HashMap<String, String> classFinderParams;
 
-
     @ManyToOne
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @JoinColumn(name = "twin_class_search_id", insertable = false, updatable = false, nullable = false)
     private TwinClassSearchEntity twinClassSearch;
-
 
     @Override
     public String easyLog(Level level) {

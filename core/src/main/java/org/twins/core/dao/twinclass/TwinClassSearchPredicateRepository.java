@@ -7,5 +7,4 @@ import java.util.UUID;
 
 public interface TwinClassSearchPredicateRepository extends CrudRepository<TwinClassSearchPredicateEntity, UUID> {
     List<TwinClassSearchPredicateEntity> findByTwinClassSearchId(UUID searchId);
-
 }

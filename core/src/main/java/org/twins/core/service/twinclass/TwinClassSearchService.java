@@ -8,6 +8,7 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.Ternary;
+import org.cambium.common.util.TernaryUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -22,6 +23,7 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.domain.search.TwinClassSearch;
 import org.twins.core.featurer.classfinder.ClassFinder;
+import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.List;
@@ -56,10 +58,13 @@ public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClas
     }
 
     public PaginationResult<TwinClassEntity> findTwinClasses(UUID searchId, TwinClassSearch narrowSearch, SimplePagination pagination) throws ServiceException {
+        if (SystemEntityService.TWIN_CLASS_SEARCH_UNLIMITED.equals(searchId)) {
+            return findTwinClasses(narrowSearch, pagination);
+        }
         TwinClassSearchEntity searchEntity = findEntitySafe(searchId);
         List<TwinClassSearchPredicateEntity> searchPredicates = classSearchPredicateRepository.findByTwinClassSearchId(searchEntity.getId());
         TwinClassSearch mainSearch = new TwinClassSearch();
-        for(TwinClassSearchPredicateEntity predicate: searchPredicates) {
+        for (TwinClassSearchPredicateEntity predicate : searchPredicates) {
             ClassFinder classFinder = featurerService.getFeaturer(predicate.getClassFinderFeaturerId(), ClassFinder.class);
             classFinder.concatSearch(predicate.getClassFinderParams(), mainSearch);
         }
@@ -129,15 +134,16 @@ public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClas
     protected void narrowSearch(TwinClassSearch mainSearch, TwinClassSearch narrowSearch) {
         if (narrowSearch == null)
             return;
-        for (Pair<Function<TwinClassSearch, Set>, BiConsumer<TwinClassSearch, Set>> functionPair : TwinClassSearch.FUNCTIONS) {
+        for (Pair<Function<TwinClassSearch, Set>, BiConsumer<TwinClassSearch, Set>> functionPair : TwinClassSearch.SET_FIELD) {
             Set mainSet = functionPair.getKey().apply(mainSearch);
             Set narrowSet = functionPair.getKey().apply(narrowSearch);
             functionPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
         }
-        if (mainSearch.getAssigneeRequired() == null || mainSearch.getAssigneeRequired() == Ternary.ANY) {
-            mainSearch.setAssigneeRequired(narrowSearch.getAssigneeRequired());
-        } //else narrow by required will be ignored
-
+        for (Pair<Function<TwinClassSearch, Ternary>, BiConsumer<TwinClassSearch, Ternary>> functionPair : TwinClassSearch.TERNARY_FIELD) {
+            Ternary mainSet = functionPair.getKey().apply(mainSearch);
+            Ternary narrowSet = functionPair.getKey().apply(narrowSearch);
+            functionPair.getValue().accept(mainSearch, TernaryUtils.narrow(mainSet, narrowSet));
+        }
     }
 
     @Override

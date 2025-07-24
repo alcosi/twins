@@ -9,6 +9,7 @@ import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.Ternary;
+import org.cambium.common.util.TernaryUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -125,14 +126,16 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
     protected void narrowSearch(TwinClassFieldSearch mainSearch, TwinClassFieldSearch narrowSearch) {
         if (narrowSearch == null)
             return;
-        for (Pair<Function<TwinClassFieldSearch, Set>, BiConsumer<TwinClassFieldSearch, Set>> functioPair : TwinClassFieldSearch.FUNCTIONS) {
+        for (Pair<Function<TwinClassFieldSearch, Set>, BiConsumer<TwinClassFieldSearch, Set>> functioPair : TwinClassFieldSearch.SET_FIELDS) {
             Set mainSet = functioPair.getKey().apply(mainSearch);
             Set narrowSet = functioPair.getKey().apply(narrowSearch);
             functioPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
         }
-        if (mainSearch.getRequired() == null || mainSearch.getRequired() == Ternary.ANY) {
-            mainSearch.setRequired(narrowSearch.getRequired());
-        } //else narrow by required will be ignored
+        for (Pair<Function<TwinClassFieldSearch, Ternary>, BiConsumer<TwinClassFieldSearch, Ternary>> functionPair : TwinClassFieldSearch.TERNARY_FIELD) {
+            Ternary mainSet = functionPair.getKey().apply(mainSearch);
+            Ternary narrowSet = functionPair.getKey().apply(narrowSearch);
+            functionPair.getValue().accept(mainSearch, TernaryUtils.narrow(mainSet, narrowSet));
+        }
 
         mainSearch.setTwinClassIdMap(MapUtils.narrowMapOfBooleans(mainSearch.getTwinClassIdMap(), narrowSearch.getTwinClassIdMap(), Boolean.TRUE));
         mainSearch.setTwinClassIdExcludeMap(MapUtils.narrowMapOfBooleans(mainSearch.getTwinClassIdExcludeMap(), narrowSearch.getTwinClassIdExcludeMap(), Boolean.TRUE));

@@ -12,25 +12,29 @@ import org.twins.core.domain.search.TwinClassSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.UUID;
 
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_3901,
         name = "Class finder by twin class id",
         description = "")
-public class ClassFinderGiven extends ClassFinder {
+public class ClassFinderExtendsHierarchyChildrenOf extends ClassFinder {
     @FeaturerParam(name = "twin class id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassId = new FeaturerParamUUIDTwinsTwinClassId("twinClassId");
-    @FeaturerParam(name = "extendsDepth", description = "extendsDepth", optional = false, order = 2)
+    @FeaturerParam(name = "extendsDepth", description = "extendsDepth", optional = true, defaultValue = "0", order = 2)
     public static final FeaturerParamInt extendsDepth = new FeaturerParamInt("extendsDepth");
 
 
     @Override
-    protected void createSearch(Properties properties, TwinClassSearch classSearch) throws ServiceException {
-        classSearch.addTwinClassId(twinClassId.extract(properties));
-        HierarchySearch extendsSearch = new HierarchySearch();
-        extendsSearch.setDepth(extendsDepth.extract(properties));
+    protected void concatSearch(Properties properties, TwinClassSearch classSearch) throws ServiceException {
+        HashSet<UUID> twinClassIdSet = new HashSet<>();
+        twinClassIdSet.add(twinClassId.extract(properties));
+        HierarchySearch extendsSearch = new HierarchySearch()
+                .setIdList(twinClassIdSet)
+                .setDepth(extendsDepth.extract(properties));
         classSearch.setExtendsHierarchyChildsForTwinClassSearch(extendsSearch);
     }
 }

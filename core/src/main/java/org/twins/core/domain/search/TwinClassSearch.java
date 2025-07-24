@@ -8,6 +8,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -56,24 +57,25 @@ public class TwinClassSearch {
         return this;
     }
 
-    public TwinClassSearch addTwinClassId(final UUID id) {
-            if (twinClassIdList == null) {
-                twinClassIdList = new java.util.HashSet<>();
-            }
-            twinClassIdList.add(id);
+    public TwinClassSearch addTwinClassId(UUID twinClassId, boolean exclude) {
+        if (exclude)
+            twinClassIdExcludeList = CollectionUtils.safeAdd(twinClassIdExcludeList, twinClassId);
+        else
+            twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassId);
         return this;
     }
 
-    public TwinClassSearch addAllTwinClassIds(Set<UUID> ids) {
-        if (twinClassIdList == null) {
-            twinClassIdList = new java.util.HashSet<>();
-        }
-        twinClassIdList.addAll(ids);
+    public TwinClassSearch addTwinClassId(Collection<UUID> twinClassIdSet, boolean exclude) {
+        if (exclude)
+            twinClassIdExcludeList = CollectionUtils.safeAdd(twinClassIdExcludeList, twinClassIdSet);
+        else
+            twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassIdSet);
         return this;
     }
 
-    public static final ImmutableList<Pair<Function<TwinClassSearch, Set>, BiConsumer<TwinClassSearch, Set>>> FUNCTIONS = ImmutableList.of(
+    public static final ImmutableList<Pair<Function<TwinClassSearch, Set>, BiConsumer<TwinClassSearch, Set>>> SET_FIELD = ImmutableList.of(
             Pair.of(TwinClassSearch::getTwinClassIdList, TwinClassSearch::setTwinClassIdList),
+            Pair.of(TwinClassSearch::getTwinClassIdExcludeList, TwinClassSearch::setTwinClassIdExcludeList),
             Pair.of(TwinClassSearch::getTwinClassKeyLikeList, TwinClassSearch::setTwinClassKeyLikeList),
             Pair.of(TwinClassSearch::getNameI18nLikeList, TwinClassSearch::setNameI18nLikeList),
             Pair.of(TwinClassSearch::getNameI18nNotLikeList, TwinClassSearch::setNameI18nNotLikeList),
@@ -81,9 +83,28 @@ public class TwinClassSearch {
             Pair.of(TwinClassSearch::getDescriptionI18nNotLikeList, TwinClassSearch::setDescriptionI18nNotLikeList),
             Pair.of(TwinClassSearch::getExternalIdLikeList, TwinClassSearch::setExternalIdLikeList),
             Pair.of(TwinClassSearch::getExternalIdNotLikeList, TwinClassSearch::setExternalIdNotLikeList),
+            Pair.of(TwinClassSearch::getOwnerTypeList, TwinClassSearch::setOwnerTypeList),
+            Pair.of(TwinClassSearch::getOwnerTypeExcludeList, TwinClassSearch::setOwnerTypeExcludeList),
+            Pair.of(TwinClassSearch::getMarkerDatalistIdList, TwinClassSearch::setMarkerDatalistIdList),
+            Pair.of(TwinClassSearch::getMarkerDatalistIdExcludeList, TwinClassSearch::setMarkerDatalistIdExcludeList),
+            Pair.of(TwinClassSearch::getTagDatalistIdExcludeList, TwinClassSearch::setTagDatalistIdExcludeList),
+            Pair.of(TwinClassSearch::getTagDatalistIdExcludeList, TwinClassSearch::setTagDatalistIdExcludeList),
             Pair.of(TwinClassSearch::getViewPermissionIdList, TwinClassSearch::setViewPermissionIdList),
             Pair.of(TwinClassSearch::getViewPermissionIdExcludeList, TwinClassSearch::setViewPermissionIdExcludeList),
+            Pair.of(TwinClassSearch::getCreatePermissionIdList, TwinClassSearch::setCreatePermissionIdList),
+            Pair.of(TwinClassSearch::getCreatePermissionIdExcludeList, TwinClassSearch::setCreatePermissionIdExcludeList),
             Pair.of(TwinClassSearch::getEditPermissionIdList, TwinClassSearch::setEditPermissionIdList),
-            Pair.of(TwinClassSearch::getEditPermissionIdExcludeList, TwinClassSearch::setEditPermissionIdExcludeList)
+            Pair.of(TwinClassSearch::getEditPermissionIdExcludeList, TwinClassSearch::setEditPermissionIdExcludeList),
+            Pair.of(TwinClassSearch::getDeletePermissionIdList, TwinClassSearch::setDeletePermissionIdList),
+            Pair.of(TwinClassSearch::getDeletePermissionIdExcludeList, TwinClassSearch::setDeletePermissionIdExcludeList)
+    );
+
+    public static final ImmutableList<Pair<Function<TwinClassSearch, Ternary>, BiConsumer<TwinClassSearch, Ternary>>> TERNARY_FIELD = ImmutableList.of(
+            Pair.of(TwinClassSearch::getAssigneeRequired, TwinClassSearch::setAssigneeRequired),
+            Pair.of(TwinClassSearch::getTwinflowSchemaSpace, TwinClassSearch::setTwinflowSchemaSpace),
+            Pair.of(TwinClassSearch::getTwinClassSchemaSpace, TwinClassSearch::setTwinClassSchemaSpace),
+            Pair.of(TwinClassSearch::getPermissionSchemaSpace, TwinClassSearch::setPermissionSchemaSpace),
+            Pair.of(TwinClassSearch::getAliasSpace, TwinClassSearch::setAliasSpace),
+            Pair.of(TwinClassSearch::getAbstractt, TwinClassSearch::setAbstractt)
     );
 }

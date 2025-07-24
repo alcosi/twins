@@ -65,7 +65,7 @@ public class TwinClassFieldSearch {
         return this;
     }
 
-    public static final ImmutableList<Pair<Function<TwinClassFieldSearch, Set>, BiConsumer<TwinClassFieldSearch, Set>>> FUNCTIONS = ImmutableList.of(
+    public static final ImmutableList<Pair<Function<TwinClassFieldSearch, Set>, BiConsumer<TwinClassFieldSearch, Set>>> SET_FIELDS = ImmutableList.of(
             Pair.of(TwinClassFieldSearch::getIdList, TwinClassFieldSearch::setIdList),
             Pair.of(TwinClassFieldSearch::getKeyLikeList, TwinClassFieldSearch::setKeyLikeList),
             Pair.of(TwinClassFieldSearch::getKeyNotLikeList, TwinClassFieldSearch::setKeyNotLikeList),
@@ -81,5 +81,9 @@ public class TwinClassFieldSearch {
             Pair.of(TwinClassFieldSearch::getViewPermissionIdExcludeList, TwinClassFieldSearch::setViewPermissionIdExcludeList),
             Pair.of(TwinClassFieldSearch::getEditPermissionIdList, TwinClassFieldSearch::setEditPermissionIdList),
             Pair.of(TwinClassFieldSearch::getEditPermissionIdExcludeList, TwinClassFieldSearch::setEditPermissionIdExcludeList)
+    );
+
+    public static final ImmutableList<Pair<Function<TwinClassFieldSearch, Ternary>, BiConsumer<TwinClassFieldSearch, Ternary>>> TERNARY_FIELD = ImmutableList.of(
+            Pair.of(TwinClassFieldSearch::getRequired, TwinClassFieldSearch::setRequired)
     );
 }

@@ -19,7 +19,7 @@ create index if not exists twin_class_search_predicate_index1
 create index if not exists twin_class_search_predicate_index2
     on twin_class_search_predicate (twin_class_search_id);
 
-insert into twin_class_search (id, domain_id, name) values ('00000000-0000-0000-0015-000000000001', null, 'Unlimited classes search') on conflict do nothing ;
+insert into twin_class_search (id, domain_id, name) values ('00000000-0000-0000-0014-000000000003', null, 'Unlimited classes search') on conflict do nothing ;
 
 DO $$
 BEGIN
@@ -45,7 +45,7 @@ END $$;
 
 INSERT INTO public.featurer_type VALUES (39, 'ClassFinder', 'Finds classes according to given configuration') on conflict do nothing ;
 
-INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (3901, 39, 'org.twins.core.featurer.classfinder.ClassFinderGiven', 'Given twin class id and extends depth', '', false) on conflict (id) do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (3901, 39, 'org.twins.core.featurer.classfinder.ClassFinderExtendsHierarchyChildrenOf', 'Given twin class id and extends depth', '', false) on conflict (id) do nothing;
 INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (3102, 39, 'org.twins.core.featurer.classfinder.ClassFinderGivenSet', 'Given twin class id set', '', false) on conflict (id) do nothing;
 
 INSERT INTO public.featurer_param VALUES (3901, false, 1, 'twinClassId', 'twinClassId', '', 'UUID:TWINS:TWIN_CLASS_ID',false,'','');
