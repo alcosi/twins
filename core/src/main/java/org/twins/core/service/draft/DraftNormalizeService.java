@@ -100,7 +100,7 @@ public class DraftNormalizeService {
                     .invalidateIfNotZero(FIELDS_USER, normalizeCount);
         }
         if (draftCounters.moreThenZero(FIELDS_TWIN_CLASS)) {
-            // we can delete all persisted draft twins fields user, if twins must be deleted in future
+            // we can delete all persisted draft twins fields twin class, if twins must be deleted in future
             normalizeCount = draftTwinFieldTwinClassRepository.normalizeDraft(draftCollector.getDraftId());
             draftCounters
                     .invalidateIfNotZero(FIELDS_TWIN_CLASS, normalizeCount);

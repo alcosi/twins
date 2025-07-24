@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.*;
@@ -15,7 +16,7 @@ import java.util.*;
 @Accessors(chain = true)
 public class FieldValueTwinClassList extends FieldValue {
 
-    private Set<UUID> twinClassIdSet = new HashSet<>();
+    private Set<TwinClassEntity> twinClassEntities = new HashSet<>();
 
     public FieldValueTwinClassList(TwinClassFieldEntity twinClassFieldEntity) {
         super(twinClassFieldEntity);
@@ -23,29 +24,29 @@ public class FieldValueTwinClassList extends FieldValue {
 
     @Override
     public boolean isFilled() {
-        return CollectionUtils.isNotEmpty(twinClassIdSet);
+        return CollectionUtils.isNotEmpty(twinClassEntities);
     }
 
     @Override
     public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueTwinClassList clone = new FieldValueTwinClassList(newTwinClassFieldEntity);
-        clone.twinClassIdSet = this.twinClassIdSet;
+        clone.twinClassEntities = this.twinClassEntities;
         return clone;
     }
 
     @Override
     public void nullify() {
-        twinClassIdSet = null;
+        twinClassEntities = null;
     }
 
     @Override
     public boolean isNullified() {
-        return twinClassIdSet == null;
+        return twinClassEntities == null;
     }
 
     @Override
     public boolean hasValue(String value) {
-        if (CollectionUtils.isEmpty(twinClassIdSet)) {
+        if (CollectionUtils.isEmpty(twinClassEntities)) {
             return false;
         }
 
@@ -56,7 +57,7 @@ public class FieldValueTwinClassList extends FieldValue {
             return false;
         }
 
-        for (var id : twinClassIdSet) {
+        for (var id : twinClassEntities) {
             if (id.equals(valueUUID))
                 return true;
         }

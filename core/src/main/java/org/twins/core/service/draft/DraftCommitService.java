@@ -241,7 +241,7 @@ public class DraftCommitService {
         int counter = draftEntity.getCounters().getOrZero(FIELDS_TWIN_CLASS);
         if (counter == 0)
             return;
-        log.info("commiting {} twin fields [user]", counter);
+        log.info("commiting {} twin fields [twin_class]", counter);
         commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_TWIN_CLASS_CREATE), draftTwinFieldTwinClassRepository::commitCreates, "twin fields [twin_class]: creation");
         commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_TWIN_CLASS_UPDATE), draftTwinFieldTwinClassRepository::commitUpdates, "twin fields [twin_class]: update");
         commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_TWIN_CLASS_DELETE), draftTwinFieldTwinClassRepository::commitDeletes, "twin fields [twin_class]: deletion");

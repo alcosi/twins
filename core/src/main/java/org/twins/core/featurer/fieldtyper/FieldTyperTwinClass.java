@@ -16,7 +16,6 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearchSpaceRoleUser;
 import org.twins.core.domain.search.TwinFieldSearchTwinClassList;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
@@ -37,7 +36,7 @@ import java.util.stream.Collectors;
 @Featurer(id = FeaturerTwins.ID_1334,
         name = "Twin class list field",
         description = "Field typer for twin class list field")
-public class FieldTyperTwinClassListField extends FieldTyper<FieldDescriptorTwinClassList, FieldValueTwinClassList, TwinFieldStorageTwinClassList, TwinFieldSearchTwinClassList> {
+public class FieldTyperTwinClass extends FieldTyper<FieldDescriptorTwinClassList, FieldValueTwinClassList, TwinFieldStorageTwinClassList, TwinFieldSearchTwinClassList> {
 
     @Override
     protected FieldDescriptorTwinClassList getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
@@ -46,18 +45,15 @@ public class FieldTyperTwinClassListField extends FieldTyper<FieldDescriptorTwin
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueTwinClassList value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (value.getTwinClassField().getRequired() && CollectionUtils.isEmpty(value.getTwinClassIdSet())) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
-        }
 
-        List<TwinClassEntity> selectedTwinClassEntities = twinClassService.findEntitiesSafe(value.getTwinClassIdSet()).getList();
+        List<TwinClassEntity> selectedTwinClassEntities = twinClassService.findEntitiesSafe(
+                value.getTwinClassEntities().stream()
+                        .map(TwinClassEntity::getId)
+                        .toList()
+        ).getList();
         twinService.loadTwinFields(twin);
 
-        Map<UUID, TwinFieldTwinClassEntity> storedTwinClassEntities = null;
-        if (twin.getTwinFieldTwinClassKit().containsGroupedKey(value.getTwinClassField().getId())) {
-            storedTwinClassEntities = twin.getTwinFieldTwinClassKit().getGrouped(value.getTwinClassField().getId()).stream()
-                    .collect(Collectors.toMap(TwinFieldTwinClassEntity::getTwinClassId, Function.identity()));
-        }
+        Map<UUID, TwinFieldTwinClassEntity> storedTwinClassEntities = twin.getTwinFieldTwinClassKit().getMap();
 
         if (FieldValueChangeHelper.isSingleValueAdd(selectedTwinClassEntities, storedTwinClassEntities)) {
             TwinClassEntity twinClassEntity = selectedTwinClassEntities.get(0);
@@ -132,7 +128,7 @@ public class FieldTyperTwinClassListField extends FieldTyper<FieldDescriptorTwin
         FieldValueTwinClassList ret = new FieldValueTwinClassList(twinField.getTwinClassField());
         if (twinFieldTwinClassEntityList != null)
             for (var item : twinFieldTwinClassEntityList) {
-                ret.getTwinClassIdSet().add(item.getTwinClassId());
+                ret.getTwinClassEntities().add(item.getTwinClass());
             }
 
         return ret;
