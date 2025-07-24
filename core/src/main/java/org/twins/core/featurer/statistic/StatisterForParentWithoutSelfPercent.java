@@ -7,11 +7,13 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamUUID;
+import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.statistic.TwinStatisticProgressPercent;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.util.*;
@@ -26,6 +28,8 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
     public static final FeaturerParamUUID childTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("childTwinClassFieldId");
     @FeaturerParam(name = "Child twin class field id", description = "", order = 2)
     public static final FeaturerParamUUID grandChildTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("grandChildTwinClassFieldId");
+    @FeaturerParam(name = "Twin class ids", description = "", order = 6)
+    public static final FeaturerParamUUIDSet ofChildTwinClassIds = new FeaturerParamUUIDSetTwinsClassId("ofChildTwinClassIds");
     @FeaturerParam(name = "Key", description = "", order = 3)
     public static final FeaturerParamString key = new FeaturerParamString("key");
     @FeaturerParam(name = "Label", description = "", order = 4)
@@ -39,7 +43,7 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
 
     @Override
     public Map<UUID, TwinStatisticProgressPercent> getStatistic(Properties properties, Set<UUID> forTwinIdSet) {
-        List<TwinNoRelationsProjection> twinChildProjections = twinRepository.findByHeadTwinIdIn(forTwinIdSet, TwinNoRelationsProjection.class);
+        List<TwinNoRelationsProjection> twinChildProjections = twinRepository.findByHeadTwinIdInAndTwinClassIdIn(forTwinIdSet, ofChildTwinClassIds.extract(properties), TwinNoRelationsProjection.class);
         List<UUID> allChildTwinIds = new ArrayList<>();
         Map<UUID, List<UUID>> groupedByParentMap = new HashMap<>();
         for (TwinNoRelationsProjection projection : twinChildProjections) {
