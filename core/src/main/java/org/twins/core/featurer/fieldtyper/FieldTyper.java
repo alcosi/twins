@@ -1,6 +1,7 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,6 +112,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         if (!twinClassService.isInstanceOf(twin.getTwinClass(), value.getTwinClassField().getTwinClassId()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField().logShort() + " is not suitable for " + twin.logNormal());
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams(), new HashMap<>());
+        checkRequired(twin, value);
         serializeValue(properties, twin, value, twinChangesCollector);
     }
 
@@ -154,5 +156,13 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
             throw new ServiceException(ErrorCodeTwins.FIELD_TYPER_STORAGE_NOT_INIT, "Storage: [" + getStorageType().getSimpleName() + "] is not a Spring @component and can not be resolved automatically. Please override getStorage() method in " + this.getClass().getSimpleName());
         }
         return twinFieldStorage;
+    }
+
+    protected void checkRequired(TwinEntity twinEntity, T fieldValue) throws ServiceException {
+        if (!twinEntity.isSketch()
+                && fieldValue.getTwinClassField().getRequired()
+                && !fieldValue.isFilled()) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, fieldValue.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
+        }
     }
 }

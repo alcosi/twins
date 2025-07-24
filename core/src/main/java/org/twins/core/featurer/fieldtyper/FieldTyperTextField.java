@@ -1,6 +1,5 @@
 package org.twins.core.featurer.fieldtyper;
 
-import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -52,12 +51,7 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (twinFieldEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(value.getValue())) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
-        }
-
         String pattern = regexp.extract(properties);
-
         if (!value.getValue().matches(pattern)) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + value.getValue() + "] does not match pattern[" + pattern + "]");
         }

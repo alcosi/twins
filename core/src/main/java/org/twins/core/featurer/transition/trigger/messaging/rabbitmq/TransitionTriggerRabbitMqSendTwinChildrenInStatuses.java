@@ -70,7 +70,7 @@ public class TransitionTriggerRabbitMqSendTwinChildrenInStatuses extends Transit
         RabbitMqMessagePayloadTwin payload;
         for (TwinEntity child : children) {
             payload = new RabbitMqMessagePayloadTwin(
-                    twinEntity.getId(),
+                    child.getId(),
                     apiUser.getUserId(),
                     apiUser.getDomainId(),
                     apiUser.getBusinessAccountId(),

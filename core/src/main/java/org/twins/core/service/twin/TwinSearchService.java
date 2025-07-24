@@ -257,6 +257,9 @@ public class TwinSearchService {
     }
 
     public PaginationResult<TwinEntity> findTwins(UUID searchId, Map<String, String> namedParamsMap, BasicSearch searchNarrow, SimplePagination pagination) throws ServiceException {
+        if (SystemEntityService.TWIN_SEARCH_UNLIMITED.equals(searchId)) {
+            return findTwins(searchNarrow, pagination);
+        }
         return findTwins(entitySmartService.findById(searchId, searchRepository, EntitySmartService.FindMode.ifEmptyThrows), namedParamsMap, searchNarrow, pagination);
     }
 

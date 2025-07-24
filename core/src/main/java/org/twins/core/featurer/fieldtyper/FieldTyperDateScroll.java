@@ -49,8 +49,6 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (twinFieldEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(value.getDate()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         if (!value.isNullified()) {
             LocalDateTime localDateTime = validateValue(twinFieldEntity, value.getDate(), properties);
             value.setDate(formatDate(localDateTime, properties));
