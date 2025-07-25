@@ -36,6 +36,7 @@ public class DraftCommitService {
     private final DraftTwinFieldUserRepository draftTwinFieldUserRepository;
     private final DraftTwinFieldDataListRepository draftTwinFieldDataListRepository;
     private final DraftTwinPersistRepository draftTwinPersistRepository;
+    private final DraftTwinFieldTwinClassRepository draftTwinFieldTwinClassRepository;
     @Lazy
     private final DraftService draftService;
     @Lazy
@@ -162,6 +163,7 @@ public class DraftCommitService {
         commitTwinFieldBoolean(draftEntity);
         commitTwinFieldUser(draftEntity);
         commitTwinFieldDataList(draftEntity);
+        commitTwinFieldTwinClass(draftEntity);
     }
 
 
@@ -233,6 +235,16 @@ public class DraftCommitService {
         commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_USER_CREATE), draftTwinFieldUserRepository::commitCreates, "twin fields [user]: creation");
         commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_USER_UPDATE), draftTwinFieldUserRepository::commitUpdates, "twin fields [user]: update");
         commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_USER_DELETE), draftTwinFieldUserRepository::commitDeletes, "twin fields [user]: deletion");
+    }
+
+    private void commitTwinFieldTwinClass(DraftEntity draftEntity) {
+        int counter = draftEntity.getCounters().getOrZero(FIELDS_TWIN_CLASS);
+        if (counter == 0)
+            return;
+        log.info("commiting {} twin fields [twin_class]", counter);
+        commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_TWIN_CLASS_CREATE), draftTwinFieldTwinClassRepository::commitCreates, "twin fields [twin_class]: creation");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_TWIN_CLASS_UPDATE), draftTwinFieldTwinClassRepository::commitUpdates, "twin fields [twin_class]: update");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_TWIN_CLASS_DELETE), draftTwinFieldTwinClassRepository::commitDeletes, "twin fields [twin_class]: deletion");
     }
 
     private void commitTwinFieldDataList(DraftEntity draftEntity) {

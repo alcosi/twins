@@ -205,6 +205,13 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 
     //needed for specification
     @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private Collection<TwinFieldTwinClassEntity> fieldsTwinClassList;
+
+    //needed for specification
+    @Deprecated
     @OneToMany
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinTouchEntity> touches;
@@ -282,6 +289,10 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private KitGrouped<SpaceRoleUserEntity, UUID, UUID> twinFieldSpaceUserKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private KitGrouped<TwinFieldTwinClassEntity, UUID, UUID> twinFieldTwinClassKit;
 
     @Transient
     @EqualsAndHashCode.Exclude

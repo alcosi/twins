@@ -28,6 +28,7 @@ import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.twin.TwinFieldTwinClassEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
