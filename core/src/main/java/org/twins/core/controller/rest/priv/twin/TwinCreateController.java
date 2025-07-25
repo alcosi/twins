@@ -35,10 +35,7 @@ import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Tag(description = "", name = ApiTag.TWIN)
 @RestController
@@ -113,7 +110,7 @@ public class TwinCreateController extends ApiController {
     })
     @PostMapping(value = "/private/twin/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinCreateFromJson(@RequestBody TwinCreateRqDTOv2 request) {
-        return createTwinV2(request, Map.of());
+        return createTwinV2(request, Collections.emptyMap());
     }
 
     /**
@@ -170,11 +167,10 @@ public class TwinCreateController extends ApiController {
     @PostMapping(value = "/private/twin/batch/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinBatchCreateV1(
             @RequestBody TwinBatchCreateRqDTOv1 request) {
-        return processBatch(request, Map.of());
+        return processBatch(request, Collections.emptyMap());
     }
 
     @SneakyThrows
-    @ParametersApiUserHeaders
     @Operation(operationId = "twinBatchCreateV1", summary = "Create batch twins")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Import was completed successfully", content = {
