@@ -1,5 +1,5 @@
 insert into featurer (id, featurer_type_id, class, name, description, deprecated)
-values (1334, 13, 'org.twins.core.featurer.fieldtyper.FieldTyperTwinClass', 'Field typer for twin class list field', false)
+values (1334, 13, 'org.twins.core.featurer.fieldtyper.FieldTyperTwinClass', 'Field typer for twin class list field', false, false)
 on conflict do nothing;
 
 
