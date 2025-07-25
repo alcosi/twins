@@ -129,6 +129,7 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
             }
             ret.put(fieldRestrictionEntry.getKey(), restrictions.get(fieldRestrictionEntry.getValue()));
         }
+
         return ret;
     }
 
@@ -159,7 +160,10 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
                 throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Wrong fieldTyper for [" + fieldEntity.getId() + "]");
             }
 
-            result.put(fieldEntity.getId(), ((FieldTyperAttachment) fieldTyper).getRestrictionId(fieldEntity.getFieldTyperParams()));
+            UUID restrictionId = ((FieldTyperAttachment) fieldTyper).getRestrictionId(fieldEntity.getFieldTyperParams());
+            if (restrictionId != null) {
+                result.put(fieldEntity.getId(), ((FieldTyperAttachment) fieldTyper).getRestrictionId(fieldEntity.getFieldTyperParams()));
+            }
         }
 
         return result;

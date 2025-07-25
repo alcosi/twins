@@ -32,10 +32,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Tag(description = "", name = ApiTag.ATTACHMENT)
 @RestController
@@ -59,12 +56,11 @@ public class AttachmentAddController extends ApiController {
     public ResponseEntity<?> attachmentCreateV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestBody AttachmentCreateRqDTOv1 request) {
-        return createAttachment(twinId, request, Map.of());
+        return createAttachment(twinId, request, Collections.emptyMap());
     }
 
 
     @SneakyThrows
-    @ParametersApiUserHeaders
     @Operation(operationId = "attachmentCreateV1", summary = "Add attachment to twin")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
