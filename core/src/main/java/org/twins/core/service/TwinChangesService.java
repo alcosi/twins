@@ -44,6 +44,7 @@ public class TwinChangesService {
     private final TwinAttachmentRepository twinAttachmentRepository;
     private final TwinFieldI18nRepository twinFieldI18nRepository;
     private final TwinFieldBooleanRepository twinFieldBooleanRepository;
+    private final TwinFieldTwinClassListRepository twinFieldTwinClassListRepository;
     private final TwinAttachmentModificationRepository twinAttachmentModificationRepository;
     private final SpaceRoleUserRepository spaceRoleUserRepository;
     private final TwinChangeTaskRepository twinChangeTaskRepository;
@@ -70,10 +71,13 @@ public class TwinChangesService {
         saveEntities(twinChangesCollector, TwinFieldI18nEntity.class, twinFieldI18nRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldBooleanEntity.class, twinFieldBooleanRepository, changesApplyResult);
         saveEntities(twinChangesCollector, SpaceRoleUserEntity.class, spaceRoleUserRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, TwinFieldTwinClassEntity.class, twinFieldTwinClassListRepository, changesApplyResult);
+
         if (!twinChangesCollector.getSaveEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Map<Object, ChangesHelper>> classChanges : twinChangesCollector.getSaveEntityMap().entrySet()) {
                 log.warn("Unsupported entity class[{}] for saving", classChanges.getKey().getSimpleName());
             }
+
         deleteEntities(twinChangesCollector, TwinEntity.class, twinRepository);
         deleteEntities(twinChangesCollector, TwinFieldDataListEntity.class, twinFieldDataListRepository);
         deleteEntities(twinChangesCollector, TwinFieldSimpleEntity.class, twinFieldSimpleRepository);
@@ -87,6 +91,8 @@ public class TwinChangesService {
         deleteEntities(twinChangesCollector, TwinAttachmentModificationEntity.class, twinAttachmentModificationRepository);
         deleteEntities(twinChangesCollector, TwinFieldBooleanEntity.class, twinFieldBooleanRepository);
         deleteEntities(twinChangesCollector, SpaceRoleUserEntity.class, spaceRoleUserRepository);
+        deleteEntities(twinChangesCollector, TwinFieldTwinClassEntity.class, twinFieldTwinClassListRepository);
+
         if (!twinChangesCollector.getDeleteEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Set<Object>> classChanges : twinChangesCollector.getDeleteEntityMap().entrySet()) {
                 log.warn("Unsupported entity class[{}] for deletion", classChanges.getKey().getSimpleName());
@@ -133,6 +139,7 @@ public class TwinChangesService {
                         case twinAttachments -> twinEntity.setAttachmentKit(null);
                         case twinFieldI18nKit -> twinEntity.setTwinFieldI18nKit(null);
                         case twinFieldBooleanKit -> twinEntity.setTwinFieldBooleanKit(null);
+                        case twinFieldTwinClassKit -> twinEntity.setTwinFieldTwinClassKit(null);
                     }
                 }
             } else if (entry.getKey() instanceof TwinAttachmentEntity twinAttachmentEntity) {

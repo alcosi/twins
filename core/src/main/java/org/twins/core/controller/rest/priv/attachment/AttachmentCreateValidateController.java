@@ -34,6 +34,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.attachment.AttachmentRestrictionService;
 import org.twins.core.service.permission.Permissions;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,12 +63,11 @@ public class AttachmentCreateValidateController extends ApiController {
     public ResponseEntity<?> attachmentValidateV1(
             @MapperContextBinding(roots = AttachmentCreateValidateRestDTOMapper.class, response = AttachmentCreateValidateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody AttachmentCreateValidateRqDTOv1 request) {
-        return createAttachment(mapperContext, request, Map.of());
+        return createAttachment(mapperContext, request, Collections.emptyMap());
     }
 
 
     @SneakyThrows
-    @ParametersApiUserHeaders
     @Operation(operationId = "attachmentCreateValidateV1", summary = "Validate attachment create operation")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Attachment validation result", content = {

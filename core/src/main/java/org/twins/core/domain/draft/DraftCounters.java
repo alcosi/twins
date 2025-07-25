@@ -158,7 +158,10 @@ public class DraftCounters {
         FIELD_USER_DELETE,
         FIELD_DATALIST_CREATE,
         FIELD_DATALIST_UPDATE,
-        FIELD_DATALIST_DELETE;
+        FIELD_DATALIST_DELETE,
+        FIELD_TWIN_CLASS_CREATE,
+        FIELD_TWIN_CLASS_UPDATE,
+        FIELD_TWIN_CLASS_DELETE
     }
 
     @RequiredArgsConstructor
@@ -205,6 +208,10 @@ public class DraftCounters {
                 Counter.FIELD_USER_CREATE,
                 Counter.FIELD_USER_UPDATE,
                 Counter.FIELD_USER_DELETE}),
+        FIELDS_TWIN_CLASS(new Counter[]{
+                Counter.FIELD_TWIN_CLASS_CREATE,
+                Counter.FIELD_TWIN_CLASS_UPDATE,
+                Counter.FIELD_TWIN_CLASS_DELETE}),
         FIELDS_DATALIST(new Counter[]{
                 Counter.FIELD_DATALIST_CREATE,
                 Counter.FIELD_DATALIST_UPDATE,
@@ -224,7 +231,10 @@ public class DraftCounters {
                 Counter.FIELD_USER_DELETE,
                 Counter.FIELD_DATALIST_CREATE,
                 Counter.FIELD_DATALIST_UPDATE,
-                Counter.FIELD_DATALIST_DELETE}),
+                Counter.FIELD_DATALIST_DELETE,
+                Counter.FIELD_TWIN_CLASS_CREATE,
+                Counter.FIELD_TWIN_CLASS_UPDATE,
+                Counter.FIELD_TWIN_CLASS_DELETE}),
         COMMIT_BLOCKERS(new Counter[]{
                 Counter.ERASE_UNDETECTED,
                 Counter.ERASE_IRREVOCABLE_DETECTED,
