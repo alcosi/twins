@@ -2,6 +2,7 @@ package org.twins.core.featurer.factory.filler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.BigDecimalUtil;
 import org.cambium.featurer.annotations.Featurer;
@@ -11,12 +12,12 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
-import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.math.BigDecimal;
@@ -39,7 +40,6 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
     public static final FeaturerParamUUID targetTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("targetTwinClassFieldId");
 
     @Lazy
-    private final TwinService twinService;
     private final TwinClassFieldService twinClassFieldService;
 
     @Override
@@ -47,14 +47,28 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
         UUID paramDividendTwinClassFieldId = dividendTwinClassFieldId.extract(properties);
         UUID paramDivisorTwinClassFieldId = divisorTwinClassFieldId.extract(properties);
         UUID paramTargetTwinClassFieldId = targetTwinClassFieldId.extract(properties);
+
         FieldValue dividendFieldValue = factoryItem.getOutput().getField(paramDividendTwinClassFieldId);
         if (dividendFieldValue == null) {
-            dividendFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields().lookupFieldValue(factoryItem, paramDividendTwinClassFieldId);
+            dividendFieldValue = fieldLookupers.getFromItemOutputDbFields().lookupFieldValue(factoryItem, paramDividendTwinClassFieldId);
         }
-        if (!(dividendFieldValue instanceof FieldValueText)) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "dividendTwinClassField[" + paramDividendTwinClassFieldId + "] is not instance of text field and can not be converted to number");
+        if (factoryItem.getOutput() instanceof TwinCreate) {
+            ((FieldValueText) dividendFieldValue).setValue("0.0");
+        } else {
+            if (((FieldValueText) dividendFieldValue).getValue() != null) {
+                FieldValueText fieldValue = (FieldValueText) dividendFieldValue;
+                try {
+                    Double.parseDouble(fieldValue.getValue());
+                } catch (NumberFormatException e) {
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, fieldValue.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + fieldValue.getValue() + "] cant be parsed to Double");
+                }
+            }
         }
-        FieldValue divisorFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields().lookupFieldValue(factoryItem, paramDivisorTwinClassFieldId);
+
+        FieldValue divisorFieldValue = factoryItem.getOutput().getField(paramDivisorTwinClassFieldId);
+        if (divisorFieldValue == null) {
+            divisorFieldValue = fieldLookupers.getFromItemOutputDbFields().lookupFieldValue(factoryItem, paramDivisorTwinClassFieldId);
+        }
         if (divisorFieldValue == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "divisorTwinClassField[" + paramDivisorTwinClassFieldId + "] can not be detected");
 
