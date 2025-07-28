@@ -14,7 +14,9 @@ import org.twins.core.dao.twin.*;
 import org.twins.core.domain.statistic.TwinStatisticProgressPercent;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsI18nId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
+import org.twins.core.service.i18n.I18nService;
 
 import java.util.*;
 
@@ -32,14 +34,16 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
     public static final FeaturerParamUUIDSet ofChildTwinClassIds = new FeaturerParamUUIDSetTwinsClassId("ofChildTwinClassIds");
     @FeaturerParam(name = "Key", description = "", order = 3)
     public static final FeaturerParamString key = new FeaturerParamString("key");
-    @FeaturerParam(name = "Label", description = "", order = 4)
-    public static final FeaturerParamString label = new FeaturerParamString("label");
+    @FeaturerParam(name = "Label i18n id", description = "", order = 4)
+    public static final FeaturerParamUUID labelI18nId = new FeaturerParamUUIDTwinsI18nId("labelI18nId");
     @FeaturerParam(name = "Color", description = "", order = 5)
     public static final FeaturerParamString colorHex = new FeaturerParamString("colorHex");
     @Autowired
     private TwinFieldSimpleRepository twinFieldSimpleRepository;
     @Autowired
     private TwinRepository twinRepository;
+    @Autowired
+    private I18nService i18nService;
 
     @Override
     public Map<UUID, TwinStatisticProgressPercent> getStatistic(Properties properties, Set<UUID> forTwinIdSet) {
@@ -82,13 +86,16 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
             parentTwinAndPercentMap.put(entry.getKey(), sum / count);
         }
 
+        UUID paramLabelI18nId = labelI18nId.extract(properties);
+        String labelTranslation = paramLabelI18nId != null ? i18nService.translateToLocale(paramLabelI18nId) : null;
+
         Map<UUID, TwinStatisticProgressPercent> ret = new HashMap<>();
         for (var headTwin : parentTwinAndPercentMap.entrySet()) {
             UUID uuid = headTwin.getKey();
             TwinStatisticProgressPercent.Item item = createItem(
                     (int) (headTwin.getValue() * 100),
                     key.extract(properties),
-                    label.extract(properties),
+                    labelTranslation,
                     colorHex.extract(properties)
             );
             ret.put(uuid, new TwinStatisticProgressPercent()
