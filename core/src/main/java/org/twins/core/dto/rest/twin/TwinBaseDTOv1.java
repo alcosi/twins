@@ -50,4 +50,7 @@ public class TwinBaseDTOv1 {
 
     @Schema(description = "owner user id", example = DTOExamples.USER_ID)
     public UUID ownerUserId;
+
+    @Schema(description = "page id")
+    public UUID pageId;
 }
