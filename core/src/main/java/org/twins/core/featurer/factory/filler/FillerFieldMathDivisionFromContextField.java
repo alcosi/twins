@@ -55,7 +55,7 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
         }
         if (factoryItem.getOutput() instanceof TwinCreate) {
             if (dividendFieldValue == null) {
-                dividendFieldValue = new FieldValueText(twinClassFieldService.findEntitySafe(paramDividendTwinClassFieldId));
+                dividendFieldValue = new FieldValueText(twinClassFieldService.findEntitySafe(paramDividendTwinClassFieldId)).setValue("0.0");
             } else {
                 if (((FieldValueText) dividendFieldValue).getValue() == null) {
                     ((FieldValueText) dividendFieldValue).setValue("0.0");
@@ -63,7 +63,9 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
             }
         }
         if (factoryItem.getOutput() instanceof TwinUpdate) {
-            if (((FieldValueText) dividendFieldValue).getValue() != null) {
+            if (((FieldValueText) dividendFieldValue).getValue() == null) {
+                ((FieldValueText) dividendFieldValue).setValue("0.0");
+            } else {
                 FieldValueText fieldValue = (FieldValueText) dividendFieldValue;
                 try {
                     Double.parseDouble(fieldValue.getValue());
