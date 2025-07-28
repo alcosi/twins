@@ -16,7 +16,6 @@ import org.twins.core.domain.statistic.TwinStatisticProgressPercent;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsI18nId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
-import org.twins.core.service.i18n.I18nService;
 
 import java.util.*;
 
@@ -38,8 +37,6 @@ public class StatisterForParentOrChildPercent extends Statister<TwinStatisticPro
     public static final FeaturerParamString colorHex = new FeaturerParamString("colorHex");
     @Autowired
     private TwinFieldSimpleRepository twinFieldSimpleRepository;
-    @Autowired
-    private I18nService i18nService;
 
     @Override
     public Map<UUID, TwinStatisticProgressPercent> getStatistic(Properties properties, Set<UUID> forTwinIdSet) {
@@ -63,16 +60,13 @@ public class StatisterForParentOrChildPercent extends Statister<TwinStatisticPro
             }
         }
 
-        UUID paramLabelI18nId = labelI18nId.extract(properties);
-        String labelTranslation = paramLabelI18nId != null ? i18nService.translateToLocale(paramLabelI18nId) : null;
-
         Map<UUID, TwinStatisticProgressPercent> ret = new HashMap<>();
         for (var headTwin : twinAndPercentMap.entrySet()) {
             UUID uuid = headTwin.getKey();
             TwinStatisticProgressPercent.Item item = createItem(
                     (int) (headTwin.getValue() * 100),
                     key.extract(properties),
-                    labelTranslation,
+                    labelI18nId.extract(properties),
                     colorHex.extract(properties)
             );
             ret.put(uuid, new TwinStatisticProgressPercent()
@@ -81,10 +75,10 @@ public class StatisterForParentOrChildPercent extends Statister<TwinStatisticPro
         return ret;
     }
 
-    private TwinStatisticProgressPercent.Item createItem(Integer percent, String key, String label, String colorHex) {
+    private TwinStatisticProgressPercent.Item createItem(Integer percent, String key, UUID labelI18nId, String colorHex) {
         return new TwinStatisticProgressPercent.Item()
                 .setKey(key)
-                .setLabel(label)
+                .setLabelI18nId(labelI18nId)
                 .setPercent(percent)
                 .setColorHex(colorHex);
     }
