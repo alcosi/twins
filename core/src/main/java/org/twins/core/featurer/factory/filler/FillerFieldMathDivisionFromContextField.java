@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -53,8 +54,15 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
             dividendFieldValue = fieldLookupers.getFromItemOutputDbFields().lookupFieldValue(factoryItem, paramDividendTwinClassFieldId);
         }
         if (factoryItem.getOutput() instanceof TwinCreate) {
-            ((FieldValueText) dividendFieldValue).setValue("0.0");
-        } else {
+            if (dividendFieldValue == null) {
+                dividendFieldValue = new FieldValueText(twinClassFieldService.findEntitySafe(paramDividendTwinClassFieldId));
+            } else {
+                if (((FieldValueText) dividendFieldValue).getValue() == null) {
+                    ((FieldValueText) dividendFieldValue).setValue("0.0");
+                }
+            }
+        }
+        if (factoryItem.getOutput() instanceof TwinUpdate) {
             if (((FieldValueText) dividendFieldValue).getValue() != null) {
                 FieldValueText fieldValue = (FieldValueText) dividendFieldValue;
                 try {
