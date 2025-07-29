@@ -42,11 +42,14 @@ public class FaceWT001Entity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "search_id")
     private UUID searchId;
 
-    @Column(name = "show_create_button", nullable = false)
-    private boolean showCreateButton;
+    @Column(name = "search_target_twin_pointer_id")
+    private UUID searchTargetTwinPointerId;
 
     @Column(name = "modal_face_id")
     private UUID modalFaceId;
+
+    @Column(name = "show_create_button", nullable = false)
+    private boolean showCreateButton;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "label_i18n_id", nullable = false, insertable = false, updatable = false)
