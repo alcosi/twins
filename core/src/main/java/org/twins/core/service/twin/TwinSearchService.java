@@ -41,6 +41,7 @@ import org.twins.core.service.user.UserGroupService;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.cambium.common.util.MapUtils.narrowMapOfSets;
 import static org.cambium.common.util.PaginationUtils.sortType;
@@ -162,7 +163,9 @@ public class TwinSearchService {
             alreadyLoaded.addAll(ret);
         }
         pagination.setTotalElements(alreadyLoaded.size());
-        List<TwinEntity> all = new ArrayList<>(alreadyLoaded);
+        List<TwinEntity> all = alreadyLoaded.stream()
+                .sorted(Comparator.comparing(TwinEntity::getCreatedAt).reversed())
+                .collect(Collectors.toList());
         PaginationUtils.validPagination(pagination);
         int offset = pagination.getOffset();
         int limit = pagination.getLimit();

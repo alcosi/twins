@@ -6,6 +6,7 @@ import lombok.experimental.FieldNameConstants;
 import org.twins.core.domain.TwinStatistic;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
@@ -16,7 +17,7 @@ public class TwinStatisticProgressPercent implements TwinStatistic {
     @Accessors(chain = true)
     @FieldNameConstants
     public static class Item {
-        private String label;
+        private UUID labelI18nId;
         private String key;
         private int percent;
         private String colorHex;

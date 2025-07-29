@@ -14,6 +14,7 @@ import org.twins.core.dao.twin.*;
 import org.twins.core.domain.statistic.TwinStatisticProgressPercent;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsI18nId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.util.*;
@@ -32,8 +33,8 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
     public static final FeaturerParamUUIDSet ofChildTwinClassIds = new FeaturerParamUUIDSetTwinsClassId("ofChildTwinClassIds");
     @FeaturerParam(name = "Key", description = "", order = 3)
     public static final FeaturerParamString key = new FeaturerParamString("key");
-    @FeaturerParam(name = "Label", description = "", order = 4)
-    public static final FeaturerParamString label = new FeaturerParamString("label");
+    @FeaturerParam(name = "Label i18n id", description = "", order = 4)
+    public static final FeaturerParamUUID labelI18nId = new FeaturerParamUUIDTwinsI18nId("labelI18nId");
     @FeaturerParam(name = "Color", description = "", order = 5)
     public static final FeaturerParamString colorHex = new FeaturerParamString("colorHex");
     @Autowired
@@ -88,7 +89,7 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
             TwinStatisticProgressPercent.Item item = createItem(
                     (int) (headTwin.getValue() * 100),
                     key.extract(properties),
-                    label.extract(properties),
+                    labelI18nId.extract(properties),
                     colorHex.extract(properties)
             );
             ret.put(uuid, new TwinStatisticProgressPercent()
@@ -97,10 +98,10 @@ public class StatisterForParentWithoutSelfPercent extends Statister<TwinStatisti
         return ret;
     }
 
-    private TwinStatisticProgressPercent.Item createItem(Integer percent, String key, String label, String colorHex) {
+    private TwinStatisticProgressPercent.Item createItem(Integer percent, String key, UUID labelI18nId, String colorHex) {
         return new TwinStatisticProgressPercent.Item()
                 .setKey(key)
-                .setLabel(label)
+                .setLabelI18nId(labelI18nId)
                 .setPercent(percent)
                 .setColorHex(colorHex);
     }
