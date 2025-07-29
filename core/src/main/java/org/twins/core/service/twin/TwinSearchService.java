@@ -164,7 +164,7 @@ public class TwinSearchService {
         }
         pagination.setTotalElements(alreadyLoaded.size());
         List<TwinEntity> all = alreadyLoaded.stream()
-                .sorted(Comparator.comparing(TwinEntity::getCreatedAt))
+                .sorted(Comparator.comparing(TwinEntity::getCreatedAt).reversed())
                 .collect(Collectors.toList());
         PaginationUtils.validPagination(pagination);
         int offset = pagination.getOffset();
