@@ -53,4 +53,7 @@ public class TwinBaseDTOv1 {
 
     @Schema(description = "page id")
     public UUID pageId;
+
+    @Schema(description = "breadcrumbs face id")
+    public UUID breadCrumbsFaceId;
 }

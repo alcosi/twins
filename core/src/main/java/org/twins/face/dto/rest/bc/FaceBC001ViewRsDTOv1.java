@@ -13,5 +13,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 public class FaceBC001ViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
 
     @Schema(description = "results - widget details")
-    public FaceBC001DTOv1 widget;
+    public FaceBC001DTOv1 breadCrumbs;
 }
