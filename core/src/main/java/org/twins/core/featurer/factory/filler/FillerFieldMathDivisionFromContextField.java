@@ -50,9 +50,6 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
         UUID paramTargetTwinClassFieldId = targetTwinClassFieldId.extract(properties);
 
         FieldValue dividendFieldValue = factoryItem.getOutput().getField(paramDividendTwinClassFieldId);
-        if (dividendFieldValue == null) {
-            dividendFieldValue = fieldLookupers.getFromItemOutputDbFields().lookupFieldValue(factoryItem, paramDividendTwinClassFieldId);
-        }
         if (factoryItem.getOutput() instanceof TwinCreate) {
             if (dividendFieldValue == null) {
                 dividendFieldValue = new FieldValueText(twinClassFieldService.findEntitySafe(paramDividendTwinClassFieldId)).setValue("0.0");
@@ -63,14 +60,21 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
             }
         }
         if (factoryItem.getOutput() instanceof TwinUpdate) {
-            if (((FieldValueText) dividendFieldValue).getValue() == null) {
-                ((FieldValueText) dividendFieldValue).setValue("0.0");
+            if (dividendFieldValue == null) {
+                dividendFieldValue = fieldLookupers.getFromItemOutputDbFields().lookupFieldValue(factoryItem, paramDividendTwinClassFieldId);
+            }
+            if (dividendFieldValue == null) {
+                dividendFieldValue = new FieldValueText(twinClassFieldService.findEntitySafe(paramDividendTwinClassFieldId)).setValue("0.0");
             } else {
-                FieldValueText fieldValue = (FieldValueText) dividendFieldValue;
-                try {
-                    Double.parseDouble(fieldValue.getValue());
-                } catch (NumberFormatException e) {
-                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, fieldValue.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + fieldValue.getValue() + "] cant be parsed to Double");
+                if (((FieldValueText) dividendFieldValue).getValue() == null) {
+                    ((FieldValueText) dividendFieldValue).setValue("0.0");
+                } else {
+                    FieldValueText fieldValue = (FieldValueText) dividendFieldValue;
+                    try {
+                        Double.parseDouble(fieldValue.getValue());
+                    } catch (NumberFormatException e) {
+                        throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, fieldValue.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + fieldValue.getValue() + "] cant be parsed to Double");
+                    }
                 }
             }
         }
