@@ -12,6 +12,7 @@ import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.resource.ResourceEntity;
+import org.twins.core.dao.twin.TwinEntity;
 
 import java.util.UUID;
 
@@ -47,8 +48,12 @@ public class FaceNB001MenuItemEntity implements EasyLoggable {
     @Enumerated(EnumType.STRING)
     private Status status;
 
+    @Deprecated
     @Column(name = "target_page_face_id")
     private UUID targetPageFaceId;
+
+    @Column(name = "target_twin_id")
+    private UUID targetTwinId;
 
     @Column(name = "parent_face_navbar_nb001_menu_item_id")
     private UUID parentFaceMenuItemId;
@@ -69,9 +74,14 @@ public class FaceNB001MenuItemEntity implements EasyLoggable {
     @JoinColumn(name = "icon_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconResource;
 
+    @Deprecated
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "target_page_face_id", nullable = false, insertable = false, updatable = false)
     private FaceEntity targetPageFace;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "target_twin_id", nullable = false, insertable = false, updatable = false)
+    private TwinEntity targetTwin;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "permission_id", insertable = false, updatable = false)

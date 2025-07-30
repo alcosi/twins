@@ -9,11 +9,13 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.face.FaceService;
 import org.twins.core.service.twin.TwinAliasService;
 import org.twins.core.service.twin.TwinService;
 
@@ -35,7 +37,11 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     @MapperModePointerBinding(modes = {TwinAliasMode.class})
     private final TwinAliasRestDTOMapper twinAliasRestDTOMapper;
 
+    @MapperModePointerBinding(modes = {FaceMode.Twin2FaceMode.class})
+    private final FaceRestDTOMapper faceRestDTOMapper;
+
     private final TwinService twinService;
+    private final FaceService faceService;
     private final TwinAliasService twinAliasService;
 
     @Lazy
@@ -65,12 +71,28 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             twinService.loadHeadForTwin(src);
             dst
                     .headTwin(this.convertOrPostpone(src.getHeadTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByHeadMode.GREEN)))  //head twin will be much less detail
-                    .twinClassId(src.getTwinClassId());
+                    .headTwinId(src.getHeadTwinId());
         }
         if (mapperContext.hasModeButNot(TwinAliasMode.HIDE)) {
             twinAliasService.loadAliases(src);
             dst
                     .aliases(twinAliasRestDTOMapper.convert(src, mapperContext));
+        }
+        if (mapperContext.hasModeButNot(FaceMode.Twin2FaceMode.HIDE)) {
+            faceService.loadFaces(src);
+
+            faceRestDTOMapper.postpone(
+                    src.resolvePageFace(),
+                    mapperContext.forkOnPoint(FaceMode.Twin2FaceMode.SHORT)
+            );
+            faceRestDTOMapper.postpone(
+                    src.resolveBreadCrumbsFace(),
+                    mapperContext.forkOnPoint(FaceMode.Twin2FaceMode.SHORT)
+            );
+
+            dst
+                    .breadCrumbsFaceId(src.resolveBreadCrumbsFaceId())
+                    .pageFaceId(src.resolvePageFaceId());
         }
     }
 

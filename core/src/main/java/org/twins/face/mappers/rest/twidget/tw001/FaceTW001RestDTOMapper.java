@@ -59,7 +59,6 @@ public class FaceTW001RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
             if (src.getConfig().getTwinAttachmentRestriction() != null) {
                 dst.setRestrictionId(src.getConfig().getTwinAttachmentRestriction().getId());
                 attachmentRestrictionRestDTOMapper.postpone(src.getConfig().getTwinAttachmentRestriction(), mapperContext.forkOnPoint(FaceTW001Modes.FaceTW0012AttachmentRestrictionMode.SHOW));
-
             }
         }
     }
