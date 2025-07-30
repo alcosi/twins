@@ -69,7 +69,7 @@ public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClas
             classFinder.concatSearch(predicate.getClassFinderParams(), mainSearch);
         }
         narrowSearch(mainSearch, narrowSearch);
-        return findTwinClasses(narrowSearch, pagination);
+        return findTwinClasses(mainSearch, pagination);
     }
 
     public List<TwinClassEntity> searchTwinClasses(TwinClassSearch twinClassSearch) throws ServiceException {

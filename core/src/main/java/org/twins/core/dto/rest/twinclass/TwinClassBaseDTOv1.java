@@ -97,4 +97,7 @@ public class TwinClassBaseDTOv1 {
 
     @Schema(description = "external id")
     public String externalId;
+
+    @Schema(description = "breadcrumbs face id")
+    public UUID breadCrumbsFaceId;
 }
