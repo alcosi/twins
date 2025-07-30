@@ -14,6 +14,7 @@ import org.hibernate.annotations.Type;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.service.SystemEntityService;
 
 import java.util.HashMap;
@@ -32,7 +33,7 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            this.id = UUID.randomUUID();
+            this.id = UUID.nameUUIDFromBytes((key + twinClassId).getBytes());
         }
     }
 
@@ -101,6 +102,10 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "edit_permission_id", insertable = false, updatable = false)
     private PermissionEntity editPermission;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private TwinFieldStorage fieldStorage;
 
     public String easyLog(Level level) {
         return "twinClassField[id:" + id + ", key:" + key + "]";

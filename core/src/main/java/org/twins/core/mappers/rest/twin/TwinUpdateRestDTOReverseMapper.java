@@ -23,6 +23,7 @@ public class TwinUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Pair<Twi
 
     @Override
     public void map(Pair<TwinUpdateDTOv1, TwinEntity> src, TwinUpdate dst, MapperContext mapperContext) throws Exception {
+
         TwinUpdateDTOv1 twinUpdateDTO = src.getLeft();
         TwinEntity dbTwinEntity = src.getRight();
         dst.setDbTwinEntity(dbTwinEntity);

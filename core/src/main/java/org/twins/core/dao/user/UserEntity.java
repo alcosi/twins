@@ -6,7 +6,6 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
 import java.sql.Timestamp;
 import java.util.Set;
@@ -19,7 +18,7 @@ import static org.twins.core.service.user.UserService.maskEmail;
 @Accessors(chain = true)
 @Table(name = "user")
 @FieldNameConstants
-public class UserEntity implements EasyLoggable, TwinFieldStorage {
+public class UserEntity implements EasyLoggable {
     @Id
     private UUID id;
 

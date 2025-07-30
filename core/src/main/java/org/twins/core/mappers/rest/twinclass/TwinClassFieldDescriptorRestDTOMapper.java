@@ -9,6 +9,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.twinclass.*;
+import org.twins.core.featurer.fieldtyper.FieldDescriptorTwinClassList;
 import org.twins.core.featurer.fieldtyper.descriptor.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
@@ -121,6 +122,9 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
             }
         else if (fieldDescriptor instanceof FieldDescriptorI18n i18nDescriptor) {
             return new TwinClassFieldDescriptorI18nDTOv1();
+        }
+        else if (fieldDescriptor instanceof FieldDescriptorTwinClassList twinClassListDescriptor) {
+            return new TwinClassFieldDescriptorTwinClassListDTOv1();
         }
         return null;
     }

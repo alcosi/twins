@@ -22,12 +22,13 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinAttachmentsCount;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.link.TwinLinkService;
 
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -36,7 +37,7 @@ import java.util.UUID;
 @Data
 @Table(name = "twin")
 @FieldNameConstants
-public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
+public class TwinEntity implements Cloneable, EasyLoggable {
     @Id
     private UUID id;
 
@@ -204,6 +205,13 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
 
     //needed for specification
     @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private Collection<TwinFieldTwinClassEntity> fieldsTwinClassList;
+
+    //needed for specification
+    @Deprecated
     @OneToMany
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinTouchEntity> touches;
@@ -280,6 +288,18 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    private KitGrouped<SpaceRoleUserEntity, UUID, UUID> twinFieldSpaceUserKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private KitGrouped<TwinFieldTwinClassEntity, UUID, UUID> twinFieldTwinClassKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Map<UUID, Object> twinFieldCalculated;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
     private Kit<FieldValue, UUID> fieldValuesKit;
 
     @Transient
@@ -323,6 +343,10 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinClassEntity, UUID> creatableChildTwinClasses;
+
+    public boolean isSketch() {
+        return SystemEntityService.TWIN_STATUS_SKETCH.equals(twinStatusId);
+    }
 
     @Override
     public String toString() {

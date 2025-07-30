@@ -1,5 +1,8 @@
 package org.twins.core.featurer.storager.local;
 
+import io.github.breninsul.springHttpMessageConverter.inputStream.ContentDispositionType;
+import io.github.breninsul.springHttpMessageConverter.inputStream.ContentTypeResolvingInputStreamResponseKt;
+import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.storager.StoragerAbstractChecked;
 
+import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -80,10 +84,10 @@ public class StoragerLocalStaticController extends StoragerAbstractChecked {
     }
 
     @Override
-    public InputStream getFileAsStream(String fileKey, HashMap<String, String> params) throws ServiceException {
+    public InputStreamResponse getFileAsStream(String fileKey, HashMap<String, String> params) throws ServiceException {
         String filePath = fileKey;
         try {
-            return Files.newInputStream(Paths.get(filePath));
+            return ContentTypeResolvingInputStreamResponseKt.toFileResource(new File(filePath), null, true, ContentDispositionType.INLINE, true);
         } catch (Exception e) {
             log.error("Error while retrieving file as stream: {}", filePath, e);
             throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Unable to get resource");

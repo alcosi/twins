@@ -33,6 +33,7 @@ import org.twins.core.dto.rest.twinclass.TwinClassFieldSave;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperLink;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
@@ -147,6 +148,19 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                     classFields.addAll(fields.getGrouped(twinClassId));
             }
             twinClassEntity.setTwinClassFieldKit(new Kit<>(classFields, TwinClassFieldEntity::getId));
+        }
+    }
+
+    public void loadFieldStorages(TwinClassEntity twinClassEntity) throws ServiceException {
+        if (twinClassEntity.getFieldStorageSet() != null) {
+            return;
+        }
+        twinClassEntity.setFieldStorageSet(new HashSet<>());
+        for (TwinClassFieldEntity twinClassField : twinClassEntity.getTwinClassFieldKit().getCollection()) {
+            FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturer(), FieldTyper.class);
+            //storage hashCode is important here, this will help to do bulk load
+            TwinFieldStorage storage = fieldTyper.getStorage(twinClassField);
+            twinClassEntity.getFieldStorageSet().add(storage);
         }
     }
 
