@@ -4,8 +4,6 @@ package org.twins.core.featurer.fieldtyper;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamString;
-import org.cambium.featurer.params.FeaturerParamStringTwinsEditorType;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -25,17 +23,11 @@ import java.util.Properties;
 import static org.cambium.common.exception.ErrorCodeCommon.FEATURER_WITHOUT_SERIALIZATION;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_1333,
-        name = "Projection text",
+@Featurer(id = FeaturerTwins.ID_1335,
+        name = "Projection from head",
         description = "")
 public class FieldTyperProjectionHeadTextField extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldSimpleEntity, TwinFieldSearchText> {
-
-    //todo delete Regexp and EditorType params and take them from head twin
-    @FeaturerParam(name = "Regexp", description = "", order = 1)
-    public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
-    @FeaturerParam(name = "EditorType", description = "", order = 2, optional = true, defaultValue = "PLAIN")
-    public static final FeaturerParamStringTwinsEditorType editorType = new FeaturerParamStringTwinsEditorType("editorType");
-    @FeaturerParam(name = "HeadTwinClassFieldId", description = "", order = 3)
+    @FeaturerParam(name = "Head field", description = "", order = 3)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUID("headTwinClassFieldId");
 
     @Autowired
