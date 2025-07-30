@@ -52,8 +52,8 @@ public class TwinPointerService extends EntitySecureFindServiceImpl<TwinPointerE
     }
 
     public TwinEntity getPointer(TwinEntity currentTwin, UUID twinPointerId) throws ServiceException {
-        TwinPointerEntity faceTwinPointer = findEntitySafe(twinPointerId);
-        Pointer pointer = featurerService.getFeaturer(faceTwinPointer.getPointerFeaturerId(), Pointer.class);
-        return pointer.point(faceTwinPointer.getPointerParams(), currentTwin);
+        TwinPointerEntity twinPointer = findEntitySafe(twinPointerId);
+        Pointer pointer = featurerService.getFeaturer(twinPointer.getPointerFeaturerId(), Pointer.class);
+        return pointer.point(twinPointer.getPointerParams(), currentTwin);
     }
 }
