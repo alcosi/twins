@@ -16,14 +16,11 @@ import org.twins.core.dao.attachment.TwinAttachmentRepository;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.twin.*;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.twin.TwinChangeTaskService;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.*;
 
 import static org.twins.core.domain.TwinChangesCollector.TwinInvalidate;
@@ -47,10 +44,9 @@ public class TwinChangesService {
     private final TwinFieldTwinClassListRepository twinFieldTwinClassListRepository;
     private final TwinAttachmentModificationRepository twinAttachmentModificationRepository;
     private final SpaceRoleUserRepository spaceRoleUserRepository;
-    private final TwinChangeTaskRepository twinChangeTaskRepository;
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
-    private final AuthService authService;
+    private final TwinChangeTaskService twinChangeTaskService;
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinChangesApplyResult applyChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
@@ -107,20 +103,15 @@ public class TwinChangesService {
     private void savePostponedChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinChangesCollector.getPostponedChanges().isEmpty())
             return;
-        ApiUser apiUser = authService.getApiUser();
         List<TwinChangeTaskEntity> changeTaskList = new ArrayList<>();
         for (var entry : twinChangesCollector.getPostponedChanges().entrySet()) {
             changeTaskList.add(new TwinChangeTaskEntity()
                     .setTwinId(entry.getKey())
-                    .setRequestId(apiUser.getRequestId()) //we have uniq index on twinId + requestId to avoid conflict runs
                     .setTwinFactoryId(entry.getValue().getLeft())
                     .setTwinFactorylauncher(entry.getValue().getRight())
-                    .setStatusId(TwinChangeTaskStatus.NEED_START)
-                    .setCreatedAt(Timestamp.from(Instant.now()))
-                    .setCreatedByUserId(apiUser.getUserId())
-                    .setBusinessAccountId(apiUser.getBusinessAccountId()));
+                    .setStatusId(TwinChangeTaskStatus.NEED_START));
         }
-        entitySmartService.saveAllAndLog(changeTaskList, twinChangeTaskRepository);
+        twinChangeTaskService.addTasks(changeTaskList);
     }
 
     private void invalidate(Map<Object, Set<TwinChangesCollector.TwinInvalidate>> invalidationMap) {
