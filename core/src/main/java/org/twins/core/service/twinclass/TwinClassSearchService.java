@@ -80,10 +80,14 @@ public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClas
 
     public Specification<TwinClassEntity> createTwinClassEntitySearchSpecification(TwinClassSearch twinClassSearch) throws ServiceException {
         Locale locale = authService.getApiUser().getLocale();
-        HierarchySearch headHierarchyChildsForTwinClassSearch = twinClassSearch.getHeadHierarchyChildsForTwinClassSearch();
-        HierarchySearch headHierarchyParentsForTwinClassSearch = twinClassSearch.getHeadHierarchyParentsForTwinClassSearch();
-        HierarchySearch extendsHierarchyChildsForTwinClassSearch = twinClassSearch.getExtendsHierarchyChildsForTwinClassSearch();
-        HierarchySearch extendsHierarchyParentsForTwinClassSearch = twinClassSearch.getExtendsHierarchyParentsForTwinClassSearch();
+        HierarchySearch headHierarchyChildrenForTwinClassSearch =
+                java.util.Objects.requireNonNullElse(twinClassSearch.getHeadHierarchyChildsForTwinClassSearch(), HierarchySearch.EMPTY);
+        HierarchySearch headHierarchyParentsForTwinClassSearch =
+                java.util.Objects.requireNonNullElse(twinClassSearch.getHeadHierarchyParentsForTwinClassSearch(), HierarchySearch.EMPTY);
+        HierarchySearch extendsHierarchyChildsForTwinClassSearch =
+                java.util.Objects.requireNonNullElse(twinClassSearch.getExtendsHierarchyChildsForTwinClassSearch(), HierarchySearch.EMPTY);
+        HierarchySearch extendsHierarchyParentsForTwinClassSearch =
+                java.util.Objects.requireNonNullElse(twinClassSearch.getExtendsHierarchyParentsForTwinClassSearch(), HierarchySearch.EMPTY);
 
         return where(
                 checkOwnerTypeIn(twinClassSearch.getOwnerTypeList(), false)
@@ -99,8 +103,8 @@ public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClas
                         .and(checkFieldLikeIn(twinClassSearch.getExternalIdLikeList(), false, false, TwinClassEntity.Fields.externalId))
                         .and(checkFieldLikeIn(twinClassSearch.getExternalIdNotLikeList(), true, false, TwinClassEntity.Fields.externalId))
 
-                        .and(checkHeadTwinClassChilds(headHierarchyChildsForTwinClassSearch.getIdList(), false, false, headHierarchyChildsForTwinClassSearch.getDepth()))
-                        .and(checkHeadTwinClassChilds(headHierarchyChildsForTwinClassSearch.getIdExcludeList(), true, true, headHierarchyChildsForTwinClassSearch.getDepth()))
+                        .and(checkHeadTwinClassChilds(headHierarchyChildrenForTwinClassSearch.getIdList(), false, false, headHierarchyChildrenForTwinClassSearch.getDepth()))
+                        .and(checkHeadTwinClassChilds(headHierarchyChildrenForTwinClassSearch.getIdExcludeList(), true, true, headHierarchyChildrenForTwinClassSearch.getDepth()))
                         .and(checkHeadTwinClassParents(headHierarchyParentsForTwinClassSearch.getIdList(), false, false, headHierarchyParentsForTwinClassSearch.getDepth()))
                         .and(checkHeadTwinClassParents(headHierarchyParentsForTwinClassSearch.getIdExcludeList(), true, true, headHierarchyParentsForTwinClassSearch.getDepth()))
 
