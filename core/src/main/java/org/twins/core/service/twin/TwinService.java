@@ -39,6 +39,7 @@ import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.domain.twinoperation.TwinUpdateClass;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;
@@ -1381,4 +1382,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         int deletedCount = twinRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
         log.info(deletedCount + " number of twins were deleted");
     }
+
+    public void updateClassOfTwin(TwinUpdateClass twinUpdateClass) throws ServiceException {
+        TwinEntity dbTwinEntity = findEntity(twinUpdateClass.getTwinId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
+        System.out.println(twinUpdateClass);
+    }
+
 }
