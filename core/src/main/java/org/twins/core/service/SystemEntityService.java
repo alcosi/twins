@@ -166,7 +166,7 @@ public class SystemEntityService {
                 ),
                 new SystemClass(
                         TWIN_CLASS_FACE_PAGE,
-                        "USER",
+                        "FACE_PAGE",
                         List.of(new SystemStatus(TWIN_STATUS_FACE_PAGE, TWIN_CLASS_FACE_PAGE, new I18n(I18N_4CLASS_FACE_PAGE_STATUS_NAME, "Published"), new I18n(I18N_4CLASS_FACE_PAGE_STATUS_DESCRIPTION, "Face page published"))),
                         List.of(),
                         false,
