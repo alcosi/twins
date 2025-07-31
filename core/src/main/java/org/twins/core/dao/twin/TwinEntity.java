@@ -3,6 +3,7 @@ package org.twins.core.dao.twin;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -16,6 +17,7 @@ import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
+import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
@@ -100,10 +102,26 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @Column(name = "page_face_id")
+    private UUID pageFaceId;
+
+    @Column(name = "bread_crumbs_face_id")
+    private UUID breadCrumbsFaceId;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "twin_class_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = false)
     @EqualsAndHashCode.Exclude
     private TwinClassEntity twinClass;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity pageFace;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity breadCrumbsFace;
 
 //    @ManyToOne(fetch = FetchType.EAGER)
 //    @JoinColumn(name = "head_twin_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = true)

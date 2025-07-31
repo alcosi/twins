@@ -52,7 +52,7 @@ public class TwinBaseDTOv1 {
     public UUID ownerUserId;
 
     @Schema(description = "page id")
-    public UUID pageId;
+    public UUID pageFaceId;
 
     @Schema(description = "breadcrumbs face id")
     public UUID breadCrumbsFaceId;

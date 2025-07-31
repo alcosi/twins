@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -78,5 +79,59 @@ public class FaceService extends EntitySecureFindServiceImpl<FaceEntity> {
                 config.setTargetTwin(twinsKit.get(config.getTargetTwinId()));
             }
         }
+    }
+
+    public void loadFaces(TwinEntity src) {
+        loadFaces(Collections.singletonList(src));
+    }
+
+    public void loadFaces(Collection<TwinEntity> twins) {
+        if (CollectionUtils.isEmpty(twins)) {
+            return;
+        }
+
+        Map<UUID, TwinEntity> pageFaceIds = new HashMap<>();
+        Map<UUID, TwinEntity> breadCrumbsFaceIds = new HashMap<>();
+
+        for (var twin : twins) {
+            if (twin.getPageFace() == null) {
+                if (twin.getPageFaceId() != null) {
+                    pageFaceIds.put(twin.getPageFaceId(), twin);
+                } else if (twin.getTwinClass().getPageFaceId() != null) {
+                    pageFaceIds.put(twin.getTwinClass().getPageFaceId(), twin);
+                }
+            }
+            if (twin.getBreadCrumbsFace() == null) {
+                if (twin.getBreadCrumbsFaceId() != null) {
+                    breadCrumbsFaceIds.put(twin.getBreadCrumbsFaceId(), twin);
+                } else if (twin.getTwinClass().getBreadCrumbsFaceId() != null) {
+                    breadCrumbsFaceIds.put(twin.getTwinClass().getBreadCrumbsFaceId(), twin);
+                }
+            }
+        }
+
+        Set<UUID> allFaceIds = new HashSet<>(pageFaceIds.keySet());
+        allFaceIds.addAll(breadCrumbsFaceIds.keySet());
+
+        if (allFaceIds.isEmpty()) {
+            return;
+        }
+
+        Kit<FaceEntity, UUID> faces = new Kit<>((ArrayList<FaceEntity>) faceRepository.findAllById(allFaceIds), FaceEntity::getId);
+
+        for (var entry : pageFaceIds.entrySet()) {
+            entry.getValue().setPageFace(faces.get(entry.getKey()));
+        }
+        for (var entry : breadCrumbsFaceIds.entrySet()) {
+            entry.getValue().setBreadCrumbsFace(faces.get(entry.getKey()));
+        }
+    }
+
+    public UUID resolvePageFaceId(TwinEntity twin) {
+        return twin.getPageFaceId() != null ? twin.getPageFaceId() : twin.getTwinClass().getPageFaceId();
+    }
+
+    public UUID resolveBreadCrumbsFaceId(TwinEntity twin) {
+        return twin.getBreadCrumbsFaceId() != null ? twin.getBreadCrumbsFaceId() : twin.getTwinClass().getBreadCrumbsFaceId();
     }
 }
