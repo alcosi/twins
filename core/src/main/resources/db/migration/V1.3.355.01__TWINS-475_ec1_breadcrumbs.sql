@@ -78,7 +78,7 @@ insert into twin_class(id, domain_id, key, permission_schema_space, abstract,
                        head_hunter_featurer_id, head_hunter_featurer_params, create_permission_id,
                        edit_permission_id, delete_permission_id, page_face_id, assignee_required,
                        general_attachment_restriction_id, comment_attachment_restriction_id,
-                       external_id, face_relative_path, bread_crumbs_face_id)
+                       external_id, bread_crumbs_face_id)
 values ('00000000-0000-0000-0001-000000000005', null, 'FACE_PAGE',
         null, false, null,
         null, null, null, null,
@@ -88,7 +88,7 @@ values ('00000000-0000-0000-0001-000000000005', null, 'FACE_PAGE',
         null, null, null, null,
         null, null, null,
         null, null, null, true,
-        null, null, null, null, null)
+        null, null, null, null)
 on conflict do nothing;
 
 insert into i18n (id, key, name, i18n_type_id, domain_id)
