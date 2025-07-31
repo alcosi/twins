@@ -296,7 +296,9 @@ public class TwinSearchService {
             functioPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
         }
         mainSearch.setTwinNameLikeList(narrowSet(mainSearch.getTwinNameLikeList(), narrowSearch.getTwinNameLikeList()));
-        mainSearch.setLinksAnyOfList(narrowMapOfSets(mainSearch.getLinksAnyOfList(), narrowSearch.getLinksAnyOfList()));
-        mainSearch.setLinksNoAnyOfList(narrowMapOfSets(mainSearch.getLinksNoAnyOfList(), narrowSearch.getLinksNoAnyOfList()));
+        mainSearch.setDstLinksAnyOfList(narrowMapOfSets(mainSearch.getDstLinksAnyOfList(), narrowSearch.getDstLinksAnyOfList()));
+        mainSearch.setDstLinksNoAnyOfList(narrowMapOfSets(mainSearch.getDstLinksNoAnyOfList(), narrowSearch.getDstLinksNoAnyOfList()));
+        mainSearch.setSrcLinksAnyOfList(narrowMapOfSets(mainSearch.getSrcLinksAnyOfList(), narrowSearch.getSrcLinksAnyOfList()));
+        mainSearch.setSrcLinksNoAnyOfList(narrowMapOfSets(mainSearch.getSrcLinksNoAnyOfList(), narrowSearch.getSrcLinksNoAnyOfList()));
     }
 }
