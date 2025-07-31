@@ -49,19 +49,39 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                 .setCreatedAt(dataTimeRangeDTOReverseMapper.convert(src.getCreatedAt()));
         if (src.getLinksAnyOfList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO : src.getLinksAnyOfList()) {
-                dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList(), false, true);
+                if (twinSearchByLinkDTO.isSrcElseDst()) {
+                    dst.addLinkSrcTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getTwinIdList(), false, true);
+                } else {
+                    dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getTwinIdList(), false, true);
+                    dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList(), false, true);
+                }
             }
         if (src.getLinksNoAnyOfList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByNoLinkDTO : src.getLinksNoAnyOfList()) {
-                dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true, true);
+                if (twinSearchByNoLinkDTO.isSrcElseDst()) {
+                    dst.addLinkSrcTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getTwinIdList(), true, true);
+                } else {
+                    dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getTwinIdList(), true, true);
+                    dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true, true);
+                }
             }
         if (src.getLinksAllOfList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO : src.getLinksAllOfList()) {
-                dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList(), false, false);
+                if (twinSearchByLinkDTO.isSrcElseDst()) {
+                    dst.addLinkSrcTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getTwinIdList(), false, false);
+                } else {
+                    dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getTwinIdList(), false, false);
+                    dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList(), false, false);
+                }
             }
         if (src.getLinksNoAllOfList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByNoLinkDTO : src.getLinksNoAllOfList()) {
-                dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true, false);
+                if (twinSearchByNoLinkDTO.isSrcElseDst()) {
+                    dst.addLinkSrcTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getTwinIdList(), true, false);
+                } else {
+                    dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getTwinIdList(), true, false);
+                    dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true, false);
+                }
             }
         dst.setFields(twinFieldSearchMapDTOReverseMapper.convert(src.getFields()));
     }
