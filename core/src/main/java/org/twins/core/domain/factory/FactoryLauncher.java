@@ -9,10 +9,6 @@ public enum FactoryLauncher {
     beforeTwinSketch,
     afterTwinCreate,
     afterTwinUpdate,
-    afterTwinSketch;
-
-    public boolean isDeletion() {
-        return targetDeletion == this || cascadeDeletion == this;
-    }
-
+    afterTwinSketch,
+    afterTransitionPerform
 }

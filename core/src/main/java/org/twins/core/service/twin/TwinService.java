@@ -441,13 +441,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinCreate.isSketchMode()) {
             twinEntity.setTwinStatusId(SystemEntityService.TWIN_STATUS_SKETCH);
         } else if (twinEntity.getTwinStatusId() == null) {
-            TwinflowEntity twinflowEntity = twinflowService.loadTwinflow(twinEntity);
-            twinEntity
-                    .setTwinStatusId(twinflowEntity.getInitialTwinStatusId())
-                    .setTwinStatus(twinflowEntity.getInitialTwinStatus());
+            setInitStatus(twinEntity);
         }
         fillOwner(twinEntity);
         createTwin(twinEntity, twinChangesCollector);
+    }
+
+    private void setInitStatus(TwinEntity twinEntity) throws ServiceException {
+        TwinflowEntity twinflowEntity = twinflowService.loadTwinflow(twinEntity);
+        twinEntity
+                .setTwinStatusId(twinflowEntity.getInitialTwinStatusId())
+                .setTwinStatus(twinflowEntity.getInitialTwinStatus());
     }
 
     public UUID detectDeletePermissionId(TwinEntity twinEntity) throws ServiceException {
@@ -652,8 +656,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     .setTwinClass(twinUpdate.getDbTwinEntity().getTwinClass());
         }
         runFactoryBeforeUpdate(twinUpdate);
+        tryToFinalizeSketch(twinUpdate);
         updateTwinBasics(twinChangesRecorder);
-
         if (twinChangesRecorder.hasChanges())
             twinChangesCollector.add(twinChangesRecorder.getRecorder());
         if (MapUtils.isNotEmpty(twinUpdate.getFields()))
@@ -664,6 +668,33 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinMarkerService.deleteMarkers(twinUpdate.getDbTwinEntity(), twinUpdate.getMarkersDelete(), twinChangesCollector);
         twinTagService.updateTwinTags(twinUpdate.getDbTwinEntity(), twinUpdate.getTagsDelete(), twinUpdate.getTagsAddNew(), twinUpdate.getTagsAddExisted(), twinChangesCollector);
         runFactoryAfterUpdate(twinUpdate, twinChangesCollector);
+    }
+
+    private void tryToFinalizeSketch(TwinUpdate twinUpdate) throws ServiceException {
+        if (!twinUpdate.getDbTwinEntity().isSketch()) {
+            return;
+        }
+        //perhaps we can finalize the sketch
+        if (isAllRequiredFieldsFilled(twinUpdate)) {
+            if (twinUpdate.getTwinEntity().getTwinStatusId() == null)
+                setInitStatus(twinUpdate.getTwinEntity());
+        } else if (!twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinClassId())) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, "{} can not change status to {}, " +
+                    "because not all of required fields are filled", twinUpdate.getDbTwinEntity().logShort(), twinUpdate.getTwinEntity().getTwinClassId());
+        }
+    }
+
+    private boolean isAllRequiredFieldsFilled(TwinUpdate twinUpdate) throws ServiceException {
+        loadFieldsValues(twinUpdate.getDbTwinEntity());
+        for (var classField : twinUpdate.getDbTwinEntity().getTwinClass().getTwinClassFieldKit()) {
+            if (Boolean.TRUE.equals(classField.getRequired())
+                    && !(twinUpdate.getDbTwinEntity().getFieldValuesKit().containsKey(classField.getId()) && twinUpdate.getDbTwinEntity().getFieldValuesKit().get(classField.getId()).isFilled())
+                    && (twinUpdate.getField(classField.getId()) == null || !twinUpdate.getField(classField.getId()).isFilled())
+            ) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void runFactoryBeforeUpdate(TwinUpdate twinUpdate) throws ServiceException {
