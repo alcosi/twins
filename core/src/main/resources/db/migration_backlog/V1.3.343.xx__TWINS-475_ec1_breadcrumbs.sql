@@ -93,15 +93,18 @@ on conflict do nothing;
 
 insert into i18n (id, key, name, i18n_type_id, domain_id)
 values ('00000000-0000-0000-0012-000000000037', null, null, 'twinStatusName', null),
-       ('00000000-0000-0000-0012-000000000038', null, null, 'twinStatusDescription', null);
+       ('00000000-0000-0000-0012-000000000038', null, null, 'twinStatusDescription', null)
+on conflict do nothing;
 
 insert into i18n_translation (i18n_id, locale, translation, usage_counter)
 values ('00000000-0000-0000-0012-000000000037', 'en', 'Published', 0),
-       ('00000000-0000-0000-0012-000000000038', 'en', 'Face page published', 0);
+       ('00000000-0000-0000-0012-000000000038', 'en', 'Face page published', 0)
+on conflict do nothing;
 
 insert into twin_status (id, twins_class_id, name_i18n_id, description_i18n_id, logo, background_color, key, font_color)
 values ('00000000-0000-0000-0003-000000000004', '00000000-0000-0000-0001-000000000005', '00000000-0000-0000-0012-000000000037',
-        '00000000-0000-0000-0012-000000000038', null, null, null, null);
+        '00000000-0000-0000-0012-000000000038', null, null, null, null)
+on conflict do nothing;
 
 insert into twin (id, twin_class_id, head_twin_id,
                   external_id, twin_status_id, name,
@@ -125,4 +128,3 @@ set
     target_twin_id = t2.id
 from twin t2
 where t2.id = uuid_generate_v5('00000000-0000-0000-0000-000000000001'::uuid, t1.id::text);
-
