@@ -56,6 +56,7 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setAliasSpace(src.getAliasSpace())
                         .setOwnerType(src.getOwnerType())
                         .setPageFaceId(src.getPageFaceId())
+                        .setBreadCrumbsFaceId(src.getBreadCrumbsFaceId())
                         .setAssigneeRequired(src.getAssigneeRequired())
                         .setExternalId(src.getExternalId());
                 break;
@@ -73,6 +74,7 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setLogo(src.getLogo())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setPageFaceId(src.getPageFaceId())
+                        .setBreadCrumbsFaceId(src.getBreadCrumbsFaceId())
                         .setExternalId(src.getExternalId());
                 break;
             case SHORT:

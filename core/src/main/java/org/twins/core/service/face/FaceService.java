@@ -126,4 +126,12 @@ public class FaceService extends EntitySecureFindServiceImpl<FaceEntity> {
             entry.getValue().setBreadCrumbsFace(faces.get(entry.getKey()));
         }
     }
+
+    public UUID resolvePageFaceId(TwinEntity twin) {
+        return twin.getPageFaceId() != null ? twin.getPageFaceId() : twin.getTwinClass().getPageFaceId();
+    }
+
+    public UUID resolveBreadCrumbsFaceId(TwinEntity twin) {
+        return twin.getBreadCrumbsFaceId() != null ? twin.getBreadCrumbsFaceId() : twin.getTwinClass().getBreadCrumbsFaceId();
+    }
 }

@@ -82,17 +82,17 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             faceService.loadFaces(src);
 
             faceRestDTOMapper.postpone(
-                    src.resolvePageFace(),
+                    src.getPageFace(),
                     mapperContext.forkOnPoint(FaceMode.Twin2FaceMode.SHORT)
             );
             faceRestDTOMapper.postpone(
-                    src.resolveBreadCrumbsFace(),
+                    src.getBreadCrumbsFace(),
                     mapperContext.forkOnPoint(FaceMode.Twin2FaceMode.SHORT)
             );
 
             dst
-                    .breadCrumbsFaceId(src.resolveBreadCrumbsFaceId())
-                    .pageFaceId(src.resolvePageFaceId());
+                    .breadCrumbsFaceId(faceService.resolveBreadCrumbsFaceId(src))
+                    .pageFaceId(faceService.resolvePageFaceId(src));
         }
     }
 

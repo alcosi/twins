@@ -8,12 +8,16 @@ import org.twins.core.dto.rest.twin.TwinBaseDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
+import org.twins.core.service.face.FaceService;
 
 
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {TwinMode.class})
 public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinBaseDTOv1> {
+
+    private final FaceService faceService;
+
     @Override
     public void map(TwinEntity src, TwinBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(TwinMode.SHORT)) {
@@ -31,8 +35,8 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
                         .ownerBusinessAccountId(src.getOwnerBusinessAccountId())
                         .ownerUserId(src.getOwnerUserId())
                         .createdAt(src.getCreatedAt().toLocalDateTime())
-                        .pageFaceId(src.resolvePageFaceId())
-                        .breadCrumbsFaceId(src.resolveBreadCrumbsFaceId());
+                        .pageFaceId(faceService.resolvePageFaceId(src))
+                        .breadCrumbsFaceId(faceService.resolveBreadCrumbsFaceId(src));
                 break;
             case SHORT:
                 dst

@@ -362,22 +362,6 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @EqualsAndHashCode.Exclude
     private Kit<TwinClassEntity, UUID> creatableChildTwinClasses;
 
-    public UUID resolvePageFaceId() {
-        return pageFaceId != null ? pageFaceId : twinClass.getPageFaceId();
-    }
-
-    public UUID resolveBreadCrumbsFaceId() {
-        return breadCrumbsFaceId != null ? breadCrumbsFaceId : twinClass.getBreadCrumbsFaceId();
-    }
-
-    public FaceEntity resolvePageFace() {
-        return pageFace != null ? pageFace : twinClass.getPageFace();
-    }
-
-    public FaceEntity resolveBreadCrumbsFace() {
-        return breadCrumbsFace != null ? breadCrumbsFace : twinClass.getBreadCrumbsFace();
-    }
-
     public boolean isSketch() {
         return SystemEntityService.TWIN_STATUS_SKETCH.equals(twinStatusId);
     }

@@ -26,6 +26,6 @@ public class FaceBC001ItemRestDTOMapper extends RestSimpleDTOMapper<Pair<FaceBC0
                 .setOrder(item.getOrder())
                 .setTwinId(twin.getId())
                 .setLabel(item.getLabelId() != null ? i18nService.translateToLocale(item.getLabelId()) : twin.getName())
-                .setIconUrl(item.getResource() != null ? item.getResource().getStorageFileKey() : null);
+                .setIconUrl(item.getIconResource() != null ? item.getIconResource().getStorageFileKey() : null);
     }
 }

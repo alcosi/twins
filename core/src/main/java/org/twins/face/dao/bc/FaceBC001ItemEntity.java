@@ -44,7 +44,7 @@ public class FaceBC001ItemEntity {
 
     @ManyToOne
     @JoinColumn(name = "icon_resource_id", insertable = false, updatable = false)
-    private ResourceEntity resource;
+    private ResourceEntity iconResource;
 
     @ManyToOne
     @JoinColumn(name = "label_id", insertable = false, updatable = false)
