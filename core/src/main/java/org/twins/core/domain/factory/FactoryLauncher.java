@@ -4,12 +4,16 @@ public enum FactoryLauncher {
     transition,
     targetDeletion,
     cascadeDeletion,
-    beforeTwinCreate,
-    beforeTwinUpdate,
-    beforeTwinSketch,
+    onTwinCreate,
+    onTwinUpdate,
+    onSketchCreate,
+    onSketchUpdate,
+    onSketchFinalize,
     afterTwinCreate,
     afterTwinUpdate,
-    afterTwinSketch,
+    afterSketchCreate,
+    afterSketchUpdate,
+    afterSketchFinalize,
     afterTransitionPerform;
 
     public boolean isDeletion() {
