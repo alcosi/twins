@@ -15,6 +15,7 @@ import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FacePointedEntity;
 import org.twins.core.dao.face.FaceRepository;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.face.PointedFace;
 import org.twins.core.service.auth.AuthService;
@@ -128,10 +129,18 @@ public class FaceService extends EntitySecureFindServiceImpl<FaceEntity> {
     }
 
     public UUID resolvePageFaceId(TwinEntity twin) {
-        return twin.getPageFaceId() != null ? twin.getPageFaceId() : twin.getTwinClass().getPageFaceId();
+        return twin.getPageFaceId() != null ? twin.getPageFaceId() : resolvePageFaceId(twin.getTwinClass());
     }
 
     public UUID resolveBreadCrumbsFaceId(TwinEntity twin) {
-        return twin.getBreadCrumbsFaceId() != null ? twin.getBreadCrumbsFaceId() : twin.getTwinClass().getBreadCrumbsFaceId();
+        return twin.getBreadCrumbsFaceId() != null ? twin.getBreadCrumbsFaceId() : resolveBreadCrumbsFaceId(twin.getTwinClass());
+    }
+
+    public UUID resolvePageFaceId(TwinClassEntity twinClass) {
+        return twinClass.getPageFaceId() != null ? twinClass.getPageFaceId() : twinClass.getInheritedPageFaceId();
+    }
+
+    public UUID resolveBreadCrumbsFaceId(TwinClassEntity twinClass) {
+        return twinClass.getBreadCrumbsFaceId() != null ? twinClass.getBreadCrumbsFaceId() : twinClass.getInheritedBreadCrumbsFaceId();
     }
 }

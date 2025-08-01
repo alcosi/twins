@@ -42,7 +42,7 @@ public class FaceBC001Controller extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "BC001 face config", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = FaceTW001ViewRsDTOv1.class))}),
+                    @Schema(implementation = FaceBC001ViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/face/bc001/{faceId}/v1")
     public ResponseEntity<?> faceBC001ViewV1(
