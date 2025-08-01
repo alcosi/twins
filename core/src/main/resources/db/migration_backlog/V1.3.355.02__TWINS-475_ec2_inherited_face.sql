@@ -9,7 +9,7 @@ create index if not exists twin_class_inherited_page_face_id_idx
     on twin_class (inherited_page_face_id);
 
 
-create or replace function update_inherited_bread_crumbs_face_id()
+create or replace function twin_class_update_inherited_bread_crumbs_face_id()
     returns trigger as
 $$
 begin
@@ -22,7 +22,7 @@ begin
 end;
 $$ language plpgsql;
 
-create or replace function update_inherited_page_face_id()
+create or replace function twin_class_update_inherited_page_face_id()
     returns trigger as
 $$
 begin
@@ -35,20 +35,20 @@ begin
 end;
 $$ language plpgsql;
 
-create or replace trigger update_inherited_bread_crumbs_face_id_trigger
+create or replace trigger twin_class_update_inherited_bread_crumbs_face_id_trigger
     after update of bread_crumbs_face_id
     on twin_class
     for each row
-execute function update_inherited_bread_crumbs_face_id();
+execute function twin_class_update_inherited_bread_crumbs_face_id();
 
-create or replace trigger update_inherited_page_face_id_trigger
+create or replace trigger twin_class_update_inherited_page_face_id_trigger
     after update of page_face_id
     on twin_class
     for each row
-execute function update_inherited_page_face_id();
+execute function twin_class_update_inherited_page_face_id();
 
 
-create or replace function set_inherited_face_on_insert()
+create or replace function twin_class_set_inherited_face_on_insert()
     returns trigger as
 $$
 begin
@@ -61,11 +61,11 @@ begin
 end;
 $$ language plpgsql;
 
-create or replace trigger set_inherited_face_on_insert_trigger
+create or replace trigger twin_class_set_inherited_face_on_insert_trigger
     before insert
     on twin_class
     for each row
-execute function set_inherited_face_on_insert();
+execute function twin_class_set_inherited_face_on_insert();
 
 
 update twin_class

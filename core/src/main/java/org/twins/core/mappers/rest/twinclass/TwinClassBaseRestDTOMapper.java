@@ -58,8 +58,10 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setPermissionSchemaSpace(src.getPermissionSchemaSpace())
                         .setAliasSpace(src.getAliasSpace())
                         .setOwnerType(src.getOwnerType())
-                        .setPageFaceId(faceService.resolvePageFaceId(src))
-                        .setBreadCrumbsFaceId(faceService.resolveBreadCrumbsFaceId(src))
+                        .setPageFaceId(src.getPageFaceId())
+                        .setBreadCrumbsFaceId(src.getBreadCrumbsFaceId())
+                        .setInheritedPageFaceId(src.getInheritedPageFaceId())
+                        .setInheritedBreadCrumbsFaceId(src.getInheritedBreadCrumbsFaceId())
                         .setAssigneeRequired(src.getAssigneeRequired())
                         .setExternalId(src.getExternalId());
                 break;
@@ -76,8 +78,6 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
                         .setLogo(src.getLogo())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
-                        .setPageFaceId(faceService.resolvePageFaceId(src))
-                        .setBreadCrumbsFaceId(faceService.resolveBreadCrumbsFaceId(src))
                         .setExternalId(src.getExternalId());
                 break;
             case SHORT:
