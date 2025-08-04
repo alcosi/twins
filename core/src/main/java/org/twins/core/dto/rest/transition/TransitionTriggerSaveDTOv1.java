@@ -12,6 +12,15 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "TransitionTriggerSaveV1")
 public class TransitionTriggerSaveDTOv1 {
+    @Schema(description = "id")
+    public UUID id;
+
+    @Schema(description = "order")
+    public Integer order;
+
+    @Schema(description = "active")
+    public Boolean active;
+
     @Schema(description = "twinflow transition", example = DTOExamples.TWINFLOW_TRANSITION_ID)
     public UUID twinflowTransitionId;
 

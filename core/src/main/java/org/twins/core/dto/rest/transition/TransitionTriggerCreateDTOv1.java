@@ -8,7 +8,6 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "TransitionTriggerCreateRqV1")
+@Schema(name = "TransitionTriggerCreateV1")
 public class TransitionTriggerCreateDTOv1 extends TransitionTriggerSaveDTOv1 {
-
 }

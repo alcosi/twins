@@ -5,19 +5,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import java.util.UUID;
-
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "TransitionTriggerUpdateV1")
 public class TransitionTriggerUpdateDTOv1 extends TransitionTriggerSaveDTOv1 {
-    @Schema(description = "id")
-    public UUID id;
-
-    @Schema(description = "order")
-    public Integer order;
-
-    @Schema(description = "active")
-    public Boolean active;
 }

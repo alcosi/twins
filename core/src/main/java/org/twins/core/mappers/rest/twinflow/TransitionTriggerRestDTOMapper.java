@@ -22,7 +22,7 @@ public class TransitionTriggerRestDTOMapper extends RestSimpleDTOMapper<Twinflow
     @MapperModePointerBinding(modes = FeaturerMode.TransitionTrigger2FeaturerMode.class)
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
 
-    @MapperModePointerBinding(modes = TransitionMode.TwinflowTransition2TransitionMode.class)
+    @MapperModePointerBinding(modes = TransitionMode.TransitionTrigger2TransitionMode.class)
     private final TransitionBaseV1RestDTOMapper transitionRestDTOMapper;
 
     @Override
@@ -43,11 +43,10 @@ public class TransitionTriggerRestDTOMapper extends RestSimpleDTOMapper<Twinflow
         if (mapperContext.hasModeButNot(FeaturerMode.TransitionTrigger2FeaturerMode.HIDE)) {
             dst.setTransitionTriggerFeaturerId(src.getTransitionTriggerFeaturerId());
             featurerRestDTOMapper.postpone(src.getTransitionTriggerFeaturer(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.TransitionTrigger2FeaturerMode.SHORT)));
-
         }
-        if (mapperContext.hasModeButNot(TransitionMode.Attachment2TransitionMode.HIDE)) {
+        if (mapperContext.hasModeButNot(TransitionMode.TransitionTrigger2TransitionMode.HIDE)) {
             dst.setTwinflowTransitionId(src.getTwinflowTransitionId());
-            transitionRestDTOMapper.postpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TransitionMode.TwinflowTransition2TransitionMode.SHORT)));
+            transitionRestDTOMapper.postpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TransitionMode.TransitionTrigger2TransitionMode.SHORT)));
         }
     }
 }

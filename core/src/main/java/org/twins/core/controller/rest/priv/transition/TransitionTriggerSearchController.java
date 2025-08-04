@@ -20,27 +20,24 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
-import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
-import org.twins.core.dto.rest.attachment.AttachmentSearchRqDTOv1;
-import org.twins.core.dto.rest.attachment.AttachmentSearchRsDTOv1;
 import org.twins.core.dto.rest.transition.TransitionTriggerSearchRqDTOv1;
 import org.twins.core.dto.rest.transition.TransitionTriggerSearchRsDTOv1;
-import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapper;
-import org.twins.core.mappers.rest.attachment.AttachmentSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinflow.TransitionTriggerRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TransitionTriggerSearchDTOReverseMapper;
-import org.twins.core.service.attachment.AttachmentSearchService;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TransitionTriggerSearchService;
 
 @Tag(name = ApiTag.TRANSITION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TRANSITION_MANAGE, Permissions.TRANSITION_VIEW})
 public class TransitionTriggerSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;
@@ -63,7 +60,7 @@ public class TransitionTriggerSearchController extends ApiController {
         TransitionTriggerSearchRsDTOv1 rs = new TransitionTriggerSearchRsDTOv1();
         try {
             PaginationResult<TwinflowTransitionTriggerEntity> triggerList = transitionTriggerSearchService
-                    .findTransitionTriggers(transitionTriggerSearchDTOReverseMapper.convert(request), pagination);
+                    .findTransitionTriggers(transitionTriggerSearchDTOReverseMapper.convert(request.getSearch()), pagination);
             rs
                     .setTriggers(transitionTriggerRestDTOMapper.convertCollection(triggerList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(triggerList))

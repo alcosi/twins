@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
 import org.twins.core.dto.rest.transition.TransitionTriggerUpdateRqDTOv1;
 import org.twins.core.dto.rest.transition.TransitionTriggerViewRsDTOv1;
@@ -25,6 +26,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinflow.TransitionTriggerRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TransitionTriggerUpdateDTOReverseMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowTransitionTriggerService;
 
 
@@ -32,6 +34,7 @@ import org.twins.core.service.twinflow.TwinflowTransitionTriggerService;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TRANSITION_MANAGE, Permissions.TRANSITION_UPDATE})
 public class TransitionTriggerUpdateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final TransitionTriggerUpdateDTOReverseMapper transitionTriggerUpdateDTOReverseMapper;

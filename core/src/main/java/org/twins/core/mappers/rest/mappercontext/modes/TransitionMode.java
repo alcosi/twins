@@ -86,7 +86,7 @@ public enum TransitionMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinflowTransition2TransitionMode implements MapperModePointer<TransitionMode> {
+    public enum TransitionTrigger2TransitionMode implements MapperModePointer<TransitionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2),

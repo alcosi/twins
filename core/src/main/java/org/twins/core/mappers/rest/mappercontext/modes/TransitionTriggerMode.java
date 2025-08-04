@@ -15,24 +15,4 @@ public enum TransitionTriggerMode implements MapperMode {
     @FieldNameConstants.Include DETAILED(2);
 
     final int priority;
-
-    @Getter
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum qqq implements MapperModePointer<TransitionTriggerMode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        final int priority;
-
-        @Override
-        public TransitionTriggerMode point() {
-            return switch (this) {
-                case HIDE -> TransitionTriggerMode.HIDE;
-                case SHORT -> TransitionTriggerMode.SHORT;
-                case DETAILED -> TransitionTriggerMode.DETAILED;
-            };
-        }
-    }
 }

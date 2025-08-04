@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,8 +19,6 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
-import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
-import org.twins.core.domain.EntityCUD;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinflow.TransitionUpdateRqDTOv1;
 import org.twins.core.dto.rest.twinflow.TransitionUpdateRsDTOv1;
@@ -29,9 +26,6 @@ import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TransitionUpdateRestDTOReverseMapper;
-import org.twins.core.mappers.rest.validator.TransitionValidatorRuleCUDRestDTOReverseMapper;
-import org.twins.core.mappers.rest.twinflow.TriggerCUDRestDTOReverseMapperV1;
-import org.twins.core.mappers.rest.validator.TransitionValidatorRuleCUDRestDTOReverseMapperV1;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 
@@ -44,7 +38,6 @@ import java.util.UUID;
 @ProtectedBy({Permissions.TRANSITION_MANAGE, Permissions.TRANSITION_UPDATE})
 public class TransitionUpdateController extends ApiController {
     private final TransitionUpdateRestDTOReverseMapper transitionUpdateRestDTOReverseMapper;
-    private final TransitionValidatorRuleCUDRestDTOReverseMapper transitionValidatorRuleCUDRestDTOReverseMapper;
     private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
     private final TransitionBaseV2RestDTOMapper transitionBaseV2RestDTOMapper;
     private final TwinflowTransitionService twinflowTransitionService;
@@ -66,14 +59,9 @@ public class TransitionUpdateController extends ApiController {
             I18nEntity nameI18n = i18NSaveRestDTOReverseMapper.convert(request.getNameI18n());
             I18nEntity descriptionsI18n = i18NSaveRestDTOReverseMapper.convert(request.getDescriptionI18n());
 
-            //todo think about cud logic
-            EntityCUD<TwinflowTransitionValidatorRuleEntity> transitionValidatorRuleEntityCUD = transitionValidatorRuleCUDRestDTOReverseMapper.convert(request.getValidatorRules());
-            if (transitionValidatorRuleEntityCUD != null)
-                throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "Twinflow transition validator rules CUD service methods are not implemented yet");
-
             TwinflowTransitionEntity twinflowTransitionEntity = transitionUpdateRestDTOReverseMapper.convert(request);
             twinflowTransitionEntity.setId(transitionId);
-            twinflowTransitionEntity = twinflowTransitionService.updateTwinflowTransition(twinflowTransitionEntity, nameI18n, descriptionsI18n, transitionValidatorRuleEntityCUD);
+            twinflowTransitionEntity = twinflowTransitionService.updateTwinflowTransition(twinflowTransitionEntity, nameI18n, descriptionsI18n);
             rs
                     .setTransition(transitionBaseV2RestDTOMapper.convert(twinflowTransitionEntity, mapperContext));
         } catch (ServiceException se) {
