@@ -1,9 +1,7 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.context.annotation.Lazy;
@@ -14,13 +12,15 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorI18n;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageI18n;
 import org.twins.core.featurer.fieldtyper.value.FieldValueI18n;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.*;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -29,10 +29,7 @@ import java.util.stream.Collectors;
 @Featurer(id = FeaturerTwins.ID_1320,
         name = "i18n",
         description = "")
-public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI18n, TwinFieldI18nEntity, TwinFieldSearchNotImplemented> {
-    public static final String ENTRY_SPLITTER = "<@2@>";
-    public static final String KEY_VALUE_SPLITTER = "<@3@>";
-
+public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI18n, TwinFieldStorageI18n, TwinFieldSearchNotImplemented> {
     @Lazy
     private final TwinService twinService;
 
@@ -43,11 +40,6 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueI18n value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (value.getTwinClassField().getRequired() && MapUtils.isEmpty(value.getTranslations())) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED,
-                    value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
-        }
-
         twinService.loadTwinFields(twin);
         Map<Locale, TwinFieldI18nEntity> storedFields = getStoredFieldsForTwinAndField(twin, value.getTwinClassField());
 

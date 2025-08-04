@@ -12,18 +12,17 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpirit;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageCalcSumField;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.util.Properties;
-
-import static org.cambium.common.util.StringUtils.fmt;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1312,
         name = "Sum children field values (on fly)",
         description = "Get sum of child.fields.values on fly")
-public class FieldTyperCalcChildrenFieldV1 extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageSpirit, TwinFieldSearchNotImplemented> implements FieldTyperCalcChildrenField {
+public class FieldTyperCalcChildrenFieldV1 extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumField, TwinFieldSearchNotImplemented> implements FieldTyperCalcChildrenField {
     public static final Integer ID = 1312;
 
     @Autowired
@@ -43,6 +42,16 @@ public class FieldTyperCalcChildrenFieldV1 extends FieldTyper<FieldDescriptorTex
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         return new FieldValueText(twinField.getTwinClassField())
-                .setValue(fmt(getSumResult(properties, twinField.getTwin(), twinFieldSimpleRepository)));
+                .setValue(String.valueOf(twinField.getTwin().getTwinFieldCalculated().get(twinField.getTwinClassFieldId())));
+    }
+
+    @Override
+    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
+        return new TwinFieldStorageCalcSumField(
+                twinFieldSimpleRepository,
+                twinClassFieldEntity.getId(),
+                childrenTwinClassFieldId.extract(properties),
+                childrenTwinStatusIdList.extract(properties),
+                exclude.extract(properties));
     }
 }

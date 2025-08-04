@@ -21,6 +21,7 @@ import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorLink;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.service.link.LinkService;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 @Featurer(id = FeaturerTwins.ID_1310,
         name = "Linked twin",
         description = "")
-public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLink, TwinLinkEntity, TwinFieldSearchNotImplemented> {
+public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLink, TwinFieldStorageLink, TwinFieldSearchNotImplemented> {
     public static final Integer ID = 1310;
 
     @Lazy
@@ -84,8 +85,6 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
             newTwinLinkEntity
                     .setLinkId(linkEntity.getId())
                     .setLink(linkEntity);
-        if (value.getTwinClassField().getRequired() && CollectionUtils.isEmpty(newTwinLinks))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         if (newTwinLinks.size() > 1 && !allowMultiply(linkEntity, value.getTwinClassField()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply links are not allowed");
         twinLinkService.prepareTwinLinks(twin, newTwinLinks);

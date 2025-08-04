@@ -7,7 +7,6 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
 import java.util.UUID;
 
@@ -19,7 +18,7 @@ import java.util.UUID;
         name = "UK_twin_attachment_modification",
         columnNames = {"twin_attachment_id", "modification_type"}
 ))
-public class TwinAttachmentModificationEntity implements PublicCloneable<TwinAttachmentModificationEntity>, TwinFieldStorage, EasyLoggable {
+public class TwinAttachmentModificationEntity implements PublicCloneable<TwinAttachmentModificationEntity>, EasyLoggable {
 
     @Id
     @GeneratedValue(generator = "uuid")

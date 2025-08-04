@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.dao.FeaturerEntity;
+import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.datalist.DataListEntity;
@@ -83,6 +84,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<TwinClassSchemaEntity>> relatedTwinClassSchemaMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TierEntity>> relatedTierMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinAttachmentRestrictionEntity>> relatedAttachmentRestrictionMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
@@ -222,6 +225,8 @@ public class MapperContext {
             smartPut(relatedTwinClassSchemaMap, twinClassSchema, twinClassSchema.getId());
         else if (relatedObject instanceof TierEntity tier)
             smartPut(relatedTierMap, tier, tier.getId());
+        else if (relatedObject instanceof TwinAttachmentRestrictionEntity entity)
+            smartPut(relatedAttachmentRestrictionMap, entity, entity.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -419,6 +424,7 @@ public class MapperContext {
         dstMapperContext.relatedCommentMap = srcMapperContext.relatedCommentMap;
         dstMapperContext.relatedTwinClassSchemaMap = srcMapperContext.relatedTwinClassSchemaMap;
         dstMapperContext.relatedTierMap = srcMapperContext.relatedTierMap;
+        dstMapperContext.relatedAttachmentRestrictionMap = srcMapperContext.relatedAttachmentRestrictionMap;
     }
 
     public MapperContext cloneWithIsolatedModes(MapperModeCollection mapperModeCollection) {

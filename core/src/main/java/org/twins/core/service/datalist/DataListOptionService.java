@@ -1,5 +1,7 @@
 package org.twins.core.service.datalist;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
@@ -33,7 +35,11 @@ import org.twins.core.service.i18n.I18nService;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
+//Log calls that took more then 2 seconds
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -87,30 +93,29 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
             return Collections.emptyList();
         }
         List<DataListOptionEntity> optionsToSave = new ArrayList<>();
-
+        //Find all entities
+        Kit<DataListEntity, UUID> dataListsKit = dataListService.findEntitiesSafe(dataListOptionCreates.stream().map(DataListOptionCreate::getDataListId).collect(Collectors.toSet()));
+        //And it's translations
+        i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE,
+                dataListOptionCreates
+                        .stream().map(DataListOptionCreate::getNameI18n)
+                        .toList());
         for (DataListOptionCreate dataListOptionCreate : dataListOptionCreates) {
-            DataListEntity dataList = dataListService.findEntitySafe(dataListOptionCreate.getDataListId());
+            DataListEntity dataList = dataListsKit.get(dataListOptionCreate.getDataListId());
             loadDataListAttributeAccessors(dataList);
-
             DataListOptionEntity dataListOption = new DataListOptionEntity()
+                    .setOptionI18NId(dataListOptionCreate.getNameI18n().getId())
                     .setDataListId(dataListOptionCreate.getDataListId())
                     .setIcon(dataListOptionCreate.getIcon())
-                    .setOptionI18NId(i18nService.createI18nAndTranslations(
-                            I18nType.DATA_LIST_OPTION_VALUE,
-                            dataListOptionCreate.getNameI18n()).getId())
                     .setStatus(DataListOptionEntity.Status.active)
                     .setBackgroundColor(dataListOptionCreate.getBackgroundColor())
                     .setFontColor(dataListOptionCreate.getFontColor())
                     .setExternalId(dataListOptionCreate.getExternalId());
-
             createAttributes(dataList, dataListOption, dataListOptionCreate.getAttributes());
-
             validateEntityAndThrow(dataListOption, EntitySmartService.EntityValidateMode.beforeSave);
             optionsToSave.add(dataListOption);
         }
-
-        List<DataListOptionEntity> result = new ArrayList<>();
-        entityRepository().saveAll(optionsToSave).forEach(result::add);
+        List<DataListOptionEntity> result = StreamSupport.stream(entityRepository().saveAll(optionsToSave).spliterator(), false).toList();
         return result;
     }
 

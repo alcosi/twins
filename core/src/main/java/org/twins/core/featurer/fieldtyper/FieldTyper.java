@@ -1,9 +1,9 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
-import org.twins.core.service.i18n.I18nService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.Specification;
@@ -15,9 +15,11 @@ import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
+import org.twins.core.featurer.fieldtyper.storage.FieldStorageService;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -46,6 +48,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     @Lazy
     @Autowired
     TwinClassService twinClassService;
+
+    @Lazy
+    @Autowired
+    FieldStorageService fieldStorageService;
 
     private Class<T> valuetype = null;
     private Class<D> descriptorType = null;
@@ -106,6 +112,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         if (!twinClassService.isInstanceOf(twin.getTwinClass(), value.getTwinClassField().getTwinClassId()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField().logShort() + " is not suitable for " + twin.logNormal());
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams(), new HashMap<>());
+        checkRequired(twin, value);
         serializeValue(properties, twin, value, twinChangesCollector);
     }
 
@@ -123,4 +130,39 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         throw new ServiceException(ErrorCodeTwins.FIELD_TYPER_SEARCH_NOT_IMPLEMENTED, "Field of type: [" + this.getClass().getSimpleName() + "] do not support twin field search not implemented");
     }
 
+    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        if (twinClassFieldEntity.getFieldStorage() == null) {
+            Properties properties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams(), new HashMap<>());
+            twinClassFieldEntity.setFieldStorage(getStorage(twinClassFieldEntity, properties));
+        }
+        return twinClassFieldEntity.getFieldStorage();
+    }
+
+    /**
+     * Override this method only if fieldTyper has some load logic based on params.
+     * In this case an individual storage config should be created.
+     * Storages with the same hash codes will load data at once,
+     * this helps to reduce db query count.
+     *
+     * @param twinClassFieldEntity
+     * @param properties
+     * @return
+     */
+    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
+        // This will return not null only if storage was configured as spring @component
+        // and it was resolved by fieldStorageService. Otherwise, you need to override this method
+        TwinFieldStorage twinFieldStorage = fieldStorageService.getConfig(getStorageType());
+        if (twinFieldStorage == null) {
+            throw new ServiceException(ErrorCodeTwins.FIELD_TYPER_STORAGE_NOT_INIT, "Storage: [" + getStorageType().getSimpleName() + "] is not a Spring @component and can not be resolved automatically. Please override getStorage() method in " + this.getClass().getSimpleName());
+        }
+        return twinFieldStorage;
+    }
+
+    protected void checkRequired(TwinEntity twinEntity, T fieldValue) throws ServiceException {
+        if (!twinEntity.isSketch()
+                && fieldValue.getTwinClassField().getRequired()
+                && !fieldValue.isFilled()) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, fieldValue.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
+        }
+    }
 }

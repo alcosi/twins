@@ -1,23 +1,27 @@
 package org.twins.core.domain;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 import org.twins.core.dao.twin.*;
+import org.twins.core.domain.factory.FactoryLauncher;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+@Slf4j
 @Getter
 public class TwinChangesCollector extends EntitiesChangesCollector {
     private final HistoryCollectorMultiTwin historyCollector = new HistoryCollectorMultiTwin();
     private boolean historyCollectorEnabled = true; // in some cases we do not need to collect history changes (before drafting for example, currently we do not collect history, only after )
     private final Map<Object, Set<TwinInvalidate>> invalidationMap = new HashMap<>();
+    private final Map<UUID, Pair<UUID, FactoryLauncher>> postponedChanges = new HashMap<>();
 
     public TwinChangesCollector() {
         super();
@@ -87,7 +91,19 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         } else if (entity instanceof TwinFieldBooleanEntity twinFieldBooleanEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinFieldBooleanEntity.getTwin(), k -> new HashSet<>());
             invalidates.add(TwinInvalidate.twinFieldBooleanKit);
+        } else if (entity instanceof TwinFieldTwinClassEntity twinFieldTwinClassEntity) {
+            invalidates = invalidationMap.computeIfAbsent(twinFieldTwinClassEntity.getTwin(), k -> new HashSet<>());
+            invalidates.add(TwinInvalidate.twinFieldTwinClassKit);
         }
+    }
+
+    public TwinChangesCollector addPostponedChange(UUID twinId, UUID twinFactoryId, FactoryLauncher factoryLauncher) throws ServiceException {
+        if (postponedChanges.containsKey(twinId) && !postponedChanges.get(twinId).getLeft().equals(twinFactoryId)) {
+            throw new ServiceException(ErrorCodeTwins.CONFIGURATION_IS_INVALID,
+                    "twin[{}] already has postponed changes by factory[{}]. Skipping changes by factory[{}]", twinId, postponedChanges.get(twinId), twinFactoryId);
+        }
+        postponedChanges.put(twinId, Pair.of(twinFactoryId, factoryLauncher));
+        return this;
     }
 
 
@@ -108,6 +124,7 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         twinFieldI18nKit,
         fieldValuesKit,
         twinFieldBooleanKit,
+        twinFieldTwinClassKit,
         twinLinks;
     }
 }

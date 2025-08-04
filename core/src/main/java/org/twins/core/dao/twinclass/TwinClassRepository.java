@@ -9,10 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Repository
 public interface TwinClassRepository extends CrudRepository<TwinClassEntity, UUID>, JpaSpecificationExecutor<TwinClassEntity> {
@@ -53,4 +50,7 @@ public interface TwinClassRepository extends CrudRepository<TwinClassEntity, UUI
     boolean existsByDomainIdAndKey(UUID domainId, String key);
 
     List<TwinClassEntity> findByIdIn(Collection<UUID> ids);
+
+    @Query(value = "select count(distinct tc.id)=?#{#twinClassIds.size()} from TwinClassEntity tc where tc.id in :twinClassIds")
+    boolean existsAll(@Param("twinClassIds") Set<UUID> twinClassIds);
 }

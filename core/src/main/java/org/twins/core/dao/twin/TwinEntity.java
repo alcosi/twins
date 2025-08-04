@@ -3,6 +3,7 @@ package org.twins.core.dao.twin;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -16,18 +17,20 @@ import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
+import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinAttachmentsCount;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.link.TwinLinkService;
 
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -36,7 +39,7 @@ import java.util.UUID;
 @Data
 @Table(name = "twin")
 @FieldNameConstants
-public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
+public class TwinEntity implements Cloneable, EasyLoggable {
     @Id
     private UUID id;
 
@@ -99,10 +102,26 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @Column(name = "page_face_id")
+    private UUID pageFaceId;
+
+    @Column(name = "bread_crumbs_face_id")
+    private UUID breadCrumbsFaceId;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "twin_class_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = false)
     @EqualsAndHashCode.Exclude
     private TwinClassEntity twinClass;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity pageFace;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity breadCrumbsFace;
 
 //    @ManyToOne(fetch = FetchType.EAGER)
 //    @JoinColumn(name = "head_twin_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = true)
@@ -204,6 +223,13 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
 
     //needed for specification
     @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private Collection<TwinFieldTwinClassEntity> fieldsTwinClassList;
+
+    //needed for specification
+    @Deprecated
     @OneToMany
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinTouchEntity> touches;
@@ -280,6 +306,18 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    private KitGrouped<SpaceRoleUserEntity, UUID, UUID> twinFieldSpaceUserKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private KitGrouped<TwinFieldTwinClassEntity, UUID, UUID> twinFieldTwinClassKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Map<UUID, Object> twinFieldCalculated;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
     private Kit<FieldValue, UUID> fieldValuesKit;
 
     @Transient
@@ -323,6 +361,10 @@ public class TwinEntity implements Cloneable, EasyLoggable, TwinFieldStorage {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinClassEntity, UUID> creatableChildTwinClasses;
+
+    public boolean isSketch() {
+        return SystemEntityService.TWIN_STATUS_SKETCH.equals(twinStatusId);
+    }
 
     @Override
     public String toString() {
