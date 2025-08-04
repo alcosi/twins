@@ -30,7 +30,6 @@ public class DomainViewRestDTOMapper extends RestSimpleDTOMapper<DomainEntity, D
     @MapperModePointerBinding(modes = FaceMode.DomainNavbar2FaceMode.class)
     protected final FaceRestDTOMapper faceRestDTOMapper;
     @MapperModePointerBinding(modes = {
-            FeaturerMode.DomainBusinessAccountInitiator2FeaturerMode.class,
             FeaturerMode.DomainUserGroupManager2FeaturerMode.class})
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
     @MapperModePointerBinding(modes = {
@@ -79,10 +78,6 @@ public class DomainViewRestDTOMapper extends RestSimpleDTOMapper<DomainEntity, D
         if (mapperContext.hasModeButNot(FaceMode.DomainNavbar2FaceMode.HIDE)) {
             faceRestDTOMapper.postpone(src.getNavbarFace(), mapperContext.forkOnPoint(FaceMode.DomainNavbar2FaceMode.SHORT));
             dst.setNavbarFaceId(src.getNavbarFaceId());
-        }
-        if (mapperContext.hasModeButNot(FeaturerMode.DomainBusinessAccountInitiator2FeaturerMode.HIDE)) {
-            dst.setBusinessAccountInitiatorFeaturerId(src.getBusinessAccountInitiatorFeaturerId());
-            featurerRestDTOMapper.postpone(src.getBusinessAccountInitiatorFeaturer(), mapperContext.forkOnPoint(FeaturerMode.DomainBusinessAccountInitiator2FeaturerMode.SHORT));
         }
         if (mapperContext.hasModeButNot(FeaturerMode.DomainUserGroupManager2FeaturerMode.HIDE)) {
             dst.setUserGroupManagerFeaturerId(src.getUserGroupManagerFeaturerId());
