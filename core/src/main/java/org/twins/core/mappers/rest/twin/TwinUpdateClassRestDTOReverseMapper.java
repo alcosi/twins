@@ -15,7 +15,7 @@ public class TwinUpdateClassRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
     public void map(TwinUpdateClassDTOv1 src, TwinUpdateClass dst, MapperContext mapperContext) throws Exception {
         dst
                 .setTwinClassId(src.getTwinClassId())
-                .setBehavior(dst.getBehavior());
+                .setBehavior(src.getBehavior());
 
     }
 }

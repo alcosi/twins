@@ -1,7 +1,9 @@
 package org.twins.core.dto.rest.twin;
 
 public enum TwinClassUpdateLine {
-    headNull, anythingElse;
+
+    throwOnHeadCantBeTransferred,
+    throwOnFieldCantBeTransferred;
 
     @Override
     public String toString() {
