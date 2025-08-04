@@ -35,7 +35,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.factory.*;
+import org.twins.core.domain.factory.FactoryLauncher;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
@@ -58,6 +58,7 @@ import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinflow.TwinflowFactoryService;
 import org.twins.core.service.twinflow.TwinflowService;
 import org.twins.core.service.user.UserService;
 
@@ -121,6 +122,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private TwinClassFieldRepository twinClassFieldRepository;
     @Autowired
     private FieldStorageService fieldStorageService;
+    @Autowired
+    private TwinflowFactoryService twinflowFactoryService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
@@ -374,7 +377,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinCreate.isCheckCreatePermission())
             checkCreatePermission(twinEntity, authService.getApiUser());
         createTwinEntity(twinCreate, twinChangesCollector);
-        runFactoryBeforeCreate(twinCreate);
+        runFactoryOnCreate(twinCreate);
         saveTwinFields(twinEntity, twinCreate.getFields(), twinChangesCollector);
         if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
             attachmentService.checkAndSetAttachmentTwin(twinCreate.getAttachmentEntityList(), twinEntity);
@@ -388,33 +391,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             twinTagService.createTags(twinEntity, twinCreate.getTagsAddNew(), twinCreate.getTagsAddExisted(), twinChangesCollector);
         }
         runFactoryAfterCreate(twinCreate, twinChangesCollector);
-    }
-
-    private void runFactoryBeforeCreate(TwinCreate twinCreate) throws ServiceException {
-        TwinEntity twinEntity = twinCreate.getTwinEntity();
-        twinflowService.loadTwinflow(twinEntity);
-        UUID factoryId = twinCreate.isSketchMode() ? twinEntity.getTwinflow().getBeforeSketchTwinFactoryId() : twinEntity.getTwinflow().getBeforeCreateTwinFactoryId();
-        if (factoryId == null)
-            return;
-        UUID onCreateTwinFactoryId = twinEntity.getTwinflow().getBeforeCreateTwinFactoryId();
-        FactoryContext factoryContext = new FactoryContext(FactoryLauncher.beforeTwinCreate, FactoryBranchId.root(onCreateTwinFactoryId));
-        factoryContext.add(new FactoryItem().setOutput(twinCreate).setFactoryContext(factoryContext));
-        FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(onCreateTwinFactoryId, factoryContext);
-        if (result.getCreates().size() > 1 || !result.getUpdates().isEmpty() || !result.getDeletes().isEmpty()) {
-            log.warn("During twin create init factory[{}] operation, some extra twins where modified, but they won't be saved. " +
-                    "Only current twin modification will make sense", onCreateTwinFactoryId);
-        }
-    }
-
-    private void runFactoryAfterCreate(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (!twinCreate.isCanTriggerAfterOperationFactory())
-            return;
-        TwinEntity twinEntity = twinCreate.getTwinEntity();
-        twinflowService.loadTwinflow(twinEntity);
-        UUID factoryId = twinCreate.isSketchMode() ? twinEntity.getTwinflow().getAfterSketchTwinFactoryId() : twinEntity.getTwinflow().getAfterCreateTwinFactoryId();
-        if (factoryId == null)
-            return;
-        twinChangesCollector.addPostponedChange(twinEntity.getId(), factoryId, FactoryLauncher.afterTwinCreate);
     }
 
     private void setHeadSafe(TwinEntity twinEntity) throws ServiceException {
@@ -656,8 +632,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     .setTwinClassId(twinUpdate.getDbTwinEntity().getTwinClassId())
                     .setTwinClass(twinUpdate.getDbTwinEntity().getTwinClass());
         }
-        runFactoryBeforeUpdate(twinUpdate);
         tryToFinalizeSketch(twinUpdate);
+        runFactoryOnUpdate(twinUpdate);
         updateTwinBasics(twinChangesRecorder);
         if (twinChangesRecorder.hasChanges())
             twinChangesCollector.add(twinChangesRecorder.getRecorder());
@@ -672,13 +648,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     private void tryToFinalizeSketch(TwinUpdate twinUpdate) throws ServiceException {
-        if (!twinUpdate.getDbTwinEntity().isSketch()) {
+        if (!twinUpdate.getMode().equals(TwinUpdate.Mode.sketchUpdate)) {
             return;
         }
         //perhaps we can finalize the sketch
         if (isAllRequiredFieldsFilled(twinUpdate)) {
             if (twinUpdate.getTwinEntity().getTwinStatusId() == null)
                 setInitStatus(twinUpdate.getTwinEntity());
+            twinUpdate.setMode(TwinUpdate.Mode.sketchFinalize);
         } else if (!twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinClassId())) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, "{} can not change status to {}, " +
                     "because not all of required fields are filled", twinUpdate.getDbTwinEntity().logShort(), twinUpdate.getTwinEntity().getTwinClassId());
@@ -698,31 +675,34 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return true;
     }
 
-    private void runFactoryBeforeUpdate(TwinUpdate twinUpdate) throws ServiceException {
-        TwinEntity twinEntity = twinUpdate.getDbTwinEntity();
-        twinflowService.loadTwinflow(twinEntity);
-        if (twinEntity.getTwinflow().getBeforeUpdateTwinFactoryId() == null)
-            return;
-        UUID onUpdateTwinFactoryId = twinEntity.getTwinflow().getBeforeUpdateTwinFactoryId();
-        FactoryContext factoryContext = new FactoryContext(FactoryLauncher.beforeTwinUpdate, FactoryBranchId.root(onUpdateTwinFactoryId));
-        factoryContext.add(new FactoryItem().setOutput(twinUpdate).setFactoryContext(factoryContext));
-        FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(onUpdateTwinFactoryId, factoryContext);
-        if (result.getUpdates().size() > 1 || !result.getCreates().isEmpty() || !result.getDeletes().isEmpty()) {
-            log.warn("During twin update factory[{}] operation, some extra twins where modified, but they won't be saved. " +
-                    "Only current twin modification will make sense", onUpdateTwinFactoryId);
-        }
+    private void runFactoryOnCreate(TwinCreate twinCreate) throws ServiceException {
+        FactoryLauncher factoryLauncher = twinCreate.isSketchMode() ? FactoryLauncher.onSketchCreate : FactoryLauncher.onTwinCreate;
+        twinflowFactoryService.runFactoryOn(twinCreate, factoryLauncher);
+    }
+
+    private void runFactoryAfterCreate(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        FactoryLauncher factoryLauncher = twinCreate.isSketchMode() ? FactoryLauncher.afterSketchCreate : FactoryLauncher.afterTwinCreate;
+        twinflowFactoryService.runFactoryAfter(twinCreate, twinChangesCollector, factoryLauncher);
+    }
+
+    private void runFactoryOnUpdate(TwinUpdate twinUpdate) throws ServiceException {
+        FactoryLauncher factoryLauncher = switch (twinUpdate.getMode()) {
+            case twinUpdate -> FactoryLauncher.onTwinUpdate;
+            case sketchUpdate -> FactoryLauncher.onSketchUpdate;
+            case sketchFinalize -> FactoryLauncher.onSketchFinalize;
+        };
+        twinflowFactoryService.runFactoryOn(twinUpdate, factoryLauncher);
     }
 
     private void runFactoryAfterUpdate(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (!twinUpdate.isCanTriggerAfterOperationFactory())
-            return;
-        TwinEntity twinEntity = twinUpdate.getDbTwinEntity();
-        twinflowService.loadTwinflow(twinEntity);
-        UUID factoryId = twinEntity.getTwinflow().getAfterUpdateTwinFactoryId();
-        if (factoryId == null)
-            return;
-        twinChangesCollector.addPostponedChange(twinEntity.getId(), factoryId, FactoryLauncher.afterTwinUpdate);
+        FactoryLauncher factoryLauncher = switch (twinUpdate.getMode()) {
+            case twinUpdate -> FactoryLauncher.afterTwinUpdate;
+            case sketchUpdate -> FactoryLauncher.afterSketchUpdate;
+            case sketchFinalize -> FactoryLauncher.afterSketchFinalize;
+        };
+        twinflowFactoryService.runFactoryAfter(twinUpdate, twinChangesCollector, factoryLauncher);
     }
+
 
     public void updateTwinBasics(ChangesRecorder<TwinEntity, ?> changesRecorder) throws ServiceException {
         updateTwinHead(changesRecorder);

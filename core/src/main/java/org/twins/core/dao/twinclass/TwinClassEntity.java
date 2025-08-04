@@ -154,6 +154,12 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "bread_crumbs_face_id")
     private UUID breadCrumbsFaceId;
 
+    @Column(name = "inherited_page_face_id")
+    private UUID inheritedPageFaceId;
+
+    @Column(name = "inherited_bread_crumbs_face_id")
+    private UUID inheritedBreadCrumbsFaceId;
+
     @Column(name = "general_attachment_restriction_id")
     private UUID generalAttachmentRestrictionId;
 
@@ -192,6 +198,18 @@ public class TwinClassEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private FaceEntity breadCrumbsFace;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inherited_page_face_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity inheritedPageFace;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inherited_bread_crumbs_face_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity inheritedBreadCrumbsFace;
 
 //    @ManyToOne
 //    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)

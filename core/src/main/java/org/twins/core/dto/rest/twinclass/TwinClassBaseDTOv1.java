@@ -92,12 +92,18 @@ public class TwinClassBaseDTOv1 {
     @Schema(description = "twin display page pointer")
     public UUID pageFaceId;
 
+    @Schema(description = "breadcrumbs face id")
+    public UUID breadCrumbsFaceId;
+
+    @Schema(description = "inherited page face id")
+    public UUID inheritedPageFaceId;
+
+    @Schema(description = "inherited breadcrumbs face id")
+    public UUID inheritedBreadCrumbsFaceId;
+
     @Schema(description = "assignee required")
     public Boolean assigneeRequired;
 
     @Schema(description = "external id")
     public String externalId;
-
-    @Schema(description = "breadcrumbs face id")
-    public UUID breadCrumbsFaceId;
 }

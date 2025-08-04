@@ -9,11 +9,11 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.eraseflow.EraseflowEntity;
-import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.factory.FactoryLauncher;
 
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -49,24 +49,6 @@ public class TwinflowEntity implements EasyLoggable {
 
     @Column(name = "created_at")
     private Timestamp createdAt;
-
-    @Column(name = "before_sketch_twin_factory_id")
-    private UUID beforeSketchTwinFactoryId;
-
-    @Column(name = "before_create_twin_factory_id")
-    private UUID beforeCreateTwinFactoryId;
-
-    @Column(name = "before_update_twin_factory_id")
-    private UUID beforeUpdateTwinFactoryId;
-
-    @Column(name = "after_sketch_twin_factory_id")
-    private UUID afterSketchTwinFactoryId;
-
-    @Column(name = "after_create_twin_factory_id")
-    private UUID afterCreateTwinFactoryId;
-
-    @Column(name = "after_update_twin_factory_id")
-    private UUID afterUpdateTwinFactoryId;
 
     @ManyToOne
     @EqualsAndHashCode.Exclude
@@ -105,45 +87,13 @@ public class TwinflowEntity implements EasyLoggable {
     @ToString.Exclude
     private Collection<TwinflowSchemaMapEntity> schemaMappings;
 
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "before_create_twin_factory_id", insertable = false, updatable = false)
-    private TwinFactoryEntity beforeCreateTwinFactory;
-
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "before_update_twin_factory_id", insertable = false, updatable = false)
-    private TwinFactoryEntity beforeUpdateTwinFactory;
-
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "before_sketch_twin_factory_id", insertable = false, updatable = false)
-    private TwinFactoryEntity beforeSketchTwinFactory;
-
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "after_create_twin_factory_id", insertable = false, updatable = false)
-    private TwinFactoryEntity afterCreateTwinFactory;
-
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "after_update_twin_factory_id", insertable = false, updatable = false)
-    private TwinFactoryEntity afterUpdateTwinFactory;
-
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "after_sketch_twin_factory_id", insertable = false, updatable = false)
-    private TwinFactoryEntity afterSketchTwinFactory;
-
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinflowTransitionEntity, UUID> transitionsKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinflowFactoryEntity, FactoryLauncher> factoriesKit;
 
     // only for manual load (needed only for deletion)
     @Transient

@@ -12,7 +12,6 @@ import org.twins.core.dao.twin.TwinChangeTaskRepository;
 import org.twins.core.dao.twin.TwinChangeTaskStatus;
 import org.twins.core.domain.factory.FactoryBranchId;
 import org.twins.core.domain.factory.FactoryContext;
-import org.twins.core.domain.factory.FactoryLauncher;
 import org.twins.core.domain.factory.FactoryResultUncommited;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
@@ -30,8 +29,6 @@ public class TwinChangeTask implements Runnable {
 
     @Autowired
     private TwinFactoryService twinFactoryService;
-    @Autowired
-    private TwinChangeTaskService twinChangeTaskService;
     @Autowired
     private TwinChangeTaskRepository twinChangeTaskRepository;
     @Autowired
@@ -53,7 +50,7 @@ public class TwinChangeTask implements Runnable {
                 throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "can not detect domain from input " + twinChangeTaskEntity.getTwin().logNormal());
             }
             authService.setThreadLocalApiUser(twinChangeTaskEntity.getTwin().getTwinClass().getDomainId(), twinChangeTaskEntity.getBusinessAccountId(), twinChangeTaskEntity.getCreatedByUserId());
-            FactoryContext factoryContext = new FactoryContext(FactoryLauncher.beforeTwinUpdate, FactoryBranchId.root(twinChangeTaskEntity.getTwinFactoryId()))
+            FactoryContext factoryContext = new FactoryContext(twinChangeTaskEntity.getTwinFactorylauncher(), FactoryBranchId.root(twinChangeTaskEntity.getTwinFactoryId()))
                     .setInputTwinList(Collections.singletonList(twinChangeTaskEntity.getTwin()));
 //                    .setFields(transitionContext.getFields())
 //                    .setAttachmentCUD(transitionContext.getAttachmentCUD())
