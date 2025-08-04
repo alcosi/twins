@@ -7,11 +7,15 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.twin.TwinFieldSimpleEntity;
+import org.twins.core.service.face.FaceTwinPointerService;
 import org.twins.core.service.face.FaceVariantsService;
+import org.twins.core.service.twin.TwinFieldSimpleSearchService;
 import org.twins.face.dao.widget.wt003.FaceWT003Entity;
 import org.twins.face.dao.widget.wt003.FaceWT003Repository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -20,7 +24,11 @@ import java.util.function.Function;
 @Lazy
 @RequiredArgsConstructor
 public class FaceWT003Service extends FaceVariantsService<FaceWT003Entity> {
+
+    private static final String FIELD_VAR = "field.value";
     private final FaceWT003Repository faceWT003Repository;
+    private final TwinFieldSimpleSearchService twinFieldSimpleSearchService;
+    private final FaceTwinPointerService faceTwinPointerService;
 
     @Override
     public CrudRepository<FaceWT003Entity, UUID> entityRepository() {
@@ -45,5 +53,22 @@ public class FaceWT003Service extends FaceVariantsService<FaceWT003Entity> {
     @Override
     public List<FaceWT003Entity> getVariants(UUID of) {
         return faceWT003Repository.findByFaceId(of);
+    }
+
+    public Map<String, String> createSubstitutionMap(UUID pointerId, UUID fieldId) throws ServiceException {
+        Map<String, String> map = null;
+
+        if (pointerId != null)  {
+            TwinFieldSimpleEntity substitutionField = twinFieldSimpleSearchService.findEntity(
+                    faceTwinPointerService.getPointer(pointerId).getId(),
+                    fieldId
+            );
+
+            if (substitutionField != null) {
+                map = Map.of(FIELD_VAR, substitutionField.getValue());
+            }
+        }
+
+        return map;
     }
 }

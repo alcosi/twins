@@ -58,4 +58,12 @@ public class TwinFieldSimpleSearchService extends EntitySecureFindServiceImpl<Tw
             return new ArrayList<>();
         return twinFieldSimpleRepository.findTwinFieldSimpleEntityProjected(apiUser.getDomainId(), headerTwinIdList, twinIdExcludeList, statusIdList);
     }
+
+    public TwinFieldSimpleEntity findEntity(UUID twinId, UUID fieldId) {
+        if (twinId == null || fieldId == null) {
+            return null;
+        }
+
+        return twinFieldSimpleRepository.findByTwinIdAndTwinClassFieldId(twinId, fieldId);
+    }
 }
