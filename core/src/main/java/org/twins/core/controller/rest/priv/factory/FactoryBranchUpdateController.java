@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.factory.TwinFactoryBranchEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryBranchRsDTOv1;
@@ -25,6 +26,7 @@ import org.twins.core.mappers.rest.factory.FactoryBranchSaveDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryBranchService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -32,6 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.BRANCH_MANAGE, Permissions.BRANCH_UPDATE})
 public class FactoryBranchUpdateController extends ApiController {
     private final FactoryBranchRestDTOMapperV2 factoryBranchRestDTOMapperV2;
     private final FactoryBranchSaveDTOReverseMapper factoryBranchSaveDTOReverseMapper;
@@ -47,7 +50,7 @@ public class FactoryBranchUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/factory_branch/{factoryBranchId}/v1")
     public ResponseEntity<?> factoryBranchUpdateV1(
-            @MapperContextBinding(roots = FactoryBranchRestDTOMapperV2.class, response = FactoryBranchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryBranchRestDTOMapperV2.class, response = FactoryBranchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_BRANCH_ID) @PathVariable UUID factoryBranchId,
             @RequestBody FactoryBranchUpdateRqDTOv1 request) {
         FactoryBranchRsDTOv1 rs = new FactoryBranchRsDTOv1();

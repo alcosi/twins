@@ -17,6 +17,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionCheckOverviewRqDTOv1;
@@ -25,6 +26,7 @@ import org.twins.core.dto.rest.twin.TwinSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionCheckOverviewDTOMapper;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -32,6 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.PERMISSION_MANAGE, Permissions.PERMISSION_VIEW})
 public class TwinPermissionCheckOverviewController extends ApiController {
 
     private final PermissionService permissionService;
@@ -47,7 +50,7 @@ public class TwinPermissionCheckOverviewController extends ApiController {
     @PostMapping(value = "/private/twin/{twinId}/permisson_check_overview/v1")
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> permissonCheckOverview(
-            @MapperContextBinding(roots = PermissionCheckOverviewDTOMapper.class, response = PermissionCheckOverviewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionCheckOverviewDTOMapper.class, response = PermissionCheckOverviewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestBody PermissionCheckOverviewRqDTOv1 request) {
         PermissionCheckOverviewRsDTOv1 rs = new PermissionCheckOverviewRsDTOv1();

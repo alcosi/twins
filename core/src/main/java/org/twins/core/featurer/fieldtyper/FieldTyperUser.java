@@ -1,7 +1,6 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.MapUtils;
@@ -12,20 +11,21 @@ import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.context.HistoryContextUserMultiChange;
+import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldUserEntity;
-import org.twins.core.dao.twin.TwinFieldUserRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
+import org.twins.core.domain.search.TwinFieldSearchUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUser;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageUser;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.user.UserFilterService;
@@ -44,27 +44,22 @@ import java.util.stream.Collectors;
 @Featurer(id = FeaturerTwins.ID_1311,
         name = "User",
         description = "")
-public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUser, TwinFieldUserEntity, TwinFieldSearchNotImplemented> implements LongList {
+public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUser, TwinFieldStorageUser, TwinFieldSearchUser> implements LongList {
     @Autowired
     @Lazy
     UserFilterService userFilterService;
-
     @Autowired
     UserService userService;
 
     @FeaturerParam(name = "User filter UUID", description = "", order = 1)
     public static final FeaturerParamUUID userFilterUUID = new FeaturerParamUUID("userFilterUUID"); //todo change type
-
     @FeaturerParam(name = "Multiple", description = "If true, then multiple select available", order = 2)
     public static final FeaturerParamBoolean multiple = new FeaturerParamBoolean("multiple");
-
     @FeaturerParam(name = "Long list threshold", description = "If options count is bigger then given threshold longList type will be used", order = 3)
     public static final FeaturerParamInt longListThreshold = new FeaturerParamInt("longListThreshold");
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueUser value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (value.getTwinClassField().getRequired() && CollectionUtils.isEmpty(value.getUsers()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         if (value.getUsers() != null && value.getUsers().size() > 1 && !allowMultiply(properties))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply options are not allowed");
         UUID userFilterId = userFilterUUID.extract(properties); //todo not implemented yet
@@ -163,5 +158,10 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
     @Override
     public int getLongListThreshold(Properties properties) {
         return longListThreshold.extract(properties);
+    }
+
+    @Override
+    public Specification<TwinEntity> searchBy(TwinFieldSearchUser search) throws ServiceException {
+        return Specification.where(TwinSpecification.checkFieldUser(search));
     }
 }

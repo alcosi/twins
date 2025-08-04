@@ -18,10 +18,10 @@ public class FaceWT003DTOv1 extends FaceDTOv1 {
     public FaceWT003Level level;
 
     @Schema(description = "title")
-    public String titleI18n;
+    public String title;
 
     @Schema(description = "message")
-    public String messageI18n;
+    public String message;
 
     @Schema(description = "icon")
     public String icon;

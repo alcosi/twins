@@ -1,7 +1,6 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -20,6 +19,7 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchList;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsDataListId;
 import org.twins.core.service.datalist.DataListOptionService;
@@ -34,7 +34,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
-public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldValueSelect, TwinFieldDataListEntity, TwinFieldSearchList> {
+public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldValueSelect, TwinFieldStorageDatalist, TwinFieldSearchList> {
 
     @Autowired
     @Lazy
@@ -48,14 +48,15 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueSelect value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (value.getTwinClassField().getRequired() && CollectionUtils.isEmpty(value.getOptions()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         if (value.getOptions() != null && value.getOptions().size() > 1 && !allowMultiply(properties))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply options are not allowed");
         UUID fieldListId = listUUID.extract(properties);
 
         List<DataListOptionEntity> dataListOptionEntityList = dataListOptionService.reloadOptionsOnDataListAbsent(value.getOptions());
-
+        for (var option : value.getOptions()) {
+            if (!option.getDataListId().equals(fieldListId))
+                throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " optionId[" + option.getId() + "] is not valid for list[" + fieldListId + "]");
+        }
         Map<UUID, TwinFieldDataListEntity> storedOptions = null;
         twinService.loadTwinFields(twin);
         if (twin.getTwinFieldDatalistKit().containsGroupedKey(value.getTwinClassField().getId()))
@@ -89,8 +90,6 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
         }
         HistoryItem<HistoryContextDatalistMultiChange> historyItem = historyService.fieldChangeDataListMulti(value.getTwinClassField());
         for (DataListOptionEntity dataListOptionEntity : dataListOptionEntityList) {
-            if (!dataListOptionEntity.getDataListId().equals(fieldListId))
-                throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " optionId[" + dataListOptionEntity.getId() + "] is not valid for list[" + fieldListId + "]");
             if (FieldValueChangeHelper.notSaved(dataListOptionEntity.getId(), storedOptions)) { // no values were saved before
                 if (twinChangesCollector.isHistoryCollectorEnabled())
                     historyItem.getContext().shotAddedDataListOption(dataListOptionEntity, i18nService);
@@ -124,6 +123,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     }
 
     public static final String LIST_SPLITTER = "<@2@>";
+    public static final String EXTERNAL_ID_PREFIX = "#externalId=";
 
     @Override
     protected FieldValueSelect deserializeValue(Properties properties, TwinField twinField) throws ServiceException {

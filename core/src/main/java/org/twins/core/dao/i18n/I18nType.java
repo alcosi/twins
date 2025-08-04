@@ -36,7 +36,9 @@ public enum I18nType  {
     USER_GROUP_NAME("userGroupName", "User group name", Category.TEXT),
     USER_GROUP_DESCRIPTION("userGroupDescription", "User group description", Category.TEXT),
     FACE_ELEMENT("faceElement", "Face element", Category.TEXT),
-    ERROR("error","Error", Category.TEXT);
+    ERROR("error","Error", Category.TEXT),
+    NOTIFICATION_EMAIL_SUBJECT("notificationEmailSubject","notification email subject", Category.TEXT),
+    NOTIFICATION_EMAIL_BODY("notificationEmailBody","notification email body", Category.TEXT);
 
     private final String id;
     private final String description;

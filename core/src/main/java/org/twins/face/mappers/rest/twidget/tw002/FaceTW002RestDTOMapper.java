@@ -3,7 +3,7 @@ package org.twins.face.mappers.rest.twidget.tw002;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
-import org.twins.core.domain.face.TwidgetConfig;
+import org.twins.core.domain.face.PointedFace;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceTwidgetRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -19,7 +19,7 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
-public class FaceTW002RestDTOMapper extends RestSimpleDTOMapper<TwidgetConfig<FaceTW002Entity>, FaceTW002DTOv1> {
+public class FaceTW002RestDTOMapper extends RestSimpleDTOMapper<PointedFace<FaceTW002Entity>, FaceTW002DTOv1> {
     protected final FaceTwidgetRestDTOMapper faceTwidgetRestDTOMapper;
     private final FaceTW002Service faceTW002Service;
     private final I18nService i18nService;
@@ -29,7 +29,7 @@ public class FaceTW002RestDTOMapper extends RestSimpleDTOMapper<TwidgetConfig<Fa
 
 
     @Override
-    public void map(TwidgetConfig<FaceTW002Entity> src, FaceTW002DTOv1 dst, MapperContext mapperContext) throws Exception {
+    public void map(PointedFace<FaceTW002Entity> src, FaceTW002DTOv1 dst, MapperContext mapperContext) throws Exception {
         faceTwidgetRestDTOMapper.map(src, dst, mapperContext);
         switch (mapperContext.getModeOrUse(FaceMode.SHORT)) { // perhaps we need some separate mode
             case SHORT -> dst
@@ -49,8 +49,8 @@ public class FaceTW002RestDTOMapper extends RestSimpleDTOMapper<TwidgetConfig<Fa
     }
 
     @Override
-    public void beforeCollectionConversion(Collection<TwidgetConfig<FaceTW002Entity>> srcCollection, MapperContext mapperContext) throws Exception {
+    public void beforeCollectionConversion(Collection<PointedFace<FaceTW002Entity>> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        faceTW002Service.loadAccordionItems(srcCollection.stream().map(TwidgetConfig::getConfig).toList());
+        faceTW002Service.loadAccordionItems(srcCollection.stream().map(PointedFace::getConfig).toList());
     }
 }

@@ -23,8 +23,8 @@ public class FaceWT003RestDTOMapper extends RestSimpleDTOMapper<FaceWT003Entity,
         faceRestDTOMapper.map(src.getFace(), dst, mapperContext);
         dst
                 .setLevel(src.getLevel())
-                .setTitleI18n(i18nService.translateToLocale(src.getTitleI18nId()))
-                .setMessageI18n(i18nService.translateToLocale(src.getMessageI18nId()))
+                .setTitle(i18nService.translateToLocale(src.getTitleI18nId()))
+                .setMessage(i18nService.translateToLocale(src.getMessageI18nId()))
                 .setIcon(resourceService.getResourceUri(src.getIconResource()))
                 .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "));
     }

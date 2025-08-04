@@ -4,10 +4,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.featurer.annotations.FeaturerParamType;
 
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @FeaturerParamType(
         id = "UUID_SET",
@@ -23,7 +20,7 @@ public class FeaturerParamUUIDSet extends FeaturerParam<Set<UUID>> {
 
     @Override
     public Set<UUID> extract(Properties properties) {
-        Set<UUID> ret = new HashSet<>();
+        Set<UUID> ret = new LinkedHashSet<>();
         if (ObjectUtils.isNotEmpty(properties.get(key)) && StringUtils.isNotBlank(properties.get(key).toString()))
             for (String uuidString : properties.get(key).toString().split(","))
                 ret.add(UUID.fromString(uuidString.trim()));

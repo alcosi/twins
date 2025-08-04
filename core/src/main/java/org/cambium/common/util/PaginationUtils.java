@@ -63,6 +63,25 @@ public class PaginationUtils {
         return result;
     }
 
+    //todo drop me when fix twin search for search v3
+    public static <T> PaginationResult<T> convertInPaginationResult(List<T> list, SimplePagination pagination) {
+        PaginationResult<T> result = new PaginationResult<>();
+        result
+                .setList(list)
+                .setTotal(pagination.getTotalElements())
+                .setOffset(pagination.getOffset())
+                .setLimit(pagination.getLimit());
+        return result;
+    }
+
+    //todo drop me when fix twin search for search v3
+    public static void validPagination(SimplePagination pagination) throws ServiceException {
+        if (pagination.getLimit() < 1)
+            throw new ServiceException(PAGINATION_LIMIT_ERROR);
+        if (pagination.getOffset() % pagination.getLimit() > 0)
+            throw new ServiceException(PAGINATION_ERROR);
+    }
+
     public static <T> PaginationResult<T> convertInPaginationResult(Page<T> page, SimplePagination pagination, Function<T, Boolean> filterFunction) {
         PaginationResult<T> result = new PaginationResult<>();
         result

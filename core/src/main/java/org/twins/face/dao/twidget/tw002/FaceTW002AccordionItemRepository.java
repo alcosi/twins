@@ -10,5 +10,5 @@ import java.util.UUID;
 
 @Repository
 public interface FaceTW002AccordionItemRepository extends CrudRepository<FaceTW002AccordionItemEntity, UUID>, JpaSpecificationExecutor<FaceTW002AccordionItemEntity> {
-    Collection<FaceTW002AccordionItemEntity> findByFaceIdIn(Set<UUID> idSet);
+    Collection<FaceTW002AccordionItemEntity> findByFaceTW002IdIn(Set<UUID> idSet);
 }

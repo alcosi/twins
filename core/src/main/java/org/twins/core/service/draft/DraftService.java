@@ -21,6 +21,7 @@ import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.DetachedTwinChangesCollector;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.draft.DraftCollector;
 import org.twins.core.domain.factory.*;
@@ -54,7 +55,10 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     private final DraftTwinAttachmentRepository draftTwinAttachmentRepository;
     private final DraftTwinLinkRepository draftTwinLinkRepository;
     private final DraftTwinFieldSimpleRepository draftTwinFieldSimpleRepository;
+    private final DraftTwinFieldSimpleNonIndexedRepository draftTwinFieldSimpleNonIndexedRepository;
+    private final DraftTwinFieldBooleanRepository draftTwinFieldBooleanRepository;
     private final DraftTwinFieldUserRepository draftTwinFieldUserRepository;
+    private final DraftTwinFieldTwinClassRepository draftTwinFieldTwinClassRepository;
     private final DraftTwinFieldDataListRepository draftTwinFieldDataListRepository;
     private final DraftTwinPersistRepository draftTwinPersistRepository;
     private final EntitySmartService entitySmartService;
@@ -448,38 +452,50 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     }
 
     public DraftCollector draftTwinUpdate(DraftCollector draftCollector, TwinUpdate twinUpdate) throws ServiceException {
-        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        DetachedTwinChangesCollector twinChangesCollector = new DetachedTwinChangesCollector(entityManager);
         DraftTwinPersistEntity draftTwinPersistEntity = new DraftTwinPersistEntity().setCreateElseUpdate(false);
         ChangesRecorder<TwinEntity, DraftTwinPersistEntity> changesRecorder = new ChangesRecorder<>(
                 twinUpdate.getDbTwinEntity(),
                 twinUpdate.getTwinEntity(),
                 draftTwinPersistEntity,
                 twinChangesCollector.getHistoryCollector(twinUpdate.getDbTwinEntity()));
+
         twinService.updateTwin(twinUpdate, twinChangesCollector, changesRecorder);
+
         //todo add recorder to draftCollector
         draftTagsUpdate(draftCollector, twinChangesCollector);
         draftMarkersUpdate(draftCollector, twinChangesCollector);
         draftFieldSimpleUpdate(draftCollector, twinChangesCollector);
+        draftFieldSimpleNonIndexedUpdate(draftCollector, twinChangesCollector);
+        draftFieldBooleanUpdate(draftCollector, twinChangesCollector);
         draftFieldUserUpdate(draftCollector, twinChangesCollector);
+        draftFieldTwinClassUpdate(draftCollector, twinChangesCollector);
         draftFieldDataListUpdate(draftCollector, twinChangesCollector);
         draftLinkUpdate(draftCollector, twinChangesCollector);
         draftAttachmentUpdate(draftCollector, twinChangesCollector);
         draftCollector.getHistoryCollector().add(twinChangesCollector.getHistoryCollector());
+
         return draftCollector;
     }
 
     public DraftCollector draftTwinCreate(DraftCollector draftCollector, TwinCreate twinCreate) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+
         twinService.createTwin(twinCreate, twinChangesCollector);
+
         draftTwinCreate(draftCollector, twinChangesCollector);
         draftTagsUpdate(draftCollector, twinChangesCollector);
         draftMarkersUpdate(draftCollector, twinChangesCollector);
         draftFieldSimpleUpdate(draftCollector, twinChangesCollector);
+        draftFieldSimpleNonIndexedUpdate(draftCollector, twinChangesCollector);
+        draftFieldBooleanUpdate(draftCollector, twinChangesCollector);
         draftFieldUserUpdate(draftCollector, twinChangesCollector);
+        draftFieldTwinClassUpdate(draftCollector, twinChangesCollector);
         draftFieldDataListUpdate(draftCollector, twinChangesCollector);
         draftLinkUpdate(draftCollector, twinChangesCollector);
         draftAttachmentUpdate(draftCollector, twinChangesCollector);
         draftCollector.getHistoryCollector().add(twinChangesCollector.getHistoryCollector());
+
         return draftCollector;
     }
 
@@ -503,8 +519,21 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         draftFieldUserDelete(draftCollector, twinChangesCollector.getDeletes(TwinFieldUserEntity.class));
     }
 
+    private void draftFieldTwinClassUpdate(DraftCollector draftCollector, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        draftFieldTwinClassSave(draftCollector, twinChangesCollector.getSaveEntities(TwinFieldTwinClassEntity.class));
+        draftFieldTwinClassDelete(draftCollector, twinChangesCollector.getDeletes(TwinFieldTwinClassEntity.class));
+    }
+
     private void draftFieldSimpleUpdate(DraftCollector draftCollector, TwinChangesCollector twinChangesCollector) throws ServiceException {
         draftFieldSimpleSave(draftCollector, twinChangesCollector.getSaveEntities(TwinFieldSimpleEntity.class));
+    }
+
+    private void draftFieldSimpleNonIndexedUpdate(DraftCollector draftCollector, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        draftFieldSimpleNonIndexedSave(draftCollector, twinChangesCollector.getSaveEntities(TwinFieldSimpleNonIndexedEntity.class));
+    }
+
+    private void draftFieldBooleanUpdate(DraftCollector draftCollector, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        draftFieldBooleanSave(draftCollector, twinChangesCollector.getSaveEntities(TwinFieldBooleanEntity.class));
     }
 
     public void draftTagsUpdate(DraftCollector draftCollector, TwinChangesCollector twinChangesCollector) throws ServiceException {
@@ -531,8 +560,23 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
             draftCollector.add(createFieldDraft(draftCollector.getDraftEntity(), twinFieldSimpleEntity));
     }
 
+    public void draftFieldSimpleNonIndexedSave(DraftCollector draftCollector, Collection<TwinFieldSimpleNonIndexedEntity> fieldSimpleNonIndexedEntities) throws ServiceException {
+        for (TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity : fieldSimpleNonIndexedEntities)
+            draftCollector.add(createFieldDraft(draftCollector.getDraftEntity(), twinFieldSimpleNonIndexedEntity));
+    }
+
+    public void draftFieldBooleanSave(DraftCollector draftCollector, Collection<TwinFieldBooleanEntity> fieldBooleanEntities) throws ServiceException {
+        for (TwinFieldBooleanEntity twinFieldBooleanEntity : fieldBooleanEntities)
+            draftCollector.add(createFieldDraft(draftCollector.getDraftEntity(), twinFieldBooleanEntity));
+    }
+
     public void draftFieldUserSave(DraftCollector draftCollector, Collection<TwinFieldUserEntity> fieldUserEntities) throws ServiceException {
         for (TwinFieldUserEntity twinFieldUserEntity : fieldUserEntities)
+            draftCollector.add(createFieldDraft(draftCollector.getDraftEntity(), twinFieldUserEntity));
+    }
+
+    public void draftFieldTwinClassSave(DraftCollector draftCollector, Collection<TwinFieldTwinClassEntity> fieldUserEntities) throws ServiceException {
+        for (TwinFieldTwinClassEntity twinFieldUserEntity : fieldUserEntities)
             draftCollector.add(createFieldDraft(draftCollector.getDraftEntity(), twinFieldUserEntity));
     }
 
@@ -554,6 +598,11 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     public void draftFieldUserDelete(DraftCollector draftCollector, Collection<TwinFieldUserEntity> fieldUserDeleteList) throws ServiceException {
         for (TwinFieldUserEntity twinFieldUser : fieldUserDeleteList)
             draftCollector.add(createFieldUserDeleteDraft(draftCollector.getDraftEntity(), twinFieldUser));
+    }
+
+    public void draftFieldTwinClassDelete(DraftCollector draftCollector, Collection<TwinFieldTwinClassEntity> fieldUserDeleteList) throws ServiceException {
+        for (TwinFieldTwinClassEntity twinFieldUser : fieldUserDeleteList)
+            draftCollector.add(createFieldTwinClassDeleteDraft(draftCollector.getDraftEntity(), twinFieldUser));
     }
 
     public void draftFieldDataListDelete(DraftCollector draftCollector, Collection<TwinFieldDataListEntity> fieldDataListDeleteList) throws ServiceException {
@@ -679,6 +728,76 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         return draftTwinFieldSimpleEntity;
     }
 
+    public DraftTwinFieldSimpleNonIndexedEntity createFieldDraft(DraftEntity draftEntity, TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity) throws ServiceException {
+        CUD cud = twinFieldSimpleNonIndexedEntity.getId() == null ? CUD.CREATE : CUD.UPDATE;
+
+        DraftTwinFieldSimpleNonIndexedEntity draftTwinFieldSimpleNonIndexedEntity = new DraftTwinFieldSimpleNonIndexedEntity()
+                .setDraft(draftEntity)
+                .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
+                .setTwinId(twinFieldSimpleNonIndexedEntity.getTwinId())
+                .setCud(cud);
+
+        switch (cud) {
+            case CREATE -> {
+                if (twinFieldSimpleNonIndexedEntity.getTwinClassFieldId() == null) {
+                    throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "twin class field is required for new field creation");
+                }
+
+                draftTwinFieldSimpleNonIndexedEntity
+                        .setTwinClassFieldId(twinFieldSimpleNonIndexedEntity.getTwinClassFieldId())
+                        .setValue(twinFieldSimpleNonIndexedEntity.getValue());
+            }
+            case UPDATE -> {
+                if (twinFieldSimpleNonIndexedEntity.getId() == null) {
+                    throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "twin class field id required for field update");
+                }
+
+                draftTwinFieldSimpleNonIndexedEntity
+                        .setTwinClassFieldId(twinFieldSimpleNonIndexedEntity.getTwinClassFieldId())
+                        .setTwinFieldSimpleNonIndexedId(twinFieldSimpleNonIndexedEntity.getId())
+                        .setValue(twinFieldSimpleNonIndexedEntity.getValue());
+            }
+        }
+
+        return draftTwinFieldSimpleNonIndexedEntity;
+    }
+
+    public DraftTwinFieldBooleanEntity createFieldDraft(DraftEntity draftEntity, TwinFieldBooleanEntity twinFieldBooleanEntity) throws ServiceException {
+        CUD cud = twinFieldBooleanEntity.getId() == null ? CUD.CREATE : CUD.UPDATE;
+
+        DraftTwinFieldBooleanEntity draftTwinFieldBooleanEntity = new DraftTwinFieldBooleanEntity()
+                .setDraft(draftEntity)
+                .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
+                .setTwinId(twinFieldBooleanEntity.getTwinId())
+                .setCud(cud);
+
+        switch (cud) {
+            case CREATE -> {
+                if (twinFieldBooleanEntity.getTwinClassFieldId() == null) {
+                    throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "twin class field is required for new field creation");
+                }
+
+                draftTwinFieldBooleanEntity
+                        .setTwinClassFieldId(twinFieldBooleanEntity.getTwinClassFieldId())
+                        .setValue(twinFieldBooleanEntity.getValue());
+            }
+            case UPDATE -> {
+                if (twinFieldBooleanEntity.getId() == null) {
+                    throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "twin class field id required for field update");
+                }
+
+                draftTwinFieldBooleanEntity
+                        .setTwinClassFieldId(twinFieldBooleanEntity.getTwinClassFieldId())
+                        .setTwinFieldBooleanId(twinFieldBooleanEntity.getId())
+                        .setValue(twinFieldBooleanEntity.getValue());
+            }
+        }
+
+        return draftTwinFieldBooleanEntity;
+    }
+
     public DraftTwinFieldUserEntity createFieldDraft(DraftEntity draftEntity, TwinFieldUserEntity twinFieldUserEntity) throws ServiceException {
         CUD cud = twinFieldUserEntity.getId() == null ? CUD.CREATE : CUD.UPDATE;
 
@@ -707,6 +826,35 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         return draftTwinFieldUserEntity;
     }
 
+    public DraftTwinFieldTwinClassEntity createFieldDraft(DraftEntity draftEntity, TwinFieldTwinClassEntity twinFieldTwinClassEntity) throws ServiceException {
+        CUD cud = twinFieldTwinClassEntity.getId() == null ? CUD.CREATE : CUD.UPDATE;
+
+        DraftTwinFieldTwinClassEntity draftTwinFieldTwinClassEntity = new DraftTwinFieldTwinClassEntity()
+                .setDraft(draftEntity)
+                .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
+                .setTwinId(twinFieldTwinClassEntity.getTwinId())
+                .setCud(cud);
+
+        switch (cud) {
+            case CREATE:
+                if (twinFieldTwinClassEntity.getTwinClassFieldId() == null)
+                    throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "twin class field is required for new field creation");
+                draftTwinFieldTwinClassEntity
+                        .setTwinClassFieldId(twinFieldTwinClassEntity.getTwinClassFieldId())
+                        .setTwinClassId(twinFieldTwinClassEntity.getTwinClassId());
+                break;
+            case UPDATE:
+                if (twinFieldTwinClassEntity.getId() == null)
+                    throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "twin_class_field.id required for field update");
+                draftTwinFieldTwinClassEntity
+                        .setTwinFieldTwinClassId(twinFieldTwinClassEntity.getId())
+                        .setTwinClassId(twinFieldTwinClassEntity.getTwinClassId());
+                break;
+        }
+
+        return draftTwinFieldTwinClassEntity;
+    }
 
     public DraftTwinLinkEntity createTwinLinkDraft(DraftEntity draftEntity, TwinLinkEntity twinLinkEntity) throws ServiceException {
         CUD cud = twinLinkEntity.getId() == null ? CUD.CREATE : CUD.UPDATE;
@@ -780,10 +928,24 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 .setDraft(draftEntity)
                 .setDraftId(draftEntity.getId())
                 .setTimeInMillis(System.currentTimeMillis())
-                .setTwinFieldUserId(twinFieldUser.getUserId())
+                .setTwinFieldUserId(twinFieldUser.getId())
                 .setUserId(twinFieldUser.getUserId())
                 .setTwinId(twinFieldUser.getTwinId())
                 .setTwinClassFieldId(twinFieldUser.getTwinClassFieldId());
+    }
+
+    public DraftTwinFieldTwinClassEntity createFieldTwinClassDeleteDraft(DraftEntity draftEntity, TwinFieldTwinClassEntity twinFieldTwinClassEntity) throws ServiceException {
+        if (twinFieldTwinClassEntity == null || twinFieldTwinClassEntity.getId() == null)
+            throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "twin_field_twin_class.id required for field deletion");
+        return new DraftTwinFieldTwinClassEntity()
+                .setCud(CUD.DELETE)
+                .setDraft(draftEntity)
+                .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
+                .setTwinFieldTwinClassId(twinFieldTwinClassEntity.getId())
+                .setTwinClassId(twinFieldTwinClassEntity.getTwinClassId())
+                .setTwinId(twinFieldTwinClassEntity.getTwinId())
+                .setTwinClassFieldId(twinFieldTwinClassEntity.getTwinClassFieldId());
     }
 
     public DraftTwinFieldDataListEntity createFieldDataListDeleteDraft(DraftEntity draftEntity, TwinFieldDataListEntity twinFieldDataList) throws ServiceException {
@@ -867,7 +1029,10 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
             saveEntities(draftCollector, DraftTwinTagEntity.class, draftTwinTagRepository);
             saveEntities(draftCollector, DraftTwinMarkerEntity.class, draftTwinMarkerRepository);
             saveEntities(draftCollector, DraftTwinFieldSimpleEntity.class, draftTwinFieldSimpleRepository);
+            saveEntities(draftCollector, DraftTwinFieldSimpleNonIndexedEntity.class, draftTwinFieldSimpleNonIndexedRepository);
+            saveEntities(draftCollector, DraftTwinFieldBooleanEntity.class, draftTwinFieldBooleanRepository);
             saveEntities(draftCollector, DraftTwinFieldUserEntity.class, draftTwinFieldUserRepository);
+            saveEntities(draftCollector, DraftTwinFieldTwinClassEntity.class, draftTwinFieldTwinClassRepository);
             saveEntities(draftCollector, DraftTwinFieldDataListEntity.class, draftTwinFieldDataListRepository);
 
             if (!draftCollector.getDraftEntitiesMap().isEmpty())

@@ -16,4 +16,8 @@ public abstract class FeaturerParam<T> {
     public abstract T extract(Properties properties);
 
     public void validate(String value) throws ServiceException {}
+
+    public String prepareForStore(String value) {
+        return value;
+    }
 }

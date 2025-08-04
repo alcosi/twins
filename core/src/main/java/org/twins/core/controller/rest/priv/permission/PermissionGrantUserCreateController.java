@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.permission.PermissionGrantUserEntity;
 import org.twins.core.dto.rest.permission.PermissionGrantUserCreateRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGrantUserSaveRsDTOV1;
@@ -27,11 +28,13 @@ import org.twins.core.mappers.rest.permission.PermissionGrantUserCreateDTORevers
 import org.twins.core.mappers.rest.permission.PermissionGrantUserRestDTOMapperV2;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantUserService;
+import org.twins.core.service.permission.Permissions;
 
-@Tag(description = "", name = ApiTag.PERMISSION)
+@Tag(description = "Create permission grant user", name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.PERMISSION_GRANT_USER_MANAGE, Permissions.PERMISSION_GRANT_USER_CREATE})
 public class PermissionGrantUserCreateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final PermissionGrantUserRestDTOMapperV2 permissionGrantUserRestDTOMapperV2;
@@ -47,7 +50,7 @@ public class PermissionGrantUserCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/user/v1")
     public ResponseEntity<?> permissionGrantUserCreateV1(
-            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = PermissionGrantUserSaveRsDTOV1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = PermissionGrantUserSaveRsDTOV1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody PermissionGrantUserCreateRqDTOv1 request) {
         PermissionGrantUserSaveRsDTOV1 rs = new PermissionGrantUserSaveRsDTOV1();
         try {

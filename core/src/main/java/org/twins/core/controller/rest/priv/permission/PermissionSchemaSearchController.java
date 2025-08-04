@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dto.rest.DTOExamples;
@@ -31,13 +32,15 @@ import org.twins.core.mappers.rest.permission.PermissionSchemaSearchDTOReverseMa
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionSchemaSearchService;
 import org.twins.core.service.permission.PermissionSchemaService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
-@Tag(name = ApiTag.PERMISSION)
+@Tag(description = "Search permission schema", name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.PERMISSION_SCHEMA_MANAGE, Permissions.PERMISSION_SCHEMA_VIEW})
 public class PermissionSchemaSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;
@@ -55,7 +58,7 @@ public class PermissionSchemaSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_schema/search/v1")
     public ResponseEntity<?> permissionSchemaSearchV1(
-            @MapperContextBinding(roots = PermissionSchemaRestDTOMapperV2.class, response = PermissionSchemaSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionSchemaRestDTOMapperV2.class, response = PermissionSchemaSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody PermissionSchemaSearchRqDTOv1 request) {
         PermissionSchemaSearchRsDTOv1 rs = new PermissionSchemaSearchRsDTOv1();
@@ -83,7 +86,7 @@ public class PermissionSchemaSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/permission_schema/{schemaId}/v1")
     public ResponseEntity<?> permissionSchemaViewV1(
-            @MapperContextBinding(roots = PermissionSchemaRestDTOMapperV2.class, response = PermissionSchemaViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionSchemaRestDTOMapperV2.class, response = PermissionSchemaViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_SCHEMA_ID) @PathVariable("schemaId") UUID schemaId) {
         PermissionSchemaViewRsDTOv1 rs = new PermissionSchemaViewRsDTOv1();
         try {

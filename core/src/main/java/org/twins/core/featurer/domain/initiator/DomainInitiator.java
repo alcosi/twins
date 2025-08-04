@@ -29,7 +29,6 @@ import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.i18n.I18nService;
-import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -66,23 +65,15 @@ public abstract class DomainInitiator extends FeaturerTwins {
     PermissionSchemaRepository permissionSchemaRepository;
     @Autowired
     TierRepository tierRepository;
-
-    @Lazy
-    @Autowired
-    TwinService twinService;
-
     @Lazy
     @Autowired
     AuthService authService;
-
     @Lazy
     @Autowired
     I18nService i18nService;
-
     @Lazy
     @Autowired
     DomainService domainService;
-
     @Lazy
     @Autowired
     SystemEntityService systemEntityService;
@@ -93,8 +84,8 @@ public abstract class DomainInitiator extends FeaturerTwins {
         Properties properties = featurerService.extractProperties(this, domainTypeEntity.getDomainInitiatorParams(), new HashMap<>());
         domainEntity
                 .setCreatedAt(Timestamp.from(Instant.now()))
-                .setTokenHandlerFeaturerId(domainTypeEntity.getDefaultTokenHandlerFeaturer().getId())
-                .setTokenHandlerParams(domainTypeEntity.getDefaultTokenHandlerParams())
+                .setIdentityProvider(domainTypeEntity.getDefaultIdentityProvider())
+                .setIdentityProviderId(domainTypeEntity.getDefaultIdentityProvider().getId())
                 .setUserGroupManagerFeaturerId(domainTypeEntity.getDefaultUserGroupManagerFeaturer().getId())
                 .setUserGroupManagerFeaturer(domainTypeEntity.getDefaultUserGroupManagerFeaturer())
                 .setUserGroupManagerParams(domainTypeEntity.getDefaultUserGroupManagerParams())

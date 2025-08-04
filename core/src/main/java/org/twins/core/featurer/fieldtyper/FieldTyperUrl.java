@@ -1,9 +1,8 @@
 package org.twins.core.featurer.fieldtyper;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.validator.routines.UrlValidator;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.UrlUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
@@ -30,9 +29,7 @@ public class FieldTyperUrl extends FieldTyperSimple<FieldDescriptorUrl, FieldVal
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (twinFieldEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(value.getValue()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
-        if (new UrlValidator().isValid(value.getValue()))
+        if (!UrlUtils.isValid(value.getValue()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect url[" + value.getValue() + "]");
         detectValueChange(twinFieldEntity, twinChangesCollector, value.getValue());
     }

@@ -19,11 +19,13 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinflow.TwinflowViewRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinflow.TwinflowBaseV3RestDTOMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowService;
 
 import java.util.UUID;
@@ -32,6 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TWINFLOW_MANAGE, Permissions.TWINFLOW_VIEW})
 public class TwinflowViewController extends ApiController {
     private final TwinflowService twinflowService;
     private final TwinflowBaseV3RestDTOMapper twinflowBaseV3RestDTOMapper;
@@ -46,7 +49,7 @@ public class TwinflowViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twinflow/{twinflowId}/v1")
     public ResponseEntity<?> twinflowViewV1(
-            @MapperContextBinding(roots = TwinflowBaseV3RestDTOMapper.class, response = TwinflowViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinflowBaseV3RestDTOMapper.class, response = TwinflowViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_ID) @PathVariable UUID twinflowId) {
         TwinflowViewRsDTOv1 rs = new TwinflowViewRsDTOv1();
         try {

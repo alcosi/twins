@@ -10,6 +10,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.CacheUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -28,8 +29,9 @@ import org.twins.core.service.domain.DomainService;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-import static org.cambium.common.util.CacheUtils.evictCache;
 
 @Component
 @Slf4j
@@ -121,8 +123,10 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
             i18nTranslationEntity = i18nTranslationRepository.findByI18nIdAndLocale(i18nId, locale);
             if (i18nTranslationEntity.isPresent() && StringUtils.isNotBlank(i18nTranslationEntity.get().getTranslation()))
                 return i18nTranslationEntity.get();
-            else
+            else {
+                log.info("I18n[{}] translation is missing for locale[{}]", i18nId, locale);
                 i18nTranslationRepository.incrementUsageCounter(i18nId, locale.getLanguage());
+            }
         }
         //if not translation was found for given locale we will load it for default
         if (defaultLocale != null && !defaultLocale.equals(locale)) {
@@ -261,9 +265,9 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
 
     @Transactional(rollbackFor = Throwable.class)
     public I18nEntity createI18nAndTranslations(I18nType i18nType, I18nEntity i18nEntity) throws ServiceException {
-        if(null == i18nType)
+        if (null == i18nType)
             throw new ServiceException(ErrorCodeI18n.INCORRECT_CONFIGURATION, "i18n type not specified");
-        if(null == i18nEntity)
+        if (null == i18nEntity)
             i18nEntity = new I18nEntity();
 //        if (!i18nType.equals(i18nEntity.getType()))
 //            throw new ServiceException(ErrorCodeI18n.INCORRECT_CONFIGURATION, "i18n type mismatch");
@@ -281,6 +285,30 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
         }
         i18nTranslationRepository.saveAll(i18nEntity.getTranslationsKit().getCollection());
         return i18nEntity;
+    }
+
+    public List<I18nEntity> createI18nAndTranslations(I18nType i18nType, List<I18nEntity> i18nEntities) throws ServiceException {
+        if (null == i18nType)
+            throw new ServiceException(ErrorCodeI18n.INCORRECT_CONFIGURATION, "i18n type not specified");
+        i18nEntities.forEach(i -> {
+            i.setType(i18nType);
+            i.setId(null);
+        });
+        var saved = StreamSupport.stream(i18nRepository.saveAll(i18nEntities).spliterator(), false).toList();
+        var translations = saved.stream().flatMap(i18nEntity -> {
+            var kit = i18nEntity.getTranslationsKit();
+            if (kit != null) {
+                return kit.getList().stream().peek(t -> {
+                    t.setI18nId(i18nEntity.getId());
+                    t.setI18n(i18nEntity);
+                    t.setTranslation(StringUtils.defaultString(t.getTranslation()));
+                });
+            } else {
+                return Stream.empty();
+            }
+        }).toList();
+        i18nTranslationRepository.saveAll(translations);
+        return i18nEntities;
     }
 
     private String addCopyPostfix(String originalStr) {
@@ -305,7 +333,7 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
         try {
             apiUser = authService.getApiUser();
             Locale domainLocale = null;
-            if(apiUser.isDomainSpecified())
+            if (apiUser.isDomainSpecified())
                 domainLocale = apiUser.getDomain().getDefaultI18nLocaleId();
             return domainLocale != null ? domainLocale : i18nProperties.defaultLocale();
         } catch (ServiceException e) {
@@ -346,7 +374,7 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
                 entry.getValue().setI18nId(i18nEntity.getId());
             }
             entitiesToSave.add(entry.getValue());
-            evictCache(cacheManager, I18nTranslationRepository.CACHE_I18N_TRANSLATIONS, entry.getValue().getI18nId() + "" + entry.getKey());
+            CacheUtils.evictCache(cacheManager, I18nTranslationRepository.CACHE_I18N_TRANSLATIONS, entry.getValue().getI18nId() + "" + entry.getKey());
         }
         i18nTranslationRepository.saveAll(entitiesToSave);
 

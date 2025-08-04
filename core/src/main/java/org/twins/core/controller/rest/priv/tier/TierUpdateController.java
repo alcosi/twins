@@ -16,16 +16,18 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv3;
 import org.twins.core.dto.rest.tier.TierSaveRsDTOv1;
 import org.twins.core.dto.rest.tier.TierUpdateRqDTOv1;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.tier.TierRestDTOMapper;
 import org.twins.core.mappers.rest.tier.TierRestDTOMapperV2;
 import org.twins.core.mappers.rest.tier.TierUpdateDTOReverseMapper;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.domain.TierService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -33,6 +35,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TIER_MANAGE, Permissions.TIER_UPDATE})
 public class TierUpdateController extends ApiController {
     private final TierUpdateDTOReverseMapper tierUpdateDTOReverseMapper;
     private final TierService tierService;
@@ -47,7 +50,7 @@ public class TierUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/tier/{tierId}/v1")
     public ResponseEntity<?> tierUpdateV1(
-            @MapperContextBinding(roots = TierRestDTOMapper.class, response = TierSaveRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TierRestDTOMapper.class, response = TierSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TIER_ID) @PathVariable UUID tierId,
             @RequestBody TierUpdateRqDTOv1 request) {
         TierSaveRsDTOv1 rs = new TierSaveRsDTOv1();

@@ -19,6 +19,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.DTOExamples;
@@ -28,15 +29,17 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapperV2;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.UUID;
 
-@Tag(name = ApiTag.TWIN_CLASS)
+@Tag(description = "", name = ApiTag.TWIN_CLASS)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_VIEW})
 public class TwinClassFieldListController extends ApiController {
     private final TwinClassFieldService twinClassFieldService;
     private final TwinClassService twinClassService;
@@ -52,7 +55,7 @@ public class TwinClassFieldListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class/{twinClassId}/field/list/v1")
     public ResponseEntity<?> twinClassFieldListV1(
-            @MapperContextBinding(roots = TwinClassFieldRestDTOMapperV2.class, response = TwinClassFieldListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinClassFieldRestDTOMapperV2.class, response = TwinClassFieldListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         TwinClassFieldListRsDTOv1 rs = new TwinClassFieldListRsDTOv1();
         try {
@@ -78,7 +81,7 @@ public class TwinClassFieldListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class_field/{twinClassFieldId}/v1")
     public ResponseEntity<?> twinClassFieldViewV1(
-            @MapperContextBinding(roots = TwinClassFieldRestDTOMapperV2.class, response = TwinClassFieldRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinClassFieldRestDTOMapperV2.class, response = TwinClassFieldRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_FIELD_ID) @PathVariable UUID twinClassFieldId) {
         TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();
         try {
@@ -103,7 +106,7 @@ public class TwinClassFieldListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class_by_key/{classKey}/field/{fieldKey}/v1")
     public ResponseEntity<?> twinClassFieldViewByKeyV1(
-            @MapperContextBinding(roots = TwinClassFieldRestDTOMapper.class, response = TwinClassFieldRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinClassFieldRestDTOMapper.class, response = TwinClassFieldRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_KEY) @PathVariable String classKey,
             @Parameter(example = DTOExamples.TWIN_FIELD_KEY) @PathVariable String fieldKey) {
         TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();

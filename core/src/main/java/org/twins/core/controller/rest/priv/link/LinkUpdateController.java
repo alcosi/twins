@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.domain.LinkUpdate;
@@ -28,6 +29,7 @@ import org.twins.core.mappers.rest.link.LinkUpdateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.link.LinkService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -36,6 +38,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.LINK_MANAGE, Permissions.LINK_UPDATE})
 public class LinkUpdateController extends ApiController {
     private final LinkService linkService;
     private final LinkUpdateRestDTOReverseMapper linkUpdateRestDTOReverseMapper;
@@ -52,7 +55,7 @@ public class LinkUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/link/{linkId}/v1")
     public ResponseEntity<?> linkUpdateV1(
-            @MapperContextBinding(roots = {LinkForwardRestDTOV3Mapper.class}, response = LinkUpdateRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = {LinkForwardRestDTOV3Mapper.class}, response = LinkUpdateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.LINK_ID) @PathVariable UUID linkId,
             @RequestBody LinkUpdateDTOv1 request) {
         LinkUpdateRsDTOv1 rs = new LinkUpdateRsDTOv1();

@@ -3,19 +3,28 @@ package org.twins.face.dao.widget.wt003;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.face.FaceEntity;
+import org.twins.core.dao.face.FaceVariantEntity;
 import org.twins.core.dao.resource.ResourceEntity;
+import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 
 import java.util.UUID;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "face_widget_wt003")
-public class FaceWT003Entity {
+@Table(name = "face_wt003")
+public class FaceWT003Entity implements EasyLoggable, FaceVariantEntity {
     @Id
+    @Column(name = "id")
+    private UUID id;
+
     @Column(name = "face_id")
     private UUID faceId;
+
+    @Column(name = "twin_pointer_validator_rule_id")
+    private UUID twinPointerValidatorRuleId;
 
     @Column(name = "level")
     @Enumerated(EnumType.STRING)
@@ -38,6 +47,20 @@ public class FaceWT003Entity {
     private FaceEntity face;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
+    private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconResource;
+
+    @Override
+    public String easyLog(Level level) {
+        switch (level) {
+            case SHORT:
+                return "faceWT003[" + faceId + "]";
+            default:
+                return "faceWT003[id:" + faceId + ", componentId:" + face.getFaceComponentId() + "]";
+        }
+    }
 }

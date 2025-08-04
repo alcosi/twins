@@ -1,0 +1,2 @@
+INSERT INTO search (id, name, search_alias_id, permission_id, description, created_at, head_twin_search_id)
+VALUES ('00000000-0000-0000-0014-000000000002', 'All twins', null, null, null, DEFAULT, null) on conflict do nothing;

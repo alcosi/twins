@@ -53,7 +53,7 @@ public class DataListOptionSearchPublicController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/public/data_list_option/search/v1")
     public ResponseEntity<?> dataListOptionSearchPublicListV1(
-            @MapperContextBinding(roots = DataListOptionRestDTOMapperV3.class, response = DataListOptionSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListOptionRestDTOMapperV3.class, response = DataListOptionSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody DataListOptionSearchRqDTOv1 request,
             @SimplePaginationParams(sortField = DataListOptionEntity.Fields.option) SimplePagination pagination) {
         DataListOptionSearchRsDTOv1 rs = new DataListOptionSearchRsDTOv1();

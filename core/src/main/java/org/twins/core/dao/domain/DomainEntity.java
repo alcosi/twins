@@ -14,11 +14,10 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.LocaleConverter;
+import org.twins.core.dao.idp.IdentityProviderEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.resource.StorageEntity;
-import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
-import org.twins.core.featurer.tokenhandler.TokenHandler;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 
 import java.sql.Timestamp;
@@ -82,32 +81,22 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "business_account_initiator_featurer_id")
     private Integer businessAccountInitiatorFeaturerId;
 
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "business_account_initiator_params", columnDefinition = "hstore")
+    private HashMap<String, String> businessAccountInitiatorParams;
+
+    @Column(name = "domain_user_initiator_featurer_id")
+    private Integer domainUserInitiatorFeaturerId;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "domain_user_initiator_params", columnDefinition = "hstore")
+    private HashMap<String, String> domainUserInitiatorParams;
+
     @Column(name = "attachments_storage_used_count")
     private Long attachmentsStorageUsedCount;
 
     @Column(name = "attachments_storage_used_size")
     private Long attachmentsStorageUsedSize;
-
-    @FeaturerList(type = BusinessAccountInitiator.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "business_account_initiator_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity businessAccountInitiatorFeaturer;
-
-    @Type(PostgreSQLHStoreType.class)
-    @Column(name = "business_account_initiator_params", columnDefinition = "hstore")
-    private HashMap<String, String> businessAccountInitiatorParams;
-
-    @Column(name = "token_handler_featurer_id")
-    private Integer tokenHandlerFeaturerId;
-
-    @FeaturerList(type = TokenHandler.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "token_handler_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity tokenHandlerFeaturer;
-
-    @Type(PostgreSQLHStoreType.class)
-    @Column(name = "token_handler_params", columnDefinition = "hstore")
-    private HashMap<String, String> tokenHandlerParams;
 
     @Column(name = "user_group_manager_featurer_id")
     private Integer userGroupManagerFeaturerId;
@@ -127,6 +116,9 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "navbar_face_id")
     private UUID navbarFaceId;
 
+    @Column(name = "identity_provider_id")
+    private UUID identityProviderId;
+
     @FeaturerList(type = UserGroupManager.class)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_group_manager_featurer_id", insertable = false, updatable = false)
@@ -140,26 +132,41 @@ public class DomainEntity implements EasyLoggable {
     @Convert(converter = DomainTypeConverter.class)
     private DomainType domainType;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_light_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconLightResource;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_dark_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconDarkResource;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attachments_storage_id", insertable = false, updatable = false)
     private StorageEntity attachmentsStorage;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resources_storage_id", insertable = false, updatable = false)
     private StorageEntity resourcesStorage;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "navbar_face_id", insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
     private FaceEntity navbarFace;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "identity_provider_id", insertable = false, updatable = false)
+    private IdentityProviderEntity identityProvider;
 
     // needed for specification
     @Deprecated

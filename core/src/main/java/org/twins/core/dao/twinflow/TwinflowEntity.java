@@ -8,11 +8,12 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.eraseflow.EraseflowEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.factory.FactoryLauncher;
 
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -63,12 +64,14 @@ public class TwinflowEntity implements EasyLoggable {
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
     @Deprecated //for specification only
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity nameI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     @Deprecated //for specification only
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity descriptionI18n;
 
     @ManyToOne
@@ -87,6 +90,10 @@ public class TwinflowEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinflowTransitionEntity, UUID> transitionsKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinflowFactoryEntity, FactoryLauncher> factoriesKit;
 
     // only for manual load (needed only for deletion)
     @Transient

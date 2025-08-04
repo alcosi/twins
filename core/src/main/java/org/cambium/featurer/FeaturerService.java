@@ -177,9 +177,9 @@ public class FeaturerService {
             throw new ServiceException(ErrorCodeCommon.FEATURER_IS_NULL);
         Featurer featurer = featurerMap.get(featurerId);
         if (featurer == null)
-            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, "Can not load feature with id " + featurerId);
+            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, "Can not load featurer with id " + featurerId);
         if (!featurerType.isInstance(featurer)) {
-            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, String.format("Feature %s can not be loaded as %s", featurerId, featurerType.getSimpleName()));
+            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, String.format("Featurer %s can not be loaded as %s", featurerId, featurerType.getSimpleName()));
         }
         org.cambium.featurer.annotations.Featurer annotation = ClassUtils.getUserClass(featurer.getClass()).getAnnotation(org.cambium.featurer.annotations.Featurer.class);
         if (annotation.id() != featurerId)
@@ -345,5 +345,22 @@ public class FeaturerService {
 
     public List<FeaturerEntity> findByIdIn(Set<Integer> ids) {
         return featurerRepository.findByIdIn(ids);
+    }
+
+    public HashMap<String, String> prepareForStore(Integer featurerId, HashMap<String, String> featurerParams) throws ServiceException {
+
+        Featurer featurer = featurerMap.get(featurerId);
+        if (featurer == null)
+            throw new ServiceException(ErrorCodeCommon.FEATURER_ID_UNKNOWN, "unknown featurer id[" + featurerId + "]");
+        var paramsMap = featurerParamsMap.get(featurerId);
+        for (var entry : paramsMap.entrySet()) {
+            var key = entry.getKey();
+            var value = featurerParams.get(key);
+            var preparedForStoreValue = entry.getValue().prepareForStore(value);
+            if (!Objects.equals(value, preparedForStoreValue)) {
+                featurerParams.put(key, preparedForStoreValue);
+            }
+        }
+        return featurerParams;
     }
 }

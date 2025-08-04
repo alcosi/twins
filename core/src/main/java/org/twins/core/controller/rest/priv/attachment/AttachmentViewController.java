@@ -19,12 +19,14 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.attachment.AttachmentViewRsDTOv1;
 import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.attachment.AttachmentService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -32,6 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.ATTACHMENT_MANAGE, Permissions.ATTACHMENT_VIEW})
 public class AttachmentViewController extends ApiController {
 
     private final AttachmentService attachmentService;
@@ -47,7 +50,7 @@ public class AttachmentViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/attachment/{attachmentId}/v1")
     public ResponseEntity<?> attachmentViewV1(
-            @MapperContextBinding(roots = AttachmentRestDTOMapper.class, response = AttachmentViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = AttachmentRestDTOMapper.class, response = AttachmentViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.ATTACHMENT_ID) @PathVariable UUID attachmentId) {
         AttachmentViewRsDTOv1 rs = new AttachmentViewRsDTOv1();
         try {

@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.permission.PermissionGrantSpaceRoleEntity;
 import org.twins.core.dto.rest.DTOExamples;
@@ -31,13 +32,15 @@ import org.twins.core.mappers.rest.permission.PermissionGrantSpaceRoleRestDTOMap
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantSpaceRoleSearchService;
 import org.twins.core.service.permission.PermissionGrantSpaceRoleService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
-@Tag(name = ApiTag.PERMISSION)
+@Tag(description = "Search permission grant space role", name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.PERMISSION_GRANT_SPACE_ROLE_MANAGE, Permissions.PERMISSION_GRANT_SPACE_ROLE_VIEW})
 public class PermissionGrantSpaceRoleSearchController extends ApiController {
 
     private final PaginationMapper paginationMapper;
@@ -56,7 +59,7 @@ public class PermissionGrantSpaceRoleSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/space_role/search/v1")
     public ResponseEntity<?> permissionGrantSpaceRoleSearchV1(
-            @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapperV2.class, response = PermissionGrantSpaceRoleSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapperV2.class, response = PermissionGrantSpaceRoleSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody PermissionGrantSpaceRoleSearchRqDTOv1 request) {
         PermissionGrantSpaceRoleSearchRsDTOv1 rs = new PermissionGrantSpaceRoleSearchRsDTOv1();
@@ -84,7 +87,7 @@ public class PermissionGrantSpaceRoleSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/permission_grant/space_role/{grantId}/v1")
     public ResponseEntity<?> permissionGrantSpaceRoleViewV1(
-            @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapperV2.class, response = PermissionGrantSpaceRoleViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapperV2.class, response = PermissionGrantSpaceRoleViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.SPACE_ROLE_USER_ID) @PathVariable("grantId") UUID grantId) {
         PermissionGrantSpaceRoleViewRsDTOv1 rs = new PermissionGrantSpaceRoleViewRsDTOv1();
         try {

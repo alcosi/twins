@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "space_role_user")
 @FieldNameConstants
-public class SpaceRoleUserEntity {
+public class SpaceRoleUserEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -55,4 +56,9 @@ public class SpaceRoleUserEntity {
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUser;
+
+    @Override
+    public String easyLog(Level level) {
+        return "spaceRoleUserEntity[id:" + id + "]";
+    }
 }

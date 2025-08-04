@@ -19,6 +19,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.link.LinkListRsDTOv1;
 import org.twins.core.mappers.rest.link.LinkBackwardRestDTOMapper;
@@ -26,6 +27,7 @@ import org.twins.core.mappers.rest.link.LinkForwardRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.link.LinkService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -34,6 +36,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.LINK_MANAGE, Permissions.LINK_VIEW})
 public class TwinClassLinkListController extends ApiController {
     private final LinkService linkService;
     private final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
@@ -49,7 +52,7 @@ public class TwinClassLinkListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class/{twinClassId}/link/v1")
     public ResponseEntity<?> twinClassLinkListV1(
-            @MapperContextBinding(roots = {LinkForwardRestDTOMapper.class, LinkBackwardRestDTOMapper.class}, response = LinkListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = {LinkForwardRestDTOMapper.class, LinkBackwardRestDTOMapper.class}, response = LinkListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         LinkListRsDTOv1 rs = new LinkListRsDTOv1();
         try {

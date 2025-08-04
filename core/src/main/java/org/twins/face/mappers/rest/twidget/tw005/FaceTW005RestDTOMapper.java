@@ -3,7 +3,7 @@ package org.twins.face.mappers.rest.twidget.tw005;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.util.StringUtils;
 import org.springframework.stereotype.Component;
-import org.twins.core.domain.face.TwidgetConfig;
+import org.twins.core.domain.face.PointedFace;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceTwidgetRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -17,13 +17,13 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
-public class FaceTW005RestDTOMapper extends RestSimpleDTOMapper<TwidgetConfig<FaceTW005Entity>, FaceTW005DTOv1> {
+public class FaceTW005RestDTOMapper extends RestSimpleDTOMapper<PointedFace<FaceTW005Entity>, FaceTW005DTOv1> {
     protected final FaceTwidgetRestDTOMapper faceTwidgetRestDTOMapper;
     protected final FaceTW005Service faceTW005Service;
     protected final FaceTW005ButtonRestDTOMapper faceTW005ButtonRestDTOMapper;
 
     @Override
-    public void map(TwidgetConfig<FaceTW005Entity> src, FaceTW005DTOv1 dst, MapperContext mapperContext) throws Exception {
+    public void map(PointedFace<FaceTW005Entity> src, FaceTW005DTOv1 dst, MapperContext mapperContext) throws Exception {
         faceTwidgetRestDTOMapper.map(src, dst, mapperContext);
         switch (mapperContext.getModeOrUse(FaceMode.SHORT)) { // perhaps we need some separate mode
             case DETAILED -> {
@@ -38,8 +38,8 @@ public class FaceTW005RestDTOMapper extends RestSimpleDTOMapper<TwidgetConfig<Fa
     }
 
     @Override
-    public void beforeCollectionConversion(Collection<TwidgetConfig<FaceTW005Entity>> srcCollection, MapperContext mapperContext) throws Exception {
+    public void beforeCollectionConversion(Collection<PointedFace<FaceTW005Entity>> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        faceTW005Service.loadButtons(srcCollection.stream().map(TwidgetConfig::getConfig).toList());
+        faceTW005Service.loadButtons(srcCollection.stream().map(PointedFace::getConfig).toList());
     }
 }

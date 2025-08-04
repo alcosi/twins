@@ -27,4 +27,13 @@ public class DataListOptionDTOv1 {
 
     @Schema(description = "map attributes (key : value)")
     public Map<String, String> attributes;
+
+    @Schema(description = "background color", example = DTOExamples.COLOR_HEX)
+    public String backgroundColor;
+
+    @Schema(description = "font color", example = DTOExamples.COLOR_HEX)
+    public String fontColor;
+
+    @Schema(description = "external id [optional]")
+    public String externalId;
 }

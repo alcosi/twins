@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dto.rest.DTOExamples;
@@ -31,6 +32,7 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.link.LinkSearchService;
 import org.twins.core.service.link.LinkService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -38,6 +40,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.LINK_MANAGE, Permissions.LINK_VIEW})
 public class LinkSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
@@ -55,7 +58,7 @@ public class LinkSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/link/search/v1")
     public ResponseEntity<?> linkSearchV1(
-            @MapperContextBinding(roots = LinkForwardRestDTOV3Mapper.class, response = LinkSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = LinkForwardRestDTOV3Mapper.class, response = LinkSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody LinkSearchRqDTOv1 request) {
         LinkSearchRsDTOv1 rs = new LinkSearchRsDTOv1();
@@ -83,7 +86,7 @@ public class LinkSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/link/{linkId}/v1")
     public ResponseEntity<?> linkViewV1(
-            @MapperContextBinding(roots = LinkForwardRestDTOV3Mapper.class, response = LinkViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = LinkForwardRestDTOV3Mapper.class, response = LinkViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.LINK_ID) @PathVariable("linkId") UUID linkId) {
         LinkViewRsDTOv1 rs = new LinkViewRsDTOv1();
         try {

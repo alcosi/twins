@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.domain.DomainUserEntity;
+import org.twins.core.dao.domain.DomainUserNoCollectionProjection;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.domain.DomainUserService;
 
 import java.util.Locale;
 
@@ -12,15 +14,16 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class LocaleResolverDomainUser implements LocaleResolver {
     final DomainService domainService;
+    final DomainUserService domainUserService;
 
     @Override
     public Locale resolveCurrentLocale() throws ServiceException {
         Locale locale;
-        DomainUserEntity domainUser = domainService.getDomainUser();
-        if (domainUser.getI18nLocaleId() != null)
-            locale = domainUser.getI18nLocaleId();
+        DomainUserNoCollectionProjection domainUser = domainUserService.getDomainUser();
+        if (domainUser.i18nLocaleId() != null)
+            locale = domainUser.i18nLocaleId();
         else
-            locale = domainService.getDefaultDomainLocale(domainUser.getDomainId());
+            locale = domainService.getDefaultDomainLocale(domainUser.domainId());
         return locale;
     }
 }

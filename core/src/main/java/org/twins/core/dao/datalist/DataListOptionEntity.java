@@ -4,11 +4,12 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -23,8 +24,14 @@ import java.util.function.Function;
 @Table(name = "data_list_option")
 public class DataListOptionEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UUID.nameUUIDFromBytes((dataListId + option + optionI18NId).getBytes());
+        }
+    }
 
     @Column(name = "data_list_id")
     private UUID dataListId;
@@ -73,14 +80,18 @@ public class DataListOptionEntity implements EasyLoggable {
     @JoinColumn(name = "data_list_id", insertable = false, updatable = false)
     private DataListEntity dataList;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
     private BusinessAccountEntity businessAccount;
 
+
     @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
     private I18nEntity optionI18n;
 
     @Deprecated //for specification only

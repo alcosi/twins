@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.domain.datalist.DataListUpdate;
 import org.twins.core.dto.rest.DTOExamples;
@@ -26,14 +27,16 @@ import org.twins.core.mappers.rest.datalist.DataListUpdateDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.datalist.DataListService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
 
-@Tag(name = ApiTag.DATA_LIST)
+@Tag(description = "", name = ApiTag.DATA_LIST)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.DATA_LIST_MANAGE, Permissions.DATA_LIST_UPDATE})
 public class DataListUpdateController extends ApiController {
     private final DataListUpdateDTOReverseMapper dataListUpdateDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -49,7 +52,7 @@ public class DataListUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/data_list/{dataListId}/v1")
     public ResponseEntity<?> dataListUpdateV1(
-            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId,
             @RequestBody DataListUpdateRqDTOv1 request) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();

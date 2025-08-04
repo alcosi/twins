@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryEraserSaveRsDTOv1;
@@ -25,6 +26,7 @@ import org.twins.core.mappers.rest.factory.FactoryEraserUpdateDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryEraserService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -32,6 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.ERASER_MANAGE, Permissions.ERASER_UPDATE})
 public class FactoryEraserUpdateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final FactoryEraserUpdateDTOReverseMapper factoryEraserUpdateDTOReverseMapper;
@@ -47,7 +50,7 @@ public class FactoryEraserUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/factory/factory_eraser/{factoryEraserId}/v1")
     public ResponseEntity<?> factoryEraserUpdateV1(
-            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserSaveRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_ERASER_ID) @PathVariable UUID factoryEraserId,
             @RequestBody FactoryEraserUpdateRqDTOv1 request) {
         FactoryEraserSaveRsDTOv1 rs = new FactoryEraserSaveRsDTOv1();

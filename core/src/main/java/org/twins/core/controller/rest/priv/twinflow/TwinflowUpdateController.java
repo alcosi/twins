@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dto.rest.DTOExamples;
@@ -27,6 +28,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinflow.TwinflowBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowUpdateRestDTOReverseMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowService;
 
 import java.util.UUID;
@@ -35,6 +37,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TWINFLOW_MANAGE, Permissions.TWINFLOW_UPDATE})
 public class TwinflowUpdateController extends ApiController {
 
     private final TwinflowBaseV2RestDTOMapper twinflowBaseV2RestDTOMapper;
@@ -52,7 +55,7 @@ public class TwinflowUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twinflow/{twinflowId}/v1")
     public ResponseEntity<?> twinflowUpdateV1(
-            @MapperContextBinding(roots = TwinflowBaseV2RestDTOMapper.class, response = TwinflowRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinflowBaseV2RestDTOMapper.class, response = TwinflowRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_ID) @PathVariable UUID twinflowId,
             @RequestBody TwinflowUpdateRqDTOv1 request) {
         TwinflowRsDTOv1 rs = new TwinflowRsDTOv1();

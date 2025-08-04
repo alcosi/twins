@@ -46,7 +46,7 @@ public class DomainViewPublicController extends ApiController {
     @GetMapping(value = "/public/domain/{domainId}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> domainViewPublicV1(
-            @MapperContextBinding(roots = DomainViewPublicRestDTOMapper.class, response = DomainViewPublicRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DomainViewPublicRestDTOMapper.class, response = DomainViewPublicRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainId) {
         DomainViewPublicRsDTOv1 rs = new DomainViewPublicRsDTOv1();
         try {
@@ -70,7 +70,7 @@ public class DomainViewPublicController extends ApiController {
     @GetMapping(value = "/public/domain_by_key/{domainKey}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> domainViewByKeyPublicV1(
-            @MapperContextBinding(roots = DomainViewPublicRestDTOMapper.class, response = DomainViewPublicRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DomainViewPublicRestDTOMapper.class, response = DomainViewPublicRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DOMAIN_KEY) @PathVariable String domainKey) {
         DomainViewPublicRsDTOv1 rs = new DomainViewPublicRsDTOv1();
         try {

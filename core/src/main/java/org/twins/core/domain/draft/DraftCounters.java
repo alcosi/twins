@@ -147,12 +147,21 @@ public class DraftCounters {
         FIELD_SIMPLE_CREATE,
         FIELD_SIMPLE_UPDATE,
         FIELD_SIMPLE_DELETE,
+        FIELD_SIMPLE_NON_INDEXED_CREATE,
+        FIELD_SIMPLE_NON_INDEXED_UPDATE,
+        FIELD_SIMPLE_NON_INDEXED_DELETE,
+        FIELD_BOOLEAN_CREATE,
+        FIELD_BOOLEAN_UPDATE,
+        FIELD_BOOLEAN_DELETE,
         FIELD_USER_CREATE,
         FIELD_USER_UPDATE,
         FIELD_USER_DELETE,
         FIELD_DATALIST_CREATE,
         FIELD_DATALIST_UPDATE,
-        FIELD_DATALIST_DELETE;
+        FIELD_DATALIST_DELETE,
+        FIELD_TWIN_CLASS_CREATE,
+        FIELD_TWIN_CLASS_UPDATE,
+        FIELD_TWIN_CLASS_DELETE
     }
 
     @RequiredArgsConstructor
@@ -187,10 +196,22 @@ public class DraftCounters {
                 Counter.FIELD_SIMPLE_CREATE,
                 Counter.FIELD_SIMPLE_UPDATE,
                 Counter.FIELD_SIMPLE_DELETE}),
+        FIELDS_SIMPLE_NON_INDEXED(new Counter[]{
+                Counter.FIELD_SIMPLE_NON_INDEXED_CREATE,
+                Counter.FIELD_SIMPLE_NON_INDEXED_UPDATE,
+                Counter.FIELD_SIMPLE_NON_INDEXED_DELETE}),
+        FIELDS_BOOLEAN(new Counter[]{
+                Counter.FIELD_BOOLEAN_CREATE,
+                Counter.FIELD_BOOLEAN_UPDATE,
+                Counter.FIELD_BOOLEAN_DELETE}),
         FIELDS_USER(new Counter[]{
                 Counter.FIELD_USER_CREATE,
                 Counter.FIELD_USER_UPDATE,
                 Counter.FIELD_USER_DELETE}),
+        FIELDS_TWIN_CLASS(new Counter[]{
+                Counter.FIELD_TWIN_CLASS_CREATE,
+                Counter.FIELD_TWIN_CLASS_UPDATE,
+                Counter.FIELD_TWIN_CLASS_DELETE}),
         FIELDS_DATALIST(new Counter[]{
                 Counter.FIELD_DATALIST_CREATE,
                 Counter.FIELD_DATALIST_UPDATE,
@@ -199,12 +220,21 @@ public class DraftCounters {
                 Counter.FIELD_SIMPLE_CREATE,
                 Counter.FIELD_SIMPLE_UPDATE,
                 Counter.FIELD_SIMPLE_DELETE,
+                Counter.FIELD_SIMPLE_NON_INDEXED_CREATE,
+                Counter.FIELD_SIMPLE_NON_INDEXED_UPDATE,
+                Counter.FIELD_SIMPLE_NON_INDEXED_DELETE,
+                Counter.FIELD_BOOLEAN_CREATE,
+                Counter.FIELD_BOOLEAN_UPDATE,
+                Counter.FIELD_BOOLEAN_DELETE,
                 Counter.FIELD_USER_CREATE,
                 Counter.FIELD_USER_UPDATE,
                 Counter.FIELD_USER_DELETE,
                 Counter.FIELD_DATALIST_CREATE,
                 Counter.FIELD_DATALIST_UPDATE,
-                Counter.FIELD_DATALIST_DELETE}),
+                Counter.FIELD_DATALIST_DELETE,
+                Counter.FIELD_TWIN_CLASS_CREATE,
+                Counter.FIELD_TWIN_CLASS_UPDATE,
+                Counter.FIELD_TWIN_CLASS_DELETE}),
         COMMIT_BLOCKERS(new Counter[]{
                 Counter.ERASE_UNDETECTED,
                 Counter.ERASE_IRREVOCABLE_DETECTED,

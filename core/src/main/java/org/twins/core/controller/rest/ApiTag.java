@@ -27,5 +27,7 @@ public class ApiTag {
     public static final String RESOURCE = "resource";
     public static final String TIER = "tier";
     public static final String I18N = "i18n";
+    public static final String AUTH = "auth";
+    public static final String STATISTIC = "statistic";
 
 }

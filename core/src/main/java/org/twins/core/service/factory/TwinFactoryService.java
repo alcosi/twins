@@ -9,9 +9,6 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.FeaturerService;
-import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
-import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -20,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.factory.*;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
@@ -35,6 +34,7 @@ import org.twins.core.featurer.factory.multiplier.Multiplier;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinEraserService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -85,7 +85,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     @Override
     public boolean isEntityReadDenied(TwinFactoryEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        return !entity.getDomainId().equals(apiUser.getDomainId());
+        return entity.getDomainId() != null && !entity.getDomainId().equals(apiUser.getDomainId());
     }
 
     @Override
@@ -410,8 +410,10 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     private Map<UUID, List<FactoryItem>> groupItemsByClass(FactoryContext factoryContext) {
         Map<UUID, List<FactoryItem>> factoryInputTwins = new HashMap<>();
         for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
-            List<FactoryItem> twinsGroupedByClass = factoryInputTwins.computeIfAbsent(factoryItem.getOutput().getTwinEntity().getTwinClassId(), k -> new ArrayList<>());
-            twinsGroupedByClass.add(factoryItem);
+            for (UUID twinClassId : factoryItem.getOutput().getTwinEntity().getTwinClass().getExtendedClassIdSet()) {
+                List<FactoryItem> twinsGroupedByClass = factoryInputTwins.computeIfAbsent(twinClassId, k -> new ArrayList<>());
+                twinsGroupedByClass.add(factoryItem);
+            }
         }
         return factoryInputTwins;
     }

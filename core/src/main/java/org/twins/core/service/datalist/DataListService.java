@@ -1,5 +1,7 @@
 package org.twins.core.service.datalist;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -49,6 +51,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
+//Log calls that took more then 2 seconds
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -320,7 +324,7 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
     }
 
     public List<DataListOptionEntity> processNewOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId) {
-        Set<String> optionsForProcessing = options.stream().filter(option -> ObjectUtils.isEmpty(option.getId())).map(DataListOptionEntity::getOption).collect(Collectors.toSet());
+        Set<String> optionsForProcessing = options.stream().filter(option -> ObjectUtils.isEmpty(option.getId()) && ObjectUtils.isEmpty(option.getExternalId())).map(DataListOptionEntity::getOption).collect(Collectors.toSet());
         options.removeIf(o -> optionsForProcessing.contains(o.getOption()));
         List<DataListOptionEntity> processedOptions = processNewOptions(dataListId, optionsForProcessing, businessAccountId);
         options.addAll(processedOptions);

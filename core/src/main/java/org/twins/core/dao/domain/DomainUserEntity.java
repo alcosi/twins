@@ -8,12 +8,15 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
-import org.twins.core.dao.i18n.LocaleConverter;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
+import org.twins.core.dao.i18n.LocaleConverter;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Collection;
+import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
 
 
 @Entity
@@ -39,6 +42,9 @@ public class DomainUserEntity implements EasyLoggable {
     @Convert(converter = LocaleConverter.class)
     private Locale i18nLocaleId;
 
+    @Column(name = "last_active_business_account_id")
+    private UUID lastActiveBusinessAccountId;
+
     @ManyToOne
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;
@@ -53,7 +59,7 @@ public class DomainUserEntity implements EasyLoggable {
     @JoinColumn(name = "domain_id", referencedColumnName = "domain_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Collection<DomainBusinessAccountEntity> domainBusinessAccountsByDomainId;
+    private Set<DomainBusinessAccountEntity> domainBusinessAccountsByDomainId;
 
 //    needed for specification
     @Deprecated
@@ -61,7 +67,7 @@ public class DomainUserEntity implements EasyLoggable {
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Collection<BusinessAccountUserEntity> businessAccountUsersByUserId;
+    private Set<BusinessAccountUserEntity> businessAccountUsersByUserId;
 
     @Transient
     @EqualsAndHashCode.Exclude

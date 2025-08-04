@@ -11,10 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -39,7 +36,7 @@ public class FaceWT002Controller extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "faceWT002ViewV1", summary = "Returns WT002 widget config: twin class buttons widget")
+    @Operation(operationId = "faceWT002ViewV1", summary = "Returns WT002 widget config: twin create buttons widget")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "WT002 face config", content = {
                     @Content(mediaType = "application/json", schema =
@@ -47,11 +44,12 @@ public class FaceWT002Controller extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/face/wt002/{faceId}/v1")
     public ResponseEntity<?> faceWT002ViewV1(
-            @MapperContextBinding(roots = FaceWT002RestDTOMapper.class, response = FaceWT002ViewRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.FACE_ID) @PathVariable UUID faceId) {
+            @MapperContextBinding(roots = FaceWT002RestDTOMapper.class, response = FaceWT002ViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.FACE_ID) @PathVariable UUID faceId,
+            @RequestParam(required = false) UUID twinId) {
         FaceWT002ViewRsDTOv1 rs = new FaceWT002ViewRsDTOv1();
         try {
-            FaceWT002Entity faceWT001Entity = faceWT002Service.findEntitySafe(faceId);
+            FaceWT002Entity faceWT001Entity = faceWT002Service.findSingleVariant(faceId, twinId);
             rs
                     .setWidget(faceWT002RestDTOMapper.convert(faceWT001Entity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

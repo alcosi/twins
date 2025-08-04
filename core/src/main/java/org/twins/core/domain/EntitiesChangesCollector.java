@@ -5,11 +5,14 @@ import org.cambium.common.util.ChangesHelper;
 
 import java.util.*;
 
-@Getter
 public class EntitiesChangesCollector {
+    @Getter
     Map<Class<?>, Map<Object, ChangesHelper>> saveEntityMap = new HashMap<>();
-//    Map<Class<?>, Set<UUID>> deleteEntityIdMap = new HashMap<>(); id's is not enough for drafting
+    @Getter
     Map<Class<?>, Set<Object>> deleteEntityMap = new HashMap<>();
+    //    Map<Class<?>, Set<UUID>> deleteEntityIdMap = new HashMap<>(); id's is not enough for drafting
+
+    public EntitiesChangesCollector() {}
 
     protected ChangesHelper detectChangesHelper(Object entity) {
         Map<Object, ChangesHelper> entityClassChanges = saveEntityMap.computeIfAbsent(entity.getClass(), k -> new HashMap<>());

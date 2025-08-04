@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryMultiplierRsDTOv1;
@@ -25,6 +26,7 @@ import org.twins.core.mappers.rest.factory.FactoryMultiplierUpdateDTOReverseMapp
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryMultiplierService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -32,6 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.MULTIPLIER_MANAGE, Permissions.MULTIPLIER_UPDATE})
 public class FactoryMultiplierUpdateController extends ApiController {
     private final FactoryMultiplierRestDTOMapperV2 factoryMultiplierRestDTOMapperV2;
     private final FactoryMultiplierUpdateDTOReverseMapper factoryMultiplierUpdateDTOReverseMapper;
@@ -47,7 +50,7 @@ public class FactoryMultiplierUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/factory_multiplier/{factoryMultiplierId}/v1")
     public ResponseEntity<?> factoryMultiplierUpdateV1(
-            @MapperContextBinding(roots = FactoryMultiplierRestDTOMapperV2.class, response = FactoryMultiplierRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryMultiplierRestDTOMapperV2.class, response = FactoryMultiplierRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_MULTIPLIER_ID) @PathVariable UUID factoryMultiplierId,
             @RequestBody FactoryMultiplierUpdateRqDTOv1 request) {
         FactoryMultiplierRsDTOv1 rs = new FactoryMultiplierRsDTOv1();

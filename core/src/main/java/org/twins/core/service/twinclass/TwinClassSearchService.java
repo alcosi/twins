@@ -2,41 +2,74 @@ package org.twins.core.service.twinclass;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
+import org.cambium.common.util.Ternary;
+import org.cambium.common.util.TernaryUtils;
+import org.cambium.featurer.FeaturerService;
+import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassRepository;
+import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.domain.search.TwinClassSearch;
+import org.twins.core.featurer.classfinder.ClassFinder;
+import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.cambium.common.util.SetUtils.narrowSet;
 import static org.springframework.data.jpa.domain.Specification.where;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.twinclass.TwinClassSpecification.*;
 
 @Slf4j
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class TwinClassSearchService {
+public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClassSearchEntity> {
     private final TwinClassRepository twinClassRepository;
+    private final TwinClassSearchRepository classSearchRepository;
+    private final TwinClassSearchPredicateRepository classSearchPredicateRepository;
+
     private final AuthService authService;
+    private final FeaturerService featurerService;
 
     public PaginationResult<TwinClassEntity> findTwinClasses(TwinClassSearch twinClassSearch, SimplePagination pagination) throws ServiceException {
         if (twinClassSearch == null)
             twinClassSearch = new TwinClassSearch(); //no filters
         Page<TwinClassEntity> twinClassList = twinClassRepository.findAll(createTwinClassEntitySearchSpecification(twinClassSearch), PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(twinClassList, pagination);
+    }
+
+    public PaginationResult<TwinClassEntity> findTwinClasses(UUID searchId, TwinClassSearch narrowSearch, SimplePagination pagination) throws ServiceException {
+        if (SystemEntityService.TWIN_CLASS_SEARCH_UNLIMITED.equals(searchId)) {
+            return findTwinClasses(narrowSearch, pagination);
+        }
+        TwinClassSearchEntity searchEntity = findEntitySafe(searchId);
+        List<TwinClassSearchPredicateEntity> searchPredicates = classSearchPredicateRepository.findByTwinClassSearchId(searchEntity.getId());
+        TwinClassSearch mainSearch = new TwinClassSearch();
+        for (TwinClassSearchPredicateEntity predicate : searchPredicates) {
+            ClassFinder classFinder = featurerService.getFeaturer(predicate.getClassFinderFeaturerId(), ClassFinder.class);
+            classFinder.concatSearch(predicate.getClassFinderParams(), mainSearch);
+        }
+        narrowSearch(mainSearch, narrowSearch);
+        return findTwinClasses(mainSearch, pagination);
     }
 
     public List<TwinClassEntity> searchTwinClasses(TwinClassSearch twinClassSearch) throws ServiceException {
@@ -47,10 +80,14 @@ public class TwinClassSearchService {
 
     public Specification<TwinClassEntity> createTwinClassEntitySearchSpecification(TwinClassSearch twinClassSearch) throws ServiceException {
         Locale locale = authService.getApiUser().getLocale();
-        HierarchySearch headHierarchyChildsForTwinClassSearch = twinClassSearch.getHeadHierarchyChildsForTwinClassSearch();
-        HierarchySearch headHierarchyParentsForTwinClassSearch = twinClassSearch.getHeadHierarchyParentsForTwinClassSearch();
-        HierarchySearch extendsHierarchyChildsForTwinClassSearch = twinClassSearch.getExtendsHierarchyChildsForTwinClassSearch();
-        HierarchySearch extendsHierarchyParentsForTwinClassSearch = twinClassSearch.getExtendsHierarchyParentsForTwinClassSearch();
+        HierarchySearch headHierarchyChildrenForTwinClassSearch =
+                java.util.Objects.requireNonNullElse(twinClassSearch.getHeadHierarchyChildsForTwinClassSearch(), HierarchySearch.EMPTY);
+        HierarchySearch headHierarchyParentsForTwinClassSearch =
+                java.util.Objects.requireNonNullElse(twinClassSearch.getHeadHierarchyParentsForTwinClassSearch(), HierarchySearch.EMPTY);
+        HierarchySearch extendsHierarchyChildsForTwinClassSearch =
+                java.util.Objects.requireNonNullElse(twinClassSearch.getExtendsHierarchyChildsForTwinClassSearch(), HierarchySearch.EMPTY);
+        HierarchySearch extendsHierarchyParentsForTwinClassSearch =
+                java.util.Objects.requireNonNullElse(twinClassSearch.getExtendsHierarchyParentsForTwinClassSearch(), HierarchySearch.EMPTY);
 
         return where(
                 checkOwnerTypeIn(twinClassSearch.getOwnerTypeList(), false)
@@ -66,8 +103,8 @@ public class TwinClassSearchService {
                         .and(checkFieldLikeIn(twinClassSearch.getExternalIdLikeList(), false, false, TwinClassEntity.Fields.externalId))
                         .and(checkFieldLikeIn(twinClassSearch.getExternalIdNotLikeList(), true, false, TwinClassEntity.Fields.externalId))
 
-                        .and(checkHeadTwinClassChilds(headHierarchyChildsForTwinClassSearch.getIdList(), false, false, headHierarchyChildsForTwinClassSearch.getDepth()))
-                        .and(checkHeadTwinClassChilds(headHierarchyChildsForTwinClassSearch.getIdExcludeList(), true, true, headHierarchyChildsForTwinClassSearch.getDepth()))
+                        .and(checkHeadTwinClassChilds(headHierarchyChildrenForTwinClassSearch.getIdList(), false, false, headHierarchyChildrenForTwinClassSearch.getDepth()))
+                        .and(checkHeadTwinClassChilds(headHierarchyChildrenForTwinClassSearch.getIdExcludeList(), true, true, headHierarchyChildrenForTwinClassSearch.getDepth()))
                         .and(checkHeadTwinClassParents(headHierarchyParentsForTwinClassSearch.getIdList(), false, false, headHierarchyParentsForTwinClassSearch.getDepth()))
                         .and(checkHeadTwinClassParents(headHierarchyParentsForTwinClassSearch.getIdExcludeList(), true, true, headHierarchyParentsForTwinClassSearch.getDepth()))
 
@@ -96,5 +133,45 @@ public class TwinClassSearchService {
                         .and(checkUuidIn(twinClassSearch.getDeletePermissionIdList(), false, false, TwinClassEntity.Fields.deletePermissionId))
                         .and(checkUuidIn(twinClassSearch.getDeletePermissionIdExcludeList(), true, false, TwinClassEntity.Fields.deletePermissionId))
         );
+    }
+
+    protected void narrowSearch(TwinClassSearch mainSearch, TwinClassSearch narrowSearch) {
+        if (narrowSearch == null)
+            return;
+        for (Pair<Function<TwinClassSearch, Set>, BiConsumer<TwinClassSearch, Set>> functionPair : TwinClassSearch.SET_FIELD) {
+            Set mainSet = functionPair.getKey().apply(mainSearch);
+            Set narrowSet = functionPair.getKey().apply(narrowSearch);
+            functionPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
+        }
+        for (Pair<Function<TwinClassSearch, Ternary>, BiConsumer<TwinClassSearch, Ternary>> functionPair : TwinClassSearch.TERNARY_FIELD) {
+            Ternary mainSet = functionPair.getKey().apply(mainSearch);
+            Ternary narrowSet = functionPair.getKey().apply(narrowSearch);
+            functionPair.getValue().accept(mainSearch, TernaryUtils.narrow(mainSet, narrowSet));
+        }
+    }
+
+    @Override
+    public CrudRepository<TwinClassSearchEntity, UUID> entityRepository() {
+        return classSearchRepository;
+    }
+
+    @Override
+    public Function<TwinClassSearchEntity, UUID> entityGetIdFunction() {
+        return TwinClassSearchEntity::getId;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(TwinClassSearchEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        DomainEntity domain = authService.getApiUser().getDomain();
+        boolean readDenied = entity.getDomainId() != null && !entity.getDomainId().equals(domain.getId());
+        if (readDenied) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.logNormal() + " is not allowed in" + domain.logShort());
+        }
+        return readDenied;
+    }
+
+    @Override
+    public boolean validateEntity(TwinClassSearchEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
     }
 }

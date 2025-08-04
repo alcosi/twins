@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twin.TwinTouchEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinListTouchAddRqDTOv1;
@@ -23,6 +24,7 @@ import org.twins.core.dto.rest.twin.TwinTouchListRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinTouchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.twin.TwinTouchRestDTOMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinTouchService;
 
 import java.util.List;
@@ -32,6 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_UPDATE})
 public class TwinTouchAddController extends ApiController {
 
     private final TwinTouchRestDTOMapper twinTouchRestDTOMapper;
@@ -49,7 +52,7 @@ public class TwinTouchAddController extends ApiController {
     public ResponseEntity<?> twinTouchAddV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @Parameter(example = DTOExamples.TWIN_TOUCH) @PathVariable String touchId,
-            @MapperContextBinding(roots = TwinTouchRestDTOMapper.class, response = TwinTouchRsDTOv1.class) MapperContext mapperContext) {
+            @MapperContextBinding(roots = TwinTouchRestDTOMapper.class, response = TwinTouchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext) {
         TwinTouchRsDTOv1 rs = new TwinTouchRsDTOv1();
         try {
             TwinTouchEntity twinTouchEntity = twinTouchService.addTouch(twinId, TwinTouchEntity.Touch.valueOfId(touchId.toUpperCase()));
@@ -72,7 +75,7 @@ public class TwinTouchAddController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/touch/{touchId}/v1")
     public ResponseEntity<?> twinTouchAddListV1 (
-            @MapperContextBinding(roots = TwinTouchRestDTOMapper.class, response = TwinTouchListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinTouchRestDTOMapper.class, response = TwinTouchListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_TOUCH) @PathVariable String touchId,
             @RequestBody TwinListTouchAddRqDTOv1 request) {
         TwinTouchListRsDTOv1 rs = new TwinTouchListRsDTOv1();

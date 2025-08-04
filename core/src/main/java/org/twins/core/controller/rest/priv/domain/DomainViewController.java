@@ -19,11 +19,9 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
-import org.twins.core.controller.rest.annotation.ParametersApiUserNoDomainHeaders;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.domain.apiuser.BusinessAccountResolverNotSpecified;
-import org.twins.core.domain.apiuser.DomainResolverNotSpecified;
-import org.twins.core.domain.apiuser.LocaleResolverEnglish;
 import org.twins.core.domain.apiuser.UserResolverAuthToken;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.domain.DomainViewRsDTOv1;
@@ -32,6 +30,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
@@ -39,6 +38,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.DOMAIN_MANAGE, Permissions.DOMAIN_VIEW})
 public class DomainViewController extends ApiController {
     private final DomainService domainService;
     private final DomainViewRestDTOMapper domainViewRestDTOMapper;
@@ -46,7 +46,7 @@ public class DomainViewController extends ApiController {
     private final AuthService authService;
     private final UserResolverAuthToken userResolverAuthToken;
 
-    @ParametersApiUserNoDomainHeaders
+    @ParametersApiUserHeaders
     @Operation(operationId = "domainViewV1", summary = "Returns domain data by id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = " domain details prepared", content = {
@@ -56,16 +56,16 @@ public class DomainViewController extends ApiController {
     @GetMapping(value = "/private/domain/{domainId}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> domainViewV1(
-            @MapperContextBinding(roots = DomainViewRestDTOMapper.class, response = DomainViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DomainViewRestDTOMapper.class, response = DomainViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainId) {
 
         DomainViewRsDTOv1 rs = new DomainViewRsDTOv1();
         try {
-            authService.getApiUser()
-                    .setUserResolver(userResolverAuthToken)
-                    .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified())
-                    .setLocaleResolver(new LocaleResolverEnglish())
-                    .setDomainResolver(new DomainResolverNotSpecified());
+//            authService.getApiUser()
+//                    .setUserResolver(userResolverAuthToken)
+//                    .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified())
+//                    .setLocaleResolver(new LocaleResolverEnglish())
+//                    .setDomainResolver(new DomainResolverNotSpecified());
             DomainEntity domainEntity = domainService.findEntitySafe(domainId);
             rs
                     .setDomain(domainViewRestDTOMapper.convert(domainEntity, mapperContext))

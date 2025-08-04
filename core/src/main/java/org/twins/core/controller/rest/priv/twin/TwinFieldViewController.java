@@ -19,11 +19,13 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.TwinField;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinFieldRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.UUID;
@@ -32,6 +34,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_VIEW})
 public class TwinFieldViewController extends ApiController {
     private final TwinService twinService;
     private final TwinFieldRestDTOMapper twinFieldRestDTOMapper;
@@ -45,7 +48,7 @@ public class TwinFieldViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin/{twinId}/field/{fieldKey}/v1")
     public ResponseEntity<?> twinFieldByKeyViewV1(
-            @MapperContextBinding(roots = TwinFieldRestDTOMapper.class, response = TwinFieldRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinFieldRestDTOMapper.class, response = TwinFieldRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @Parameter(example = DTOExamples.TWIN_FIELD_KEY) @PathVariable String fieldKey) {
         TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();
@@ -60,7 +63,7 @@ public class TwinFieldViewController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
-    private void fillResponse(TwinField twinField, MapperContext mapperContext, TwinFieldRsDTOv1 rs) throws Exception {
+    private void fillResponse(TwinField twinField, @Schema(hidden = true) MapperContext mapperContext, TwinFieldRsDTOv1 rs) throws Exception {
         rs
                 .twinId(twinField.getTwinId())
                 .field(twinFieldRestDTOMapper.convert(

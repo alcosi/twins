@@ -20,6 +20,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.user.UserSearchRqDTOv1;
@@ -29,12 +30,14 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserSearchDTOReverseMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.user.UserSearchService;
 
 @Tag(description = "", name = ApiTag.USER)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.USER_MANAGE, Permissions.USER_VIEW})
 public class UserSearchController extends ApiController {
     private final UserSearchService userSearchService;
     private final UserRestDTOMapper userRestDTOMapper;
@@ -52,7 +55,7 @@ public class UserSearchController extends ApiController {
     })
     @PostMapping(value = "/private/user/search/v1")
     public ResponseEntity<?> UserSearchV1(
-            @MapperContextBinding(roots = UserRestDTOMapper.class, response = UserSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = UserRestDTOMapper.class, response = UserSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody UserSearchRqDTOv1 request) {
         UserSearchRsDTOv1 rs = new UserSearchRsDTOv1();

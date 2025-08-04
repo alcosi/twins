@@ -9,6 +9,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.twinclass.*;
+import org.twins.core.featurer.fieldtyper.FieldDescriptorTwinClassList;
 import org.twins.core.featurer.fieldtyper.descriptor.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
@@ -46,6 +47,9 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
             return new TwinClassFieldDescriptorTextDTOv1()
                     .regExp(textDescriptor.regExp())
                     .editorType(textDescriptor.editorType());
+        else if (fieldDescriptor instanceof FieldDescriptorSecret passwordDescriptor)
+            return new TwinClassFieldDescriptorSecretDTOv1()
+                    .regExp(passwordDescriptor.regExp());
         else if (fieldDescriptor instanceof FieldDescriptorColorPicker colorDescriptor)
             return new TwinClassFieldDescriptorColorHexDTOv1();
         else if (fieldDescriptor instanceof FieldDescriptorDate dateDescriptor)
@@ -88,6 +92,9 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                     .extensions(attachmentDescriptor.extensions())
                     .fileSizeMbLimit(attachmentDescriptor.fileSizeMbLimit())
                     .filenameRegExp(attachmentDescriptor.filenameRegExp());
+        else if (fieldDescriptor instanceof FieldDescriptorBoolean booleanDescriptor)
+            return new TwinClassFieldDescriptorBooleanDTOv1()
+                    .checkboxType(booleanDescriptor.checkboxType());
         else if (fieldDescriptor instanceof FieldDescriptorNumeric numericDescriptor)
             return new TwinClassFieldDescriptorNumericDTOv1()
                     .min(numericDescriptor.min())
@@ -115,6 +122,9 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
             }
         else if (fieldDescriptor instanceof FieldDescriptorI18n i18nDescriptor) {
             return new TwinClassFieldDescriptorI18nDTOv1();
+        }
+        else if (fieldDescriptor instanceof FieldDescriptorTwinClassList twinClassListDescriptor) {
+            return new TwinClassFieldDescriptorTwinClassListDTOv1();
         }
         return null;
     }

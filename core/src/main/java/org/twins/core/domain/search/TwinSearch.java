@@ -7,6 +7,8 @@ import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.twin.TwinTouchEntity;
+import org.twins.core.domain.DataTimeRange;
+import org.twins.core.domain.apiuser.DBUMembershipCheck;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -26,6 +28,7 @@ public class TwinSearch {
     private Set<UUID> twinIdExcludeList;
     private Set<UUID> twinClassIdList;
     private Set<UUID> twinClassIdExcludeList;
+    private DBUMembershipCheck dbuMembershipCheck; // this will take sense only if we search by TWIN_CLASS_USER or TWIN_CLASS_BUSINESS_ACCOUNT
     private Set<UUID> headTwinClassIdList;
     private Set<UUID> twinClassExtendsHierarchyContainsIdList;
     private Set<UUID> headTwinIdList;
@@ -36,10 +39,14 @@ public class TwinSearch {
     private Set<UUID> createdByUserIdExcludeList;
     private Set<UUID> ownerUserIdList;
     private Set<UUID> ownerBusinessAccountIdList;
-    private Map<UUID, Set<UUID>> linksAnyOfList;
-    private Map<UUID, Set<UUID>> linksNoAnyOfList;
-    private Map<UUID, Set<UUID>> linksAllOfList;
-    private Map<UUID, Set<UUID>> linksNoAllOfList;
+    private Map<UUID, Set<UUID>> dstLinksAnyOfList;
+    private Map<UUID, Set<UUID>> dstLinksNoAnyOfList;
+    private Map<UUID, Set<UUID>> dstLinksAllOfList;
+    private Map<UUID, Set<UUID>> dstLinksNoAllOfList;
+    private Map<UUID, Set<UUID>> srcLinksAnyOfList;
+    private Map<UUID, Set<UUID>> srcLinksNoAnyOfList;
+    private Map<UUID, Set<UUID>> srcLinksAllOfList;
+    private Map<UUID, Set<UUID>> srcLinksNoAllOfList;
     private Set<UUID> hierarchyTreeContainsIdList;
     private Set<UUID> statusIdExcludeList;
     private Set<UUID> tagDataListOptionIdList;
@@ -49,6 +56,7 @@ public class TwinSearch {
     private Set<TwinTouchEntity.Touch> touchList;
     private Set<TwinTouchEntity.Touch> touchExcludeList;
     private List<TwinFieldSearch> fields;
+    private DataTimeRange createdAt;
 
     public boolean isEmpty() {
         return CollectionUtils.isEmpty(twinIdList) &&
@@ -71,10 +79,14 @@ public class TwinSearch {
                 CollectionUtils.isEmpty(createdByUserIdExcludeList) &&
                 CollectionUtils.isEmpty(ownerUserIdList) &&
                 CollectionUtils.isEmpty(ownerBusinessAccountIdList) &&
-                CollectionUtils.isEmpty(linksAnyOfList) &&
-                CollectionUtils.isEmpty(linksNoAnyOfList) &&
-                CollectionUtils.isEmpty(linksAllOfList) &&
-                CollectionUtils.isEmpty(linksNoAllOfList) &&
+                CollectionUtils.isEmpty(dstLinksAnyOfList) &&
+                CollectionUtils.isEmpty(dstLinksNoAnyOfList) &&
+                CollectionUtils.isEmpty(dstLinksAllOfList) &&
+                CollectionUtils.isEmpty(dstLinksNoAllOfList) &&
+                CollectionUtils.isEmpty(srcLinksAnyOfList) &&
+                CollectionUtils.isEmpty(srcLinksNoAnyOfList) &&
+                CollectionUtils.isEmpty(srcLinksAllOfList) &&
+                CollectionUtils.isEmpty(srcLinksNoAllOfList) &&
                 CollectionUtils.isEmpty(hierarchyTreeContainsIdList) &&
                 CollectionUtils.isEmpty(statusIdExcludeList) &&
                 CollectionUtils.isEmpty(tagDataListOptionIdList) &&
@@ -83,7 +95,8 @@ public class TwinSearch {
                 CollectionUtils.isEmpty(markerDataListOptionIdExcludeList) &&
                 CollectionUtils.isEmpty(touchList) &&
                 CollectionUtils.isEmpty(touchExcludeList) &&
-                CollectionUtils.isEmpty(fields);
+                CollectionUtils.isEmpty(fields) &&
+                createdAt == null;
     }
 
     public TwinSearch addTwinId(UUID twinId, boolean exclude) {
@@ -124,8 +137,6 @@ public class TwinSearch {
         headTwinIdList = CollectionUtils.safeAdd(headTwinIdList, headerTwinIds);
         return this;
     }
-
-
 
     public TwinSearch addStatusId(UUID statusId, boolean exclude) {
         if (exclude)
@@ -173,27 +184,55 @@ public class TwinSearch {
         Map<UUID, Set<UUID>> map = null;
         if (exclude) {
             if (or) {
-                if (linksNoAnyOfList == null) linksNoAnyOfList = new HashMap<>();
-                map = linksNoAnyOfList;
+                if (dstLinksNoAnyOfList == null) dstLinksNoAnyOfList = new HashMap<>();
+                map = dstLinksNoAnyOfList;
             } else {
-                if (linksNoAllOfList == null) linksNoAllOfList = new HashMap<>();
-                map = linksNoAllOfList;
+                if (dstLinksNoAllOfList == null) dstLinksNoAllOfList = new HashMap<>();
+                map = dstLinksNoAllOfList;
             }
         } else {
             if (or) {
-                if (linksAnyOfList == null) linksAnyOfList = new HashMap<>();
-                map = linksAnyOfList;
+                if (dstLinksAnyOfList == null) dstLinksAnyOfList = new HashMap<>();
+                map = dstLinksAnyOfList;
             } else {
-                if (linksAllOfList == null) linksAllOfList = new HashMap<>();
-                map = linksAllOfList;
+                if (dstLinksAllOfList == null) dstLinksAllOfList = new HashMap<>();
+                map = dstLinksAllOfList;
             }
         }
         map.computeIfAbsent(linkId, k -> new HashSet<>()).addAll(null != dstTwinIdList ? dstTwinIdList : Collections.emptySet());
         return this;
     }
 
+    public TwinSearch addLinkSrcTwinsId(UUID linkId, Collection<UUID> srcTwinIdList, boolean exclude, boolean or) {
+        Map<UUID, Set<UUID>> map = null;
+        if (exclude) {
+            if (or) {
+                if (srcLinksNoAnyOfList == null) srcLinksNoAnyOfList = new HashMap<>();
+                map = srcLinksNoAnyOfList;
+            } else {
+                if (srcLinksNoAllOfList == null) srcLinksNoAllOfList = new HashMap<>();
+                map = srcLinksNoAllOfList;
+            }
+        } else {
+            if (or) {
+                if (srcLinksAnyOfList == null) srcLinksAnyOfList = new HashMap<>();
+                map = srcLinksAnyOfList;
+            } else {
+                if (srcLinksAllOfList == null) srcLinksAllOfList = new HashMap<>();
+                map = srcLinksAllOfList;
+            }
+        }
+        map.computeIfAbsent(linkId, k -> new HashSet<>()).addAll(null != srcTwinIdList ? srcTwinIdList : Collections.emptySet());
+        return this;
+    }
+
     public TwinSearch addHierarchyTreeContainsId(UUID twinId) {
         hierarchyTreeContainsIdList = CollectionUtils.safeAdd(hierarchyTreeContainsIdList, twinId);
+        return this;
+    }
+
+    public TwinSearch addTwinClassExtendsHierarchyContainsId(UUID twinClassId) {
+        twinClassExtendsHierarchyContainsIdList = CollectionUtils.safeAdd(twinClassExtendsHierarchyContainsIdList, twinClassId);
         return this;
     }
 

@@ -1,0 +1,1 @@
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2432, 24, 'org.twins.core.featurer.factory.conditioner.ConditionerFactoryItemTwinOfStatuses', 'Twin has one of statuses', null, false) on conflict (id) do nothing;

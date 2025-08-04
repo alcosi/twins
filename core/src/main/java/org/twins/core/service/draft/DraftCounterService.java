@@ -23,9 +23,12 @@ public class DraftCounterService {
     private final DraftTwinAttachmentRepository draftTwinAttachmentRepository;
     private final DraftTwinLinkRepository draftTwinLinkRepository;
     private final DraftTwinFieldSimpleRepository draftTwinFieldSimpleRepository;
+    private final DraftTwinFieldSimpleNonIndexedRepository draftTwinFieldSimpleNonIndexedRepository;
+    private final DraftTwinFieldBooleanRepository draftTwinFieldBooleanRepository;
     private final DraftTwinFieldUserRepository draftTwinFieldUserRepository;
     private final DraftTwinFieldDataListRepository draftTwinFieldDataListRepository;
     private final DraftTwinPersistRepository draftTwinPersistRepository;
+    private final DraftTwinFieldTwinClassRepository draftTwinFieldTwinClassRepository;
 
     public void loadCounters(DraftEntity draftEntity) throws ServiceException {
         syncCounters(draftEntity);
@@ -47,8 +50,11 @@ public class DraftCounterService {
 
     private void syncFields(DraftEntity draftEntity) throws ServiceException {
         syncFieldsSimple(draftEntity);
+        syncFieldsSimpleNonIndexed(draftEntity);
+        syncFieldsBoolean(draftEntity);
         syncFieldsUser(draftEntity);
         syncFieldsDatalist(draftEntity);
+        syncFieldsTwinClass(draftEntity);
     }
 
     private void syncFieldsSimple(DraftEntity draftEntity) throws ServiceException {
@@ -60,6 +66,30 @@ public class DraftCounterService {
         draftEntity.getCounters().set(FIELD_SIMPLE_DELETE, countersMap.getOrDefault(CUD.DELETE, 0));
     }
 
+    private void syncFieldsSimpleNonIndexed(DraftEntity draftEntity) throws ServiceException {
+        if (draftEntity.getCounters().isValid(FIELDS_SIMPLE_NON_INDEXED)) {
+            return;
+        }
+
+        Map<Object, Integer> countersMap = toMap(draftTwinFieldSimpleNonIndexedRepository.getCounters(draftEntity.getId()));
+
+        draftEntity.getCounters().set(FIELD_SIMPLE_NON_INDEXED_CREATE, countersMap.getOrDefault(CUD.CREATE, 0));
+        draftEntity.getCounters().set(FIELD_SIMPLE_NON_INDEXED_UPDATE, countersMap.getOrDefault(CUD.UPDATE, 0));
+        draftEntity.getCounters().set(FIELD_SIMPLE_NON_INDEXED_DELETE, countersMap.getOrDefault(CUD.DELETE, 0));
+    }
+
+    private void syncFieldsBoolean(DraftEntity draftEntity) throws ServiceException {
+        if (draftEntity.getCounters().isValid(FIELDS_BOOLEAN)) {
+            return;
+        }
+
+        Map<Object, Integer> countersMap = toMap(draftTwinFieldBooleanRepository.getCounters(draftEntity.getId()));
+
+        draftEntity.getCounters().set(FIELD_BOOLEAN_CREATE, countersMap.getOrDefault(CUD.CREATE, 0));
+        draftEntity.getCounters().set(FIELD_BOOLEAN_UPDATE, countersMap.getOrDefault(CUD.UPDATE, 0));
+        draftEntity.getCounters().set(FIELD_BOOLEAN_DELETE, countersMap.getOrDefault(CUD.DELETE, 0));
+    }
+
     private void syncFieldsUser(DraftEntity draftEntity) throws ServiceException {
         if (draftEntity.getCounters().isValid(FIELDS_USER))
             return;
@@ -67,6 +97,15 @@ public class DraftCounterService {
         draftEntity.getCounters().set(FIELD_USER_CREATE, countersMap.getOrDefault(CUD.CREATE, 0));
         draftEntity.getCounters().set(FIELD_USER_UPDATE, countersMap.getOrDefault(CUD.UPDATE, 0));
         draftEntity.getCounters().set(FIELD_USER_DELETE, countersMap.getOrDefault(CUD.DELETE, 0));
+    }
+
+    private void syncFieldsTwinClass(DraftEntity draftEntity) throws ServiceException {
+        if (draftEntity.getCounters().isValid(FIELDS_TWIN_CLASS))
+            return;
+        Map<Object, Integer> countersMap = toMap(draftTwinFieldTwinClassRepository.getCounters(draftEntity.getId()));
+        draftEntity.getCounters().set(FIELD_TWIN_CLASS_CREATE, countersMap.getOrDefault(CUD.CREATE, 0));
+        draftEntity.getCounters().set(FIELD_TWIN_CLASS_UPDATE, countersMap.getOrDefault(CUD.UPDATE, 0));
+        draftEntity.getCounters().set(FIELD_TWIN_CLASS_DELETE, countersMap.getOrDefault(CUD.DELETE, 0));
     }
 
     private void syncFieldsDatalist(DraftEntity draftEntity) throws ServiceException {

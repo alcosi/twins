@@ -7,9 +7,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
-import org.twins.core.domain.apiuser.DomainResolverGivenId;
-import org.twins.core.domain.apiuser.UserResolverGivenId;
+import org.twins.core.domain.apiuser.*;
 
 import java.util.UUID;
 
@@ -37,6 +35,8 @@ public class AuthService {
         //todo think over ApiUser interface
         ApiUser apiUser = new ApiUser(apiUserResolverService);
         apiUser
+                .setMachineUserResolver(MachineUserResolverNotSpecified.instance)
+                .setMachineBusinessAccountResolver(MachineBusinessAccountResolverNotSpecified.instance)
                 .setUserResolver(new UserResolverGivenId(userId))
                 .setDomainResolver(new DomainResolverGivenId(domainId))
                 .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId));

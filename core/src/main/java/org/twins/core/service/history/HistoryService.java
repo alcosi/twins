@@ -32,6 +32,7 @@ import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
@@ -265,6 +266,14 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return new HistoryItem<>(HistoryType.fieldChanged, context);
     }
 
+    public HistoryItem<HistoryContextStringChange> fieldChangeSimpleSecret(TwinClassFieldEntity twinClassFieldEntity, String fromValue) {
+        HistoryContextStringChange context = new HistoryContextStringChange()
+                .setFromValue(fromValue == null ? null : "***")
+                .setToValue("***");
+        context.shotField(twinClassFieldEntity, i18nService);
+        return new HistoryItem<>(HistoryType.fieldChanged, context);
+    }
+
     public HistoryItem<HistoryContextI18nChange> fieldChangeI18n(
             TwinClassFieldEntity twinClassFieldEntity,
             Locale fromLocale,
@@ -292,6 +301,22 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     public HistoryItem<HistoryContextUserMultiChange> fieldChangeUserMulti(TwinClassFieldEntity twinClassFieldEntity) {
         HistoryContextUserMultiChange context = new HistoryContextUserMultiChange();
         context.shotField(twinClassFieldEntity, i18nService);
+        return new HistoryItem<>(HistoryType.fieldChanged, context);
+    }
+
+    public HistoryItem<HistoryContextTwinClassChange> fieldChangeTwinClass(TwinClassFieldEntity twinClassFieldEntity, TwinClassEntity fromClass, TwinClassEntity toClass) {
+        HistoryContextTwinClassChange context = new HistoryContextTwinClassChange()
+                .shotFromClass(fromClass)
+                .shotToClass(toClass);
+        context.shotField(twinClassFieldEntity, i18nService);
+
+        return new HistoryItem<>(HistoryType.fieldChanged, context);
+    }
+
+    public HistoryItem<HistoryContextTwinClassMultiChange> fieldChangeTwinClassMulti(TwinClassFieldEntity twinClassFieldEntity) {
+        HistoryContextTwinClassMultiChange context = new HistoryContextTwinClassMultiChange();
+        context.shotField(twinClassFieldEntity, i18nService);
+
         return new HistoryItem<>(HistoryType.fieldChanged, context);
     }
 

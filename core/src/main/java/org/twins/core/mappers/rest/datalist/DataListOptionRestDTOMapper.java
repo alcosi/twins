@@ -1,14 +1,14 @@
 package org.twins.core.mappers.rest.datalist;
 
 import lombok.RequiredArgsConstructor;
-import org.twins.core.service.i18n.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
-import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
+import org.twins.core.service.i18n.I18nService;
 
 import java.util.Hashtable;
 
@@ -23,19 +23,20 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
     @Override
     public void map(DataListOptionEntity src, DataListOptionDTOv1 dst, MapperContext mapperContext) {
         switch (mapperContext.getModeOrUse(DataListOptionMode.DETAILED)) {
-            case DETAILED:
+            case DETAILED ->
                 dst
                         .setId(src.getId())
                         .setName(src.getOptionI18NId() != null ? i18nService.translateToLocale(src.getOptionI18NId()) : src.getOption())
                         .setIcon(src.getIcon())
                         .setAttributes(getAttributes(src))
-                        .setStatus(src.getStatus());
-                break;
-            case SHORT:
+                        .setStatus(src.getStatus())
+                        .setBackgroundColor(src.getBackgroundColor())
+                        .setExternalId(src.getExternalId())
+                        .setFontColor(src.getFontColor());
+            case SHORT ->
                 dst
                         .setId(src.getId())
                         .setName(src.getOptionI18NId() != null ? i18nService.translateToLocale(src.getOptionI18NId()) : src.getOption());
-                break;
         }
     }
 

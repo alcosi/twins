@@ -10,11 +10,15 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.permission.PermissionGrantAssigneePropagationEntity;
 import org.twins.core.dto.rest.permission.PermissionGrantAssigneePropagationCreateRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGrantAssigneePropagationRsDTOv1;
@@ -23,11 +27,13 @@ import org.twins.core.mappers.rest.permission.PermissionGrantAssigneePropagation
 import org.twins.core.mappers.rest.permission.PermissionGrantAssigneePropagationRestDTOMapperV2;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantAssigneePropagationService;
+import org.twins.core.service.permission.Permissions;
 
-@Tag(description = "", name = ApiTag.PERMISSION)
+@Tag(description = "Create permission grant assignee propagation", name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_MANAGE, Permissions.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_CREATE})
 public class PermissionGrantAssigneePropagationCreateController extends ApiController {
     private final PermissionGrantAssigneePropagationService permissionGrantAssigneePropagationService;
     private final PermissionGrantAssigneePropagationRestDTOMapperV2 permissionGrantAssigneePropagationRestDTOMapperV2;
@@ -43,7 +49,7 @@ public class PermissionGrantAssigneePropagationCreateController extends ApiContr
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/assignee_propagation/v1")
     public ResponseEntity<?> permissionGrantAssigneePropagationCreateV1(
-            @MapperContextBinding(roots = PermissionGrantAssigneePropagationRestDTOMapperV2.class, response = PermissionGrantAssigneePropagationRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantAssigneePropagationRestDTOMapperV2.class, response = PermissionGrantAssigneePropagationRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody PermissionGrantAssigneePropagationCreateRqDTOv1 request) {
         PermissionGrantAssigneePropagationRsDTOv1 rs = new PermissionGrantAssigneePropagationRsDTOv1();
         try {

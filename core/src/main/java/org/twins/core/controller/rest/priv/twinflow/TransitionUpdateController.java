@@ -17,6 +17,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
@@ -29,6 +30,9 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TransitionUpdateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.validator.TransitionValidatorRuleCUDRestDTOReverseMapper;
+import org.twins.core.mappers.rest.twinflow.TriggerCUDRestDTOReverseMapperV1;
+import org.twins.core.mappers.rest.validator.TransitionValidatorRuleCUDRestDTOReverseMapperV1;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 
 import java.util.UUID;
@@ -37,6 +41,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
+@ProtectedBy({Permissions.TRANSITION_MANAGE, Permissions.TRANSITION_UPDATE})
 public class TransitionUpdateController extends ApiController {
     private final TransitionUpdateRestDTOReverseMapper transitionUpdateRestDTOReverseMapper;
     private final TransitionValidatorRuleCUDRestDTOReverseMapper transitionValidatorRuleCUDRestDTOReverseMapper;
@@ -53,7 +58,7 @@ public class TransitionUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/transition/{transitionId}/v1")
     public ResponseEntity<?> transitionUpdateV1(
-            @MapperContextBinding(roots = TransitionBaseV2RestDTOMapper.class, response = TransitionUpdateRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TransitionBaseV2RestDTOMapper.class, response = TransitionUpdateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ID) @PathVariable UUID transitionId,
             @RequestBody TransitionUpdateRqDTOv1 request) {
         TransitionUpdateRsDTOv1 rs = new TransitionUpdateRsDTOv1();
