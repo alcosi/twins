@@ -309,11 +309,9 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinflowTransitionEntity updateTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, I18nEntity nameI18n, I18nEntity descriptionI18n, EntityCUD<TwinflowTransitionValidatorRuleEntity> validatorCUD, EntityCUD<TwinflowTransitionTriggerEntity> triggerCUD) throws ServiceException {
+    public TwinflowTransitionEntity updateTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         TwinflowTransitionEntity dbTwinflowTransitionEntity = findEntitySafe(twinflowTransitionEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
-        cudValidators(dbTwinflowTransitionEntity, validatorCUD);
-        cudTriggers(dbTwinflowTransitionEntity, triggerCUD);
         updateTransitionAlias(dbTwinflowTransitionEntity, twinflowTransitionEntity.getTwinflowTransitionAlias(), changesHelper);
         updateTransitionName(dbTwinflowTransitionEntity, nameI18n, changesHelper);
         updateTransitionDescription(dbTwinflowTransitionEntity, descriptionI18n, changesHelper);
