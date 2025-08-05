@@ -139,6 +139,8 @@ public class Kit<E, K> implements Collection<E> {
 
     @Override
     public int size() {
+        if (collection == null)
+            return 0;
         return CollectionUtils.size(collection);
     }
 
