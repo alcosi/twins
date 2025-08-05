@@ -26,7 +26,7 @@ import java.util.UUID;
 public class FaceTW007Controller extends ApiController {
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "faceTW007ViewV1", summary = "Returns TW007 widget config: twin class search widget")
+    @Operation(operationId = "faceTW007ViewV1", summary = "Returns TW007 widget config: twin class change widget")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "TW007 face config", content = {
                     @Content(mediaType = "application/json", schema =

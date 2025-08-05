@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -11,8 +12,11 @@ import java.util.UUID;
 @Schema(name = "FaceTW007v1")
 public class FaceTW007DTOv1 extends FaceTwidgetDTOv1 {
 
-    @Schema(description = "search id")
-    public UUID searchId;
+    @Schema(description = "twin class search id")
+    public UUID twinClassSearchId;
+
+    @Schema(description = "Search named params values")
+    public Map<String, String> twinClassSearchParams;
 
     @Schema(description = "label")
     public String label;
