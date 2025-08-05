@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -171,4 +172,6 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
     List<TwinFieldValueProjection> valueByTwinId(
             @Param("twinIdSet") Collection<UUID> twinIdSet,
             @Param("twinClassFieldId") UUID twinClassFieldId);
+
+    void deleteByTwinIdAndTwinClassFieldIdIn(UUID twinId, Set<UUID> twinClassFieldIds);
 }

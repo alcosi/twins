@@ -3,7 +3,8 @@ package org.twins.core.dto.rest.twin;
 public enum TwinClassUpdateLine {
 
     throwOnHeadCantBeTransferred,
-    throwOnFieldCantBeTransferred;
+    throwOnFieldCantBeTransferred,
+    throwOnFieldRequiredNotFilled;
 
     @Override
     public String toString() {
