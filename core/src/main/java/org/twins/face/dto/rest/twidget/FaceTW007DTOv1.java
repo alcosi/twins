@@ -18,6 +18,9 @@ public class FaceTW007DTOv1 extends FaceTwidgetDTOv1 {
     @Schema(description = "Search named params values")
     public Map<String, String> twinClassSearchParams;
 
+    @Schema(description = "target twin id")
+    public UUID targetTwinId;
+
     @Schema(description = "label")
     public String label;
 
