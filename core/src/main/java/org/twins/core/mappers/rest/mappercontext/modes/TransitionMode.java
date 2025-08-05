@@ -82,4 +82,26 @@ public enum TransitionMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum TransitionTrigger2TransitionMode implements MapperModePointer<TransitionMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2),
+        @FieldNameConstants.Include MANAGED(3);
+
+        final int priority;
+
+        @Override
+        public TransitionMode point() {
+            return switch (this) {
+                case HIDE -> TransitionMode.HIDE;
+                case SHORT -> TransitionMode.SHORT;
+                case DETAILED -> TransitionMode.DETAILED;
+                case MANAGED -> TransitionMode.MANAGED;
+            };
+        }
+    }
 }
