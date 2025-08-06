@@ -1,0 +1,1 @@
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (3106, 31, 'org.twins.core.featurer.pointer.PointerOnGivenTwin', 'Given twin pointed', '', false) on conflict do nothing;
