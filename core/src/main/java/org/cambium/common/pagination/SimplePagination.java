@@ -16,4 +16,5 @@ public class SimplePagination {
     protected int totalElements = 0;
 
     public static final SimplePagination SINGLE = new SimplePagination().setLimit(1).setOffset(0);
+    public static final SimplePagination ALL = new SimplePagination().setLimit(Integer.MAX_VALUE).setOffset(0);
 }
