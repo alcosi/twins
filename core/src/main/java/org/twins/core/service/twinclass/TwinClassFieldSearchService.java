@@ -21,7 +21,8 @@ import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinClassFieldSearch;
-import org.twins.core.featurer.fieldfinder.FieldFinder;
+import org.twins.core.featurer.classfield.finder.FieldFinder;
+import org.twins.core.featurer.classfield.sorter.FieldSorter;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 
@@ -78,6 +79,8 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
             fieldFinder.concatSearch(predicate.getFieldFinderParams(), mainSearch);
         }
         narrowSearch(mainSearch, narrowSearch);
+        FieldSorter fieldSorter = featurerService.getFeaturer(searchEntity.getFieldSorterFeaturerId(), FieldSorter.class);
+        pagination.setSort(fieldSorter.createSort(searchEntity.getFieldSorterParams()));
         return findTwinClassField(mainSearch, pagination);
     }
 
