@@ -25,6 +25,7 @@ import org.twins.core.featurer.fieldfinder.FieldFinder;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -57,6 +58,13 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
+    public List<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search) throws ServiceException {
+        if (search.isInactiveSearch())
+            return Collections.emptyList();
+        Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
+        return twinClassFieldRepository.findAll(spec);
+    }
+
     public PaginationResult<TwinClassFieldEntity> findTwinClassField(UUID searchId, TwinClassFieldSearch narrowSearch, SimplePagination pagination) throws ServiceException {
         if (SystemEntityService.TWIN_CLASS_FIELD_SEARCH_UNLIMITED.equals(searchId)) {
             return findTwinClassField(narrowSearch, pagination);
@@ -65,7 +73,7 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
         List<TwinClassFieldSearchPredicateEntity> searchPredicates = fieldSearchPredicateRepository.findByTwinClassFieldSearchId(searchEntity.getId());
         TwinClassFieldSearch mainSearch = new TwinClassFieldSearch()
                 .setExcludeSystemFields(false);
-        for(TwinClassFieldSearchPredicateEntity predicate: searchPredicates) {
+        for (TwinClassFieldSearchPredicateEntity predicate : searchPredicates) {
             FieldFinder fieldFinder = featurerService.getFeaturer(predicate.getFieldFinderFeaturerId(), FieldFinder.class);
             fieldFinder.concatSearch(predicate.getFieldFinderParams(), mainSearch);
         }
