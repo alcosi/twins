@@ -29,7 +29,7 @@ import java.util.*;
 public class MultiplierIsolatedOnContextHeadTwin extends Multiplier {
 
     @FeaturerParam(name = "Create twin sketch", description = "If true, create twin sketch instead of twin", order = 1, optional = true, defaultValue = "false")
-    public static final FeaturerParamBoolean sketchMode = new FeaturerParamBoolean("excludeOnTrue");
+    public static final FeaturerParamBoolean sketchMode = new FeaturerParamBoolean("sketchMode");
 
     @Lazy
     @Autowired
