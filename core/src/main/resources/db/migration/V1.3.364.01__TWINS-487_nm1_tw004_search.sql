@@ -1,3 +1,6 @@
+alter table twin_class_field_search_predicate
+    alter column field_finder_params drop not null;
+
 DO $$
     BEGIN
         IF NOT EXISTS (
