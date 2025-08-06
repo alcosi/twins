@@ -9,6 +9,7 @@ import org.twins.core.dao.twin.TwinFieldDataListEntity;
 import org.twins.core.dao.twin.TwinFieldDataListRepository;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 
@@ -54,6 +55,10 @@ public class TwinFieldStorageDatalist extends TwinFieldStorage {
     public void replaceTwinClassFieldForTwinsOfClass(UUID twinClassId, UUID fromTwinClassFieldId, UUID toTwinClassFieldId) {
         twinFieldDataListRepository.replaceTwinClassFieldForTwinsOfClass(twinClassId, fromTwinClassFieldId, toTwinClassFieldId);
     }
+
+    public void deleteTwinFieldsForTwin(UUID twinId, UUID twinClassFieldId) {
+        twinFieldDataListRepository.deleteByTwinIdAndTwinClassFieldId(twinId, twinClassFieldId);
+    };
 
     @Override
     boolean canBeMerged(Object o) {

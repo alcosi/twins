@@ -8,6 +8,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -17,9 +18,15 @@ import java.util.UUID;
 public class TwinUpdateClassDTOv1 extends Request {
 
     @Schema(description = "New twin class id for twin", example = DTOExamples.TWIN_CLASS_ID)
-    public UUID twinClassId;
+    public UUID newTwinClassId;
+
+    @Schema(description = "New head twin id for twin", example = DTOExamples.HEAD_TWIN_ID)
+    public UUID newHeadTwinId;
+
+    @Schema(description = "map [old twin class field id -> new twin class field id]")
+    public Map<UUID, UUID> fieldsReplaceMap;
 
     @Schema(description = "Behavior of update process")
-    public List<TwinClassUpdateLine> behavior;
+    public List<TwinClassUpdateStrategy> behavior;
 
 }

@@ -174,4 +174,7 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             @Param("twinClassFieldId") UUID twinClassFieldId);
 
     void deleteByTwinIdAndTwinClassFieldIdIn(UUID twinId, Set<UUID> twinClassFieldIds);
+
+    void deleteByTwinIdAndTwinClassFieldId(UUID twinId, UUID twinClassFieldId);
+
 }

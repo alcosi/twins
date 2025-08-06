@@ -47,4 +47,10 @@ public class TwinFieldStorageTwin extends TwinFieldStorage {
     public void replaceTwinClassFieldForTwinsOfClass(UUID twinClassId, UUID fromTwinClassFieldId, UUID toTwinClassFieldId) {
         //nothing to replace
     }
+
+    @Override
+    public void deleteTwinFieldsForTwin(UUID twinId, UUID twinClassFieldId) {
+        //nothing to delete
+    }
+
 }

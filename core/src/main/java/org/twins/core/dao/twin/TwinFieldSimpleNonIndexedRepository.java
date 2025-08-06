@@ -33,5 +33,7 @@ public interface TwinFieldSimpleNonIndexedRepository extends CrudRepository<Twin
 
     void deleteByTwinIdAndTwinClassFieldIdIn(UUID twinId, Set<UUID> twinClassFieldIds);
 
+    void deleteByTwinIdAndTwinClassFieldId(UUID twinId, UUID twinClassFieldId);
+
 
 }

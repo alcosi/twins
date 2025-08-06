@@ -21,6 +21,8 @@ public abstract class TwinFieldStorage {
 
     public abstract void replaceTwinClassFieldForTwinsOfClass(UUID twinClassId, UUID fromTwinClassFieldId, UUID toTwinClassFieldId);
 
+    public abstract void deleteTwinFieldsForTwin(UUID twinId, UUID twinClassFieldId);
+
     @Override
     public boolean equals(Object obj) {
         return super.equals(obj) || canBeMerged(obj);

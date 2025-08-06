@@ -40,7 +40,7 @@ import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.domain.twinoperation.TwinUpdateClass;
-import org.twins.core.dto.rest.twin.TwinClassUpdateLine;
+import org.twins.core.dto.rest.twin.TwinClassUpdateStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;
@@ -658,8 +658,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 setInitStatus(twinUpdate.getTwinEntity());
             twinUpdate.setMode(TwinUpdate.Mode.sketchFinalize);
         } else if (!twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinClassId())) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, "{} can not change status to {}, " +
-                    "because not all of required fields are filled", twinUpdate.getDbTwinEntity().logShort(), twinUpdate.getTwinEntity().getTwinClassId());
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, "{} can not change status to {}, " + "because not all of required fields are filled", twinUpdate.getDbTwinEntity().logShort(), twinUpdate.getTwinEntity().getTwinClassId());
         }
     }
 
@@ -1366,19 +1365,23 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional
     public void updateClassOfTwin(TwinUpdateClass twinUpdateClass) throws ServiceException {
+        //todo implement(recorder?)
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
 
 
         // Find the twin entity and check permissions
-        TwinEntity dbTwinEntity = findEntity(twinUpdateClass.getTwinId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
+        TwinEntity dbTwinEntity = findEntitySafe(twinUpdateClass.getTwinId());
         // return if nothing to change
-        if (twinUpdateClass.getTwinClassId().equals(dbTwinEntity.getTwinClassId())) return;
+        if (twinUpdateClass.getNewTwinClassId().equals(dbTwinEntity.getTwinClassId())) return;
 
         // Get the new twin class
-        TwinClassEntity newTwinClass = twinClassService.findEntity(twinUpdateClass.getTwinClassId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
+        TwinClassEntity newTwinClass = twinClassService.findEntity(twinUpdateClass.getNewTwinClassId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
         // Get the old twin class
         TwinClassEntity oldTwinClass = dbTwinEntity.getTwinClass();
 
+        setHeadSafe(dbTwinEntity);
+
+        if (twinUpdateClass.getNewHeadTwinId() != null) dbTwinEntity.setHeadTwinId(twinUpdateClass.getNewHeadTwinId());
         // 1. Handle head twin updates based on headTwinClassId
         if (newTwinClass.getHeadTwinClassId() != null && dbTwinEntity.getHeadTwinId() == null) {
             // If the twin hasn't a head but the new class have a headTwinClassId throw an error
@@ -1391,26 +1394,59 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             // We need to check if the head twin is valid for the new class
             twinHeadService.checkValidHeadForClass(dbTwinEntity.getHeadTwinId(), newTwinClass);
         }
+        if(dbTwinEntity.getHeadTwinId() != null) {
+            TwinEntity headTwin = findEntitySafe(dbTwinEntity.getHeadTwinId());
+            dbTwinEntity.setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin));
+        }
 
         // 2. Handle field transfers/deletions
         // Load fields for both classes
         twinClassFieldService.loadTwinClassFields(oldTwinClass);
         twinClassFieldService.loadTwinClassFields(newTwinClass);
 
-        // Get all fields from the old class (including inherited fields)
-        Set<UUID> oldClassFieldIds = oldTwinClass.getTwinClassFieldKit().getIdSetSafe();
+        // Get all fields from the old class (including inherit/ed fields)
+        List<TwinClassFieldEntity> oldClassFields = new ArrayList<>(oldTwinClass.getTwinClassFieldKit().getCollection());
         // Get all fields from the new class (including inherited fields)
-        Set<UUID> newClassFieldIds = newTwinClass.getTwinClassFieldKit().getIdSetSafe();
         List<TwinClassFieldEntity> newClassFields = new ArrayList<>(newTwinClass.getTwinClassFieldKit().getCollection());
 
+
+        // Сопоставим поля по ключу и fieldTyper
+        Map<String, TwinClassFieldEntity> newFieldsByKey = newClassFields.stream()
+                .collect(Collectors.toMap(TwinClassFieldEntity::getKey, Function.identity()));
+
+        Map<UUID, UUID> replaceMap = new HashMap<>();
+        Set<UUID> fieldsToRemove = new HashSet<>();
+
+        for (TwinClassFieldEntity oldField : oldClassFields) {
+            TwinClassFieldEntity newField = newFieldsByKey.get(oldField.getKey());
+            if (newField != null) {
+                if (Objects.equals(oldField.getFieldTyperFeaturerId(), newField.getFieldTyperFeaturerId())) {
+                    replaceMap.put(oldField.getId(), newField.getId());
+                } else {
+                    // Разные типы — поле не может быть скопировано
+                    fieldsToRemove.add(oldField.getId());
+                }
+            } else {
+                // Нет поля с таким ключом в новой схеме
+                fieldsToRemove.add(oldField.getId());
+            }
+        }
+
+        twinUpdateClass.setFieldsReplaceMap(replaceMap);
+
+
+        // todo compare by key and fildtyper
         // Find fields that exist in the old class but not in the new class
         Set<UUID> fieldsToRemove = new HashSet<>(oldClassFieldIds);
         fieldsToRemove.removeAll(newClassFieldIds);
 
+        // todo replacer
+
         // Check if we should throw an error for fields that can't be transferred
-        if (!fieldsToRemove.isEmpty() && twinUpdateClass.getBehavior() != null && twinUpdateClass.getBehavior().contains(TwinClassUpdateLine.throwOnFieldCantBeTransferred)) {
+        if (!fieldsToRemove.isEmpty() && twinUpdateClass.getBehavior() != null && twinUpdateClass.getBehavior().contains(TwinClassUpdateStrategy.throwOnFieldCantBeTransferred))
             throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_VALUE_INCORRECT, "Fields would be lost during class update. Remove behavior throwOnFieldCantBeTransferred to allow field deletion.");
-        }
+
+        //replacer map  key1(tcfid) -> value(key2-tcfid)
 
         // Remove fields that don't exist in the new class
         if (!fieldsToRemove.isEmpty()) {
@@ -1420,6 +1456,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 TwinClassFieldEntity fieldEntity = oldTwinClass.getTwinClassFieldKit().get(fieldId);
                 if (fieldEntity != null) {
                     // Get the field typer to determine the storage type
+                    //todo check field attachmrnts + stratagy?
+
+                    //todo move logic to fieldtyper(storage).
                     FieldTyper fieldTyper = featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
                     // Delete the field values for this twin
                     if (fieldTyper.getStorageType() == TwinFieldSimpleEntity.class) {
@@ -1441,6 +1480,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
         }
 
+        //todo links...future support(throw if dbtwin has links dst&src)
+        //todo childs...future support(throw if dbtwin has childs by head)
+
+
         // 3. Update the twin class
         dbTwinEntity.setTwinClassId(newTwinClass.getId());
         dbTwinEntity.setTwinClass(newTwinClass);
@@ -1448,6 +1491,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         // 4. Handle status updates
         // Load field values for the twin
         loadFieldsValues(dbTwinEntity);
+
+        //todo use method
 
         // Check if all required fields are filled
         boolean allRequiredFieldsFilled = true;
@@ -1464,7 +1509,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
         // Update the status based on required fields
         if (!allRequiredFieldsFilled) {
-            if(twinUpdateClass.getBehavior().contains(TwinClassUpdateLine.throwOnFieldRequiredNotFilled))
+            if (twinUpdateClass.getBehavior().contains(TwinClassUpdateStrategy.throwOnFieldRequiredNotFilled))
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, "Twin's doesn't has all required fields of the new class.");
             // If not all required fields are filled, set the status to SKETCH
             dbTwinEntity.setTwinStatusId(SystemEntityService.TWIN_STATUS_SKETCH);
