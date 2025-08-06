@@ -1,4 +1,4 @@
-package org.twins.face.dto.rest.twidget;
+package org.twins.face.dto.rest.twidget.tw007;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
