@@ -75,7 +75,7 @@ public class FaceWT003Entity implements EasyLoggable, FaceVariantEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "message_substitution_twin_class_field_id", insertable = false, updatable = false)
-    private TwinClassFieldEntity substitutionTitleMessage;
+    private TwinClassFieldEntity substitutionMessageField;
 
     @Override
     public String easyLog(Level level) {

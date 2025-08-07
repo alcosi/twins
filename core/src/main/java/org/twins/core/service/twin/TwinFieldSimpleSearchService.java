@@ -29,7 +29,6 @@ public class TwinFieldSimpleSearchService extends EntitySecureFindServiceImpl<Tw
 
     private final AuthService authService;
     private final TwinFieldSimpleRepository twinFieldSimpleRepository;
-    private final TwinSearchService twinSearchService;
 
     @Override
     public CrudRepository<TwinFieldSimpleEntity, UUID> entityRepository() {
@@ -51,19 +50,10 @@ public class TwinFieldSimpleSearchService extends EntitySecureFindServiceImpl<Tw
         return true;
     }
 
-
     public List<TwinFieldSimpleNoRelationsProjection> findTwinFieldsSimple(Collection<UUID> headerTwinIdList, Collection<UUID> twinIdExcludeList, Collection<UUID> statusIdList) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if(null == apiUser.getDomainId() || null == headerTwinIdList || null == statusIdList || null == twinIdExcludeList)
             return new ArrayList<>();
         return twinFieldSimpleRepository.findTwinFieldSimpleEntityProjected(apiUser.getDomainId(), headerTwinIdList, twinIdExcludeList, statusIdList);
-    }
-
-    public TwinFieldSimpleEntity findEntity(UUID twinId, UUID fieldId) {
-        if (twinId == null || fieldId == null) {
-            return null;
-        }
-
-        return twinFieldSimpleRepository.findByTwinIdAndTwinClassFieldId(twinId, fieldId);
     }
 }

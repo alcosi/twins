@@ -29,11 +29,11 @@ public class FaceWT003RestDTOMapper extends RestSimpleDTOMapper<FaceWT003Entity,
 
         Map<String, String> titleContext = faceWT003Service.createSubstitutionMap(
                 src.getSubstitutionFromTwinPointerId(),
-                src.getTitleSubstitutionTwinClassFieldId()
+                src.getSubstitutionTitleField()
         );
         Map<String, String> messageContext = faceWT003Service.createSubstitutionMap(
                 src.getSubstitutionFromTwinPointerId(),
-                src.getMessageSubstitutionTwinClassFieldId()
+                src.getSubstitutionMessageField()
         );
 
         dst
