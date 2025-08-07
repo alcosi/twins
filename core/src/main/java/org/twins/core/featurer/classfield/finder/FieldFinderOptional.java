@@ -1,4 +1,4 @@
-package org.twins.core.featurer.fieldfinder;
+package org.twins.core.featurer.classfield.finder;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -12,14 +12,13 @@ import java.util.Properties;
 
 @Slf4j
 @Component
-@Featurer(id = FeaturerTwins.ID_3203,
-        name = "Required fields",
+@Featurer(id = FeaturerTwins.ID_3204,
+        name = "Optional fields",
         description = "")
-public class FieldFinderRequired extends FieldFinder {
+public class FieldFinderOptional extends FieldFinder {
 
     @Override
     protected void concatSearch(Properties properties, TwinClassFieldSearch fieldSearch) throws ServiceException {
-        fieldSearch.setRequired(Ternary.ONLY);
-
+        fieldSearch.setRequired(Ternary.ONLY_NOT);
     }
 }

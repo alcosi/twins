@@ -1,7 +1,8 @@
-package org.twins.core.featurer.fieldfinder;
+package org.twins.core.featurer.classfield.finder;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.Ternary;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.TwinClassFieldSearch;
@@ -11,12 +12,14 @@ import java.util.Properties;
 
 @Slf4j
 @Component
-@Featurer(id = FeaturerTwins.ID_3205,
-        name = "Stub (does not return fields)",
+@Featurer(id = FeaturerTwins.ID_3203,
+        name = "Required fields",
         description = "")
-public class FieldFinderStub extends FieldFinder {
+public class FieldFinderRequired extends FieldFinder {
+
     @Override
     protected void concatSearch(Properties properties, TwinClassFieldSearch fieldSearch) throws ServiceException {
-        fieldSearch.setInactiveSearch(true);
+        fieldSearch.setRequired(Ternary.ONLY);
+
     }
 }

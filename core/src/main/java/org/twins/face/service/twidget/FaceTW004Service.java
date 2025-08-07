@@ -12,7 +12,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.face.PointedFace;
-import org.twins.core.featurer.fieldfilter.FieldFilter;
+import org.twins.core.featurer.classfield.filter.FieldFilter;
 import org.twins.core.service.face.FacePointedService;
 import org.twins.core.service.face.FaceService;
 import org.twins.core.service.twinclass.TwinClassFieldSearchService;

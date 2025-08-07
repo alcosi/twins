@@ -3,15 +3,17 @@ package org.cambium.common.pagination;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.springframework.data.domain.Sort;
 
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
 public class SimplePagination {
+    public static final String SORT_FIELD = "sortField";
+    public static final String SORT_ASC = "sortAsc";
     protected int offset;
     protected int limit;
-    protected boolean sortAsc;
-    protected String sortField;
+    protected Sort sort;
     //todo drop me when fix search v3
     protected int totalElements = 0;
 
