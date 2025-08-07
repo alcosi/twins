@@ -1,11 +1,9 @@
 package org.twins.face.dao.navbar.nb001;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
-import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.face.FaceEntity;
@@ -14,9 +12,9 @@ import org.twins.core.dao.resource.ResourceEntity;
 
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @Accessors(chain = true)
-@FieldNameConstants
 @Entity
 @Table(name = "face_navbar_nb001")
 public class FaceNB001Entity implements EasyLoggable {
@@ -67,7 +65,5 @@ public class FaceNB001Entity implements EasyLoggable {
     }
 
     @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
     Kit<FaceNB001MenuItemEntity, UUID> menuItems;
 }

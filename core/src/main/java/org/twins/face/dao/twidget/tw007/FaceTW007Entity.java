@@ -1,7 +1,8 @@
 package org.twins.face.dao.twidget.tw007;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.face.FaceEntity;
@@ -13,7 +14,8 @@ import org.twins.core.dao.twinclass.TwinClassSearchEntity;
 
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @Accessors(chain = true)
 @Entity
 @Table(name = "face_tw007")

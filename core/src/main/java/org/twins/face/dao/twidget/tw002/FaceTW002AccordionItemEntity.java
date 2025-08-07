@@ -1,7 +1,8 @@
 package org.twins.face.dao.twidget.tw002;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.twins.core.dao.i18n.I18nEntity;
@@ -10,7 +11,8 @@ import org.twins.core.dao.i18n.LocaleConverter;
 import java.util.Locale;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @Accessors(chain = true)
 @FieldNameConstants
 @Entity

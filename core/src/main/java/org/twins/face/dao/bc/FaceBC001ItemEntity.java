@@ -1,7 +1,9 @@
 package org.twins.face.dao.bc;
 
 import jakarta.persistence.*;
-import lombok.Data;
+
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
@@ -10,7 +12,8 @@ import org.twins.core.dao.twin.TwinPointerEntity;
 import java.util.UUID;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Accessors(chain = true)
 @Table(name = "face_bc001_item")
 public class FaceBC001ItemEntity {
