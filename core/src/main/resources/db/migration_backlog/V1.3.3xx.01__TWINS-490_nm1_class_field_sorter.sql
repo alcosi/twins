@@ -15,6 +15,9 @@ on conflict (id) do update set name=excluded.name,
                                description=excluded.description;
 
 alter table twin_class_field_search
+    add if not exists force_sorting boolean not null default false;
+
+alter table twin_class_field_search
     add if not exists field_sorter_featurer_id integer default 4001 not null
         constraint twin_class_field_search_featurer_id_fk
             references featurer;

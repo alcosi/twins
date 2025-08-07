@@ -3,11 +3,13 @@ package org.twins.core.featurer.classfield.sorter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.Properties;
+import java.util.function.Function;
 
 @Slf4j
 @Component
@@ -16,7 +18,7 @@ import java.util.Properties;
         description = "")
 public class FieldSorterStub extends FieldSorter {
     @Override
-    public Sort createSort(Properties properties) throws ServiceException {
-        return Sort.unsorted();
+    public Function<Specification<TwinClassFieldEntity>, Specification<TwinClassFieldEntity>> createSort(Properties properties) throws ServiceException {
+        return null;
     }
 }

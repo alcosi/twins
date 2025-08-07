@@ -54,8 +54,9 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
     public PaginationResult<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search, SimplePagination pagination) throws ServiceException {
         if (search.isInactiveSearch())
             return PaginationResult.EMPTY;
-        Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
-        Page<TwinClassFieldEntity> ret = twinClassFieldRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
+        Specification<TwinClassFieldEntity> specification = createTwinClassFieldSearchSpecification(search);
+        specification = addSorting(search, pagination, specification);
+        Page<TwinClassFieldEntity> ret = twinClassFieldRepository.findAll(specification, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
@@ -79,8 +80,7 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
             fieldFinder.concatSearch(predicate.getFieldFinderParams(), mainSearch);
         }
         narrowSearch(mainSearch, narrowSearch);
-        FieldSorter fieldSorter = featurerService.getFeaturer(searchEntity.getFieldSorterFeaturerId(), FieldSorter.class);
-        pagination.setSort(fieldSorter.createSort(searchEntity.getFieldSorterParams()));
+        mainSearch.setConfiguredSearch(searchEntity);
         return findTwinClassField(mainSearch, pagination);
     }
 
@@ -107,6 +107,20 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
                 checkTernary(search.getRequired(), TwinClassFieldEntity.Fields.required),
                 checkFieldLikeIn(search.getExternalIdLikeList(), false, true, TwinClassFieldEntity.Fields.externalId),
                 checkFieldLikeIn(search.getExternalIdNotLikeList(), true, true, TwinClassFieldEntity.Fields.externalId));
+    }
+
+    private Specification<TwinClassFieldEntity> addSorting(TwinClassFieldSearch search, SimplePagination pagination, Specification<TwinClassFieldEntity> specification) throws ServiceException {
+        TwinClassFieldSearchEntity searchEntity = search.getConfiguredSearch();
+        if (searchEntity != null && (searchEntity.isForceSorting() || pagination == null || pagination.getSort().isUnsorted())) {
+            FieldSorter fieldSorter = featurerService.getFeaturer(searchEntity.getFieldSorterFeaturerId(), FieldSorter.class);
+            var sortFunction = fieldSorter.createSort(searchEntity.getFieldSorterParams());
+            if (sortFunction != null) {
+                specification = sortFunction.apply(specification);
+                if (pagination != null)
+                    pagination.setSort(null);
+            }
+        }
+        return specification;
     }
 
     @Override

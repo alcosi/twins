@@ -28,6 +28,9 @@ public class TwinClassFieldSearchEntity {
     @Column(name = "name")
     private String name;
 
+    @Column(name = "force_sorting")
+    private boolean forceSorting;
+
     @Column(name = "field_sorter_featurer_id")
     private int fieldSorterFeaturerId;
 
