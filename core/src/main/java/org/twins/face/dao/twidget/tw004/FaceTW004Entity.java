@@ -35,15 +35,12 @@ public class FaceTW004Entity implements EasyLoggable, FacePointedEntity {
     @Column(name = "label_i18n_id")
     private UUID labelI18nId;
 
-    @Column(name = "field_finder_featurer_id", insertable = false, updatable = false)
-    private Integer fieldFinderFeaturerId;
+    @Column(name = "twin_class_field_search_id", insertable = false, updatable = false)
+    private UUID twinClassFieldSearchId;
 
     @Column(name = "style_classes")
     private String styleClasses;
 
-    @Type(PostgreSQLHStoreType.class)
-    @Column(name = "field_finder_params", columnDefinition = "hstore")
-    private HashMap<String, String> fieldFinderParams;
 
     @Column(name = "editable_field_filter_featurer_id", insertable = false, updatable = false)
     private Integer fieldFilterFeaturerId;

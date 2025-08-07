@@ -7,6 +7,7 @@ import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.Ternary;
+import org.twins.core.dao.twinclass.TwinClassFieldSearchEntity;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +42,7 @@ public class TwinClassFieldSearch {
     private Ternary required;
     private boolean excludeSystemFields = true;
     private boolean inactiveSearch = false;
+    private TwinClassFieldSearchEntity configuredSearch;
 
     public TwinClassFieldSearch addTwinClassId(final UUID id, final boolean searchExtends, boolean exclude) {
         if (exclude) {
