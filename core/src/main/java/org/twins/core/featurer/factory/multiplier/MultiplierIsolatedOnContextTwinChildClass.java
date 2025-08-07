@@ -63,6 +63,8 @@ public class MultiplierIsolatedOnContextTwinChildClass extends Multiplier {
                     .setName("")
                     .setTwinClass(entityList.getFirst())
                     .setTwinClassId(entityList.getFirst().getId())
+                    .setHeadTwinId(inputFactoryItem.getTwin().getId())
+                    .setHeadTwin(inputFactoryItem.getTwin())
                     .setCreatedAt(Timestamp.from(Instant.now()));
 
             TwinCreate twinCreate = new TwinCreate();
