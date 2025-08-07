@@ -40,6 +40,8 @@ public class FaceBC001Entity implements EasyLoggable, FaceVariantEntity {
 
     @ManyToOne
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
     @Transient
