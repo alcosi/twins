@@ -1,8 +1,9 @@
 package org.twins.face.dao.widget.wt003;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceVariantEntity;
@@ -11,8 +12,7 @@ import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
 @Entity
 @Table(name = "face_wt003")
 public class FaceWT003Entity implements EasyLoggable, FaceVariantEntity {
@@ -44,14 +44,20 @@ public class FaceWT003Entity implements EasyLoggable, FaceVariantEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FaceEntity face;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_resource_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private ResourceEntity iconResource;
 
     @Override

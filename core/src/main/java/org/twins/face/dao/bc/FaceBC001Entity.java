@@ -1,8 +1,9 @@
 package org.twins.face.dao.bc;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
@@ -12,8 +13,7 @@ import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
 @Accessors(chain = true)
 @Entity
 @Table(name = "face_bc001")
@@ -34,6 +34,8 @@ public class FaceBC001Entity implements EasyLoggable, FaceVariantEntity {
 
     @ManyToOne
     @JoinColumn(name = "face_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FaceEntity face;
 
     @ManyToOne
@@ -41,6 +43,8 @@ public class FaceBC001Entity implements EasyLoggable, FaceVariantEntity {
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
     @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<FaceBC001ItemEntity, UUID> items;
 
     @Override

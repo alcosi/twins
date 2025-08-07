@@ -1,8 +1,9 @@
 package org.twins.face.dao.twidget.tw007;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.face.FaceEntity;
@@ -14,8 +15,7 @@ import org.twins.core.dao.twinclass.TwinClassSearchEntity;
 
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
 @Accessors(chain = true)
 @Entity
 @Table(name = "face_tw007")
@@ -48,26 +48,38 @@ public class FaceTW007Entity implements EasyLoggable, FacePointedEntity {
 
     @ManyToOne
     @JoinColumn(name = "face_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FaceEntity face;
 
     @ManyToOne
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
     @ManyToOne
     @JoinColumn(name = "twin_class_search_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassSearchEntity twinClassSearch;
 
     @ManyToOne
     @JoinColumn(name = "class_selector_label_i18n_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity classSelectorLabelI18n;
 
     @ManyToOne
     @JoinColumn(name = "icon_resource_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private ResourceEntity iconResource;
 
     @ManyToOne
     @JoinColumn(name = "label_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity label;
 
     @Override
