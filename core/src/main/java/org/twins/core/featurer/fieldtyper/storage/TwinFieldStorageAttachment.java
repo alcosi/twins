@@ -46,6 +46,11 @@ public class TwinFieldStorageAttachment extends TwinFieldStorage {
         twinAttachmentRepository.replaceTwinClassFieldForTwinsOfClass(twinClassId, fromTwinClassFieldId, toTwinClassFieldId);
     }
 
+    //TODO
+    public void deleteTwinFieldsForTwin(UUID twinId, UUID twinClassFieldId) {
+        // nothing to delete
+    };
+
     @Override
     boolean canBeMerged(Object o) {
         return isSameClass(o);

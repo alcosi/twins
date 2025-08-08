@@ -55,6 +55,11 @@ public class TwinFieldStorageTwinClassList extends TwinFieldStorage {
     }
 
     @Override
+    public void deleteTwinFieldsForTwin(UUID twinId, UUID twinClassFieldId) {
+        twinFieldTwinClassListRepository.deleteByTwinIdAndTwinClassFieldId(twinId, twinClassFieldId);
+    }
+
+    @Override
     boolean canBeMerged(Object o) {
         return isSameClass(o);
     }

@@ -55,6 +55,10 @@ public class TwinFieldStorageSimple extends TwinFieldStorage {
         twinFieldSimpleRepository.replaceTwinClassFieldForTwinsOfClass(twinClassId, fromTwinClassFieldId, toTwinClassFieldId);
     }
 
+    public void deleteTwinFieldsForTwin(UUID twinId, UUID twinClassFieldId) {
+        twinFieldSimpleRepository.deleteByTwinIdAndTwinClassFieldId(twinId, twinClassFieldId);
+    }
+
     @Override
     boolean canBeMerged(Object o) {
         return isSameClass(o);

@@ -59,4 +59,8 @@ public class TwinFieldStorageI18n extends TwinFieldStorage {
     public void replaceTwinClassFieldForTwinsOfClass(UUID twinClassId, UUID fromTwinClassFieldId, UUID toTwinClassFieldId) {
         twinFieldI18nRepository.replaceTwinClassFieldForTwinsOfClass(twinClassId, fromTwinClassFieldId, toTwinClassFieldId);
     }
+
+    public void deleteTwinFieldsForTwin(UUID twinId, UUID twinClassFieldId) {
+        twinFieldI18nRepository.deleteByTwinIdAndTwinClassFieldId(twinId, twinClassFieldId);
+    }
 }

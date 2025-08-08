@@ -47,6 +47,10 @@ public class TwinFieldStorageLink extends TwinFieldStorage {
         //nothing to replace
     }
 
+    public void deleteTwinFieldsForTwin(UUID twinId, UUID twinClassFieldId) {
+        twinLinkService.deleteTwinLinks();
+    };
+
     @Override
     boolean canBeMerged(Object o) {
         return isSameClass(o);

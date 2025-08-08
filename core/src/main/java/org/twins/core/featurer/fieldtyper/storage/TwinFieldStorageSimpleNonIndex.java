@@ -55,6 +55,10 @@ public class TwinFieldStorageSimpleNonIndex extends TwinFieldStorage {
         twinFieldSimpleNonIndexedRepository.replaceTwinClassFieldForTwinsOfClass(twinClassId, fromTwinClassFieldId, toTwinClassFieldId);
     }
 
+    public void deleteTwinFieldsForTwin(UUID twinId, UUID twinClassFieldId) {
+        twinFieldSimpleNonIndexedRepository.deleteByTwinIdAndTwinClassFieldId(twinId, twinClassFieldId);
+    }
+
     @Override
     boolean canBeMerged(Object o) {
         return isSameClass(o);
