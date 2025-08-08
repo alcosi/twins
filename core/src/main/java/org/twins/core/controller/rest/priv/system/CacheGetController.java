@@ -30,7 +30,7 @@ import org.twins.core.service.system.CacheService;
 
 import java.util.List;
 
-
+@ProtectedBy(Permissions.SYSTEM_APP_INFO_VIEW)
 @Tag(description = "", name = ApiTag.SYSTEM)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -62,7 +62,6 @@ public class CacheGetController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
-    @ProtectedBy(Permissions.SYSTEM_APP_INFO_VIEW)
     @ParametersApiUserHeaders
     @Operation(operationId = "allCachesInfoV1", summary = "Get information about all caches")
     @ApiResponses(value = {

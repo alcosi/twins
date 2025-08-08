@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.CacheEvictCollector;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
-import org.openjdk.jol.info.GraphLayout;
+import org.openjdk.jol.vm.VM;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.caffeine.CaffeineCache;
@@ -57,7 +57,6 @@ public class CacheUtils {
     public static <T> void evictCache(CacheManager cacheManager, CacheEvictCollector cacheEvictCollector) throws ServiceException {
         evictCache(cacheManager, cacheEvictCollector.getCacheEntries());
     }
-
     public static long estimateSize(Cache cache) throws ServiceException {
         long totalSize = 0;
 
@@ -66,14 +65,14 @@ public class CacheUtils {
 
             for (Object key : nativeCache.asMap().keySet()) {
                 Object value = nativeCache.getIfPresent(key);
-                totalSize += GraphLayout.parseInstance(value).totalSize();
+                totalSize += VM.current().sizeOf(value);
             }
         } else if (cache instanceof ConcurrentMapCache) {
             Object nativeCacheObj = cache.getNativeCache();
             ConcurrentMap<?, ?> nativeCache = (ConcurrentMap<?, ?>) nativeCacheObj;
 
             for (Object value : nativeCache.values()) {
-                totalSize += GraphLayout.parseInstance(value).totalSize();
+                totalSize += VM.current().sizeOf(value);
             }
         } else {
             throw new ServiceException(ErrorCodeCommon.CACHE_TYPE_UNSUPPORTED, "Unsupported cache type: [" + cache.getClass().getSimpleName() + "]");
