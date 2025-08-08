@@ -62,7 +62,7 @@ public class FaceTW004Service extends FacePointedService<FaceTW004Entity> {
     }
 
     public List<FaceTW004TwinClassField> loadFields(PointedFace<FaceTW004Entity> pointedFace) throws ServiceException {
-        List<TwinClassFieldEntity> fields = twinClassFieldSearchService.findTwinClassField(pointedFace.getConfig().getTwinClassFieldSearchId(), null, SimplePagination.ALL).getList();
+        List<TwinClassFieldEntity> fields = twinClassFieldSearchService.findTwinClassField(pointedFace.getConfig().getTwinClassFieldSearchId(), null, SimplePagination.FRIENDLY).getList();
 
         Set<UUID> editableFieldIds = null;
 
