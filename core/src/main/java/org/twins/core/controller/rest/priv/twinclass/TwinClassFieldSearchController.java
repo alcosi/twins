@@ -123,7 +123,7 @@ public class TwinClassFieldSearchController extends ApiController {
         TwinClassFieldSearchRsDTOv1 rs = new TwinClassFieldSearchRsDTOv1();
         try {
             PaginationResult<TwinClassFieldEntity> twinClassFieldList = twinClassFieldSearchService
-                    .findTwinClassField(searchId, twinClassFieldSearchDTOReverseMapper.convert(request.getNarrow()), pagination);
+                    .findTwinClassField(searchId, request.getParams(), twinClassFieldSearchDTOReverseMapper.convert(request.getNarrow()), pagination);
             rs
                     .setFields(twinClassFieldRestDTOMapperV2.convertCollection(twinClassFieldList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClassFieldList))
