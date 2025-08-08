@@ -111,7 +111,8 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
 
     private Specification<TwinClassFieldEntity> addSorting(TwinClassFieldSearch search, SimplePagination pagination, Specification<TwinClassFieldEntity> specification) throws ServiceException {
         TwinClassFieldSearchEntity searchEntity = search.getConfiguredSearch();
-        if (searchEntity != null && (searchEntity.isForceSorting() || pagination == null || pagination.getSort().isUnsorted())) {
+        if (searchEntity != null &&
+                (searchEntity.isForceSorting() || pagination == null || pagination.getSort() == null || pagination.getSort().isUnsorted())) {
             FieldSorter fieldSorter = featurerService.getFeaturer(searchEntity.getFieldSorterFeaturerId(), FieldSorter.class);
             var sortFunction = fieldSorter.createSort(searchEntity.getFieldSorterParams());
             if (sortFunction != null) {
