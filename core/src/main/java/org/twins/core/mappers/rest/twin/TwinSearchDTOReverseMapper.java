@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.dto.rest.twin.TwinSearchByLinkDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchDTOv1;
+import org.twins.core.mappers.rest.DataTimeRangeDTOReverseMapper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
@@ -13,8 +14,8 @@ import static org.cambium.common.util.CollectionUtils.convertToSetSafe;
 @Component
 @RequiredArgsConstructor
 public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDTOv1, BasicSearch> {
-
     private final TwinFieldSearchMapDTOReverseMapper twinFieldSearchMapDTOReverseMapper;
+    private final DataTimeRangeDTOReverseMapper dataTimeRangeDTOReverseMapper;
 
     @Override
     public void map(TwinSearchDTOv1 src, BasicSearch dst, MapperContext mapperContext) throws Exception {
@@ -44,22 +45,43 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                 .setMarkerDataListOptionIdList(convertToSetSafe(src.getMarkerDataListOptionIdList()))
                 .setMarkerDataListOptionIdExcludeList(convertToSetSafe(src.getMarkerDataListOptionIdExcludeList()))
                 .setTouchList(convertToSetSafe(src.getTouchList()))
-                .setTouchExcludeList(convertToSetSafe(src.getTouchExcludeList()));
+                .setTouchExcludeList(convertToSetSafe(src.getTouchExcludeList()))
+                .setCreatedAt(dataTimeRangeDTOReverseMapper.convert(src.getCreatedAt()));
         if (src.getLinksAnyOfList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO : src.getLinksAnyOfList()) {
-                dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList(), false, true);
+                if (twinSearchByLinkDTO.isSrcElseDst()) {
+                    dst.addLinkSrcTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getTwinIdList(), false, true);
+                } else {
+                    dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getTwinIdList(), false, true);
+                    dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList(), false, true);
+                }
             }
         if (src.getLinksNoAnyOfList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByNoLinkDTO : src.getLinksNoAnyOfList()) {
-                dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true, true);
+                if (twinSearchByNoLinkDTO.isSrcElseDst()) {
+                    dst.addLinkSrcTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getTwinIdList(), true, true);
+                } else {
+                    dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getTwinIdList(), true, true);
+                    dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true, true);
+                }
             }
         if (src.getLinksAllOfList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO : src.getLinksAllOfList()) {
-                dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList(), false, false);
+                if (twinSearchByLinkDTO.isSrcElseDst()) {
+                    dst.addLinkSrcTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getTwinIdList(), false, false);
+                } else {
+                    dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getTwinIdList(), false, false);
+                    dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList(), false, false);
+                }
             }
         if (src.getLinksNoAllOfList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByNoLinkDTO : src.getLinksNoAllOfList()) {
-                dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true, false);
+                if (twinSearchByNoLinkDTO.isSrcElseDst()) {
+                    dst.addLinkSrcTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getTwinIdList(), true, false);
+                } else {
+                    dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getTwinIdList(), true, false);
+                    dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true, false);
+                }
             }
         dst.setFields(twinFieldSearchMapDTOReverseMapper.convert(src.getFields()));
     }

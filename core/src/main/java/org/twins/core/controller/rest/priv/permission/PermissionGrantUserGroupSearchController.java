@@ -60,7 +60,7 @@ public class PermissionGrantUserGroupSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/user_group/search/v1")
     public ResponseEntity<?> permissionGrantUserGroupSearchV1(
-            @MapperContextBinding(roots = PermissionGrantUserGroupRestDTOMapperV2.class, response = PermissionGrantUserGroupSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantUserGroupRestDTOMapperV2.class, response = PermissionGrantUserGroupSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody PermissionGrantUserGroupSearchRqDTOv1 request) {
         PermissionGrantUserGroupSearchRsDTOv1 rs = new PermissionGrantUserGroupSearchRsDTOv1();
@@ -88,7 +88,7 @@ public class PermissionGrantUserGroupSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/permission_grant/user_group/{grantId}/v1")
     public ResponseEntity<?> permissionGrantUserGroupViewV1(
-            @MapperContextBinding(roots = PermissionGrantUserGroupRestDTOMapperV2.class, response = PermissionGrantUserGroupViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantUserGroupRestDTOMapperV2.class, response = PermissionGrantUserGroupViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GRANT_USER_GROUP_ID) @PathVariable("grantId") UUID grantId) {
         PermissionGrantUserGroupViewRsDTOv1 rs = new PermissionGrantUserGroupViewRsDTOv1();
         try {

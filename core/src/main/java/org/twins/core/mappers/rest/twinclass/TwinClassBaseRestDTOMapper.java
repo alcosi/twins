@@ -9,6 +9,7 @@ import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
+import org.twins.core.service.face.FaceService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
@@ -18,8 +19,10 @@ import org.twins.core.service.permission.Permissions;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = TwinClassMode.class)
 public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity, TwinClassBaseDTOv1> {
+
     private final I18nService i18nService;
     private final PermissionService permissionService;
+    private final FaceService faceService;
 
     @Override
     public void map(TwinClassEntity src, TwinClassBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -56,6 +59,9 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setAliasSpace(src.getAliasSpace())
                         .setOwnerType(src.getOwnerType())
                         .setPageFaceId(src.getPageFaceId())
+                        .setBreadCrumbsFaceId(src.getBreadCrumbsFaceId())
+                        .setInheritedPageFaceId(src.getInheritedPageFaceId())
+                        .setInheritedBreadCrumbsFaceId(src.getInheritedBreadCrumbsFaceId())
                         .setAssigneeRequired(src.getAssigneeRequired())
                         .setExternalId(src.getExternalId());
                 break;
@@ -72,7 +78,6 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
                         .setLogo(src.getLogo())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
-                        .setPageFaceId(src.getPageFaceId())
                         .setExternalId(src.getExternalId());
                 break;
             case SHORT:

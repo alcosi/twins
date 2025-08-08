@@ -42,6 +42,7 @@ public class SystemEntityService {
     public static final UUID TWIN_CLASS_USER = UUID.fromString("00000000-0000-0000-0001-000000000001");
     public static final UUID TWIN_CLASS_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0001-000000000003");
     public static final UUID TWIN_CLASS_GLOBAL_ANCESTOR = UUID.fromString("00000000-0000-0000-0001-000000000004");
+    public static final UUID TWIN_CLASS_FACE_PAGE = UUID.fromString("00000000-0000-0000-0001-000000000005");
 
     // last field.id = 16
     public static final UUID TWIN_CLASS_FIELD_USER_EMAIL = UUID.fromString("00000000-0000-0000-0011-000000000001");
@@ -61,7 +62,7 @@ public class SystemEntityService {
     public static final UUID TWIN_CLASS_FIELD_TWIN_TAGS = UUID.fromString("00000000-0000-0000-0011-000000000015");
     public static final UUID TWIN_CLASS_FIELD_TWIN_MARKERS = UUID.fromString("00000000-0000-0000-0011-000000000016");
 
-    // last i18.id = 36
+    // last i18.id = 38
     public static final UUID I18N_4CLASS_USER_FIELD_EMAIL_NAME = UUID.fromString("00000000-0000-0000-0012-000000000001");
     public static final UUID I18N_4CLASS_USER_FIELD_AVATAR_NAME = UUID.fromString("00000000-0000-0000-0012-000000000002");
     public static final UUID I18N_4CLASS_GLOBAL_ANCESTOR_FIELD_NAME_NAME = UUID.fromString("00000000-0000-0000-0012-000000000003");
@@ -80,6 +81,7 @@ public class SystemEntityService {
     public static final UUID I18N_4CLASS_GLOBAL_ANCESTOR_FIELD_MARKERS_NAME = UUID.fromString("00000000-0000-0000-0012-000000000031");
     public static final UUID I18N_4CLASS_USER_STATUS_NAME = UUID.fromString("00000000-0000-0000-0012-000000000023");
     public static final UUID I18N_4CLASS_BUSINESS_ACCOUNT_STATUS_NAME = UUID.fromString("00000000-0000-0000-0012-000000000024");
+    public static final UUID I18N_4CLASS_FACE_PAGE_STATUS_NAME = UUID.fromString("00000000-0000-0000-0012-000000000037");
 
     public static final UUID I18N_4CLASS_USER_FIELD_EMAIL_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000012");
     public static final UUID I18N_4CLASS_USER_FIELD_AVATAR_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000013");
@@ -99,12 +101,21 @@ public class SystemEntityService {
     public static final UUID I18N_4CLASS_GLOBAL_ANCESTOR_FIELD_MARKERS_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000036");
     public static final UUID I18N_4CLASS_USER_STATUS_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000025");
     public static final UUID I18N_4CLASS_BUSINESS_ACCOUNT_STATUS_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000026");
+    public static final UUID I18N_4CLASS_FACE_PAGE_STATUS_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000038");
+
+    public static final UUID TWIN_ATTACHMENT_EXTERNAL_URI_STORAGER_ID = UUID.fromString("00000000-0000-0000-0013-000000000002");
 
     public static final UUID TWIN_STATUS_USER = UUID.fromString("00000000-0000-0000-0003-000000000001");
     public static final UUID TWIN_STATUS_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0003-000000000003");
+    public static final UUID TWIN_STATUS_FACE_PAGE = UUID.fromString("00000000-0000-0000-0003-000000000004");
+    public static final UUID TWIN_STATUS_SKETCH = UUID.fromString("00000001-0000-0000-0000-000000000001"); //todo changge my id
 
     public static final UUID TWIN_TEMPLATE_USER = UUID.fromString("00000000-0000-0000-0002-000000000001");
     public static final UUID TWIN_TEMPLATE_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0002-000000000003");
+
+    public static final UUID TWIN_CLASS_FIELD_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000001");
+    public static final UUID TWIN_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000002");
+    public static final UUID TWIN_CLASS_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000003");
 
     public static final List<SystemClass> SYSTEM_CLASSES;
     public static Set<UUID> SYSTEM_TWIN_CLASS_FIELDS_UUIDS = new HashSet<>();
@@ -152,6 +163,14 @@ public class SystemEntityService {
                         ),
                         true,
                         false
+                ),
+                new SystemClass(
+                        TWIN_CLASS_FACE_PAGE,
+                        "FACE_PAGE",
+                        List.of(new SystemStatus(TWIN_STATUS_FACE_PAGE, TWIN_CLASS_FACE_PAGE, new I18n(I18N_4CLASS_FACE_PAGE_STATUS_NAME, "Published"), new I18n(I18N_4CLASS_FACE_PAGE_STATUS_DESCRIPTION, "Face page published"))),
+                        List.of(),
+                        false,
+                        true
                 )
         ));
     }

@@ -44,12 +44,12 @@ public class FacePG001Controller extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/face/pg001/{faceId}/v1")
     public ResponseEntity<?> facePG001ViewV1(
-            @MapperContextBinding(roots = FacePG001RestDTOMapper.class, response = FacePG001ViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FacePG001RestDTOMapper.class, response = FacePG001ViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACE_ID) @PathVariable UUID faceId,
             @RequestParam(required = false) UUID twinId) {
         FacePG001ViewRsDTOv1 rs = new FacePG001ViewRsDTOv1();
         try {
-            FacePG001Entity facePG001Entity = facePG001Service.findEntitySafe(faceId);
+            FacePG001Entity facePG001Entity = facePG001Service.findSingleVariant(faceId, twinId);
             rs
                     .setPage(facePG001RestDTOMapper.convert(facePG001Entity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

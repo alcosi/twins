@@ -102,6 +102,7 @@ public interface DTOExamples {
     String FEATURER_PARAM = "{\"linkId\"=>\"6e42ef74-3015-4400-946e-1326bcb4cf48\",\n\"GTEvalue\"=>\"2\"}";
     String FEATURER_PARAM_VALUE_LIST = "GREEN,RED,BLUE";
     String FEATURER_PARAM_VALUE_INT = "6000";
+    String STATISTIC_ID = "d74c3adc-c83c-4b55-92ca-cf5705982961";
 
     String COLOR_HEX = "#ff00ff";
     String FACTORY_ID = "5d956a15-6858-40ba-b0aa-b123c54e250d";

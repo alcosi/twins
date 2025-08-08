@@ -12,6 +12,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.email.EmailSenderEntity;
 import org.twins.core.dao.email.EmailSenderRepository;
+import org.twins.core.dao.notification.email.NotificationMode;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.notificator.emailer.Emailer;
 import org.twins.core.service.auth.AuthService;
@@ -59,23 +60,30 @@ public class EmailSenderService extends EntitySecureFindServiceImpl<EmailSenderE
         return true;
     }
 
-    public void sendEmail(EmailSenderEntity emailSender, String dstEmail, String subject, String body, boolean async) throws ServiceException {
-        sendEmail(emailSender,  dstEmail, subject, body, null, async);
+    public void sendEmail(EmailSenderEntity emailSender, String dstEmail, String subject, String body, NotificationMode notificationMode) throws ServiceException {
+        sendEmail(emailSender,  dstEmail, subject, body, null, notificationMode);
     }
 
-    public void sendEmail(EmailSenderEntity emailSender, String dstEmail, String subject, String body, Map<String, String> templateVars, boolean async) throws ServiceException {
+    public void sendEmail(EmailSenderEntity emailSender, String dstEmail, String subject, String body, Map<String, String> templateVars, NotificationMode notificationMode) throws ServiceException {
         Emailer emailer = featurerService.getFeaturer(emailSender.getEmailerFeaturerId(), Emailer.class);
-        if (async) {
+        if (notificationMode == NotificationMode.ASYNC) {
             CompletableFuture.runAsync(() -> {
                 try {
                     emailer.sendMail(emailSender.getId(), emailSender.getEmailerParams(), emailSender.getSrcEmail(), dstEmail, subject, body, templateVars);;
                 } catch (ServiceException e) {
                     log.error("Failed to send email", e);
-                    throw new RuntimeException(e);
                 }
             }, emailTaskExecutor);
         } else {
-            emailer.sendMail(emailSender.getId(), emailSender.getEmailerParams(), emailSender.getSrcEmail(), dstEmail, subject, body, templateVars);
+            try {
+                emailer.sendMail(emailSender.getId(), emailSender.getEmailerParams(), emailSender.getSrcEmail(), dstEmail, subject, body, templateVars);
+            } catch (Exception e) {
+                if (notificationMode == NotificationMode.SYNC_AND_LOG_ON_EXCEPTION) {
+                    log.error("Failed to send email", e);
+                } else if (notificationMode == NotificationMode.SYNC_AND_THROWS_ON_EXCEPTION) {
+                    throw e;
+                }
+            }
         }
 
     }

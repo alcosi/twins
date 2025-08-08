@@ -51,6 +51,12 @@ public class TwinFieldSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinFie
             return new TwinFieldSearchUser()
                     .setIdList(user.idList())
                     .setIdExcludeList(user.idExcludeList());
+        } else if (twinFieldSearchDTOv1 instanceof TwinFieldSearchSpaceRoleUserDTOv1 user) {
+            return new TwinFieldSearchSpaceRoleUser()
+                    .setRoleIdList(user.roleIdList())
+                    .setRoleIdExcludeList(user.roleIdExcludeList())
+                    .setUserIdList(user.userIdList())
+                    .setUserIdExcludeList(user.userIdExcludeList());
         } else if (twinFieldSearchDTOv1 instanceof TwinFieldSearchNumericDTOv1 numeric) {
             Double less = null;
             Double more = null;
@@ -77,6 +83,12 @@ public class TwinFieldSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinFie
                     .setLessThen(less)
                     .setMoreThen(more)
                     .setEquals(equals);
+        } else if (twinFieldSearchDTOv1 instanceof TwinFieldSearchTwinClassListDTOv1 dto) {
+            return new TwinFieldSearchTwinClassList()
+                    .setIdExcludeAllSet(dto.idExcludeAllSet())
+                    .setIdIncludeAllSet(dto.idIncludeAllSet())
+                    .setIdExcludeAnySet(dto.idExcludeAnySet())
+                    .setIdIncludeAnySet(dto.idIncludeAnySet());
         } else {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, "Invalid search field type: " + twinFieldSearchDTOv1.type());
         }

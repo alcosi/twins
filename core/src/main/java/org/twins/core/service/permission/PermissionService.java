@@ -191,14 +191,6 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return detectKeys;
     }
 
-    public PermissionSchemaEntity loadSchemaForDomain(DomainEntity domain) {
-        if(null != domain.getPermissionSchema())
-            return domain.getPermissionSchema();
-        final PermissionSchemaEntity permissionSchema = permissionSchemaRepository.findById(domain.getPermissionSchemaId()).orElse(null);
-        domain.setPermissionSchema(permissionSchema);
-        return permissionSchema;
-    }
-
     public PermissionSchemaEntity getCurrentPermissionSchema(TwinEntity twin) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         PermissionSchemaEntity permissionSchema = null;
@@ -210,7 +202,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
                 final DomainBusinessAccountEntity domainBusinessAccount = domainBusinessAccountService.getDomainBusinessAccountEntitySafe(apiUser.getDomainId(), apiUser.getBusinessAccountId());
                 permissionSchema = domainBusinessAccount.getPermissionSchema();
             } else {
-                permissionSchema = loadSchemaForDomain(apiUser.getDomain());
+                permissionSchema = apiUser.getDomain().getPermissionSchema();
             }
             if (null == permissionSchema) throw new ServiceException(ErrorCodeTwins.PERMISSION_SCHEMA_NOT_SPECIFIED);
         }
@@ -468,7 +460,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
             return false;
 
         loadUserPermissions(apiUser.getUser());
-        return anyOf 
+        return anyOf
             ? apiUser.getUser().getPermissions().stream().anyMatch(permissions::contains)
             : apiUser.getUser().getPermissions().containsAll(permissions);
     }

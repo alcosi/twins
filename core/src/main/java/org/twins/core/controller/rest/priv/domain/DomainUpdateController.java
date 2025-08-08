@@ -50,7 +50,7 @@ public class DomainUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/domain/v1")
     public ResponseEntity<?> domainUpdateV1(
-            @MapperContextBinding(roots = DomainViewRestDTOMapper.class, response = DomainViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DomainViewRestDTOMapper.class, response = DomainViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody DomainUpdateRqDTOv1 request) {
         DomainViewRsDTOv1 rs = new DomainViewRsDTOv1();
         try {

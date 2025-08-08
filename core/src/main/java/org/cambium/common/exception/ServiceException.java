@@ -1,6 +1,7 @@
 package org.cambium.common.exception;
 
 
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.http.HttpStatus;
 
 import java.util.Hashtable;
@@ -23,6 +24,21 @@ public class ServiceException extends ExternalServiceException implements IServi
         this(serviceError.getServiceCode(), serviceError.getCode(), serviceError.getMessage(), serviceError.getHttpStatus());
     }
 
+    public ServiceException(ErrorCode serviceError, String messagePattern, Object... args) {
+        this(serviceError.getServiceCode(), serviceError.getCode(), 
+             formatMessage(messagePattern, args), 
+             serviceError.getHttpStatus());
+    }
+
+    private static String formatMessage(String messagePattern, Object... args) {
+        if (messagePattern == null) {
+            return null;
+        }
+        if (args == null || args.length == 0) {
+            return messagePattern;
+        }
+        return MessageFormatter.arrayFormat(messagePattern, args).getMessage();
+    }
 
     public Hashtable<String, String> getContext() {
         return context;

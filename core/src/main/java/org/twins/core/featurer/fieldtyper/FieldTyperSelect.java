@@ -37,11 +37,13 @@ public class FieldTyperSelect extends FieldTyperList {
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueSelect value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        boolean supportCustomValue = supportCustom.extract(properties);
         // TODO add transactional support
         // TODO maybe need to get BAiD at apiUser
+        UUID datalistId = listUUID.extract(properties);
+        dataListOptionService.processExternalOptions(datalistId, value.getOptions(), twin.getOwnerBusinessAccountId());
+        boolean supportCustomValue = supportCustom.extract(properties);
         if (supportCustomValue)
-            value.setOptions(dataListService.processNewOptions(listUUID.extract(properties), value.getOptions(), twin.getOwnerBusinessAccountId()));
+            value.setOptions(dataListService.processNewOptions(datalistId, value.getOptions(), twin.getOwnerBusinessAccountId()));
         else
             value.getOptions().removeIf(o -> ObjectUtils.isEmpty(o.getId()));
         super.serializeValue(properties, twin, value, twinChangesCollector);

@@ -19,6 +19,7 @@ import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.action.TwinActionPermissionEntity;
 import org.twins.core.dao.attachment.TwinAttachmentAction;
 import org.twins.core.dao.attachment.TwinAttachmentActionAlienPermissionEntity;
+import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
 import org.twins.core.dao.comment.TwinCommentAction;
 import org.twins.core.dao.comment.TwinCommentActionAlienPermissionEntity;
 import org.twins.core.dao.comment.TwinCommentActionSelfEntity;
@@ -27,6 +28,7 @@ import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.twin.TwinFieldTwinClassEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
@@ -34,6 +36,7 @@ import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionAlienValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionSelfValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleEntity;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.headhunter.HeadHunter;
 
 import java.sql.Timestamp;
@@ -51,7 +54,7 @@ public class TwinClassEntity implements EasyLoggable {
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            this.id = UUID.randomUUID();
+            this.id = UUID.nameUUIDFromBytes((key + domainId).getBytes());
         }
     }
 
@@ -148,6 +151,15 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "page_face_id")
     private UUID pageFaceId;
 
+    @Column(name = "bread_crumbs_face_id")
+    private UUID breadCrumbsFaceId;
+
+    @Column(name = "inherited_page_face_id")
+    private UUID inheritedPageFaceId;
+
+    @Column(name = "inherited_bread_crumbs_face_id")
+    private UUID inheritedBreadCrumbsFaceId;
+
     @Column(name = "general_attachment_restriction_id")
     private UUID generalAttachmentRestrictionId;
 
@@ -181,6 +193,24 @@ public class TwinClassEntity implements EasyLoggable {
     @ToString.Exclude
     private FaceEntity pageFace;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bread_crumbs_face_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity breadCrumbsFace;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inherited_page_face_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity inheritedPageFace;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inherited_bread_crumbs_face_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity inheritedBreadCrumbsFace;
+
 //    @ManyToOne
 //    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
 //    private UserEntity createdByUser;
@@ -208,6 +238,10 @@ public class TwinClassEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinClassFieldEntity, UUID> twinClassFieldKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Set<TwinFieldStorage> fieldStorageSet;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -285,6 +319,10 @@ public class TwinClassEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private DataListEntity tagDataList;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private TwinAttachmentRestrictionEntity generalAttachmentRestriction;
 
 
     public Set<UUID> getExtendedClassIdSet() {

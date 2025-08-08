@@ -10,6 +10,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.face.dao.widget.wt002.FaceWT002Entity;
 import org.twins.face.dto.rest.widget.wt002.FaceWT002DTOv1;
+import org.twins.face.service.widget.FaceWT002ButtonService;
 import org.twins.face.service.widget.FaceWT002Service;
 
 import java.util.Collection;
@@ -19,6 +20,7 @@ import java.util.Collection;
 public class FaceWT002RestDTOMapper extends RestSimpleDTOMapper<FaceWT002Entity, FaceWT002DTOv1> {
     protected final FaceRestDTOMapper faceRestDTOMapper;
     protected final FaceWT002Service faceWT002Service;
+    protected final FaceWT002ButtonService faceWT002ButtonService;
 
     @MapperModePointerBinding(modes = FaceWT002Modes.FaceWT002Button2TwinClassMode.class)
     protected final FaceWT002ButtonRestDTOMapper faceWT002ButtonRestDTOMapper;
@@ -30,11 +32,11 @@ public class FaceWT002RestDTOMapper extends RestSimpleDTOMapper<FaceWT002Entity,
             case SHORT -> dst
                     .setKey(src.getKey());
             case DETAILED -> {
-                faceWT002Service.loadButtons(src);
+                faceWT002ButtonService.loadButtons(src);
                 dst
                         .setKey(src.getKey())
                         .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "))
-                        .setButtons(faceWT002ButtonRestDTOMapper.convertCollection(src.getButtons(), mapperContext));
+                        .setButtons(faceWT002ButtonRestDTOMapper.convertCollection(faceWT002ButtonService.filterVariants(src.getButtons()), mapperContext));
             }
         }
     }
@@ -42,6 +44,6 @@ public class FaceWT002RestDTOMapper extends RestSimpleDTOMapper<FaceWT002Entity,
     @Override
     public void beforeCollectionConversion(Collection<FaceWT002Entity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        faceWT002Service.loadButtons(srcCollection);
+        faceWT002ButtonService.loadButtons(srcCollection);
     }
 }

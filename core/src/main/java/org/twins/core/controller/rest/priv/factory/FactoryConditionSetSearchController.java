@@ -59,7 +59,7 @@ public class FactoryConditionSetSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory_condition_set/search/v1")
     public ResponseEntity<?> factoryConditionSetSearchV1(
-            @MapperContextBinding(roots = FactoryConditionSetRestDTOMapperV2.class, response = FactoryConditionSetSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryConditionSetRestDTOMapperV2.class, response = FactoryConditionSetSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody FactoryConditionSetSearchRqDTOv1 request) {
         FactoryConditionSetSearchRsDTOv1 rs = new FactoryConditionSetSearchRsDTOv1();
@@ -87,7 +87,7 @@ public class FactoryConditionSetSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/factory_condition_set/{factoryConditionSetId}/v1")
     public ResponseEntity<?> factoryConditionSetViewV1(
-            @MapperContextBinding(roots = FactoryConditionSetRestDTOMapper.class, response = FactoryConditionSetViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryConditionSetRestDTOMapper.class, response = FactoryConditionSetViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_CONDITION_SET_ID) @PathVariable("factoryConditionSetId") UUID factoryConditionSetId) {
         FactoryConditionSetViewRsDTOv1 rs = new FactoryConditionSetViewRsDTOv1();
         try {

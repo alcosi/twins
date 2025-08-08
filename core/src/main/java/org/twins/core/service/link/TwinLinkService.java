@@ -377,6 +377,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     @Data
     @Accessors(chain = true)
     public static class FindTwinLinksResult {
+        public static final FindTwinLinksResult EMPTY = new FindTwinLinksResult();
         UUID twinId;
         KitGrouped<TwinLinkEntity, UUID, UUID> forwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId);
         @Deprecated //backwardLinks should be taken from API with pagination support
@@ -405,5 +406,12 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         if (CollectionUtils.isNotEmpty(twinLinkCUD.getDeleteList())) {
             deleteTwinLinks(twinEntity.getId(), twinLinkCUD.getDeleteList(), twinChangesCollector);
         }
+    }
+
+    public TwinEntity getDstTwinSafe(TwinLinkEntity twinLinkEntity) throws ServiceException {
+        if (twinLinkEntity.getDstTwin() == null && twinLinkEntity.getDstTwinId() != null) {
+            twinLinkEntity.setDstTwin(twinService.findEntity(twinLinkEntity.getDstTwinId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows));
+        }
+        return twinLinkEntity.getDstTwin();
     }
 }

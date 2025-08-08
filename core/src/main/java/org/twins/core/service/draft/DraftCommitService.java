@@ -15,6 +15,7 @@ import java.util.UUID;
 import java.util.function.Function;
 
 import static org.twins.core.domain.draft.DraftCounters.Counter.*;
+import static org.twins.core.domain.draft.DraftCounters.Counter.FIELD_SIMPLE_NON_INDEXED_UPDATE;
 import static org.twins.core.domain.draft.DraftCounters.CounterGroup.*;
 
 @Service
@@ -30,9 +31,12 @@ public class DraftCommitService {
     private final DraftTwinAttachmentRepository draftTwinAttachmentRepository;
     private final DraftTwinLinkRepository draftTwinLinkRepository;
     private final DraftTwinFieldSimpleRepository draftTwinFieldSimpleRepository;
+    private final DraftTwinFieldSimpleNonIndexedRepository draftTwinFieldSimpleNonIndexedRepository;
+    private final DraftTwinFieldBooleanRepository draftTwinFieldBooleanRepository;
     private final DraftTwinFieldUserRepository draftTwinFieldUserRepository;
     private final DraftTwinFieldDataListRepository draftTwinFieldDataListRepository;
     private final DraftTwinPersistRepository draftTwinPersistRepository;
+    private final DraftTwinFieldTwinClassRepository draftTwinFieldTwinClassRepository;
     @Lazy
     private final DraftService draftService;
     @Lazy
@@ -148,12 +152,18 @@ public class DraftCommitService {
 
     private void commitTwinFields(DraftEntity draftEntity) throws ServiceException {
         int counter = draftEntity.getCounters().getOrZero(FIELDS);
-        if (counter == 0)
+
+        if (counter == 0) {
             return;
+        }
+
         log.info("commiting {} twin fields", counter);
         commitTwinFieldSimple(draftEntity);
+        commitTwinFieldSimpleNonIndexed(draftEntity);
+        commitTwinFieldBoolean(draftEntity);
         commitTwinFieldUser(draftEntity);
         commitTwinFieldDataList(draftEntity);
+        commitTwinFieldTwinClass(draftEntity);
     }
 
 
@@ -167,9 +177,53 @@ public class DraftCommitService {
         commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_SIMPLE_UPDATE), draftTwinFieldSimpleRepository::commitUpdates, "twin fields [simple]: update");
     }
 
-    private void commitTwinFieldSimpleDelete(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getCounters().isZero(FIELD_SIMPLE_DELETE))
+    private void commitTwinFieldSimpleNonIndexed(DraftEntity draftEntity) throws ServiceException {
+        int counter = draftEntity.getCounters().getOrZero(FIELDS_SIMPLE_NON_INDEXED);
+
+        if (counter == 0) {
             return;
+        }
+
+        log.info("commiting {} twin fields simple non indexed", counter);
+        commitTwinFieldSimpleNonIndexedDelete(draftEntity);
+        commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_SIMPLE_NON_INDEXED_CREATE), draftTwinFieldSimpleNonIndexedRepository::commitCreates, "twin fields [simple non indexed]: creation");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_SIMPLE_NON_INDEXED_UPDATE), draftTwinFieldSimpleNonIndexedRepository::commitUpdates, "twin fields [simple non indexed]: update");
+    }
+
+    private void commitTwinFieldBoolean(DraftEntity draftEntity) throws ServiceException {
+        int counter = draftEntity.getCounters().getOrZero(FIELDS_BOOLEAN);
+
+        if (counter == 0) {
+            return;
+        }
+
+        log.info("commiting {} twin fields boolean", counter);
+        commitTwinFieldBooleanDelete(draftEntity);
+        commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_BOOLEAN_CREATE), draftTwinFieldBooleanRepository::commitCreates, "twin fields [boolean]: creation");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_BOOLEAN_UPDATE), draftTwinFieldBooleanRepository::commitUpdates, "twin fields [boolean]: update");
+    }
+
+    private void commitTwinFieldSimpleDelete(DraftEntity draftEntity) throws ServiceException {
+        if (draftEntity.getCounters().isZero(FIELD_SIMPLE_DELETE)) {
+            return;
+        }
+
+        throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "twin simple fields deletion is not implemented");
+    }
+
+    private void commitTwinFieldSimpleNonIndexedDelete(DraftEntity draftEntity) throws ServiceException {
+        if (draftEntity.getCounters().isZero(FIELD_SIMPLE_DELETE)) {
+            return;
+        }
+
+        throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "twin simple fields deletion is not implemented");
+    }
+
+    private void commitTwinFieldBooleanDelete(DraftEntity draftEntity) throws ServiceException {
+        if (draftEntity.getCounters().isZero(FIELD_SIMPLE_DELETE)) {
+            return;
+        }
+
         throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "twin simple fields deletion is not implemented");
     }
 
@@ -181,6 +235,16 @@ public class DraftCommitService {
         commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_USER_CREATE), draftTwinFieldUserRepository::commitCreates, "twin fields [user]: creation");
         commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_USER_UPDATE), draftTwinFieldUserRepository::commitUpdates, "twin fields [user]: update");
         commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_USER_DELETE), draftTwinFieldUserRepository::commitDeletes, "twin fields [user]: deletion");
+    }
+
+    private void commitTwinFieldTwinClass(DraftEntity draftEntity) {
+        int counter = draftEntity.getCounters().getOrZero(FIELDS_TWIN_CLASS);
+        if (counter == 0)
+            return;
+        log.info("commiting {} twin fields [twin_class]", counter);
+        commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_TWIN_CLASS_CREATE), draftTwinFieldTwinClassRepository::commitCreates, "twin fields [twin_class]: creation");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_TWIN_CLASS_UPDATE), draftTwinFieldTwinClassRepository::commitUpdates, "twin fields [twin_class]: update");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_TWIN_CLASS_DELETE), draftTwinFieldTwinClassRepository::commitDeletes, "twin fields [twin_class]: deletion");
     }
 
     private void commitTwinFieldDataList(DraftEntity draftEntity) {

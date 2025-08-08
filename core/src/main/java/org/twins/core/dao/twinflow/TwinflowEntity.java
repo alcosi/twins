@@ -13,6 +13,7 @@ import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.factory.FactoryLauncher;
 
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -89,6 +90,10 @@ public class TwinflowEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinflowTransitionEntity, UUID> transitionsKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinflowFactoryEntity, FactoryLauncher> factoriesKit;
 
     // only for manual load (needed only for deletion)
     @Transient

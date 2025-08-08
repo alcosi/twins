@@ -3,6 +3,8 @@ package org.twins.core.dao.twinflow;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -43,6 +45,12 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicClon
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "transition_trigger_params", columnDefinition = "hstore")
     private HashMap<String, String> transitionTriggerParams;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
+    @JoinColumn(name = "twinflow_transition_id", insertable = false, updatable = false)
+    private TwinflowTransitionEntity twinflowTransition;
 
     @Column(name = "active")
     private boolean isActive;

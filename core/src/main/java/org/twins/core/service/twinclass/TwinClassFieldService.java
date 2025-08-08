@@ -11,7 +11,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.featurer.dao.FeaturerRepository;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -34,6 +33,7 @@ import org.twins.core.dto.rest.twinclass.TwinClassFieldSave;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperLink;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
@@ -151,6 +151,19 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         }
     }
 
+    public void loadFieldStorages(TwinClassEntity twinClassEntity) throws ServiceException {
+        if (twinClassEntity.getFieldStorageSet() != null) {
+            return;
+        }
+        twinClassEntity.setFieldStorageSet(new HashSet<>());
+        for (TwinClassFieldEntity twinClassField : twinClassEntity.getTwinClassFieldKit().getCollection()) {
+            FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturer(), FieldTyper.class);
+            //storage hashCode is important here, this will help to do bulk load
+            TwinFieldStorage storage = fieldTyper.getStorage(twinClassField);
+            twinClassEntity.getFieldStorageSet().add(storage);
+        }
+    }
+
     public TwinClassFieldEntity findByTwinClassIdAndKey(UUID twinClassId, String key) {
         return twinClassFieldRepository.findByTwinClassIdAndKey(twinClassId, key);
     }
@@ -247,7 +260,25 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         return twinClassFieldRepository.findByTwinClassIdAndFieldTyperIdInAndFieldTyperParamsLike(twinClassId, Set.of(FieldTyperLink.ID), "%" + linkId + "%");
     }
 
+    public Kit<TwinClassFieldEntity, UUID> getBaseFieldsKit() {
+        return new Kit<>(
+                twinClassFieldRepository.findBaseFields(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR),
+                TwinClassFieldEntity::getId
+        );
+    }
+
+    public TwinClassFieldEntity getBaseField(UUID twinClassFieldId) {
+        for (var baseField : twinClassFieldRepository.findBaseFields(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR)) {
+            if (baseField.getId().equals(twinClassFieldId)) {
+                return baseField;
+            }
+        }
+        return null;
+    }
+
     public TwinClassFieldEntity getTwinClassFieldOrNull(TwinClassEntity twinClass, UUID twinClassFieldId) {
+        if (SystemEntityService.isSystemField(twinClassFieldId))
+            return getBaseField(twinClassFieldId);
         loadTwinClassFields(twinClass);
         return twinClass.getTwinClassFieldKit().get(twinClassFieldId);
     }
@@ -438,10 +469,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         if (changesHelper.isChanged(TwinClassFieldEntity.Fields.fieldTyperFeaturerId, dbTwinClassFieldEntity.getFieldTyperFeaturerId(), newFeaturerId)) {
             if (twinService.areFieldsOfTwinClassFieldExists(dbTwinClassFieldEntity))
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_UPDATE_RESTRICTED, "class field can not change fieldtyper featurer, because some twins with fields of given class are already exist");
-            FeaturerEntity newFieldTyperFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, FieldTyper.class);
+            featurerService.checkValid(newFeaturerId, newFeaturerParams, FieldTyper.class);
             dbTwinClassFieldEntity
-                    .setFieldTyperFeaturerId(newFieldTyperFeaturer.getId())
-                    .setFieldTyperFeaturer(newFieldTyperFeaturer);
+                    .setFieldTyperFeaturerId(newFeaturerId);
         }
         featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
         if (!MapUtils.areEqual(dbTwinClassFieldEntity.getFieldTyperParams(), newFeaturerParams)) {

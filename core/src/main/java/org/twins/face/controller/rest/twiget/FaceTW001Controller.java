@@ -16,7 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.domain.face.TwidgetConfig;
+import org.twins.core.domain.face.PointedFace;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -45,12 +45,12 @@ public class FaceTW001Controller extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/face/tw001/{faceId}/v1")
     public ResponseEntity<?> faceTW001ViewV1(
-            @MapperContextBinding(roots = FaceTW001RestDTOMapper.class, response = FaceTW001ViewRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FaceTW001RestDTOMapper.class, response = FaceTW001ViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACE_ID) @PathVariable UUID faceId,
             @RequestParam UUID twinId) {
         FaceTW001ViewRsDTOv1 rs = new FaceTW001ViewRsDTOv1();
         try {
-            TwidgetConfig<FaceTW001Entity> config = faceTW001Service.getConfig(faceId, twinId);
+            PointedFace<FaceTW001Entity> config = faceTW001Service.findPointedFace(faceId, twinId);
             rs
                     .setWidget(faceTW001RestDTOMapper.convert(config, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

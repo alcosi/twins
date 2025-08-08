@@ -50,7 +50,7 @@ public class PermissionCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission/v1")
     public ResponseEntity<?> permissionCreateV1(
-            @MapperContextBinding(roots = PermissionRestDTOMapper.class, response = PermissionCreateRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionRestDTOMapper.class, response = PermissionCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody PermissionCreateRqDTOv1 request) {
         PermissionCreateRsDTOv1 rs = new PermissionCreateRsDTOv1();
         try {

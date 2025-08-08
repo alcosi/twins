@@ -9,7 +9,10 @@ import lombok.experimental.Accessors;
 @Schema(name =  "TwinClassFieldDescriptorNumericV1")
 public class TwinClassFieldDescriptorNumericDTOv1 implements TwinClassFieldDescriptorDTO {
     public static final String KEY = "numericFieldV1";
-    public String fieldType = KEY;
+    @Override
+    public String fieldType() {
+        return KEY;
+    }
 
     @Schema(description = "Min possible value", example = "1")
     public Double min;

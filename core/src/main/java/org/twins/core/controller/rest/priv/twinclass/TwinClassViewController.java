@@ -53,7 +53,7 @@ public class TwinClassViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class/{twinClassId}/v1")
     public ResponseEntity<?> twinClassViewV1(
-            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         TwinClassRsDTOv1 rs = new TwinClassRsDTOv1();
         try {
@@ -78,7 +78,7 @@ public class TwinClassViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class_by_key/{twinClassKey}/v1")
     public ResponseEntity<?> twinClassViewByKeyV1(
-            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_KEY) @PathVariable String twinClassKey) {
         TwinClassRsDTOv1 rs = new TwinClassRsDTOv1();
         try {

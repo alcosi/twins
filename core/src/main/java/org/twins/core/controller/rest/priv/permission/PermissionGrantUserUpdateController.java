@@ -52,7 +52,7 @@ public class PermissionGrantUserUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/permission_grant/user/{permissionGrantUserId}/v1")
     public ResponseEntity<?> permissionGrantUserUpdateV1(
-            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserSaveRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GRANT_USER_ID) @PathVariable UUID permissionGrantUserId,
             @RequestBody PermissionGrantUserUpdateRqDTOv1 request) {
         PermissionGrantUserSaveRsDTOV1 rs = new PermissionGrantUserSaveRsDTOV1();

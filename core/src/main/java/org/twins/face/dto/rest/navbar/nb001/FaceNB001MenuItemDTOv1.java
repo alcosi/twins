@@ -30,6 +30,7 @@ public class FaceNB001MenuItemDTOv1 {
     @Schema(description = "Icon url. Might be relative")
     public String icon;
 
+    @Deprecated
     @Schema(description = "domain navigation bar pointer")
     public UUID targetPageFaceId;
 
@@ -41,4 +42,7 @@ public class FaceNB001MenuItemDTOv1 {
 
     @Schema(description = "children")
     public List<FaceNB001MenuItemDTOv1> children;
+
+    @Schema(description = "target twin id")
+    private UUID targetTwinId;
 }

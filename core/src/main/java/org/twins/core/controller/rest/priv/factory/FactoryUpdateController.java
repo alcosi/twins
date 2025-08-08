@@ -53,7 +53,7 @@ public class FactoryUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/factory/{factoryId}/v1")
     public ResponseEntity<?> factoryUpdateV1(
-            @MapperContextBinding(roots = FactoryRestDTOMapperV2.class, response = FactoryRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryRestDTOMapperV2.class, response = FactoryRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_ID) @PathVariable UUID factoryId,
             @RequestBody FactoryUpdateRqDTOv1 request) {
         FactoryRsDTOv1 rs = new FactoryRsDTOv1();

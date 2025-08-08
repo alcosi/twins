@@ -10,18 +10,15 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.face.TwidgetConfig;
-import org.twins.core.domain.search.TwinClassFieldSearch;
-import org.twins.face.domain.twidget.tw004.FaceTW004TwinClassField;
-import org.twins.core.featurer.fieldfilter.FieldFilter;
-import org.twins.core.featurer.fieldfinder.FieldFinder;
+import org.twins.core.domain.face.PointedFace;
+import org.twins.core.featurer.classfield.filter.FieldFilter;
+import org.twins.core.service.face.FacePointedService;
 import org.twins.core.service.face.FaceService;
-import org.twins.core.service.face.FaceTwidgetService;
 import org.twins.core.service.twinclass.TwinClassFieldSearchService;
 import org.twins.face.dao.twidget.tw004.FaceTW004Entity;
 import org.twins.face.dao.twidget.tw004.FaceTW004Repository;
+import org.twins.face.domain.twidget.tw004.FaceTW004TwinClassField;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,11 +30,11 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceTW004Service extends FaceTwidgetService<FaceTW004Entity> {
+public class FaceTW004Service extends FacePointedService<FaceTW004Entity> {
     private final FaceTW004Repository faceTW004Repository;
-    private final FaceService faceService;
     private final FeaturerService featurerService;
     private final TwinClassFieldSearchService twinClassFieldSearchService;
+    private final FaceService faceService;
 
     @Override
     public CrudRepository<FaceTW004Entity, UUID> entityRepository() {
@@ -46,7 +43,7 @@ public class FaceTW004Service extends FaceTwidgetService<FaceTW004Entity> {
 
     @Override
     public Function<FaceTW004Entity, UUID> entityGetIdFunction() {
-        return FaceTW004Entity::getFaceId;
+        return FaceTW004Entity::getId;
     }
 
     @Override
@@ -60,30 +57,30 @@ public class FaceTW004Service extends FaceTwidgetService<FaceTW004Entity> {
     }
 
     @Override
-    public FaceTW004Entity getConfig(UUID faceId, TwinEntity currentTwin, TwinEntity targetTwin) throws ServiceException {
-        return findEntitySafe(faceId);
+    public List<FaceTW004Entity> getVariants(UUID faceId) {
+        return faceTW004Repository.findByFaceId(faceId);
     }
 
-    public List<FaceTW004TwinClassField> loadFields(UUID twinClassId, TwidgetConfig<FaceTW004Entity> twidgetConfig) throws ServiceException {
-        FieldFinder fieldFinder = featurerService.getFeaturer(twidgetConfig.getConfig().getFieldFinderFeaturerId(), FieldFinder.class);
-        TwinClassFieldSearch twinClassFieldSearch = fieldFinder.createSearch(twidgetConfig.getConfig().getFieldFinderParams(), twinClassId);
-        twinClassFieldSearch.setExcludeSystemFields(false);
-        List<TwinClassFieldEntity> fields = twinClassFieldSearchService.findTwinClassField(twinClassFieldSearch, new SimplePagination().setLimit(250).setOffset(0)).getList();
+    public List<FaceTW004TwinClassField> loadFields(PointedFace<FaceTW004Entity> pointedFace) throws ServiceException {
+        List<TwinClassFieldEntity> fields = twinClassFieldSearchService.findTwinClassField(pointedFace.getConfig().getTwinClassFieldSearchId(), null, SimplePagination.FRIENDLY).getList();
 
         Set<UUID> editableFieldIds = null;
 
-        if (twidgetConfig.getConfig().getFieldFilterFeaturerId() != null) {
-            FieldFilter fieldFilter = featurerService.getFeaturer(twidgetConfig.getConfig().getFieldFilterFeaturerId(), FieldFilter.class);
-            Kit<TwinClassFieldEntity, UUID> fieldsKit = fieldFilter.filterFields(twidgetConfig.getConfig().getFieldFilterParams(), fields, twidgetConfig.getTargetTwin());
+        if (pointedFace.getConfig().getFieldFilterFeaturerId() != null) {
+            FieldFilter fieldFilter = featurerService.getFeaturer(pointedFace.getConfig().getFieldFilterFeaturerId(), FieldFilter.class);
+            Kit<TwinClassFieldEntity, UUID> fieldsKit = fieldFilter.filterFields(pointedFace.getConfig().getFieldFilterParams(), fields, pointedFace.getTargetTwin());
             editableFieldIds = fieldsKit.getIdSetSafe();
         }
 
         List<FaceTW004TwinClassField> result = new ArrayList<>(fields.size());
+        int order = 0;
+
         for (TwinClassFieldEntity field : fields) {
             boolean isEditable = editableFieldIds == null || editableFieldIds.contains(field.getId());
 
-            result.add(new FaceTW004TwinClassField(field, isEditable));
+            result.add(new FaceTW004TwinClassField(field, isEditable, ++order));
         }
+
         return result;
     }
 }

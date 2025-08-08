@@ -50,7 +50,7 @@ public class DataListSearchController extends ApiController {
     @PostMapping(value = "/private/data_list/search/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListSearchV1(
-            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody DataListSearchRqDTOv1 request) {
         DataListSearchRsDTOv1 rs = new DataListSearchRsDTOv1();

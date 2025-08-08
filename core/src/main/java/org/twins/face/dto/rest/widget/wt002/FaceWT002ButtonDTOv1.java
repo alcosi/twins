@@ -26,9 +26,6 @@ public class FaceWT002ButtonDTOv1 {
     @Schema(description = "widget layout")
     public Set<String> styleClasses;
 
-    @Schema(description = "extends hierarchy twin class id")
-    public UUID twinClassId;
-
-    @Schema(description = "hierarchy depth")
-    public Integer extendsDepth;
+    @Schema(description = "face modal id")
+    public UUID modalFaceId;
 }
