@@ -73,6 +73,12 @@ public class CacheService {
         }
     }
 
+    public void evictAllCacheRecords() throws ServiceException {
+        for (String cacheName : cacheManager.getCacheNames()) {
+            evictCacheRecord(cacheName, null);
+        }
+    }
+
     /**
      * Retrieves information about all caches in the system.
      *

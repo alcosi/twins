@@ -9,9 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
-import org.springframework.cache.caffeine.CaffeineCache;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -51,5 +49,23 @@ public class CacheEvictController extends ApiController {
             return createErrorRs(e, rs);
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "allCachesEvictV1", summary = "Evict all caches")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "All caches info retrieved successfully", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @GetMapping(value = "/private/system/cache/all/evict")
+    public ResponseEntity<?> allCachesEvictV1() {
+        Response rs = new Response();
+        try {
+            cacheService.evictAllCacheRecords();
+            return new ResponseEntity<>(rs, HttpStatus.OK);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
     }
 }
