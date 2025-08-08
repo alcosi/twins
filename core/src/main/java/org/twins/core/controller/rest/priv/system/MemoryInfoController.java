@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
@@ -22,8 +21,6 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.system.MemoryAllInfoRsDTOv1;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.system.MemoryService;
-
-import java.util.UUID;
 
 @Tag(description = "Memory information", name = ApiTag.SYSTEM)
 @RestController
@@ -44,7 +41,7 @@ public class MemoryInfoController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/system/memory/all/info")
     @Loggable(rsBodyThreshold = 2000)
-    public ResponseEntity<?> getAllMemoryInfo(@RequestParam("secretKey") UUID requestSecretKey) {
+    public ResponseEntity<?> getAllMemoryInfo() {
         MemoryAllInfoRsDTOv1 rs = new MemoryAllInfoRsDTOv1();
         try {
             rs.setMemoryInfo(memoryService.getMemoryInfo());

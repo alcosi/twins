@@ -12,7 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
@@ -26,7 +29,6 @@ import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.system.CacheService;
 
 import java.util.List;
-import java.util.UUID;
 
 
 @Tag(description = "", name = ApiTag.SYSTEM)
@@ -69,7 +71,7 @@ public class CacheGetController extends ApiController {
                     @Schema(implementation = CacheInfoRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/system/cache/all/info")
-    public ResponseEntity<?> allCachesInfoV1(@RequestParam("secretKey") UUID requestSecretKey) {
+    public ResponseEntity<?> allCachesInfoV1() {
         CacheInfoRsDTOv1 rs = new CacheInfoRsDTOv1();
         try {
             List<CacheInfoDTO> allCachesInfo = cacheService.getAllCachesInfo();
