@@ -10,19 +10,22 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.domain.system.CacheInfoDTO;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.system.CacheInfoRsDTOv1;
 import org.twins.core.dto.rest.system.CacheRsDTOv1;
 import org.twins.core.mappers.rest.system.CacheRestDTOMapper;
 import org.twins.core.service.system.CacheService;
+
+import java.util.List;
+import java.util.UUID;
 
 
 @Tag(description = "", name = ApiTag.SYSTEM)
@@ -33,6 +36,8 @@ import org.twins.core.service.system.CacheService;
 public class CacheGetController extends ApiController {
     private final CacheService cacheService;
     private final CacheRestDTOMapper cacheRestDTOMapper;
+    @Value("${twins.memory-info.secret-key}")
+    private UUID secretKey;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "cacheInfoV1", summary = "Returns cache info")
@@ -53,5 +58,27 @@ public class CacheGetController extends ApiController {
             return createErrorRs(e, rs);
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "allCachesInfoV1", summary = "Get information about all caches")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "All caches info retrieved successfully", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = CacheInfoRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @GetMapping(value = "/private/system/cache/all/info")
+    public ResponseEntity<?> allCachesInfoV1(@RequestParam("secretKey") UUID requestSecretKey) {
+        CacheInfoRsDTOv1 rs = new CacheInfoRsDTOv1();
+        try {
+            if (!secretKey.equals(requestSecretKey)) {
+                throw new IllegalArgumentException("Wrong secret key");
+            }
+            List<CacheInfoDTO> allCachesInfo = cacheService.getAllCachesInfo();
+            rs.setCaches(allCachesInfo);
+            return new ResponseEntity<>(rs, HttpStatus.OK);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
     }
 }
