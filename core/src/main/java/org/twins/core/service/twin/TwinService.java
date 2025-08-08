@@ -1267,19 +1267,19 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
         var fieldTyper = featurerService.getFeaturer(twinClassFieldForReplace.getFieldTyperFeaturer(), FieldTyper.class);
         fieldTyper.getStorage(twinClassFieldForReplace).replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
-        if (fieldTyper.getStorageType() == TwinFieldSimpleEntity.class) {
+        if (fieldTyper.getStorageType() == TwinFieldStorageSimple.class) {
             twinFieldSimpleRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
-        } else if (fieldTyper.getStorageType() == TwinFieldSimpleNonIndexedEntity.class) {
+        } else if (fieldTyper.getStorageType() == TwinFieldStorageSimpleNonIndex.class) {
             twinFieldSimpleNonIndexedRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
-        } else if (fieldTyper.getStorageType() == TwinFieldUserEntity.class) {
+        } else if (fieldTyper.getStorageType() == TwinFieldStorageUser.class) {
             twinFieldUserRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
-        } else if (fieldTyper.getStorageType() == TwinFieldDataListEntity.class) {
+        } else if (fieldTyper.getStorageType() == TwinFieldStorageDatalist.class) {
             twinFieldDataListRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
-        } else if (fieldTyper.getStorageType() == TwinFieldI18nEntity.class) {
+        } else if (fieldTyper.getStorageType() == TwinFieldStorageI18n.class) {
             twinFieldI18nRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
-        } else if (fieldTyper.getStorageType() == TwinFieldBooleanEntity.class) {
+        } else if (fieldTyper.getStorageType() == TwinFieldStorageBoolean.class) {
             twinFieldBooleanRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
-        } else if (fieldTyper.getStorageType() == TwinFieldTwinClassEntity.class) {
+        } else if (fieldTyper.getStorageType() == TwinFieldStorageTwinClassList.class) {
             twinFieldTwinClassListRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
         }
     }
@@ -1294,11 +1294,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         var fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
         TwinEntity twin = faceTwinPointerService.getPointer(pointerId);
 
-        if (fieldTyper.getStorageType().equals(TwinFieldStorageSimple.class)) {
-            TwinFieldSimpleEntity entity = twinFieldSimpleRepository.findByTwinIdAndTwinClassFieldId(twin.getId(), twinClassFieldEntity.getId());
+        if (fieldTyper.getValueType().equals(FieldValueText.class)) {
+            FieldValueText value = (FieldValueText) getTwinFieldValue(twin, twinClassFieldEntity.getId());
 
-            if (entity != null) {
-                res = entity.getValue();
+            if (value != null) {
+                res = value.getValue();
             }
         }
         else if (fieldTyper.getStorageType() == TwinFieldStorageSimpleNonIndex.class) {
