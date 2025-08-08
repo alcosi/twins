@@ -10,18 +10,19 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.system.CacheInfoDTO;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.system.CacheInfoRsDTOv1;
 import org.twins.core.dto.rest.system.CacheRsDTOv1;
 import org.twins.core.mappers.rest.system.CacheRestDTOMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.system.CacheService;
 
 import java.util.List;
@@ -36,8 +37,7 @@ import java.util.UUID;
 public class CacheGetController extends ApiController {
     private final CacheService cacheService;
     private final CacheRestDTOMapper cacheRestDTOMapper;
-    @Value("${twins.memory-info.secret-key}")
-    private UUID secretKey;
+
 
     @ParametersApiUserHeaders
     @Operation(operationId = "cacheInfoV1", summary = "Returns cache info")
@@ -60,6 +60,7 @@ public class CacheGetController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
+    @ProtectedBy(Permissions.SYSTEM_APP_INFO_VIEW)
     @ParametersApiUserHeaders
     @Operation(operationId = "allCachesInfoV1", summary = "Get information about all caches")
     @ApiResponses(value = {
@@ -71,9 +72,6 @@ public class CacheGetController extends ApiController {
     public ResponseEntity<?> allCachesInfoV1(@RequestParam("secretKey") UUID requestSecretKey) {
         CacheInfoRsDTOv1 rs = new CacheInfoRsDTOv1();
         try {
-            if (!secretKey.equals(requestSecretKey)) {
-                throw new IllegalArgumentException("Wrong secret key");
-            }
             List<CacheInfoDTO> allCachesInfo = cacheService.getAllCachesInfo();
             rs.setCaches(allCachesInfo);
             return new ResponseEntity<>(rs, HttpStatus.OK);

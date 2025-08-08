@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -34,8 +33,7 @@ import java.util.UUID;
 @ProtectedBy(Permissions.SYSTEM_APP_INFO_VIEW)
 public class MemoryInfoController extends ApiController {
     private final MemoryService memoryService;
-    @Value("${twins.memory-info.secret-key}")
-    private UUID secretKey;
+
 
     @ParametersApiUserHeaders
     @Operation(operationId = "memoryAllInfoV1", summary = "Returns all memory information")
@@ -49,9 +47,6 @@ public class MemoryInfoController extends ApiController {
     public ResponseEntity<?> getAllMemoryInfo(@RequestParam("secretKey") UUID requestSecretKey) {
         MemoryAllInfoRsDTOv1 rs = new MemoryAllInfoRsDTOv1();
         try {
-            if (!secretKey.equals(requestSecretKey)) {
-                throw new IllegalArgumentException("Wrong secret key");
-            }
             rs.setMemoryInfo(memoryService.getMemoryInfo());
             rs.setMemoryPoolInfo(memoryService.getMemoryPoolInfo());
             return new ResponseEntity<>(rs, HttpStatus.OK);
