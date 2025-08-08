@@ -34,15 +34,19 @@ public class FaceBC001Entity implements EasyLoggable, FaceVariantEntity {
 
     @ManyToOne
     @JoinColumn(name = "face_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FaceEntity face;
 
     @ManyToOne
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
     @Transient
-    @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<FaceBC001ItemEntity, UUID> items;
 
     @Override
