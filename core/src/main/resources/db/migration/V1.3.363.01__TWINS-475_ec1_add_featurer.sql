@@ -1,0 +1,2 @@
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (3106, 31, 'org.twins.core.featurer.pointer.PointerOnGivenTwin', 'Given twin pointed', '', false) on conflict do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (3902, 39, 'org.twins.core.featurer.classfinder.ClassFinderGivenSet', 'Class finder by given twin class id set', '', false) on conflict do nothing;

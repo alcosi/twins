@@ -1,0 +1,1 @@
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2706, 27, 'org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilderParamCurrentTwinId', 'Current twin id from Param', '', false) on conflict (id) do nothing ;

@@ -7,6 +7,7 @@ import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.EntityCUD;
+import org.twins.core.service.SystemEntityService;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -25,6 +26,14 @@ public class TwinUpdate extends TwinSave {
     protected Set<UUID> markersDelete;
     protected Set<UUID> tagsDelete;
     private boolean checkEditPermission = false;
+    private Mode mode = Mode.twinUpdate; //we had to create this flag here, because a status of dbTwinEntity can be changed during TwinUpdate flow
+
+    public TwinUpdate setDbTwinEntity(TwinEntity dbTwinEntity) {
+        this.dbTwinEntity = dbTwinEntity;
+        if (SystemEntityService.TWIN_STATUS_SKETCH.equals(dbTwinEntity.getTwinStatusId()))
+            mode = Mode.sketchUpdate;
+        return this;
+    }
 
     @Override
     public UUID nullifyUUID() {
@@ -52,4 +61,13 @@ public class TwinUpdate extends TwinSave {
         );
     }
 
+    public enum Mode {
+        twinUpdate,
+        sketchUpdate,
+        sketchFinalize;
+
+        public boolean isSketch() {
+            return this == sketchUpdate || this == sketchFinalize;
+        }
+    }
 }

@@ -21,10 +21,12 @@ import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinClassFieldSearch;
-import org.twins.core.featurer.fieldfinder.FieldFinder;
+import org.twins.core.featurer.classfield.finder.FieldFinder;
+import org.twins.core.featurer.classfield.sorter.FieldSorter;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -52,9 +54,17 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
     public PaginationResult<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search, SimplePagination pagination) throws ServiceException {
         if (search.isInactiveSearch())
             return PaginationResult.EMPTY;
-        Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
-        Page<TwinClassFieldEntity> ret = twinClassFieldRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
+        Specification<TwinClassFieldEntity> specification = createTwinClassFieldSearchSpecification(search);
+        specification = addSorting(search, pagination, specification);
+        Page<TwinClassFieldEntity> ret = twinClassFieldRepository.findAll(specification, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
+    }
+
+    public List<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search) throws ServiceException {
+        if (search.isInactiveSearch())
+            return Collections.emptyList();
+        Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
+        return twinClassFieldRepository.findAll(spec);
     }
 
     public PaginationResult<TwinClassFieldEntity> findTwinClassField(UUID searchId, TwinClassFieldSearch narrowSearch, SimplePagination pagination) throws ServiceException {
@@ -65,11 +75,12 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
         List<TwinClassFieldSearchPredicateEntity> searchPredicates = fieldSearchPredicateRepository.findByTwinClassFieldSearchId(searchEntity.getId());
         TwinClassFieldSearch mainSearch = new TwinClassFieldSearch()
                 .setExcludeSystemFields(false);
-        for(TwinClassFieldSearchPredicateEntity predicate: searchPredicates) {
+        for (TwinClassFieldSearchPredicateEntity predicate : searchPredicates) {
             FieldFinder fieldFinder = featurerService.getFeaturer(predicate.getFieldFinderFeaturerId(), FieldFinder.class);
             fieldFinder.concatSearch(predicate.getFieldFinderParams(), mainSearch);
         }
         narrowSearch(mainSearch, narrowSearch);
+        mainSearch.setConfiguredSearch(searchEntity);
         return findTwinClassField(mainSearch, pagination);
     }
 
@@ -96,6 +107,21 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
                 checkTernary(search.getRequired(), TwinClassFieldEntity.Fields.required),
                 checkFieldLikeIn(search.getExternalIdLikeList(), false, true, TwinClassFieldEntity.Fields.externalId),
                 checkFieldLikeIn(search.getExternalIdNotLikeList(), true, true, TwinClassFieldEntity.Fields.externalId));
+    }
+
+    private Specification<TwinClassFieldEntity> addSorting(TwinClassFieldSearch search, SimplePagination pagination, Specification<TwinClassFieldEntity> specification) throws ServiceException {
+        TwinClassFieldSearchEntity searchEntity = search.getConfiguredSearch();
+        if (searchEntity != null &&
+                (searchEntity.isForceSorting() || pagination == null || pagination.getSort() == null || pagination.getSort().isUnsorted())) {
+            FieldSorter fieldSorter = featurerService.getFeaturer(searchEntity.getFieldSorterFeaturerId(), FieldSorter.class);
+            var sortFunction = fieldSorter.createSort(searchEntity.getFieldSorterParams());
+            if (sortFunction != null) {
+                specification = sortFunction.apply(specification);
+                if (pagination != null)
+                    pagination.setSort(null);
+            }
+        }
+        return specification;
     }
 
     @Override

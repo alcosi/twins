@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "FaceWT005v1")
+@Schema(name = "FaceTW005v1")
 public class FaceTW005DTOv1 extends FaceTwidgetDTOv1 {
     @Schema(description = "twins of given twin class id")
     public boolean glue;
