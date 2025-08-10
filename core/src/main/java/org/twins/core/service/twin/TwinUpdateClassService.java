@@ -123,7 +123,7 @@ public class TwinUpdateClassService {
                 //TODO need to check ft params
                 String keyAndTyperAndParams = oldFieldClass.getKey() + "#" + oldFieldClass.getFieldTyperFeaturerId();
                 replaceFieldClassMap.put(oldFieldClass.getId(), newFieldsByKeyAndTyper.get(keyAndTyperAndParams).getId());
-            } else if (twinUpdateClass.getFieldsReplaceMap().containsKey(oldFieldClass.getId())) {
+            } else if (twinUpdateClass.getFieldsReplaceMap() != null && twinUpdateClass.getFieldsReplaceMap().containsKey(oldFieldClass.getId())) {
                 // todo need to check ft & params
                 replaceFieldClassMap.put(oldFieldClass.getId(), twinUpdateClass.getFieldsReplaceMap().get(oldFieldClass.getId()));
             } else {
@@ -160,7 +160,7 @@ public class TwinUpdateClassService {
         boolean allRequiredFieldsFilled = twinService.isAllRequiredFieldsFilled(dbTwinEntity);
         // Update the status based on required fields
         if (!allRequiredFieldsFilled) {
-            if (twinUpdateClass.getBehavior().contains(TwinClassUpdateStrategy.throwOnFieldRequiredNotFilled))
+            if (twinUpdateClass.getBehavior() != null && twinUpdateClass.getBehavior().contains(TwinClassUpdateStrategy.throwOnFieldRequiredNotFilled))
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, "Twin's doesn't has all required fields of the new class.");
             // If not all required fields are filled, set the status to SKETCH
             dbTwinEntity.setTwinStatusId(SystemEntityService.TWIN_STATUS_SKETCH);
