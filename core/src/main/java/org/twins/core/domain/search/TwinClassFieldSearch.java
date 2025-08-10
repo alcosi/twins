@@ -7,11 +7,9 @@ import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.Ternary;
+import org.twins.core.dao.twinclass.TwinClassFieldSearchEntity;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -41,6 +39,7 @@ public class TwinClassFieldSearch {
     private Ternary required;
     private boolean excludeSystemFields = true;
     private boolean inactiveSearch = false;
+    private TwinClassFieldSearchEntity configuredSearch;
 
     public TwinClassFieldSearch addTwinClassId(final UUID id, final boolean searchExtends, boolean exclude) {
         if (exclude) {
@@ -53,6 +52,25 @@ public class TwinClassFieldSearch {
                 twinClassIdMap = new HashMap<>();
             }
             twinClassIdMap.put(id, searchExtends);
+        }
+        return this;
+    }
+
+    public TwinClassFieldSearch addTwinClassId(final Collection<UUID> ids, final boolean searchExtends, boolean exclude) {
+        if (exclude) {
+            if (twinClassIdExcludeMap == null) {
+                twinClassIdExcludeMap = new HashMap<>();
+            }
+            for (UUID id : ids) {
+                twinClassIdExcludeMap.put(id, searchExtends);
+            }
+        } else {
+            if (twinClassIdMap == null) {
+                twinClassIdMap = new HashMap<>();
+            }
+            for (UUID id : ids) {
+                twinClassIdMap.put(id, searchExtends);
+            }
         }
         return this;
     }

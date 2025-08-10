@@ -1,4 +1,4 @@
-package org.twins.core.featurer.fieldfilter;
+package org.twins.core.featurer.classfield.filter;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;

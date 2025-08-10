@@ -12,7 +12,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.face.PointedFace;
-import org.twins.core.featurer.fieldfilter.FieldFilter;
+import org.twins.core.featurer.classfield.filter.FieldFilter;
 import org.twins.core.service.face.FacePointedService;
 import org.twins.core.service.face.FaceService;
 import org.twins.core.service.twinclass.TwinClassFieldSearchService;
@@ -62,7 +62,7 @@ public class FaceTW004Service extends FacePointedService<FaceTW004Entity> {
     }
 
     public List<FaceTW004TwinClassField> loadFields(PointedFace<FaceTW004Entity> pointedFace) throws ServiceException {
-        List<TwinClassFieldEntity> fields = twinClassFieldSearchService.findTwinClassField(pointedFace.getConfig().getTwinClassFieldSearchId(), null, SimplePagination.ALL).getList();
+        List<TwinClassFieldEntity> fields = twinClassFieldSearchService.findTwinClassField(pointedFace.getConfig().getTwinClassFieldSearchId(), null, SimplePagination.FRIENDLY).getList();
 
         Set<UUID> editableFieldIds = null;
 
