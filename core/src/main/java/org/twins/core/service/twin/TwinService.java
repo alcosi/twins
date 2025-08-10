@@ -407,7 +407,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
 
-    private static UUID getPermissionSchemaSpaceId(TwinEntity headTwin) {
+    public static UUID getPermissionSchemaSpaceId(TwinEntity headTwin) {
         return Boolean.TRUE.equals(headTwin.getTwinClass().getPermissionSchemaSpace()) ?
                 headTwin.getId() : headTwin.getPermissionSchemaSpaceId();
     }
@@ -672,6 +672,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 return false;
             }
         }
+        return true;
+    }
+
+    public boolean isAllRequiredFieldsFilled(TwinEntity twinEntity) throws ServiceException {
+        loadFieldsValues(twinEntity);
+        for (var classField : twinEntity.getTwinClass().getTwinClassFieldKit())
+            if (Boolean.TRUE.equals(classField.getRequired()) && !(twinEntity.getFieldValuesKit().containsKey(classField.getId()) && twinEntity.getFieldValuesKit().get(classField.getId()).isFilled()))
+                return false;
         return true;
     }
 
@@ -1173,6 +1181,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return src.clone(dstTwinClassField);
     }
 
+
+    //TODO ft params equals(data list scope)
     public boolean isCopyable(TwinClassFieldEntity src, TwinClassFieldEntity dst) throws ServiceException {
         FieldTyper srcFieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturer(), FieldTyper.class);
         FieldTyper dstFieldTyper = featurerService.getFeaturer(dst.getFieldTyperFeaturer(), FieldTyper.class);
@@ -1362,190 +1372,4 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         int deletedCount = twinRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
         log.info(deletedCount + " number of twins were deleted");
     }
-
-    @Transactional
-    public void updateClassOfTwin(TwinUpdateClass twinUpdateClass) throws ServiceException {
-        //todo implement(recorder?)
-        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-
-
-        // Find the twin entity and check permissions
-        TwinEntity dbTwinEntity = findEntitySafe(twinUpdateClass.getTwinId());
-        // return if nothing to change
-        if (twinUpdateClass.getNewTwinClassId().equals(dbTwinEntity.getTwinClassId())) return;
-
-        // Get the new twin class
-        TwinClassEntity newTwinClass = twinClassService.findEntity(twinUpdateClass.getNewTwinClassId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
-        // Get the old twin class
-        TwinClassEntity oldTwinClass = dbTwinEntity.getTwinClass();
-
-        setHeadSafe(dbTwinEntity);
-
-        if (twinUpdateClass.getNewHeadTwinId() != null) dbTwinEntity.setHeadTwinId(twinUpdateClass.getNewHeadTwinId());
-        // 1. Handle head twin updates based on headTwinClassId
-        if (newTwinClass.getHeadTwinClassId() != null && dbTwinEntity.getHeadTwinId() == null) {
-            // If the twin hasn't a head but the new class have a headTwinClassId throw an error
-            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, "Twin's head doesn't match the requirements of the new class. The new class supports a head twin.");
-        } else if (newTwinClass.getHeadTwinClassId() == null) {
-            // If the head of new class is null, set the head of twin to null
-            dbTwinEntity.setHeadTwinId(null);
-        } else if (newTwinClass.getHeadTwinClassId() != null) {
-            // If the new class has a headTwinClassId, update the head twin
-            // We need to check if the head twin is valid for the new class
-            twinHeadService.checkValidHeadForClass(dbTwinEntity.getHeadTwinId(), newTwinClass);
-        }
-        if(dbTwinEntity.getHeadTwinId() != null) {
-            TwinEntity headTwin = findEntitySafe(dbTwinEntity.getHeadTwinId());
-            dbTwinEntity.setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin));
-        }
-
-        // 2. Handle field transfers/deletions
-        // Load fields for both classes
-        twinClassFieldService.loadTwinClassFields(oldTwinClass);
-        twinClassFieldService.loadTwinClassFields(newTwinClass);
-
-        // Get all fields from the old class (including inherit/ed fields)
-        List<TwinClassFieldEntity> oldClassFields = new ArrayList<>(oldTwinClass.getTwinClassFieldKit().getCollection());
-        // Get all fields from the new class (including inherited fields)
-        List<TwinClassFieldEntity> newClassFields = new ArrayList<>(newTwinClass.getTwinClassFieldKit().getCollection());
-
-
-        // Сопоставим поля по ключу и fieldTyper
-        Map<String, TwinClassFieldEntity> newFieldsByKey = newClassFields.stream()
-                .collect(Collectors.toMap(TwinClassFieldEntity::getKey, Function.identity()));
-
-        Map<UUID, UUID> replaceMap = new HashMap<>();
-        Set<UUID> fieldsToRemove = new HashSet<>();
-
-        for (TwinClassFieldEntity oldField : oldClassFields) {
-            TwinClassFieldEntity newField = newFieldsByKey.get(oldField.getKey());
-            if (newField != null) {
-                if (Objects.equals(oldField.getFieldTyperFeaturerId(), newField.getFieldTyperFeaturerId())) {
-                    replaceMap.put(oldField.getId(), newField.getId());
-                } else {
-                    // Разные типы — поле не может быть скопировано
-                    fieldsToRemove.add(oldField.getId());
-                }
-            } else {
-                // Нет поля с таким ключом в новой схеме
-                fieldsToRemove.add(oldField.getId());
-            }
-        }
-
-        twinUpdateClass.setFieldsReplaceMap(replaceMap);
-
-
-        // todo compare by key and fildtyper
-        // Find fields that exist in the old class but not in the new class
-        Set<UUID> fieldsToRemove = new HashSet<>(oldClassFieldIds);
-        fieldsToRemove.removeAll(newClassFieldIds);
-
-        // todo replacer
-
-        // Check if we should throw an error for fields that can't be transferred
-        if (!fieldsToRemove.isEmpty() && twinUpdateClass.getBehavior() != null && twinUpdateClass.getBehavior().contains(TwinClassUpdateStrategy.throwOnFieldCantBeTransferred))
-            throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_VALUE_INCORRECT, "Fields would be lost during class update. Remove behavior throwOnFieldCantBeTransferred to allow field deletion.");
-
-        //replacer map  key1(tcfid) -> value(key2-tcfid)
-
-        // Remove fields that don't exist in the new class
-        if (!fieldsToRemove.isEmpty()) {
-            // Delete fields from all repositories
-            for (UUID fieldId : fieldsToRemove) {
-                // Find the field entity to determine its type
-                TwinClassFieldEntity fieldEntity = oldTwinClass.getTwinClassFieldKit().get(fieldId);
-                if (fieldEntity != null) {
-                    // Get the field typer to determine the storage type
-                    //todo check field attachmrnts + stratagy?
-
-                    //todo move logic to fieldtyper(storage).
-                    FieldTyper fieldTyper = featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
-                    // Delete the field values for this twin
-                    if (fieldTyper.getStorageType() == TwinFieldSimpleEntity.class) {
-                        twinFieldSimpleRepository.deleteByTwinIdAndTwinClassFieldIdIn(dbTwinEntity.getId(), Collections.singleton(fieldId));
-                    } else if (fieldTyper.getStorageType() == TwinFieldSimpleNonIndexedEntity.class) {
-                        twinFieldSimpleNonIndexedRepository.deleteByTwinIdAndTwinClassFieldIdIn(dbTwinEntity.getId(), Collections.singleton(fieldId));
-                    } else if (fieldTyper.getStorageType() == TwinFieldI18nEntity.class) {
-                        twinFieldI18nRepository.deleteByTwinIdAndTwinClassFieldIdIn(dbTwinEntity.getId(), Collections.singleton(fieldId));
-                    } else if (fieldTyper.getStorageType() == TwinFieldBooleanEntity.class) {
-                        twinFieldBooleanRepository.deleteByTwinIdAndTwinClassFieldIdIn(dbTwinEntity.getId(), Collections.singleton(fieldId));
-                    } else if (fieldTyper.getStorageType() == TwinFieldDataListEntity.class) {
-                        twinFieldDataListRepository.deleteByTwinIdAndTwinClassFieldIdIn(dbTwinEntity.getId(), Collections.singleton(fieldId));
-                    } else if (fieldTyper.getStorageType() == TwinFieldUserEntity.class) {
-                        twinFieldUserRepository.deleteByTwinIdAndTwinClassFieldIdIn(dbTwinEntity.getId(), Collections.singleton(fieldId));
-                    } else if (fieldTyper.getStorageType() == TwinFieldTwinClassEntity.class) {
-                        twinFieldTwinClassListRepository.deleteByTwinIdAndTwinClassFieldIdIn(dbTwinEntity.getId(), Collections.singleton(fieldId));
-                    }
-                }
-            }
-        }
-
-        //todo links...future support(throw if dbtwin has links dst&src)
-        //todo childs...future support(throw if dbtwin has childs by head)
-
-
-        // 3. Update the twin class
-        dbTwinEntity.setTwinClassId(newTwinClass.getId());
-        dbTwinEntity.setTwinClass(newTwinClass);
-
-        // 4. Handle status updates
-        // Load field values for the twin
-        loadFieldsValues(dbTwinEntity);
-
-        //todo use method
-
-        // Check if all required fields are filled
-        boolean allRequiredFieldsFilled = true;
-        for (TwinClassFieldEntity field : newClassFields) {
-            if (Boolean.TRUE.equals(field.getRequired())) {
-                // Check if the field has a value in the twin's fieldValuesKit
-                boolean fieldHasValue = dbTwinEntity.getFieldValuesKit() != null && dbTwinEntity.getFieldValuesKit().containsKey(field.getId()) && dbTwinEntity.getFieldValuesKit().get(field.getId()).isFilled();
-                if (!fieldHasValue) {
-                    allRequiredFieldsFilled = false;
-                    break;
-                }
-            }
-        }
-
-        // Update the status based on required fields
-        if (!allRequiredFieldsFilled) {
-            if (twinUpdateClass.getBehavior().contains(TwinClassUpdateStrategy.throwOnFieldRequiredNotFilled))
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, "Twin's doesn't has all required fields of the new class.");
-            // If not all required fields are filled, set the status to SKETCH
-            dbTwinEntity.setTwinStatusId(SystemEntityService.TWIN_STATUS_SKETCH);
-        } else {
-            // Try to keep the current status if it's valid for the new class
-            UUID currentStatusId = dbTwinEntity.getTwinStatusId();
-
-            // Load statuses for the new class
-            twinStatusService.loadStatusesForTwinClasses(newTwinClass);
-            // Check if the current status is valid for the new class
-            boolean statusIsValid = false;
-            if (newTwinClass.getTwinStatusKit() != null) {
-                statusIsValid = newTwinClass.getTwinStatusKit().contains(currentStatusId);
-            }
-
-            if (!statusIsValid) {
-                // If the current status is not valid, get the default status from the twinflow
-                twinflowService.loadTwinflows(newTwinClass);
-                if (newTwinClass.getTwinflowKit() != null && !newTwinClass.getTwinflowKit().isEmpty() && !newTwinClass.getTwinflowKit().getList().isEmpty()) {
-                    TwinflowEntity twinflow = newTwinClass.getTwinflowKit().getList().get(0);
-                    if (twinflow != null && twinflow.getInitialTwinStatusId() != null) {
-                        dbTwinEntity.setTwinStatusId(twinflow.getInitialTwinStatusId());
-                    } else {
-                        throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, "Twin's doesn't has all required fields of the new class.");
-                        // If no default status is available, set to SKETCH
-//                        dbTwinEntity.setTwinStatusId(SystemEntityService.TWIN_STATUS_SKETCH);
-                    }
-                } else {
-                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, "Twin's doesn't has all required fields of the new class.");
-                    // If no twinflow is available, set to SKETCH
-//                    dbTwinEntity.setTwinStatusId(SystemEntityService.TWIN_STATUS_SKETCH);
-                }
-            }
-        }
-        // Save the updated twin entity
-        entitySmartService.save(dbTwinEntity, twinRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-    }
-
 }

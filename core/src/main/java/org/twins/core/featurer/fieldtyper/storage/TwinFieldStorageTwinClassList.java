@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.*;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -55,8 +56,9 @@ public class TwinFieldStorageTwinClassList extends TwinFieldStorage {
     }
 
     @Override
-    public void deleteTwinFieldsForTwin(UUID twinId, UUID twinClassFieldId) {
-        twinFieldTwinClassListRepository.deleteByTwinIdAndTwinClassFieldId(twinId, twinClassFieldId);
+    public void deleteTwinFieldsForTwins(Map<UUID, Set<UUID>> deleteMap) {
+        for (var entry : deleteMap.entrySet())
+            twinFieldTwinClassListRepository.deleteByTwinIdAndTwinClassFieldIdIn(entry.getKey(), entry.getValue());
     }
 
     @Override

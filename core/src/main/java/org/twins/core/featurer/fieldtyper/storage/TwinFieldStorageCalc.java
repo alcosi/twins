@@ -45,7 +45,7 @@ public abstract class TwinFieldStorageCalc extends TwinFieldStorage {
         //nothing to replace
     }
 
-    public void deleteTwinFieldsForTwin(UUID twinId, UUID twinClassFieldId) {
+    public void deleteTwinFieldsForTwins(Map<UUID, Set<UUID>> deleteMap) {
         // nothing to delete
     };
 

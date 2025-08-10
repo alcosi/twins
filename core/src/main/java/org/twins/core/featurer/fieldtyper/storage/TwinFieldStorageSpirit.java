@@ -5,10 +5,7 @@ import org.cambium.common.kit.Kit;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -49,7 +46,7 @@ public class TwinFieldStorageSpirit extends TwinFieldStorage {
     }
 
     @Override
-    public void deleteTwinFieldsForTwin(UUID twinId, UUID twinClassFieldId) {
+    public void deleteTwinFieldsForTwins(Map<UUID, Set<UUID>> deleteMap) {
         //nothing to delete
     }
 

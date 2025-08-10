@@ -34,6 +34,4 @@ public interface TwinFieldI18nRepository extends CrudRepository<TwinFieldI18nEnt
 
     void deleteByTwinIdAndTwinClassFieldIdIn(UUID twinId, Set<UUID> twinClassFieldIds);
 
-    void deleteByTwinIdAndTwinClassFieldId(UUID twinId, UUID twinClassFieldId);
-
 }

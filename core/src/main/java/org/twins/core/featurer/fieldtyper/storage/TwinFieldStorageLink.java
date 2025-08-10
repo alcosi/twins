@@ -7,10 +7,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.service.link.TwinLinkService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -47,8 +44,8 @@ public class TwinFieldStorageLink extends TwinFieldStorage {
         //nothing to replace
     }
 
-    public void deleteTwinFieldsForTwin(UUID twinId, UUID twinClassFieldId) {
-        twinLinkService.deleteTwinLinks();
+    public void deleteTwinFieldsForTwins(Map<UUID, Set<UUID>> deleteMap) {
+//        twinLinkService.deleteTwinLinks();
     };
 
     @Override

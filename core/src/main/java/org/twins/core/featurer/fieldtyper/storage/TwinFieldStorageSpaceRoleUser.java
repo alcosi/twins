@@ -61,7 +61,7 @@ public class TwinFieldStorageSpaceRoleUser extends TwinFieldStorage {
     }
 
     @Override
-    public void deleteTwinFieldsForTwin(UUID twinId, UUID twinClassFieldId) {
+    public void deleteTwinFieldsForTwins(Map<UUID, Set<UUID>> deleteMap) {
         //nothing to delete
     }
 

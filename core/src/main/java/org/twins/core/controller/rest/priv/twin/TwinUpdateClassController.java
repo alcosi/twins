@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +18,6 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.twinoperation.TwinUpdateClass;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinRsDTOv2;
@@ -30,6 +28,7 @@ import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twin.TwinUpdateClassRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twin.TwinUpdateClassService;
 
 import java.util.UUID;
 
@@ -40,6 +39,7 @@ import java.util.UUID;
 @ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_UPDATE})
 public class TwinUpdateClassController extends ApiController {
 
+    private final TwinUpdateClassService twinUpdateClassService;
     private final TwinService twinService;
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     private final TwinUpdateClassRestDTOReverseMapper twinUpdateClassRestDTOReverseMapper;
@@ -61,7 +61,7 @@ public class TwinUpdateClassController extends ApiController {
         try {
             TwinUpdateClass twinUpdateClass = twinUpdateClassRestDTOReverseMapper.convert(request)
                     .setTwinId(twinId);
-            twinService.updateClassOfTwin(twinUpdateClass);
+            twinUpdateClassService.updateClassOfTwin(twinUpdateClass);
             rs
                     .setTwin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(twinId), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

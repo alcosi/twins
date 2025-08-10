@@ -8,10 +8,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldUserEntity;
 import org.twins.core.dao.twin.TwinFieldUserRepository;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -62,8 +59,9 @@ public class TwinFieldStorageUser extends TwinFieldStorage {
     }
 
     @Override
-    public void deleteTwinFieldsForTwin(UUID twinId, UUID twinClassFieldId) {
-        twinFieldUserRepository.deleteByTwinIdAndTwinClassFieldId(twinId, twinClassFieldId);
+    public void deleteTwinFieldsForTwins(Map<UUID, Set<UUID>> deleteMap) {
+        for (var entry : deleteMap.entrySet())
+            twinFieldUserRepository.deleteByTwinIdAndTwinClassFieldIdIn(entry.getKey(), entry.getValue());
     }
 
 }
