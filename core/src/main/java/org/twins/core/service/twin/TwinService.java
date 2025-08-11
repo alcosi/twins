@@ -655,8 +655,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             if (twinUpdate.getTwinEntity().getTwinStatusId() == null)
                 setInitStatus(twinUpdate.getTwinEntity());
             twinUpdate.setMode(TwinUpdate.Mode.sketchFinalize);
-        } else if (!twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinStatusId())) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, "{} can not change status to {}, " + "because not all of required fields are filled", twinUpdate.getDbTwinEntity().logShort(), twinUpdate.getTwinEntity().getTwinClassId());
+        } else if (twinUpdate.getTwinEntity().getTwinStatusId() != null && !twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinStatusId())) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, "{} can not change status to {}, because not all of required fields are filled", twinUpdate.getDbTwinEntity().logDetailed(), twinUpdate.getTwinEntity().getTwinStatusId());
         }
     }
 
