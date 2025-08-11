@@ -73,6 +73,7 @@ public class TwinChangeTaskService extends EntitySecureFindServiceImpl<TwinChang
                     .setBusinessAccountId(apiUser.getBusinessAccountId());
             if (task.getStatusId() == null)
                 task.setStatusId(TwinChangeTaskStatus.NEED_START);
+            changeTaskList.add(task);
         }
         entitySmartService.saveAllAndLog(changeTaskList, repository);
     }
