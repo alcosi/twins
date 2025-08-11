@@ -114,13 +114,16 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
     }
 
     public void runFactoryAfter(TwinSave twinSave, TwinChangesCollector twinChangesCollector, FactoryLauncher factoryLauncher) throws ServiceException {
-        if (!twinSave.isCanTriggerAfterOperationFactory())
+        if (!twinSave.isCanTriggerAfterOperationFactory()) {
+            log.info("{} is locked for {}", factoryLauncher, twinSave.getTwinEntity().logNormal());
             return;
+        }
         TwinEntity twinEntity = detectTwinEntity(twinSave);
         twinflowService.loadTwinflow(twinEntity);
         TwinflowFactoryEntity twinflowFactory = twinEntity.getTwinflow().getFactoriesKit().get(factoryLauncher);
         if (twinflowFactory == null)
             return;
+        log.info("twin change task will be created for {} ", twinflowFactory.logNormal());
         twinChangesCollector.addPostponedChange(twinEntity.getId(), twinflowFactory.getTwinFactoryId(), twinflowFactory.getTwinFactorylauncher());
     }
 
