@@ -555,6 +555,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         validateEntityAndThrow(twinEntity, EntitySmartService.EntityValidateMode.beforeSave);
         if (twinEntity.getCreatedAt() == null)
             twinEntity.setCreatedAt(Timestamp.from(Instant.now()));
+        if (twinEntity.getCreatedByUserId() == null)
+            twinEntity.setCreatedByUserId(authService.getApiUser().getUserId());
         twinChangesCollector.add(twinEntity);
         if (twinChangesCollector.isHistoryCollectorEnabled())
             twinChangesCollector.getHistoryCollector(twinEntity).add(HistoryType.twinCreated, null);

@@ -161,6 +161,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
                             requestAttributes.setAttribute(requestCacheKey, entity, RequestAttributes.SCOPE_REQUEST);
                     }
                 } else {
+                    //todo use thread local
                     entity = findEntitySafeUncached(entityId);
                 }
             }
