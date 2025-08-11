@@ -405,7 +405,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
 
-    private static UUID getPermissionSchemaSpaceId(TwinEntity headTwin) {
+    public static UUID getPermissionSchemaSpaceId(TwinEntity headTwin) {
         return Boolean.TRUE.equals(headTwin.getTwinClass().getPermissionSchemaSpace()) ?
                 headTwin.getId() : headTwin.getPermissionSchemaSpaceId();
     }
@@ -656,8 +656,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 setInitStatus(twinUpdate.getTwinEntity());
             twinUpdate.setMode(TwinUpdate.Mode.sketchFinalize);
         } else if (!twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinClassId())) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, "{} can not change status to {}, " +
-                    "because not all of required fields are filled", twinUpdate.getDbTwinEntity().logShort(), twinUpdate.getTwinEntity().getTwinClassId());
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, "{} can not change status to {}, " + "because not all of required fields are filled", twinUpdate.getDbTwinEntity().logShort(), twinUpdate.getTwinEntity().getTwinClassId());
         }
     }
 
@@ -671,6 +670,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 return false;
             }
         }
+        return true;
+    }
+
+    public boolean isAllRequiredFieldsFilled(TwinEntity twinEntity) throws ServiceException {
+        loadFieldsValues(twinEntity);
+        for (var classField : twinEntity.getTwinClass().getTwinClassFieldKit())
+            if (Boolean.TRUE.equals(classField.getRequired()) && !(twinEntity.getFieldValuesKit().containsKey(classField.getId()) && twinEntity.getFieldValuesKit().get(classField.getId()).isFilled()))
+                return false;
         return true;
     }
 
@@ -1172,6 +1179,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return src.clone(dstTwinClassField);
     }
 
+
+    //TODO ft params equals(data list scope)
     public boolean isCopyable(TwinClassFieldEntity src, TwinClassFieldEntity dst) throws ServiceException {
         FieldTyper srcFieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturer(), FieldTyper.class);
         FieldTyper dstFieldTyper = featurerService.getFeaturer(dst.getFieldTyperFeaturer(), FieldTyper.class);

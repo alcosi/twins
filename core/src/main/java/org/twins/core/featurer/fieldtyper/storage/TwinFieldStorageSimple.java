@@ -9,6 +9,7 @@ import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -53,6 +54,12 @@ public class TwinFieldStorageSimple extends TwinFieldStorage {
     @Override
     public void replaceTwinClassFieldForTwinsOfClass(UUID twinClassId, UUID fromTwinClassFieldId, UUID toTwinClassFieldId) {
         twinFieldSimpleRepository.replaceTwinClassFieldForTwinsOfClass(twinClassId, fromTwinClassFieldId, toTwinClassFieldId);
+    }
+
+    public void deleteTwinFieldsForTwins(Map<UUID, Set<UUID>> deleteMap) {
+        //todo optimize for bulk delete
+        for (var entry : deleteMap.entrySet())
+            twinFieldSimpleRepository.deleteByTwinIdAndTwinClassFieldIdIn(entry.getKey(), entry.getValue());
     }
 
     @Override
