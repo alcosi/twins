@@ -26,7 +26,8 @@ public class FaceTW007RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
         dst
                 .setIconUrl(resourceService.getResourceUri(src.getConfig().getIconResource()))
                 .setLabel(i18nService.translateToLocale(src.getConfig().getLabelId()))
-                .setClassSelectorLabel(src.getConfig().getClassSelectorLabelI18nId() != null ? i18nService.translateToLocale(src.getConfig().getClassSelectorLabelI18nId()) : null)
+                .setClassSelectorLabel(i18nService.translateToLocale(src.getConfig().getClassSelectorLabelI18nId()))
+                .setSaveChangesLabel(i18nService.translateToLocale(src.getConfig().getSaveChangesLabelI18nId()))
                 .setTwinClassSearchId(src.getConfig().getTwinClassSearchId());
     }
 }

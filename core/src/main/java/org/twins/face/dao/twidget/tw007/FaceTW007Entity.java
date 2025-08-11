@@ -46,6 +46,9 @@ public class FaceTW007Entity implements EasyLoggable, FacePointedEntity {
     @Column(name = "label_id")
     private UUID labelId;
 
+    @Column(name = "save_changes_label_i18n_id")
+    private UUID saveChangesLabelI18nId;
+
     @ManyToOne
     @JoinColumn(name = "face_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
@@ -81,6 +84,12 @@ public class FaceTW007Entity implements EasyLoggable, FacePointedEntity {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private I18nEntity label;
+
+    @ManyToOne
+    @JoinColumn(name = "save_changes_label_i18n_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private I18nEntity saveChangesLabelI18n;
 
     @Override
     public String easyLog(Level level) {
