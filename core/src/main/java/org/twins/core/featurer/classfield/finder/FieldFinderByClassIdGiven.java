@@ -11,6 +11,7 @@ import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
 
+import java.util.Map;
 import java.util.Properties;
 
 @Slf4j
@@ -18,7 +19,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_3206,
         name = "Given fields by class id",
         description = "")
-public class FieldFinderClass extends FieldFinder {
+public class FieldFinderByClassIdGiven extends FieldFinder {
     @FeaturerParam(name = "Class ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet classIds = new FeaturerParamUUIDSetTwinsClassId("classIds");
 
@@ -29,7 +30,7 @@ public class FieldFinderClass extends FieldFinder {
     public static final FeaturerParamBoolean searchExtends = new FeaturerParamBoolean("searchExtends");
 
     @Override
-    protected void concatSearch(Properties properties, TwinClassFieldSearch fieldSearch) throws ServiceException {
+    protected void concatSearch(Properties properties, TwinClassFieldSearch fieldSearch, Map<String, String> namedParamsMap) throws ServiceException {
         fieldSearch.addTwinClassId(classIds.extract(properties), searchExtends.extract(properties), excludeClassesIds.extract(properties));
     }
 }
