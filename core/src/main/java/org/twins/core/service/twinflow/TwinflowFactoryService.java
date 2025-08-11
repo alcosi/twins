@@ -120,6 +120,7 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
         }
         TwinEntity twinEntity = detectTwinEntity(twinSave);
         twinflowService.loadTwinflow(twinEntity);
+        loadFactories(twinEntity.getTwinflow());
         TwinflowFactoryEntity twinflowFactory = twinEntity.getTwinflow().getFactoriesKit().get(factoryLauncher);
         if (twinflowFactory == null)
             return;
