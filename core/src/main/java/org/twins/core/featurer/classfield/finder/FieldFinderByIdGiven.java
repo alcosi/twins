@@ -1,4 +1,4 @@
-package org.twins.core.featurer.fieldfinder;
+package org.twins.core.featurer.classfield.finder;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -12,6 +12,7 @@ import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinClassFieldId;
 
+import java.util.Map;
 import java.util.Properties;
 
 @Slf4j
@@ -19,7 +20,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_3202,
         name = "Given fields by id",
         description = "")
-public class FieldFinderGiven extends FieldFinder {
+public class FieldFinderByIdGiven extends FieldFinder {
     @FeaturerParam(name = "Field ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet fieldIds = new FeaturerParamUUIDSetTwinsTwinClassFieldId("fieldIds");
 
@@ -27,7 +28,7 @@ public class FieldFinderGiven extends FieldFinder {
     public static final FeaturerParamBoolean excludeGivenIds = new FeaturerParamBoolean("excludeGivenIds");
 
     @Override
-    protected void concatSearch(Properties properties, TwinClassFieldSearch fieldSearch) throws ServiceException {
+    protected void concatSearch(Properties properties, TwinClassFieldSearch fieldSearch, Map<String, String> namedParamsMap) throws ServiceException {
         if (excludeGivenIds.extract(properties)) {
             fieldSearch.setIdExcludeList(CollectionUtils.safeAdd(fieldSearch.getIdExcludeList(), fieldIds.extract(properties)));
         } else {
