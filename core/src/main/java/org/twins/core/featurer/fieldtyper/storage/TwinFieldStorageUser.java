@@ -60,6 +60,7 @@ public class TwinFieldStorageUser extends TwinFieldStorage {
 
     @Override
     public void deleteTwinFieldsForTwins(Map<UUID, Set<UUID>> deleteMap) {
+        //todo optimize for bulk delete
         for (var entry : deleteMap.entrySet())
             twinFieldUserRepository.deleteByTwinIdAndTwinClassFieldIdIn(entry.getKey(), entry.getValue());
     }

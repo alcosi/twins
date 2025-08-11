@@ -8,7 +8,10 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldBooleanEntity;
 import org.twins.core.dao.twin.TwinFieldBooleanRepository;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -55,6 +58,7 @@ public class TwinFieldStorageBoolean extends TwinFieldStorage {
 
     @Override
     public void deleteTwinFieldsForTwins(Map<UUID, Set<UUID>> deleteMap) {
+        //todo optimize for bulk delete
         for (var entry : deleteMap.entrySet())
             twinFieldBooleanRepository.deleteByTwinIdAndTwinClassFieldIdIn(entry.getKey(), entry.getValue());
     }

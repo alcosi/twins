@@ -39,8 +39,6 @@ import org.twins.core.domain.factory.FactoryLauncher;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
-import org.twins.core.domain.twinoperation.TwinUpdateClass;
-import org.twins.core.dto.rest.twin.TwinClassUpdateStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;

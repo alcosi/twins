@@ -8,13 +8,13 @@ import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.twin.*;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.domain.TwinChangesCollector;
-import org.twins.core.domain.twinoperation.TwinUpdateClass;
-import org.twins.core.dto.rest.twin.TwinClassUpdateStrategy;
+import org.twins.core.domain.twinoperation.TwinChangeClass;
+import org.twins.core.dto.rest.twin.TwinChangeClassStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
@@ -40,23 +40,23 @@ public class TwinUpdateClassService {
     private final FeaturerService featurerService;
 
     @Transactional
-    public void updateClassOfTwin(TwinUpdateClass twinUpdateClass) throws ServiceException {
+    public void changeClassOfTwin(TwinChangeClass twinChangeClass) throws ServiceException {
         //todo implement(recorder?)
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
 
         // Find the twin entity and check permissions
-        TwinEntity dbTwinEntity = twinService.findEntitySafe(twinUpdateClass.getTwinId());
+        TwinEntity dbTwinEntity = twinService.findEntitySafe(twinChangeClass.getTwinId());
 
         // return if nothing to change
-        if (twinUpdateClass.getNewTwinClassId().equals(dbTwinEntity.getTwinClassId())) return;
+        if (twinChangeClass.getNewTwinClassId().equals(dbTwinEntity.getTwinClassId())) return;
 
         // get old & new twin classes
-        TwinClassEntity newTwinClass = twinClassService.findEntitySafe(twinUpdateClass.getNewTwinClassId());
+        TwinClassEntity newTwinClass = twinClassService.findEntitySafe(twinChangeClass.getNewTwinClassId());
         TwinClassEntity oldTwinClass = dbTwinEntity.getTwinClass();
 
-        updateTwinHeadOnTwinClassUpdate(dbTwinEntity, newTwinClass, twinUpdateClass, twinChangesCollector);
-        compareAndUpdateTwinFieldsOnTwinClassUpdate(dbTwinEntity, oldTwinClass, newTwinClass, twinUpdateClass, twinChangesCollector);
-        updateStatusOnTwinClassUpdate(dbTwinEntity, newTwinClass, twinUpdateClass, twinChangesCollector);
+        changeHead(dbTwinEntity, newTwinClass, twinChangeClass, twinChangesCollector);
+        compareAndUpdateTwinFields(dbTwinEntity, oldTwinClass, newTwinClass, twinChangeClass, twinChangesCollector);
+        updateStatus(dbTwinEntity, newTwinClass, twinChangeClass, twinChangesCollector);
         //todo links...future support(throw if dbtwin has links dst&src)
         //todo childs...future support(throw if dbtwin has childs by head)
 
@@ -68,9 +68,9 @@ public class TwinUpdateClassService {
         twinService.saveSafe(dbTwinEntity);
     }
 
-    private void updateTwinHeadOnTwinClassUpdate(TwinEntity dbTwinEntity, TwinClassEntity newTwinClass, TwinUpdateClass twinUpdateClass, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    private void changeHead(TwinEntity dbTwinEntity, TwinClassEntity newTwinClass, TwinChangeClass twinChangeClass, TwinChangesCollector twinChangesCollector) throws ServiceException {
         // todo m.b. use overloaded setHeadSafe(dbTwinEntity);
-        if (twinUpdateClass.getNewHeadTwinId() != null) dbTwinEntity.setHeadTwinId(twinUpdateClass.getNewHeadTwinId());
+        if (twinChangeClass.getNewHeadTwinId() != null) dbTwinEntity.setHeadTwinId(twinChangeClass.getNewHeadTwinId());
         // Handle head twin updates based on headTwinClassId
         if (newTwinClass.getHeadTwinClassId() != null && dbTwinEntity.getHeadTwinId() == null) {
             // If the twin hasn't a head but the new class have a headTwinClassId throw an error
@@ -91,7 +91,7 @@ public class TwinUpdateClassService {
         }
     }
 
-    private void compareAndUpdateTwinFieldsOnTwinClassUpdate(TwinEntity dbTwinEntity, TwinClassEntity oldTwinClass, TwinClassEntity newTwinClass, TwinUpdateClass twinUpdateClass, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    private void compareAndUpdateTwinFields(TwinEntity dbTwinEntity, TwinClassEntity oldTwinClass, TwinClassEntity newTwinClass, TwinChangeClass twinChangeClass, TwinChangesCollector twinChangesCollector) throws ServiceException {
         // Load fields for both classes
         twinClassFieldService.loadTwinClassFields(oldTwinClass);
         twinClassFieldService.loadTwinClassFields(newTwinClass);
@@ -123,9 +123,9 @@ public class TwinUpdateClassService {
                 //TODO need to check ft params
                 String keyAndTyperAndParams = oldFieldClass.getKey() + "#" + oldFieldClass.getFieldTyperFeaturerId();
                 replaceFieldClassMap.put(oldFieldClass.getId(), newFieldsByKeyAndTyper.get(keyAndTyperAndParams).getId());
-            } else if (twinUpdateClass.getFieldsReplaceMap() != null && twinUpdateClass.getFieldsReplaceMap().containsKey(oldFieldClass.getId())) {
+            } else if (twinChangeClass.getFieldsReplaceMap() != null && twinChangeClass.getFieldsReplaceMap().containsKey(oldFieldClass.getId())) {
                 // todo need to check ft & params
-                replaceFieldClassMap.put(oldFieldClass.getId(), twinUpdateClass.getFieldsReplaceMap().get(oldFieldClass.getId()));
+                replaceFieldClassMap.put(oldFieldClass.getId(), twinChangeClass.getFieldsReplaceMap().get(oldFieldClass.getId()));
             } else {
                 deleteFields.add(oldFieldClass.getId());
             }
@@ -134,7 +134,7 @@ public class TwinUpdateClassService {
         //TODO process replaceFieldClassMap (dont forget move attachments)
 
         // Check if we should throw an error for fields that can't be transferred
-        if (!deleteFields.isEmpty() && twinUpdateClass.getBehavior() != null && twinUpdateClass.getBehavior().contains(TwinClassUpdateStrategy.throwOnFieldCantBeTransferred))
+        if (!deleteFields.isEmpty() && twinChangeClass.getBehavior() != null && twinChangeClass.getBehavior().contains(TwinChangeClassStrategy.throwOnFieldCantBeTransferred))
             throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_VALUE_INCORRECT, "Fields would be lost during class update: " + deleteFields);
 
         // Remove fields that don't exist in the new class
@@ -155,12 +155,12 @@ public class TwinUpdateClassService {
         }
     }
 
-    private void updateStatusOnTwinClassUpdate(TwinEntity dbTwinEntity, TwinClassEntity newTwinClass, TwinUpdateClass twinUpdateClass, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    private void updateStatus(TwinEntity dbTwinEntity, TwinClassEntity newTwinClass, TwinChangeClass twinChangeClass, TwinChangesCollector twinChangesCollector) throws ServiceException {
         // Check if all required fields are filled
         boolean allRequiredFieldsFilled = twinService.isAllRequiredFieldsFilled(dbTwinEntity);
         // Update the status based on required fields
         if (!allRequiredFieldsFilled) {
-            if (twinUpdateClass.getBehavior() != null && twinUpdateClass.getBehavior().contains(TwinClassUpdateStrategy.throwOnFieldRequiredNotFilled))
+            if (twinChangeClass.getBehavior() != null && twinChangeClass.getBehavior().contains(TwinChangeClassStrategy.throwOnFieldRequiredNotFilled))
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, "Twin's doesn't has all required fields of the new class.");
             // If not all required fields are filled, set the status to SKETCH
             dbTwinEntity.setTwinStatusId(SystemEntityService.TWIN_STATUS_SKETCH);

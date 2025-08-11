@@ -1,6 +1,6 @@
 package org.twins.core.dto.rest.twin;
 
-public enum TwinClassUpdateStrategy {
+public enum TwinChangeClassStrategy {
 
     throwOnFieldCantBeTransferred,
     throwOnFieldRequiredNotFilled;

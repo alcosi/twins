@@ -14,8 +14,8 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinUpdateV1")
-public class TwinUpdateClassDTOv1 extends Request {
+@Schema(name =  "TwinChangeClassV1")
+public class TwinChangeClassDTOv1 extends Request {
 
     @Schema(description = "New twin class id for twin", example = DTOExamples.TWIN_CLASS_ID)
     public UUID newTwinClassId;
@@ -27,6 +27,6 @@ public class TwinUpdateClassDTOv1 extends Request {
     public Map<UUID, UUID> fieldsReplaceMap;
 
     @Schema(description = "Behavior of update process")
-    public List<TwinClassUpdateStrategy> behavior;
+    public List<TwinChangeClassStrategy> behavior;
 
 }

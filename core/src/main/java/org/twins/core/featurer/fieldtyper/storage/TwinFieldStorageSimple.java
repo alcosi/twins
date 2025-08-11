@@ -57,6 +57,7 @@ public class TwinFieldStorageSimple extends TwinFieldStorage {
     }
 
     public void deleteTwinFieldsForTwins(Map<UUID, Set<UUID>> deleteMap) {
+        //todo optimize for bulk delete
         for (var entry : deleteMap.entrySet())
             twinFieldSimpleRepository.deleteByTwinIdAndTwinClassFieldIdIn(entry.getKey(), entry.getValue());
     }

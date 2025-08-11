@@ -18,14 +18,14 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
-import org.twins.core.domain.twinoperation.TwinUpdateClass;
+import org.twins.core.domain.twinoperation.TwinChangeClass;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.twin.TwinChangeClassDTOv1;
 import org.twins.core.dto.rest.twin.TwinRsDTOv2;
-import org.twins.core.dto.rest.twin.TwinUpdateClassDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.mappers.rest.twin.TwinChangeClassRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
-import org.twins.core.mappers.rest.twin.TwinUpdateClassRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinUpdateClassService;
@@ -37,31 +37,31 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_UPDATE})
-public class TwinUpdateClassController extends ApiController {
+public class TwinChangeClassController extends ApiController {
 
-    private final TwinUpdateClassService twinUpdateClassService;
+    private final TwinUpdateClassService twinChangeClassService;
     private final TwinService twinService;
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
-    private final TwinUpdateClassRestDTOReverseMapper twinUpdateClassRestDTOReverseMapper;
+    private final TwinChangeClassRestDTOReverseMapper twinChangeClassRestDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinUpdateClassV1", summary = "Update class of twin")
+    @Operation(operationId = "twinChangeClassV1", summary = "Change class of twin")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PutMapping(value = "/private/twin/class/{twinId}/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> twinUpdateClassV1(
+    @PutMapping(value = "/private/twin/{twinId}/class_change/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> twinChangeClassV1(
             @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @RequestBody TwinUpdateClassDTOv1 request) {
+            @RequestBody TwinChangeClassDTOv1 request) {
         TwinRsDTOv2 rs = new TwinRsDTOv2();
         try {
-            TwinUpdateClass twinUpdateClass = twinUpdateClassRestDTOReverseMapper.convert(request)
+            TwinChangeClass twinChangeClass = twinChangeClassRestDTOReverseMapper.convert(request)
                     .setTwinId(twinId);
-            twinUpdateClassService.updateClassOfTwin(twinUpdateClass);
+            twinChangeClassService.changeClassOfTwin(twinChangeClass);
             rs
                     .setTwin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(twinId), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
