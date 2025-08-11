@@ -122,8 +122,10 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
         twinflowService.loadTwinflow(twinEntity);
         loadFactories(twinEntity.getTwinflow());
         TwinflowFactoryEntity twinflowFactory = twinEntity.getTwinflow().getFactoriesKit().get(factoryLauncher);
-        if (twinflowFactory == null)
+        if (twinflowFactory == null) {
+            log.info("No {} factory configured for {}", factoryLauncher, twinEntity.getTwinflow().logNormal()); //todo delete me in future
             return;
+        }
         log.info("twin change task will be created for {} ", twinflowFactory.logNormal());
         twinChangesCollector.addPostponedChange(twinEntity.getId(), twinflowFactory.getTwinFactoryId(), twinflowFactory.getTwinFactorylauncher());
     }
