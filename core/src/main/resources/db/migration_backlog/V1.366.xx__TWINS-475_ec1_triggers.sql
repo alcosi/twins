@@ -159,3 +159,7 @@ WHERE t.id = parent.child_id
 update twin_class
 set page_face_id = page_face_id
 where page_face_id is not null;
+
+update twin_class
+set bread_crumbs_face_id = bread_crumbs_face_id
+where bread_crumbs_face_id is not null;
