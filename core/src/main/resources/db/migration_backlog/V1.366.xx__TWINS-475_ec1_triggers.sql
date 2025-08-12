@@ -1,144 +1,80 @@
+alter table twin_class
+    add column if not exists inherited_from_twin_class_id uuid references twin_class on update cascade on delete restrict;
+
+create index if not exists twin_class_inherited_from_twin_class_id_idx
+    on twin_class (inherited_from_twin_class_id);
+
 create or replace function twin_class_update_inherited_bread_crumbs_face_id()
     returns trigger as
 $$
-declare
-    value         uuid;
-    current_level int;
-    depth     int;
-    updated_count int;
-    blocked_nodes ltree[];
-    prev_blocked_nodes ltree[];
 begin
-    -- filling in the variable that we will set for the children of this class
-    if new.bread_crumbs_face_id is not null then
-        value := new.bread_crumbs_face_id;
-    else
-        value := new.inherited_bread_crumbs_face_id;
-    end if;
+        IF NEW.bread_crumbs_face_id IS NULL THEN
+            UPDATE twin_class
+            SET
+                inherited_bread_crumbs_face_id = OLD.inherited_bread_crumbs_face_id,
+                inherited_from_twin_class_id = OLD.inherited_from_twin_class_id
+            WHERE
+                inherited_from_twin_class_id = OLD.id
+              AND id != NEW.id  -- exclude self
+              AND extends_hierarchy_tree <@ OLD.extends_hierarchy_tree; -- only children in hierarchy
 
-    -- filling the current level of class and depth vars
-    current_level := nlevel(new.extends_hierarchy_tree);
+        ELSIF OLD.bread_crumbs_face_id IS NULL THEN
+            UPDATE twin_class
+            SET
+                inherited_bread_crumbs_face_id = NEW.bread_crumbs_face_id,
+                inherited_from_twin_class_id = NEW.id
+            WHERE
+                inherited_from_twin_class_id = OLD.inherited_from_twin_class_id
+              AND id != NEW.id
+              AND extends_hierarchy_tree <@ OLD.extends_hierarchy_tree; -- only children in hierarchy
 
-    select max(nlevel(extends_hierarchy_tree))
-    into depth
-    from twin_class
-    where extends_hierarchy_tree <@ new.extends_hierarchy_tree;
-
-    -- exit if max_level is null because it means that this element don't have any children
-    if depth is null then
-        return new;
-    end if;
-
-    -- initializing value to avoid it becoming null after array_cat
-    blocked_nodes := array[]::ltree[];
-
-    -- cycle through the levels of the tree (like bfs)
-    for level_to_update in (current_level + 1)..depth loop
-        -- updating classes on this level including ones that has bread_crumbs_face_id is not null
-        -- and excluding ones that are children of classes with bread_crumbs_face_id is not null
-            update twin_class
-            set inherited_bread_crumbs_face_id = value
-            where extends_hierarchy_tree <@ new.extends_hierarchy_tree
-              and nlevel(extends_hierarchy_tree) = level_to_update
-              and not exists (
-                select 1
-                from unnest(blocked_nodes) as blocked_node
-                where extends_hierarchy_tree <@ blocked_node
-            );
-
-            -- getting the number of updated classes on this level
-            get diagnostics updated_count = row_count;
-
-            -- saving blocked_nodes from prev level and adding blocked_nodes from this level
-            prev_blocked_nodes := blocked_nodes;
-            select array_cat(blocked_nodes, array_agg(extends_hierarchy_tree))
-            into blocked_nodes
-            from twin_class
-            where extends_hierarchy_tree <@ new.extends_hierarchy_tree
-              and nlevel(extends_hierarchy_tree) = level_to_update
-              and bread_crumbs_face_id is not null;
-
-            -- exit from cycle if we updated nothing on this level
-            -- and blocked_nodes from prev and this levels are equal
-            if updated_count = 0 and prev_blocked_nodes = blocked_nodes then
-                exit;
-            end if;
-        end loop;
-
-    return new;
+        ELSE
+            UPDATE twin_class
+            SET
+                inherited_bread_crumbs_face_id = NEW.bread_crumbs_face_id
+            WHERE
+                inherited_from_twin_class_id = OLD.id
+              AND id != NEW.id;
+        END IF;
+    RETURN NEW;
 end;
 $$ language plpgsql;
 
-create or replace function twin_class_update_inherited_page_face_id()
-    returns trigger as
-$$
-declare
-    value         uuid;
-    current_level int;
-    depth     int;
-    updated_count int;
-    blocked_nodes ltree[];
-    prev_blocked_nodes ltree[];
-begin
-    -- filling in the variable that we will set for the children of this class
-    if new.page_face_id is not null then
-        value := new.page_face_id;
-    else
-        value := new.inherited_page_face_id;
-    end if;
+CREATE OR REPLACE FUNCTION twin_class_update_inherited_page_face_id()
+    RETURNS TRIGGER AS $$
+BEGIN
+        IF NEW.page_face_id IS NULL THEN
+            UPDATE twin_class
+            SET
+                inherited_page_face_id = OLD.inherited_page_face_id,
+                inherited_from_twin_class_id = OLD.inherited_from_twin_class_id
+            WHERE
+                inherited_from_twin_class_id = OLD.id
+              AND id != NEW.id  -- exclude self
+              AND extends_hierarchy_tree <@ OLD.extends_hierarchy_tree; -- only children in hierarchy
 
-    -- filling the current level of class and depth vars
-    current_level := nlevel(new.extends_hierarchy_tree);
+        ELSIF OLD.page_face_id IS NULL THEN
+            UPDATE twin_class
+            SET
+                inherited_page_face_id = NEW.page_face_id,
+                inherited_from_twin_class_id = NEW.id
+            WHERE
+                inherited_from_twin_class_id = OLD.inherited_from_twin_class_id
+              AND id != NEW.id
+              AND extends_hierarchy_tree <@ OLD.extends_hierarchy_tree; -- only children in hierarchy
 
-    select max(nlevel(extends_hierarchy_tree))
-    into depth
-    from twin_class
-    where extends_hierarchy_tree <@ new.extends_hierarchy_tree;
+        ELSE
+            UPDATE twin_class
+            SET
+                inherited_page_face_id = NEW.page_face_id
+            WHERE
+                inherited_from_twin_class_id = OLD.id
+              AND id != NEW.id;
+        END IF;
 
-    -- exit if max_level is null because it means that this element don't have any children
-    if depth is null then
-        return new;
-    end if;
-
-    -- initializing value to avoid it becoming null after array_cat
-    blocked_nodes := array[]::ltree[];
-
-    -- cycle through the levels of the tree (like bfs)
-    for level_to_update in (current_level + 1)..depth loop
-        -- updating classes on this level including ones that has page_face_id is not null
-        -- and excluding ones that are children of classes with page_face_id is not null
-            update twin_class
-            set inherited_page_face_id = value
-            where extends_hierarchy_tree <@ new.extends_hierarchy_tree
-              and nlevel(extends_hierarchy_tree) = level_to_update
-              and not exists (
-                select 1
-                from unnest(blocked_nodes) as blocked_node
-                where extends_hierarchy_tree <@ blocked_node
-            );
-
-            -- getting the number of updated classes on this level
-            get diagnostics updated_count = row_count;
-
-            -- saving blocked_nodes from prev level and adding blocked_nodes from this level
-            prev_blocked_nodes := blocked_nodes;
-            select array_cat(blocked_nodes, array_agg(extends_hierarchy_tree))
-            into blocked_nodes
-            from twin_class
-            where extends_hierarchy_tree <@ new.extends_hierarchy_tree
-              and nlevel(extends_hierarchy_tree) = level_to_update
-              and page_face_id is not null;
-
-            -- exit from cycle if we updated nothing on this level
-            -- and blocked_nodes from prev and this levels are equal
-            if updated_count = 0 and prev_blocked_nodes = blocked_nodes then
-                exit;
-            end if;
-        end loop;
-
-    return new;
-end;
-$$ language plpgsql;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
 create or replace trigger twin_class_update_inherited_bread_crumbs_face_id_trigger
     after update of bread_crumbs_face_id
@@ -161,17 +97,20 @@ declare
     parent_page_face_id uuid;
     parent_inherited_bread_crumbs_face_id uuid;
     parent_inherited_page_face_id uuid;
+    parent_inherited_from_twin_class_id uuid;
 begin
     select
         bread_crumbs_face_id,
         page_face_id,
         inherited_bread_crumbs_face_id,
-        inherited_page_face_id
+        inherited_page_face_id,
+        inherited_from_twin_class_id
     into
         parent_bread_crumbs_face_id,
         parent_page_face_id,
         parent_inherited_bread_crumbs_face_id,
-        parent_inherited_page_face_id
+        parent_inherited_page_face_id,
+        parent_inherited_from_twin_class_id
     from twin_class
     where id = new.extends_twin_class_id;
 
@@ -187,6 +126,8 @@ begin
         new.inherited_page_face_id := parent_inherited_page_face_id;
     end if;
 
+    new.inherited_from_twin_class_id := parent_inherited_from_twin_class_id;
+
     return new;
 end;
 $$ language plpgsql;
@@ -198,10 +139,23 @@ create or replace trigger twin_class_set_inherited_face_on_insert_trigger
 execute function twin_class_set_inherited_face_on_insert();
 
 
+UPDATE twin_class t
+SET inherited_from_twin_class_id = parent.id
+FROM (
+         SELECT DISTINCT ON (child.id)
+             child.id AS child_id,
+             parent.id
+         FROM twin_class child
+                  LEFT JOIN twin_class parent ON (
+             child.extends_hierarchy_tree <@ parent.extends_hierarchy_tree
+                 AND parent.id != child.id
+                 AND parent.page_face_id IS NOT NULL
+             )
+         ORDER BY child.id, nlevel(parent.extends_hierarchy_tree) DESC
+     ) parent
+WHERE t.id = parent.child_id
+  AND (t.inherited_from_twin_class_id IS DISTINCT FROM parent.id);
+
 update twin_class
 set page_face_id = page_face_id
 where page_face_id is not null;
-
-update twin_class
-set bread_crumbs_face_id = bread_crumbs_face_id
-where bread_crumbs_face_id is not null;
