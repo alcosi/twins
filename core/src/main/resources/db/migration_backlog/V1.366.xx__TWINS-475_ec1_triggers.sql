@@ -1,6 +1,6 @@
 alter table twin_class
     add column if not exists inherited_bread_crumbs_twin_class_id uuid references twin_class on update cascade on delete restrict,
-    add column if not exists inherited_page_twin_class_id uuid references twin_class on update cascade on delete restrict;
+    add column if not exists inherited_page_twin_class_id         uuid references twin_class on update cascade on delete restrict;
 
 create index if not exists twin_class_inherited_page_twin_class_id_idx
     on twin_class (inherited_page_twin_class_id);
@@ -12,73 +12,65 @@ create or replace function twin_class_update_inherited_bread_crumbs_face_id()
     returns trigger as
 $$
 begin
-        IF NEW.bread_crumbs_face_id IS NULL THEN
-            UPDATE twin_class
-            SET
-                inherited_bread_crumbs_face_id = OLD.inherited_bread_crumbs_face_id,
-                inherited_bread_crumbs_twin_class_id = OLD.inherited_bread_crumbs_twin_class_id
-            WHERE
-                inherited_bread_crumbs_twin_class_id = OLD.id
-              AND id != NEW.id  -- exclude self
-              AND extends_hierarchy_tree <@ OLD.extends_hierarchy_tree; -- only children in hierarchy
+    if new.bread_crumbs_face_id is null then
+        update twin_class
+        set inherited_bread_crumbs_face_id       = old.inherited_bread_crumbs_face_id,
+            inherited_bread_crumbs_twin_class_id = old.inherited_bread_crumbs_twin_class_id
+        where inherited_bread_crumbs_twin_class_id = old.id
+          and id != new.id
+          and extends_hierarchy_tree <@ old.extends_hierarchy_tree;
 
-        ELSIF OLD.bread_crumbs_face_id IS NULL THEN
-            UPDATE twin_class
-            SET
-                inherited_bread_crumbs_face_id = NEW.bread_crumbs_face_id,
-                inherited_bread_crumbs_twin_class_id = NEW.id
-            WHERE
-                inherited_bread_crumbs_twin_class_id = OLD.inherited_bread_crumbs_twin_class_id
-              AND id != NEW.id
-              AND extends_hierarchy_tree <@ OLD.extends_hierarchy_tree; -- only children in hierarchy
+    elsif old.bread_crumbs_face_id is null then
+        update twin_class
+        set inherited_bread_crumbs_face_id       = new.bread_crumbs_face_id,
+            inherited_bread_crumbs_twin_class_id = new.id
+        where ((inherited_bread_crumbs_twin_class_id = old.inherited_bread_crumbs_twin_class_id) or
+               (old.inherited_bread_crumbs_twin_class_id is null and inherited_bread_crumbs_twin_class_id is null))
+          and id != new.id
+          and extends_hierarchy_tree <@ old.extends_hierarchy_tree;
 
-        ELSE
-            UPDATE twin_class
-            SET
-                inherited_bread_crumbs_face_id = NEW.bread_crumbs_face_id
-            WHERE
-                inherited_bread_crumbs_twin_class_id = OLD.id
-              AND id != NEW.id;
-        END IF;
-    RETURN NEW;
+    else
+        update twin_class
+        set inherited_bread_crumbs_face_id = new.bread_crumbs_face_id
+        where inherited_bread_crumbs_twin_class_id = old.id
+          and id != new.id;
+    end if;
+
+    return new;
 end;
 $$ language plpgsql;
 
-CREATE OR REPLACE FUNCTION twin_class_update_inherited_page_face_id()
-    RETURNS TRIGGER AS $$
-BEGIN
-        IF NEW.page_face_id IS NULL THEN
-            UPDATE twin_class
-            SET
-                inherited_page_face_id = OLD.inherited_page_face_id,
-                inherited_page_twin_class_id = OLD.inherited_page_twin_class_id
-            WHERE
-                inherited_page_twin_class_id = OLD.id
-              AND id != NEW.id  -- exclude self
-              AND extends_hierarchy_tree <@ OLD.extends_hierarchy_tree; -- only children in hierarchy
+create or replace function twin_class_update_inherited_page_face_id()
+    returns trigger as
+$$
+begin
+    if new.page_face_id is null then
+        update twin_class
+        set inherited_page_face_id       = old.inherited_page_face_id,
+            inherited_page_twin_class_id = old.inherited_page_twin_class_id
+        where inherited_page_twin_class_id = old.id
+          and id != new.id
+          and extends_hierarchy_tree <@ old.extends_hierarchy_tree;
 
-        ELSIF OLD.page_face_id IS NULL THEN
-            UPDATE twin_class
-            SET
-                inherited_page_face_id = NEW.page_face_id,
-                inherited_page_twin_class_id = NEW.id
-            WHERE
-                inherited_page_twin_class_id = OLD.inherited_page_twin_class_id
-              AND id != NEW.id
-              AND extends_hierarchy_tree <@ OLD.extends_hierarchy_tree; -- only children in hierarchy
+    elsif old.page_face_id is null then
+        update twin_class
+        set inherited_page_face_id       = new.page_face_id,
+            inherited_page_twin_class_id = new.id
+        where ((inherited_page_twin_class_id = old.inherited_page_twin_class_id) or
+               (old.inherited_page_twin_class_id is null and inherited_page_twin_class_id is null))
+          and id != new.id
+          and extends_hierarchy_tree <@ old.extends_hierarchy_tree;
 
-        ELSE
-            UPDATE twin_class
-            SET
-                inherited_page_face_id = NEW.page_face_id
-            WHERE
-                inherited_page_twin_class_id = OLD.id
-              AND id != NEW.id;
-        END IF;
+    else
+        update twin_class
+        set inherited_page_face_id = new.page_face_id
+        where inherited_page_twin_class_id = old.id
+          and id != new.id;
+    end if;
 
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+    return new;
+end;
+$$ language plpgsql;
 
 create or replace trigger twin_class_update_inherited_bread_crumbs_face_id_trigger
     after update of bread_crumbs_face_id
@@ -92,27 +84,25 @@ create or replace trigger twin_class_update_inherited_page_face_id_trigger
     for each row
 execute function twin_class_update_inherited_page_face_id();
 
-
 create or replace function twin_class_set_inherited_face_on_insert()
     returns trigger as
 $$
 declare
-    parent_id uuid;
-    parent_bread_crumbs_face_id uuid;
-    parent_page_face_id uuid;
-    parent_inherited_bread_crumbs_face_id uuid;
-    parent_inherited_page_face_id uuid;
-    parent_inherited_page_twin_class_id uuid;
+    parent_id                                   uuid;
+    parent_bread_crumbs_face_id                 uuid;
+    parent_page_face_id                         uuid;
+    parent_inherited_bread_crumbs_face_id       uuid;
+    parent_inherited_page_face_id               uuid;
+    parent_inherited_page_twin_class_id         uuid;
     parent_inherited_bread_crumbs_twin_class_id uuid;
 begin
-    select
-        id,
-        bread_crumbs_face_id,
-        page_face_id,
-        inherited_bread_crumbs_face_id,
-        inherited_page_face_id,
-        inherited_page_twin_class_id,
-        inherited_bread_crumbs_face_id
+    select id,
+           bread_crumbs_face_id,
+           page_face_id,
+           inherited_bread_crumbs_face_id,
+           inherited_page_face_id,
+           inherited_page_twin_class_id,
+           inherited_bread_crumbs_face_id
     into
         parent_id,
         parent_bread_crumbs_face_id,
@@ -150,40 +140,33 @@ create or replace trigger twin_class_set_inherited_face_on_insert_trigger
     for each row
 execute function twin_class_set_inherited_face_on_insert();
 
+update twin_class t
+set inherited_page_twin_class_id = parent.id
+from (select distinct on (child.id) child.id as child_id,
+                                    parent.id
+      from twin_class child
+               left join twin_class parent on (
+          child.extends_hierarchy_tree <@ parent.extends_hierarchy_tree
+              and parent.id != child.id
+              and parent.page_face_id is not null
+          )
+      order by child.id, nlevel(parent.extends_hierarchy_tree) desc) parent
+where t.id = parent.child_id
+  and (t.inherited_page_twin_class_id is distinct from parent.id);
 
-UPDATE twin_class t
-SET inherited_page_twin_class_id = parent.id
-FROM (
-         SELECT DISTINCT ON (child.id)
-             child.id AS child_id,
-             parent.id
-         FROM twin_class child
-                  LEFT JOIN twin_class parent ON (
-             child.extends_hierarchy_tree <@ parent.extends_hierarchy_tree
-                 AND parent.id != child.id
-                 AND parent.page_face_id IS NOT NULL
-             )
-         ORDER BY child.id, nlevel(parent.extends_hierarchy_tree) DESC
-     ) parent
-WHERE t.id = parent.child_id
-  AND (t.inherited_page_twin_class_id IS DISTINCT FROM parent.id);
-
-UPDATE twin_class t
-SET inherited_bread_crumbs_twin_class_id = parent.id
-FROM (
-         SELECT DISTINCT ON (child.id)
-             child.id AS child_id,
-             parent.id
-         FROM twin_class child
-                  LEFT JOIN twin_class parent ON (
-             child.extends_hierarchy_tree <@ parent.extends_hierarchy_tree
-                 AND parent.id != child.id
-                 AND parent.bread_crumbs_face_id IS NOT NULL
-             )
-         ORDER BY child.id, nlevel(parent.extends_hierarchy_tree) DESC
-     ) parent
-WHERE t.id = parent.child_id
-  AND (t.inherited_bread_crumbs_twin_class_id IS DISTINCT FROM parent.id);
+update twin_class t
+set inherited_bread_crumbs_twin_class_id = parent.id
+from (select distinct on (child.id) child.id as child_id,
+                                    parent.id
+      from twin_class child
+               left join twin_class parent on (
+          child.extends_hierarchy_tree <@ parent.extends_hierarchy_tree
+              and parent.id != child.id
+              and parent.bread_crumbs_face_id is not null
+          )
+      order by child.id, nlevel(parent.extends_hierarchy_tree) desc) parent
+where t.id = parent.child_id
+  and (t.inherited_bread_crumbs_twin_class_id is distinct from parent.id);
 
 update twin_class
 set page_face_id = page_face_id
