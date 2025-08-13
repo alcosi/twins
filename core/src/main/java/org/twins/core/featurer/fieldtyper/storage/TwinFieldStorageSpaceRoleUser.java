@@ -61,6 +61,11 @@ public class TwinFieldStorageSpaceRoleUser extends TwinFieldStorage {
     }
 
     @Override
+    public void deleteTwinFieldsForTwins(Map<UUID, Set<UUID>> deleteMap) {
+        //nothing to delete
+    }
+
+    @Override
     boolean canBeMerged(Object o) {
         return isSameClass(o);
     }

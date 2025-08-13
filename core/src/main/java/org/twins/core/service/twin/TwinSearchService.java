@@ -157,6 +157,9 @@ public class TwinSearchService {
     // without sorting
     public PaginationResult<TwinEntity> findTwins(List<BasicSearch> basicSearches, SimplePagination pagination) throws ServiceException {
         Set<TwinEntity> alreadyLoaded = new LinkedHashSet<>();
+        if (basicSearches.size() == 1) {
+            return findTwins(basicSearches.getFirst(), pagination);
+        }
         for (BasicSearch basicSearch : basicSearches) {
             detectSystemClassSearchCheck(basicSearch);
             List<TwinEntity> ret = twinRepository.findAll(createTwinEntitySearchSpecification(basicSearch));

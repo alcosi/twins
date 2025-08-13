@@ -332,20 +332,20 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         return dbTwinflowTransitionEntity;
     }
 
-    public void cudValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, EntityCUD<TwinflowTransitionValidatorRuleEntity> validatorCUD) throws ServiceException {
-        if (validatorCUD == null)
-            return;
-        if (CollectionUtils.isNotEmpty(validatorCUD.getCreateList())) {
-            createValidators(dbTwinflowTransitionEntity, validatorCUD.getCreateList());
-        }
-        if (CollectionUtils.isNotEmpty(validatorCUD.getUpdateList())) {
-            updateValidators(dbTwinflowTransitionEntity, validatorCUD.getUpdateList());
-        }
-        if (CollectionUtils.isNotEmpty(validatorCUD.getDeleteList())) {
-            deleteValidators(dbTwinflowTransitionEntity, validatorCUD.getDeleteList());
-        }
-        CacheUtils.evictCache(cacheManager, TwinflowTransitionValidatorRuleRepository.CACHE_TRANSITION_VALIDATOR_RULES_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
-    }
+//    public void cudValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, EntityCUD<TwinflowTransitionValidatorRuleEntity> validatorCUD) throws ServiceException {
+//        if (validatorCUD == null)
+//            return;
+//        if (CollectionUtils.isNotEmpty(validatorCUD.getCreateList())) {
+//            createValidators(dbTwinflowTransitionEntity, validatorCUD.getCreateList());
+//        }
+//        if (CollectionUtils.isNotEmpty(validatorCUD.getUpdateList())) {
+//            updateValidators(dbTwinflowTransitionEntity, validatorCUD.getUpdateList());
+//        }
+//        if (CollectionUtils.isNotEmpty(validatorCUD.getDeleteList())) {
+//            deleteValidators(dbTwinflowTransitionEntity, validatorCUD.getDeleteList());
+//        }
+//        CacheUtils.evictCache(cacheManager, TwinflowTransitionValidatorRuleRepository.CACHE_TRANSITION_VALIDATOR_RULES_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
+//    }
 
     @Transactional
     public void deleteValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionValidatorRuleEntity> validatorDeleteList) throws ServiceException {

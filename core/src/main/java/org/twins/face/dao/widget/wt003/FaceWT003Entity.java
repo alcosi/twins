@@ -8,7 +8,9 @@ import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceVariantEntity;
 import org.twins.core.dao.resource.ResourceEntity;
+import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.UUID;
 
@@ -42,6 +44,15 @@ public class FaceWT003Entity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "style_classes")
     private String styleClasses;
 
+    @Column(name = "substitution_from_twin_pointer_id")
+    private UUID substitutionFromTwinPointerId;
+
+    @Column(name = "title_substitution_twin_class_field_id")
+    private UUID titleSubstitutionTwinClassFieldId;
+
+    @Column(name = "message_substitution_twin_class_field_id")
+    private UUID messageSubstitutionTwinClassFieldId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
@@ -59,6 +70,18 @@ public class FaceWT003Entity implements EasyLoggable, FaceVariantEntity {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private ResourceEntity iconResource;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "substitution_from_twin_pointer_id", insertable = false, updatable = false)
+    private TwinPointerEntity substitutionFromTwinPointer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "title_substitution_twin_class_field_id", insertable = false, updatable = false)
+    private TwinClassFieldEntity substitutionTitleField;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "message_substitution_twin_class_field_id", insertable = false, updatable = false)
+    private TwinClassFieldEntity substitutionMessageField;
 
     @Override
     public String easyLog(Level level) {

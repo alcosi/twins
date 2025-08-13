@@ -20,7 +20,7 @@ public class LTreeUtils {
     public static String matchWithDepthRange(String id, Range<Integer> depthLeft, Range<Integer> depthRight) {
         if (id == null) return null;
         String leftPart = (depthLeft == null) ? "*." : "*{" + depthLeft.getMinimum() + "," + depthLeft.getMaximum() + "}.";
-        String rightPart = (depthRight == null) ? ".*" : ".*{" + Math.max(1, depthRight.getMinimum()) + "," + depthRight.getMaximum() + "}";
+        String rightPart = (depthRight == null) ? ".*" : ".*{" + Math.max(0, depthRight.getMinimum()) + "," + depthRight.getMaximum() + "}";
         id = id.replace("-", "_");
         return leftPart + id + rightPart;
     }
@@ -29,7 +29,7 @@ public class LTreeUtils {
         if (depth == null) {
             return Range.of(1, (int) Short.MAX_VALUE);
         }
-        int min = Math.max(1, depth.getMinimum());
+        int min = Math.max(0, depth.getMinimum()); // 0 - if we need to search self
         return Range.of(min, depth.getMaximum());
     }
 

@@ -5,6 +5,7 @@ import org.cambium.common.kit.Kit;
 import org.twins.core.dao.twin.TwinEntity;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -20,6 +21,8 @@ public abstract class TwinFieldStorage {
     public abstract Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet);
 
     public abstract void replaceTwinClassFieldForTwinsOfClass(UUID twinClassId, UUID fromTwinClassFieldId, UUID toTwinClassFieldId);
+
+    public abstract void deleteTwinFieldsForTwins(Map<UUID, Set<UUID>> deleteMap);
 
     @Override
     public boolean equals(Object obj) {
