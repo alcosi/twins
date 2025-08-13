@@ -82,7 +82,7 @@ public class StoragerS3StaticController extends StoragerAbstractChecked {
         String controllerPath = "public/resource/{id}/v1";
         Properties properties = extractProperties(params, false);
         String urlDomain = addSlashAtTheEndIfNeeded(selfHostDomainBaseUri.extract(properties));
-        return removeDoubleSlashes(urlDomain + addSlashAtStartIfNeeded(contextPath) + addSlashAtStartIfNeeded(controllerPath));
+        return urlDomain + removeDoubleSlashes(addSlashAtStartIfNeeded(contextPath) + addSlashAtStartIfNeeded(controllerPath));
     }
 
     @SneakyThrows
