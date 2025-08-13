@@ -66,7 +66,7 @@ public class FaceWT003Service extends FaceVariantsService<FaceWT003Entity> {
         Map<String, String> map = null;
 
         if (pointerId != null && field != null)  {
-            map = Map.of(FIELD_VAR, twinService.getValueFromTwinClassField(pointerId, field));
+            map = Map.of(FIELD_VAR, twinService.getValueFromTwinClassField(faceTwinPointerService.getPointer(pointerId), field));
         }
 
         return map;

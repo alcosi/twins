@@ -52,6 +52,7 @@ import org.twins.core.service.face.FaceTwinPointerService;
 import org.twins.core.service.factory.TwinFactoryService;
 import org.twins.core.service.history.ChangesRecorder;
 import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
@@ -124,7 +125,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Autowired
     private TwinflowFactoryService twinflowFactoryService;
     private final FaceTwinPointerService faceTwinPointerService;
-
+    @Autowired
+    private I18nService i18nService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
@@ -1284,52 +1286,33 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
-    public String getValueFromTwinClassField(UUID pointerId, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+    public String getValueFromTwinClassField(TwinEntity twin, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
         String res = null;
 
-        if (pointerId == null || twinClassFieldEntity == null) {
+        if (twin == null || twinClassFieldEntity == null) {
             return res;
         }
+        
+        var fieldValue = getTwinFieldValue(twin, twinClassFieldEntity.getId());
 
-        var fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
-        TwinEntity twin = faceTwinPointerService.getPointer(pointerId);
-
-        if (fieldTyper.getValueType().equals(FieldValueText.class)) {
-            FieldValueText value = (FieldValueText) getTwinFieldValue(twin, twinClassFieldEntity.getId());
-
-            if (value != null) {
-                res = value.getValue();
-            }
-        }
-        else if (fieldTyper.getStorageType() == TwinFieldStorageSimpleNonIndex.class) {
-            TwinFieldSimpleNonIndexedEntity entity = twinFieldSimpleNonIndexedRepository.findByTwinIdAndTwinClassFieldId(twin.getId(), twinClassFieldEntity.getId());
-
-            if (entity != null) {
-                res = entity.getValue();
-            }
-        }
-        else if (fieldTyper.getStorageType() == TwinFieldStorageUser.class) {
-            //todo create result for TwinFieldUserEntity
-        }
-        else if (fieldTyper.getStorageType() == TwinFieldStorageDatalist.class) {
-            //todo create result for TwinFieldDataListEntity
-        }
-        else if (fieldTyper.getStorageType() == TwinFieldStorageI18n.class) {
-            TwinFieldI18nEntity entity = twinFieldI18nRepository.findByTwinIdAndTwinClassFieldId(twin.getId(), twinClassFieldEntity.getId());
-
-            if (entity != null) {
-                res = entity.getTranslation();
-            }
-        }
-        else if (fieldTyper.getStorageType() == TwinFieldStorageBoolean.class) {
-            TwinFieldBooleanEntity entity = twinFieldBooleanRepository.findByTwinIdAndTwinClassFieldId(twin.getId(), twinClassFieldEntity.getId());
-
-            if (entity != null) {
-                res = entity.getValue().toString();
-            }
-        }
-        else if (fieldTyper.getStorageType() == TwinFieldStorageTwinClassList.class) {
-            //todo create result for TwinFieldTwinClassEntity
+        if (fieldValue instanceof FieldValueText text) {
+            res = text.getValue();
+        } else if (fieldValue instanceof FieldValueUser user) {
+            res = user.getUsers().stream()
+                    .map(UserEntity::getName)
+                    .collect(Collectors.joining(", "));
+        } else if (fieldValue instanceof FieldValueSelect select) {
+            res = select.getOptions().stream()
+                    .map(DataListOptionEntity::getOption)
+                    .collect(Collectors.joining(", "));
+        } else if (fieldValue instanceof FieldValueI18n i18n) {
+            res = i18n.getTranslations().get(Locale.getDefault());
+        } else if (fieldValue instanceof FieldValueBoolean bool) {
+            res = bool.toString();
+        } else if (fieldValue instanceof FieldValueTwinClassList classList) {
+            res = classList.getTwinClassEntities().stream()
+                    .map(entity -> i18nService.translateToLocale(entity.getNameI18NId()))
+                    .collect(Collectors.joining(", "));
         }
 
         return res;
