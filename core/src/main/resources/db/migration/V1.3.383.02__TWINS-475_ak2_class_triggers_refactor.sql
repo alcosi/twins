@@ -1,3 +1,16 @@
+-- 1. Drop old triggers
+drop trigger if exists hierarchy_twin_class_extends_update_tree_trigger on twin_class;
+drop trigger if exists hierarchy_twin_class_head_update_tree_trigger on twin_class;
+drop trigger if exists hierarchyrecalculatetrigger on twin_class;
+drop trigger if exists permissions_on_twin_class_update on twin_class;
+drop trigger if exists twin_class_on_delete_i18n_and_translations_delete on twin_class;
+drop trigger if exists twin_class_set_inherited_face_on_insert_trigger on twin_class;
+drop trigger if exists twin_class_update_inherited_bread_crumbs_face_id_trigger on twin_class;
+drop trigger if exists twin_class_update_inherited_page_face_id_trigger on twin_class;
+drop trigger if exists twin_class_after_insert_wrapper_trigger on twin_class;
+drop trigger if exists twin_class_after_update_wrapper_trigger on twin_class;
+drop trigger if exists twin_class_after_delete_wrapper_trigger on twin_class;
+
 -- Drop old function
 drop function if exists hierarchyrecalculateforclasstwins();
 
@@ -16,24 +29,11 @@ BEGIN
         PERFORM public.hierarchyUpdateTreeHard(t.id, NULL)
         FROM public.twin t
         WHERE t.twin_class_id = NEW.id;
-    END IF;
-    RETURN NEW;
+END IF;
+RETURN NEW;
 END;
 $$;
 
-
--- 1. Drop old triggers
-drop trigger if exists hierarchy_twin_class_extends_update_tree_trigger on twin_class;
-drop trigger if exists hierarchy_twin_class_head_update_tree_trigger on twin_class;
-drop trigger if exists hierarchyrecalculatetrigger on twin_class;
-drop trigger if exists permissions_on_twin_class_update on twin_class;
-drop trigger if exists twin_class_on_delete_i18n_and_translations_delete on twin_class;
-drop trigger if exists twin_class_set_inherited_face_on_insert_trigger on twin_class;
-drop trigger if exists twin_class_update_inherited_bread_crumbs_face_id_trigger on twin_class;
-drop trigger if exists twin_class_update_inherited_page_face_id_trigger on twin_class;
-drop trigger if exists twin_class_after_insert_wrapper_trigger on twin_class;
-drop trigger if exists twin_class_after_update_wrapper_trigger on twin_class;
-drop trigger if exists twin_class_after_delete_wrapper_trigger on twin_class;
 
 -- 2. Insert wrapper function
 create or replace function twin_class_after_insert_wrapper()
