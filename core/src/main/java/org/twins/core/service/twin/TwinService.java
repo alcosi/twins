@@ -42,16 +42,17 @@ import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;
-import org.twins.core.featurer.fieldtyper.storage.FieldStorageService;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
+import org.twins.core.featurer.fieldtyper.storage.*;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.face.FaceTwinPointerService;
 import org.twins.core.service.factory.TwinFactoryService;
 import org.twins.core.service.history.ChangesRecorder;
 import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
@@ -123,6 +124,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private FieldStorageService fieldStorageService;
     @Autowired
     private TwinflowFactoryService twinflowFactoryService;
+    private final FaceTwinPointerService faceTwinPointerService;
+    @Autowired
+    private I18nService i18nService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
@@ -1277,21 +1281,53 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
         var fieldTyper = featurerService.getFeaturer(twinClassFieldForReplace.getFieldTyperFeaturer(), FieldTyper.class);
         fieldTyper.getStorage(twinClassFieldForReplace).replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
-        if (fieldTyper.getStorageType() == TwinFieldSimpleEntity.class) {
+        if (fieldTyper.getStorageType() == TwinFieldStorageSimple.class) {
             twinFieldSimpleRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
-        } else if (fieldTyper.getStorageType() == TwinFieldSimpleNonIndexedEntity.class) {
+        } else if (fieldTyper.getStorageType() == TwinFieldStorageSimpleNonIndex.class) {
             twinFieldSimpleNonIndexedRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
-        } else if (fieldTyper.getStorageType() == TwinFieldUserEntity.class) {
+        } else if (fieldTyper.getStorageType() == TwinFieldStorageUser.class) {
             twinFieldUserRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
-        } else if (fieldTyper.getStorageType() == TwinFieldDataListEntity.class) {
+        } else if (fieldTyper.getStorageType() == TwinFieldStorageDatalist.class) {
             twinFieldDataListRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
-        } else if (fieldTyper.getStorageType() == TwinFieldI18nEntity.class) {
+        } else if (fieldTyper.getStorageType() == TwinFieldStorageI18n.class) {
             twinFieldI18nRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
-        } else if (fieldTyper.getStorageType() == TwinFieldBooleanEntity.class) {
+        } else if (fieldTyper.getStorageType() == TwinFieldStorageBoolean.class) {
             twinFieldBooleanRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
-        } else if (fieldTyper.getStorageType() == TwinFieldTwinClassEntity.class) {
+        } else if (fieldTyper.getStorageType() == TwinFieldStorageTwinClassList.class) {
             twinFieldTwinClassListRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
         }
+    }
+
+    public String getValueFromTwinClassField(TwinEntity twin, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        String res = null;
+
+        if (twin == null || twinClassFieldEntity == null) {
+            return res;
+        }
+        
+        var fieldValue = getTwinFieldValue(twin, twinClassFieldEntity.getId());
+
+        if (fieldValue instanceof FieldValueText text) {
+            res = text.getValue();
+        } else if (fieldValue instanceof FieldValueUser user) {
+            res = user.getUsers().stream()
+                    .map(UserEntity::getName)
+                    .collect(Collectors.joining(", "));
+        } else if (fieldValue instanceof FieldValueSelect select) {
+            res = select.getOptions().stream()
+                    .map(DataListOptionEntity::getOption)
+                    .collect(Collectors.joining(", "));
+        } else if (fieldValue instanceof FieldValueI18n i18n) {
+            res = i18n.getTranslations().get(Locale.getDefault());
+        } else if (fieldValue instanceof FieldValueBoolean bool) {
+            res = bool.toString();
+        } else if (fieldValue instanceof FieldValueTwinClassList classList) {
+            res = classList.getTwinClassEntities().stream()
+                    .map(entity -> i18nService.translateToLocale(entity.getNameI18NId()))
+                    .collect(Collectors.joining(", "));
+        }
+
+        return res;
     }
 
     @Data
