@@ -30,5 +30,6 @@ public interface TwinFieldBooleanRepository extends CrudRepository<TwinFieldBool
     @Query(value = "update TwinFieldBooleanEntity set twinClassFieldId = :toTwinClassFieldId where twinClassFieldId = :fromTwinClassFieldId and twin.twinClassId = :twinClassId")
     void replaceTwinClassFieldForTwinsOfClass(@Param("twinClassId") UUID twinClassId, @Param("fromTwinClassFieldId") UUID fromTwinClassFieldId, @Param("toTwinClassFieldId") UUID toTwinClassFieldId);
 
-    TwinFieldBooleanEntity findByTwinIdAndTwinClassFieldId(UUID twinId, UUID fieldId);
+    void deleteByTwinIdAndTwinClassFieldIdIn(UUID twinId, Set<UUID> twinClassFieldIds);
+
 }

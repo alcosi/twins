@@ -26,10 +26,7 @@ import org.twins.core.featurer.classfield.sorter.FieldSorter;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -67,7 +64,7 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
         return twinClassFieldRepository.findAll(spec);
     }
 
-    public PaginationResult<TwinClassFieldEntity> findTwinClassField(UUID searchId, TwinClassFieldSearch narrowSearch, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<TwinClassFieldEntity> findTwinClassField(UUID searchId, Map<String, String> namedParamsMap, TwinClassFieldSearch narrowSearch, SimplePagination pagination) throws ServiceException {
         if (SystemEntityService.TWIN_CLASS_FIELD_SEARCH_UNLIMITED.equals(searchId)) {
             return findTwinClassField(narrowSearch, pagination);
         }
@@ -77,7 +74,7 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
                 .setExcludeSystemFields(false);
         for (TwinClassFieldSearchPredicateEntity predicate : searchPredicates) {
             FieldFinder fieldFinder = featurerService.getFeaturer(predicate.getFieldFinderFeaturerId(), FieldFinder.class);
-            fieldFinder.concatSearch(predicate.getFieldFinderParams(), mainSearch);
+            fieldFinder.concatSearch(predicate.getFieldFinderParams(), mainSearch, namedParamsMap);
         }
         narrowSearch(mainSearch, narrowSearch);
         mainSearch.setConfiguredSearch(searchEntity);
@@ -111,7 +108,8 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
 
     private Specification<TwinClassFieldEntity> addSorting(TwinClassFieldSearch search, SimplePagination pagination, Specification<TwinClassFieldEntity> specification) throws ServiceException {
         TwinClassFieldSearchEntity searchEntity = search.getConfiguredSearch();
-        if (searchEntity != null && (searchEntity.isForceSorting() || pagination == null || pagination.getSort().isUnsorted())) {
+        if (searchEntity != null &&
+                (searchEntity.isForceSorting() || pagination == null || pagination.getSort() == null || pagination.getSort().isUnsorted())) {
             FieldSorter fieldSorter = featurerService.getFeaturer(searchEntity.getFieldSorterFeaturerId(), FieldSorter.class);
             var sortFunction = fieldSorter.createSort(searchEntity.getFieldSorterParams());
             if (sortFunction != null) {

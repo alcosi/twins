@@ -32,5 +32,6 @@ public interface TwinFieldI18nRepository extends CrudRepository<TwinFieldI18nEnt
     @Query(value = "update TwinFieldI18nEntity set twinClassFieldId = :toTwinClassFieldId where twinClassFieldId = :fromTwinClassFieldId and twin.twinClassId = :twinClassId")
     void replaceTwinClassFieldForTwinsOfClass(@Param("twinClassId") UUID twinClassId, @Param("fromTwinClassFieldId") UUID fromTwinClassFieldId, @Param("toTwinClassFieldId") UUID toTwinClassFieldId);
 
-    TwinFieldI18nEntity findByTwinIdAndTwinClassFieldId(UUID twinId, UUID fieldId);
+    void deleteByTwinIdAndTwinClassFieldIdIn(UUID twinId, Set<UUID> twinClassFieldIds);
+
 }
