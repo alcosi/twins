@@ -95,19 +95,14 @@ public class FaceService extends EntitySecureFindServiceImpl<FaceEntity> {
         Map<UUID, TwinEntity> breadCrumbsFaceIds = new HashMap<>();
 
         for (var twin : twins) {
-            if (twin.getPageFace() == null) {
-                if (twin.getPageFaceId() != null) {
-                    pageFaceIds.put(twin.getPageFaceId(), twin);
-                } else if (twin.getTwinClass().getPageFaceId() != null) {
-                    pageFaceIds.put(twin.getTwinClass().getPageFaceId(), twin);
-                }
+            UUID resolvedPageFaceId = resolvePageFaceId(twin);
+            UUID resolvedBreadCrumbsFaceId = resolveBreadCrumbsFaceId(twin);
+
+            if (twin.getPageFace() == null && resolvedPageFaceId != null) {
+                pageFaceIds.put(resolvedPageFaceId, twin);
             }
-            if (twin.getBreadCrumbsFace() == null) {
-                if (twin.getBreadCrumbsFaceId() != null) {
-                    breadCrumbsFaceIds.put(twin.getBreadCrumbsFaceId(), twin);
-                } else if (twin.getTwinClass().getBreadCrumbsFaceId() != null) {
-                    breadCrumbsFaceIds.put(twin.getTwinClass().getBreadCrumbsFaceId(), twin);
-                }
+            if (twin.getBreadCrumbsFace() == null && resolvedBreadCrumbsFaceId != null) {
+                breadCrumbsFaceIds.put(resolvedBreadCrumbsFaceId, twin);
             }
         }
 
