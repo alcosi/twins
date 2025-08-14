@@ -88,7 +88,7 @@ public class AttachmentSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Atta
                 .setStorageId(src.storage.getId())
                 .setStorage(src.storage)
                 .setAttachmentFile(src.domainFile)
-                .setChangedFile(src.fileChanged)
+                .setFileChanged(src.fileChanged)
                 .setModifications(new Kit<>(TwinAttachmentModificationEntity::getModificationType))
                 .setTitle(src.getTitle())
                 //TODO set size as is.

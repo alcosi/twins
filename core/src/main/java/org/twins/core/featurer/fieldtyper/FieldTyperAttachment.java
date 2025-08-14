@@ -110,7 +110,7 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
                             .setTwinClassFieldId(value.getTwinClassField().getId())
                             .setTitle(value.getName())
                             .setSize(domainFile.fileSize())
-                            .setChangedFile(true)
+                            .setFileChanged(true)
                             .setAttachmentFile(domainFile);
                 }
                 attachmentService.updateAttachments(filteredAttachments, twinChangesCollector);
