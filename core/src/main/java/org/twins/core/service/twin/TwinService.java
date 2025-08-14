@@ -1073,6 +1073,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             fieldValue = new FieldValueLink(twinClassFieldEntity);
         if (fieldTyper.getValueType() == FieldValueInvisible.class)
             fieldValue = new FieldValueInvisible(twinClassFieldEntity);
+        if (fieldTyper.getValueType() == FieldValueAttachment.class)
+            fieldValue = new FieldValueAttachment(twinClassFieldEntity);
         if (fieldTyper.getValueType() == FieldValueI18n.class)
             fieldValue = new FieldValueI18n(twinClassFieldEntity);
         if (fieldTyper.getValueType() == FieldValueBoolean.class)
@@ -1098,6 +1100,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             fieldValueDate.setDate(value);
         if (fieldValue instanceof FieldValueBoolean fieldValueBoolean)
             fieldValueBoolean.setValue(Boolean.parseBoolean(value));
+        if (fieldValue instanceof FieldValueAttachment fieldValueAttachment) {
+            // Parse the value as JSON to extract name and base64Content
+            // For simplicity, we'll assume the value is in the format "name:base64Content"
+            if (value != null && value.contains(":")) {
+                String[] parts = value.split(":", 2);
+                fieldValueAttachment.setName(parts[0]);
+                fieldValueAttachment.setBase64Content(parts[1]);
+            } else {
+                fieldValueAttachment.setName(value);
+            }
+        }
         if (fieldValue instanceof FieldValueTwinClassList fieldValueTwinClassList) {
             for (var id : value.split(LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(id)) {

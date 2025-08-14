@@ -57,6 +57,14 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
             dst.setValue(date.getDate());
         } else if (src instanceof FieldValueInvisible) {
             dst.setValue("");
+        } else if (src instanceof FieldValueAttachment fieldValueAttachment) {
+            if (fieldValueAttachment.getName() != null && fieldValueAttachment.getBase64Content() != null) {
+                dst.setValue(fieldValueAttachment.getName() + ":" + fieldValueAttachment.getBase64Content());
+            } else if (fieldValueAttachment.getName() != null) {
+                dst.setValue(fieldValueAttachment.getName());
+            } else {
+                dst.setValue("");
+            }
         } else if (src instanceof FieldValueBoolean fieldValueBoolean) {
             dst.setValue(String.valueOf(fieldValueBoolean.getValue()));
         } else if (src instanceof FieldValueTwinClassList fieldValueTwinClassList) {
@@ -127,7 +135,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
     @Override
     public List<FieldValueText> convertCollection(Collection<FieldValue> srcList, MapperContext mapperContext) throws Exception {
         return super.convertCollection(srcList
-                .stream().filter(v -> !(v instanceof FieldValueInvisible)).toList(), mapperContext);
+                .stream().filter(v -> !(v instanceof FieldValueInvisible) || (v instanceof FieldValueAttachment)).toList(), mapperContext);
     }
 
     @Override
