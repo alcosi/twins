@@ -149,7 +149,7 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
                         Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
                         var bytes = fileService.getFileBytes(attachment.getStorageFileKey(), storage.getStoragerParams());
                         fieldValue.setName(attachment.getTitle());
-                        fieldValue.setBase64Content(Base64.encodeBase64String(bytes));
+                        fieldValue.setBase64Content("data:" + tika.detect(bytes) + ";base64," + Base64.encodeBase64String(bytes));
                     } catch (Exception e) {
                         throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Error converting attachment to base64: " + e.getMessage());
                     }

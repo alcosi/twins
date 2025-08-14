@@ -59,7 +59,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
             dst.setValue("");
         } else if (src instanceof FieldValueAttachment fieldValueAttachment) {
             if (fieldValueAttachment.getName() != null && fieldValueAttachment.getBase64Content() != null) {
-                dst.setValue(fieldValueAttachment.getName() + ":" + fieldValueAttachment.getBase64Content());
+                dst.setValue(fieldValueAttachment.getBase64Content());
             } else if (fieldValueAttachment.getName() != null) {
                 dst.setValue(fieldValueAttachment.getName());
             } else {
