@@ -84,30 +84,49 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
                 value.getBase64Content() != null &&
                 !value.getBase64Content().isEmpty()) {
             var content = value.getBase64Content();
-            var base64 = content.contains(",") ? content.split(",")[1] : content;
+            var base64 = content.contains(",") ? content.split(",")[1].replaceAll(" ", "") : content;
             byte[] bytes = Base64.decodeBase64(base64);
             UUID extractedStorageId = storageId.extract(properties);
+
             ApiUser apiUser = authService.getApiUser();
             var storageId = extractedStorageId == null ? apiUser.getDomain().getAttachmentsStorageId() : extractedStorageId;
             StorageEntity storage = storageService.findEntitySafe(storageId);
             DomainFile domainFile = new DomainFile(new ByteArrayInputStream(bytes), value.getName(), (long) bytes.length);
 
-            TwinAttachmentEntity attachmentEntity = new TwinAttachmentEntity()
-                    .setStorage(storage)
-                    .setStorageId(storageId)
-                    .setCreatedByUserId(apiUser.getUserId())
-                    .setCreatedByUser(apiUser.getUser())
-                    .setTwinId(twin.getId())
-                    .setTwinClassFieldId(value.getTwinClassField().getId())
-                    .setTitle(value.getName())
-                    .setAttachmentFile(domainFile);
+
             //Delete this filed attachments before serialization if field is updated
             attachmentService.loadAttachments(twin);
             java.util.List<TwinAttachmentEntity> attachments = twin.getAttachmentKit().getList();
             var filteredAttachments = attachments == null ? null : attachments.stream().filter(att -> att.getTwinClassFieldId() != null &&
                     att.getTwinClassFieldId().equals(value.getTwinClassField().getId())).toList();
-            attachmentService.addAttachments(java.util.Collections.singletonList(attachmentEntity), twinChangesCollector);
-            attachmentService.deleteAttachments(filteredAttachments, twinChangesCollector);
+
+            if (filteredAttachments != null && !filteredAttachments.isEmpty()) {
+                for (TwinAttachmentEntity attachment : filteredAttachments) {
+                    attachment.setStorage(storage)
+                            .setStorageId(storageId)
+                            .setCreatedByUserId(apiUser.getUserId())
+                            .setCreatedByUser(apiUser.getUser())
+                            .setTwinId(twin.getId())
+                            .setTwinClassFieldId(value.getTwinClassField().getId())
+                            .setTitle(value.getName())
+                            .setSize(domainFile.fileSize())
+                            .setAttachmentFile(domainFile);
+                }
+                attachmentService.updateAttachments(filteredAttachments, twinChangesCollector);
+            } else {
+                TwinAttachmentEntity attachmentEntity = new TwinAttachmentEntity()
+                        .setStorage(storage)
+                        .setStorageId(storageId)
+                        .setCreatedByUserId(apiUser.getUserId())
+                        .setCreatedByUser(apiUser.getUser())
+                        .setTwinId(twin.getId())
+                        .setTwinClassFieldId(value.getTwinClassField().getId())
+                        .setTitle(value.getName())
+                        .setSize(domainFile.fileSize())
+                        .setAttachmentFile(domainFile);
+                attachmentService.addAttachments(java.util.Collections.singletonList(attachmentEntity), twinChangesCollector);
+            }
+//            attachmentService.deleteAttachments(filteredAttachments, twinChangesCollector);
         }
     }
 
