@@ -1,1 +1,1 @@
-INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1614, 16, 'org.twins.core.featurer.twin.validator.TwinValidatorTwinFieldSimpleNotNull', 'simple fields by class field ids', '', false) on conflict do nothing;
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1614, 16, 'org.twins.core.featurer.twin.validator.TwinValidatorTwinFieldNotNull', 'fields by class field ids', '', false) on conflict do nothing;
