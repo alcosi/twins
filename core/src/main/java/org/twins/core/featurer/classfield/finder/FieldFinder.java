@@ -15,6 +15,9 @@ import java.util.Properties;
         description = "Find class fields")
 @Slf4j
 public abstract class FieldFinder extends FeaturerTwins {
+    public static final String PARAM_CURRENT_TWIN_CLASS_ID = "currentTwinClassId";
+    public static final String PARAM_CURRENT_TWIN_ID = "currentTwinId";
+
     public void concatSearch(HashMap<String, String> fieldFinderParams, TwinClassFieldSearch fieldSearch, Map<String, String> namedParamsMap) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, fieldFinderParams, new HashMap<>());
         log.info("Running featurer[{}].findFields with params: {}", this.getClass().getSimpleName(), properties.toString());
