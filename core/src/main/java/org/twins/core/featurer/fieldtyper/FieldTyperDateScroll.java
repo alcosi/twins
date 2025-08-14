@@ -22,6 +22,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorDate;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
+import org.twins.core.featurer.twin.validator.TwinValidator;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -44,13 +45,18 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     @Override
     public FieldDescriptorDate getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         LocalDateTime now = LocalDateTime.now();
-        return new FieldDescriptorDate().pattern(pattern.extract(properties)).beforeDate(now.minusHours(hoursPast.extract(properties))).afterDate(now.plusHours(hoursFuture.extract(properties)));
+        FieldDescriptorDate fieldDescriptorDate = new FieldDescriptorDate()
+                .pattern(pattern.extract(properties))
+                .beforeDate(now.minusHours(hoursPast.extract(properties)))
+                .afterDate(now.plusHours(hoursFuture.extract(properties)));
+        fieldDescriptorDate.backendValidated(true);
+        return fieldDescriptorDate;
     }
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (!value.isNullified()) {
-            LocalDateTime localDateTime = validateValue(twinFieldEntity, value.getDate(), properties);
+            LocalDateTime localDateTime = parseDateTime(value.getDate(), properties);
             value.setDate(formatDate(localDateTime, properties));
         }
         detectValueChange(twinFieldEntity, twinChangesCollector, value.getDate());
@@ -74,30 +80,6 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
         return Specification.where(TwinSpecification.checkFieldDate(search));
     }
 
-    public LocalDateTime validateValue(TwinFieldSimpleEntity twinFieldEntity, String value, Properties properties) throws ServiceException {
-        String datePattern = pattern.extract(properties);
-        boolean clearedValue = !twinFieldEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(value);
-        if (!GenericValidator.isDate(value, datePattern, false) && !clearedValue)
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " date[" + value + "] does not match pattern[" + datePattern + "]");
-        LocalDateTime localDateTime = parseDateTime(value, properties);
-        LocalDateTime now = LocalDateTime.now();
-        Integer minHours = FieldTyperDateScroll.hoursPast.extract(properties);
-        if (minHours != null && minHours >= 0) {
-            LocalDateTime minDate = now.minusHours(minHours);
-            if (localDateTime.isBefore(minDate)) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Date value [" + localDateTime + "] is more than " + minHours + " hours in the past");
-            }
-        }
-        Integer maxHours = FieldTyperDateScroll.hoursFuture.extract(properties);
-        if (maxHours != null && maxHours >= 0) {
-            LocalDateTime maxDate = now.plusHours(maxHours);
-            if (localDateTime.isAfter(maxDate)) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Date value [" + localDateTime + "] is more than " + maxHours + " hours in the future");
-            }
-        }
-        return localDateTime;
-    }
-
     private LocalDateTime parseDateTime(String value, Properties properties) throws ServiceException {
         String patternStr = pattern.extract(properties);
         SimpleDateFormat formatter = new SimpleDateFormat(patternStr);
@@ -116,4 +98,37 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
         Date date = Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
         return formatter.format(date);
     }
+
+    @Override
+    protected TwinValidator.ValidationResult validate(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueDate value) {
+        String datePattern = pattern.extract(properties);
+        String errorMessage = i18nService.translateToLocale(value.getTwinClassField().getBeValidationErrorI18nId());
+        TwinValidator.ValidationResult result = new TwinValidator.ValidationResult(true);
+        try {
+            String dateValue = value.getDate();
+            boolean clearedValue = !twinFieldEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(dateValue);
+            if (!GenericValidator.isDate(dateValue, datePattern, false) && !clearedValue)
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " date[" + value + "] does not match pattern[" + datePattern + "]");
+            LocalDateTime localDateTime = parseDateTime(dateValue, properties);
+            LocalDateTime now = LocalDateTime.now();
+            Integer minHours = FieldTyperDateScroll.hoursPast.extract(properties);
+            if (minHours != null && minHours >= 0) {
+                LocalDateTime minDate = now.minusHours(minHours);
+                if (localDateTime.isBefore(minDate)) {
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Date value [" + localDateTime + "] is more than " + minHours + " hours in the past");
+                }
+            }
+            Integer maxHours = FieldTyperDateScroll.hoursFuture.extract(properties);
+            if (maxHours != null && maxHours >= 0) {
+                LocalDateTime maxDate = now.plusHours(maxHours);
+                if (localDateTime.isAfter(maxDate)) {
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Date value [" + localDateTime + "] is more than " + maxHours + " hours in the future");
+                }
+            }
+        } catch (ServiceException e) {
+            result = new TwinValidator.ValidationResult(false, errorMessage);
+        }
+        return result;
+    }
+
 }
