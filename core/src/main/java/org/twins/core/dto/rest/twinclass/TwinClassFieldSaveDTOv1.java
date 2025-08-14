@@ -2,10 +2,8 @@ package org.twins.core.dto.rest.twinclass;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.HashMap;
@@ -42,4 +40,10 @@ public abstract class TwinClassFieldSaveDTOv1{
 
     @Schema(description = "Field typer parameters", example = "{}")
     public HashMap<String, String> fieldTyperParams;
+
+    @Schema(description = "I18n frontend validation error", example = "")
+    public I18nSaveDTOv1 feValidationErrorI18n;
+
+    @Schema(description = "I18n backend validation error", example = "")
+    public I18nSaveDTOv1 beValidationErrorI18n;
 }
