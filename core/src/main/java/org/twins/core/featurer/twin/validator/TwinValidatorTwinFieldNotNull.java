@@ -34,7 +34,7 @@ public class TwinValidatorTwinFieldNotNull extends TwinValidator{
 
     @Override
     protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
-        twinService.loadTwinFields(twinEntity);
+        twinService.loadFieldsValues(twinEntity);
         Set<UUID> fieldClassIds = twinClassFieldIds.extract(properties);
 
         UUID nullFieldId = null;
