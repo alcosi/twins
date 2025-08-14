@@ -32,7 +32,7 @@ public class StoragerS3DynamicController extends StoragerS3StaticController {
         Properties properties = extractProperties(params, false);
         String relativePath = relativeFileUri.extract(properties);
         String urlDomain = addSlashAtTheEndIfNeeded(selfHostDomainBaseUri.extract(properties));
-        return removeDoubleSlashes(urlDomain + addSlashAtStartIfNeeded(contextPath) + addSlashAtStartIfNeeded(relativePath));
+        return urlDomain + removeDoubleSlashes(addSlashAtStartIfNeeded(contextPath) + addSlashAtStartIfNeeded(relativePath));
     }
 
 }
