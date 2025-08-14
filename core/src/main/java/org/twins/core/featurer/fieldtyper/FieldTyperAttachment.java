@@ -102,7 +102,8 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
                     .setTitle(value.getName())
                     .setAttachmentFile(domainFile);
             //Delete this filed attachments before serialization if field is updated
-            java.util.List<TwinAttachmentEntity> attachments = attachmentService.findAttachmentByTwinId(twin.getId());
+            attachmentService.loadAttachments(twin);
+            java.util.List<TwinAttachmentEntity> attachments = twin.getAttachmentKit().getList();
             var filteredAttachments = attachments == null ? null : attachments.stream().filter(att -> att.getTwinClassFieldId() != null &&
                     att.getTwinClassFieldId().equals(value.getTwinClassField().getId())).toList();
             attachmentService.addAttachments(java.util.Collections.singletonList(attachmentEntity), twinChangesCollector);
@@ -119,7 +120,8 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
             // Find attachments for this field
             TwinEntity twinEntity = twinField.getTwin();
             if (twinEntity != null && twinEntity.getId() != null) {
-                java.util.List<TwinAttachmentEntity> attachments = attachmentService.findAttachmentByTwinId(twinEntity.getId());
+                attachmentService.loadAttachments(twinEntity);
+                java.util.List<TwinAttachmentEntity> attachments = twinEntity.getAttachmentKit().getList();
                 var attachment = attachments == null ? null : attachments.stream().filter(att -> att.getTwinClassFieldId() != null &&
                         att.getTwinClassFieldId().equals(twinField.getTwinClassField().getId())).findAny().orElse(null);
                 if (attachment != null) {
