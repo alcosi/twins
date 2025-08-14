@@ -69,6 +69,7 @@ public class AttachmentSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Atta
             try {
                 DomainFile domainFile = new DomainFile(file.getInputStream(), file.getOriginalFilename(), file.getSize());
                 att.setDomainFile(domainFile);
+                att.fileChanged = true;
                 if (att.size == null || att.size < 1) {
                     att.size = domainFile.fileSize();
                 }
@@ -87,6 +88,7 @@ public class AttachmentSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Atta
                 .setStorageId(src.storage.getId())
                 .setStorage(src.storage)
                 .setAttachmentFile(src.domainFile)
+                .setChangedFile(src.fileChanged)
                 .setModifications(new Kit<>(TwinAttachmentModificationEntity::getModificationType))
                 .setTitle(src.getTitle())
                 //TODO set size as is.

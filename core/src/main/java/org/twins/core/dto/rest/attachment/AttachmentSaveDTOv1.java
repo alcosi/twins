@@ -42,4 +42,8 @@ public class AttachmentSaveDTOv1 {
     @Schema(hidden = true)
     @JsonIgnore
     public DomainFile domainFile;
+
+    @Schema(hidden = true)
+    @JsonIgnore
+    public boolean fileChanged = false;
 }
