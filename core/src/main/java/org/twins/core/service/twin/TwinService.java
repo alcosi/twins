@@ -1108,7 +1108,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 fieldValueAttachment.setName(parts[0]);
                 fieldValueAttachment.setBase64Content(parts[1]);
             } else {
-                fieldValueAttachment.setName(value);
+                fieldValueAttachment.setName("data");
+                fieldValueAttachment.setBase64Content(value);
             }
         }
         if (fieldValue instanceof FieldValueTwinClassList fieldValueTwinClassList) {
