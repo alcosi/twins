@@ -6,6 +6,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
+import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.search.TwinClassFieldSearch;
@@ -25,6 +27,9 @@ import java.util.*;
 public class FieldFinderByIdExcludeHeadMatched extends FieldFinder {
     private final TwinService twinService;
     private final TwinClassFieldService twinClassFieldService;
+
+    @FeaturerParam(name = "Exclude", description = "", optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean exclude = new FeaturerParamBoolean("exclude");
 
     @Override
     protected void concatSearch(Properties properties, TwinClassFieldSearch fieldSearch, Map<String, String> namedParamsMap) throws ServiceException {
@@ -48,7 +53,7 @@ public class FieldFinderByIdExcludeHeadMatched extends FieldFinder {
                 excludeFields.add(currentTwinField.getId());
             }
         }
-        fieldSearch.addId(excludeFields, false);
+        fieldSearch.addId(excludeFields, exclude.extract(properties));
     }
 
     private static String getMatchCode(TwinClassFieldEntity classField) {
