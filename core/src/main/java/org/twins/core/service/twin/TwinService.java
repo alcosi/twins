@@ -1106,7 +1106,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             if (value != null && value.contains(":")) {
                 String[] parts = value.split(":", 2);
                 fieldValueAttachment.setName(parts[0]);
-                fieldValueAttachment.setBase64Content(parts[1]);
+                fieldValueAttachment.setBase64Content(value);
             } else {
                 fieldValueAttachment.setName("data");
                 fieldValueAttachment.setBase64Content(value);
