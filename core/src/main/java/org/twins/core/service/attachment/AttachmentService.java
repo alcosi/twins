@@ -179,7 +179,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         }
         for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet()) {
             List<TwinAttachmentEntity> twinAttachmentsList = attachmentMap.get(entry.getKey());
-            if(!CollectionUtils.isEmpty(twinAttachmentsList))
+            if (!CollectionUtils.isEmpty(twinAttachmentsList))
                 entry.getValue().getAttachmentKit().addAll(twinAttachmentsList);
         }
     }
@@ -303,15 +303,12 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 historyItem.getContext().setNewTitle(attachmentEntity.getTitle());
                 dbAttachmentEntity.setTitle(attachmentEntity.getTitle());
             }
-            if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.storageFileKey, dbAttachmentEntity.getStorageFileKey(), attachmentEntity.getStorageFileKey())) {
-                if (StringUtils.isEmpty(attachmentEntity.getStorageFileKey())) {
-                    throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "storageFileKey is empty");
-                }
-                historyItem.getContext().setNewStorageFileKey(attachmentEntity.getStorageFileKey());
+            if (attachmentEntity.isChangedFile() || twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.storageFileKey, dbAttachmentEntity.getStorageFileKey(), attachmentEntity.getStorageFileKey())) {
                 deleteFile(dbAttachmentEntity);
                 saveFile(attachmentEntity, dbAttachmentEntity.getId());
                 dbAttachmentEntity.setStorageFileKey(attachmentEntity.getStorageFileKey());
                 historyItem.getContext().setNewStorageFileKey(attachmentEntity.getStorageFileKey());
+
             }
             if (KitUtils.isNotEmpty(attachmentEntity.getModifications())) {
                 updateAttachmentModifications(attachmentEntity, dbAttachmentEntity, twinChangesCollector);
