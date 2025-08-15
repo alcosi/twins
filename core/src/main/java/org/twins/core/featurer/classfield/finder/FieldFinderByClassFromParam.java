@@ -22,8 +22,6 @@ import java.util.UUID;
         name = "",
         description = "")
 public class FieldFinderByClassFromParam extends FieldFinder {
-    public static final String PARAM_CURRENT_TWIN_CLASS_ID = "currentTwinClassId";
-
     @FeaturerParam(name = "extends hierarchy check", description = "", order = 1, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean searchExtends = new FeaturerParamBoolean("searchExtends");
 
