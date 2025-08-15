@@ -1,0 +1,24 @@
+package org.twins.core.featurer.factory.conditioner;
+
+import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
+import org.cambium.featurer.annotations.Featurer;
+import org.springframework.stereotype.Component;
+import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
+
+import java.util.Map;
+import java.util.UUID;
+
+@Component
+@Featurer(id = FeaturerTwins.ID_2436,
+        name = "Is current user assignee for linked twin from output field",
+        description = "Checks if current user is assignee for linked twin from output fields")
+@Slf4j
+public class ConditionerApiUserIsAssigneeForLinkedTwinOutputField extends ConditionerApiUserIsAssigneeForLinkedTwinBase {
+    @Override
+    protected Map<UUID, FieldValue> getFields(FactoryItem factoryItem) throws ServiceException {
+        return factoryItem.getOutput().getFields();
+    }
+}
