@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionRepository;
@@ -148,6 +149,22 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                     classFields.addAll(fields.getGrouped(twinClassId));
             }
             twinClassEntity.setTwinClassFieldKit(new Kit<>(classFields, TwinClassFieldEntity::getId));
+        }
+    }
+
+    public void loadFields(Collection<TwinAttachmentEntity> attachments) throws ServiceException {
+        KitGrouped<TwinAttachmentEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinAttachmentEntity::getId, TwinAttachmentEntity::getTwinClassFieldId);
+        for (TwinAttachmentEntity attachmentEntity : attachments) {
+            if (attachmentEntity.getTwinClassFieldId() != null && attachmentEntity.getTwinClassField() == null)
+                needLoad.add(attachmentEntity);
+        }
+        if (needLoad.isEmpty())
+            return;
+        var twinClassFieldKit = findEntitiesSafe(needLoad.getGroupedMap().keySet());
+        for (var entry : needLoad.getGroupedMap().entrySet()) {
+            for (var attachmentEntity : entry.getValue()) {
+                attachmentEntity.setTwinClassField(twinClassFieldKit.get(attachmentEntity.getTwinClassFieldId()));
+            }
         }
     }
 

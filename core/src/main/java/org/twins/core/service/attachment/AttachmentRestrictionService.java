@@ -159,10 +159,10 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
             if (fieldTyper.getStorageType() != TwinFieldStorageAttachment.class) {
                 throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Wrong fieldTyper for [" + fieldEntity.getId() + "]");
             }
-
-            UUID restrictionId = ((FieldTyperAttachment) fieldTyper).getRestrictionId(fieldEntity.getFieldTyperParams());
+            FieldTyperAttachment<?> fieldTyperAttachment = (FieldTyperAttachment) fieldTyper;
+            UUID restrictionId = fieldTyperAttachment.getRestrictionId(fieldEntity.getFieldTyperParams());
             if (restrictionId != null) {
-                result.put(fieldEntity.getId(), ((FieldTyperAttachment) fieldTyper).getRestrictionId(fieldEntity.getFieldTyperParams()));
+                result.put(fieldEntity.getId(), restrictionId);
             }
         }
 
