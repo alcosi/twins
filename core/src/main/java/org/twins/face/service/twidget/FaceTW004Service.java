@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.face.PointedFace;
 import org.twins.core.featurer.classfield.filter.FieldFilter;
-import org.twins.core.featurer.classfield.finder.FieldFinderByClassFromParam;
+import org.twins.core.featurer.classfield.finder.FieldFinder;
 import org.twins.core.service.face.FacePointedService;
 import org.twins.core.service.face.FaceService;
 import org.twins.core.service.twinclass.TwinClassFieldSearchService;
@@ -61,8 +61,8 @@ public class FaceTW004Service extends FacePointedService<FaceTW004Entity> {
 
     public List<FaceTW004TwinClassField> loadFields(PointedFace<FaceTW004Entity> pointedFace) throws ServiceException {
         Map<String, String> params = new HashMap<>();
-//        params.put("targetTwinId", pointedFace.getTargetTwin().getId().toString());
-        params.put(FieldFinderByClassFromParam.PARAM_CURRENT_TWIN_CLASS_ID, pointedFace.getTargetTwin().getTwinClassId().toString());
+        params.put(FieldFinder.PARAM_CURRENT_TWIN_ID, pointedFace.getTargetTwin().getId().toString());
+        params.put(FieldFinder.PARAM_CURRENT_TWIN_CLASS_ID, pointedFace.getTargetTwin().getTwinClassId().toString());
         List<TwinClassFieldEntity> fields = twinClassFieldSearchService.findTwinClassField(pointedFace.getConfig().getTwinClassFieldSearchId(), params, null, SimplePagination.FRIENDLY).getList();
 
         Set<UUID> editableFieldIds = null;

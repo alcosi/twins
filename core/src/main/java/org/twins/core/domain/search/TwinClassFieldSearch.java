@@ -83,6 +83,14 @@ public class TwinClassFieldSearch {
         return this;
     }
 
+    public TwinClassFieldSearch addId(final Collection<UUID> ids, boolean exclude) {
+        if (exclude)
+            idExcludeList = CollectionUtils.safeAdd(idExcludeList, ids);
+        else
+            idList = CollectionUtils.safeAdd(idList, ids);
+        return this;
+    }
+
     public static final ImmutableList<Pair<Function<TwinClassFieldSearch, Set>, BiConsumer<TwinClassFieldSearch, Set>>> SET_FIELDS = ImmutableList.of(
             Pair.of(TwinClassFieldSearch::getIdList, TwinClassFieldSearch::setIdList),
             Pair.of(TwinClassFieldSearch::getKeyLikeList, TwinClassFieldSearch::setKeyLikeList),
