@@ -10,8 +10,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
-import org.twins.core.dao.resource.StorageEntity;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.file.DomainFile;
 import org.twins.core.dto.rest.attachment.AttachmentSaveDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -38,12 +36,8 @@ public class AttachmentSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Atta
         try {
             if (CollectionUtils.isEmpty(attachments))
                 return;
-            ApiUser apiUser = authService.getApiUser();
-            StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getAttachmentsStorageId());
-            StorageEntity externalLinkStorage = storageService.findEntitySafe(TWIN_ATTACHMENT_EXTERNAL_URI_STORAGER_ID);
-
             attachments.forEach(att -> {
-                processAttribute(files, att, externalLinkStorage, storage);
+                processAttribute(files, att);
             });
         } catch (Throwable t) {
             log.error("Error while pre-processing attachments", t);
@@ -52,15 +46,10 @@ public class AttachmentSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Atta
     }
 
     @SneakyThrows
-    protected void processAttribute(Map<String, MultipartFile> files, AttachmentSaveDTOv1 att, StorageEntity externalLinkStorage, StorageEntity storage) {
+    protected void processAttribute(Map<String, MultipartFile> files, AttachmentSaveDTOv1 att) {
         boolean haveLink = att.storageLink != null && !att.storageLink.isBlank();
         boolean isMultipart = haveLink && att.storageLink.toLowerCase().startsWith("multipart://");
-        boolean isExternalLink = !isMultipart;
-        if (isExternalLink) {
-            att.setStorage(externalLinkStorage);
-        } else {
-            att.setStorage(storage);
-        }
+        att.setExternalLink(!isMultipart);
         if (haveLink && isMultipart) {
             String fileKey = att.storageLink.replaceFirst("multipart://", "");
             MultipartFile file = files.get(fileKey);
@@ -86,8 +75,6 @@ public class AttachmentSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Atta
         dst
                 .setTwinId(src.getTwinId())
                 .setStorageFileKey(src.getStorageLink())
-                .setStorageId(src.storage.getId())
-                .setStorage(src.storage)
                 .setAttachmentFile(src.domainFile)
                 .setFileChanged(src.fileChanged)
                 .setModifications(new Kit<>(TwinAttachmentModificationEntity::getModificationType))
@@ -96,6 +83,11 @@ public class AttachmentSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Atta
                 .setSize(src.getSize() == null ? 0 : src.getSize())
                 .setDescription(src.getDescription())
                 .setExternalId(src.getExternalId());
+        if (src.isExternalLink()) {
+            dst
+                    .setStorageId(TWIN_ATTACHMENT_EXTERNAL_URI_STORAGER_ID)
+                    .setStorage(storageService.getExternalUrlStorage());
+        }
         if (null != src.getModifications()) {
             for (Map.Entry<String, String> mod : src.getModifications().entrySet()) {
                 TwinAttachmentModificationEntity modEntity = new TwinAttachmentModificationEntity();

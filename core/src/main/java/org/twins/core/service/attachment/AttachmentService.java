@@ -402,10 +402,12 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             return;
         if (CollectionUtils.isNotEmpty(attachmentCUD.getCreateList())) {
             checkAndSetAttachmentTwin(attachmentCUD.getCreateList(), twinEntity);
+            storageService.loadStorages(attachmentCUD.getCreateList());
             addAttachments(attachmentCUD.getCreateList(), twinChangesCollector);
         }
         if (CollectionUtils.isNotEmpty(attachmentCUD.getUpdateList())) {
             checkAndSetAttachmentTwin(attachmentCUD.getUpdateList(), twinEntity);
+            storageService.loadStorages(attachmentCUD.getUpdateList());
             updateAttachments(attachmentCUD.getUpdateList(), twinChangesCollector);
         }
         if (CollectionUtils.isNotEmpty(attachmentCUD.getDeleteList())) {
