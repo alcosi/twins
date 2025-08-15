@@ -89,7 +89,10 @@ public class StorageService extends EntitySecureFindServiceImpl<StorageEntity> {
         var loadedKit = findEntitiesSafe(needLoad.keySet());
         for (var entry : needLoad.entrySet()) {
             for (var attachmentEntity : entry.getValue()) {
-                attachmentEntity.setStorage(loadedKit.get(entry.getKey()));
+                var storage = loadedKit.getSafe(entry.getKey());
+                attachmentEntity
+                        .setStorageId(storage.getId())
+                        .setStorage(storage);
             }
         }
     }
