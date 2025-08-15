@@ -659,7 +659,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         //perhaps we can finalize the sketch
         if (isAllRequiredFieldsFilled(twinUpdate)) {
             log.info("All required fields for sketch {} is filled", twinUpdate.getDbTwinEntity().logNormal());
-            if (twinUpdate.getTwinEntity().getTwinStatusId() == null)
+            UUID twinUpdateStatus = twinUpdate.getTwinEntity().getTwinStatusId();
+            if (twinUpdateStatus == null || twinUpdateStatus.equals(SystemEntityService.TWIN_STATUS_SKETCH))
                 setInitStatus(twinUpdate.getTwinEntity());
             twinUpdate.setMode(TwinUpdate.Mode.sketchFinalize);
         } else if (twinUpdate.getTwinEntity().getTwinStatusId() != null && !twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinStatusId())) {
