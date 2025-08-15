@@ -5,6 +5,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
@@ -35,15 +36,15 @@ public class AttachmentSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Atta
     @SneakyThrows
     public void preProcessAttachments(List<AttachmentSaveDTOv1> attachments, Map<String, MultipartFile> files) {
         try {
+            if (CollectionUtils.isEmpty(attachments))
+                return;
             ApiUser apiUser = authService.getApiUser();
             StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getAttachmentsStorageId());
             StorageEntity externalLinkStorage = storageService.findEntitySafe(TWIN_ATTACHMENT_EXTERNAL_URI_STORAGER_ID);
 
-            if (attachments != null && !attachments.isEmpty()) {
-                attachments.forEach(att -> {
-                    processAttribute(files, att, externalLinkStorage, storage);
-                });
-            }
+            attachments.forEach(att -> {
+                processAttribute(files, att, externalLinkStorage, storage);
+            });
         } catch (Throwable t) {
             log.error("Error while pre-processing attachments", t);
             throw t;

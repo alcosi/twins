@@ -83,6 +83,10 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         return changesApplyResult.getForClassAsList(TwinAttachmentEntity.class);
     }
 
+    public void addAttachment(TwinAttachmentEntity attachment, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        addAttachments(Collections.singletonList(attachment), twinChangesCollector);
+    }
+
     public void addAttachments(List<TwinAttachmentEntity> attachments, TwinChangesCollector twinChangesCollector) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         loadTwins(attachments);
@@ -275,6 +279,10 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         if (twinChangesCollector.hasChanges()) {
             twinChangesService.applyChanges(twinChangesCollector);
         }
+    }
+
+    public void updateAttachment(TwinAttachmentEntity attachmentEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        updateAttachments(Collections.singletonList(attachmentEntity), twinChangesCollector);
     }
 
     //todo collect only delta for correct drafting (minimize lockers)
