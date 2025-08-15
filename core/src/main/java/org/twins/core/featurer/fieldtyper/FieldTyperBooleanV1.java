@@ -1,7 +1,6 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -14,8 +13,6 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchBoolean;
-import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorBoolean;
 import org.twins.core.featurer.fieldtyper.value.FieldValueBoolean;
@@ -40,20 +37,13 @@ public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolea
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldBooleanEntity twinFieldBooleanEntity, FieldValueBoolean value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (twinFieldBooleanEntity.getTwinClassField().getRequired() && !value.isFilled()) {
-            throw new ServiceException(
-                    ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED,
-                    twinFieldBooleanEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required"
-            );
-        }
-
         detectValueChange(twinFieldBooleanEntity, twinChangesCollector, value.getValue());
     }
 
     @Override
     protected FieldValueBoolean deserializeValue(Properties properties, TwinField twinField, TwinFieldBooleanEntity twinFieldBooleanEntity) throws ServiceException {
         return new FieldValueBoolean(twinField.getTwinClassField())
-                .setValue(twinFieldBooleanEntity.getValue());
+                .setValue(twinFieldBooleanEntity != null ? twinFieldBooleanEntity.getValue() : null);
     }
 
     @Override

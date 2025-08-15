@@ -1,5 +1,6 @@
 package org.twins.core.featurer.storager;
 
+import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -24,6 +25,8 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.cambium.common.util.UrlUtils.toURI;
 
 /**
  * Provides services for handling file uploads and resource management.
@@ -90,7 +93,7 @@ public abstract class Storager extends FeaturerTwins {
      * @return An InputStream representing the file's content.
      * @throws ServiceException If there is an error while retrieving the file or if the file cannot be found.
      */
-    abstract public InputStream getFileAsStream(String fileKey, HashMap<String, String> params) throws ServiceException;
+    abstract public InputStreamResponse getFileAsStream(String fileKey, HashMap<String, String> params) throws ServiceException;
 
     /**
      * Retrieves the contents of a file as a byte array.
@@ -103,7 +106,7 @@ public abstract class Storager extends FeaturerTwins {
      */
     @SneakyThrows
     public byte[] getFileBytes(String fileKey, HashMap<String, String> params) throws ServiceException {
-        try (InputStream stream = getFileAsStream(fileKey, params)) {
+        try (InputStream stream = getFileAsStream(fileKey, params).getContentStream()) {
             return stream.readAllBytes();
         }
     }
@@ -121,7 +124,7 @@ public abstract class Storager extends FeaturerTwins {
     public URI getFileUri(UUID fileId, String fileKey, HashMap<String, String> params) throws ServiceException {
         String domainId = getDomainId().map(UUID::toString).orElse("defaultDomain");
         String businessAccountId = getBusinessAccountId().map(UUID::toString).orElse("defaultBusinessAccount");
-        return URI.create(getFileControllerUri(params)
+        return toURI(getFileControllerUri(params)
                 .replace("{id}", fileId.toString())
                 .replace("{key}", fileKey)
                 .replace("{domainId}", domainId)
@@ -155,7 +158,7 @@ public abstract class Storager extends FeaturerTwins {
      */
     @SneakyThrows
     public AddedFileKey addExternalUrlFile(UUID fileId, String externalUrl, HashMap<String, String> params) throws ServiceException {
-        return addFile(fileId, getInputStreamHttpResponse(URI.create(externalUrl), params).body(), params);
+        return addFile(fileId, getInputStreamHttpResponse(toURI(externalUrl), params).body(), params);
     }
 
     /**

@@ -44,4 +44,10 @@ public class TwinDraftDTOv1 extends Request {
 
     @Schema(description = "Tags list")
     public TwinTagAddDTOv1 tags;
+
+    @Schema(description = "external id")
+    public String externalId;
+
+    @Schema(description = "is sketch being created")
+    public Boolean isSketch;
 }

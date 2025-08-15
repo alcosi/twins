@@ -9,14 +9,14 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
 import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
+import org.twins.core.domain.file.DomainFile;
 
 import java.sql.Timestamp;
 import java.util.Set;
@@ -27,7 +27,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Accessors(chain = true)
 @Table(name = "twin_attachment")
-public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntity>, TwinFieldStorage, EasyLoggable {
+public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntity>, EasyLoggable {
     @Id
     private UUID id;
 
@@ -76,6 +76,10 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
     @Column(name = "twin_class_field_id")
     private UUID twinClassFieldId;
 
+
+    @Column(name = "storage_id", nullable = false)
+    private UUID storageId;
+
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity twin;
@@ -100,9 +104,17 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
     @JoinColumn(name = "twin_class_field_id", insertable = false, updatable = false)
     private TwinClassFieldEntity twinClassField;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "storage_id", insertable = false, updatable = false)
+    private StorageEntity storage;
+
     @Transient
     @EqualsAndHashCode.Exclude
     private Set<TwinAttachmentAction> attachmentActions;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private DomainFile attachmentFile;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -118,6 +130,8 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
                 .setExternalId(externalId)
                 .setTitle(title)
                 .setDescription(description)
+                .setStorageId(storageId)
+                .setStorage(storage)
                 .setStorageFileKey(storageFileKey)
                 .setModifications(modifications)
                 .setCreatedAt(createdAt)

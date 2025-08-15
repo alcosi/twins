@@ -4,8 +4,9 @@ import java.util.*;
 import java.util.function.Function;
 
 public class KitGrouped<E, K, GK> extends Kit<E, K>{
-
     protected Map<GK, List<E>> groupedMap;
+
+    public static final KitGrouped EMPTY = new KitGrouped(null, e -> null, e -> null);
 
     private final Function<? super E, ? extends GK> functionGetGroupingId;
 
@@ -44,6 +45,13 @@ public class KitGrouped<E, K, GK> extends Kit<E, K>{
             groupedMap.get(groupingId).add(entity);
         }
         return groupedMap;
+    }
+
+    public Set<GK> getGroupedKeySet() {
+        getGroupedMap();
+        if (groupedMap == null)
+            return Collections.EMPTY_SET;
+        return groupedMap.keySet();
     }
 
     public boolean containsGroupedKey(GK key) {

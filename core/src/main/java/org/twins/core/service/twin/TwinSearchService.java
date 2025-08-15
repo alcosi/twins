@@ -41,6 +41,7 @@ import org.twins.core.service.user.UserGroupService;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.cambium.common.util.MapUtils.narrowMapOfSets;
 import static org.cambium.common.util.PaginationUtils.sortType;
@@ -146,17 +147,35 @@ public class TwinSearchService {
     //***********************************************************************//
 
     public PaginationResult<TwinEntity> findTwins(BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
-        return findTwins(List.of(basicSearch), pagination);
-    }
-
-    public PaginationResult<TwinEntity> findTwins(List<BasicSearch> basicSearches, SimplePagination pagination) throws ServiceException {
-        Specification<TwinEntity> spec = where(null);
-        for (BasicSearch basicSearch : basicSearches) {
-            detectSystemClassSearchCheck(basicSearch);
-            spec = spec.or(createTwinEntitySearchSpecification(basicSearch));
-        }
+        detectSystemClassSearchCheck(basicSearch);
+        Specification<TwinEntity> spec = createTwinEntitySearchSpecification(basicSearch);
         Page<TwinEntity> ret = twinRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
+    }
+
+    //todo THIS IS TEMPORAL SOLUTION FOR WORKING TWIN SEARCH V3
+    // without sorting
+    public PaginationResult<TwinEntity> findTwins(List<BasicSearch> basicSearches, SimplePagination pagination) throws ServiceException {
+        Set<TwinEntity> alreadyLoaded = new LinkedHashSet<>();
+        if (basicSearches.size() == 1) {
+            return findTwins(basicSearches.getFirst(), pagination);
+        }
+        for (BasicSearch basicSearch : basicSearches) {
+            detectSystemClassSearchCheck(basicSearch);
+            List<TwinEntity> ret = twinRepository.findAll(createTwinEntitySearchSpecification(basicSearch));
+            alreadyLoaded.addAll(ret);
+        }
+        pagination.setTotalElements(alreadyLoaded.size());
+        List<TwinEntity> all = alreadyLoaded.stream()
+                .sorted(Comparator.comparing(TwinEntity::getCreatedAt).reversed())
+                .collect(Collectors.toList());
+        PaginationUtils.validPagination(pagination);
+        int offset = pagination.getOffset();
+        int limit = pagination.getLimit();
+        int fromIndex = Math.min(offset, all.size());
+        int toIndex = Math.min(offset + limit, all.size());
+        List<TwinEntity> pageContent = all.subList(fromIndex, toIndex);
+        return PaginationUtils.convertInPaginationResult(pageContent, pagination);
     }
 
     public Long count(Specification<TwinEntity> spec) throws ServiceException {
@@ -244,6 +263,9 @@ public class TwinSearchService {
     }
 
     public PaginationResult<TwinEntity> findTwins(UUID searchId, Map<String, String> namedParamsMap, BasicSearch searchNarrow, SimplePagination pagination) throws ServiceException {
+        if (SystemEntityService.TWIN_SEARCH_UNLIMITED.equals(searchId)) {
+            return findTwins(searchNarrow, pagination);
+        }
         return findTwins(entitySmartService.findById(searchId, searchRepository, EntitySmartService.FindMode.ifEmptyThrows), namedParamsMap, searchNarrow, pagination);
     }
 
@@ -277,7 +299,9 @@ public class TwinSearchService {
             functioPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
         }
         mainSearch.setTwinNameLikeList(narrowSet(mainSearch.getTwinNameLikeList(), narrowSearch.getTwinNameLikeList()));
-        mainSearch.setLinksAnyOfList(narrowMapOfSets(mainSearch.getLinksAnyOfList(), narrowSearch.getLinksAnyOfList()));
-        mainSearch.setLinksNoAnyOfList(narrowMapOfSets(mainSearch.getLinksNoAnyOfList(), narrowSearch.getLinksNoAnyOfList()));
+        mainSearch.setDstLinksAnyOfList(narrowMapOfSets(mainSearch.getDstLinksAnyOfList(), narrowSearch.getDstLinksAnyOfList()));
+        mainSearch.setDstLinksNoAnyOfList(narrowMapOfSets(mainSearch.getDstLinksNoAnyOfList(), narrowSearch.getDstLinksNoAnyOfList()));
+        mainSearch.setSrcLinksAnyOfList(narrowMapOfSets(mainSearch.getSrcLinksAnyOfList(), narrowSearch.getSrcLinksAnyOfList()));
+        mainSearch.setSrcLinksNoAnyOfList(narrowMapOfSets(mainSearch.getSrcLinksNoAnyOfList(), narrowSearch.getSrcLinksNoAnyOfList()));
     }
 }

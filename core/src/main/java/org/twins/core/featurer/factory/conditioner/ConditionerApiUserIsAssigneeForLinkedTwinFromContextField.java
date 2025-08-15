@@ -40,7 +40,7 @@ public class ConditionerApiUserIsAssigneeForLinkedTwinFromContextField extends C
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
         UUID extractedTwinClassFieldId = twinClassFieldId.extract(properties);
-        FieldValue fieldValue = factoryItem.getOutput().getFields().get(extractedTwinClassFieldId);
+        FieldValue fieldValue = factoryItem.getFactoryContext().getFields().get(extractedTwinClassFieldId);
         if (!(fieldValue instanceof FieldValueLink itemOutputFieldLink))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + extractedTwinClassFieldId + "] is not of type link");
         if (itemOutputFieldLink.getTwinLinks().size() > 1)

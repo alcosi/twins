@@ -11,6 +11,7 @@ public class Kit<E, K> implements Collection<E> {
     protected Collection<E> collection;
     protected Map<K, E> map;
     protected final Function<? super E, ? extends K> functionGetId;
+    public static final Kit EMPTY = new Kit(null, e -> null);
 
     public Kit(Collection<E> collection, Function<? super E, ? extends K> functionGetId) {
         this.collection = collection;
@@ -138,6 +139,8 @@ public class Kit<E, K> implements Collection<E> {
 
     @Override
     public int size() {
+        if (collection == null)
+            return 0;
         return CollectionUtils.size(collection);
     }
 

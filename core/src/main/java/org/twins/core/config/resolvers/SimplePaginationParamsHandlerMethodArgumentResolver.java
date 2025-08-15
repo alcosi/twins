@@ -3,6 +3,7 @@ package org.twins.core.config.resolvers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.PaginationUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -28,15 +29,14 @@ public class SimplePaginationParamsHandlerMethodArgumentResolver implements Hand
             return null;
         int offset = parseParameter(webRequest, SimplePagination.Fields.offset, paginationParams.offset());
         int limit = parseParameter(webRequest, SimplePagination.Fields.limit, paginationParams.limit());
-        boolean sortAsc = parseParameter(webRequest, SimplePagination.Fields.sortAsc, paginationParams.sortAsc());
-        String sortField = webRequest.getParameter(SimplePagination.Fields.sortField);
+        boolean sortAsc = parseParameter(webRequest, "sortAsc", paginationParams.sortAsc());
+        String sortField = webRequest.getParameter("sortField");
         if (sortField == null || sortField.isEmpty())
             sortField = paginationParams.sortField();
         return new SimplePagination()
                 .setOffset(offset)
                 .setLimit(limit)
-                .setSortAsc(sortAsc)
-                .setSortField(sortField);
+                .setSort(PaginationUtils.sortType(sortAsc, sortField));
     }
 
     private int parseParameter(NativeWebRequest webRequest, String paramName, int defaultValue) {

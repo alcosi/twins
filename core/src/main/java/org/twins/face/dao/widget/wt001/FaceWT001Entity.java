@@ -1,9 +1,8 @@
 package org.twins.face.dao.widget.wt001;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
@@ -15,8 +14,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
 @Entity
 @Table(name = "face_wt001")
 public class FaceWT001Entity implements EasyLoggable, FaceVariantEntity {
@@ -42,30 +40,43 @@ public class FaceWT001Entity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "search_id")
     private UUID searchId;
 
-    @Column(name = "show_create_button", nullable = false)
-    private boolean showCreateButton;
+    @Column(name = "search_target_twin_pointer_id")
+    private UUID searchTargetTwinPointerId;
 
     @Column(name = "modal_face_id")
     private UUID modalFaceId;
 
+    @Column(name = "show_create_button", nullable = false)
+    private boolean showCreateButton;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "label_i18n_id", nullable = false, insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity labelI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_class_id", nullable = false, insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassEntity twinClass;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FaceEntity face;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "modal_face_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FaceEntity modalFace;
 
     @Transient

@@ -10,21 +10,55 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
 public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpleEntity, UUID>, JpaSpecificationExecutor<TwinFieldSimpleEntity> {
 
+    List<TwinFieldSimpleEntity> findByTwinIdInAndTwinClassFieldIdIn(Collection<UUID> twinIdSet, Collection<UUID> twinClassFieldIds);
     boolean existsByTwinClassFieldId(UUID twinClassFieldId);
     boolean existsByTwinClassFieldIdAndValue(UUID twinClassFieldId, String value);
 
     @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and child.twinStatusId in :childrenTwinStatusIdList")
     long countChildrenTwinsWithStatusIn(@Param("headTwinId") UUID headTwinId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 
+    @Query(value = """
+        select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as string))
+        from TwinEntity child 
+        where child.headTwinId in :headTwinIdList and child.twinStatusId in :childrenTwinStatusIdList
+        group by child.headTwinId
+        """)
+    List<TwinFieldCalcProjection> countChildrenTwinsWithStatusIn(
+            @Param("headTwinIdList") Collection<UUID> headTwinIdList,
+            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
+
     @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and not child.twinStatusId in :childrenTwinStatusIdList")
     long countChildrenTwinsWithStatusNotIn(@Param("headTwinId") UUID headTwinId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 
+    @Query(value = """
+        select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as string))
+        from TwinEntity child 
+        where child.headTwinId in :headTwinIdList and not child.twinStatusId in :childrenTwinStatusIdList
+        group by child.headTwinId
+        """)
+    List<TwinFieldCalcProjection> countChildrenTwinsWithStatusNotIn(
+            @Param("headTwinIdList") Collection<UUID> headTwinIdList,
+            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
+
+
+    @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and child.twinClassId in :twinClassIdList")
+    long countChildrenTwinsOfTwinClassIdIn(@Param("headTwinId") UUID headTwinId, @Param("twinClassIdList") Collection<UUID> twinClassIds);
+
+    @Query(value = """
+        select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as string))
+        from TwinEntity child 
+        where child.headTwinId in :headTwinIdList and child.twinClassId in :twinClassIdList
+        group by child.headTwinId
+        """)
+    List<TwinFieldCalcProjection> countChildrenTwinsOfTwinClassIdIn(
+            @Param("headTwinIdList") Collection<UUID> headTwinIdList,
+            @Param("twinClassIdList") Collection<UUID> childrenTwinStatusIdList);
 
     @Query(value = """
             select coalesce(sum(cast(field.value as double)), 0)
@@ -35,6 +69,17 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             @Param("headTwinId") UUID headTwinId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 
     @Query(value = """
+        select new org.twins.core.dao.twin.TwinFieldCalcProjection(twin.headTwinId, cast(coalesce(sum(cast(field.value as double)), 0) as string))
+        from TwinFieldSimpleEntity field inner join TwinEntity twin on field.twinId = twin.id
+        where twin.headTwinId in :headTwinIdList and field.twinClassFieldId = :twinClassFieldId and twin.twinStatusId in :childrenTwinStatusIdList
+        group by twin.headTwinId
+        """)
+    List<TwinFieldCalcProjection> sumChildrenTwinFieldValuesWithStatusIn(
+            @Param("headTwinIdList") Collection<UUID> headTwinIdList,
+            @Param("twinClassFieldId") UUID twinClassFieldId,
+            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
+
+    @Query(value = """
             select coalesce(sum(cast(field.value as double)), 0)
             from TwinFieldSimpleEntity field inner join TwinEntity twin on field.twinId = twin.id
             where twin.headTwinId=:headTwinId and field.twinClassFieldId = :twinClassFieldId and not twin.twinStatusId in :childrenTwinStatusIdList
@@ -42,6 +87,16 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
     double sumChildrenTwinFieldValuesWithStatusNotIn(
             @Param("headTwinId") UUID headTwinId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 
+    @Query(value = """
+        select new org.twins.core.dao.twin.TwinFieldCalcProjection(twin.headTwinId, cast(coalesce(sum(cast(field.value as double)), 0) as string ))
+        from TwinFieldSimpleEntity field inner join TwinEntity twin on field.twinId = twin.id
+        where twin.headTwinId in :headTwinIdList and field.twinClassFieldId = :twinClassFieldId and not twin.twinStatusId in :childrenTwinStatusIdList
+        group by twin.headTwinId
+        """)
+    List<TwinFieldCalcProjection> sumChildrenTwinFieldValuesWithStatusNotIn(
+            @Param("headTwinIdList") Collection<UUID> headTwinIdList,
+            @Param("twinClassFieldId") UUID twinClassFieldId,
+            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 
     List<TwinFieldSimpleEntity> findByTwinId(UUID twinId);
 
@@ -98,4 +153,26 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
         where t.ownerBusinessAccountId = :ownerBusinessAccountId and tfs.value = :value and tfs.twinClassFieldId = :twinClassFieldId
     """)
     boolean existsByTwinClassFieldIdAndValueAndOwnerBusinessAccountId(UUID twinClassFieldId, String value, UUID ownerBusinessAccountId);
+
+    @Query(value = """
+        select new org.twins.core.dao.twin.TwinFieldHeadSumCountProjection(t.headTwinId, sum(cast(tfs.value as double)), count(tfs.id))
+        from TwinFieldSimpleEntity tfs, TwinEntity t
+        where tfs.twinId = t.id and t.headTwinId in :headTwinIdSet and tfs.twinClassFieldId = :twinClassFieldId
+        group by t.headTwinId
+        """)
+    List<TwinFieldHeadSumCountProjection> sumAndCountByHeadTwinId(
+            @Param("headTwinIdSet") Collection<UUID> headTwinIdSet,
+            @Param("twinClassFieldId") UUID twinClassFieldId);
+
+    @Query(value = """
+        select new org.twins.core.dao.twin.TwinFieldValueProjection(tfs.twinId, cast(tfs.value as double))
+        from TwinFieldSimpleEntity tfs
+        where tfs.twinId in :twinIdSet and tfs.twinClassFieldId = :twinClassFieldId
+        """)
+    List<TwinFieldValueProjection> valueByTwinId(
+            @Param("twinIdSet") Collection<UUID> twinIdSet,
+            @Param("twinClassFieldId") UUID twinClassFieldId);
+
+    void deleteByTwinIdAndTwinClassFieldIdIn(UUID twinId, Set<UUID> twinClassFieldIds);
+
 }

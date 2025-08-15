@@ -6,11 +6,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.CacheEvictCollector;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.openjdk.jol.vm.VM;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.caffeine.CaffeineCache;
+import org.springframework.cache.concurrent.ConcurrentMapCache;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 @Slf4j
 public class CacheUtils {
@@ -52,5 +56,28 @@ public class CacheUtils {
 
     public static <T> void evictCache(CacheManager cacheManager, CacheEvictCollector cacheEvictCollector) throws ServiceException {
         evictCache(cacheManager, cacheEvictCollector.getCacheEntries());
+    }
+    public static long estimateSize(Cache cache) throws ServiceException {
+        long totalSize = 0;
+
+        if (cache instanceof CaffeineCache) {
+            com.github.benmanes.caffeine.cache.Cache<Object, Object> nativeCache = ((CaffeineCache) cache).getNativeCache();
+
+            for (Object key : nativeCache.asMap().keySet()) {
+                Object value = nativeCache.getIfPresent(key);
+                totalSize += VM.current().sizeOf(value);
+            }
+        } else if (cache instanceof ConcurrentMapCache) {
+            Object nativeCacheObj = cache.getNativeCache();
+            ConcurrentMap<?, ?> nativeCache = (ConcurrentMap<?, ?>) nativeCacheObj;
+
+            for (Object value : nativeCache.values()) {
+                totalSize += VM.current().sizeOf(value);
+            }
+        } else {
+            throw new ServiceException(ErrorCodeCommon.CACHE_TYPE_UNSUPPORTED, "Unsupported cache type: [" + cache.getClass().getSimpleName() + "]");
+        }
+
+        return totalSize;
     }
 }

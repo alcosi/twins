@@ -59,6 +59,26 @@ public enum FaceMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum Twin2FaceMode implements MapperModePointer<FaceMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public FaceMode point() {
+            return switch (this) {
+                case HIDE -> FaceMode.HIDE;
+                case SHORT -> FaceMode.SHORT;
+                case DETAILED -> FaceMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
     public enum ModalFace2FaceMode implements MapperModePointer<FaceMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
