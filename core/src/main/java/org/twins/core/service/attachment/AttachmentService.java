@@ -90,6 +90,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     public void addAttachments(List<TwinAttachmentEntity> attachments, TwinChangesCollector twinChangesCollector) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         loadTwins(attachments);
+        storageService.loadStorages(attachments);
         for (TwinAttachmentEntity attachmentEntity : attachments) {
             final UUID uuid = UUID.randomUUID();
             twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
@@ -289,6 +290,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentEntityList))
             return;
+        storageService.loadStorages(attachmentEntityList);
         Kit<TwinAttachmentEntity, UUID> newAttachmentKit = new Kit<>(attachmentEntityList, TwinAttachmentEntity::getId);
         Kit<TwinAttachmentEntity, UUID> dbAttachmentKit = new Kit<>(twinAttachmentRepository.findByIdIn(newAttachmentKit.getIdSet()), TwinAttachmentEntity::getId);
         TwinAttachmentEntity dbAttachmentEntity;
@@ -402,12 +404,10 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             return;
         if (CollectionUtils.isNotEmpty(attachmentCUD.getCreateList())) {
             checkAndSetAttachmentTwin(attachmentCUD.getCreateList(), twinEntity);
-            storageService.loadStorages(attachmentCUD.getCreateList());
             addAttachments(attachmentCUD.getCreateList(), twinChangesCollector);
         }
         if (CollectionUtils.isNotEmpty(attachmentCUD.getUpdateList())) {
             checkAndSetAttachmentTwin(attachmentCUD.getUpdateList(), twinEntity);
-            storageService.loadStorages(attachmentCUD.getUpdateList());
             updateAttachments(attachmentCUD.getUpdateList(), twinChangesCollector);
         }
         if (CollectionUtils.isNotEmpty(attachmentCUD.getDeleteList())) {
