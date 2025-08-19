@@ -24,7 +24,7 @@ public class FeaturerParamStringTwinOperationLauncher  extends FeaturerParam<Twi
         String value = (String) properties.get(key);
         return value != null ?
                 TwinOperation.Launcher.valueOf(value.toUpperCase()) :
-                TwinOperation.Launcher.direct; // или другое значение по умолчанию
+                TwinOperation.Launcher.direct;
     }
 
     @Override
