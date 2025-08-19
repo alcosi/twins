@@ -11,7 +11,7 @@ import java.util.Properties;
         id = "TWIN_OPERATION_LAUNCHER",
         description = "twin operation launcher",
         regexp = FeaturerParamStringTwinOperationLauncher.TWIN_OPERATION_LAUNCHER_REGEXP,
-        example = "PLAIN")
+        example = "direct")
 public class FeaturerParamStringTwinOperationLauncher  extends FeaturerParam<TwinOperation.Launcher> {
     public static final String TWIN_OPERATION_LAUNCHER_REGEXP = "direct|transition";
 
@@ -23,7 +23,7 @@ public class FeaturerParamStringTwinOperationLauncher  extends FeaturerParam<Twi
     public TwinOperation.Launcher extract(Properties properties) {
         String value = (String) properties.get(key);
         return value != null ?
-                TwinOperation.Launcher.valueOf(value.toUpperCase()) :
+                TwinOperation.Launcher.valueOf(value.toLowerCase()) :
                 TwinOperation.Launcher.direct;
     }
 
