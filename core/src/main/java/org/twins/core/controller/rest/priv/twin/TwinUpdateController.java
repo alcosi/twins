@@ -24,6 +24,7 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
@@ -106,8 +107,10 @@ public class TwinUpdateController extends ApiController {
             TwinEntity dbTwinEntity = twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
             twinAttachmentCUDRestDTOReverseMapper.preProcessAttachments(request.attachments, filesMap);
 
-            TwinUpdate twinUpdate = twinUpdateRestDTOReverseMapper.convert(Pair.of(request.setTwinId(twinId), dbTwinEntity))
-                    .setCheckEditPermission(true);
+            TwinUpdate twinUpdate = twinUpdateRestDTOReverseMapper.convert(Pair.of(request.setTwinId(twinId), dbTwinEntity));
+            twinUpdate
+                    .setCheckEditPermission(true)
+                    .setLauncher(TwinOperation.Launcher.direct);
             twinService.updateTwin(twinUpdate);
 
             // get twin by id and set result based on mapper context
