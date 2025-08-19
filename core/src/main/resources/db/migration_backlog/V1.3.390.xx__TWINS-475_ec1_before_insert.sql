@@ -1,4 +1,4 @@
-create function twin_class_before_insert_wrapper() returns trigger
+create or replace function twin_class_before_insert_wrapper() returns trigger
     language plpgsql
 as
 $$
@@ -9,13 +9,13 @@ begin
 end;
 $$;
 
-create trigger twin_class_before_insert_wrapper_trigger
+create or replace trigger twin_class_before_insert_wrapper_trigger
     before insert
     on twin_class
     for each row
 execute procedure twin_class_before_insert_wrapper();
 
-create function twin_class_after_insert_wrapper() returns trigger
+create or replace function twin_class_after_insert_wrapper() returns trigger
     language plpgsql
 as
 $$
