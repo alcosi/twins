@@ -65,7 +65,7 @@ public class TwinUpdatedValidateController extends ApiController {
             TwinEntity dbTwinEntity = twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
             TwinUpdate twinUpdate = twinUpdateRestDTOReverseMapper.convert(Pair.of(request.setTwinId(twinId), dbTwinEntity))
                     .setCheckEditPermission(true);
-            twinService.checkFieldsValidity(twinUpdate.getTwinEntity(), twinUpdate.getFields());
+            twinService.checkFieldsValidity(dbTwinEntity, twinUpdate.getFields(), true);
         } catch (TwinFieldValidationException ve) {
             return createErrorRs(ve, rs);
         } catch (ServiceException se) {

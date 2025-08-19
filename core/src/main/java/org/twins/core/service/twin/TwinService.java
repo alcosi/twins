@@ -379,7 +379,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             checkCreatePermission(twinEntity, authService.getApiUser());
         createTwinEntity(twinCreate, twinChangesCollector);
         runFactoryOnCreate(twinCreate);
-        checkFieldsValidity(twinEntity, twinCreate.getFields());
+        checkFieldsValidity(twinEntity, twinCreate.getFields(), false);
         saveTwinFields(twinEntity, twinCreate.getFields(), twinChangesCollector);
         if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
             attachmentService.checkAndSetAttachmentTwin(twinCreate.getAttachmentEntityList(), twinEntity);
@@ -637,7 +637,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinChangesRecorder.hasChanges())
             twinChangesCollector.add(twinChangesRecorder.getRecorder());
         if (MapUtils.isNotEmpty(twinUpdate.getFields())) {
-            checkFieldsValidity(twinUpdate.getTwinEntity(), twinUpdate.getFields());
+            checkFieldsValidity(twinUpdate.getTwinEntity(), twinUpdate.getFields(), false);
             updateTwinFields(twinChangesRecorder.getDbEntity(), twinUpdate.getFields().values().stream().toList(), twinChangesCollector);
         }
         attachmentService.cudAttachments(twinUpdate.getDbTwinEntity(), twinUpdate.getAttachmentCUD(), twinChangesCollector);
@@ -1365,7 +1365,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         log.info(deletedCount + " number of twins were deleted");
     }
 
-    public void checkFieldsValidity(TwinEntity twinEntity, Map<UUID, FieldValue> fields) throws TwinFieldValidationException {
+    public void checkFieldsValidity(TwinEntity twinEntity, Map<UUID, FieldValue> fields, boolean onlyValidate) throws ServiceException {
+        if (onlyValidate) {
+            if (twinEntity.getTwinClass() == null) {
+                twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
+            }
+        }
         twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
         Map<UUID, String> invalidFieldIds = new HashMap<>();
         for (TwinClassFieldEntity twinClassFieldEntity : twinEntity.getTwinClass().getTwinClassFieldKit().getCollection()) {
