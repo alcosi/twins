@@ -1,9 +1,12 @@
 package org.twins.face.dao.twidget.tw006;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FacePointedEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
@@ -42,6 +45,11 @@ public class FaceTW006Entity implements EasyLoggable, FacePointedEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     private FaceEntity face;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<FaceTW006ActionEntity, UUID> actions;
 
     @Override
     public String easyLog(Level level) {
