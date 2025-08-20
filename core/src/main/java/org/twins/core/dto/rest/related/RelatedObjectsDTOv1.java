@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.related;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.attachment.AttachmentRestrictionDTOv1;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.comment.CommentDTOv1;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
@@ -16,6 +17,7 @@ import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
+import org.twins.core.dto.rest.tier.TierDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
@@ -81,7 +83,7 @@ public class RelatedObjectsDTOv1 {
     @Schema(description = "related factory pipeline map", example = "{factory pipeline map}")
     public Map<UUID, FactoryPipelineDTOv1> factoryPipelineMap;
 
-    @Schema(description = "related twinclass schema map", example = "{twin class schema map}")
+    @Schema(description = "related twin class schema map", example = "{twin class schema map}")
     public Map<UUID, TwinClassSchemaDTOv1> twinClassSchemaMap;
 
     @Schema(description = "related comment map", example = "{comment map}")
@@ -98,4 +100,10 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related class field map", example = "{class field map}")
     public Map<UUID, TwinClassFieldDTOv1> twinClassFieldMap;
+
+    @Schema(description = "related attachment restriction map", example = "{attachment restriction map}")
+    public Map<UUID, AttachmentRestrictionDTOv1> attachmentRestrictionMap;
+
+    @Schema(description = "related tier map", example = "{tier map}")
+    public Map<UUID, TierDTOv1> tierMap;
 }

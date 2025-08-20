@@ -49,7 +49,14 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return (root, query, cb) -> {
             if (org.cambium.common.util.CollectionUtils.isEmpty(ids))
                 return cb.conjunction();
-            var range = (depthLimit == null || depthLimit <= 0) ? null : Range.of(1, depthLimit);
+            Range<Integer> range = null;
+            if (depthLimit == null || depthLimit == 0)
+                range = Range.of(1, (int) Short.MAX_VALUE);
+            else if (depthLimit > 0)
+                range = Range.of(1, depthLimit);
+            else if (depthLimit < 0) {
+                range = Range.of(0, (int) Short.MAX_VALUE);
+            }
             var preparedIds = LTreeUtils.findChildsLQuery(ids.stream().map(UUID::toString).collect(Collectors.toList()), range);
             Path<String> ltreePath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, ltreeFieldPath);
             Predicate idPredicate;

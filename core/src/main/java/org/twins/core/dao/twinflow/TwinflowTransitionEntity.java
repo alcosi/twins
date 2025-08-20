@@ -80,6 +80,9 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @Column(name = "drafting_twin_factory_id")
     private UUID draftingTwinFactoryId;
 
+    @Column(name = "after_perform_twin_factory_id")
+    private UUID afterPerformTwinFactoryId;
+
     @Column(name = "twinflow_transition_alias_id")
     private UUID twinflowTransitionAliasId;
 

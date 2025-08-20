@@ -19,10 +19,9 @@ import org.twins.core.dao.twin.*;
 import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.twin.TwinChangeTaskService;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static org.twins.core.domain.TwinChangesCollector.TwinInvalidate;
 
@@ -42,10 +41,12 @@ public class TwinChangesService {
     private final TwinAttachmentRepository twinAttachmentRepository;
     private final TwinFieldI18nRepository twinFieldI18nRepository;
     private final TwinFieldBooleanRepository twinFieldBooleanRepository;
+    private final TwinFieldTwinClassListRepository twinFieldTwinClassListRepository;
     private final TwinAttachmentModificationRepository twinAttachmentModificationRepository;
     private final SpaceRoleUserRepository spaceRoleUserRepository;
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
+    private final TwinChangeTaskService twinChangeTaskService;
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinChangesApplyResult applyChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
@@ -66,10 +67,13 @@ public class TwinChangesService {
         saveEntities(twinChangesCollector, TwinFieldI18nEntity.class, twinFieldI18nRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldBooleanEntity.class, twinFieldBooleanRepository, changesApplyResult);
         saveEntities(twinChangesCollector, SpaceRoleUserEntity.class, spaceRoleUserRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, TwinFieldTwinClassEntity.class, twinFieldTwinClassListRepository, changesApplyResult);
+
         if (!twinChangesCollector.getSaveEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Map<Object, ChangesHelper>> classChanges : twinChangesCollector.getSaveEntityMap().entrySet()) {
                 log.warn("Unsupported entity class[{}] for saving", classChanges.getKey().getSimpleName());
             }
+
         deleteEntities(twinChangesCollector, TwinEntity.class, twinRepository);
         deleteEntities(twinChangesCollector, TwinFieldDataListEntity.class, twinFieldDataListRepository);
         deleteEntities(twinChangesCollector, TwinFieldSimpleEntity.class, twinFieldSimpleRepository);
@@ -83,14 +87,31 @@ public class TwinChangesService {
         deleteEntities(twinChangesCollector, TwinAttachmentModificationEntity.class, twinAttachmentModificationRepository);
         deleteEntities(twinChangesCollector, TwinFieldBooleanEntity.class, twinFieldBooleanRepository);
         deleteEntities(twinChangesCollector, SpaceRoleUserEntity.class, spaceRoleUserRepository);
+        deleteEntities(twinChangesCollector, TwinFieldTwinClassEntity.class, twinFieldTwinClassListRepository);
+
         if (!twinChangesCollector.getDeleteEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Set<Object>> classChanges : twinChangesCollector.getDeleteEntityMap().entrySet()) {
                 log.warn("Unsupported entity class[{}] for deletion", classChanges.getKey().getSimpleName());
             }
+        savePostponedChanges(twinChangesCollector);
         invalidate(twinChangesCollector.getInvalidationMap());
         historyService.saveHistory(twinChangesCollector.getHistoryCollector());
         twinChangesCollector.clear();
         return changesApplyResult;
+    }
+
+    private void savePostponedChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (twinChangesCollector.getPostponedChanges().isEmpty())
+            return;
+        List<TwinChangeTaskEntity> changeTaskList = new ArrayList<>();
+        for (var entry : twinChangesCollector.getPostponedChanges().entrySet()) {
+            changeTaskList.add(new TwinChangeTaskEntity()
+                    .setTwinId(entry.getKey())
+                    .setTwinFactoryId(entry.getValue().getLeft())
+                    .setTwinFactorylauncher(entry.getValue().getRight())
+                    .setStatusId(TwinChangeTaskStatus.NEED_START));
+        }
+        twinChangeTaskService.addTasks(changeTaskList);
     }
 
     private void invalidate(Map<Object, Set<TwinChangesCollector.TwinInvalidate>> invalidationMap) {
@@ -109,6 +130,7 @@ public class TwinChangesService {
                         case twinAttachments -> twinEntity.setAttachmentKit(null);
                         case twinFieldI18nKit -> twinEntity.setTwinFieldI18nKit(null);
                         case twinFieldBooleanKit -> twinEntity.setTwinFieldBooleanKit(null);
+                        case twinFieldTwinClassKit -> twinEntity.setTwinFieldTwinClassKit(null);
                     }
                 }
             } else if (entry.getKey() instanceof TwinAttachmentEntity twinAttachmentEntity) {

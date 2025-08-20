@@ -11,6 +11,7 @@ import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorImmutable;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTwin;
 import org.twins.core.featurer.fieldtyper.value.FieldValueAliases;
 
 import java.util.Properties;
@@ -19,7 +20,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1329,
         name = "BaseAliases",
         description = "Field typer for base aliases twin field")
-public class FieldTyperBaseAliasesField extends FieldTyper<FieldDescriptorImmutable, FieldValueAliases, TwinEntity, TwinFieldSearchNotImplemented> {
+public class FieldTyperBaseAliasesField extends FieldTyper<FieldDescriptorImmutable, FieldValueAliases, TwinFieldStorageTwin, TwinFieldSearchNotImplemented> {
 
     @Override
     public FieldDescriptorImmutable getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {

@@ -1,6 +1,7 @@
 package org.cambium.common.util;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,6 +31,25 @@ public class MapUtils extends org.apache.commons.collections.MapUtils {
         }
         return resultMap;
     }
+    
+    public static <K> Map<K, Boolean> narrowMapOfBooleans(Map<K, Boolean> mainMap, Map<K, Boolean> narrowMap, Boolean mainMapPassFlag) {
+        if (MapUtils.isNotEmpty(mainMap) && MapUtils.isNotEmpty(narrowMap)) {
+            Map<K, Boolean> narrowedMap = new HashMap<>();
+            Set<K> narrowedSet = narrowSet(mainMap.keySet(), narrowMap.keySet());
+            for (var twinClassId : narrowedSet) {
+                if (mainMap.get(twinClassId) && mainMapPassFlag.equals(narrowMap.get(twinClassId))) { //if main has pass flag, then we can narrow it
+                    narrowedMap.put(twinClassId, false);
+                } else {
+                    narrowedMap.put(twinClassId, mainMap.get(twinClassId));
+                }
+            }
+            return narrowedMap;
+        } else if (MapUtils.isEmpty(mainMap)) {
+            return narrowMap;
+        } else {
+            return mainMap;
+        }
+    }
 
     public static int sizeOf(Map<?, ?> map) {
         if (map == null) return 0;
@@ -44,5 +64,11 @@ public class MapUtils extends org.apache.commons.collections.MapUtils {
         }
         return first.entrySet().stream()
                 .allMatch(e -> e.getValue().equals(second.get(e.getKey())));
+    }
+
+    public static <T, V> void safeAdd(Map<T, Set<V>> map, T key, V element) {
+        if (element == null || key == null || map == null)
+            return;
+        map.computeIfAbsent(key, k -> new HashSet<>()).add(element);
     }
 }

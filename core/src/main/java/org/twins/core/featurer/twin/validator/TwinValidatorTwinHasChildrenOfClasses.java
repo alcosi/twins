@@ -32,25 +32,25 @@ public class TwinValidatorTwinHasChildrenOfClasses extends TwinValidator {
 
     @Override
     protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
-        Set<UUID> statusIdSet = classIds.extract(properties);
+        Set<UUID> classIdSet = classIds.extract(properties);
         BasicSearch search = new BasicSearch();
         search
                 .addHeadTwinId(twinEntity.getId())
-                .addTwinClassId(statusIdSet, false);
+                .addTwinClassExtendsHierarchyContainsId(classIdSet);
         long count = twinSearchService.count(search);
         boolean isValid = count > 0;
         return buildResult(
                 isValid,
                 invert,
-                twinEntity.logShort() + " has no children of classes[" + StringUtils.join(statusIdSet, ",") + "]",
-                twinEntity.logShort() + " has " + count + " children of classes[" + StringUtils.join(statusIdSet, ",") + "]");
+                twinEntity.logShort() + " has no children of classes[" + StringUtils.join(classIdSet, ",") + "]",
+                twinEntity.logShort() + " has " + count + " children of classes[" + StringUtils.join(classIdSet, ",") + "]");
     }
 
     @Override
     protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
         Set<UUID> classIdSet = classIds.extract(properties);
         BasicSearch search = new BasicSearch();
-        search.addTwinClassId(classIdSet, false);
+        search.addTwinClassExtendsHierarchyContainsId(classIdSet);
         Map<UUID, Long> counts = twinSearchService.countGroupBy(search, TwinEntity.Fields.headTwinId);
         CollectionValidationResult result = new CollectionValidationResult();
         for (TwinEntity twinEntity : twinEntityCollection) {

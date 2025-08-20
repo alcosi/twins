@@ -18,6 +18,9 @@ import org.twins.core.dao.idp.IdentityProviderEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.resource.StorageEntity;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
+import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 
 import java.sql.Timestamp;
@@ -168,6 +171,31 @@ public class DomainEntity implements EasyLoggable {
     @JoinColumn(name = "identity_provider_id", insertable = false, updatable = false)
     private IdentityProviderEntity identityProvider;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_class_schema_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private TwinClassSchemaEntity twinClassSchema;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private PermissionSchemaEntity permissionSchema;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_account_template_twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private TwinEntity businessAccountTemplateTwin;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "default_tier_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private TierEntity defaultTier;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_user_template_twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private TwinEntity domainUserTemplateTwin;
+
     // needed for specification
     @Deprecated
     @OneToMany(mappedBy = "domain", fetch = FetchType.LAZY)
@@ -178,10 +206,6 @@ public class DomainEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private DomainTypeEntity domainTypeEntity;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    private PermissionSchemaEntity permissionSchema;
 
     public String easyLog(Level level) {
         return "domain[id:" + id + ", key:" + key + "]";

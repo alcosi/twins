@@ -1,5 +1,7 @@
 package org.cambium.common.kit;
 
+import org.cambium.common.exception.ErrorCodeCommon;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 
 import java.util.*;
@@ -11,6 +13,7 @@ public class Kit<E, K> implements Collection<E> {
     protected Collection<E> collection;
     protected Map<K, E> map;
     protected final Function<? super E, ? extends K> functionGetId;
+    public static final Kit EMPTY = new Kit(null, e -> null);
 
     public Kit(Collection<E> collection, Function<? super E, ? extends K> functionGetId) {
         this.collection = collection;
@@ -78,6 +81,13 @@ public class Kit<E, K> implements Collection<E> {
         return map.get(key);
     }
 
+    public E getSafe(K key) throws ServiceException {
+        E entry = get(key);
+        if (entry == null)
+            throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Kit does not contain entry with key {}", key);
+        return entry;
+    }
+
     public Set<K> getIdSet() {
         if (map == null)
             getMap();
@@ -138,6 +148,8 @@ public class Kit<E, K> implements Collection<E> {
 
     @Override
     public int size() {
+        if (collection == null)
+            return 0;
         return CollectionUtils.size(collection);
     }
 

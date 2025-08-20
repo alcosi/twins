@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
 import java.util.UUID;
 
@@ -13,7 +12,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_field_simple_non_indexed")
-public class TwinFieldSimpleNonIndexedEntity implements TwinFieldStorage, EasyLoggable {
+public class TwinFieldSimpleNonIndexedEntity implements EasyLoggable {
 
     @Id
     private UUID id;

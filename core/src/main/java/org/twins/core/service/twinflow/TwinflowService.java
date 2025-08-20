@@ -79,7 +79,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
 
     @Override
     public boolean isEntityReadDenied(TwinflowEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
+        return twinClassService.isEntityReadDenied(entity.getTwinClass(), readPermissionCheckMode);
     }
 
     @Override

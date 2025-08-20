@@ -2,8 +2,8 @@ package org.cambium.common.util;
 
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
-import org.springframework.data.domain.*;
 import org.cambium.common.pagination.SimplePagination;
+import org.springframework.data.domain.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,7 @@ public class PaginationUtils {
     public static final String SORT_UNSORTED = "unsorted";
 
     public static Sort sortType(boolean sortAsc, String sortField) {
-        if (sortField.equals(SORT_UNSORTED))
+        if (sortField.equals(SORT_UNSORTED) || StringUtils.isEmpty(sortField))
             return Sort.unsorted();
         return Sort.by(sortAsc ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
     }
@@ -40,10 +40,8 @@ public class PaginationUtils {
             throw new ServiceException(PAGINATION_LIMIT_ERROR);
         if (pagination.getOffset() % pagination.getLimit() > 0)
             throw new ServiceException(PAGINATION_ERROR);
-        if (pagination.getSortField() == null)
-            pagination.setSortField(SORT_UNSORTED);
-        Sort sort = sortType(pagination.isSortAsc(), pagination.getSortField());
-        return sort.isUnsorted()
+        Sort sort = pagination.getSort();
+        return sort == null || sort.isUnsorted()
                 ? PageRequest.of(pagination.getOffset() / pagination.getLimit(), pagination.getLimit())
                 : PageRequest.of(pagination.getOffset() / pagination.getLimit(), pagination.getLimit(), sort);
     }
@@ -61,6 +59,25 @@ public class PaginationUtils {
             .setOffset(pagination.getOffset())
             .setLimit(pagination.getLimit());
         return result;
+    }
+
+    //todo drop me when fix twin search for search v3
+    public static <T> PaginationResult<T> convertInPaginationResult(List<T> list, SimplePagination pagination) {
+        PaginationResult<T> result = new PaginationResult<>();
+        result
+                .setList(list)
+                .setTotal(pagination.getTotalElements())
+                .setOffset(pagination.getOffset())
+                .setLimit(pagination.getLimit());
+        return result;
+    }
+
+    //todo drop me when fix twin search for search v3
+    public static void validPagination(SimplePagination pagination) throws ServiceException {
+        if (pagination.getLimit() < 1)
+            throw new ServiceException(PAGINATION_LIMIT_ERROR);
+        if (pagination.getOffset() % pagination.getLimit() > 0)
+            throw new ServiceException(PAGINATION_ERROR);
     }
 
     public static <T> PaginationResult<T> convertInPaginationResult(Page<T> page, SimplePagination pagination, Function<T, Boolean> filterFunction) {
