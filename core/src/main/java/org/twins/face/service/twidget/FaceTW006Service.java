@@ -67,6 +67,7 @@ public class FaceTW006Service extends FacePointedService<FaceTW006Entity> {
         for (var entity : entities) {
             if (entity.getActions() == null) {
                 entity.setActions(new Kit<>(FaceTW006ActionEntity::getId));
+                needLoad.add(entity);
             }
         }
 
