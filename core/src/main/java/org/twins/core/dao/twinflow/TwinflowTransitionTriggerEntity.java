@@ -55,6 +55,9 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicClon
     @Column(name = "active")
     private boolean isActive;
 
+    @Column(name = "async")
+    private boolean isAsync;
+
     public String easyLog(EasyLoggable.Level level) {
         return switch (level) {
             case SHORT -> "twinflowTransitionTrigger[" + id + "]";

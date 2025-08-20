@@ -50,7 +50,6 @@ import org.twins.core.domain.transition.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.draft.DraftCommitService;
@@ -88,6 +87,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     private final TwinFactoryService twinFactoryService;
     private final TwinStatusService twinStatusService;
     private final TwinflowTransitionSearchService twinflowTransitionSearchService;
+    private final TwinflowTransitionTriggerService twinflowTransitionTriggerService;
     @Lazy
     private final TwinService twinService;
     private final TwinflowService twinflowService;
@@ -675,26 +675,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             entry.getValue().setValidatorRulesKit(new Kit<>(validatorsKit.getGrouped(entry.getKey()), TwinflowTransitionValidatorRuleEntity::getId));
     }
 
-    public Kit<TwinflowTransitionTriggerEntity, UUID> loadTriggers(TwinflowTransitionEntity transition) {
-        if (transition.getTriggersKit() != null)
-            return transition.getTriggersKit();
-        List<TwinflowTransitionTriggerEntity> triggers = twinflowTransitionTriggerRepository.findByTwinflowTransitionIdOrderByOrder(transition.getId());
-        transition.setTriggersKit(new Kit<>(triggers, TwinflowTransitionTriggerEntity::getId));
-        return transition.getTriggersKit();
-    }
-
-    public void loadTriggers(Collection<TwinflowTransitionEntity> transitions) {
-        Map<UUID, TwinflowTransitionEntity> needLoad = new HashMap<>();
-        for (TwinflowTransitionEntity transition : transitions)
-            if (transition.getTriggersKit() == null)
-                needLoad.put(transition.getId(), transition);
-        if (needLoad.isEmpty()) return;
-        KitGrouped<TwinflowTransitionTriggerEntity, UUID, UUID> triggersKit = new KitGrouped<>(
-                twinflowTransitionTriggerRepository.findAllByTwinflowTransitionIdInOrderByOrder(needLoad.keySet()), TwinflowTransitionTriggerEntity::getId, TwinflowTransitionTriggerEntity::getTwinflowTransitionId);
-        for (Map.Entry<UUID, TwinflowTransitionEntity> entry : needLoad.entrySet())
-            entry.getValue().setTriggersKit(new Kit<>(triggersKit.getGrouped(entry.getKey()), TwinflowTransitionTriggerEntity::getId));
-    }
-
     public void validateTransition(TransitionContext transitionContext) throws ServiceException {
         if (transitionContext.isValidated())
             return;
@@ -786,7 +766,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             transitionResult = storeMinorTransitions(transitionContextBatch);
         }
         //triggers and after perform factory should be postponed in case of majorTransition, because they should be started only after draft commitment
-        runTriggers(transitionContextBatch);
+        twinflowTransitionTriggerService.runTriggers(transitionContextBatch);
         runAfterPerformFactories(transitionContextBatch);
         return transitionResult;
     }
@@ -916,25 +896,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         return transitionContext.getTargetTwinList() != null && transitionContext.getTargetTwinList().containsKey(twinEntity.getId());
     }
 
-    @Transactional
-    public void runTriggers(TransitionContextBatch transitionContextBatch) throws ServiceException {
-        loadTriggers(transitionContextBatch.getAll().stream().map(TransitionContext::getTransitionEntity).toList());
-        for (TransitionContext transitionContext : transitionContextBatch.getAll()) {
-            TwinflowTransitionEntity transitionEntity = transitionContext.getTransitionEntity();
-            //todo run status input/output triggers
-            for (TwinEntity targetTwin : transitionContext.getTargetTwinList().values())
-                for (TwinflowTransitionTriggerEntity triggerEntity : transitionEntity.getTriggersKit()) {
-                    if (!triggerEntity.isActive()) {
-                        log.info("{} will not be triggered, since it is inactive", triggerEntity.logDetailed());
-                        continue;
-                    }
-                    log.info("{} will be triggered", triggerEntity.logDetailed());
-                    //todo run it by TransitionTriggerTask (async)
-                    TransitionTrigger transitionTrigger = featurerService.getFeaturer(triggerEntity.getTransitionTriggerFeaturer(), TransitionTrigger.class);
-                    transitionTrigger.run(triggerEntity.getTransitionTriggerParams(), targetTwin, transitionEntity.getSrcTwinStatus(), transitionEntity.getDstTwinStatus());
-                }
-        }
-    }
 
     private void runAfterPerformFactories(TransitionContextBatch transitionContextBatch) throws ServiceException {
         List<TwinChangeTaskEntity> changeTaskList = new ArrayList<>();
