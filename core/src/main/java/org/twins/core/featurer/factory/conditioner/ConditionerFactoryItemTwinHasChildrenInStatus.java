@@ -21,10 +21,10 @@ import java.util.stream.Collectors;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2407,
-        name = "Factory item twin has children",
+        name = "Factory item twin has children in status",
         description = "")
 @Slf4j
-public class ConditionerFactoryItemTwinHasChildren extends Conditioner {
+public class ConditionerFactoryItemTwinHasChildrenInStatus extends Conditioner {
     @FeaturerParam(name = "Status ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
