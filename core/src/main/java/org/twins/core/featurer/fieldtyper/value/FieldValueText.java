@@ -21,7 +21,7 @@ public class FieldValueText extends FieldValue {
 
     @Override
     public boolean isFilled() {
-        return value != null;
+        return value != null && value.trim().isEmpty();
     }
 
     @Override
