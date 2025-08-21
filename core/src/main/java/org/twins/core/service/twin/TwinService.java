@@ -38,6 +38,7 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.domain.factory.FactoryLauncher;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDuplicate;
+import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
@@ -690,16 +691,25 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     private void runFactoryOnCreate(TwinCreate twinCreate) throws ServiceException {
+        if (twinCreate.getLauncher() != TwinOperation.Launcher.direct) {
+            return;
+        }
         FactoryLauncher factoryLauncher = twinCreate.isSketchMode() ? FactoryLauncher.onSketchCreate : FactoryLauncher.onTwinCreate;
         twinflowFactoryService.runFactoryOn(twinCreate, factoryLauncher);
     }
 
     private void runFactoryAfterCreate(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (twinCreate.getLauncher() != TwinOperation.Launcher.direct) {
+            return;
+        }
         FactoryLauncher factoryLauncher = twinCreate.isSketchMode() ? FactoryLauncher.afterSketchCreate : FactoryLauncher.afterTwinCreate;
         twinflowFactoryService.runFactoryAfter(twinCreate, twinChangesCollector, factoryLauncher);
     }
 
     private void runFactoryOnUpdate(TwinUpdate twinUpdate) throws ServiceException {
+        if (twinUpdate.getLauncher() != TwinOperation.Launcher.direct) {
+            return;
+        }
         FactoryLauncher factoryLauncher = switch (twinUpdate.getMode()) {
             case twinUpdate -> FactoryLauncher.onTwinUpdate;
             case sketchUpdate -> FactoryLauncher.onSketchUpdate;
@@ -709,6 +719,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     private void runFactoryAfterUpdate(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (twinUpdate.getLauncher() != TwinOperation.Launcher.direct) {
+            return;
+        }
         FactoryLauncher factoryLauncher = switch (twinUpdate.getMode()) {
             case twinUpdate -> FactoryLauncher.afterTwinUpdate;
             case sketchUpdate -> FactoryLauncher.afterSketchUpdate;
