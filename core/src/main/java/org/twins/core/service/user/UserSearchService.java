@@ -22,6 +22,7 @@ import org.twins.core.domain.search.UserSearch;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinSearchService;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -34,6 +35,11 @@ public class UserSearchService {
     private final AuthService authService;
     private final UserRepository userRepository;
     private final TwinSearchService twinSearchService;
+
+    public PaginationResult<UserEntity> findUsers(UserSearch search, Map<String, String> params, UUID searchId, SimplePagination pagination) throws ServiceException {
+        //todo this mock object
+        return findUsers(search, pagination);
+    }
 
     public PaginationResult<UserEntity> findUsers(UserSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
