@@ -48,7 +48,7 @@ public class FieldFinderByIdExcludeHeadMatched extends FieldFinder {
         twinClassFieldService.loadTwinClassFields(twin.getHeadTwin().getTwinClass());
         Set<String> headTwinFieldMatchSet = new HashSet<>();
         Set<UUID> excludeFields = new HashSet<>();
-        for (var headTwinField : twin.getTwinClass().getTwinClassFieldKit()) {
+        for (var headTwinField : twin.getHeadTwin().getTwinClass().getTwinClassFieldKit()) {
             headTwinFieldMatchSet.add(getMatchCode(headTwinField));
         }
         for (var currentTwinField : twin.getTwinClass().getTwinClassFieldKit()) {
