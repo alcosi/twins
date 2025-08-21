@@ -41,6 +41,9 @@ public class FieldFinderByIdExcludeHeadMatched extends FieldFinder {
         }
         var twinId = UUID.fromString(namedParamsMap.get(PARAM_CURRENT_TWIN_ID));
         var twin = twinService.findEntitySafe(twinId);
+        twinService.loadHeadForTwin(twin);
+        if (twin.getHeadTwin() == null)
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, "{} does not have head", twin.logNormal());
         twinClassFieldService.loadTwinClassFields(twin.getTwinClass());
         twinClassFieldService.loadTwinClassFields(twin.getHeadTwin().getTwinClass());
         Set<String> headTwinFieldMatchSet = new HashSet<>();
@@ -57,6 +60,6 @@ public class FieldFinderByIdExcludeHeadMatched extends FieldFinder {
     }
 
     private static String getMatchCode(TwinClassFieldEntity classField) {
-        return classField.getKey() + classField.getFieldTyperFeaturerId(); // todo also check field typer params
+        return classField.getKey() + classField.getFieldTyperFeaturerId() + (classField.getFieldTyperParams() == null ? "" : classField.getFieldTyperParams().hashCode());
     }
 }

@@ -124,14 +124,18 @@ public class IdentityProviderInternalService {
         if (token == null) {
             throw new ServiceException(ErrorCodeTwins.IDP_INCORRECT_REFRESH_TOKEN);
         }
+        Instant authTokenExpiresAt = Instant.now().plusSeconds(authTokenExpiresSec);
+        Instant refreshTokenExpiresAt = Instant.now().plusSeconds(refreshTokenExpiresSec);
         ClientSideAuthData clientSideAuthData = new ClientSideAuthData()
                 .putRefreshToken(generateToken(64))
-                .putAuthToken(generateToken(32));
+                .putAuthToken(generateToken(32))
+                .putAuthTokenExpiresAt(authTokenExpiresAt.toString())
+                .putRefreshTokenExpiresAt(refreshTokenExpiresAt.toString());
         token
                 .setAccessToken(getTokenHash(clientSideAuthData.getAuthToken()))
-                .setAccessExpiresAt(Timestamp.from(Instant.now().plusSeconds(authTokenExpiresSec)))
+                .setAccessExpiresAt(Timestamp.from(authTokenExpiresAt))
                 .setRefreshToken(getTokenHash(clientSideAuthData.getRefreshToken()))
-                .setRefreshExpiresAt(Timestamp.from(Instant.now().plusSeconds(refreshTokenExpiresSec)));
+                .setRefreshExpiresAt(Timestamp.from(refreshTokenExpiresAt));
         identityProviderInternalTokenRepository.save(token);
         return clientSideAuthData;
     }
