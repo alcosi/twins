@@ -94,6 +94,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinClassFieldService twinClassFieldService;
     private final EntitySmartService entitySmartService;
     private final TwinflowService twinflowService;
+    private final TwinStatusTransitionService twinStatusTransitionService;
     private final TwinClassService twinClassService;
     @Lazy
     private final PermissionService permissionService;
@@ -310,7 +311,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         createTwin(twinCreate, twinChangesCollector);
         twinChangesService.applyChanges(twinChangesCollector);
         TwinEntity twinEntity = twinCreate.getTwinEntity();
-        twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
+        twinStatusTransitionService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
         //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
         return new TwinCreateResult()
                 .setCreatedTwin(twinEntity)
@@ -341,7 +342,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (TwinCreate twinCreate : twinCreateList) {
             TwinEntity twinEntity = twinCreate.getTwinEntity();
             twins.add(twinEntity);
-            twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
+            twinStatusTransitionService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
         }
         //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
         return twins;
@@ -725,6 +726,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         updateTwinExternalId(changesRecorder);
         updateTwinAssignee(changesRecorder);
         updateTwinStatus(changesRecorder);
+        // todo call twinStatusTransitionTriggers
     }
 
     public void updateTwinAssignee(ChangesRecorder<TwinEntity, ?> changesRecorder) throws ServiceException {
@@ -820,6 +822,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         for (TwinEntity twinEntity : twinEntityList) {
             if (twinChangesCollector.collectIfChanged(twinEntity, "status", twinEntity.getTwinStatusId(), newStatus.getId())) {
+                //todo may cause the situation, that trigger runs, but changes are not applied in DB, if DB transaction fails
+                twinStatusTransitionService.runTwinStatusTransitionTriggers(twinEntity, twinEntity.getTwinStatus(), newStatus);
                 twinChangesCollector.getHistoryCollector(twinEntity).add(historyService.statusChanged(twinEntity.getTwinStatus(), newStatus));
                 twinEntity
                         .setTwinStatusId(newStatus.getId())
@@ -979,7 +983,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinEntity duplicateEntity = fillDuplicate(srcTwin, newTwinId);
         duplicateEntity = createTwin(duplicateEntity);
         cloneTwinFieldListAndSave(srcTwin, duplicateEntity);
-        twinflowService.runTwinStatusTransitionTriggers(duplicateEntity, null, duplicateEntity.getTwinStatus());
+        twinStatusTransitionService.runTwinStatusTransitionTriggers(duplicateEntity, null, duplicateEntity.getTwinStatus());
         return duplicateEntity;
     }
 
@@ -1019,7 +1023,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Transactional
     public void saveDuplicateTwin(TwinDuplicate twinDuplicate) throws ServiceException {
         twinChangesService.applyChanges(twinDuplicate.getChangesCollector());
-        twinflowService.runTwinStatusTransitionTriggers(twinDuplicate.getDuplicate(), null, twinDuplicate.getDuplicate().getTwinStatus());
+        twinStatusTransitionService.runTwinStatusTransitionTriggers(twinDuplicate.getDuplicate(), null, twinDuplicate.getDuplicate().getTwinStatus());
     }
 
     public UserEntity getTwinAssignee(UUID twinId) {

@@ -27,14 +27,12 @@ import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
@@ -190,30 +188,6 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         }
     }
 
-    @Transactional
-    public void runTwinStatusTransitionTriggers(TwinEntity twinEntity, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity) throws ServiceException {
-        List<TwinStatusTransitionTriggerEntity> triggerEntityList;
-        UUID srcStatusId = srcStatusEntity != null ? srcStatusEntity.getId() : null;
-        UUID dstStatusId = dstStatusEntity != null ? dstStatusEntity.getId() : null;
-        if (srcStatusId != null && !srcStatusId.equals(dstStatusId)) { // outgoing triggers
-            triggerEntityList = twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndTypeAndActiveOrderByOrder(srcStatusId, TwinStatusTransitionTriggerEntity.TransitionType.outgoing, true);
-            runTriggers(twinEntity, triggerEntityList, srcStatusEntity, dstStatusEntity);
-        }
-        if (dstStatusId != null && !dstStatusId.equals(srcStatusId)) { // incoming triggers
-            triggerEntityList = twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndTypeAndActiveOrderByOrder(dstStatusId, TwinStatusTransitionTriggerEntity.TransitionType.incoming, true);
-            runTriggers(twinEntity, triggerEntityList, srcStatusEntity, dstStatusEntity);
-        }
-    }
-
-    private void runTriggers(TwinEntity twinEntity, List<TwinStatusTransitionTriggerEntity> twinStatusTransitionTriggerEntityList, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity) throws ServiceException {
-        if (CollectionUtils.isEmpty(twinStatusTransitionTriggerEntityList))
-            return;
-        for (TwinStatusTransitionTriggerEntity triggerEntity : twinStatusTransitionTriggerEntityList) {
-            log.info(triggerEntity.easyLog(EasyLoggable.Level.DETAILED) + " will be triggered");
-            TransitionTrigger transitionTrigger = featurerService.getFeaturer(triggerEntity.getTransitionTriggerFeaturer(), TransitionTrigger.class);
-            transitionTrigger.run(triggerEntity.getTransitionTriggerParams(), twinEntity, srcStatusEntity, dstStatusEntity);
-        }
-    }
 
     public void forceDeleteSchemas(UUID businessAccountId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();

@@ -7,11 +7,15 @@ import org.cambium.featurer.FeaturerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.twinflow.TwinflowTransitionTriggerStatus;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerTaskEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerTaskRepository;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 import org.twins.core.service.auth.AuthService;
+
+import java.sql.Timestamp;
+import java.time.Instant;
 
 @Component
 @Scope("prototype")
@@ -49,9 +53,23 @@ public class TwinflowTransitionTriggerTask implements Runnable {
             transitionTrigger.run(twinflowTransitionTriggerTaskEntity.getTwinflowTransitionTrigger().getTransitionTriggerParams(),
                     twinflowTransitionTriggerTaskEntity.getTwin(), twinflowTransitionTriggerTaskEntity.getSrcTwinStatus(),
                     twinflowTransitionTriggerTaskEntity.getTwinflowTransitionTrigger().getTwinflowTransition().getDstTwinStatus());
-            //todo - check that all params are filled in correctly
-        } catch (Exception e) {
-            //correct exception types
+            twinflowTransitionTriggerTaskEntity
+                    .setStatusId(TwinflowTransitionTriggerStatus.DONE)
+                    .setDoneAt(Timestamp.from(Instant.now()));
+        } catch (ServiceException e) {
+            log.error(e.log());
+            twinflowTransitionTriggerTaskEntity
+                    .setStatusId(TwinflowTransitionTriggerStatus.FAILED)
+                    .setStatusDetails(e.log());
+        } catch (Throwable e) {
+            log.error("Exception: ", e);
+            twinflowTransitionTriggerTaskEntity
+                    .setStatusId(TwinflowTransitionTriggerStatus.FAILED)
+                    .setStatusDetails(e.getMessage());
+        } finally {
+            authService.removeThreadLocalApiUser();
+            twinflowTransitionTriggerTaskRepository.save(twinflowTransitionTriggerTaskEntity);
+            LoggerUtils.cleanMDC();
         }
 
     }

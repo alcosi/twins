@@ -15,6 +15,16 @@ CREATE TABLE twinflow_transition_trigger_task_status if not exists
 )
     );
 
+insert into twinflow_transition_trigger_task_status
+values ('NEED_START') on conflict do nothing;
+insert into twinflow_transition_trigger_task_status
+values ('IN_PROGRESS') on conflict do nothing;
+insert into twinflow_transition_trigger_task_status
+values ('DONE') on conflict do nothing;
+insert into twinflow_transition_trigger_task_status
+values ('FAILED') on conflict do nothing;
+
+
 create table twinflow_transition_trigger_task if not exists
 (
     id
@@ -64,21 +74,21 @@ create table twinflow_transition_trigger_task if not exists
     CONSTRAINT twinflow_transition_trigger_task_business_account_id_fk FOREIGN KEY
 (
     business_account_id
-) REFERENCES public.business_account
+) REFERENCES business_account
 (
     id
 ),
     CONSTRAINT twinflow_transition_trigger_task_created_by_user_id_fk FOREIGN KEY
 (
     created_by_user_id
-) REFERENCES public."user"
+) REFERENCES "user"
 (
     id
 ),
     CONSTRAINT twinflow_transition_trigger_task_status_id_fk FOREIGN KEY
 (
     twinflow_transition_trigger_task_status_id
-) REFERENCES public.twinflow_transition_trigger_task_status
+) REFERENCES twinflow_transition_trigger_task_status
 (
     id
 ) ON DELETE RESTRICT
@@ -86,7 +96,7 @@ create table twinflow_transition_trigger_task if not exists
     CONSTRAINT twinflow_transition_trigger_task_trigger_id_fk FOREIGN KEY
 (
     twinflow_transition_trigger_id
-) REFERENCES public.twinflow_transition_trigger
+) REFERENCES twinflow_transition_trigger
 (
     id
 )
@@ -95,23 +105,23 @@ create table twinflow_transition_trigger_task if not exists
     CONSTRAINT twinflow_transition_trigger_twin_id_fk FOREIGN KEY
 (
     twin_id
-) REFERENCES public.twin
+) REFERENCES twin
 (
     id
 ),
     CONSTRAINT twinflow_transition_trigger_src_twin_status_id_fk FOREIGN KEY
 (
     src_twin_status_id
-) REFERENCES public.twin_status
+) REFERENCES twin_status
 (
     id
 )
     );
 
-CREATE INDEX twinflow_transition_trigger_task_business_account_id_index ON public.twinflow_transition_trigger_task USING btree (business_account_id);
-CREATE INDEX twinflow_transition_trigger_task_created_by_user_id_index ON public.twinflow_transition_trigger_task USING btree (created_by_user_id);
-CREATE INDEX twinflow_transition_trigger_task_input_twin_id_index ON public.twinflow_transition_trigger_task USING btree (twin_id);
-CREATE INDEX twinflow_transition_trigger_task_twin_status_id_index ON public.twinflow_transition_trigger_task USING btree (twinflow_transition_trigger_task_status_id);
-CREATE UNIQUE INDEX twinflow_transition_trigger_task_twin_id_request_id_uindex ON public.twinflow_transition_trigger_task USING btree (twin_id, request_id);
+CREATE INDEX if not exists twinflow_transition_trigger_task_business_account_id_index ON twinflow_transition_trigger_task USING btree (business_account_id);
+CREATE INDEX if not exists twinflow_transition_trigger_task_created_by_user_id_index ON twinflow_transition_trigger_task USING btree (created_by_user_id);
+CREATE INDEX if not exists twinflow_transition_trigger_task_input_twin_id_index ON twinflow_transition_trigger_task USING btree (twin_id);
+CREATE INDEX if not exists twinflow_transition_trigger_task_twin_status_id_index ON twinflow_transition_trigger_task USING btree (twinflow_transition_trigger_task_status_id);
+CREATE UNIQUE INDEX if not exists twinflow_transition_trigger_task_twin_id_request_id_uindex ON twinflow_transition_trigger_task USING btree (twin_id, request_id);
 
 

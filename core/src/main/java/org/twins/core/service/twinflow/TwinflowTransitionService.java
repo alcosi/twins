@@ -57,10 +57,7 @@ import org.twins.core.service.draft.DraftService;
 import org.twins.core.service.factory.TwinFactoryService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
-import org.twins.core.service.twin.TwinChangeTaskService;
-import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twin.TwinStatusService;
-import org.twins.core.service.twin.TwinValidatorSetService;
+import org.twins.core.service.twin.*;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
@@ -88,6 +85,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     private final TwinStatusService twinStatusService;
     private final TwinflowTransitionSearchService twinflowTransitionSearchService;
     private final TwinflowTransitionTriggerService twinflowTransitionTriggerService;
+    private final TwinStatusTransitionService twinStatusTransitionService;
     @Lazy
     private final TwinService twinService;
     private final TwinflowService twinflowService;
