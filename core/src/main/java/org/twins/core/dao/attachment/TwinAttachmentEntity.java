@@ -118,6 +118,10 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
 
     @Transient
     @EqualsAndHashCode.Exclude
+    private boolean fileChanged = false;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
     private Kit<TwinAttachmentModificationEntity, String> modifications;
 
     @Override
@@ -133,6 +137,7 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
                 .setStorageId(storageId)
                 .setStorage(storage)
                 .setStorageFileKey(storageFileKey)
+                .setFileChanged(fileChanged)
                 .setModifications(modifications)
                 .setCreatedAt(createdAt)
                 .setTwinCommentId(twinCommentId)

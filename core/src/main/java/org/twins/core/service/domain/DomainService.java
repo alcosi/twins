@@ -310,16 +310,16 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     public void loadIconResources(Collection<DomainEntity> domains) throws ServiceException {
         if (CollectionUtils.isEmpty(domains))
             return;
-        Set<UUID> neadLoad = new HashSet<>();
+        Set<UUID> needLoad = new HashSet<>();
         for (var domain : domains) {
             if (domain.getIconDarkResource() == null && domain.getIconDarkResourceId() != null)
-                neadLoad.add(domain.getIconDarkResourceId());
+                needLoad.add(domain.getIconDarkResourceId());
             if (domain.getIconLightResource() == null && domain.getIconLightResourceId() != null)
-                neadLoad.add(domain.getIconLightResourceId());
+                needLoad.add(domain.getIconLightResourceId());
         }
-        if (CollectionUtils.isEmpty(neadLoad))
+        if (CollectionUtils.isEmpty(needLoad))
             return;
-        Kit<ResourceEntity, UUID> resources = resourceService.findEntitiesSafe(neadLoad);
+        Kit<ResourceEntity, UUID> resources = resourceService.findEntitiesSafe(needLoad);
         domains.forEach(domain -> {
             domain.setIconDarkResource(resources.get(domain.getIconDarkResourceId()));
             domain.setIconLightResource(resources.get(domain.getIconLightResourceId()));

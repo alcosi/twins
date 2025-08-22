@@ -144,6 +144,7 @@ public class StoragerS3StaticController extends StoragerAbstractChecked {
             GetObjectResponse object = s3Client.getObject(GetObjectArgs.builder().bucket(s3Bucket.extract(properties)).object(fileKey).build());
             return InputStreamResponseMinIOExtensionKt.toMinIOResource(object, null, true, ContentDispositionType.INLINE, true);
         } catch (Throwable t) {
+            log.error("Error trying to get file from S3: {}", t.getMessage(), t);
             throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Unable to get file from S3");
         }
     }
@@ -156,6 +157,7 @@ public class StoragerS3StaticController extends StoragerAbstractChecked {
             Properties properties = extractProperties(params, false);
             s3Client.removeObject(RemoveObjectArgs.builder().bucket(s3Bucket.extract(properties)).object(fileKey).build());
         } catch (Throwable t) {
+            log.error("Error trying to delete file from S3: {}", t.getMessage(), t);
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unable to delete file from S3");
         }
     }
@@ -169,6 +171,11 @@ public class StoragerS3StaticController extends StoragerAbstractChecked {
         String key = baseLocalPathString
                 .replace("{domainId}", domainId)
                 .replace("{businessAccountId}", businessAccount) + fileId.toString();
-        return removeDoubleSlashes(key);
+        String removedDoubleSlashes = removeDoubleSlashes(key);
+        if (removedDoubleSlashes.startsWith("/")) {
+            return removedDoubleSlashes.substring(1);
+        } else {
+            return removedDoubleSlashes;
+        }
     }
 }

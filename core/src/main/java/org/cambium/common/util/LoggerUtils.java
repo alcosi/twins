@@ -29,6 +29,10 @@ public class LoggerUtils {
         MDC.put(SESSION, session);
     }
 
+    public static void logSession(UUID session) {
+        logSession(session.toString().replace("-", "").toUpperCase());
+    }
+
     public static void logSession() {
         logSession(UUID.randomUUID().toString().replace("-", "").toUpperCase());
     }
