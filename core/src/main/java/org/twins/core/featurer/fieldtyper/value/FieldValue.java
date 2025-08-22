@@ -40,4 +40,8 @@ public abstract class FieldValue implements Cloneable {
     public abstract boolean isNullified();
 
     public abstract boolean hasValue(String value);
+
+    public boolean isEmpty() {
+        return !isFilled() || isNullified();
+    }
 }

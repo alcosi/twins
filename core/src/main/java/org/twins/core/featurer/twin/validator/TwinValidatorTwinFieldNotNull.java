@@ -40,7 +40,7 @@ public class TwinValidatorTwinFieldNotNull extends TwinValidator{
         UUID nullFieldId = null;
         for (UUID fieldClassId : fieldClassIds) {
             FieldValue fieldValue = twinEntity.getFieldValuesKit().get(fieldClassId);
-            if (fieldValue == null) {
+            if (fieldValue == null || fieldValue.isEmpty()) {
                 nullFieldId = fieldClassId;
                 break;
             }
