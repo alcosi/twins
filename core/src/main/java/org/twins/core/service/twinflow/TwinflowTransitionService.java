@@ -31,8 +31,6 @@ import org.twins.core.dao.draft.DraftStatus;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionEntity;
-import org.twins.core.dao.twin.TwinChangeTaskEntity;
-import org.twins.core.dao.twin.TwinChangeTaskStatus;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
@@ -66,8 +64,6 @@ import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 
@@ -787,7 +783,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         }
         //triggers and after perform factory should be postponed in case of majorTransition, because they should be started only after draft commitment
         runTriggers(transitionContextBatch);
-        runAfterPerformFactories(transitionContextBatch);
         return transitionResult;
     }
 
@@ -934,23 +929,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     transitionTrigger.run(triggerEntity.getTransitionTriggerParams(), targetTwin, transitionEntity.getSrcTwinStatus(), transitionEntity.getDstTwinStatus());
                 }
         }
-    }
-
-    private void runAfterPerformFactories(TransitionContextBatch transitionContextBatch) throws ServiceException {
-        List<TwinChangeTaskEntity> changeTaskList = new ArrayList<>();
-        for (TransitionContext transitionContext : transitionContextBatch.getAll()) {
-            if (transitionContext.getTransitionEntity().getAfterPerformTwinFactoryId() != null) {
-                for (var transitionedTwin : transitionContext.getTargetTwinList().values()) {
-                    changeTaskList.add(new TwinChangeTaskEntity()
-                            .setTwinId(transitionedTwin.getId())
-                            .setTwinFactoryId(transitionContext.getTransitionEntity().getAfterPerformTwinFactoryId())
-                            .setTwinFactorylauncher(FactoryLauncher.afterTransitionPerform)
-                            .setStatusId(transitionContextBatch.isMustBeDrafted() ? TwinChangeTaskStatus.WAITING_FOR_DRAFT_COMMIT : TwinChangeTaskStatus.NEED_START)
-                            .setCreatedAt(Timestamp.from(Instant.now())));
-                }
-            }
-        }
-        twinChangeTaskService.addTasks(changeTaskList);
     }
 
     public PaginationResult<TwinflowTransitionAliasEntity> findTransitionAliases(TransitionAliasSearch search, SimplePagination pagination) throws ServiceException {

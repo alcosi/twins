@@ -2,6 +2,7 @@ package org.twins.core.domain.factory;
 
 public enum FactoryLauncher {
     transition,
+    factoryPipeline,
     targetDeletion,
     cascadeDeletion,
     onTwinCreate,
