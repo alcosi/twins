@@ -154,10 +154,10 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "bread_crumbs_face_id")
     private UUID breadCrumbsFaceId;
 
-    @Column(name = "inherited_page_face_id")
+    @Column(name = "inherited_page_face_id", insertable = false, updatable = false)
     private UUID inheritedPageFaceId;
 
-    @Column(name = "inherited_bread_crumbs_face_id")
+    @Column(name = "inherited_bread_crumbs_face_id", insertable = false, updatable = false)
     private UUID inheritedBreadCrumbsFaceId;
 
     @Column(name = "general_attachment_restriction_id")
