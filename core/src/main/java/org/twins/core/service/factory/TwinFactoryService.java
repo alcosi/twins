@@ -20,6 +20,8 @@ import org.twins.core.dao.factory.*;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.twin.TwinChangeTaskEntity;
+import org.twins.core.dao.twin.TwinChangeTaskStatus;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
 import org.twins.core.domain.ApiUser;
@@ -35,6 +37,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
 import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.twin.TwinChangeTaskService;
 import org.twins.core.service.twin.TwinEraserService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -69,6 +72,8 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     @Lazy
     final DraftService draftService;
     final DraftCommitService draftCommitService;
+    @Lazy
+    final TwinChangeTaskService twinChangeTaskService;
     private final TwinflowTransitionRepository twinflowTransitionRepository;
     private final I18nService i18nService;
 
@@ -165,6 +170,9 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                             .setCommittable(false); // this factory result can not be commited because of lock
             }
         }
+        for (var entry : factoryContext.getAfterCommitFactories().entrySet()) {
+            factoryResultUncommited.addAfterCommitFactory(entry.getKey(), entry.getValue());
+        }
         return factoryResultUncommited;
     }
 
@@ -253,6 +261,9 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 continue;
             }
             runPipelineSteps(factoryContext, factoryPipelineEntity, pipelineInputList);
+            if (factoryPipelineEntity.getAfterCommitTwinFactoryId() != null) {
+                factoryContext.addAfterCommitFactories(pipelineInputList, factoryPipelineEntity.getAfterCommitTwinFactoryId());
+            }
             if (factoryPipelineEntity.getNextTwinFactoryId() != null) {
                 log.info("{} has nextFactoryId configured", factoryPipelineEntity.logShort());
                 if (factoryPipelineEntity.getNextTwinFactoryLimitScope()) {
@@ -399,6 +410,15 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 twinService.updateTwin(twinUpdate);
                 factoryResultCommited.addUpdatedTwin(twinUpdate.getDbTwinEntity());
             }
+            List<TwinChangeTaskEntity> changeTaskList = new ArrayList<>();
+            for (var entry : factoryResultUncommited.getAfterCommitFactories().entrySet()) {
+                changeTaskList.add(new TwinChangeTaskEntity()
+                        .setTwinId(entry.getKey())
+                        .setTwinFactoryId(entry.getValue())
+                        .setTwinFactorylauncher(FactoryLauncher.factoryPipeline)
+                        .setStatusId(TwinChangeTaskStatus.NEED_START));
+            }
+            twinChangeTaskService.addTasks(changeTaskList);
             return factoryResultCommited;
         }
     }

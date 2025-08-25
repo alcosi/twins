@@ -3,6 +3,7 @@ package org.twins.core.domain.factory;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
@@ -10,6 +11,7 @@ import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.TwinBasicFields;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.util.*;
@@ -31,6 +33,7 @@ public class FactoryContext {
     // If some factory was run from previous factory pipeline,
     // we had to limit items scope for this factory with items filtered for pipeline
     private Map<FactoryBranchId, Set<FactoryItem>> pipelineScopes = new HashMap<>();
+    Map<UUID, UUID> afterCommitFactories = new HashMap<>();
 
     public FactoryContext(FactoryLauncher factoryLauncher, FactoryBranchId rootFactoryBranchId) {
         this.factoryLauncher = factoryLauncher;
@@ -153,5 +156,20 @@ public class FactoryContext {
             return null;
         // we have to check only updated twins
         return factoryItemsUniq.get(twinId);
+    }
+
+    public void addAfterCommitFactories(Collection<FactoryItem> factoryItems, UUID afterCommitFactoryId) throws ServiceException {
+        for (var factoryItem : factoryItems) {
+            UUID alreadyAdded = afterCommitFactories.get(factoryItem.getOutput().getTwinId());
+            if (alreadyAdded != null) {
+                if (alreadyAdded.equals(afterCommitFactoryId)) {
+                    continue;
+                }
+                throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT,
+                        "After commit factory[{}] is already selected for twin[{}]. Other factory[{}] is currently locked", alreadyAdded, factoryItem.getOutput().getTwinId(), afterCommitFactoryId);
+            } else if (factoryItem.getOutput().isCanTriggerAfterOperationFactory()) {
+                afterCommitFactories.put(factoryItem.getOutput().getTwinId(), afterCommitFactoryId);
+            }
+        }
     }
 }

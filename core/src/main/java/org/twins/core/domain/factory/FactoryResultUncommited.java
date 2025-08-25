@@ -10,20 +10,24 @@ import org.twins.core.domain.twinoperation.TwinDelete;
 import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
 public class FactoryResultUncommited {
-    List<TwinCreate> creates = new ArrayList<>();
+    Kit<TwinCreate, UUID> creates = new Kit<>(TwinCreate::getTwinId);
     Kit<TwinUpdate, UUID> updates = new Kit<>(TwinUpdate::getTwinId);
     Kit<TwinDelete, UUID> deletes = new Kit<>(TwinDelete::getTwinId);
     boolean committable = true;
+    Map<UUID, UUID> afterCommitFactories = new HashMap<>(); //todo add support in draft
 
     public FactoryResultUncommited addOperation(TwinOperation twinOperation) throws ServiceException {
         if (twinOperation instanceof TwinCreate) {
+            if (twinOperation.getTwinEntity().getId() == null) {
+                twinOperation.getTwinEntity().setId(UUID.randomUUID());
+            }
             creates.add((TwinCreate) twinOperation);
         } else if (twinOperation instanceof TwinUpdate) {
             updates.add((TwinUpdate) twinOperation);
@@ -39,6 +43,11 @@ public class FactoryResultUncommited {
         updates.addAll(joinResult.getUpdates());
         deletes.addAll(joinResult.getDeletes());
         committable = committable && joinResult.committable;
+        return this;
+    }
+
+    public FactoryResultUncommited addAfterCommitFactory(UUID twinId, UUID factoryId) {
+        afterCommitFactories.put(twinId, factoryId);
         return this;
     }
 
