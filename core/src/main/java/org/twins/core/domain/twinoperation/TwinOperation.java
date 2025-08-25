@@ -10,7 +10,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 public abstract class TwinOperation {
     protected TwinEntity twinEntity; // only for new/updated data
-    protected Launcher launcher = Launcher.transition; // this is default value only
+    protected Launcher launcher = Launcher.factory; // this is default value only
 
     // can be used to group TwinOperations in Kit
     public UUID getTwinId() {
@@ -19,6 +19,6 @@ public abstract class TwinOperation {
 
     public enum Launcher {
         direct,
-        transition
+        factory
     }
 }
