@@ -14,6 +14,7 @@ public enum FactoryLauncher {
     afterSketchCreate,
     afterSketchUpdate,
     afterSketchFinalize,
+    afterSketchFinalizeRestricted,
     afterTransitionPerform;
 
     public boolean isDeletion() {
