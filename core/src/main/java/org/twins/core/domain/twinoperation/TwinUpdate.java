@@ -63,10 +63,11 @@ public class TwinUpdate extends TwinSave {
     public enum Mode {
         twinUpdate,
         sketchUpdate,
-        sketchFinalize;
+        sketchFinalize,
+        sketchFinalizeRestricted;
 
         public boolean isSketch() {
-            return this == sketchUpdate || this == sketchFinalize;
+            return this == sketchUpdate || this == sketchFinalize || this == sketchFinalizeRestricted;
         }
     }
 }

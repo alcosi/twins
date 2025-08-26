@@ -714,8 +714,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             case twinUpdate -> FactoryLauncher.onTwinUpdate;
             case sketchUpdate -> FactoryLauncher.onSketchUpdate;
             case sketchFinalize -> FactoryLauncher.onSketchFinalize;
+            default -> null;
         };
+        if (factoryLauncher == null)
+            return;
         twinflowFactoryService.runFactoryOn(twinUpdate, factoryLauncher);
+        if (factoryLauncher.equals(FactoryLauncher.onSketchFinalize)
+                && SystemEntityService.TWIN_STATUS_SKETCH.equals(twinUpdate.getTwinEntity().getTwinStatusId())) {
+            twinUpdate.setMode(TwinUpdate.Mode.sketchFinalizeRestricted);
+        }
     }
 
     private void runFactoryAfterUpdate(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector) throws ServiceException {
@@ -726,6 +733,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             case twinUpdate -> FactoryLauncher.afterTwinUpdate;
             case sketchUpdate -> FactoryLauncher.afterSketchUpdate;
             case sketchFinalize -> FactoryLauncher.afterSketchFinalize;
+            case sketchFinalizeRestricted -> FactoryLauncher.afterSketchFinalizeRestricted;
         };
         twinflowFactoryService.runFactoryAfter(twinUpdate, twinChangesCollector, factoryLauncher);
     }

@@ -42,6 +42,6 @@ public class FieldValueText extends FieldValue {
 
     @Override
     public boolean isNullified() {
-        return "".equals(value);
+        return value.trim().isEmpty();
     }
 }

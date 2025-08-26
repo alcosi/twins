@@ -2,6 +2,7 @@ package org.twins.core.domain.factory;
 
 public enum FactoryLauncher {
     transition,
+    factoryPipeline,
     targetDeletion,
     cascadeDeletion,
     onTwinCreate,
@@ -14,6 +15,7 @@ public enum FactoryLauncher {
     afterSketchCreate,
     afterSketchUpdate,
     afterSketchFinalize,
+    afterSketchFinalizeRestricted,
     afterTransitionPerform;
 
     public boolean isDeletion() {
