@@ -1,12 +1,12 @@
-insert into face (id, domain_id, face_component_id, name, description, created_at, created_by_user_id)
-values ('00000000-0000-0000-0000-000000000000', null, 'BC001', 'RECALCULATE FUNC FACE', 'face only to use in recalculate function', now(), '00000000-0000-0000-0000-000000000000')
-on conflict do nothing;
-
 create or replace function recalculate_inherited_fields(selected_domain_id uuid) returns void
     language plpgsql
 as
 $$
 begin
+    insert into face (id, domain_id, face_component_id, name, description, created_at, created_by_user_id)
+    values ('657db1d7-f996-448a-afc6-77586aa556ce', null, 'BC001', 'RECALCULATE FUNC FACE', 'face only to use in recalculate function', now(), '00000000-0000-0000-0000-000000000000')
+    on conflict do nothing;
+
     create temp table face_data as
     select id, page_face_id
     from twin_class
@@ -18,11 +18,11 @@ begin
     where bread_crumbs_face_id is not null and domain_id=selected_domain_id;
 
     update twin_class
-    set page_face_id = '00000000-0000-0000-0000-000000000000'
+    set page_face_id = '657db1d7-f996-448a-afc6-77586aa556ce'
     where page_face_id is not null and domain_id=selected_domain_id;
 
     update twin_class
-    set bread_crumbs_face_id = '00000000-0000-0000-0000-000000000000'
+    set bread_crumbs_face_id = '657db1d7-f996-448a-afc6-77586aa556ce'
     where bread_crumbs_face_id is not null and domain_id=selected_domain_id;
 
     update twin_class t
@@ -71,5 +71,6 @@ begin
 
     drop table if exists face_data;
     drop table if exists bc_data;
+    delete from face where id='657db1d7-f996-448a-afc6-77586aa556ce';
 end;
 $$;
