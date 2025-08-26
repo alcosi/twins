@@ -9,8 +9,9 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "TwinflowRsV1")
-public class TwinflowRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
-    @Schema(description = "results - twinflow")
-    public TwinflowBaseDTOv2 twinflow;
+@Schema(name = "TwinflowFactoryRsV1")
+public class TwinflowFactoryRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+
+    @Schema(description = "results - twinflow factory")
+    public TwinflowFactoryBaseDTOv1 twinflowFactory;
 }

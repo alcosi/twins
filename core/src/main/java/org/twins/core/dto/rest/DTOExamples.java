@@ -39,6 +39,7 @@ public interface DTOExamples {
     String TWIN_TAG_ID = "cf8b1aec-c07c-4131-b834-8024462cfc93";
     String TWIN_FIELD_KEY = "brand";
     String TWIN_FIELD_VALUE = "alcosi";
+    String TWIN_FACTORY_LAUNCHER_ID = "onSketchCreate";
     String DATA_LIST_ID = "e844a4e5-1c09-474e-816f-05cdb1f093ed";
     String DATA_LIST_KEY = "country";
     String DATA_LIST_OPTION_ID = "7de977d4-df6d-4250-9cb2-088363d139a1";
@@ -67,6 +68,7 @@ public interface DTOExamples {
     String DRAFT_ID = "34618b09-e8dc-4712-a433-2e18915ee70d";
     String TWINFLOW_NAME = "Default twinflow";
     String TWINFLOW_TRANSITION_ID = "f6606fa2-c047-4ba9-a92c-84051df681ab";
+    String TWINFLOW_FACTORY_ID = "471a6baa-b215-40ae-8a7f-1a78e0925d76";
     String TWINFLOW_TRANSITION_TYPE_ID = "STATUS_CHANGE";
     String TWINFLOW_TRANSITION_ALIAS = "start";
     String TWINFLOW_TRANSITION_ALIAS_ID = "da755c8a-248f-4e4f-978a-6474e41c8dca";

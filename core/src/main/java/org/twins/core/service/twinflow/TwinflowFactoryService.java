@@ -63,7 +63,23 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty factoryLauncher");
 
         switch (entityValidateMode) {
-            case beforeSave:
+            case beforeSave -> {
+                if (entity.getTwinflow() == null || !entity.getTwinflow().getId().equals(entity.getTwinflowId())) {
+                    try {
+                        entity.setTwinflow(twinflowService.findEntitySafe(entity.getTwinflowId()));
+                    } catch (ServiceException e) {
+                        return logErrorAndReturnFalse("Twinflow with id[" + entity.getTwinflowId() + "] does not exist");
+                    }
+                }
+
+                if (entity.getTwinFactory() == null || !entity.getTwinFactory().getId().equals(entity.getTwinFactoryId())) {
+                    try {
+                        entity.setTwinFactory(twinFactoryService.findEntitySafe(entity.getTwinFactoryId()));
+                    } catch (ServiceException e) {
+                        return logErrorAndReturnFalse("TwinFactory with id[" + entity.getTwinFactoryId() + "] does not exist");
+                    }
+                }
+            }
         }
         return true;
     }
@@ -136,5 +152,9 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
         } else
             twinEntity = twinSave.getTwinEntity();
         return twinEntity;
+    }
+
+    public TwinflowFactoryEntity createTwinflowFactory(TwinflowFactoryEntity twinflowFactoryEntity) throws ServiceException {
+        return saveSafe(twinflowFactoryEntity);
     }
 }
