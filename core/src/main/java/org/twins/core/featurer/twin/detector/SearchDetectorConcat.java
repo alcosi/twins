@@ -1,10 +1,10 @@
-package org.twins.core.featurer.search.detector;
+package org.twins.core.featurer.twin.detector;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.search.SearchEntity;
+import org.twins.core.dao.search.TwinSearchEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.FeaturerTwins;
 
@@ -20,11 +20,11 @@ import java.util.Properties;
 public class SearchDetectorConcat extends SearchDetector {
 
     @Override
-    public List<SearchEntity> detect(Properties properties, List<SearchEntity> allAliasSearches) throws ServiceException {
+    public List<TwinSearchEntity> detect(Properties properties, List<TwinSearchEntity> allAliasSearches) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         permissionService.loadCurrentUserPermissions();
-        List<SearchEntity> ret = new ArrayList<>();
-        for (SearchEntity searchByAliasEntity : allAliasSearches) { //many searches can be linked to one alias
+        List<TwinSearchEntity> ret = new ArrayList<>();
+        for (TwinSearchEntity searchByAliasEntity : allAliasSearches) { //many searches can be linked to one alias
             if (searchByAliasEntity.getPermissionId() == null || apiUser.getPermissions().contains(searchByAliasEntity.getPermissionId())) {
                 ret.add(searchByAliasEntity);
             }

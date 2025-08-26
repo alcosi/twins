@@ -8,6 +8,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface SearchRepository extends CrudRepository<SearchEntity, UUID>, JpaSpecificationExecutor<SearchEntity> {
-    List<SearchEntity> findBySearchAliasId(UUID searchAliasId);
+public interface TwinSearchRepository extends CrudRepository<TwinSearchEntity, UUID>, JpaSpecificationExecutor<TwinSearchEntity> {
+    List<TwinSearchEntity> findByTwinSearchAliasId(UUID searchAliasId);
 }

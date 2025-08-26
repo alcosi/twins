@@ -4,9 +4,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface SearchAliasRepository extends CrudRepository<SearchAliasEntity, UUID>, JpaSpecificationExecutor<SearchAliasEntity> {
-    SearchAliasEntity findByDomainIdAndAlias(UUID domainId, String alias);
+public interface TwinSearchPredicateRepository extends CrudRepository<TwinSearchPredicateEntity, UUID>, JpaSpecificationExecutor<TwinSearchPredicateEntity> {
+    List<TwinSearchPredicateEntity> findByTwinSearchId(UUID searchId);
 }
