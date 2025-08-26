@@ -50,15 +50,16 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (!value.isNullified()) {
-            LocalDateTime localDateTime = validateValue(twinFieldEntity, value.getDate(), properties);
-            value.setDate(formatDate(localDateTime, properties));
+            LocalDateTime localDateTime = validateValue(twinFieldEntity, value.getDateStr(), properties);
+            value.setDate(localDateTime);
+            value.setDateStr(formatDate(localDateTime, properties));
         }
-        detectValueChange(twinFieldEntity, twinChangesCollector, value.getDate());
+        detectValueChange(twinFieldEntity, twinChangesCollector, value.getDateStr());
     }
 
     @Override
     protected FieldValueDate deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
-        return new FieldValueDate(twinField.getTwinClassField()).setDate(twinFieldEntity != null && !StringUtils.isEmpty(twinFieldEntity.getValue()) ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : null);
+        return new FieldValueDate(twinField.getTwinClassField()).setDateStr(twinFieldEntity != null && !StringUtils.isEmpty(twinFieldEntity.getValue()) ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : null);
     }
 
     public String validDateOrEmpty(String dateStr, Properties properties) {

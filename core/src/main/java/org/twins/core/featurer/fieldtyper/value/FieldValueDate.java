@@ -7,12 +7,15 @@ import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class FieldValueDate extends FieldValue {
-    private String date;
+    private String dateStr;
+    private LocalDateTime date;
 
     public FieldValueDate(TwinClassFieldEntity twinClassField) {
         super(twinClassField);
@@ -20,28 +23,28 @@ public class FieldValueDate extends FieldValue {
 
     @Override
     public boolean isFilled() {
-        return date != null;
+        return dateStr != null;
     }
 
     @Override
     public FieldValueDate clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueDate clone = new FieldValueDate(newTwinClassFieldEntity);
-        clone.setDate(this.date);
+        clone.setDateStr(this.dateStr);
         return clone;
     }
 
     @Override
     public boolean hasValue(String value) {
-        return StringUtils.equals(date, value);
+        return StringUtils.equals(dateStr, value);
     }
 
     @Override
     public void nullify() {
-        date = "";
+        dateStr = "";
     }
 
     @Override
     public boolean isNullified() {
-        return "".equals(date);
+        return "".equals(dateStr);
     }
 }
