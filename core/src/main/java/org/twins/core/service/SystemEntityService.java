@@ -343,46 +343,46 @@ public class SystemEntityService {
             return null;
         }
 
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_NAME.equals(systemFieldId)) {
+        if (TWIN_CLASS_FIELD_TWIN_NAME.equals(systemFieldId)) {
             return twinEntity.getName();
         }
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_DESCRIPTION.equals(systemFieldId)) {
+        if (TWIN_CLASS_FIELD_TWIN_DESCRIPTION.equals(systemFieldId)) {
             return twinEntity.getDescription();
         }
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID.equals(systemFieldId)) {
+        if (TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID.equals(systemFieldId)) {
             return twinEntity.getExternalId();
         }
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_OWNER_USER.equals(systemFieldId)) {
+        if (TWIN_CLASS_FIELD_TWIN_OWNER_USER.equals(systemFieldId)) {
             return twinEntity.getOwnerUserId();
         }
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER.equals(systemFieldId)) {
+        if (TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER.equals(systemFieldId)) {
             return twinEntity.getAssignerUserId();
         }
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATOR_USER.equals(systemFieldId)) {
+        if (TWIN_CLASS_FIELD_TWIN_CREATOR_USER.equals(systemFieldId)) {
             return twinEntity.getCreatedByUserId();
         }
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_HEAD.equals(systemFieldId)) {
+        if (TWIN_CLASS_FIELD_TWIN_HEAD.equals(systemFieldId)) {
             return twinEntity.getHeadTwinId();
         }
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_STATUS.equals(systemFieldId)) {
+        if (TWIN_CLASS_FIELD_TWIN_STATUS.equals(systemFieldId)) {
             return twinEntity.getTwinStatusId();
         }
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATED_AT.equals(systemFieldId)) {
+        if (TWIN_CLASS_FIELD_TWIN_CREATED_AT.equals(systemFieldId)) {
             return twinEntity.getCreatedAt();
         }
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_ID.equals(systemFieldId)) {
+        if (TWIN_CLASS_FIELD_TWIN_ID.equals(systemFieldId)) {
             return twinEntity.getId();
         }
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_TWIN_CLASS_ID.equals(systemFieldId)) {
+        if (TWIN_CLASS_FIELD_TWIN_TWIN_CLASS_ID.equals(systemFieldId)) {
             return twinEntity.getTwinClassId();
         }
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_ALIASES.equals(systemFieldId)) {
+        if (TWIN_CLASS_FIELD_TWIN_ALIASES.equals(systemFieldId)) {
             return twinEntity.getTwinAliases();
         }
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_TAGS.equals(systemFieldId)) {
+        if (TWIN_CLASS_FIELD_TWIN_TAGS.equals(systemFieldId)) {
             return twinEntity.getTags();
         }
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_MARKERS.equals(systemFieldId)) {
+        if (TWIN_CLASS_FIELD_TWIN_MARKERS.equals(systemFieldId)) {
             return twinEntity.getMarkers();
         }
         return null;
