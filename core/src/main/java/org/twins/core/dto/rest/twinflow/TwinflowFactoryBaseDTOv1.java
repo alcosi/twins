@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.domain.factory.FactoryLauncher;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryDTOv2;
 
 import java.util.UUID;

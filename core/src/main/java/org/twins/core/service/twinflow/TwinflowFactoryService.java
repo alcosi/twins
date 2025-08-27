@@ -158,6 +158,7 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
     public TwinflowFactoryEntity createTwinflowFactory(TwinflowFactoryEntity twinflowFactoryEntity) throws ServiceException {
         return saveSafe(twinflowFactoryEntity);
     }
+
     public TwinflowFactoryEntity updateTwinflowFactory(TwinflowFactoryEntity updateEntity) throws ServiceException {
         TwinflowFactoryEntity dbEntity = findEntitySafe(updateEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
