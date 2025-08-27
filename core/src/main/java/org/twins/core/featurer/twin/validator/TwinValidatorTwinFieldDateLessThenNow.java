@@ -41,13 +41,13 @@ public class TwinValidatorTwinFieldDateLessThenNow extends TwinValidator {
 
         FieldValue fieldValue = twinEntity.getFieldValuesKit().get(classFieldId);
         if (fieldValue == null || fieldValue.isEmpty()) {
-            log.error("twinClassField[{}] is not found for twin [{}]", classFieldId, twinEntity.logShort());
+            log.error("twinClassField[{}] was not found for {}", classFieldId, twinEntity.logShort());
             isValid = false;
             //todo exception??
-        } else if (fieldValue instanceof FieldValueDate) {
-            isValid = ((FieldValueDate) fieldValue).getDate().isBefore(LocalDateTime.now());
+        } else if (fieldValue instanceof FieldValueDate fieldValueDate) {
+            isValid = fieldValueDate.getDate().isBefore(LocalDateTime.now());
         } else {
-            log.warn("[{}] is not a date field", fieldValue.getTwinClassField().logNormal());
+            log.warn("{} is not a date field", fieldValue.getTwinClassField().logNormal());
             isValid = false;
             //todo exception??
         }

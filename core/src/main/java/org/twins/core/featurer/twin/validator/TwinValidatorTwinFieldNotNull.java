@@ -5,7 +5,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
-import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -49,28 +48,27 @@ public class TwinValidatorTwinFieldNotNull extends TwinValidator {
                 dynamicFieldIds.add(fieldClassId);
             }
         }
-        if (!dynamicFieldIds.isEmpty()) {
-            twinService.loadFieldsValues(twinEntity);
-        }
 
         UUID nullFieldId = null;
-        for (UUID fieldClassId : dynamicFieldIds) {
-            FieldValue fieldValue = twinEntity.getFieldValuesKit().get(fieldClassId);
-            if (fieldValue == null || fieldValue.isEmpty()) {
+        for (UUID fieldClassId : systemFieldIds) {
+            Object value = SystemEntityService.getSystemFieldValue(twinEntity, fieldClassId);
+            if (value == null) {
                 nullFieldId = fieldClassId;
                 break;
             }
         }
 
-        if (nullFieldId == null) {
-            for (UUID fieldClassId : systemFieldIds) {
-                Object value = SystemEntityService.getSystemFieldValue(twinEntity, fieldClassId);
-                if (value == null) {
+        if (nullFieldId == null && !dynamicFieldIds.isEmpty()) {
+            twinService.loadFieldsValues(twinEntity);
+            for (UUID fieldClassId : dynamicFieldIds) {
+                FieldValue fieldValue = twinEntity.getFieldValuesKit().get(fieldClassId);
+                if (fieldValue == null || fieldValue.isEmpty()) {
                     nullFieldId = fieldClassId;
                     break;
                 }
             }
         }
+
 
         boolean isValid = (nullFieldId == null);
         return buildResult(
