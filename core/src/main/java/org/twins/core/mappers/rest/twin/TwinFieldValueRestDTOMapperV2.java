@@ -54,7 +54,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
         } else if (src instanceof FieldValueColorHEX color) {
             dst.setValue(color.getHex());
         } else if (src instanceof FieldValueDate date) {
-            dst.setValue(date.getDate());
+            dst.setValue(date.getDateStr());
         } else if (src instanceof FieldValueInvisible) {
             dst.setValue("");
         } else if (src instanceof FieldValueAttachment fieldValueAttachment) {
