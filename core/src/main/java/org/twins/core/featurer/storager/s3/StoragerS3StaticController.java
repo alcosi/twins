@@ -101,7 +101,7 @@ public class StoragerS3StaticController extends StoragerAbstractChecked {
 
 
     @Override
-    protected void addFileInternal(String fileKey, InputStream fileStream, HashMap<String, String> params) throws ServiceException {
+    protected void addFileInternal(String fileKey, InputStream fileStream, String mimeType, HashMap<String, String> params) throws ServiceException {
         try {
             try (InputStream is = fileStream) {
                 MinioClient s3Client = getS3MinioClient(params);
@@ -118,6 +118,7 @@ public class StoragerS3StaticController extends StoragerAbstractChecked {
                         PutObjectArgs.builder()
                                 .bucket(bucket)
                                 .object(fileKey)
+                                .contentType(mimeType)
                                 .stream(is, -1L, DEFAULT_PART_SIZE).build());
             }
         } catch (Throwable t) {
