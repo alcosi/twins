@@ -6,6 +6,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -156,5 +157,38 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
 
     public TwinflowFactoryEntity createTwinflowFactory(TwinflowFactoryEntity twinflowFactoryEntity) throws ServiceException {
         return saveSafe(twinflowFactoryEntity);
+    }
+    public TwinflowFactoryEntity updateTwinflowFactory(TwinflowFactoryEntity updateEntity) throws ServiceException {
+        TwinflowFactoryEntity dbEntity = findEntitySafe(updateEntity.getId());
+        ChangesHelper changesHelper = new ChangesHelper();
+
+        updateEntityFieldByValueIfNotNull(
+                updateEntity.getTwinflowId(),
+                dbEntity,
+                TwinflowFactoryEntity::getTwinflowId,
+                TwinflowFactoryEntity::setTwinflowId,
+                TwinflowFactoryEntity.Fields.twinflowId,
+                changesHelper
+        );
+
+        updateEntityFieldByValueIfNotNull(
+                updateEntity.getTwinFactoryId(),
+                dbEntity,
+                TwinflowFactoryEntity::getTwinFactoryId,
+                TwinflowFactoryEntity::setTwinFactoryId,
+                TwinflowFactoryEntity.Fields.twinFactoryId,
+                changesHelper
+        );
+
+        updateEntityFieldByValueIfNotNull(
+                updateEntity.getTwinFactorylauncher(),
+                dbEntity,
+                TwinflowFactoryEntity::getTwinFactorylauncher,
+                TwinflowFactoryEntity::setTwinFactorylauncher,
+                TwinflowFactoryEntity.Fields.twinFactorylauncher,
+                changesHelper
+        );
+
+        return updateSafe(dbEntity, changesHelper);
     }
 }
