@@ -13,15 +13,16 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class TwinFinderRequested extends TwinFinder {
-    public static final String PARAM_CURRENT_TWIN_ID = "currentTwinId";
+    public static final String PARAM_TWIN_ID = "twinId";
+    public static final String PARAM_USER_ID = "userId";
+    public static final String PARAM_TWIN_CLASS_ID = "twinClassId";
+    public static final String PARAM_LINK_ID = "linkId";
+    public static final String PARAM_STATUS_ID = "statusId";
 
-    @FeaturerParam(name = "Param key", description = "", order = 1, optional = true)
-    public static final FeaturerParamString paramKey = new FeaturerParamString("paramKey");
-
-    @FeaturerParam(name = "Required", description = "", order = 2, optional = true, defaultValue = "true")
+    @FeaturerParam(name = "Required", description = "", order = 10, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean required = new FeaturerParamBoolean("required");
 
-    public Set<UUID> getRequestedIds(Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
+    public Set<UUID> getRequestedIds(FeaturerParamString paramKey, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
         String paramKeyStr = paramKey.extract(properties);
         String paramValue = namedParamsMap.get(paramKeyStr);
         if (StringUtils.isBlank(paramValue))
@@ -42,7 +43,7 @@ public abstract class TwinFinderRequested extends TwinFinder {
         return ret;
     }
 
-    public UUID getRequestedId(Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
+    public UUID getRequestedId(FeaturerParamString paramKey, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
         String paramKeyStr = paramKey.extract(properties);
         String paramValue = namedParamsMap.get(paramKeyStr);
         if (StringUtils.isBlank(paramValue))

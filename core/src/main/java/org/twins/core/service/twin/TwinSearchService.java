@@ -150,6 +150,7 @@ public class TwinSearchService {
     public PaginationResult<TwinEntity> findTwins(BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
         detectSystemClassSearchCheck(basicSearch);
         Specification<TwinEntity> spec = createTwinEntitySearchSpecification(basicSearch);
+        addSorting(basicSearch, pagination, spec);
         Page<TwinEntity> ret = twinRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
@@ -214,6 +215,7 @@ public class TwinSearchService {
                     basicSearch.setHeadSearch(new TwinSearch());
                 addPredicates(headSearchPredicates, searchByAlias.getParams(), basicSearch.getHeadSearch(), searchByAlias.getNarrow());
             }
+            basicSearch.setConfiguredSearch(twinSearchEntity);
             basicSearches.add(basicSearch);
         }
         return basicSearches;
@@ -252,7 +254,7 @@ public class TwinSearchService {
         List<TwinSearchEntity> detectedSearches = searchDetector.detect(twinSearchAliasEntity, twinSearchEntityList);
         if (CollectionUtils.isEmpty(detectedSearches))
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "no searches detected");
-        return detectedSearches;
+        return detectedSearches; // hope we will get only single value here, otherwise we will get problems with sorting and pagination
     }
 
     public PaginationResult<TwinEntity> findTwins(SearchByAlias searchByAlias, SimplePagination pagination) throws ServiceException {

@@ -61,7 +61,7 @@ public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<FaceWT001Entity,
                     if (pointedTwin == null) {
                         throw new ServiceException(ErrorCodeTwins.POINTER_ON_NULL, "configured search pointer is pointed on null");
                     }
-                    searchParams.put(TwinFinderRequested.PARAM_CURRENT_TWIN_ID, pointedTwin.getId().toString());
+                    searchParams.put(TwinFinderRequested.PARAM_TWIN_ID, pointedTwin.getId().toString());
                     dst.setSearchParams(searchParams);
                 }
             }

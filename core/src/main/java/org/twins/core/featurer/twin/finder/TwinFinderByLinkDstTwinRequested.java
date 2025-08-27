@@ -5,6 +5,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
+import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -24,6 +25,9 @@ import java.util.UUID;
         name = "Param link dst",
         description = "")
 public class TwinFinderByLinkDstTwinRequested extends TwinFinderRequested {
+    @FeaturerParam(name = "Param key", description = "", order = 1, optional = true, defaultValue = PARAM_TWIN_ID)
+    public static final FeaturerParamString paramKey = new FeaturerParamString("paramKey");
+
     @FeaturerParam(name = "Link id", description = "", order = 1)
     public static final FeaturerParamUUID linkId = new FeaturerParamUUIDTwinsLinkId("linkId");
 
@@ -35,7 +39,7 @@ public class TwinFinderByLinkDstTwinRequested extends TwinFinderRequested {
 
     @Override
     public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
-        UUID dstTwinId = getRequestedId(properties, namedParamsMap);
+        UUID dstTwinId = getRequestedId(paramKey, properties, namedParamsMap);
         twinSearch.addLinkDstTwinsId(linkId.extract(properties), List.of(dstTwinId), exclude.extract(properties), anyOfList.extract(properties));
     }
 }

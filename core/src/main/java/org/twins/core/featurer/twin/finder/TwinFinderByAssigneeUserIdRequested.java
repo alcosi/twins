@@ -6,6 +6,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
+import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.TwinSearch;
@@ -23,12 +24,15 @@ import java.util.UUID;
         name = "By assignee user id (requested)",
         description = "")
 public abstract class TwinFinderByAssigneeUserIdRequested extends TwinFinderRequested {
+    @FeaturerParam(name = "Param key", description = "", order = 1, optional = true, defaultValue = PARAM_USER_ID)
+    public static final FeaturerParamString paramKey = new FeaturerParamString("paramKey");
+
     @FeaturerParam(name = "Exclude", description = "", optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean exclude = new FeaturerParamBoolean("exclude");
 
     @Override
     public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
-        Set<UUID> userIdSet = getRequestedIds(properties, namedParamsMap);
+        Set<UUID> userIdSet = getRequestedIds(paramKey, properties, namedParamsMap);
         if (CollectionUtils.isEmpty(userIdSet)) {
             return;
         }
