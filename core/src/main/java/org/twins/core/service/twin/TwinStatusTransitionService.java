@@ -1,6 +1,7 @@
 package org.twins.core.service.twin;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
@@ -10,6 +11,8 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
@@ -17,10 +20,8 @@ import org.twins.core.service.auth.AuthService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Lazy
 @Slf4j
@@ -37,17 +38,21 @@ public class TwinStatusTransitionService {
 
     @Transactional
     public void runTwinStatusTransitionTriggers(TwinEntity twinEntity, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity) throws ServiceException {
-        List<TwinStatusTransitionTriggerEntity> triggerEntityList;
+        List<TwinStatusTransitionTriggerEntity> triggerEntityList = loadTwinStatusTransitionTriggers(srcStatusEntity, dstStatusEntity);
+        runTriggers(twinEntity, triggerEntityList, srcStatusEntity, dstStatusEntity);
+    }
+
+    public List<TwinStatusTransitionTriggerEntity> loadTwinStatusTransitionTriggers(TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity) {
+        List<TwinStatusTransitionTriggerEntity> triggerEntityList = new ArrayList<>();
         UUID srcStatusId = srcStatusEntity != null ? srcStatusEntity.getId() : null;
         UUID dstStatusId = dstStatusEntity != null ? dstStatusEntity.getId() : null;
         if (srcStatusId != null && !srcStatusId.equals(dstStatusId)) { // outgoing triggers
-            triggerEntityList = twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndTypeAndActiveOrderByOrder(srcStatusId, TwinStatusTransitionTriggerEntity.TransitionType.outgoing, true);
-            runTriggers(twinEntity, triggerEntityList, srcStatusEntity, dstStatusEntity);
+            triggerEntityList.addAll(twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndTypeAndActiveOrderByOrder(srcStatusId, TwinStatusTransitionTriggerEntity.TransitionType.outgoing, true));
         }
         if (dstStatusId != null && !dstStatusId.equals(srcStatusId)) { // incoming triggers
-            triggerEntityList = twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndTypeAndActiveOrderByOrder(dstStatusId, TwinStatusTransitionTriggerEntity.TransitionType.incoming, true);
-            runTriggers(twinEntity, triggerEntityList, srcStatusEntity, dstStatusEntity);
+            triggerEntityList.addAll(twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndTypeAndActiveOrderByOrder(dstStatusId, TwinStatusTransitionTriggerEntity.TransitionType.incoming, true));
         }
+        return triggerEntityList;
     }
 
     private void runTriggers(TwinEntity twinEntity, List<TwinStatusTransitionTriggerEntity> twinStatusTransitionTriggerEntityList, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity) throws ServiceException {
@@ -71,6 +76,22 @@ public class TwinStatusTransitionService {
         addTasks(twinStatusTransitionTriggerTaskList);
     }
 
+    public Set<TwinStatusTransitionTriggerTaskEntity> prepareTasks(UUID twinId, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity) {
+        Set<TwinStatusTransitionTriggerTaskEntity> twinStatusTransitionTriggerTaskList = ConcurrentHashMap.newKeySet();
+        List<TwinStatusTransitionTriggerEntity> twinStatusTransitionTriggerEntityList = loadTwinStatusTransitionTriggers(srcStatusEntity, dstStatusEntity);
+        for (TwinStatusTransitionTriggerEntity triggerEntity : twinStatusTransitionTriggerEntityList) {
+            if (triggerEntity.isAsync()) {
+                twinStatusTransitionTriggerTaskList.add(new TwinStatusTransitionTriggerTaskEntity()
+                        .setTwinStatusTransitionTriggerId(triggerEntity.getId())
+                        .setTwinId(twinId)
+                        .setSrcTwinStatus(srcStatusEntity)
+                        .setDstTwinStatus(dstStatusEntity)
+                );
+            }
+        }
+        return twinStatusTransitionTriggerTaskList;
+    }
+
     public void addTasks(Collection<TwinStatusTransitionTriggerTaskEntity> tasks) throws ServiceException {
         if (CollectionUtils.isEmpty(tasks))
             return;
@@ -87,5 +108,21 @@ public class TwinStatusTransitionService {
             twinStatusTransitionTriggerTaskList.add(task);
         }
         entitySmartService.saveAllAndLog(twinStatusTransitionTriggerTaskList, twinflowTransitionTriggerTaskRepository);
+    }
+
+    /**
+     * Registers transaction synchronization that will run transition triggers only after a successful commit.
+     * This helper centralizes the synchronization logic instead of scattered anonymous adapters.
+     */
+    public void registerSynchronizationForTransition(TwinEntity twinEntity,
+                                                     TwinStatusEntity oldStatus,
+                                                     TwinStatusEntity newStatus) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+            @SneakyThrows
+            @Override
+            public void afterCommit() {
+                runTwinStatusTransitionTriggers(twinEntity, oldStatus, newStatus);
+            }
+        });
     }
 }

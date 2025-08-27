@@ -14,6 +14,7 @@ import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Getter
@@ -22,6 +23,7 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
     private boolean historyCollectorEnabled = true; // in some cases we do not need to collect history changes (before drafting for example, currently we do not collect history, only after )
     private final Map<Object, Set<TwinInvalidate>> invalidationMap = new HashMap<>();
     private final Map<UUID, Pair<UUID, FactoryLauncher>> postponedChanges = new HashMap<>();
+    private final Map<UUID, Set<TwinStatusTransitionTriggerTaskEntity>> postponedStatusTransitions = new ConcurrentHashMap<>();
 
     public TwinChangesCollector() {
         super();
@@ -103,6 +105,13 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
                     "twin[{}] already has postponed changes by factory[{}]. Skipping changes by factory[{}]", twinId, postponedChanges.get(twinId), twinFactoryId);
         }
         postponedChanges.put(twinId, Pair.of(twinFactoryId, factoryLauncher));
+        return this;
+    }
+
+    public TwinChangesCollector addPostponedStatusTransitions(UUID twinId, Set<TwinStatusTransitionTriggerTaskEntity> twinStatusTransitionTasks) throws ServiceException {
+        postponedStatusTransitions.computeIfAbsent(twinId, id -> ConcurrentHashMap.newKeySet())
+                .addAll(twinStatusTransitionTasks);
+        ;
         return this;
     }
 

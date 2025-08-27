@@ -640,7 +640,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         tryToFinalizeSketch(twinUpdate);
         runFactoryOnUpdate(twinUpdate);
-        updateTwinBasics(twinChangesRecorder);
+        updateTwinBasics(twinChangesRecorder, twinChangesCollector);
         if (twinChangesRecorder.hasChanges())
             twinChangesCollector.add(twinChangesRecorder.getRecorder());
         if (MapUtils.isNotEmpty(twinUpdate.getFields()))
@@ -719,14 +719,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
 
-    public void updateTwinBasics(ChangesRecorder<TwinEntity, ?> changesRecorder) throws ServiceException {
+    public void updateTwinBasics(ChangesRecorder<TwinEntity, ?> changesRecorder, TwinChangesCollector twinChangesCollector) throws ServiceException {
         updateTwinHead(changesRecorder);
         updateTwinName(changesRecorder);
         updateTwinDescription(changesRecorder);
         updateTwinExternalId(changesRecorder);
         updateTwinAssignee(changesRecorder);
-        updateTwinStatus(changesRecorder);
-        // todo call twinStatusTransitionTriggers
+        updateTwinStatus(changesRecorder, twinChangesCollector);
     }
 
     public void updateTwinAssignee(ChangesRecorder<TwinEntity, ?> changesRecorder) throws ServiceException {
@@ -802,7 +801,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
-    public void updateTwinStatus(ChangesRecorder<TwinEntity, ?> changesRecorder) {
+    public void updateTwinStatus(ChangesRecorder<TwinEntity, ?> changesRecorder, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (changesRecorder.isChanged("status", changesRecorder.getDbEntity().getTwinStatusId(), changesRecorder.getUpdateEntity().getTwinStatusId())) {
             if (changesRecorder.isHistoryCollectorEnabled())
                 changesRecorder.getHistoryCollector().add(historyService.statusChanged(changesRecorder.getDbEntity().getTwinStatus(), changesRecorder.getUpdateEntity().getTwinStatus()));
@@ -814,6 +813,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 twinEntity
                         .setTwinStatusId(changesRecorder.getUpdateEntity().getTwinStatusId())
                         .setTwinStatus(changesRecorder.getUpdateEntity().getTwinStatus());
+            twinChangesCollector.addPostponedStatusTransitions(changesRecorder.getDbEntity().getId(),
+                    twinStatusTransitionService.prepareTasks(changesRecorder.getDbEntity().getId(), changesRecorder.getDbEntity().getTwinStatus(), changesRecorder.getUpdateEntity().getTwinStatus()));
         }
     }
 
@@ -822,8 +823,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         for (TwinEntity twinEntity : twinEntityList) {
             if (twinChangesCollector.collectIfChanged(twinEntity, "status", twinEntity.getTwinStatusId(), newStatus.getId())) {
-                //todo may cause the situation, that trigger runs, but changes are not applied in DB, if DB transaction fails
-                twinStatusTransitionService.runTwinStatusTransitionTriggers(twinEntity, twinEntity.getTwinStatus(), newStatus);
+                TwinStatusEntity oldStatus = twinEntity.getTwinStatus();
+                twinStatusTransitionService.registerSynchronizationForTransition(twinEntity, oldStatus, newStatus); // run triggers only after a successful commit
                 twinChangesCollector.getHistoryCollector(twinEntity).add(historyService.statusChanged(twinEntity.getTwinStatus(), newStatus));
                 twinEntity
                         .setTwinStatusId(newStatus.getId())
@@ -1323,7 +1324,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twin == null || twinClassFieldEntity == null) {
             return res;
         }
-        
+
         var fieldValue = getTwinFieldValue(twin, twinClassFieldEntity.getId());
 
         if (fieldValue instanceof FieldValueText text) {

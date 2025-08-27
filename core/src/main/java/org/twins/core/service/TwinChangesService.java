@@ -20,6 +20,7 @@ import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinChangeTaskService;
+import org.twins.core.service.twin.TwinStatusTransitionService;
 
 import java.util.*;
 
@@ -47,6 +48,7 @@ public class TwinChangesService {
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
     private final TwinChangeTaskService twinChangeTaskService;
+    private final TwinStatusTransitionService twinStatusTransitionService;
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinChangesApplyResult applyChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
@@ -94,6 +96,7 @@ public class TwinChangesService {
                 log.warn("Unsupported entity class[{}] for deletion", classChanges.getKey().getSimpleName());
             }
         savePostponedChanges(twinChangesCollector);
+        savePostponedTwinStatusTransitionTriggers(twinChangesCollector);
         invalidate(twinChangesCollector.getInvalidationMap());
         historyService.saveHistory(twinChangesCollector.getHistoryCollector());
         twinChangesCollector.clear();
@@ -112,6 +115,14 @@ public class TwinChangesService {
                     .setStatusId(TwinChangeTaskStatus.NEED_START));
         }
         twinChangeTaskService.addTasks(changeTaskList);
+    }
+
+    private void savePostponedTwinStatusTransitionTriggers(TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (twinChangesCollector.getPostponedStatusTransitions().isEmpty())
+            return;
+        for (var entry : twinChangesCollector.getPostponedStatusTransitions().entrySet()) {
+            twinStatusTransitionService.addTasks(entry.getValue());
+        }
     }
 
     private void invalidate(Map<Object, Set<TwinChangesCollector.TwinInvalidate>> invalidationMap) {
