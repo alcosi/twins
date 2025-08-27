@@ -58,15 +58,20 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     }
 
     @Override
-    protected FieldValueDate deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
-        return new FieldValueDate(twinField.getTwinClassField()).setDateStr(twinFieldEntity != null && !StringUtils.isEmpty(twinFieldEntity.getValue()) ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : null);
+    protected FieldValueDate deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) throws ServiceException {
+        FieldValueDate fieldValueDate = new FieldValueDate(twinField.getTwinClassField());
+        fieldValueDate
+                .setDateStr(twinFieldEntity != null && !StringUtils.isEmpty(twinFieldEntity.getValue()) ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : null)
+                .setDate(fieldValueDate.getDateStr() != null ? validateValue(twinFieldEntity, fieldValueDate.getDateStr(), properties) : null);
+
+        return fieldValueDate;
     }
 
     public String validDateOrEmpty(String dateStr, Properties properties) {
         if (GenericValidator.isDate(dateStr, pattern.extract(properties), false)) {
             return dateStr;
         }
-        log.warn("Value[ {}] does not match expected format[{}]", dateStr, pattern.extract(properties));
+        log.warn("Value[{}] does not match expected format[{}]", dateStr, pattern.extract(properties));
         return "";
     }
 

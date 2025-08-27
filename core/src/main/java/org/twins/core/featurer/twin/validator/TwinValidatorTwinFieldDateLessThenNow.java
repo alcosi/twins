@@ -1,7 +1,6 @@
 package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -10,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
@@ -43,13 +41,13 @@ public class TwinValidatorTwinFieldDateLessThenNow extends TwinValidator {
 
         FieldValue fieldValue = twinEntity.getFieldValuesKit().get(classFieldId);
         if (fieldValue == null || fieldValue.isEmpty()) {
-            log.error("{} can't find field of field class [{}] for twin [{}]", ErrorCodeCommon.UUID_UNKNOWN, classFieldId, twinEntity.logShort());
-           isValid = false;
-           //todo exception??
+            log.error("twinClassField[{}] is not found for twin [{}]", classFieldId, twinEntity.logShort());
+            isValid = false;
+            //todo exception??
         } else if (fieldValue instanceof FieldValueDate) {
             isValid = ((FieldValueDate) fieldValue).getDate().isBefore(LocalDateTime.now());
         } else {
-            log.warn("{} [{}] is not a date field", ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, classFieldId);
+            log.warn("[{}] is not a date field", fieldValue.getTwinClassField().logNormal());
             isValid = false;
             //todo exception??
         }
