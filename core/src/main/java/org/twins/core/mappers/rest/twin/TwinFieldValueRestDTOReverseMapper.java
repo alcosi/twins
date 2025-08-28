@@ -42,7 +42,7 @@ public class TwinFieldValueRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
                     .setHex(color.hex());
         if (fieldValueDTO instanceof TwinFieldValueDateDTOv1 date)
             fieldValue = new FieldValueDate(twinClassFieldEntity)
-                    .setDate(date.date());
+                    .setDateStr(date.date());
         if (fieldValueDTO instanceof TwinFieldValueListDTOv1 select) {
             fieldValue = new FieldValueSelect(twinClassFieldEntity);
             for (DataListOptionDTOv1 dataListOptionDTO : select.selectedOptions()) {
