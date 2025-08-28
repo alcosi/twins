@@ -38,7 +38,7 @@ public class TwinSearchPredicateEntity implements EasyLoggable {
     @ManyToOne
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @JoinColumn(name = "search_id", insertable = false, updatable = false, nullable = false)
+    @JoinColumn(name = "twin_search_id", insertable = false, updatable = false, nullable = false)
     private TwinSearchEntity search;
 
     public String easyLog(Level level)  {
