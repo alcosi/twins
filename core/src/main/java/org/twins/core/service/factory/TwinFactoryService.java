@@ -337,6 +337,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                         log.warn("Step is optional and unsuccessful: " + (ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage()) + ". Pipeline will not be aborted");
                     } else {
                         log.error("Step[{}] is mandatory. Factory process will be aborted", pipelineStepEntity.getId());
+                        LoggerUtils.traceTreeEnd();
                         throw ex;
                     }
                 }
