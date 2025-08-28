@@ -1,12 +1,12 @@
-package org.twins.core.featurer.search.detector;
+package org.twins.core.featurer.twin.detector;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.twins.core.dao.search.SearchAliasEntity;
-import org.twins.core.dao.search.SearchEntity;
+import org.twins.core.dao.search.TwinSearchAliasEntity;
+import org.twins.core.dao.search.TwinSearchEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionService;
@@ -29,11 +29,11 @@ public abstract class SearchDetector extends FeaturerTwins {
     @Autowired
     PermissionService permissionService;
 
-    public List<SearchEntity> detect(SearchAliasEntity aliasEntity, List<SearchEntity> allAliasSearches) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, aliasEntity.getSearchDetectorParams(), new HashMap<>());
+    public List<TwinSearchEntity> detect(TwinSearchAliasEntity aliasEntity, List<TwinSearchEntity> allAliasSearches) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, aliasEntity.getTwinSearchDetectorParams(), new HashMap<>());
         return detect(properties, allAliasSearches);
     }
 
-    public abstract List<SearchEntity> detect(Properties properties, List<SearchEntity> allAliasSearches) throws ServiceException;
+    public abstract List<TwinSearchEntity> detect(Properties properties, List<TwinSearchEntity> allAliasSearches) throws ServiceException;
 
 }

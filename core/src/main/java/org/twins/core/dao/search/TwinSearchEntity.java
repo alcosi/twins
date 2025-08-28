@@ -1,22 +1,25 @@
 
 package org.twins.core.dao.search;
 
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.Type;
 
 import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Data
 @Accessors(chain = true)
-@Table(name = "search")
-public class SearchEntity implements EasyLoggable {
+@Table(name = "twin_search")
+public class TwinSearchEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -29,8 +32,18 @@ public class SearchEntity implements EasyLoggable {
     @Column(name = "permission_id")
     private UUID permissionId;
 
-    @Column(name = "search_alias_id")
-    private UUID searchAliasId;
+    @Column(name = "twin_search_alias_id")
+    private UUID twinSearchAliasId;
+
+    @Column(name = "force_sorting")
+    private boolean forceSorting;
+
+    @Column(name = "twin_sorter_featurer_id")
+    private int twinSorterFeaturerId;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "twin_sorter_params", columnDefinition = "hstore")
+    private HashMap<String, String> twinSorterParams;
 
     @Column(name = "created_at")
     private Timestamp createdAt;
@@ -41,15 +54,15 @@ public class SearchEntity implements EasyLoggable {
     @OneToMany(fetch = FetchType.EAGER)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @JoinColumn(name = "search_id", insertable = false, updatable = false, nullable = true)
-    private List<SearchPredicateEntity> searchPredicateList;
+    @JoinColumn(name = "twin_search_id", insertable = false, updatable = false, nullable = true)
+    private List<TwinSearchPredicateEntity> searchPredicateList;
 
     public String easyLog(Level level)  {
         switch (level) {
             case SHORT:
-                return "search[" + id + "]";
+                return "twinSearch[" + id + "]";
             default:
-                return "search[id:" + id + ", alias:" + searchAliasId + "]";
+                return "twinSearch[id:" + id + ", alias:" + twinSearchAliasId + "]";
         }
 
     }
