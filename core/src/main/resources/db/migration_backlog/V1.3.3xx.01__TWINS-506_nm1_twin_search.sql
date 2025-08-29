@@ -51,7 +51,7 @@ create table if not exists twin_search_predicate
             primary key,
     twin_search_id                           uuid
         constraint twin_search_predicate_twin_search_id_fk
-            references search
+            references twin_search
             on update cascade on delete cascade,
     twin_finder_featurer_id integer not null
         constraint twin_search_predicate_twin_finder_featurer_id_fk
@@ -67,7 +67,7 @@ create index if not exists twin_search_predicate_search_id_index
 
 DO $$
     BEGIN
-        IF NOT EXISTS (
+        IF EXISTS (
             SELECT 1
             FROM information_schema.columns
             WHERE table_name = 'search_alias'
@@ -81,7 +81,7 @@ $$;
 
 DO $$
     BEGIN
-        IF NOT EXISTS (
+        IF EXISTS (
             SELECT 1
             FROM information_schema.columns
             WHERE table_name = 'search'
@@ -120,7 +120,7 @@ insert into featurer(id, featurer_type_id, class, name, description) values (272
 
 DO $$
     BEGIN
-        IF NOT EXISTS (
+        IF EXISTS (
             SELECT 1
             FROM information_schema.columns
             WHERE table_name = 'search_predicate'
@@ -128,6 +128,13 @@ DO $$
             update search_predicate set search_criteria_builder_featurer_id = 2710 where search_criteria_builder_featurer_id = 2706;
             update search_predicate set search_criteria_builder_featurer_id = 2721, search_criteria_builder_params = delete(search_criteria_builder_params, 'entityId') || hstore('statusIds', search_criteria_builder_params->'entityId') where search_criteria_builder_featurer_id = 2701 and search_field_id = 'statusId';
             update search_predicate set search_criteria_builder_featurer_id = 2704, search_criteria_builder_params = delete(search_criteria_builder_params, 'entityId') || hstore('classIds', search_criteria_builder_params->'entityId') where search_criteria_builder_featurer_id = 2701 and search_field_id = 'twinClassId';
+            update search_predicate set search_criteria_builder_featurer_id = 2714, search_criteria_builder_params = delete(search_criteria_builder_params, 'entityId') || hstore('twinIds', search_criteria_builder_params->'entityId') where search_criteria_builder_featurer_id = 2701 and search_field_id = 'twinId';
+            update search_predicate set search_criteria_builder_featurer_id = 2702, search_criteria_builder_params = delete(search_criteria_builder_params, 'entityId') || hstore('userIds', search_criteria_builder_params->'entityId') where search_criteria_builder_featurer_id = 2701 and search_field_id = 'assigneeUserId';
+            update search_predicate set search_criteria_builder_featurer_id = 2707, search_criteria_builder_params = delete(search_criteria_builder_params, 'entityId') || hstore('userIds', search_criteria_builder_params->'entityId') where search_criteria_builder_featurer_id = 2701 and search_field_id = 'createdByUserId';
+            update search_predicate set search_criteria_builder_featurer_id = 2709, search_criteria_builder_params = delete(search_criteria_builder_params, 'entityId') || hstore('twinIds', search_criteria_builder_params->'entityId') where search_criteria_builder_featurer_id = 2701 and search_field_id = 'headTwinId';
+            update search_predicate set search_criteria_builder_featurer_id = 2720, search_criteria_builder_params = delete(search_criteria_builder_params, 'entityId') || hstore('markerDataListOptionIds', search_criteria_builder_params->'entityId') where search_criteria_builder_featurer_id = 2701 and search_field_id = 'markerDataListOptionId';
+            update search_predicate set search_criteria_builder_featurer_id = 2723, search_criteria_builder_params = delete(search_criteria_builder_params, 'entityId') || hstore('tagDataListOptionIds', search_criteria_builder_params->'entityId') where search_criteria_builder_featurer_id = 2701 and search_field_id = 'tagDataListOptionId';
+            update search_predicate set search_criteria_builder_featurer_id = 2711, search_criteria_builder_params = delete(search_criteria_builder_params, 'entityId') || hstore('twinIds', search_criteria_builder_params->'entityId') where search_criteria_builder_featurer_id = 2701 and search_field_id = 'hierarchyTreeContainsId';
             update search_predicate set search_criteria_builder_featurer_id = 2701 where search_criteria_builder_featurer_id = 2702 and search_field_id = 'assigneeUserId';
             update search_predicate set search_criteria_builder_featurer_id = 2706 where search_criteria_builder_featurer_id = 2702 and search_field_id = 'createdByUserId';
             update search_predicate set search_criteria_builder_featurer_id = 2717 where search_criteria_builder_featurer_id = 2705 and search_field_id = 'linkId';
@@ -138,6 +145,6 @@ DO $$
     END
 $$;
 
-alter table if exists search_predicate rename to search_predicate_save;
-alter table if exists search rename to search_save;
-alter table if exists search_alias rename to search_alias_save;
+drop table if exists search_predicate;
+drop table if exists search;
+drop table if exists search_alias;
