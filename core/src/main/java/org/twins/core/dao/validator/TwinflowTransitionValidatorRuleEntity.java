@@ -37,7 +37,8 @@ public class TwinflowTransitionValidatorRuleEntity implements ContainsTwinValida
     @JoinColumn(name = "twin_validator_set_id", referencedColumnName = "twin_validator_set_id", insertable = false, updatable = false)
     private Set<TwinValidatorEntity> twinValidators;
 
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
     private TwinValidatorSetEntity twinValidatorSet;
 
     public String easyLog(EasyLoggable.Level level) {

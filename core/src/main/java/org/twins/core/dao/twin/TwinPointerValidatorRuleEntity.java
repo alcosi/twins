@@ -30,7 +30,8 @@ public class TwinPointerValidatorRuleEntity implements ContainsTwinValidatorSet,
     @JoinColumn(name = "twin_pointer_id", insertable = false, updatable = false)
     private TwinPointerEntity twinPointer;
 
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
     private TwinValidatorSetEntity twinValidatorSet;
 
     @OneToMany(fetch = FetchType.EAGER)
