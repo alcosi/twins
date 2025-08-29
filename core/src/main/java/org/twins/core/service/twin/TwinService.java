@@ -1119,7 +1119,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (fieldValue instanceof FieldValueColorHEX fieldValueColorHEX)
             fieldValueColorHEX.setHex(value);
         if (fieldValue instanceof FieldValueDate fieldValueDate)
-            fieldValueDate.setDate(value);
+            fieldValueDate.setDateStr(value);
         if (fieldValue instanceof FieldValueBoolean fieldValueBoolean)
             fieldValueBoolean.setValue(Boolean.parseBoolean(value));
         if (fieldValue instanceof FieldValueAttachment fieldValueAttachment) {

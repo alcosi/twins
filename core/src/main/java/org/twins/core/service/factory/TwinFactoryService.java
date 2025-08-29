@@ -23,6 +23,7 @@ import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
 import org.twins.core.dao.twin.TwinChangeTaskStatus;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinflow.TwinflowFactoryRepository;
 import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.factory.*;
@@ -76,6 +77,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     final TwinChangeTaskService twinChangeTaskService;
     private final TwinflowTransitionRepository twinflowTransitionRepository;
     private final I18nService i18nService;
+    private final TwinflowFactoryRepository twinflowFactoryRepository;
 
     @Override
     public CrudRepository<TwinFactoryEntity, UUID> entityRepository() {
@@ -337,6 +339,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                         log.warn("Step is optional and unsuccessful: " + (ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage()) + ". Pipeline will not be aborted");
                     } else {
                         log.error("Step[{}] is mandatory. Factory process will be aborted", pipelineStepEntity.getId());
+                        LoggerUtils.traceTreeEnd();
                         throw ex;
                     }
                 }
@@ -494,14 +497,16 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             return;
 
         Map<UUID, Integer> twinflowTransitionCounts = mapUuidInt(twinflowTransitionRepository.countByInbuiltTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> twinflowFactoryCounts = mapUuidInt(twinflowFactoryRepository.countByAfterTransitionPerformFactoryIds(needLoad.getIdSet()));
         Map<UUID, Integer> twinFactoryBranchCounts = mapUuidInt(twinFactoryBranchRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
-        Map<UUID, Integer> twinFactoryPipelineCounts = mapUuidInt(twinFactoryPipelineRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> pipelineNextTwinFactoryCounts = mapUuidInt(twinFactoryPipelineRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> pipelineAfterCommitTwinFactoryCounts = mapUuidInt(twinFactoryPipelineRepository.countByAfterCommitTwinFactoryIds(needLoad.getIdSet()));
 
         needLoad.getCollection().forEach(twinFactory -> {
-            int twinflowTransitionCount = twinflowTransitionCounts.getOrDefault(twinFactory.getId(), 0);
+            int twinflowCount = twinflowTransitionCounts.getOrDefault(twinFactory.getId(), 0) + twinflowFactoryCounts.getOrDefault(twinFactory.getId(), 0);
             int twinFactoryBranchCount = twinFactoryBranchCounts.getOrDefault(twinFactory.getId(), 0);
-            int twinFactoryPipelineCount = twinFactoryPipelineCounts.getOrDefault(twinFactory.getId(), 0);
-            twinFactory.setFactoryUsagesCount(twinflowTransitionCount + twinFactoryBranchCount + twinFactoryPipelineCount);
+            int twinFactoryPipelineCount = pipelineNextTwinFactoryCounts.getOrDefault(twinFactory.getId(), 0) + pipelineAfterCommitTwinFactoryCounts.getOrDefault(twinFactory.getId(), 0);
+            twinFactory.setFactoryUsagesCount(twinflowCount + twinFactoryBranchCount + twinFactoryPipelineCount);
         });
     }
 

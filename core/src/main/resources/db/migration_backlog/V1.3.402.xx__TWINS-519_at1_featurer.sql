@@ -1,0 +1,1 @@
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2439, 24, 'org.twins.core.featurer.factory.conditioner.ConditionerTwinAssigneeUserIsMemberOfGroupForLinkedTwinContextField', 'Is assignee user member of group for linked twin from context field', '', false) on conflict do nothing ;
