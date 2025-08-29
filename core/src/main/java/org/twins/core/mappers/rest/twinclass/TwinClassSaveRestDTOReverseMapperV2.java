@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dto.rest.twinclass.TwinClassSave;
+import org.twins.core.domain.twinclass.TwinClassSave;
 import org.twins.core.dto.rest.twinclass.TwinClassSaveDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
