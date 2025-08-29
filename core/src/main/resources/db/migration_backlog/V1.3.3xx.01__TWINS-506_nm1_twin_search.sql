@@ -67,7 +67,7 @@ create index if not exists twin_search_predicate_search_id_index
 
 DO $$
     BEGIN
-        IF NOT EXISTS (
+        IF EXISTS (
             SELECT 1
             FROM information_schema.columns
             WHERE table_name = 'search_alias'
@@ -81,7 +81,7 @@ $$;
 
 DO $$
     BEGIN
-        IF NOT EXISTS (
+        IF EXISTS (
             SELECT 1
             FROM information_schema.columns
             WHERE table_name = 'search'
@@ -120,7 +120,7 @@ insert into featurer(id, featurer_type_id, class, name, description) values (272
 
 DO $$
     BEGIN
-        IF NOT EXISTS (
+        IF EXISTS (
             SELECT 1
             FROM information_schema.columns
             WHERE table_name = 'search_predicate'
