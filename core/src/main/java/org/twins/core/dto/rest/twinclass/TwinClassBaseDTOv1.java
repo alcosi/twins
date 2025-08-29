@@ -106,4 +106,7 @@ public class TwinClassBaseDTOv1 {
 
     @Schema(description = "external id")
     public String externalId;
+
+    @Schema(description = "external properties")
+    public Map<String, String> externalProperties;
 }

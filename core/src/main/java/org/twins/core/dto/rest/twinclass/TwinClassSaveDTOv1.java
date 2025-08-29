@@ -8,6 +8,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -67,4 +68,7 @@ public class TwinClassSaveDTOv1 {
 
     @Schema(description = "[optional] external id")
     public String externalId;
+
+    @Schema(description = "[optional] external properties")
+    public Map<String, String> externalProperties;
 }
