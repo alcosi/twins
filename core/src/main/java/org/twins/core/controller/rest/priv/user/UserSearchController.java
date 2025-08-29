@@ -93,7 +93,7 @@ public class UserSearchController extends ApiController {
             @RequestBody UserSearchConfiguredRqDTOv1 request) {
         UserSearchRsDTOv1 rs = new UserSearchRsDTOv1();
         try {
-            PaginationResult<UserEntity> users = userSearchService.findUsers(userSearchConfiguredDTOReverseMapper.convert(request.getSearch()), request.getSearch().getParams(), searchId, pagination);
+            PaginationResult<UserEntity> users = userSearchService.findUsers(searchId, userSearchConfiguredDTOReverseMapper.convert(request.getSearch()), request.getSearch().getParams(), pagination);
             rs
                     .setUsers(userRestDTOMapper.convertCollection(users.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(users))

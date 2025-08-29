@@ -6,39 +6,81 @@ import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.PaginationUtils;
+import org.cambium.featurer.FeaturerService;
+import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntitySmartService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dao.user.UserRepository;
+import org.twins.core.dao.user.*;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.UserSearch;
+import org.twins.core.featurer.user.finder.UserFinder;
+import org.twins.core.featurer.user.sorter.UserSorter;
+import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinSearchService;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
+import static org.cambium.common.util.SetUtils.narrowSet;
 import static org.twins.core.dao.user.UserSpecification.*;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserSearchService {
+public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEntity> {
     private final AuthService authService;
     private final UserRepository userRepository;
     private final TwinSearchService twinSearchService;
+    private final UserSearchPredicateRepository userSearchPredicateRepository;
+    private final FeaturerService featurerService;
+    private final UserSearchRepository userSearchRepository;
 
-    public PaginationResult<UserEntity> findUsers(UserSearch search, Map<String, String> params, UUID searchId, SimplePagination pagination) throws ServiceException {
-        //todo this mock object
-        return findUsers(search, pagination);
+    @Override
+    public CrudRepository<UserSearchEntity, UUID> entityRepository() {
+        return userSearchRepository;
+    }
+
+    @Override
+    public Function<UserSearchEntity, UUID> entityGetIdFunction() {
+        return UserSearchEntity::getId;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(UserSearchEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(UserSearchEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
+    }
+
+    public PaginationResult<UserEntity> findUsers(UUID searchId, UserSearch narrowSearch, Map<String, String> namedParamsMap, SimplePagination pagination) throws ServiceException {
+        if (SystemEntityService.USER_SEARCH_UNLIMITED.equals(searchId)) {
+            return findUsers(narrowSearch, pagination);
+        }
+        UserSearchEntity searchEntity = findEntitySafe(searchId);
+        UserSearch mainSearch = new UserSearch();
+        List<UserSearchPredicateEntity> searchPredicates = userSearchPredicateRepository.findByUserSearchId(searchEntity.getId());
+        for (UserSearchPredicateEntity predicate : searchPredicates) {
+            UserFinder userFinder = featurerService.getFeaturer(predicate.getUserFinderFeaturerId(), UserFinder.class);
+            userFinder.concatSearch(predicate.getUserFinderParams(), mainSearch, namedParamsMap);
+        }
+        narrowSearch(mainSearch, narrowSearch);
+        mainSearch.setConfiguredSearch(searchEntity);
+        return findUsers(mainSearch, pagination);
     }
 
     public PaginationResult<UserEntity> findUsers(UserSearch search, SimplePagination pagination) throws ServiceException {
@@ -63,7 +105,7 @@ public class UserSearchService {
                 return PaginationUtils.convertInPaginationResult(page, pagination);
             }
         }
-
+        userSpec = addSorting(search, pagination, userSpec);
         Page<UserEntity> page = userRepository.findAll(userSpec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(page, pagination);
     }
@@ -112,5 +154,31 @@ public class UserSearchService {
                 checkSpaceRoleLikeIn(search.getSpaceList(), domainId, businessAccountId, false),
                 checkSpaceRoleLikeIn(search.getSpaceExcludeList(), domainId, businessAccountId, true)
         );
+    }
+
+    protected void narrowSearch(UserSearch mainSearch, UserSearch narrowSearch) {
+        if (narrowSearch == null)
+            return;
+
+        for (Pair<Function<UserSearch, Set>, BiConsumer<UserSearch, Set>> functionPair : UserSearch.FUNCTIONS) {
+            Set mainSet = functionPair.getKey().apply(mainSearch);
+            Set narrowSet = functionPair.getKey().apply(narrowSearch);
+            functionPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
+        }
+    }
+
+    private Specification<UserEntity> addSorting(UserSearch search, SimplePagination pagination, Specification<UserEntity> specification) throws ServiceException {
+        UserSearchEntity searchEntity = search.getConfiguredSearch();
+        if (searchEntity != null &&
+                (searchEntity.isForceSorting() || pagination == null || pagination.getSort() == null)) {
+            UserSorter userSorter = featurerService.getFeaturer(searchEntity.getUserSorterFeaturerId(), UserSorter.class);
+            var sortFunction = userSorter.createSort(searchEntity.getUserSorterParams());
+            if (sortFunction != null) {
+                specification = sortFunction.apply(specification);
+                if (pagination != null)
+                    pagination.setSort(null);
+            }
+        }
+        return specification;
     }
 }
