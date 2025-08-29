@@ -51,7 +51,7 @@ create table if not exists twin_search_predicate
             primary key,
     twin_search_id                           uuid
         constraint twin_search_predicate_twin_search_id_fk
-            references search
+            references twin_search
             on update cascade on delete cascade,
     twin_finder_featurer_id integer not null
         constraint twin_search_predicate_twin_finder_featurer_id_fk
@@ -145,6 +145,6 @@ DO $$
     END
 $$;
 
-alter table if exists search_predicate rename to search_predicate_save;
-alter table if exists search rename to search_save;
-alter table if exists search_alias rename to search_alias_save;
+drop table if exists search_predicate;
+drop table if exists search;
+drop table if exists search_alias;
