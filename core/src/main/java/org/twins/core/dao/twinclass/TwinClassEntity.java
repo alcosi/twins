@@ -169,6 +169,10 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "external_id")
     private String externalId;
 
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "external_properties", columnDefinition = "hstore")
+    private Map<String, String> externalProperties;
+
 //    @ManyToOne
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
 //    private DomainEntity domain;

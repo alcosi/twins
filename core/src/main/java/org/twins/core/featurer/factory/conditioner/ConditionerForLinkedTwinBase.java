@@ -12,7 +12,6 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.link.TwinLinkService;
 
 import java.util.Map;
@@ -20,12 +19,10 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Slf4j
-public abstract class ConditionerApiUserIsAssigneeForLinkedTwinBase extends Conditioner {
+public abstract class ConditionerForLinkedTwinBase extends Conditioner {
     @FeaturerParam(name = "Twin class field id", description = "ID of the field to check", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
-    @Lazy
-    @Autowired
-    AuthService authService;
+
     @Lazy
     @Autowired
     TwinLinkService twinLinkService;
@@ -38,9 +35,10 @@ public abstract class ConditionerApiUserIsAssigneeForLinkedTwinBase extends Cond
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + extractedTwinClassFieldId + "] is not of type link");
         if (itemOutputFieldLink.getTwinLinks().size() > 1)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + extractedTwinClassFieldId + "] has " + itemOutputFieldLink.getTwinLinks().size() + " linked twins in twinId[" + factoryItem.getOutput().getTwinId() + "]");
-        TwinEntity linkDstTwin = twinLinkService.getDstTwinSafe(itemOutputFieldLink.getTwinLinks().getFirst());
-        return linkDstTwin.getAssignerUserId().equals(authService.getApiUser().getUserId());
+        return check(twinLinkService.getDstTwinSafe(itemOutputFieldLink.getTwinLinks().getFirst()), properties);
     }
 
     protected abstract Map<UUID, FieldValue> getFields(FactoryItem factoryItem) throws ServiceException;
+
+    protected abstract boolean check(TwinEntity twinEntity, Properties properties) throws ServiceException;
 }
