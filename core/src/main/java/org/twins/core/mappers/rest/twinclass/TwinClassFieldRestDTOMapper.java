@@ -53,7 +53,8 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setViewPermissionId(src.getViewPermissionId())
                         .setEditPermissionId(src.getEditPermissionId())
                         .setDescriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext))
-                        .setExternalId(src.getExternalId());
+                        .setExternalId(src.getExternalId())
+                        .setTwinClassFieldVisibilityId(src.getTwinClassFieldVisibilityId());
                 break;
             case DETAILED:
                 fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturer(), FieldTyper.class);

@@ -68,6 +68,10 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Column(name = "external_id")
     private String externalId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "twin_class_field_visibility_id")
+    private TwinClassFieldVisibility twinClassFieldVisibilityId;
+
     @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;

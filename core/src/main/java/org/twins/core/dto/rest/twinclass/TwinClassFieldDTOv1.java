@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.twinclass.TwinClassFieldVisibility;
 import org.twins.core.dto.rest.DTOExamples;
 
 import java.util.Map;
@@ -54,4 +55,6 @@ public class TwinClassFieldDTOv1 {
     @Schema(description = "external id", example = "")
     public String externalId;
 
+    @Schema(description = "field visibility", example = "PUBLIC")
+    public TwinClassFieldVisibility twinClassFieldVisibilityId;
 }
