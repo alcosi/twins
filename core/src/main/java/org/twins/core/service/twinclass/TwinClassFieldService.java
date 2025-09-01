@@ -25,10 +25,7 @@ import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionRepository;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldRepository;
-import org.twins.core.dao.twinclass.TwinClassRepository;
+import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldSave;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -57,6 +54,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     private final EntitySmartService entitySmartService;
     private final PermissionRepository permissionRepository;
     private final FeaturerRepository featurerRepository;
+    private final TwinClassFieldPlugRepository twinClassFieldPlugRepository;
     @Lazy
     private final TwinService twinService;
     @Lazy
@@ -141,7 +139,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         if (needLoad.isEmpty())
             return;
         forClasses.remove(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR);
-        KitGrouped<TwinClassFieldEntity, UUID, UUID> fields = new KitGrouped<>(twinClassFieldRepository.findByTwinClassIdIn(forClasses), TwinClassFieldEntity::getId, TwinClassFieldEntity::getTwinClassId);
+
+        KitGrouped<TwinClassFieldEntity, UUID, UUID> fields = loadAllTwinClassFields(forClasses);
+
         for (TwinClassEntity twinClassEntity : needLoad.values()) {
             List<TwinClassFieldEntity> classFields = new ArrayList<>();
             for (UUID twinClassId : twinClassEntity.getExtendedClassIdSet()) {
@@ -149,6 +149,41 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                     classFields.addAll(fields.getGrouped(twinClassId));
             }
             twinClassEntity.setTwinClassFieldKit(new Kit<>(classFields, TwinClassFieldEntity::getId));
+        }
+    }
+
+    private KitGrouped<TwinClassFieldEntity, UUID, UUID> loadAllTwinClassFields(Set<UUID> forClasses) {
+        KitGrouped<TwinClassFieldEntity, UUID, UUID> fields = new KitGrouped<>(
+                twinClassFieldRepository.findByTwinClassIdInAndTwinClassFieldVisibilityId(forClasses, TwinClassFieldEntity.TwinClassFieldVisibility.PUBLIC),
+                TwinClassFieldEntity::getId,
+                TwinClassFieldEntity::getTwinClassId
+        );
+
+        List<UUID> classesWithPluggedFieldsIds = twinClassRepository.findByIdIn(forClasses).stream()
+                .filter(TwinClassEntity::isHasPluggedFields)
+                .map(TwinClassEntity::getId)
+                .toList();
+
+        if (!classesWithPluggedFieldsIds.isEmpty()) {
+            addPluggableFields(fields, classesWithPluggedFieldsIds);
+        }
+
+        return fields;
+    }
+
+    private void addPluggableFields(KitGrouped<TwinClassFieldEntity, UUID, UUID> fields, List<UUID> classesWithPluggedFieldsIds) {
+        KitGrouped<TwinClassFieldPlugEntity, TwinClassFieldPlugEntity.TwinClassFieldPlugId, UUID> pluggedEntities = new KitGrouped<>(
+                twinClassFieldPlugRepository.findById_TwinClassIdIn(classesWithPluggedFieldsIds),
+                TwinClassFieldPlugEntity::getId,
+                TwinClassFieldPlugEntity::getTwinClassId
+        );
+
+        for (UUID twinClassId : classesWithPluggedFieldsIds) {
+            fields.getGrouped(twinClassId).addAll(
+                    pluggedEntities.getGrouped(twinClassId).stream()
+                            .map(TwinClassFieldPlugEntity::getTwinClassField)
+                            .toList()
+            );
         }
     }
 
@@ -452,6 +487,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
             cacheEvictCollector.add(
                     TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_ID_IN,
+                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN_AND_VISIBILITY,
                     TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN,
                     TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_KEY_AND_TWIN_CLASS_ID_IN,
                     CACHE_TWIN_CLASS_FIELD_FOR_LINK,

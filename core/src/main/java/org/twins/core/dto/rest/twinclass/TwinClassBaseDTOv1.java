@@ -111,5 +111,5 @@ public class TwinClassBaseDTOv1 {
     public Map<String, String> externalProperties;
 
     @Schema(description = "flag that indicates existence of pluggable ")
-    public Boolean hasPluggedFields;
+    public boolean hasPluggedFields;
 }

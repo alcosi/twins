@@ -4,6 +4,7 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
@@ -70,7 +71,7 @@ public class TwinClassFieldEntity implements EasyLoggable {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "twin_class_field_visibility_id")
-    private TwinClassFieldVisibility twinClassFieldVisibilityId;
+    private TwinClassFieldVisibility twinClassFieldVisibilityId = TwinClassFieldVisibility.PUBLIC;
 
     @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
@@ -117,5 +118,10 @@ public class TwinClassFieldEntity implements EasyLoggable {
 
     public boolean isBaseField() {
         return SystemEntityService.isSystemField(id);
+    }
+
+    @Getter
+    public enum TwinClassFieldVisibility {
+        PUBLIC, PRIVATE, PLUGGABLE
     }
 }

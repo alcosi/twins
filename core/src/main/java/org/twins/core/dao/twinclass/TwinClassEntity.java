@@ -170,7 +170,7 @@ public class TwinClassEntity implements EasyLoggable {
     private String externalId;
 
     @Column(name = "has_plugged_fields")
-    private Boolean hasPluggedFields;
+    private boolean hasPluggedFields;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "external_properties", columnDefinition = "hstore")

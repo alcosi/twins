@@ -44,6 +44,14 @@ public class TwinClassFieldPlugEntity implements EasyLoggable {
         private UUID twinClassFieldId;
     }
 
+    public UUID getTwinClassId() {
+        return id.twinClassId;
+    }
+
+    public UUID getTwinClassFieldId() {
+        return id.twinClassFieldId;
+    }
+
     @Override
     public String easyLog(Level level) {
         return "twinClassFieldPlug[twinClassId: " + id.twinClassId + " , twinClassFieldId: " + id.twinClassFieldId +  "]";
