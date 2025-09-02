@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
 
 import java.util.HashMap;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "user_search")
-public class UserSearchEntity {
+public class UserSearchEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -35,5 +36,13 @@ public class UserSearchEntity {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "user_sorter_params", columnDefinition = "hstore")
     private HashMap<String, String> userSorterParams;
+
+    @Override
+    public String easyLog(Level level) {
+        return switch (level) {
+            case SHORT -> "UserSearchEntity[id:" + id + "]";
+            default -> "UserSearchEntity[id:" + id + ", name: " + name + "]";
+        };
+    }
 }
 

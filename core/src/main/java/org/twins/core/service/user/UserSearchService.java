@@ -21,6 +21,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.*;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.UserSearch;
 import org.twins.core.featurer.user.finder.UserFinder;
@@ -59,6 +60,11 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
 
     @Override
     public boolean isEntityReadDenied(UserSearchEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (!entity.getDomainId().equals(authService.getApiUser().getDomainId())) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allows in domain[" + apiUser.getDomainId() + "]");
+            return true;
+        }
         return false;
     }
 

@@ -21,12 +21,12 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_4301,
         name = "Find users by space id and role id",
         description = "")
-public class UserFinderBySpaceIdAndRoleId extends UserFinder {
-    @FeaturerParam(name = "Role id", description = "", order = 1)
-    public static final FeaturerParamUUID roleId = new FeaturerParamUUID("roleId");
+public class UserFinderBySpaceIdAndRoleId extends UserFinderRequested {
+    @FeaturerParam(name = "Param key", description = "", order = 1, optional = true, defaultValue = PARAM_TWIN_CLASS_ID)
+    public static final FeaturerParamString paramKey = new FeaturerParamString("paramKey");
 
-    @FeaturerParam(name = "Twin class id for space", description = "", order = 2)
-    public static final FeaturerParamString twinClassId = new FeaturerParamString("twinClassId");
+    @FeaturerParam(name = "Role id", description = "", order = 2)
+    public static final FeaturerParamUUID roleId = new FeaturerParamUUID("roleId");
 
     @FeaturerParam(name = "Exclude space role search", description = "", order = 3)
     public static final FeaturerParamBoolean exclude = new FeaturerParamBoolean("exclude");
@@ -34,7 +34,7 @@ public class UserFinderBySpaceIdAndRoleId extends UserFinder {
     @Override
     protected void concatSearch(Properties properties, UserSearch userSearch, Map<String, String> namedParamsMap) throws ServiceException {
         UUID extractedRoleId = roleId.extract(properties);
-        UUID spaceId = UUID.fromString(namedParamsMap.get(twinClassId.extract(properties)));
+        UUID spaceId = getRequestedId(paramKey, properties, namedParamsMap);
         SpaceSearch spaceSearch = new SpaceSearch()
                 .setRoleId(extractedRoleId)
                 .setSpaceId(spaceId);
