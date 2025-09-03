@@ -72,25 +72,27 @@ public class TwinClassFieldPlugController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
-//    @ParametersApiUserHeaders
-//    @Operation(operationId = "twinClassFieldUnplugV1", summary = "Unplug field to twin class")
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200", description = "Unplugging field result", content = {
-//                    @Content(mediaType = "application/json", schema =
-//                    @Schema(implementation = Response.class))}),
-//            @ApiResponse(responseCode = "401", description = "Access is denied")})
-//    @PostMapping(value = "/private/twin_class_field/unplug/v1")
-//    public ResponseEntity<?> twinClassFieldPlugV1(@RequestBody TwinClassFieldUnplugRqDTOv1 request) {
-//        Response rs = new Response();
-//
-//        try {
-//
-//        } catch (ServiceException se) {
-//            return createErrorRs(se, rs);
-//        } catch (Exception e) {
-//            return createErrorRs(e, rs);
-//        }
-//
-//        return new ResponseEntity<>(rs, HttpStatus.OK);
-//    }
+    @ParametersApiUserHeaders
+    @Operation(operationId = "twinClassFieldUnplugV1", summary = "Unplug field to twin class")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Unplugging field result", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/private/twin_class_field/unplug/v1")
+    public ResponseEntity<?> twinClassFieldPlugV1(@RequestBody TwinClassFieldUnplugRqDTOv1 request) {
+        Response rs = new Response();
+
+        try {
+            List<TwinClassFieldPlugEntity> fieldsToUnplug = twinClassFieldPlugRestDTOReverseMapper.convertCollection(request.getFieldsToUnplug());
+
+            twinClassFieldPlugService.unplugFields(fieldsToUnplug);
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
 }

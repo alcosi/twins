@@ -15,6 +15,5 @@ import java.util.List;
 public class TwinClassFieldUnplugRqDTOv1 extends Request {
 
     @Schema(description = "fields to unplug")
-    private List<TwinClassFieldPlugDTOv1> fieldsToUnplug;
+    private List<TwinClassFieldPlugBaseDTOv1> fieldsToUnplug;
 }
-

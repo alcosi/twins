@@ -75,4 +75,14 @@ public class TwinClassFieldPlugService extends EntitySecureFindServiceImpl<TwinC
     public List<TwinClassFieldPlugEntity> plugFields(Collection<TwinClassFieldPlugEntity> entities) throws ServiceException {
         return StreamSupport.stream(saveSafe(entities).spliterator(), false).toList();
     }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public void unplugField(TwinClassFieldPlugEntity entity) throws ServiceException {
+        unplugFields(List.of(entity));
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public void unplugFields(Collection<TwinClassFieldPlugEntity> entities) throws ServiceException {
+//        deleteSafe(entities.stream());
+    }
 }
