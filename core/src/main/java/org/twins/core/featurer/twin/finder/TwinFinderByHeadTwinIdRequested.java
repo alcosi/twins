@@ -22,7 +22,7 @@ import java.util.UUID;
         description = "")
 public class TwinFinderByHeadTwinIdRequested extends TwinFinderRequested {
     @FeaturerParam(name = "Param key", description = "", order = 1, optional = true, defaultValue = PARAM_TWIN_ID)
-    public static final FeaturerParamString paramKey = new FeaturerParamString("paramKey");
+    public final FeaturerParamString paramKey = new FeaturerParamString("paramKey");
 
     @Override
     public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
