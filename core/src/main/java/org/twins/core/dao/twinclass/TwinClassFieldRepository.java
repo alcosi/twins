@@ -29,6 +29,10 @@ public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldE
     @Cacheable(value = CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN, key = "T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#twinClassIdList)")
     List<TwinClassFieldEntity> findByTwinClassIdIn(Set<UUID> twinClassIdList);
 
+    String CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN_AND_VISIBILITY = "TwinClassFieldRepository.findByTwinClassIdInAndTwinClassFieldVisibilityId";
+    @Cacheable(value = CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN_AND_VISIBILITY, key = "T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#twinClassIdList) + '_' + #visibility")
+    List<TwinClassFieldEntity> findByTwinClassIdInAndTwinClassFieldVisibilityId(Set<UUID> twinClassIdList, TwinClassFieldEntity.TwinClassFieldVisibility visibility);
+
     List<TwinClassFieldEntity> findByTwinClassIdOrTwinClassId(UUID twinClassId, UUID parentTwinClassId);
 
     String CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_AND_KEY = "TwinClassFieldRepository.findByTwinClassIdAndKey";
