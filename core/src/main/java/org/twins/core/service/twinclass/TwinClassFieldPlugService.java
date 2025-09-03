@@ -47,6 +47,10 @@ public class TwinClassFieldPlugService extends EntitySecureFindServiceImpl<TwinC
                     return logErrorAndReturnFalse(ErrorCodeTwins.ENTITY_INVALID.getMessage());
                 }
 
+                if (twinClassFieldPlugRepository.existsByTwinClassIdAndTwinClassFieldId(entity.getTwinClassId(), entity.getTwinClassFieldId())) {
+                    return logErrorAndReturnFalse(ErrorCodeTwins.ENTITY_ALREADY_EXIST.getMessage());
+                }
+
                 if (!twinClassRepository.existsById(entity.getTwinClassId())) {
                     return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN.getMessage());
                 }

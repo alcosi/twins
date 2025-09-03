@@ -13,4 +13,5 @@ public interface TwinClassFieldPlugRepository extends CrudRepository<TwinClassFi
 
     List<TwinClassFieldPlugEntity> findByTwinClassIdIn(Collection<UUID> twinClassIds);
     TwinClassFieldPlugEntity findByTwinClassIdAndTwinClassFieldId(UUID twinClassId, UUID twinClassFieldId);
+    boolean existsByTwinClassIdAndTwinClassFieldId(UUID twinClassId, UUID twinClassFieldId);
 }
