@@ -11,10 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.exception.ErrorCodeTwins;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -34,7 +31,7 @@ public class TwinClassFieldPlugService extends EntitySecureFindServiceImpl<TwinC
 
     @Override
     public Function<TwinClassFieldPlugEntity, UUID> entityGetIdFunction() {
-        return TwinClassFieldPlugEntity::getTwinClassFieldId;
+        return TwinClassFieldPlugEntity::getId;
     }
 
     @Override
@@ -46,20 +43,20 @@ public class TwinClassFieldPlugService extends EntitySecureFindServiceImpl<TwinC
     public boolean validateEntity(TwinClassFieldPlugEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         switch (entityValidateMode) {
             case beforeSave -> {
-                   if (entity.getTwinClassId() == null || entity.getTwinClassFieldId() == null) {
-                       return logErrorAndReturnFalse(ErrorCodeTwins.ENTITY_INVALID.getMessage());
-                   }
+                if (entity.getTwinClassId() == null || entity.getTwinClassFieldId() == null) {
+                    return logErrorAndReturnFalse(ErrorCodeTwins.ENTITY_INVALID.getMessage());
+                }
 
-                   if (!twinClassRepository.existsById(entity.getTwinClassId())) {
-                       return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN.getMessage());
-                   }
+                if (!twinClassRepository.existsById(entity.getTwinClassId())) {
+                    return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN.getMessage());
+                }
 
-                   Optional<TwinClassFieldEntity> fieldOptional = twinClassFieldRepository.findById(entity.getTwinClassFieldId());
-                   if (fieldOptional.isEmpty()) {
-                       return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_ID_UNKNOWN.getMessage());
-                   } else if (fieldOptional.get().getTwinClassFieldVisibilityId() != TwinClassFieldEntity.TwinClassFieldVisibility.PLUGGABLE) {
-                       return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_IS_NOT_PLUGGABLE.getMessage());
-                   }
+                Optional<TwinClassFieldEntity> fieldOptional = twinClassFieldRepository.findById(entity.getTwinClassFieldId());
+                if (fieldOptional.isEmpty()) {
+                    return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_ID_UNKNOWN.getMessage());
+                } else if (fieldOptional.get().getTwinClassFieldVisibilityId() != TwinClassFieldEntity.TwinClassFieldVisibility.PLUGGABLE) {
+                    return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_IS_NOT_PLUGGABLE.getMessage());
+                }
             }
         }
 
@@ -83,6 +80,23 @@ public class TwinClassFieldPlugService extends EntitySecureFindServiceImpl<TwinC
 
     @Transactional(rollbackFor = Throwable.class)
     public void unplugFields(Collection<TwinClassFieldPlugEntity> entities) throws ServiceException {
-//        deleteSafe(entities.stream());
+        if (entities == null || entities.isEmpty()) {
+            return;
+        }
+
+        List<TwinClassFieldPlugEntity> entitiesToDelete = new ArrayList<>();
+
+        for (var entity : entities) {
+            TwinClassFieldPlugEntity entityToDelete = twinClassFieldPlugRepository.findByTwinClassIdAndTwinClassFieldId(entity.getTwinClassId(), entity.getTwinClassFieldId());
+
+            if (entityToDelete != null) {
+                entitiesToDelete.add(entityToDelete);
+            } else {
+                log.info("There is no entity {}", entity.logNormal());
+                throw new ServiceException(ErrorCodeTwins.ENTITY_INVALID, getValidationErrorMessage(entity));
+            }
+        }
+
+        entitySmartService.deleteAllEntitiesAndLog(entitiesToDelete, entityRepository());
     }
 }

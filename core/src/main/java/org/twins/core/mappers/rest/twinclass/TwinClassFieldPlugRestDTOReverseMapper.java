@@ -19,11 +19,8 @@ public class TwinClassFieldPlugRestDTOReverseMapper extends RestSimpleDTOMapper<
     @Override
     public void map(TwinClassFieldPlugBaseDTOv1 src, TwinClassFieldPlugEntity dst, MapperContext mapperContext) throws Exception {
         dst
-                .setId(
-                        new TwinClassFieldPlugEntity.TwinClassFieldPlugId()
-                                .setTwinClassId(src.getTwinClassId())
-                                .setTwinClassFieldId(src.getTwinClassFieldId())
-                )
+                .setTwinClassId(src.getTwinClassId())
+                .setTwinClassFieldId(src.getTwinClassFieldId())
                 // setting references to use save method without problems
                 .setTwinClass(src.getTwinClassId() != null ? entityManager.getReference(TwinClassEntity.class, src.getTwinClassId()) : null)
                 .setTwinClassField(src.getTwinClassFieldId() != null ? entityManager.getReference(TwinClassFieldEntity.class, src.getTwinClassFieldId()) : null);

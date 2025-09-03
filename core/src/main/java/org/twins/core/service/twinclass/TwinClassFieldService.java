@@ -172,8 +172,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     private void addPluggableFields(KitGrouped<TwinClassFieldEntity, UUID, UUID> fields, List<UUID> classesWithPluggedFieldsIds) {
-        KitGrouped<TwinClassFieldPlugEntity, TwinClassFieldPlugEntity.TwinClassFieldPlugId, UUID> pluggedEntities = new KitGrouped<>(
-                twinClassFieldPlugRepository.findById_TwinClassIdIn(classesWithPluggedFieldsIds),
+        KitGrouped<TwinClassFieldPlugEntity, UUID, UUID> pluggedEntities = new KitGrouped<>(
+                twinClassFieldPlugRepository.findByTwinClassIdIn(classesWithPluggedFieldsIds),
                 TwinClassFieldPlugEntity::getId,
                 TwinClassFieldPlugEntity::getTwinClassId
         );

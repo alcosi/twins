@@ -15,12 +15,14 @@ alter table twin_class_field
 create index if not exists twin_class_field_twin_class_field_visibility_id_idx
     on twin_class_field (twin_class_field_visibility_id);
 
-
 create table if not exists twin_class_field_plug (
+    id uuid primary key,
     twin_class_id uuid not null references twin_class on update cascade on delete cascade,
-    twin_class_field_id uuid not null references twin_class_field on update cascade on delete cascade,
-    primary key (twin_class_id, twin_class_field_id)
+    twin_class_field_id uuid not null references twin_class_field on update cascade on delete cascade
 );
+
+create unique index if not exists twin_class_field_plug_twin_class_id_twin_class_field_id_uidx
+    on twin_class_field_plug (twin_class_id, twin_class_field_id);
 
 create index if not exists twin_class_field_plug_twin_class_id_idx
     on twin_class_field_plug (twin_class_id);
