@@ -31,7 +31,7 @@ public class TwinValidatorTwinHasLinkAndDstTwinHasStatus extends TwinValidator {
     public static final FeaturerParamUUID linkId = new FeaturerParamUUIDTwinsLinkId("linkId");
 
     @FeaturerParam(name = "Twin statuses", description = "", order = 2)
-    public static final FeaturerParamUUIDSet twinStatuses = new FeaturerParamUUIDSetTwinsStatusId("twinStatusIds");
+    public static final FeaturerParamUUIDSet twinStatusIds = new FeaturerParamUUIDSetTwinsStatusId("twinStatusIds");
 
     @Lazy
     @Autowired
@@ -40,7 +40,7 @@ public class TwinValidatorTwinHasLinkAndDstTwinHasStatus extends TwinValidator {
     @Override
     protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
         UUID linkIdUUID = linkId.extract(properties);
-        Set<UUID> statusIds = twinStatuses.extract(properties);
+        Set<UUID> statusIds = twinStatusIds.extract(properties);
         boolean isValid = twinLinkService.hasLink(twinEntity, linkIdUUID) && twinLinkService.dstTwinStatusIdIn(linkIdUUID, statusIds);
 
         return buildResult(
