@@ -1,0 +1,53 @@
+alter table history
+    add column if not exists notified boolean not null default false;
+alter table domain_user
+    add column if not exists subscription_enabled boolean not null default false;
+-- or add these fields to domain_subscription_event_type table ???
+alter table domain
+    add column if not exists dispatcher_featurer_id integer
+    constraint domain_dispatcher_featurer_id_fk references featurer on
+update cascade;
+alter table domain
+    add column if not exists dispatcher_featurer_params hstore;
+
+
+create table if not exists subscription_event_type
+(
+    id
+    varchar
+(
+    255
+) not null,
+    constraint subscription_event_type_pk primary key
+    );
+
+insert into subscription_event_type (id)
+values ('TWIN_UPDATED') on conflict do nothing;
+
+-- table instead of allow_client_subscribing_for_twin_cud_operations column in domain table
+create table domain_subscription_event_type
+(
+    id                         uuid    not null
+        constraint domain_subscription_event_type_pk primary key,
+    domain_id                  uuid
+        constraint domain_subscription_event_type_domain_id_fk
+            references domain on update cascade,
+    subscription_event_type_id varchar(255)
+        constraint domain_subscription_event_type_event_type_id_fk
+            references subscription_event_type on update cascade,
+    subscription_enabled       boolean not null default true,
+);
+
+create index if not exists domain_subscription_event_type_index1
+    on domain_subscription_event_type (domain_id);
+
+create index if not exists domain_subscription_event_type_index2
+    on domain_subscription_event_type (subscription_event_type_id);
+
+INSERT INTO featurer_type
+VALUES (42, 'Dispatcher', 'Dispatches messages about various events') on conflict do nothing;
+
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
+VALUES (4201, 42, 'org.twins.core.featurer.dispatcher.TwinEventDispatcher', 'twin events dispatcher', '',
+        false) on conflict (id) do nothing;
+

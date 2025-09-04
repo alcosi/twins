@@ -20,7 +20,7 @@ import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
-import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
+import org.twins.core.featurer.dispatcher.Dispatcher;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 
 import java.sql.Timestamp;
@@ -104,6 +104,13 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "user_group_manager_featurer_id")
     private Integer userGroupManagerFeaturerId;
 
+    @Column(name = "dispatcher_featurer_id")
+    private Integer dispatcherFeaturerId;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "dispatcher_featurer_params", columnDefinition = "hstore")
+    private HashMap<String, String> dispatcherFeaturerParams;
+
     @Column(name = "icon_light_resource_id")
     private UUID iconLightResourceId;
 
@@ -126,6 +133,11 @@ public class DomainEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_group_manager_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity userGroupManagerFeaturer;
+
+    @FeaturerList(type = Dispatcher.class)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "dispatcher_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity dispatcherFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "user_group_manager_params", columnDefinition = "hstore")

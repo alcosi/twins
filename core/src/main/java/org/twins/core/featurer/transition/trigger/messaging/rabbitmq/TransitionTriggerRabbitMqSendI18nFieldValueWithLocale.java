@@ -8,7 +8,6 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.i18n.I18nLocaleEntity;
@@ -21,10 +20,13 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.transition.trigger.messaging.rabbitmq.payloads.FieldTranslationInfo;
 import org.twins.core.featurer.transition.trigger.messaging.rabbitmq.payloads.RabbitMqMessagePayloadTranslation;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.rabbit.AmpqManager;
+import org.twins.core.service.rabbit.RabbitMessageSender;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -33,8 +35,7 @@ import java.util.*;
         description = "Trigger for sending translations event to rabbit")
 @RequiredArgsConstructor
 public class TransitionTriggerRabbitMqSendI18nFieldValueWithLocale extends TransitionTriggerRabbitMqConnection {
-
-    private final AmpqManager ampqManager;
+    private final RabbitMessageSender rabbitMessageSender;
 
     private final I18nLocaleRepository i18nLocaleRepository;
 
@@ -59,7 +60,7 @@ public class TransitionTriggerRabbitMqSendI18nFieldValueWithLocale extends Trans
     public static final FeaturerParamString src_locale = new FeaturerParamString("src_locale");
 
     @Override
-    public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+    public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         String sourceLanguage = src_locale.extract(properties);
 
@@ -82,10 +83,13 @@ public class TransitionTriggerRabbitMqSendI18nFieldValueWithLocale extends Trans
                 fieldsToTranslate
         );
 
-        ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(
-                TransitionTriggerRabbitMqConnection.url.extract(properties));
+        rabbitMessageSender.send(
+                url.extract(properties),
+                exchange.extract(properties),
+                queue.extract(properties),
+                payload
+        );
 
-        ampqManager.sendMessage(factory, exchange.extract(properties), queue.extract(properties), payload);
     }
 }
 

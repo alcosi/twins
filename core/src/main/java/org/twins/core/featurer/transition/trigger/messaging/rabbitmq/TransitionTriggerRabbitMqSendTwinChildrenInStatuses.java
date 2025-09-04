@@ -9,7 +9,6 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -20,7 +19,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.featurer.transition.trigger.messaging.rabbitmq.payloads.RabbitMqMessagePayloadTwin;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.rabbit.AmpqManager;
+import org.twins.core.service.rabbit.RabbitMessageSender;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.List;
@@ -36,11 +35,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TransitionTriggerRabbitMqSendTwinChildrenInStatuses extends TransitionTriggerRabbitMqConnection {
 
-    private final AmpqManager ampqManager;
+    private final RabbitMessageSender rabbitMessageSender;
 
     private final AuthService authService;
 
-    private final TwinSearchService  twinSearchService;
+    private final TwinSearchService twinSearchService;
 
     @FeaturerParam(name = "ChildrenTwinStatusIdList", description = "Twin.Status.IDs of child twin")
     public static final FeaturerParamUUIDSet childrenTwinStatusIdList = new FeaturerParamUUIDSetTwinsStatusId("childrenTwinStatusIdList");
@@ -62,7 +61,7 @@ public class TransitionTriggerRabbitMqSendTwinChildrenInStatuses extends Transit
 
 
     @Override
-    public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+    public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         BasicSearch search = new BasicSearch();
         search
@@ -75,9 +74,6 @@ public class TransitionTriggerRabbitMqSendTwinChildrenInStatuses extends Transit
         List<TwinEntity> children = twinSearchService.findTwins(search);
 
         log.debug("Sending to Rabbit");
-        ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(
-                TransitionTriggerRabbitMqConnection.url.extract(properties));
-
         RabbitMqMessagePayloadTwin payload;
         for (TwinEntity child : children) {
             payload = new RabbitMqMessagePayloadTwin(
@@ -87,7 +83,12 @@ public class TransitionTriggerRabbitMqSendTwinChildrenInStatuses extends Transit
                     apiUser.getBusinessAccountId(),
                     operation.extract(properties)
             );
-            ampqManager.sendMessage(factory, exchange.extract(properties), queue.extract(properties), payload);
+            rabbitMessageSender.send(
+                    url.extract(properties),
+                    exchange.extract(properties),
+                    queue.extract(properties),
+                    payload
+            );
         }
         log.debug("Done sending to Rabbit");
     }

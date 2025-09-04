@@ -6,18 +6,15 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.transition.trigger.messaging.rabbitmq.payloads.RabbitMqMessagePayloadTranslation;
 import org.twins.core.featurer.transition.trigger.messaging.rabbitmq.payloads.RabbitMqMessagePayloadTwin;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.rabbit.AmpqManager;
+import org.twins.core.service.rabbit.RabbitMessageSender;
 
-import java.util.Map;
 import java.util.Properties;
 
 @Service
@@ -28,7 +25,7 @@ import java.util.Properties;
 @RequiredArgsConstructor
 public class TransitionTriggerRabbitMqSendTwin extends TransitionTriggerRabbitMqConnection {
 
-    private final AmpqManager ampqManager;
+    private final RabbitMessageSender rabbitMessageSender;
 
     private final AuthService authService;
 
@@ -43,13 +40,10 @@ public class TransitionTriggerRabbitMqSendTwin extends TransitionTriggerRabbitMq
 
 
     @Override
-    public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+    public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
 
         log.debug("Sending to Rabbit");
-        ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(
-                TransitionTriggerRabbitMqConnection.url.extract(properties));
-
         RabbitMqMessagePayloadTwin payload = new RabbitMqMessagePayloadTwin(
                 twinEntity.getId(),
                 apiUser.getUserId(),
@@ -57,7 +51,12 @@ public class TransitionTriggerRabbitMqSendTwin extends TransitionTriggerRabbitMq
                 apiUser.getBusinessAccountId(),
                 operation.extract(properties)
         );
-        ampqManager.sendMessage(factory, exchange.extract(properties), queue.extract(properties), payload);
+        rabbitMessageSender.send(
+                url.extract(properties),
+                exchange.extract(properties),
+                queue.extract(properties),
+                payload
+        );
         log.debug("Done sending to Rabbit");
     }
 }

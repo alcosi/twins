@@ -360,6 +360,17 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return new HistoryItem<>(HistoryType.linkUpdated, context);
     }
 
+    public List<HistoryRepository.TwinUsersProjection> findRecentHistoryItems(Timestamp before) {
+        return historyRepository.findRecentHistoryItems(before);
+    }
+
+    /**
+     * Must be executed within a transaction as it is modifying.
+     */
+    public int updateAllNotified(Collection<UUID> ids, boolean notified) {
+        return historyRepository.updateAllNotified(ids, notified);
+    }
+
     /**
      * 2 change records will be stored. One for each twin (src and dst)
      */
@@ -423,4 +434,6 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         }
         return ret;
     }
+
+
 }
