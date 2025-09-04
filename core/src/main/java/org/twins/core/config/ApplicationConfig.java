@@ -146,32 +146,37 @@ public class ApplicationConfig {
 
     @Bean
     public TaskExecutor draftCommitExecutor(@Autowired(required = false) TaskDecorator taskDecorator) {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5); //todo move to settings
-        executor.setMaxPoolSize(10);
-        executor.setThreadNamePrefix("draftCommitExecutor-");
-        if (taskDecorator != null) executor.setTaskDecorator(taskDecorator);
-        executor.initialize();
-        return executor;
+        return createThreadPoolTaskExecutor("draftCommitExecutor-", taskDecorator, 5, 10);
+
+
     }
 
     @Bean
     public TaskExecutor draftCollectEraseScopeExecutor(@Autowired(required = false) TaskDecorator taskDecorator) {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5); //todo move to settings
-        executor.setMaxPoolSize(10);
-        executor.setThreadNamePrefix("draftCollectEraseScopeExecutor-");
-        if (taskDecorator != null) executor.setTaskDecorator(taskDecorator);
-        executor.initialize();
-        return executor;
+        return createThreadPoolTaskExecutor("draftCollectEraseScopeExecutor-", taskDecorator, 5, 10);
+
     }
 
     @Bean
     public TaskExecutor twinChangeTaskExecutor(@Autowired(required = false) TaskDecorator taskDecorator) {
+        return createThreadPoolTaskExecutor("twinChangeTaskExecutor-", taskDecorator, 5, 10);
+    }
+
+    @Bean
+    public TaskExecutor twinStatusTransitionTaskExecutor(@Autowired(required = false) TaskDecorator taskDecorator) {
+        return createThreadPoolTaskExecutor("twinStatusTransitionTaskExecutor-", taskDecorator, 5, 10);
+    }
+
+    @Bean
+    public TaskExecutor twinflowTransitionTriggerTaskExecutor(@Autowired(required = false) TaskDecorator taskDecorator) {
+        return createThreadPoolTaskExecutor("twinflowTransitionTriggerTaskExecutor-", taskDecorator, 5, 10);
+    }
+
+    private ThreadPoolTaskExecutor createThreadPoolTaskExecutor(String threadNamePrefix, TaskDecorator taskDecorator, int corePoolSize, int maxPoolSize) {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5); //todo move to settings
-        executor.setMaxPoolSize(10);
-        executor.setThreadNamePrefix("twinChangeTaskExecutor-");
+        executor.setCorePoolSize(corePoolSize); //todo move to settings
+        executor.setMaxPoolSize(maxPoolSize);
+        executor.setThreadNamePrefix(threadNamePrefix);
         if (taskDecorator != null) executor.setTaskDecorator(taskDecorator);
         executor.initialize();
         return executor;

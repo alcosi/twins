@@ -21,11 +21,11 @@ import java.util.List;
 public class TwinflowTransitionTriggerTaskScheduler {
 
     final ApplicationContext applicationContext;
-    @Qualifier("twinChangeTaskExecutor")
+    @Qualifier("twinflowTransitionTriggerTaskExecutor")
     final TaskExecutor taskExecutor;
     final TwinflowTransitionTriggerTaskRepository twinflowTransitionTriggerTaskRepository;
 
-    @Scheduled(fixedDelayString = "${draft.erase.scope.collect.scheduler.delay:2000}")
+    @Scheduled(fixedDelayString = "${twinflow.transition.trigger.task.scheduler.delay:2000}")
     public void collectChangesTasks() {
         try {
             LoggerUtils.logSession();

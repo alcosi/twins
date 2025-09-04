@@ -20,11 +20,11 @@ import java.util.List;
 @Slf4j
 public class TwinStatusTransitionTaskScheduler {
     final ApplicationContext applicationContext;
-    @Qualifier("twinChangeTaskExecutor")
+    @Qualifier("twinStatusTransitionTaskExecutor")
     final TaskExecutor taskExecutor;
     final TwinStatusTransitionTriggerTaskRepository twinStatusTransitionTaskRepository;
 
-    @Scheduled(fixedDelayString = "${draft.erase.scope.collect.scheduler.delay:2000}")
+    @Scheduled(fixedDelayString = "${twin.status.transition.task.scheduler.delay:2000}")
     public void collectChangesTasks() {
         try {
             LoggerUtils.logSession();

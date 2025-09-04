@@ -24,7 +24,7 @@ public class TwinChangeTaskScheduler {
     final TaskExecutor taskExecutor;
     final TwinChangeTaskRepository twinChangeTaskRepository;
 
-    @Scheduled(fixedDelayString = "${draft.erase.scope.collect.scheduler.delay:2000}")
+    @Scheduled(fixedDelayString = "${twin.change.task.scheduler.delay:2000}")
     public void collectChangesTasks() {
         try {
             LoggerUtils.logSession();
