@@ -314,4 +314,17 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             return;
         setFunction.accept(dbEntity, (R) updateValue);
     }
+
+    protected <T, R> void updateEntityFieldByValueIfNotNull(Object updateValue, T dbEntity, Function<T, R> getFunction, BiConsumer<T, R> setFunction, String field, ChangesHelper changesHelper) {
+        if (updateValue == null) {
+            return;
+        }
+
+        R dbValue = getFunction.apply(dbEntity);
+        if (!changesHelper.isChanged(field, dbValue, updateValue)) {
+            return;
+        }
+
+        setFunction.accept(dbEntity, (R) updateValue);
+    }
 }
