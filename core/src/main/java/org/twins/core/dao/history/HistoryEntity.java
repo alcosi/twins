@@ -52,8 +52,9 @@ public class HistoryEntity implements EasyLoggable {
     @Column(name = "snapshot_message")
     private String snapshotMessage;
 
-    @Column(name = "notified")
-    private boolean notified;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "dispatch_status")
+    private HistoryDispatchStatus dispatch_status;
 
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)

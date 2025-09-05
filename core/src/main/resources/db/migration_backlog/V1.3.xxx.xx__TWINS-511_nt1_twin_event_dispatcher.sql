@@ -1,5 +1,20 @@
+create table if not exists history_dispatch_status
+(   id varchar(20) not null,
+    constraint history_dispatch_status_pk primary key
+    );
+
+insert into history_dispatch_status (id)
+values ('NEW'),('IN_PROGRESS'),('DONE'),('FAILED') on conflict do nothing;
+
 alter table history
-    add column if not exists notified boolean not null default false;
+    add column if not exists dispatch_status varchar(20)  not null default 'NEW'
+    constraint history_dispatch_status_id_fk
+    references history_dispatch_status
+    on update cascade on delete restrict;
+
+CREATE INDEX ix_history_status_created_at_id_twin
+    ON history (dispatch_status, created_at, id, twin_id);
+
 alter table domain_user
     add column if not exists subscription_enabled boolean not null default false;
 -- or add these fields to domain_subscription_event_type table ???
@@ -12,12 +27,7 @@ alter table domain
 
 
 create table if not exists subscription_event_type
-(
-    id
-    varchar
-(
-    255
-) not null,
+(   id varchar(255) not null,
     constraint subscription_event_type_pk primary key
     );
 

@@ -37,6 +37,9 @@ public class RabbitConnectionService {
             connectionFactory.setCacheMode(CachingConnectionFactory.CacheMode.CHANNEL);
             connectionFactory.setChannelCacheSize(25);
             connectionFactory.setConnectionCacheSize(5);
+            // Enable publisher confirms and returns
+            connectionFactory.setPublisherConfirmType(CachingConnectionFactory.ConfirmType.CORRELATED);
+            connectionFactory.setPublisherReturns(true);
             return connectionFactory;
         });
     }

@@ -22,10 +22,7 @@ import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.history.HistoryEntity;
-import org.twins.core.dao.history.HistoryRepository;
-import org.twins.core.dao.history.HistoryType;
-import org.twins.core.dao.history.HistoryTypeDomainTemplateRepository;
+import org.twins.core.dao.history.*;
 import org.twins.core.dao.history.context.*;
 import org.twins.core.dao.history.context.snapshot.FieldSnapshot;
 import org.twins.core.dao.link.LinkEntity;
@@ -45,6 +42,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -364,11 +362,28 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return historyRepository.findRecentHistoryItems(before);
     }
 
+    public List<HistoryRepository.TwinUsersProjection> getHistoryItemsForDispatching(Timestamp before, int batchSize) {
+        List<HistoryRepository.PickedBatch> picked = historyRepository.pickBatch(before, batchSize);
+        Map<UUID, UUID[]> idsPerTwin =
+                picked.stream()
+                        .collect(Collectors.toMap(
+                                HistoryRepository.PickedBatch::getTwinId,
+                                HistoryRepository.PickedBatch::getHistoryIds));
+        List<HistoryRepository.TwinUsersProjection> twinUsersProjections =
+                historyRepository.findUsersForTwins(idsPerTwin.keySet());
+
+        for (HistoryRepository.TwinUsersProjection p : twinUsersProjections) {
+            ((Map<String, Object>) p).put("historyIds", idsPerTwin.get(p.getTwinId()));
+        }
+        //todo - any other way of mapping?
+        return twinUsersProjections;
+    }
+
     /**
      * Must be executed within a transaction as it is modifying.
      */
-    public int updateAllNotified(Collection<UUID> ids, boolean notified) {
-        return historyRepository.updateAllNotified(ids, notified);
+    public int updateAllNotified(Collection<UUID> ids, HistoryDispatchStatus dispatchStatus) {
+        return historyRepository.updateAllNotified(ids, dispatchStatus);
     }
 
     /**

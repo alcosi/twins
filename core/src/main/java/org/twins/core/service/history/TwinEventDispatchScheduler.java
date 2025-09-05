@@ -30,11 +30,14 @@ public class TwinEventDispatchScheduler {
     private final FeaturerService featurerService;
     private final DomainService domainService;
 
-    @Value("${history.subscription.collect.interval.milliseconds:30000}")
+    @Value("${history.subscription.collect.interval.milliseconds:10000}")
     private long collectIntervalMilliseconds;
 
+    @Value("${history.subscription.collect.batch.size:10000}")
+    private int collectBatchSize;
 
-    @Scheduled(fixedDelayString = "${history.subscription.collect.scheduler.delay:2000}")
+
+    @Scheduled(fixedDelayString = "${history.subscription.collect.scheduler.delay:10000}")
     public void collectHistoryItemsForNotification() {
         try {
             /* TODO -
@@ -43,7 +46,8 @@ public class TwinEventDispatchScheduler {
                 2. collectIntervalMilliseconds should be configurable per domain
              */
             Timestamp before = new Timestamp(System.currentTimeMillis() - collectIntervalMilliseconds);
-            List<HistoryRepository.TwinUsersProjection> twinsForNotification = historyService.findRecentHistoryItems(before);
+            List<HistoryRepository.TwinUsersProjection> twinsForNotification = historyService.getHistoryItemsForDispatching(before, collectBatchSize);
+            //todo paging???
             if (twinsForNotification.isEmpty()) {
                 log.debug("No twins for notification");
                 return;

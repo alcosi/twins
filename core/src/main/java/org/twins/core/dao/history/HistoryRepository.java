@@ -56,8 +56,55 @@ public interface HistoryRepository extends CrudRepository<HistoryEntity, UUID>, 
         java.util.UUID[] getHistoryIds();
     }
 
+    /**
+     * Picks a batch of NEW history rows, marks them IN_PROGRESS and returns per-twin aggregated ids.
+     */
     @Modifying
-    @Query("UPDATE HistoryEntity h SET h.notified = :notified WHERE h.id in (:ids) ")
-    int updateAllNotified(@Param("ids") Collection<UUID> ids, @Param("notified") boolean notified);
+    @Query(value = """
+            WITH moved AS (
+                UPDATE history
+                   SET dispatch_status = 'IN_PROGRESS'
+                 WHERE dispatch_status = 'NEW'
+                   AND created_at >= :before
+                 ORDER BY created_at
+                 LIMIT :limit
+                 RETURNING id, twin_id
+            )
+            SELECT  m.twin_id            AS twinId,
+                    t.domain_id          AS domainId,
+                    array_agg(m.id)      AS historyIds
+            FROM moved m
+            JOIN twin t ON t.id = m.twin_id
+            GROUP BY m.twin_id, t.domain_id
+            """, nativeQuery = true)
+    List<PickedBatch> pickBatch(@Param("before") Timestamp before, @Param("limit") int limit);
+
+    interface PickedBatch {
+        UUID getTwinId();
+        UUID getDomainId();
+        java.util.UUID[] getHistoryIds();
+    }
+
+    /**
+     * Returns user lists for the provided twin ids. historyIds are returned as empty array and
+     * will be filled later in service layer.
+     */
+    @Query(value = """
+            SELECT t.id AS twinId,
+                   t.domain_id AS domainId,
+                   array_agg(DISTINCT du.user_id) AS userIds,
+                   array[]::uuid[]                AS historyIds
+            FROM twin t
+            JOIN domain_user du ON du.subscription_enabled = TRUE
+                 AND du.user_id = ANY (ARRAY[t.created_by_user_id, t.assigner_user_id, t.owner_user_id])
+            WHERE t.id IN (:twinIds)
+            GROUP BY t.id, t.domain_id
+            """, nativeQuery = true)
+    List<TwinUsersProjection> findUsersForTwins(@Param("twinIds") Collection<UUID> twinIds);
+
+    @Modifying
+    @Query("UPDATE HistoryEntity h SET h.dispatch_status = :dispatchStatus WHERE h.id in (:ids) ")
+    int updateAllNotified(@Param("ids") Collection<UUID> ids, @Param("dispatchStatus") HistoryDispatchStatus dispatchStatus);
+
 
 }
