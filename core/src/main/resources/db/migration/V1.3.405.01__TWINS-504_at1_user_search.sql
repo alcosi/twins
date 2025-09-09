@@ -40,3 +40,9 @@ create index if not exists user_search_predicate_index1
 
 create index if not exists user_search_predicate_index2
     on user_search_predicate (user_search_id);
+
+INSERT INTO featurer_type (id, name, description) VALUES (42, 'UserSorter', 'Order users search') on conflict on constraint featurer_type_pk do nothing ;
+INSERT INTO featurer_type (id, name, description) VALUES (43, 'UserFinder', 'Find users') on conflict on constraint featurer_type_pk do nothing ;
+
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4201, 42, '', '', '', false) on conflict (id) do nothing ;
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4301, 43, '', '', '', false) on conflict (id) do nothing ;
