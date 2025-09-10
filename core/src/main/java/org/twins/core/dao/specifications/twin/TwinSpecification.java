@@ -178,11 +178,11 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
             List<Predicate> predicatesAny = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search.getValueLikeAnyOfList()))
                 for (String value : search.getValueLikeAnyOfList())
-                    predicatesAny.add(cb.like(fieldExpression, value));
+                    predicatesAny.add(cb.like(fieldExpression, value, escapeChar));
             List<Predicate> predicatesAll = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search.getValueLikeAllOfList()))
                 for (String value : search.getValueLikeAllOfList())
-                    predicatesAll.add(cb.like(fieldExpression, value));
+                    predicatesAll.add(cb.like(fieldExpression, value, escapeChar));
 
             Predicate include;
             if (!predicatesAny.isEmpty() && !predicatesAll.isEmpty())
@@ -198,11 +198,11 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
             List<Predicate> excludePredicatesAny = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search.getValueLikeNoAnyOfList()))
                 for (String value : search.getValueLikeNoAnyOfList())
-                    excludePredicatesAny.add(cb.notLike(fieldExpression, value));
+                    excludePredicatesAny.add(cb.notLike(fieldExpression, value, escapeChar));
             List<Predicate> excludePredicatesAll = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search.getValueLikeNoAllOfList()))
                 for (String value : search.getValueLikeNoAllOfList())
-                    excludePredicatesAll.add(cb.notLike(fieldExpression, value));
+                    excludePredicatesAll.add(cb.notLike(fieldExpression, value, escapeChar));
 
             Predicate exclude;
             if (!excludePredicatesAny.isEmpty() && !excludePredicatesAll.isEmpty())
