@@ -114,9 +114,9 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         userGroupService.enterGroup(UserGroup.DOMAIN_ADMIN.uuid);
         return processIcons(domainEntity, lightIcon, darkIcon);
     }
-    
+
     @Transactional(rollbackFor = Throwable.class)
-    public DomainEntity updateDomain(DomainEntity updateEntity) throws ServiceException {
+    public DomainEntity updateDomain(DomainEntity updateEntity, DomainFile lightIcon, DomainFile darkIcon) throws ServiceException {
         DomainEntity dbEntity = findEntitySafe(authService.getApiUser().getDomainId());
         ChangesHelper changesHelper = new ChangesHelper();
         updateEntityFieldByEntity(updateEntity, dbEntity, DomainEntity::getName, DomainEntity::setName,
@@ -151,6 +151,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         updateUserGroupManagerFeaturerId(dbEntity, updateEntity.getUserGroupManagerFeaturerId(), updateEntity.getUserGroupManagerParams(), changesHelper);
 
         updateSafe(dbEntity, changesHelper);
+        processIcons(dbEntity, lightIcon, darkIcon);
         return dbEntity;
     }
 

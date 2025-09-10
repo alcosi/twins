@@ -77,7 +77,6 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
         if (SystemEntityService.USER_SEARCH_UNLIMITED.equals(searchId)) {
             return findUsers(narrowSearch, pagination);
         }
-
         UserSearchEntity searchEntity = findEntitySafe(searchId);
         UserSearch mainSearch = new UserSearch();
         List<UserSearchPredicateEntity> searchPredicates = userSearchPredicateRepository.findByUserSearchId(searchEntity.getId());
