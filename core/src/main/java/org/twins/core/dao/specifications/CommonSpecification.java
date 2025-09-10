@@ -30,6 +30,9 @@ import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
 
 @Slf4j
 public class CommonSpecification<T> extends AbstractSpecification<T> {
+
+    public static final Character escapeChar = '\\';
+
     /**
      * Generates a Specification to check hierarchy of child elements based on the given parameters.
      * The method supports filtering based on a list of UUIDs, negating the condition,
@@ -428,7 +431,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                 return cb.conjunction();
 
             List<Predicate> predicates = search.stream().map(name -> {
-                Predicate predicate = cb.like(cb.lower(getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, fieldPath)), name.toLowerCase());
+                Predicate predicate = cb.like(cb.lower(getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, fieldPath)), name.toLowerCase(), escapeChar);
                 if (not) predicate = cb.not(predicate);
                 return predicate;
             }).toList();
