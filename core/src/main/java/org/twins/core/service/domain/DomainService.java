@@ -27,6 +27,7 @@ import org.twins.core.domain.attachment.AttachmentQuotas;
 import org.twins.core.domain.file.DomainFile;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
+import org.twins.core.featurer.dispatcher.Dispatcher;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.service.auth.AuthService;
@@ -149,6 +150,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                 DomainEntity.Fields.navbarFaceId, changesHelper);
         updateBusinessAccountInitiatorFeaturerId(dbEntity, updateEntity.getBusinessAccountInitiatorFeaturerId(), updateEntity.getBusinessAccountInitiatorParams(), changesHelper);
         updateUserGroupManagerFeaturerId(dbEntity, updateEntity.getUserGroupManagerFeaturerId(), updateEntity.getUserGroupManagerParams(), changesHelper);
+        updateDispatcherFeaturerId(dbEntity, updateEntity.getDispatcherFeaturerId(), updateEntity.getDispatcherFeaturerParams(), changesHelper);
 
         updateSafe(dbEntity, changesHelper);
         return dbEntity;
@@ -192,6 +194,27 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
             changesHelper.add(DomainEntity.Fields.userGroupManagerParams, dbDomainEntity.getUserGroupManagerParams(), newFeaturerParams);
             dbDomainEntity
                     .setUserGroupManagerParams(newFeaturerParams);
+        }
+    }
+
+    public void updateDispatcherFeaturerId(DomainEntity dbDomainEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
+        if (newFeaturerId == null || newFeaturerId == 0) {
+            if (MapUtils.isEmpty(newFeaturerParams))
+                return; // nothing was changed
+            else
+                newFeaturerId = dbDomainEntity.getDispatcherFeaturerId(); // only params were changed
+        }
+        if (changesHelper.isChanged(DomainEntity.Fields.dispatcherFeaturerId, dbDomainEntity.getDispatcherFeaturerId(), newFeaturerId)) {
+            FeaturerEntity newDispatcherFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, Dispatcher.class);
+            dbDomainEntity
+                    .setDispatcherFeaturerId(newDispatcherFeaturer.getId())
+                    .setDispatcherFeaturer(newDispatcherFeaturer);
+        }
+        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
+        if (!MapUtils.areEqual(dbDomainEntity.getDispatcherFeaturerParams(), newFeaturerParams)) {
+            changesHelper.add(DomainEntity.Fields.dispatcherFeaturerParams, dbDomainEntity.getDispatcherFeaturerParams(), newFeaturerParams);
+            dbDomainEntity
+                    .setDispatcherFeaturerParams(newFeaturerParams);
         }
     }
 
