@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -40,11 +41,13 @@ public class AuthRefreshController extends ApiController {
                     @Schema(implementation = AuthRefreshRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/auth/refresh/v1")
-    public ResponseEntity<?> authRefreshV1(@RequestBody AuthRefreshRqDTOv1 request) {
+    public ResponseEntity<?> authRefreshV1(@RequestBody AuthRefreshRqDTOv1 request, HttpServletResponse servletResponse) {
         AuthRefreshRsDTOv1 rs = new AuthRefreshRsDTOv1();
         try {
             ClientSideAuthData clientSideAuthData = identityProviderService.refresh(request.getRefreshToken());
             rs.setAuthData(clientSideAuthDataRestDTOMapper.convert(clientSideAuthData));
+            clientSideAuthData.addToResponse(servletResponse);
+
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -61,11 +64,12 @@ public class AuthRefreshController extends ApiController {
                     @Schema(implementation = AuthRefreshRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/auth/refresh/v2")
-    public ResponseEntity<?> authRefreshV2(@RequestBody AuthRefreshRqDTOv2 request) {
+    public ResponseEntity<?> authRefreshV2(@RequestBody AuthRefreshRqDTOv2 request, HttpServletResponse servletResponse) {
         AuthRefreshRsDTOv1 rs = new AuthRefreshRsDTOv1();
         try {
             ClientSideAuthData clientSideAuthData = identityProviderService.refresh(request.getRefreshToken(), request.getFingerprint());
             rs.setAuthData(clientSideAuthDataRestDTOMapper.convert(clientSideAuthData));
+            clientSideAuthData.addToResponse(servletResponse);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
