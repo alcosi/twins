@@ -51,7 +51,7 @@ public class AuthLoginController extends ApiController {
             authService.getApiUser().setAnonymousWithDefaultLocale();
             ClientSideAuthData clientSideAuthData = identityProviderService.login(authLoginRestDTOReverseMapper.convert(request));
             rs.setAuthData(clientSideAuthDataRestDTOMapper.convert(clientSideAuthData));
-            clientSideAuthData.addToResponse(servletResponse);
+            clientSideAuthData.addCookiesToResponse(servletResponse);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

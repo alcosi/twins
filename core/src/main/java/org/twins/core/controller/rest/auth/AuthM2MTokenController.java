@@ -55,7 +55,7 @@ public class AuthM2MTokenController extends ApiController {
             rs
                     .setAuthData(clientSideAuthDataRestDTOMapper.convert(m2MAuthData.getClientSideAuthData()))
                     .setActAsUserPublicKey(cryptKeyRestDTOMapper.convert(m2MAuthData.getActAsUserKey()));
-            m2MAuthData.getClientSideAuthData().addToResponse(servletResponse);
+            m2MAuthData.getClientSideAuthData().addCookiesToResponse(servletResponse);
 
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -81,7 +81,7 @@ public class AuthM2MTokenController extends ApiController {
             rs
                     .setAuthData(clientSideAuthDataRestDTOMapper.convert(m2MAuthData.getClientSideAuthData()))
                     .setActAsUserPublicKey(cryptKeyRestDTOMapper.convert(m2MAuthData.getActAsUserKey()));
-            m2MAuthData.getClientSideAuthData().addToResponse(servletResponse);
+            m2MAuthData.getClientSideAuthData().addCookiesToResponse(servletResponse);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

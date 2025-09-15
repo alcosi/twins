@@ -46,7 +46,7 @@ public class AuthRefreshController extends ApiController {
         try {
             ClientSideAuthData clientSideAuthData = identityProviderService.refresh(request.getRefreshToken());
             rs.setAuthData(clientSideAuthDataRestDTOMapper.convert(clientSideAuthData));
-            clientSideAuthData.addToResponse(servletResponse);
+            clientSideAuthData.addCookiesToResponse(servletResponse);
 
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -69,7 +69,7 @@ public class AuthRefreshController extends ApiController {
         try {
             ClientSideAuthData clientSideAuthData = identityProviderService.refresh(request.getRefreshToken(), request.getFingerprint());
             rs.setAuthData(clientSideAuthDataRestDTOMapper.convert(clientSideAuthData));
-            clientSideAuthData.addToResponse(servletResponse);
+            clientSideAuthData.addCookiesToResponse(servletResponse);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

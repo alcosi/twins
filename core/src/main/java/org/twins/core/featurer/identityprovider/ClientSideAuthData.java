@@ -58,7 +58,7 @@ public class ClientSideAuthData extends HashMap<String, String> {
                 .collect(Collectors.toList());
     }
 
-    public HttpServletResponse addToResponse(HttpServletResponse response) {
+    public HttpServletResponse addCookiesToResponse(HttpServletResponse response) {
         List<Cookie> cookies = getCookies();
         cookies.forEach(response::addCookie);
         return response;
