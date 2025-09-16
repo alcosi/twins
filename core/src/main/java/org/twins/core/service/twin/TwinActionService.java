@@ -18,6 +18,7 @@ import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinActionValidatorRuleRepository;
 import org.twins.core.dao.validator.TwinValidatorEntity;
+import org.twins.core.dao.validator.TwinValidatorRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.validator.TwinValidator;
@@ -32,6 +33,7 @@ import java.util.*;
 public class TwinActionService {
     final TwinActionPermissionRepository twinActionPermissionRepository;
     final TwinActionValidatorRuleRepository twinActionValidatorRuleRepository;
+    final TwinValidatorRepository twinValidatorRepository;
     private final EntitySmartService entitySmartService;
     final TwinRepository twinRepository;
     @Lazy
@@ -113,7 +115,7 @@ public class TwinActionService {
             }
         }
         if (!needLoadByValidators.isEmpty()) {
-            List<TwinActionValidatorRuleEntity> twinClassActionValidatorEntities = twinActionValidatorRuleRepository.findByTwinClassIdIn(needLoadByPermissions.keySet());
+            List<TwinActionValidatorRuleEntity> twinClassActionValidatorEntities = twinActionValidatorRuleRepository.findByTwinClassIdIn(needLoadByValidators.keySet());
             KitGrouped<TwinActionValidatorRuleEntity, UUID, UUID> actionGroupedByClass = new KitGrouped<>(twinClassActionValidatorEntities, TwinActionValidatorRuleEntity::getId, TwinActionValidatorRuleEntity::getTwinClassId);
             for (TwinClassEntity twinClassEntity : needLoadByValidators.values()) {
                 twinClassEntity.setActionsProtectedByValidatorRules(new KitGrouped<>(actionGroupedByClass.getGrouped(twinClassEntity.getId()), TwinActionValidatorRuleEntity::getId, TwinActionValidatorRuleEntity::getTwinAction));
