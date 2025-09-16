@@ -31,13 +31,13 @@ public class TwinPointerValidatorRuleEntity implements ContainsTwinValidatorSet,
     @JoinColumn(name = "twin_pointer_id", insertable = false, updatable = false)
     private TwinPointerEntity twinPointer;
 
-    @Transient
-    private TwinValidatorSetEntity twinValidatorSet;
-
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_validator_set_id", referencedColumnName = "twin_validator_set_id", insertable = false, updatable = false)
     @BatchSize(size = 20)
     private Set<TwinValidatorEntity> twinValidators;
+
+    @Transient
+    private TwinValidatorSetEntity twinValidatorSet;
 
     @Override
     public String easyLog(Level level) {

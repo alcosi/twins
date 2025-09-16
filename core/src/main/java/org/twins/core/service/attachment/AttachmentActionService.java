@@ -20,6 +20,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.validator.TwinValidatorService;
 
 import java.util.*;
 
@@ -36,6 +37,8 @@ public class AttachmentActionService {
     final PermissionService permissionService;
     @Lazy
     final FeaturerService featurerService;
+    @Lazy
+    private final TwinValidatorService twinValidatorService;
 
     public void loadAttachmentActions(TwinAttachmentEntity twinAttachment) throws ServiceException {
         if (twinAttachment.getAttachmentActions() != null)
@@ -144,7 +147,7 @@ public class AttachmentActionService {
             ));
     }
 
-    public void loadClassAttachmentActionsAlienProtected(Collection<TwinClassEntity> twinClassCollection) {
+    public void loadClassAttachmentActionsAlienProtected(Collection<TwinClassEntity> twinClassCollection) throws ServiceException {
         Map<UUID, TwinClassEntity> needLoadByPermissions = new HashMap<>();
         Map<UUID, TwinClassEntity> needLoadByValidators = new HashMap<>();
         for (TwinClassEntity twinClassEntity : twinClassCollection) {
@@ -169,6 +172,7 @@ public class AttachmentActionService {
         if (MapUtils.isNotEmpty(needLoadByValidators)) {
             List<TwinAttachmentActionAlienValidatorRuleEntity> twinClassAttachmentActionValidatorEntities =
                     twinAttachmentActionAlienValidatorRuleRepository.findByTwinClassIdIn(needLoadByValidators.keySet());
+            twinValidatorService.initializeValidatorCollections(twinClassAttachmentActionValidatorEntities);
             KitGrouped<TwinAttachmentActionAlienValidatorRuleEntity, UUID, UUID> attachmentActionGroupedByClass =
                     new KitGrouped<>(twinClassAttachmentActionValidatorEntities,
                             TwinAttachmentActionAlienValidatorRuleEntity::getId,
