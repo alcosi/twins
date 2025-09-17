@@ -1,0 +1,108 @@
+package org.twins.core.dao.twinclass;
+
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
+import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.Type;
+
+import java.util.HashMap;
+import java.util.UUID;
+
+/**
+ * Single comparison that belongs to a {@link TwinClassFieldRuleEntity}.
+ * <p>
+ * All conditions with the same {@link #groupNo} are combined with logical AND, different groups are OR-ed.
+ * Grouping allows you to build complex logical expressions with brackets.
+ * </p>
+ */
+@Entity
+@Table(name = "twin_class_field_condition")
+@Data
+@Accessors(chain = true)
+@FieldNameConstants
+public class TwinClassFieldConditionEntity implements EasyLoggable {
+
+    /**
+     * Primary key
+     */
+    @Id
+    @GeneratedValue(generator = "uuid")
+    private UUID id;
+
+    /**
+     * Parent rule
+     */
+    @Column(name = "twin_class_field_rule_id")
+    private UUID ruleId;
+
+    /**
+     * Base field we compare against.
+     */
+    @Column(name = "base_twin_class_field_id")
+    private UUID baseTwinClassFieldId;
+
+    /**
+     * Order of the condition inside the rule (is used only for readability/UI)
+     */
+    @Column(name = "condition_order")
+    private Integer conditionOrder;
+
+    /**
+     * Group number – conditions with the same group are AND-ed, different groups OR-ed
+     */
+    @Column(name = "group_no")
+    private Integer groupNo = 1;
+
+    /**
+     * Comparison operator
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "condition_operator")
+    private TwinClassFieldConditionOperator conditionOperator;
+
+    /**
+     * Value we compare base field with
+     */
+    @Column(name = "cmp_value")
+    private String cmpValue;
+
+    /**
+     * Optional additional comparison parameters
+     */
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "cmp_params", columnDefinition = "hstore")
+    private HashMap<String, String> cmpParams;
+
+    /**
+     * Part of a base field that should be evaluated
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "evaluated_element")
+    private TwinClassFieldConditionElementType evaluatedElement;
+
+    /**
+     * Parameter key that should be evaluated
+     */
+    @Column(name = "evaluated_param_key")
+    private String evaluatedParamKey;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rule_id", insertable = false, updatable = false)
+    private TwinClassFieldRuleEntity rule;
+
+    @Override
+    public String easyLog(Level level) {
+        return switch (level) {
+            case SHORT -> "twinClassFieldCondition[" + id + "]";
+            default ->
+                    "twinClassFieldCondition[id:" + id + ", ruleId:" + ruleId + ", baseFieldId:" + baseTwinClassFieldId + "]";
+        };
+    }
+}
