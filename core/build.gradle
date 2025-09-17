@@ -226,7 +226,7 @@ def dtoJavadocJar = tasks.register('stubJavadocJar', Jar) {
     from("$buildDir/stub-javadoc")
 }
 
-if (project.hasProperty("signing")) {
+if (project.hasProperty("dto_maven_publication")) {
     centralPortal {
         signing {
             useGpgCmd()
