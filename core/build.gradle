@@ -187,7 +187,7 @@ publishing {
     }
 }
 
-def dtoVersion = '1.3.411'
+def dtoVersion = '1.3.415'
 
 def dtoJar = tasks.register('dtoJar', Jar) {
     group = 'build'
