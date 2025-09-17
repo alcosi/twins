@@ -226,43 +226,44 @@ def dtoJavadocJar = tasks.register('stubJavadocJar', Jar) {
     from("$buildDir/stub-javadoc")
 }
 
-
-centralPortal {
-    signing {
-        useGpgCmd()
-        sign(dtoJar.get())
-        sign(dtoSourcesJar.get())
-        sign(dtoJavadocJar.get())
-    }
-    group = "com.alcosi.twins"
-    version = dtoVersion
-    jarTask = dtoJar.get()
-    sourcesJarTask = dtoSourcesJar.get()
-    javadocJarTask = dtoJavadocJar.get()
-    pom {
-        packaging = "jar"
-        name.set("twins-core-dto")
-        var repositoryName = "alcosi/twins"
-        url.set("https://github.com/${repositoryName}")
-        description.set("Data Transfer Objects (DTO) for the Twins Core project.",
-        )
-        licenses {
-            license {
-                name.set("Apache License 2.0")
-                url.set("https://www.apache.org/licenses/LICENSE-2.0")
-            }
+if (project.hasProperty("signing")) {
+    centralPortal {
+        signing {
+            useGpgCmd()
+            sign(dtoJar.get())
+            sign(dtoSourcesJar.get())
+            sign(dtoJavadocJar.get())
         }
-        scm {
-            connection.set("scm:https://github.com/${repositoryName}.git")
-            developerConnection.set("scm:git@github.com:${repositoryName}.git")
+        group = "com.alcosi.twins"
+        version = dtoVersion
+        jarTask = dtoJar.get()
+        sourcesJarTask = dtoSourcesJar.get()
+        javadocJarTask = dtoJavadocJar.get()
+        pom {
+            packaging = "jar"
+            name.set("twins-core-dto")
+            var repositoryName = "alcosi/twins"
             url.set("https://github.com/${repositoryName}")
-        }
-        developers {
-            developer {
-                id.set("Twins team")
-                name.set("Twins team")
-                email.set("a.kuzniatsou@alcosi.eu")
+            description.set("Data Transfer Objects (DTO) for the Twins Core project.",
+            )
+            licenses {
+                license {
+                    name.set("Apache License 2.0")
+                    url.set("https://www.apache.org/licenses/LICENSE-2.0")
+                }
+            }
+            scm {
+                connection.set("scm:https://github.com/${repositoryName}.git")
+                developerConnection.set("scm:git@github.com:${repositoryName}.git")
                 url.set("https://github.com/${repositoryName}")
+            }
+            developers {
+                developer {
+                    id.set("Twins team")
+                    name.set("Twins team")
+                    email.set("a.kuzniatsou@alcosi.eu")
+                    url.set("https://github.com/${repositoryName}")
+                }
             }
         }
     }
