@@ -183,11 +183,11 @@ tasks.named('test') {
 
 //publishing {
 //    publications {
-         nothing for root и core
+//         nothing for root и core
 //    }
 //}
 
-def dtoVersion = '1.3.415'
+def dtoVersion = '1.3.416'
 
 def dtoJar = tasks.register('dtoJar', Jar) {
     group = 'build'
