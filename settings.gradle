@@ -8,5 +8,6 @@
  */
 
 rootProject.name = 'Twins'
+//rootProject.name = 'twins-core-dto'
 include('core')
 project(':core').name = 'twins-core'
