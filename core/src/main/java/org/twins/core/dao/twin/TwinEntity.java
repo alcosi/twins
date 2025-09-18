@@ -24,6 +24,7 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinAttachmentsCount;
+import org.twins.core.domain.enum_.twin.TwinAliasType;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.link.TwinLinkService;

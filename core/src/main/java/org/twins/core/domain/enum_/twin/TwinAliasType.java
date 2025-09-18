@@ -1,4 +1,4 @@
-package org.twins.core.dao.twin;
+package org.twins.core.domain.enum_.twin;
 
 
 public enum TwinAliasType {
