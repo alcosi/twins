@@ -137,7 +137,7 @@ jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes(
-                'Main-Class': "org.twins.core.Application",
+                'Main-Class': 'org.twins.core.Application',
                 'Built-By': System.properties['user.name'],
                 'Build-Timestamp': new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()),
                 'Build-Revision': versioning.info.commit ?: 'unknown',
@@ -151,6 +151,10 @@ jar {
 
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    } {
+        exclude 'META-INF/*.SF'
+        exclude 'META-INF/*.DSA'
+        exclude 'META-INF/*.RSA'
     }
 }
 
