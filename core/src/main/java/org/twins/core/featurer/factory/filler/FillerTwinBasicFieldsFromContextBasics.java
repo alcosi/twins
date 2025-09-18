@@ -11,11 +11,11 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.TwinBasicFields;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamBasicsSetTwinBasicField;
+import org.twins.core.service.user.UserService;
 
 import java.util.*;
 
@@ -31,7 +31,7 @@ public class FillerTwinBasicFieldsFromContextBasics extends Filler {
 
     @Lazy
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
@@ -48,7 +48,7 @@ public class FillerTwinBasicFieldsFromContextBasics extends Filler {
                 needLoad.add(outputTwinEntity.getAssignerUserId());
 
             if (CollectionUtils.isNotEmpty(needLoad))
-                loadedUsersKit.addAll(userRepository.findByIdIn(needLoad));
+                loadedUsersKit.addAll(userService.findEntitiesSafe(needLoad));
 
             if (fieldsString.contains(TwinBasicFields.Basics.createdByUserId)) {
                 outputTwinEntity
