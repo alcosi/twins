@@ -8,6 +8,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.specifications.CommonSpecification;
+import org.twins.core.domain.enum_.twinclass.OwnerType;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.ArrayList;
@@ -49,11 +50,11 @@ public class TwinClassSpecification extends CommonSpecification<TwinClassEntity>
         };
     }
 
-    public static Specification<TwinClassEntity> checkOwnerTypeIn(final Collection<TwinClassEntity.OwnerType> ownerTypes, final boolean not) {
+    public static Specification<TwinClassEntity> checkOwnerTypeIn(final Collection<OwnerType> ownerTypes, final boolean not) {
         return (root, query, cb) -> {
             ArrayList<Predicate> predicates = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(ownerTypes)) {
-                for (TwinClassEntity.OwnerType ownerType : ownerTypes) {
+                for (OwnerType ownerType : ownerTypes) {
                     Predicate predicate = cb.equal(root.get(TwinClassEntity.Fields.ownerType), ownerType);
                     if (not) predicate = cb.not(predicate);
                     predicates.add(predicate);
@@ -64,7 +65,7 @@ public class TwinClassSpecification extends CommonSpecification<TwinClassEntity>
     }
 
     //todo maybe delete
-    public static Specification<TwinClassEntity> hasOwnerType(TwinClassEntity.OwnerType ownerType) {
+    public static Specification<TwinClassEntity> hasOwnerType(OwnerType ownerType) {
         return (root, query, cb) -> {
             if (ownerType == null) {
                 return cb.conjunction();

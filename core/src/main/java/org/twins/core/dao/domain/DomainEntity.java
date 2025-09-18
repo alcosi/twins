@@ -20,7 +20,8 @@ import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
-import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
+import org.twins.core.domain.enum_.domain.DomainStatus;
+import org.twins.core.domain.enum_.domain.DomainType;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 
 import java.sql.Timestamp;

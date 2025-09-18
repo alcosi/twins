@@ -22,13 +22,11 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
-import org.twins.core.dao.datalist.DataListEntity;
-import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.datalist.DataListOptionRepository;
-import org.twins.core.dao.datalist.DataListRepository;
+import org.twins.core.dao.datalist.*;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.domain.enum_.datalist.Status;
+import org.twins.core.domain.enum_.i18n.I18nType;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListAttribute;
@@ -341,7 +339,7 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
                 DataListOptionEntity newOption = new DataListOptionEntity();
                 newOption.setOption(optionName);
                 newOption.setBusinessAccountId(businessAccountId);
-                newOption.setStatus(DataListOptionEntity.Status.active);
+                newOption.setStatus(Status.active);
                 newOption.setDataListId(dataListId);
                 optionsForSave.add(newOption);
             }

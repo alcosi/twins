@@ -1,4 +1,4 @@
-package org.twins.core.dao.draft;
+package org.twins.core.domain.enum_.draft;
 
 import lombok.Getter;
 

@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.config.i18n.I18nProperties;
 import org.twins.core.dao.i18n.*;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.enum_.i18n.I18nType;
 import org.twins.core.exception.i18n.ErrorCodeI18n;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;

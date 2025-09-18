@@ -3,8 +3,7 @@ package org.twins.face.dto.rest.twidget.tw006;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.action.TwinAction;
-import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.domain.enum_.action.TwinAction;
 
 import java.util.UUID;
 

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.enum_.twinclass.OwnerType;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 
@@ -48,7 +48,7 @@ public class TwinClassBaseDTOv1 {
     public UUID tagsDataListId;
 
     @Schema(description = "twin class owner type")
-    public TwinClassEntity.OwnerType ownerType;
+    public OwnerType ownerType;
 
     @Schema(description = "extends class id or empty if class is not linked to any classes")
     public UUID extendsClassId;

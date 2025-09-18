@@ -3,6 +3,7 @@ package org.twins.core.dao.attachment;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.domain.enum_.attachment.AttachmentFileCreateUpdateProblem;
 
 @EqualsAndHashCode(callSuper = true)
 @Data

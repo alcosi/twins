@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
-import org.twins.core.dao.comment.TwinCommentAction;
+import org.twins.core.domain.enum_.comment.TwinCommentAction;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.comment.TwinCommentRepository;
 import org.twins.core.dao.twin.TwinEntity;

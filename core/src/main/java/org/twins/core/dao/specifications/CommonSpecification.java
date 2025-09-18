@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 import static org.cambium.common.util.ArrayUtils.concatArray;
 import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
-import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
+import static org.twins.core.domain.enum_.twinclass.OwnerType.*;
 
 @Slf4j
 public class CommonSpecification<T> extends AbstractSpecification<T> {

@@ -20,10 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.*;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.resource.StorageEntity;
-import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.enum_.twinclass.OwnerType;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.attachment.AttachmentQuotas;
+import org.twins.core.domain.enum_.domain.DomainStatus;
 import org.twins.core.domain.file.DomainFile;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
@@ -262,7 +263,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         return domainEntity.getDomainTypeEntity();
     }
 
-    public TwinClassEntity.OwnerType checkDomainSupportedTwinClassOwnerType(DomainEntity domainEntity, TwinClassEntity.OwnerType ownerType) throws ServiceException {
+    public OwnerType checkDomainSupportedTwinClassOwnerType(DomainEntity domainEntity, OwnerType ownerType) throws ServiceException {
         DomainTypeEntity domainTypeEntity = loadDomainType(domainEntity);
         DomainInitiator domainInitiator = featurerService.getFeaturer(domainTypeEntity.getDomainInitiatorFeaturer(), DomainInitiator.class);
         if (ownerType != null) {

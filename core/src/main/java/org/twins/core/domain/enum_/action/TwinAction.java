@@ -1,4 +1,4 @@
-package org.twins.core.dao.action;
+package org.twins.core.domain.enum_.action;
 
 public enum TwinAction {
     EDIT,

@@ -10,7 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.domain.DomainType;
+import org.twins.core.domain.enum_.domain.DomainType;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.domain.DomainUserRepository;
 import org.twins.core.dao.user.UserEntity;

@@ -1,4 +1,4 @@
-package org.twins.core.dao.twinflow;
+package org.twins.core.domain.enum_.twinflow;
 
 import lombok.Getter;
 

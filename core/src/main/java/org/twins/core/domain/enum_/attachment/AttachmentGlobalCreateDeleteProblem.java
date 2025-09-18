@@ -1,4 +1,4 @@
-package org.twins.core.dao.attachment;
+package org.twins.core.domain.enum_.attachment;
 
 public enum AttachmentGlobalCreateDeleteProblem {
     MIN_COUNT_NOT_REACHED,

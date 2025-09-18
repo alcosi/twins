@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.Ternary;
-import org.twins.core.dao.factory.TwinFactoryEraserEntity;
+import org.twins.core.domain.enum_.factory.Action;
 
 import java.util.Set;
 import java.util.UUID;
@@ -24,7 +24,7 @@ public class FactoryEraserSearch {
     private Ternary conditionInvert;
     private Set<String> descriptionLikeList;
     private Set<String> descriptionNotLikeList;
-    private Set<TwinFactoryEraserEntity.Action> eraseActionLikeList;
-    private Set<TwinFactoryEraserEntity.Action> eraseActionNotLikeList;
+    private Set<Action> eraseActionLikeList;
+    private Set<Action> eraseActionNotLikeList;
     private Ternary active;
 }

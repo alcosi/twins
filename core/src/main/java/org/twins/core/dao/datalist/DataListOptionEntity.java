@@ -3,15 +3,14 @@ package org.twins.core.dao.datalist;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.domain.enum_.datalist.Status;
 
-import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -102,23 +101,6 @@ public class DataListOptionEntity implements EasyLoggable {
 //    @ManyToOne(fetch = FetchType.EAGER)
 //    @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)
 //    private I18nEntity optionI18n;
-
-    @Getter
-    public enum Status {
-        active("active"),
-        disabled("disabled"),
-        hidden("hidden");
-
-        private final String id;
-
-        Status(String id) {
-            this.id = id;
-        }
-
-        public static Status valueOd(String type) {
-            return Arrays.stream(Status.values()).filter(t -> t.id.equals(type)).findAny().orElse(active);
-        }
-    }
 
     public String easyLog(Level level) {
         return switch (level) {

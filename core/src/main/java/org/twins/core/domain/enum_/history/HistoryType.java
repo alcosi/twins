@@ -1,4 +1,4 @@
-package org.twins.core.dao.history;
+package org.twins.core.domain.enum_.history;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
