@@ -5,8 +5,6 @@ plugins {
     id 'org.springframework.boot' version '3.5.3'
     id 'net.nemerosa.versioning' version '3.1.0'
     id 'com.bmuschko.docker-remote-api' version '9.3.4'
-    id 'signing'
-    id("net.thebugmc.gradle.sonatype-central-portal-publisher") version "1.2.4"
 }
 
 
@@ -164,7 +162,7 @@ task createManifest { //task for manifest.mf file creation on local run from IDE
             manifestDir.mkdirs()
         }
         manifestFile.text =
-"""Main-Class: org.twins.core.Application
+                """Main-Class: org.twins.core.Application
 Built-By: ${System.properties['user.name']}
 Build-Timestamp: ${new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date())}
 Build-Revision: ${versioning.info.commit}
@@ -180,97 +178,3 @@ Build-OS: ${System.properties['os.name']} ${System.properties['os.arch']} ${Syst
 tasks.named('test') {
     useJUnitPlatform()
 }
-
-//publishing {
-//    publications {
-//         nothing for root и core
-//    }
-//}
-
-def dtoVersion = '1.3.416'
-
-def dtoJar = tasks.register('dtoJar', Jar) {
-    group = 'build'
-    description = 'DTO JAR'
-    dependsOn(tasks.named('classes'))
-    archiveBaseName.set('twins-core-dto')
-    archiveVersion.set(dtoVersion)
-    from(sourceSets.main.output) {
-        include 'org/twins/core/dto/**'
-    }
-}
-
-def dtoSourcesJar = tasks.register('dtoSourcesJar', Jar) {
-    group = 'build'
-    description = 'DTO sources JAR'
-    archiveBaseName.set('twins-core-dto')
-    archiveClassifier.set('sources')
-    archiveVersion.set(dtoVersion)
-    from('src/main/java') {
-        include 'org/twins/core/dto/**'
-    }
-}
-
-tasks.withType(Javadoc).configureEach { enabled = false }
-def dtoJavadocJar = tasks.register('stubJavadocJar', Jar) {
-    group = 'build'
-    description = 'Stub Javadoc JAR'
-    archiveBaseName.set('twins-core-dto')
-    archiveClassifier.set('javadoc')
-    archiveVersion.set(dtoVersion)
-    doFirst {
-        def dir = file("$buildDir/stub-javadoc")
-        dir.mkdirs()
-        file("$dir/README.txt").text = "Stub Javadoc for twins-core-dto v${dtoVersion}"
-    }
-    from("$buildDir/stub-javadoc")
-}
-
-if (project.hasProperty("dto_maven_publication")) {
-    centralPortal {
-        signing {
-            useGpgCmd()
-            sign(dtoJar.get())
-            sign(dtoSourcesJar.get())
-            sign(dtoJavadocJar.get())
-        }
-        group = "com.alcosi.twins"
-        version = dtoVersion
-        jarTask = dtoJar.get()
-        sourcesJarTask = dtoSourcesJar.get()
-        javadocJarTask = dtoJavadocJar.get()
-        pom {
-            packaging = "jar"
-            name.set("twins-core-dto")
-            var repositoryName = "alcosi/twins"
-            url.set("https://github.com/${repositoryName}")
-            description.set("Data Transfer Objects (DTO) for the Twins Core project.",
-            )
-            licenses {
-                license {
-                    name.set("Apache License 2.0")
-                    url.set("https://www.apache.org/licenses/LICENSE-2.0")
-                }
-            }
-            scm {
-                connection.set("scm:https://github.com/${repositoryName}.git")
-                developerConnection.set("scm:git@github.com:${repositoryName}.git")
-                url.set("https://github.com/${repositoryName}")
-            }
-            developers {
-                developer {
-                    id.set("Twins team")
-                    name.set("Twins team")
-                    email.set("a.kuzniatsou@alcosi.eu")
-                    url.set("https://github.com/${repositoryName}")
-                }
-            }
-        }
-    }
-}
-
-tasks.jar {
-    enabled = true
-    archiveClassifier.set("")
-}
-

@@ -59,20 +59,6 @@ public class AttachmentAddController extends ApiController {
         return createAttachment(twinId, request, Collections.emptyMap());
     }
 
-    @ParametersApiUserHeaders
-    @Operation(operationId = "attachmentCreateV100", summary = "Add attachment to twin100")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Twin data", content = {
-                    @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = AttachmentAddRsDTOv1.class))}),
-            @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/twin/{twinId}/attachment/v100", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> attachmentCreateV100(
-            @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @RequestBody AttachmentCreateRqDTOv1 request) {
-        return createAttachment(twinId, request, Collections.emptyMap());
-    }
-
 
     @SneakyThrows
     @Operation(operationId = "attachmentCreateV1", summary = "Add attachment to twin")
