@@ -1,0 +1,2 @@
+ALTER TABLE twin_validator_set
+    ADD COLUMN IF NOT EXISTS invert BOOLEAN NOT NULL DEFAULT false;
