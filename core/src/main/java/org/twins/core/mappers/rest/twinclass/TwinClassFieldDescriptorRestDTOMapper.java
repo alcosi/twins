@@ -94,7 +94,8 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                     .filenameRegExp(attachmentDescriptor.filenameRegExp());
         else if (fieldDescriptor instanceof FieldDescriptorBoolean booleanDescriptor)
             return new TwinClassFieldDescriptorBooleanDTOv1()
-                    .checkboxType(booleanDescriptor.checkboxType());
+                    .checkboxType(booleanDescriptor.checkboxType())
+                    .nullable(booleanDescriptor.nullable());
         else if (fieldDescriptor instanceof FieldDescriptorNumeric numericDescriptor)
             return new TwinClassFieldDescriptorNumericDTOv1()
                     .min(numericDescriptor.min())

@@ -116,6 +116,7 @@ public class SystemEntityService {
     public static final UUID TWIN_CLASS_FIELD_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000001");
     public static final UUID TWIN_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000002");
     public static final UUID TWIN_CLASS_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000003");
+    public static final UUID USER_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000004");
 
     public static final List<SystemClass> SYSTEM_CLASSES;
     public static Set<UUID> SYSTEM_TWIN_CLASS_FIELDS_UUIDS = new HashSet<>();

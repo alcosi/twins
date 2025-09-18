@@ -9,5 +9,7 @@ import org.twins.core.dao.twin.TwinFieldBooleanEntity;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(fluent = true)
 public class FieldDescriptorBoolean extends FieldDescriptor {
+
     private TwinFieldBooleanEntity.CheckboxType checkboxType;
+    private Boolean nullable;
 }
