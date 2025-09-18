@@ -100,6 +100,23 @@ public enum RelationTwinMode implements MapperModeCollection {
             TwinLinkMode.Twin2TwinLinkMode.HIDE,
             LinkMode.TwinLink2LinkMode.HIDE,
             TransitionMode.HIDE),
+    @FieldNameConstants.Include RED (4,
+            TwinMode.DETAILED,
+            DataListOptionMode.TwinMarker2DataListOptionMode.HIDE,
+            DataListOptionMode.TwinTag2DataListOptionMode.HIDE,
+            TwinFieldCollectionMode.NO_FIELDS,
+            DataListOptionMode.TwinField2DataListOptionMode.HIDE,
+            UserMode.TwinField2UserMode.HIDE,
+            TwinMode.TwinField2TwinMode.HIDE,
+            AttachmentMode.HIDE,
+            TwinClassFieldMode.TwinClass2TwinClassFieldMode.HIDE,
+            TwinClassMode.Twin2TwinClassMode.DETAILED,
+            StatusMode.TwinClass2StatusMode.HIDE,
+            DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE,
+            DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE,
+            TwinLinkMode.Twin2TwinLinkMode.HIDE,
+            LinkMode.TwinLink2LinkMode.HIDE,
+            TransitionMode.HIDE),
     @FieldNameConstants.Include GRAY(4,
             TwinMode.DETAILED,
             DataListOptionMode.TwinMarker2DataListOptionMode.HIDE,
@@ -207,6 +224,7 @@ public enum RelationTwinMode implements MapperModeCollection {
         @FieldNameConstants.Include YELLOW(2, new RelationTwinMode[]{RelationTwinMode.YELLOW}),
         @FieldNameConstants.Include BLUE(3, new RelationTwinMode[]{RelationTwinMode.BLUE}),
         @FieldNameConstants.Include BLACK(4, new RelationTwinMode[]{RelationTwinMode.BLACK}),
+        @FieldNameConstants.Include RED(4, new RelationTwinMode[]{RelationTwinMode.RED}),
         @FieldNameConstants.Include GRAY(4, new RelationTwinMode[]{RelationTwinMode.GRAY}),
         @FieldNameConstants.Include ORANGE(5, new RelationTwinMode[]{RelationTwinMode.ORANGE}),
         @FieldNameConstants.Include MAGENTA(6, new RelationTwinMode[]{RelationTwinMode.MAGENTA}),
@@ -225,6 +243,7 @@ public enum RelationTwinMode implements MapperModeCollection {
                 case YELLOW -> RelationTwinMode.YELLOW;
                 case BLUE -> RelationTwinMode.BLUE;
                 case BLACK -> RelationTwinMode.BLACK;
+                case RED -> RelationTwinMode.RED;
                 case GRAY -> RelationTwinMode.GRAY;
                 case ORANGE -> RelationTwinMode.ORANGE;
                 case MAGENTA -> RelationTwinMode.MAGENTA;
@@ -245,6 +264,7 @@ public enum RelationTwinMode implements MapperModeCollection {
         @FieldNameConstants.Include YELLOW(2, new RelationTwinMode[]{RelationTwinMode.YELLOW}),
         @FieldNameConstants.Include BLUE(3, new RelationTwinMode[]{RelationTwinMode.BLUE}),
         @FieldNameConstants.Include BLACK(4, new RelationTwinMode[]{RelationTwinMode.BLACK}),
+        @FieldNameConstants.Include RED(4, new RelationTwinMode[]{RelationTwinMode.RED}),
         @FieldNameConstants.Include GRAY(4, new RelationTwinMode[]{RelationTwinMode.GRAY}),
         @FieldNameConstants.Include ORANGE(5, new RelationTwinMode[]{RelationTwinMode.ORANGE}),
         @FieldNameConstants.Include MAGENTA(6, new RelationTwinMode[]{RelationTwinMode.MAGENTA}),
@@ -263,6 +283,7 @@ public enum RelationTwinMode implements MapperModeCollection {
                 case YELLOW -> RelationTwinMode.YELLOW;
                 case BLUE -> RelationTwinMode.BLUE;
                 case BLACK -> RelationTwinMode.BLACK;
+                case RED -> RelationTwinMode.RED;
                 case GRAY -> RelationTwinMode.GRAY;
                 case ORANGE -> RelationTwinMode.ORANGE;
                 case MAGENTA -> RelationTwinMode.MAGENTA;
