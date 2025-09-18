@@ -2,10 +2,8 @@ package org.twins.core.featurer.params;
 
 import org.cambium.featurer.annotations.FeaturerParamType;
 import org.cambium.featurer.params.FeaturerParam;
-import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.twin.TwinTouchEntity;
 
-import java.util.Arrays;
 import java.util.Properties;
 
 @FeaturerParamType(

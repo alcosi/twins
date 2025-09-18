@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.domain.enum_.history.HistoryType;
 
 import java.util.UUID;
 

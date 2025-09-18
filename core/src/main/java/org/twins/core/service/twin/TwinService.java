@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
-import org.twins.core.dao.history.HistoryType;
+import org.twins.core.domain.enum_.history.HistoryType;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -1340,7 +1340,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twin == null || twinClassFieldEntity == null) {
             return res;
         }
-        
+
         var fieldValue = getTwinFieldValue(twin, twinClassFieldEntity.getId());
 
         if (fieldValue instanceof FieldValueText text) {

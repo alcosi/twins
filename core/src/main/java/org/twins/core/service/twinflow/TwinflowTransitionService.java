@@ -41,6 +41,7 @@ import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.draft.DraftCollector;
+import org.twins.core.domain.enum_.twinflow.TwinflowTransitionType;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.search.TransitionAliasSearch;
 import org.twins.core.domain.search.TransitionSearch;

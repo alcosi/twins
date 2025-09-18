@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.domain.enum_.action.TwinAction;
 import org.twins.core.dao.attachment.*;
-import org.twins.core.dao.history.HistoryType;
+import org.twins.core.domain.enum_.history.HistoryType;
 import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
 import org.twins.core.dao.resource.StorageEntity;

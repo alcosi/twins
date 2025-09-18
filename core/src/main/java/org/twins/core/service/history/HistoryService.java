@@ -24,7 +24,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.history.HistoryRepository;
-import org.twins.core.dao.history.HistoryType;
+import org.twins.core.domain.enum_.history.HistoryType;
 import org.twins.core.dao.history.HistoryTypeDomainTemplateRepository;
 import org.twins.core.dao.history.context.*;
 import org.twins.core.dao.history.context.snapshot.FieldSnapshot;
