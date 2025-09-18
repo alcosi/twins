@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.link.LinkStrength;
+import org.twins.core.domain.enum_.link.LinkStrength;
+import org.twins.core.domain.enum_.link.TwinlinkType;
 import org.twins.core.dto.rest.Request;
 
 import java.util.Set;
@@ -53,10 +53,10 @@ public class LinkSearchRqDTOv1 extends Request {
     public Set<String> backwardNameNotLikeList;
 
     @Schema(description = "type like list")
-    public Set<LinkEntity.TwinlinkType> typeLikeList;
+    public Set<TwinlinkType> typeLikeList;
 
     @Schema(description = "type not like list")
-    public Set<LinkEntity.TwinlinkType> typeNotLikeList;
+    public Set<TwinlinkType> typeNotLikeList;
 
     @Schema(description = "strength like list")
     public Set<LinkStrength> strengthLikeList;

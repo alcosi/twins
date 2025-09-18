@@ -1,4 +1,4 @@
-package org.twins.core.dao.link;
+package org.twins.core.domain.enum_.link;
 
 import java.util.Arrays;
 import java.util.List;

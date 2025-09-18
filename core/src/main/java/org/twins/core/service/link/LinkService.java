@@ -23,13 +23,14 @@ import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkRepository;
-import org.twins.core.dao.link.LinkStrength;
+import org.twins.core.domain.enum_.link.LinkStrength;
 import org.twins.core.dao.twin.TwinLinkRepository;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.LinkUpdate;
+import org.twins.core.domain.enum_.link.TwinlinkType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.linker.Linker;
@@ -262,7 +263,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         dbLinkEntity.setLinkStrengthId(linkStrengthId);
     }
 
-    private void updateLinkType(LinkEntity dbLinkEntity, LinkEntity.TwinlinkType type, ChangesHelper changesHelper) {
+    private void updateLinkType(LinkEntity dbLinkEntity, TwinlinkType type, ChangesHelper changesHelper) {
         if (type == null || !changesHelper.isChanged(LinkEntity.Fields.type, dbLinkEntity.getType(), type))
             return;
         dbLinkEntity.setType(type);
