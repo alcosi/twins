@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @Slf4j
 public abstract class UserFinderRequested extends UserFinder {
-    public static final String PARAM_TWIN_CLASS_ID = "twinClassId";
+    public static final String PARAM_SPACE_ID = "spaceId";
 
     @FeaturerParam(name = "Required", description = "", order = 10, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean required = new FeaturerParamBoolean("required");

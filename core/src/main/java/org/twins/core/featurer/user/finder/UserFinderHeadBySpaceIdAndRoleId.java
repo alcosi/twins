@@ -27,7 +27,7 @@ import java.util.UUID;
         name = "Find users for head twin by space id and role id",
         description = "")
 public class UserFinderHeadBySpaceIdAndRoleId extends UserFinderRequested {
-    @FeaturerParam(name = "Param key", description = "", order = 1, optional = true, defaultValue = PARAM_TWIN_CLASS_ID)
+    @FeaturerParam(name = "Param key", description = "", order = 1, optional = true, defaultValue = PARAM_SPACE_ID)
     public static final FeaturerParamString paramKey = new FeaturerParamString("paramKey");
 
     @FeaturerParam(name = "Role id", description = "", order = 2)

@@ -40,8 +40,8 @@ public class UserSearchEntity implements EasyLoggable {
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case SHORT -> "UserSearchEntity[id:" + id + "]";
-            default -> "UserSearchEntity[id:" + id + ", name: " + name + "]";
+            case SHORT -> "userSearch[id:" + id + "]";
+            default -> "userSearch[id:" + id + ", name: " + name + "]";
         };
     }
 }
