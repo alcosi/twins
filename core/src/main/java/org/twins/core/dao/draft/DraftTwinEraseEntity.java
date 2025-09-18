@@ -6,6 +6,8 @@ import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.Hibernate;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.domain.enum_.draft.DraftTwinEraseReason;
+import org.twins.core.domain.enum_.draft.DraftTwinEraseStatus;
 
 import java.io.Serial;
 import java.util.Objects;

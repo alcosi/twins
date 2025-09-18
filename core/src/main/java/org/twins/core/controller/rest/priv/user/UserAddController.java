@@ -20,8 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
-import org.twins.core.controller.rest.annotation.ProtectedBy;
-import org.twins.core.dao.domain.DomainType;
+import org.twins.core.domain.enum_.domain.DomainType;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserStatus;
 import org.twins.core.domain.ApiUser;
@@ -36,7 +35,6 @@ import org.twins.core.service.businessaccount.BusinessAccountUserService;
 import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.domain.DomainUserService;
-import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.user.UserService;
 
 import java.util.UUID;

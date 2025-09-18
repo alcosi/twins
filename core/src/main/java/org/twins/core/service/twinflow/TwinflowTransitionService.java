@@ -27,7 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.draft.DraftEntity;
-import org.twins.core.dao.draft.DraftStatus;
+import org.twins.core.domain.enum_.draft.DraftStatus;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionEntity;

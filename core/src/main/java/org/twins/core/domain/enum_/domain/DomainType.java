@@ -1,4 +1,4 @@
-package org.twins.core.dao.domain;
+package org.twins.core.domain.enum_.domain;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
