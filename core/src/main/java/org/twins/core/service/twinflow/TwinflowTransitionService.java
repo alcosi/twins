@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.draft.DraftEntity;
+import org.twins.core.domain.enum_.twinclass.OwnerType;
 import org.twins.core.domain.enum_.draft.DraftStatus;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.domain.enum_.i18n.I18nType;
@@ -218,7 +219,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public void loadValidTransitions(Collection<TwinEntity> twinEntityList) throws ServiceException {
         Map<UUID, TwinEntity> needLoad = new HashMap<>();
         for (TwinEntity twinEntity : twinEntityList) {
-            if (twinEntity.getTwinClass().getOwnerType().equals(TwinClassEntity.OwnerType.SYSTEM)) //no transitions available for such twins, because they are cross-domain
+            if (twinEntity.getTwinClass().getOwnerType().equals(OwnerType.SYSTEM)) //no transitions available for such twins, because they are cross-domain
                 continue;
             if (twinEntity.getValidTransitionsKit() != null)
                 continue;

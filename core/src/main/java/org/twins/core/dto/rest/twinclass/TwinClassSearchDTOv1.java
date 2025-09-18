@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
-import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.enum_.twinclass.OwnerType;
 import org.twins.core.dto.rest.DTOExamples;
 
 import java.util.Set;
@@ -50,10 +50,10 @@ public class TwinClassSearchDTOv1 {
     public HierarchySearchDTOv1 extendsHierarchyParentsForTwinClassSearch;
 
     @Schema(description = "owner type list")
-    public Set<TwinClassEntity.OwnerType> ownerTypeList;
+    public Set<OwnerType> ownerTypeList;
 
     @Schema(description = "owner type exclude list")
-    public Set<TwinClassEntity.OwnerType> ownerTypeExcludeList;
+    public Set<OwnerType> ownerTypeExcludeList;
 
     @Schema(description = "marker data list id list")
     public Set<UUID> markerDatalistIdList;

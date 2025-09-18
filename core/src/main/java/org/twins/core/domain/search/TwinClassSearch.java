@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.Ternary;
-import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.enum_.twinclass.OwnerType;
 
 import java.util.Collection;
 import java.util.Set;
@@ -31,8 +31,8 @@ public class TwinClassSearch {
     private HierarchySearch headHierarchyParentsForTwinClassSearch;
     private HierarchySearch extendsHierarchyChildsForTwinClassSearch;
     private HierarchySearch extendsHierarchyParentsForTwinClassSearch;
-    private Set<TwinClassEntity.OwnerType> ownerTypeList;
-    private Set<TwinClassEntity.OwnerType> ownerTypeExcludeList;
+    private Set<OwnerType> ownerTypeList;
+    private Set<OwnerType> ownerTypeExcludeList;
     private Set<UUID> markerDatalistIdList;
     private Set<UUID> markerDatalistIdExcludeList;
     private Set<UUID> tagDatalistIdList;
@@ -53,7 +53,7 @@ public class TwinClassSearch {
     private Set<UUID> deletePermissionIdExcludeList;
 
     public TwinClassSearch addOwnerTypeExclude() {
-        ownerTypeExcludeList = CollectionUtils.safeAdd(ownerTypeExcludeList, TwinClassEntity.OwnerType.SYSTEM);
+        ownerTypeExcludeList = CollectionUtils.safeAdd(ownerTypeExcludeList, OwnerType.SYSTEM);
         return this;
     }
 

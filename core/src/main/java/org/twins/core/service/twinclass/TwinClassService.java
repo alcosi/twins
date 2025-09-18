@@ -32,6 +32,7 @@ import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
+import org.twins.core.domain.enum_.twinclass.OwnerType;
 import org.twins.core.domain.twinclass.TwinClassCreate;
 import org.twins.core.domain.twinclass.TwinClassUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -803,7 +804,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public boolean isOwnerSystemType(TwinClassEntity entity) {
-        return entity.getOwnerType().equals(TwinClassEntity.OwnerType.SYSTEM);
+        return entity.getOwnerType().equals(OwnerType.SYSTEM);
     }
 
     public Set<TwinClassOwnerTypeEntity> findTwinClassOwnerType() throws ServiceException {

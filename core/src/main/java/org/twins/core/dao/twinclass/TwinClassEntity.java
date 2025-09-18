@@ -4,7 +4,6 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
@@ -35,6 +34,7 @@ import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionAlienValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionSelfValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleEntity;
+import org.twins.core.domain.enum_.twinclass.OwnerType;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.headhunter.HeadHunter;
 
@@ -360,37 +360,6 @@ public class TwinClassEntity implements EasyLoggable {
 
     public boolean isSpace() {
         return permissionSchemaSpace || twinflowSchemaSpace || twinClassSchemaSpace || aliasSpace;
-    }
-
-    @Getter
-    public enum OwnerType {
-        SYSTEM("system", false, false, false),
-        USER("user", false, false, true),
-        BUSINESS_ACCOUNT("businessAccount", true, false, false),
-        DOMAIN("domain", false, true, false),
-        DOMAIN_BUSINESS_ACCOUNT("domainBusinessAccount", true, true, false),
-        DOMAIN_USER("domainUser", false, true, true),
-        DOMAIN_BUSINESS_ACCOUNT_USER("domainBusinessAccountUser", true, true, true);
-
-        private final String id;
-        private final boolean businessAccountLevel;
-        private final boolean domainLevel;
-        private final boolean userLevel;
-
-        OwnerType(String id, boolean businessAccountLevel, boolean domainLevel, boolean userLevel) {
-            this.id = id;
-            this.businessAccountLevel = businessAccountLevel;
-            this.domainLevel = domainLevel;
-            this.userLevel = userLevel;
-        }
-
-        public static OwnerType valueOd(String type) {
-            return Arrays.stream(OwnerType.values()).filter(t -> t.id.equals(type)).findAny().orElse(DOMAIN_BUSINESS_ACCOUNT);
-        }
-
-        public boolean isSystemLevel() {
-            return this == SYSTEM;
-        }
     }
 
 
