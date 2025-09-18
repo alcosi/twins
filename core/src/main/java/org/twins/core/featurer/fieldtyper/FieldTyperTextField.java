@@ -75,18 +75,6 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
         return Specification.where(TwinSpecification.checkFieldText(search, TwinEntity.Fields.fieldsSimple, TwinFieldSimpleEntity.Fields.value));
     }
 
-    public enum TextEditorType {
-        PLAIN,
-        MARKDOWN_GITHUB,
-        MARKDOWN_BASIC,
-        HTML;
-
-        @Override
-        public String toString() {
-            return name();
-        }
-    }
-
     private void checkForUniqueness(TwinFieldSimpleEntity twinFieldEntity, FieldValueText value) throws ServiceException {
         OwnerType ownerType = twinFieldEntity.getTwin().getTwinClass().getOwnerType();
 
