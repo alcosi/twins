@@ -36,12 +36,4 @@ public class UserGroupTypeEntity {
     @JoinColumn(name = "slugger_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity sluggerFeaturer;
 
-    public enum UserGroupType {
-        domainScopeDomainManage,
-        domainScopeBusinessAccountManage,
-        businessAccountScopeBusinessAccountManage,
-        domainAndBusinessAccountScopeBusinessAccountManage,
-        systemScopeDomainManage
-    }
-
 }

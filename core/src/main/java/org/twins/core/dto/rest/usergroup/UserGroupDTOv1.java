@@ -3,7 +3,7 @@ package org.twins.core.dto.rest.usergroup;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.user.UserGroupTypeEntity;
+import org.twins.core.domain.enum_.user.UserGroupType;
 import org.twins.core.dto.rest.DTOExamples;
 
 import java.util.UUID;
@@ -25,5 +25,5 @@ public class UserGroupDTOv1 {
     public String description;
 
     @Schema(description = "type", example = DTOExamples.USER_GROUP_TYPE)
-    public UserGroupTypeEntity.UserGroupType type;
+    public UserGroupType type;
 }

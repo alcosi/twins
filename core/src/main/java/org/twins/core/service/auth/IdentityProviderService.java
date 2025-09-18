@@ -20,7 +20,7 @@ import org.twins.core.dao.idp.IdentityProviderRepository;
 import org.twins.core.dao.user.UserEmailVerificationEntity;
 import org.twins.core.dao.user.UserEmailVerificationRepository;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dao.user.UserStatus;
+import org.twins.core.domain.enum_.user.UserStatus;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.ActAsUser;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;

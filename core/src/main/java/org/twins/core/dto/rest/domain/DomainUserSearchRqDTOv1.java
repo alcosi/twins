@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.user.UserStatus;
+import org.twins.core.domain.enum_.user.UserStatus;
 import org.twins.core.dto.rest.Request;
 
 import java.util.Set;

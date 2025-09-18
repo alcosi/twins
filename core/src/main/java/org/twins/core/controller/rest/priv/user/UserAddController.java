@@ -22,7 +22,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.domain.enum_.domain.DomainType;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dao.user.UserStatus;
+import org.twins.core.domain.enum_.user.UserStatus;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;

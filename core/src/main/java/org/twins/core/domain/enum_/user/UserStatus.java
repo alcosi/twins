@@ -1,4 +1,4 @@
-package org.twins.core.dao.user;
+package org.twins.core.domain.enum_.user;
 
 public enum UserStatus {
     ACTIVE,
