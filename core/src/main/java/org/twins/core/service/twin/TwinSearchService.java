@@ -296,7 +296,7 @@ public class TwinSearchService {
     private Specification<TwinEntity> addSorting(TwinSearch search, SimplePagination pagination, Specification<TwinEntity> specification) throws ServiceException {
         TwinSearchEntity searchEntity = search.getConfiguredSearch();
         if (searchEntity != null &&
-                (searchEntity.isForceSorting() || pagination == null || pagination.getSort() == null || pagination.getSort().isUnsorted())) {
+                (searchEntity.isForceSorting() || pagination == null || pagination.getSort() == null)) {
             TwinSorter fieldSorter = featurerService.getFeaturer(searchEntity.getTwinSorterFeaturerId(), TwinSorter.class);
             var sortFunction = fieldSorter.createSort(searchEntity.getTwinSorterParams());
             if (sortFunction != null) {
@@ -311,10 +311,10 @@ public class TwinSearchService {
     protected void narrowSearch(TwinSearch mainSearch, TwinSearch narrowSearch) {
         if (narrowSearch == null)
             return;
-        for (Pair<Function<TwinSearch, Set<UUID>>, BiConsumer<TwinSearch, Set<UUID>>> functioPair : TwinSearch.FUNCTIONS) {
-            Set<UUID> mainSet = functioPair.getKey().apply(mainSearch);
-            Set<UUID> narrowSet = functioPair.getKey().apply(narrowSearch);
-            functioPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
+        for (Pair<Function<TwinSearch, Set<UUID>>, BiConsumer<TwinSearch, Set<UUID>>> functionPair : TwinSearch.FUNCTIONS) {
+            Set<UUID> mainSet = functionPair.getKey().apply(mainSearch);
+            Set<UUID> narrowSet = functionPair.getKey().apply(narrowSearch);
+            functionPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
         }
         mainSearch.setTwinNameLikeList(narrowSet(mainSearch.getTwinNameLikeList(), narrowSearch.getTwinNameLikeList()));
         mainSearch.setDstLinksAnyOfList(narrowMapOfSets(mainSearch.getDstLinksAnyOfList(), narrowSearch.getDstLinksAnyOfList()));

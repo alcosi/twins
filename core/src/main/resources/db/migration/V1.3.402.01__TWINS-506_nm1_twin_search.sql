@@ -64,6 +64,11 @@ create table if not exists twin_search_predicate
 create index if not exists twin_search_predicate_search_id_index
     on twin_search_predicate (twin_search_id);
 
+INSERT INTO featurer_type (id, name, description)
+VALUES (41, 'Twin Search Sorter', 'Order twin search') on conflict on constraint featurer_type_pk do nothing ;
+
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
+VALUES (4101, 41, 'org.twins.core.featurer.twin.sorter.TwinSorterStub', 'Unsorted', '', false) on conflict do nothing ;
 
 DO $$
     BEGIN
@@ -73,7 +78,7 @@ DO $$
             WHERE table_name = 'search_alias'
         ) THEN
             insert into twin_search_alias (id, domain_id, alias, twin_search_detector_featurer_id, twin_search_detector_params)
-            select  (id, domain_id, alias, search_detector_featurer_id, search_detector_params)
+            select id, domain_id, alias, search_detector_featurer_id, search_detector_params
             from search_alias on conflict do nothing;
         END IF;
     END
@@ -87,7 +92,7 @@ DO $$
             WHERE table_name = 'search'
         ) THEN
             insert into twin_search (id, name, twin_sorter_featurer_id, twin_sorter_params, force_sorting, twin_search_alias_id, permission_id, description, created_at, head_twin_search_id)
-            select (id, name, 4101, null, false, search_alias_id, permission_id, description, created_at, head_twin_search_id)
+            select id, name, 4101, null, false, search_alias_id, permission_id, description, created_at, head_twin_search_id
             from search on conflict do nothing;
         END IF;
     END
@@ -139,11 +144,57 @@ DO $$
             update search_predicate set search_criteria_builder_featurer_id = 2706 where search_criteria_builder_featurer_id = 2702 and search_field_id = 'createdByUserId';
             update search_predicate set search_criteria_builder_featurer_id = 2717 where search_criteria_builder_featurer_id = 2705 and search_field_id = 'linkId';
             insert into twin_search_predicate (id, twin_search_id, twin_finder_featurer_id, twin_finder_params, description)
-            select (id, search_id, search_criteria_builder_featurer_id, search_criteria_builder_params, description)
+            select id, search_id, search_criteria_builder_featurer_id, search_criteria_builder_params, description
             from search_predicate on conflict do nothing;
         END IF;
     END
 $$;
+
+DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_name = 'face_wt001' AND column_name = 'twin_search_id'
+        ) THEN
+            ALTER TABLE face_wt001
+                RENAME COLUMN search_id TO twin_search_id;
+        END IF;
+    END $$;
+
+alter table face_wt001
+    drop constraint if exists face_wt001_search_id_fk;
+
+DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1
+            FROM information_schema.table_constraints
+            WHERE constraint_name = 'face_wt001_twin_search_id_fk'
+              AND table_name = 'face_wt001'
+        ) THEN
+            ALTER TABLE face_wt001
+                ADD CONSTRAINT face_wt001_twin_search_id_fk
+                    FOREIGN KEY (twin_search_id) REFERENCES twin_search;
+        END IF;
+    END $$;
+
+alter table twin_search
+    drop constraint if exists twin_search_search_alias_id_fk;
+
+DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1
+            FROM information_schema.table_constraints
+            WHERE constraint_name = 'twin_search_twin_search_alias_id_fk'
+              AND table_name = 'twin_search'
+        ) THEN
+            ALTER TABLE twin_search
+                ADD CONSTRAINT twin_search_twin_search_alias_id_fk
+                    FOREIGN KEY (twin_search_alias_id) REFERENCES twin_search_alias;
+        END IF;
+    END $$;
 
 drop table if exists search_predicate;
 drop table if exists search;

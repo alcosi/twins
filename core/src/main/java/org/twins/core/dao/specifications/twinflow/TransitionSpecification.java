@@ -28,7 +28,7 @@ public class TransitionSpecification extends CommonSpecification<TwinflowTransit
             ArrayList<Predicate> predicates = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search))
                 for (String s : search) {
-                    Predicate predicate = cb.like(cb.lower(twinflowAliasJoin.get(TwinflowTransitionAliasEntity.Fields.alias)), "%" + s.toLowerCase() + "%");
+                    Predicate predicate = cb.like(cb.lower(twinflowAliasJoin.get(TwinflowTransitionAliasEntity.Fields.alias)), "%" + s.toLowerCase() + "%", escapeChar);
                     predicates.add(predicate);
                 }
             return getPredicate(cb, predicates, or);
