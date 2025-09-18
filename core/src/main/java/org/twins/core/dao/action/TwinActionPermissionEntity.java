@@ -2,6 +2,7 @@ package org.twins.core.dao.action;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.twins.core.domain.enum_.action.TwinAction;
 
 import java.util.UUID;
 

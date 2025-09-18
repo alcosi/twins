@@ -1,4 +1,4 @@
-package org.twins.core.dao.attachment;
+package org.twins.core.domain.enum_.attachment;
 
 public enum CommentAttachmentProblem {
     NOT_ALLOWED,

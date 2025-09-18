@@ -16,6 +16,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.enum_.attachment.TwinAttachmentAction;
 import org.twins.core.domain.file.DomainFile;
 
 import java.sql.Timestamp;
