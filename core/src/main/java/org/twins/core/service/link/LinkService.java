@@ -20,7 +20,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.domain.enum_.i18n.I18nType;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkRepository;
 import org.twins.core.domain.enum_.link.LinkStrength;

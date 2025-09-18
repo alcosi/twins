@@ -23,7 +23,7 @@ import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.domain.enum_.domain.DomainType;
 import org.twins.core.dao.domain.DomainTypeTwinClassOwnerTypeRepository;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.domain.enum_.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.twin.TwinRepository;

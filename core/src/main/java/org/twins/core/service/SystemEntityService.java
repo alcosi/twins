@@ -18,6 +18,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
+import org.twins.core.domain.enum_.i18n.I18nType;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.sql.Timestamp;

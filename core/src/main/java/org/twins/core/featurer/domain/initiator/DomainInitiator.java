@@ -12,7 +12,7 @@ import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.DomainRepository;
 import org.twins.core.dao.domain.DomainTypeEntity;
 import org.twins.core.dao.domain.TierRepository;
-import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.domain.enum_.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaRepository;
 import org.twins.core.dao.twin.TwinEntity;

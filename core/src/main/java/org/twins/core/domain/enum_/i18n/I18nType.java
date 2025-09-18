@@ -1,4 +1,4 @@
-package org.twins.core.dao.i18n;
+package org.twins.core.domain.enum_.i18n;
 
 import lombok.Getter;
 

@@ -21,7 +21,7 @@ import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.domain.enum_.domain.DomainType;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
-import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.domain.enum_.i18n.I18nType;
 import org.twins.core.dao.permission.*;
 import org.twins.core.dao.space.*;
 import org.twins.core.dao.twin.TwinEntity;

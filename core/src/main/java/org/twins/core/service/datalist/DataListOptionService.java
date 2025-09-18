@@ -23,7 +23,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.domain.enum_.i18n.I18nType;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListOptionCreate;
 import org.twins.core.domain.datalist.DataListOptionUpdate;
