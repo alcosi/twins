@@ -40,15 +40,16 @@ public class FillerTwinBasicFieldsFromContextBasics extends Filler {
         Set<TwinBasicFields.Basics> fieldsString = fields.extract(properties);
         if (null != basics) {
             Set<UUID> needLoad = new HashSet<>();
-            Kit<UserEntity, UUID> loadedUsersKit = new Kit<>(UserEntity::getId);
+            Kit<UserEntity, UUID> loadedUsersKit = null;
             if (outputTwinEntity.getCreatedByUser() == null)
                 needLoad.add(outputTwinEntity.getCreatedByUserId());
 
             if (outputTwinEntity.getAssignerUser() == null)
                 needLoad.add(outputTwinEntity.getAssignerUserId());
 
-            if (CollectionUtils.isNotEmpty(needLoad))
-                loadedUsersKit.addAll(userService.findEntitiesSafe(needLoad));
+            if (CollectionUtils.isNotEmpty(needLoad)) {
+                loadedUsersKit = userService.findEntitiesSafe(needLoad);
+            }
 
             if (fieldsString.contains(TwinBasicFields.Basics.createdByUserId)) {
                 outputTwinEntity
