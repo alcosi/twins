@@ -1,5 +1,6 @@
 package org.twins.core.dao.validator;
 
+import java.util.Set;
 import java.util.UUID;
 
 public interface ContainsTwinValidatorSet {
@@ -7,5 +8,5 @@ public interface ContainsTwinValidatorSet {
     UUID getTwinValidatorSetId();
     TwinValidatorSetEntity getTwinValidatorSet();
     ContainsTwinValidatorSet setTwinValidatorSet(TwinValidatorSetEntity twinValidatorSet);
-
+    ContainsTwinValidatorSet setTwinValidators(Set<TwinValidatorEntity> twinValidators);
 }

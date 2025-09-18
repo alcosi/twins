@@ -12,6 +12,7 @@ import org.hibernate.annotations.Type;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 
 import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -51,6 +52,9 @@ public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggab
     @Column(name = "`order`")
     @Basic
     private Integer order;
+
+    @Transient
+    private Set<TwinValidatorEntity> twinValidators;
 
     @Transient
     private TwinValidatorSetEntity twinValidatorSet;
