@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
+import org.twins.core.domain.enum_.datalist.Status;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.domain.enum_.i18n.I18nType;
@@ -107,7 +108,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                     .setOptionI18NId(dataListOptionCreate.getNameI18n().getId())
                     .setDataListId(dataListOptionCreate.getDataListId())
                     .setIcon(dataListOptionCreate.getIcon())
-                    .setStatus(DataListOptionEntity.Status.active)
+                    .setStatus(Status.active)
                     .setBackgroundColor(dataListOptionCreate.getBackgroundColor())
                     .setFontColor(dataListOptionCreate.getFontColor())
                     .setExternalId(dataListOptionCreate.getExternalId());

@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.CollectionUtils;
-import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.domain.enum_.datalist.Status;
 
 import java.util.Set;
 import java.util.UUID;
@@ -31,8 +31,8 @@ public class DataListOptionSearch {
     private Set<UUID> dataListSubsetIdExcludeList;
     private Set<String> dataListSubsetKeyList;
     private Set<String> dataListSubsetKeyExcludeList;
-    private Set<DataListOptionEntity.Status> statusIdList;
-    private Set<DataListOptionEntity.Status> statusIdExcludeList;
+    private Set<Status> statusIdList;
+    private Set<Status> statusIdExcludeList;
 
     public DataListOptionSearch addDataListId(UUID datalistId, boolean exclude) {
         if (exclude)
