@@ -5,7 +5,7 @@ import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.HashMap;
 
-@FeaturerType(id = FeaturerTwins.TYPE_42,
+@FeaturerType(id = FeaturerTwins.TYPE_44,
         name = "Dispatcher",
         description = "Dispatching notifications on various events")
 
