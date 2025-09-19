@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class RabbitMessageSender {
 
-    private final RabbitConnectionService rabbitConnectionService;
+    private final RabbitService rabbitService;
     private final AmpqManager ampqManager;
 
     public void send(String url, String exchange, String routingKey, Object payload) {
-        ConnectionFactory cf = rabbitConnectionService.getConnectionFactory(url);
+        ConnectionFactory cf = rabbitService.getConnectionFactory(url);
         ampqManager.sendMessage(cf, exchange, routingKey, payload);
     }
 }
