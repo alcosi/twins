@@ -394,11 +394,12 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         return twinLinkRepository.existsBySrcTwinIdAndLinkId(twinEntity.getId(), linkId);
     }
 
-    public boolean dstTwinStatusIdIn(TwinEntity twin, UUID linkId, Set<UUID> statusIds) throws ServiceException {
+    public boolean isLinkDstTwinStatusIn(TwinEntity twin, UUID linkId, Set<UUID> statusIds) throws ServiceException {
+        loadTwinLinks(twin);
         List<TwinLinkEntity> twinLinkEntityList = twin.getTwinLinks().getForwardLinks().getGrouped(linkId);
 
-        if (twinLinkEntityList.size() > 1) {
-            throw new ServiceException(ErrorCodeTwins.INCORRECT_TWIN_VALIDATOR, "this validator can't validate twin with more than 1 link with linkId[" + linkId + "]");
+        if (twinLinkEntityList.size() != 1) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_VALIDATOR_INCORRECT, "this validator can't validate twin with more than 1 link with linkId[" + linkId + "]");
         } else {
             return statusIds.contains(twinLinkEntityList.getFirst().getDstTwin().getTwinStatusId());
         }
