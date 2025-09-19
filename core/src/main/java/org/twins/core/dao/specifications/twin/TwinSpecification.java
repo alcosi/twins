@@ -284,11 +284,11 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         };
     }
 
-    public static Specification<TwinEntity> checkFieldBooleanNotNull(final TwinFieldSearchBoolean search) {
+    public static Specification<TwinEntity> checkFieldBooleanWithPhantoms(final TwinFieldSearchBoolean search, Boolean defaultValue) {
         return (root, query, cb) -> {
             if (search.isEmptySearch()) {
                 return cb.conjunction();
-            } else if (Boolean.FALSE.equals(search.getValue()) && !Objects.equals(Boolean.TRUE, search.getSearchByNullValue())) {
+            } else if (search.getValue().equals(defaultValue)) {
                 //  left join twin_field_boolean
                 Join<TwinEntity, TwinFieldBooleanEntity> tfbJoin = root.join(TwinEntity.Fields.fieldsBoolean, JoinType.LEFT);
                 tfbJoin.on(
@@ -296,9 +296,9 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
                 );
 
                 Predicate missingBooleanRecord = cb.isNull(tfbJoin.get(TwinFieldBooleanEntity.Fields.twinId));
-                Predicate valueIsFalse = cb.equal(tfbJoin.get(TwinFieldBooleanEntity.Fields.value), Boolean.FALSE);
+                Predicate valueEqualsSearch = cb.equal(tfbJoin.get(TwinFieldBooleanEntity.Fields.value), search.getValue());
 
-                //  equivalent to inner join twin_class_field
+                //  equivalent to inner join twin_class_field (we don't have list of TwinClassFieldEntity fields to join them)
                 Subquery<Long> tcfExists = query.subquery(Long.class);
                 Root<TwinClassFieldEntity> tcfRoot = tcfExists.from(TwinClassFieldEntity.class);
                 tcfExists.select(cb.literal(1L));
@@ -307,7 +307,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
                         cb.equal(tcfRoot.get(TwinClassFieldEntity.Fields.twinClassId), root.get(TwinEntity.Fields.twinClassId))
                 );
 
-                return cb.and(cb.exists(tcfExists), cb.or(missingBooleanRecord, valueIsFalse));
+                return cb.and(cb.exists(tcfExists), cb.or(missingBooleanRecord, valueEqualsSearch));
             } else {
                 return getPredicateForBoolean(root, cb, search);
             }
@@ -320,7 +320,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
 
         Expression<Boolean> booleanField = twinFieldBooleanJoin.get(TwinFieldBooleanEntity.Fields.value);
 
-        return Objects.equals(search.getSearchByNullValue(), Boolean.TRUE) ? cb.isNull(booleanField) : cb.equal(booleanField, search.getValue());
+        return cb.equal(booleanField, search.getValue());
     }
 
     public static Specification<TwinEntity> checkFieldTwinClassList(final TwinFieldSearchTwinClassList search) {
