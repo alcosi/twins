@@ -40,26 +40,27 @@ public class FillerTwinBasicFieldsFromContextBasics extends Filler {
         Set<TwinBasicFields.Basics> fieldsString = fields.extract(properties);
         if (null != basics) {
             Set<UUID> needLoad = new HashSet<>();
-            Kit<UserEntity, UUID> loadedUsersKit = null;
-            if (outputTwinEntity.getCreatedByUser() == null)
-                needLoad.add(outputTwinEntity.getCreatedByUserId());
-
-            if (outputTwinEntity.getAssignerUser() == null)
-                needLoad.add(outputTwinEntity.getAssignerUserId());
-
-            if (CollectionUtils.isNotEmpty(needLoad)) {
-                loadedUsersKit = userService.findEntitiesSafe(needLoad);
-            }
-
+            Kit<UserEntity, UUID> loadedUsersKit;
             if (fieldsString.contains(TwinBasicFields.Basics.createdByUserId)) {
-                outputTwinEntity
-                        .setCreatedByUserId(basics.getCreatedByUserId())
-                        .setCreatedByUser(loadedUsersKit.get(outputTwinEntity.getCreatedByUserId()));
+                outputTwinEntity.setCreatedByUserId(basics.getCreatedByUserId());
+                if (outputTwinEntity.getCreatedByUser() == null) {
+                    needLoad.add(outputTwinEntity.getCreatedByUserId());
+                }
             }
             if (fieldsString.contains(TwinBasicFields.Basics.assigneeUserId)) {
-                outputTwinEntity
-                        .setAssignerUserId(basics.getAssigneeUserId())
-                        .setAssignerUser(loadedUsersKit.get(outputTwinEntity.getAssignerUserId()));
+                outputTwinEntity.setAssignerUserId(basics.getAssigneeUserId());
+                if (outputTwinEntity.getAssignerUser() == null) {
+                    needLoad.add(outputTwinEntity.getAssignerUserId());
+                }
+            }
+            if (CollectionUtils.isNotEmpty(needLoad)) {
+                loadedUsersKit = userService.findEntitiesSafe(needLoad);
+                if (fieldsString.contains(TwinBasicFields.Basics.createdByUserId) && outputTwinEntity.getCreatedByUser() == null) {
+                    outputTwinEntity.setCreatedByUser(loadedUsersKit.get(outputTwinEntity.getCreatedByUserId()));
+                }
+                if (fieldsString.contains(TwinBasicFields.Basics.assigneeUserId) && outputTwinEntity.getAssignerUser() == null) {
+                    outputTwinEntity.setAssignerUser(loadedUsersKit.get(outputTwinEntity.getAssignerUserId()));
+                }
             }
             if (fieldsString.contains(TwinBasicFields.Basics.name))
                 outputTwinEntity.setName(basics.getName());
