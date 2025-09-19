@@ -38,6 +38,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.cambium.common.util.InformationVolumeUtils.convertToGb;
+import static org.twins.core.enums.attachment.problem.AttachmentFileCreateUpdateProblem.*;
 import static org.twins.core.enums.attachment.problem.AttachmentGlobalCreateDeleteProblem.MAX_COUNT_EXCEEDED;
 import static org.twins.core.enums.attachment.problem.AttachmentGlobalCreateDeleteProblem.MIN_COUNT_NOT_REACHED;
 

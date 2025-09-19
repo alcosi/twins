@@ -24,6 +24,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static org.twins.core.enums.twin.TwinAliasType.*;
+
 @Lazy
 @Slf4j
 @Service
