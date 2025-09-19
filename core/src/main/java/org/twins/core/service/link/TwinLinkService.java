@@ -394,6 +394,10 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         return twinLinkRepository.existsBySrcTwinIdAndLinkId(twinEntity.getId(), linkId);
     }
 
+    public boolean dstTwinStatusIdIn(UUID linkId, Set<UUID> statusIds) throws ServiceException {
+        return statusIds.contains(getDstTwinSafe(findEntitySafe(linkId)).getTwinStatusId());
+    }
+
     public void cudTwinLinks(TwinEntity twinEntity, EntityCUD<TwinLinkEntity> twinLinkCUD, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinLinkCUD == null)
             return;

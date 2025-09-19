@@ -42,7 +42,8 @@ public class TwinFieldSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinFie
                     .setEmpty(date.empty());
         } else if (twinFieldSearchDTOv1 instanceof TwinFieldSearchBooleanDTOv1 booleanDto) {
           return new TwinFieldSearchBoolean()
-                  .setValue(booleanDto.value());
+                  .setValue(booleanDto.value())
+                  .setSearchByNullValue(booleanDto.searchByNullValue());
         } else if (twinFieldSearchDTOv1 instanceof TwinFieldSearchIdDTOv1 user) {
             return new TwinFieldSearchId()
                     .setIdList(user.idList())

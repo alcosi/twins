@@ -26,6 +26,7 @@ public class FaceTC001OptionRestDTOMapper  extends RestSimpleDTOMapper<FaceTC001
                 .setPointedHeadTwinId(headTwin == null ? null : headTwin.getId())
                 .setClassSelectorLabel(i18nService.translateToLocale(src.getClassSelectorLabelI18nId()))
                 .setTwinClassFieldSearchId(src.getTwinClassFieldSearchId())
+                .setTwinClassId(src.getTwinClassId())
                 .setLabel(i18nService.translateToLocale(src.getLabelI18nId()));
 
     }

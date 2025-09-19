@@ -17,4 +17,7 @@ public class TwinClassFieldDescriptorBooleanDTOv1 implements TwinClassFieldDescr
 
     @Schema(description = "Checkbox type", example = "TOGGLE")
     public TwinFieldBooleanEntity.CheckboxType checkboxType;
+
+    @Schema(description = "Nullable flag", example = "false")
+    public Boolean nullable;
 }

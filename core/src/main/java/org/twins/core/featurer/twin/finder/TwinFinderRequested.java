@@ -8,6 +8,7 @@ import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.twins.core.exception.ErrorCodeTwins;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -45,6 +46,15 @@ public abstract class TwinFinderRequested extends TwinFinder {
 
     public UUID getRequestedId(FeaturerParamString paramKey, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
         String paramKeyStr = paramKey.extract(properties);
+        if (paramKeyStr == null) {
+            try {
+                Field field = this.getClass().getDeclaredField("paramKey");
+                FeaturerParam annotation = field.getAnnotation(FeaturerParam.class);
+                paramKeyStr = annotation.defaultValue();
+            } catch (NoSuchFieldException e) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "Failed to get default parameter key");
+            }
+        }
         String paramValue = namedParamsMap.get(paramKeyStr);
         if (StringUtils.isBlank(paramValue))
             if (required.extract(properties))
