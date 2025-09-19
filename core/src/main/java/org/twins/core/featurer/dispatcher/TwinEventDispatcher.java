@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Properties;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_4201,
+@Featurer(id = FeaturerTwins.ID_4401,
         name = "TwinEventDispatcher",
         description = "Dispatching twin updates to RabbitMQ"
 )

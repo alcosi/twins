@@ -55,9 +55,9 @@ create index if not exists domain_subscription_event_type_index2
     on domain_subscription_event_type (subscription_event_type_id);
 
 INSERT INTO featurer_type
-VALUES (42, 'Dispatcher', 'Dispatches messages about various events') on conflict do nothing;
+VALUES (44, 'Dispatcher', 'Dispatches messages about various events') on conflict do nothing;
 
 INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
-VALUES (4201, 42, 'org.twins.core.featurer.dispatcher.TwinEventDispatcher', 'twin events dispatcher', '',
+VALUES (4401, 44, 'org.twins.core.featurer.dispatcher.TwinEventDispatcher', 'twin events dispatcher', '',
         false) on conflict (id) do nothing;
 
