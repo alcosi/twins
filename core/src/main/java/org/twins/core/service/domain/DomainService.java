@@ -4,6 +4,7 @@ import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.CollectionUtils;
@@ -25,7 +26,6 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.attachment.AttachmentQuotas;
 import org.twins.core.enums.domain.DomainStatus;
-import org.twins.core.domain.file.DomainFile;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
@@ -98,7 +98,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     }
 
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
-    public DomainEntity createDomain(DomainEntity domainEntity, DomainFile lightIcon, DomainFile darkIcon) throws ServiceException {
+    public DomainEntity createDomain(DomainEntity domainEntity, FileData lightIcon, FileData darkIcon) throws ServiceException {
         if (StringUtils.isBlank(domainEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.DOMAIN_KEY_INCORRECT, "New domain key can not be blank");
         domainEntity.setKey(domainEntity.getKey().trim().replaceAll("\\s", "_").toLowerCase()); //todo replace all unsupported chars
@@ -117,7 +117,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public DomainEntity updateDomain(DomainEntity updateEntity, DomainFile lightIcon, DomainFile darkIcon) throws ServiceException {
+    public DomainEntity updateDomain(DomainEntity updateEntity, FileData lightIcon, FileData darkIcon) throws ServiceException {
         DomainEntity dbEntity = findEntitySafe(authService.getApiUser().getDomainId());
         ChangesHelper changesHelper = new ChangesHelper();
         updateEntityFieldByEntity(updateEntity, dbEntity, DomainEntity::getName, DomainEntity::setName,
@@ -197,7 +197,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         }
     }
 
-    protected DomainEntity processIcons(DomainEntity domainEntity, DomainFile lightIcon, DomainFile darkIcon) throws ServiceException {
+    protected DomainEntity processIcons(DomainEntity domainEntity, FileData lightIcon, FileData darkIcon) throws ServiceException {
         var lightIconEntity = saveIconResourceIfExist(domainEntity, lightIcon);
         var darkIconEntity = saveIconResourceIfExist(domainEntity, darkIcon);
         if (lightIconEntity != null) {
@@ -214,7 +214,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         return domainEntity;
     }
 
-    private ResourceEntity saveIconResourceIfExist(DomainEntity domainEntity, DomainFile icon) throws ServiceException {
+    private ResourceEntity saveIconResourceIfExist(DomainEntity domainEntity, FileData icon) throws ServiceException {
         if (icon != null) {
             return resourceService.addResource(icon.originalFileName(), icon.content());
         } else {

@@ -1,4 +1,4 @@
-package org.twins.core.domain.auth;
+package org.twins.core.enums.auth;
 
 public enum EmailVerificationType {
     BY_CODE,

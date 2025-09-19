@@ -1,4 +1,4 @@
-package org.twins.core.domain.system;
+package org.twins.core.dto.rest.system;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

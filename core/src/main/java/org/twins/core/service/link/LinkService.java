@@ -20,6 +20,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.enums.EntityRelinkOperationStrategy;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkRepository;
@@ -189,14 +190,14 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
             throw new ServiceException(ErrorCodeTwins.LINK_DIRECTION_CLASS_NULL);
         Set<UUID> existedDstTwinIds = twinLinkService.findDstTwinIdsByLinkId(dbLinkEntity.getId());
         if (!CollectionUtils.isEmpty(existedDstTwinIds)) {
-            if (linkDstClassChangeOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict && MapUtils.isEmpty(linkDstClassChangeOperation.getReplaceMap()))
+            if (linkDstClassChangeOperation.getStrategy() == EntityRelinkOperationStrategy.restrict && MapUtils.isEmpty(linkDstClassChangeOperation.getReplaceMap()))
                 throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "please provide replaceMap for twin-links: " + StringUtils.join(existedDstTwinIds));
             Set<UUID> newValidTwinIds = twinRepository.findIdByTwinClassIdAndIdIn(newDstTwinClassEntity.getId(), linkDstClassChangeOperation.getReplaceMap().values());
             Set<UUID> dstTwinIdsTwinLinksForDeletion = new HashSet<>();
             for (UUID dstTwinIdForReplace : existedDstTwinIds) {
                 UUID replacement = linkDstClassChangeOperation.getReplaceMap().get(dstTwinIdForReplace);
                 if (replacement == null) {
-                    if (linkDstClassChangeOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict)
+                    if (linkDstClassChangeOperation.getStrategy() == EntityRelinkOperationStrategy.restrict)
                         throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "please provide replaceMap value for twink-links: " + dstTwinIdForReplace);
                     else
                         replacement = UuidUtils.NULLIFY_MARKER;
@@ -227,7 +228,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
             throw new ServiceException(ErrorCodeTwins.LINK_DIRECTION_CLASS_NULL);
         Set<UUID> existedSrcTwinIds = twinLinkService.findSrcTwinIdsByLinkId(dbLinkEntity.getId());
         if (!CollectionUtils.isEmpty(existedSrcTwinIds)) {
-            if (linkSrcClassChangeOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict && MapUtils.isEmpty(linkSrcClassChangeOperation.getReplaceMap()))
+            if (linkSrcClassChangeOperation.getStrategy() == EntityRelinkOperationStrategy.restrict && MapUtils.isEmpty(linkSrcClassChangeOperation.getReplaceMap()))
                 throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "please provide replaceMap for twin-links: " + StringUtils.join(existedSrcTwinIds));
             Set<UUID> newValidTwinIds = MapUtils.isEmpty(linkSrcClassChangeOperation.getReplaceMap()) ?
                     Collections.emptySet() : twinRepository.findIdByTwinClassIdAndIdIn(newSrcTwinClassEntity.getId(), linkSrcClassChangeOperation.getReplaceMap().values());
@@ -235,7 +236,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
             for (UUID srcTwinIdForReplace : existedSrcTwinIds) {
                 UUID replacement = linkSrcClassChangeOperation.getReplaceMap().get(srcTwinIdForReplace);
                 if (replacement == null) {
-                    if (linkSrcClassChangeOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict)
+                    if (linkSrcClassChangeOperation.getStrategy() == EntityRelinkOperationStrategy.restrict)
                         throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "please provide replaceMap value for twink-links: " + srcTwinIdForReplace);
                     else
                         replacement = UuidUtils.NULLIFY_MARKER;

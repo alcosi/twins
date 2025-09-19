@@ -1,4 +1,4 @@
-package org.twins.core.domain;
+package org.cambium.common.math;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

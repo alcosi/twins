@@ -16,7 +16,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.DataTimeRange;
-import org.twins.core.domain.LongRange;
+import org.cambium.common.math.LongRange;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
 
 import java.sql.Timestamp;

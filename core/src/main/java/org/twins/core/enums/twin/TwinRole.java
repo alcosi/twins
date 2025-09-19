@@ -1,4 +1,4 @@
-package org.twins.core.domain;
+package org.twins.core.enums.twin;
 
 public enum TwinRole {
     assignee,

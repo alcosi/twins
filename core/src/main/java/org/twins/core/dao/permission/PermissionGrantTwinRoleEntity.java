@@ -7,7 +7,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.TwinRole;
+import org.twins.core.enums.twin.TwinRole;
 
 import java.sql.Timestamp;
 import java.util.UUID;

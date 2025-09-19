@@ -32,7 +32,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.TwinRole;
+import org.twins.core.enums.twin.TwinRole;
 import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinsEntitySecureFindService;

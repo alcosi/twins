@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.enums.auth.EmailVerificationType;
 import org.twins.core.enums.domain.DomainType;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.idp.IdentityProviderEntity;
