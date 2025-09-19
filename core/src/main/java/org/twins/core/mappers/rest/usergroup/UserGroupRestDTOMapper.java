@@ -1,7 +1,7 @@
 package org.twins.core.mappers.rest.usergroup;
 
 import lombok.RequiredArgsConstructor;
-import org.twins.core.domain.enum_.user.UserGroupType;
+import org.twins.core.enums.user.UserGroupType;
 import org.twins.core.service.i18n.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;

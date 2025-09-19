@@ -2,24 +2,24 @@ package org.twins.core.domain.factory;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.twins.core.domain.enum_.factory.Action;
+import org.twins.core.enums.factory.FactoryEraserAction;
 
 @Data
 @AllArgsConstructor
 public class EraseAction {
-    private Action action = Action.NOT_SPECIFIED;
+    private FactoryEraserAction action = FactoryEraserAction.NOT_SPECIFIED;
     private String details = "";
 
-    public EraseAction setAction(Action newDeletionMaker) {
+    public EraseAction setAction(FactoryEraserAction newDeletionMaker) {
         if (action == null
-                || action == Action.NOT_SPECIFIED
-                || action == Action.ERASE_CANDIDATE)
+                || action == FactoryEraserAction.NOT_SPECIFIED
+                || action == FactoryEraserAction.ERASE_CANDIDATE)
             this.action = newDeletionMaker;
         // all other actions can not be overridden
         return this;
     }
 
     public boolean isCauseGlobalLock() {
-        return action == Action.RESTRICT;
+        return action == FactoryEraserAction.RESTRICT;
     }
 }

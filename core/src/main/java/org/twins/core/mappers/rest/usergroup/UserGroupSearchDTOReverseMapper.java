@@ -1,7 +1,7 @@
 package org.twins.core.mappers.rest.usergroup;
 
 import org.springframework.stereotype.Component;
-import org.twins.core.domain.enum_.user.UserGroupType;
+import org.twins.core.enums.user.UserGroupType;
 import org.twins.core.domain.search.UserGroupSearch;
 import org.twins.core.dto.rest.usergroup.UserGroupSearchRqDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;

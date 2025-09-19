@@ -3,8 +3,8 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.twins.core.domain.enum_.link.LinkStrength;
-import org.twins.core.domain.enum_.link.TwinlinkType;
+import org.twins.core.enums.link.LinkStrength;
+import org.twins.core.enums.link.LinkType;
 
 import java.util.Set;
 import java.util.UUID;
@@ -25,8 +25,8 @@ public class LinkSearch {
     private Set<String> forwardNameNotLikeList;
     private Set<String> backwardNameLikeList;
     private Set<String> backwardNameNotLikeList;
-    private Set<TwinlinkType> typeLikeList;
-    private Set<TwinlinkType> typeNotLikeList;
+    private Set<LinkType> typeLikeList;
+    private Set<LinkType> typeNotLikeList;
     private Set<LinkStrength> strengthLikeList;
     private Set<LinkStrength> strengthNotLikeList;
 }

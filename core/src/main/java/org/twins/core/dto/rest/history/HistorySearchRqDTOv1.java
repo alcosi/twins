@@ -3,7 +3,7 @@ package org.twins.core.dto.rest.history;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.domain.enum_.history.HistoryType;
+import org.twins.core.enums.history.HistoryType;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.DataTimeRangeDTOv1;
 

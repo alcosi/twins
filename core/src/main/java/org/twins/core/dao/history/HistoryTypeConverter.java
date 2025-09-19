@@ -2,7 +2,7 @@ package org.twins.core.dao.history;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import org.twins.core.domain.enum_.history.HistoryType;
+import org.twins.core.enums.history.HistoryType;
 
 @Converter
 public class HistoryTypeConverter implements AttributeConverter<HistoryType, String> {

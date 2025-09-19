@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinAliasEntity;
 import org.twins.core.dao.twin.TwinAliasRepository;
-import org.twins.core.domain.enum_.twin.TwinAliasType;
+import org.twins.core.enums.twin.TwinAliasType;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -23,8 +23,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import static org.twins.core.domain.enum_.twin.TwinAliasType.*;
 
 @Lazy
 @Slf4j

@@ -8,7 +8,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.specifications.CommonSpecification;
-import org.twins.core.domain.enum_.twinclass.OwnerType;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.ArrayList;

@@ -2,17 +2,17 @@ package org.twins.core.dao.datalist;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import org.twins.core.domain.enum_.datalist.Status;
+import org.twins.core.enums.datalist.DataListStatus;
 
 @Converter
-public class DataListOptionStatusConverter implements AttributeConverter<Status, String> {
+public class DataListOptionStatusConverter implements AttributeConverter<DataListStatus, String> {
     @Override
-    public String convertToDatabaseColumn(Status status) {
+    public String convertToDatabaseColumn(DataListStatus status) {
         return status.getId();
     }
 
     @Override
-    public Status convertToEntityAttribute(String id) {
-        return Status.valueOd(id);
+    public DataListStatus convertToEntityAttribute(String id) {
+        return DataListStatus.valueOd(id);
     }
 }

@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.Ternary;
-import org.twins.core.domain.enum_.twinclass.OwnerType;
+import org.twins.core.enums.twinclass.OwnerType;
 
 import java.util.Collection;
 import java.util.Set;

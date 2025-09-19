@@ -9,7 +9,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twinflow.TwinflowTransitionAliasEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
-import org.twins.core.domain.enum_.twinflow.TwinflowTransitionType;
+import org.twins.core.enums.twinflow.TwinflowTransitionType;
 
 import java.util.ArrayList;
 import java.util.Collection;

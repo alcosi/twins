@@ -7,7 +7,7 @@ import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.search.TwinSearchEntity;
-import org.twins.core.domain.enum_.twin.Touch;
+import org.twins.core.enums.twin.Touch;
 import org.twins.core.domain.DataTimeRange;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
 

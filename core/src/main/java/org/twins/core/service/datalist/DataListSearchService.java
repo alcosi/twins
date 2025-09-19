@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListRepository;
-import org.twins.core.domain.enum_.datalist.Status;
+import org.twins.core.enums.datalist.DataListStatus;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.DataListSearch;
 import org.twins.core.service.auth.AuthService;
@@ -70,7 +70,7 @@ public class DataListSearchService {
                 checkFieldLikeIn(search.getExternalIdNotLikeList(), true, false, DataListEntity.Fields.externalId));
     }
 
-    private Set<String> safeConvert(Set<Status> collection) {
+    private Set<String> safeConvert(Set<DataListStatus> collection) {
         return collection == null ? Collections.emptySet() : collection.stream().map(Enum::name).collect(Collectors.toSet());
     }
 }

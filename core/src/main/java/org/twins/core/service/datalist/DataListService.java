@@ -25,8 +25,8 @@ import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.datalist.*;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.domain.enum_.datalist.Status;
-import org.twins.core.domain.enum_.i18n.I18nType;
+import org.twins.core.enums.datalist.DataListStatus;
+import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListAttribute;
@@ -339,7 +339,7 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
                 DataListOptionEntity newOption = new DataListOptionEntity();
                 newOption.setOption(optionName);
                 newOption.setBusinessAccountId(businessAccountId);
-                newOption.setStatus(Status.active);
+                newOption.setStatus(DataListStatus.active);
                 newOption.setDataListId(dataListId);
                 optionsForSave.add(newOption);
             }

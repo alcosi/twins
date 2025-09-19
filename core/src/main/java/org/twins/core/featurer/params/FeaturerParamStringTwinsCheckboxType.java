@@ -2,7 +2,7 @@ package org.twins.core.featurer.params;
 
 import org.cambium.featurer.annotations.FeaturerParamType;
 import org.cambium.featurer.params.FeaturerParam;
-import org.twins.core.domain.enum_.twin.CheckboxType;
+import org.twins.core.enums.twinclass.FieldCheckboxType;
 
 import java.util.Properties;
 
@@ -11,12 +11,12 @@ import java.util.Properties;
         description = "",
         regexp = ".*",
         example = "name")
-public class FeaturerParamStringTwinsCheckboxType extends FeaturerParam<CheckboxType> {
+public class FeaturerParamStringTwinsCheckboxType extends FeaturerParam<FieldCheckboxType> {
     public FeaturerParamStringTwinsCheckboxType(String key) {super(key);}
 
     @Override
-    public CheckboxType extract(Properties properties) {
-        return CheckboxType.valueOf(properties.get(key).toString());
+    public FieldCheckboxType extract(Properties properties) {
+        return FieldCheckboxType.valueOf(properties.get(key).toString());
     }
 
 }

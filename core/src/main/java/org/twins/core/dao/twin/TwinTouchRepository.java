@@ -3,7 +3,7 @@ package org.twins.core.dao.twin;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.domain.enum_.twin.Touch;
+import org.twins.core.enums.twin.Touch;
 
 import java.util.Collection;
 import java.util.List;

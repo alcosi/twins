@@ -3,7 +3,7 @@ package org.twins.core.domain.datalist;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.domain.enum_.datalist.Status;
+import org.twins.core.enums.datalist.DataListStatus;
 
 import java.util.UUID;
 
@@ -12,5 +12,5 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class DataListOptionUpdate extends DataListOptionSave {
     private UUID id;
-    private Status status;
+    private DataListStatus status;
 }

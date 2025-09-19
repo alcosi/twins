@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.twins.core.domain.enum_.twinflow.TwinflowTransitionType;
+import org.twins.core.enums.twinflow.TwinflowTransitionType;
 
 @Entity
 @Data

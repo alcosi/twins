@@ -2,7 +2,7 @@ package org.twins.core.dao.action;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
-import org.twins.core.domain.enum_.action.TwinAction;
+import org.twins.core.enums.action.TwinAction;
 
 import java.util.UUID;
 

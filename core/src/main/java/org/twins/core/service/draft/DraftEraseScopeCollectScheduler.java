@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.draft.DraftRepository;
-import org.twins.core.domain.enum_.draft.DraftStatus;
+import org.twins.core.enums.draft.DraftStatus;
 
 import java.util.List;
 

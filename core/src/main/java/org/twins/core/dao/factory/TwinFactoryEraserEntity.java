@@ -8,7 +8,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.domain.enum_.factory.Action;
+import org.twins.core.enums.factory.FactoryEraserAction;
 
 import java.util.UUID;
 
@@ -43,7 +43,7 @@ public class TwinFactoryEraserEntity implements EasyLoggable {
 
     @Column(name = "twin_factory_eraser_action")
     @Convert(converter = TwinFactoryEraserActionConverter.class)
-    private Action eraserAction;
+    private FactoryEraserAction eraserAction;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

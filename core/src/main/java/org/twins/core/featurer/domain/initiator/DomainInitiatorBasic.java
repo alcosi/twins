@@ -5,7 +5,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.domain.enum_.twinclass.OwnerType;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.Properties;

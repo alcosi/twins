@@ -3,7 +3,7 @@ package org.twins.core.dao.attachment;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.domain.enum_.attachment.CommentAttachmentProblem;
+import org.twins.core.enums.attachment.problem.CommentAttachmentProblem;
 
 import java.util.UUID;
 

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.domain.enum_.action.TwinAction;
+import org.twins.core.enums.action.TwinAction;
 
 import java.util.Set;
 import java.util.UUID;

@@ -9,7 +9,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.domain.enum_.datalist.Status;
+import org.twins.core.enums.datalist.DataListStatus;
 
 import java.util.Set;
 import java.util.UUID;
@@ -49,7 +49,7 @@ public class DataListOptionEntity implements EasyLoggable {
 
     @Column(name = "data_list_option_status_id")
     @Convert(converter = DataListOptionStatusConverter.class)
-    private Status status;
+    private DataListStatus status;
 
     @Column(name = "attribute_1_value")
     private String attribute1value;

@@ -15,7 +15,7 @@ import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
-import org.twins.core.domain.enum_.twinflow.TwinflowTransitionType;
+import org.twins.core.enums.twinflow.TwinflowTransitionType;
 
 import java.sql.Timestamp;
 import java.util.UUID;

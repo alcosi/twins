@@ -2,7 +2,7 @@ package org.twins.core.featurer.params;
 
 import org.cambium.featurer.annotations.FeaturerParamType;
 import org.cambium.featurer.params.FeaturerParam;
-import org.twins.core.domain.enum_.twin.Touch;
+import org.twins.core.enums.twin.Touch;
 
 import java.util.Properties;
 

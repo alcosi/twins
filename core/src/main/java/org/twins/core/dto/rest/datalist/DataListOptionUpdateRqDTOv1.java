@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.domain.enum_.datalist.Status;
+import org.twins.core.enums.datalist.DataListStatus;
 import org.twins.core.dto.rest.DTOExamples;
 
 import java.util.UUID;
@@ -19,5 +19,5 @@ public class DataListOptionUpdateRqDTOv1 extends DataListOptionSaveRqDTOv1 {
     public UUID dataListId;
 
     @Schema(description = "status", example = DTOExamples.DATA_LIST_OPTION_STATUS)
-    public Status status;
+    public DataListStatus status;
 }

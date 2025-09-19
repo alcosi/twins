@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.draft.*;
-import org.twins.core.domain.enum_.draft.DraftStatus;
+import org.twins.core.enums.draft.DraftStatus;
 import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.UUID;

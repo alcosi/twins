@@ -17,7 +17,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
-import org.twins.core.domain.enum_.twin.Touch;
+import org.twins.core.enums.twin.Touch;
 import org.twins.core.dao.twin.TwinTouchEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinListTouchAddRqDTOv1;

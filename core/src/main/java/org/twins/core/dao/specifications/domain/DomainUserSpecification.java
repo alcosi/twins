@@ -8,7 +8,7 @@ import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.enum_.user.UserStatus;
+import org.twins.core.enums.user.UserStatus;
 
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 

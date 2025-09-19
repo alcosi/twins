@@ -8,7 +8,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.enum_.twin.Touch;
+import org.twins.core.enums.twin.Touch;
 
 import java.sql.Timestamp;
 import java.util.UUID;

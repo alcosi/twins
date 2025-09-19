@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.CUD;
 import org.twins.core.dao.draft.*;
 import org.twins.core.domain.draft.DraftCounters;
-import org.twins.core.domain.enum_.draft.DraftTwinEraseStatus;
+import org.twins.core.enums.draft.DraftTwinEraseStatus;
 
 import java.util.HashMap;
 import java.util.List;

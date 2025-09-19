@@ -1,7 +1,7 @@
 package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
-import org.twins.core.domain.enum_.twinclass.OwnerType;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.service.i18n.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;

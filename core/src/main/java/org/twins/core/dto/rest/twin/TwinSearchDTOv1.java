@@ -3,7 +3,7 @@ package org.twins.core.dto.rest.twin;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.domain.enum_.twin.Touch;
+import org.twins.core.enums.twin.Touch;
 import org.twins.core.dto.rest.DataTimeRangeDTOv1;
 
 import java.util.List;

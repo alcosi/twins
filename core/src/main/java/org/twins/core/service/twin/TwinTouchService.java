@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinTouchEntity;
 import org.twins.core.dao.twin.TwinTouchRepository;
-import org.twins.core.domain.enum_.twin.Touch;
+import org.twins.core.enums.twin.Touch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 

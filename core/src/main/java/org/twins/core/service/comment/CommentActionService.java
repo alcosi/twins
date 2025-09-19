@@ -18,7 +18,7 @@ import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleRepository;
-import org.twins.core.domain.enum_.comment.TwinCommentAction;
+import org.twins.core.enums.comment.TwinCommentAction;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.auth.AuthService;

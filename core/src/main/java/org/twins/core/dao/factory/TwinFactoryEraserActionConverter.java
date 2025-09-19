@@ -2,17 +2,17 @@ package org.twins.core.dao.factory;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import org.twins.core.domain.enum_.factory.Action;
+import org.twins.core.enums.factory.FactoryEraserAction;
 
 @Converter
-public class TwinFactoryEraserActionConverter implements AttributeConverter<Action, String> {
+public class TwinFactoryEraserActionConverter implements AttributeConverter<FactoryEraserAction, String> {
     @Override
-    public String convertToDatabaseColumn(Action action) {
+    public String convertToDatabaseColumn(FactoryEraserAction action) {
         return action.getId();
     }
 
     @Override
-    public Action convertToEntityAttribute(String id) {
-        return Action.valueOd(id);
+    public FactoryEraserAction convertToEntityAttribute(String id) {
+        return FactoryEraserAction.valueOd(id);
     }
 }

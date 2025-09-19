@@ -7,7 +7,7 @@ import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.user.UserSearchEntity;
-import org.twins.core.domain.enum_.user.UserStatus;
+import org.twins.core.enums.user.UserStatus;
 
 import java.util.List;
 import java.util.Set;

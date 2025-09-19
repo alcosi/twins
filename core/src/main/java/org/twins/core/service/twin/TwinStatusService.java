@@ -9,7 +9,7 @@ import org.cambium.common.util.CacheUtils;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KeyUtils;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.domain.enum_.i18n.I18nType;
+import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.service.i18n.I18nService;
 import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;

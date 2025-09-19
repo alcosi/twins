@@ -16,7 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.enum_.user.UserStatus;
+import org.twins.core.enums.user.UserStatus;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.user.UserUpdateRqDTOv1;

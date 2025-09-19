@@ -15,8 +15,8 @@ import org.hibernate.annotations.Type;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.enum_.link.LinkStrength;
-import org.twins.core.domain.enum_.link.TwinlinkType;
+import org.twins.core.enums.link.LinkStrength;
+import org.twins.core.enums.link.LinkType;
 import org.twins.core.featurer.linker.Linker;
 
 import java.sql.Timestamp;
@@ -50,7 +50,7 @@ public class LinkEntity implements EasyLoggable {
 
     @Column(name = "link_type_id")
     @Enumerated(EnumType.STRING)
-    private TwinlinkType type;
+    private LinkType type;
 
     @Column(name = "link_strength_id")
     @Enumerated(EnumType.STRING)
