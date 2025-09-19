@@ -1,13 +1,20 @@
 package org.twins.core.dao.domain;
 
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.featurer.annotations.FeaturerList;
+import org.cambium.featurer.dao.FeaturerEntity;
+import org.hibernate.annotations.Type;
+import org.twins.core.featurer.dispatcher.Dispatcher;
 
+import java.util.HashMap;
 import java.util.UUID;
 
+// todo change doc
 /**
  * Mapping for <pre>domain_subscription_event_type</pre> table. Composite primary key consists of
  * - domain_id (UUID)
@@ -20,8 +27,9 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-@Table(name = "domain_subscription_event_type")
-public class DomainSubscriptionEventTypeEntity implements EasyLoggable {
+@Table(name = "domain_subscription_event")
+public class DomainSubscriptionEventEntity implements EasyLoggable {
+
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -33,8 +41,17 @@ public class DomainSubscriptionEventTypeEntity implements EasyLoggable {
     @Enumerated(EnumType.STRING)
     private SubscriptionEventType subscriptionEventTypeId;
 
-    @Column(name = "subscription_enabled")
-    private boolean subscriptionEnabled;
+    @Column(name = "dispatcher_featurer_id")
+    private Integer dispatcherFeaturerId;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "dispatcher_featurer_params", columnDefinition = "hstore")
+    private HashMap<String, String> dispatcherFeaturerParams;
+
+    @FeaturerList(type = Dispatcher.class)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "dispatcher_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity dispatcherFeaturer;
 
     @Override
     public String easyLog(Level level) {

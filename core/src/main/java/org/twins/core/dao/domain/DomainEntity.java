@@ -104,13 +104,6 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "user_group_manager_featurer_id")
     private Integer userGroupManagerFeaturerId;
 
-    @Column(name = "dispatcher_featurer_id")
-    private Integer dispatcherFeaturerId;
-
-    @Type(PostgreSQLHStoreType.class)
-    @Column(name = "dispatcher_featurer_params", columnDefinition = "hstore")
-    private HashMap<String, String> dispatcherFeaturerParams;
-
     @Column(name = "icon_light_resource_id")
     private UUID iconLightResourceId;
 
@@ -133,11 +126,6 @@ public class DomainEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_group_manager_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity userGroupManagerFeaturer;
-
-    @FeaturerList(type = Dispatcher.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "dispatcher_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity dispatcherFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "user_group_manager_params", columnDefinition = "hstore")

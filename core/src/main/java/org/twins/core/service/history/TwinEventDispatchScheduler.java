@@ -53,12 +53,12 @@ public class TwinEventDispatchScheduler {
                 return;
             }
             DomainEntity domain = domainService.findEntitySafe(twinsForNotification.getFirst().getDomainId()); //todo can there be multiple domains?
-            Dispatcher dispatcher = featurerService.getFeaturer(domain.getDispatcherFeaturer(), Dispatcher.class);
-            for (HistoryRepository.TwinUsersProjection twin : twinsForNotification) {
-                TwinEventDispatchTask dispatchTask = applicationContext.getBean(TwinEventDispatchTask.class, dispatcher, domain.getDispatcherFeaturerParams(), twin);
-                taskExecutor.execute(dispatchTask);
-
-            }
+//            Dispatcher dispatcher = featurerService.getFeaturer(domain.getDispatcherFeaturer(), Dispatcher.class);
+//            for (HistoryRepository.TwinUsersProjection twin : twinsForNotification) {
+//                TwinEventDispatchTask dispatchTask = applicationContext.getBean(TwinEventDispatchTask.class, dispatcher, domain.getDispatcherFeaturerParams(), twin);
+//                taskExecutor.execute(dispatchTask);
+//
+//            }
         } catch (Exception ex) {
             log.error("Error during collecting history items for notification", ex);
         } finally {

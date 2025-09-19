@@ -1,7 +1,6 @@
 create table if not exists history_dispatch_status
 (
-    id varchar(20) not null,
-    constraint history_dispatch_status_pk primary key(id)
+    id varchar(20) primary key
 );
 
 insert into history_dispatch_status (id)
@@ -13,53 +12,45 @@ on conflict do nothing;
 
 alter table history
     add column if not exists dispatch_status varchar(20) not null default 'NEW'
-        constraint history_dispatch_status_id_fk
             references history_dispatch_status
             on update cascade on delete restrict;
 
-CREATE INDEX ix_history_status_created_at_id_twin
-    ON history (dispatch_status, created_at, id, twin_id);
+create index if not exists history_dispatch_status_created_at_id_twin_id_idx
+    on history (dispatch_status, created_at, id, twin_id);
 
 alter table domain_user
     add column if not exists subscription_enabled boolean not null default false;
--- or add these fields to domain_subscription_event_type table ???
-alter table domain
-    add column if not exists dispatcher_featurer_id integer
-        constraint domain_dispatcher_featurer_id_fk references featurer on
-            update cascade;
-alter table domain
-    add column if not exists dispatcher_featurer_params hstore;
-
 
 create table if not exists subscription_event_type
 (
-    id varchar(255) not null,
-    constraint subscription_event_type_pk primary key(id)
+    id varchar(255) primary key
 );
 
 insert into subscription_event_type (id)
-values ('TWIN_UPDATED')
+values ('TWIN_UPDATED'), ('TWIN_CREATE'), ('TWIN_DELETE')
 on conflict do nothing;
 
 -- table instead of allow_client_subscribing_for_twin_cud_operations column in domain table
-create table domain_subscription_event_type
+create table if not exists domain_subscription_event
 (
-    id                         uuid    not null
-        constraint domain_subscription_event_type_pk primary key,
-    domain_id                  uuid
-        constraint domain_subscription_event_type_domain_id_fk
-            references domain on update cascade,
-    subscription_event_type_id varchar(255)
-        constraint domain_subscription_event_type_event_type_id_fk
-            references subscription_event_type on update cascade,
-    subscription_enabled       boolean not null default true
+    id uuid not null primary key,
+    domain_id uuid not null references domain on update cascade on delete restrict,
+    subscription_event_type_id varchar(255) not null references subscription_event_type on update cascade on delete restrict,
+    dispatcher_featurer_id integer not null references featurer on update cascade on delete restrict,
+    dispatcher_featurer_params hstore
 );
 
-create index if not exists domain_subscription_event_type_index1
-    on domain_subscription_event_type (domain_id);
+create unique index if not exists domain_sub_event_domain_id_subscription_event_type_id_uidx
+    on domain_subscription_event(domain_id, subscription_event_type_id);
 
-create index if not exists domain_subscription_event_type_index2
-    on domain_subscription_event_type (subscription_event_type_id);
+create index if not exists domain_subscription_event_domain_id_idx
+    on domain_subscription_event(domain_id);
+
+create index if not exists domain_subscription_event_subscription_event_type_id_idx
+    on domain_subscription_event(subscription_event_type_id);
+
+create index if not exists domain_subscription_event_dispatcher_featurer_id_idx
+    on domain_subscription_event(dispatcher_featurer_id);
 
 insert into featurer_type
 values (44, 'Dispatcher', 'Dispatches messages about various events')
