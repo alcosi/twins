@@ -2,7 +2,6 @@ package org.twins.core.featurer.user.finder;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
@@ -12,14 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.SpaceSearch;
 import org.twins.core.domain.search.UserSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.twin.TwinSearchService;
+import org.twins.core.service.twin.TwinService;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -30,7 +27,7 @@ import java.util.UUID;
         name = "Find users for head twin by space id and role id",
         description = "")
 public class UserFinderHeadBySpaceIdAndRoleId extends UserFinderRequested {
-    @FeaturerParam(name = "Param key", description = "", order = 1, optional = true, defaultValue = PARAM_TWIN_CLASS_ID)
+    @FeaturerParam(name = "Param key", description = "", order = 1, optional = true, defaultValue = PARAM_SPACE_ID)
     public static final FeaturerParamString paramKey = new FeaturerParamString("paramKey");
 
     @FeaturerParam(name = "Role id", description = "", order = 2)
@@ -41,21 +38,19 @@ public class UserFinderHeadBySpaceIdAndRoleId extends UserFinderRequested {
 
     @Lazy
     @Autowired
-    TwinSearchService twinSearchService;
+    TwinService twinService;
 
     @Override
     protected void concatSearch(Properties properties, UserSearch userSearch, Map<String, String> namedParamsMap) throws ServiceException {
         UUID extractedRoleId = roleId.extract(properties);
         UUID spaceId = getRequestedId(paramKey, properties, namedParamsMap);
-        BasicSearch search = new BasicSearch();
-        search.addTwinId(spaceId, false);
-        List<TwinEntity> childTwins = twinSearchService.findTwins(search);
-        if (CollectionUtils.isEmpty(childTwins)) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_PARAM_INCORRECT, "twin[" + spaceId + "] not found");
+        TwinEntity headTwin = twinService.findHeadTwin(spaceId);
+        if (headTwin == null) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_ID_IS_INCORRECT);
         }
         SpaceSearch spaceSearch = new SpaceSearch()
                 .setRoleId(extractedRoleId)
-                .setSpaceId(childTwins.getFirst().getHeadTwinId());
+                .setSpaceId(headTwin.getId());
         userSearch.addSpace(spaceSearch, exclude.extract(properties));
     }
 }
