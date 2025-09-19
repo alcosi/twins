@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.dao.action.TwinAction;
 import org.hibernate.annotations.BatchSize;
+import org.twins.core.enums.action.TwinAction;
 
 import java.util.Set;
 import java.util.UUID;

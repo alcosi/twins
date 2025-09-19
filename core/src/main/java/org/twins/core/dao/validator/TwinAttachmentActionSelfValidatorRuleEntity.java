@@ -4,8 +4,8 @@ package org.twins.core.dao.validator;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.dao.attachment.TwinAttachmentAction;
 import org.hibernate.annotations.BatchSize;
+import org.twins.core.enums.attachment.TwinAttachmentAction;
 
 import java.util.Set;
 import java.util.UUID;
