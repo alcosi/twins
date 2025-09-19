@@ -39,6 +39,7 @@ import org.twins.core.dao.twinflow.*;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleRepository;
+import org.twins.core.service.validator.TwinValidatorService;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.draft.DraftCollector;
@@ -95,6 +96,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     private final AuthService authService;
     @Lazy
     private final DraftService draftService;
+    @Lazy
+    private final TwinValidatorService twinValidatorService;
     @Lazy
     private final DraftCommitService draftCommitService;
     private final UserGroupService userGroupService;
@@ -697,6 +700,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (transitionContext.isValidated())
             return;
         List<TwinflowTransitionValidatorRuleEntity> transitionValidatorEntityList = twinflowTransitionValidatorRuleRepository.findByTwinflowTransitionIdOrderByOrder(transitionContext.getTransitionEntity().getId());
+        twinValidatorService.initializeValidatorCollections(transitionValidatorEntityList);
         for (TwinEntity twinEntity : transitionContext.getTargetTwinList().values())
             if (!runTransitionValidators(transitionContext.getTransitionEntity(), transitionValidatorEntityList, twinEntity))
                 throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_DENIED);
@@ -707,6 +711,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         // findByTwinflowTransitionIdOrderByOrder method result must be cached to avoid extra query count (in case of loading for list of twins)
         // if cache will be disabled - validator must be loaded in one query
         List<TwinflowTransitionValidatorRuleEntity> transitionValidatorEntityList = twinflowTransitionValidatorRuleRepository.findByTwinflowTransitionIdOrderByOrder(twinflowTransitionEntity.getId());
+        twinValidatorService.initializeValidatorCollections(transitionValidatorEntityList);
         return runTransitionValidators(twinflowTransitionEntity, transitionValidatorEntityList, twinEntity);
     }
 
