@@ -3,7 +3,7 @@ package org.twins.core.dto.rest.factory;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.factory.TwinFactoryEraserEntity;
+import org.twins.core.enums.factory.FactoryEraserAction;
 import org.twins.core.dto.rest.DTOExamples;
 
 import java.util.UUID;
@@ -34,5 +34,5 @@ public class FactoryEraserDTOv1 {
     public String description;
 
     @Schema(description = "action", example = DTOExamples.ERASER_ACTION)
-    public TwinFactoryEraserEntity.Action action;
+    public FactoryEraserAction action;
 }

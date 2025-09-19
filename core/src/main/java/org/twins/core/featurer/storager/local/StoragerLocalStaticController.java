@@ -66,7 +66,7 @@ public class StoragerLocalStaticController extends StoragerAbstractChecked {
     }
 
     @Override
-    protected void addFileInternal(String fileKey, InputStream fileStream, HashMap<String, String> params) throws ServiceException {
+    protected void addFileInternal(String fileKey, InputStream fileStream, String mimeType, HashMap<String, String> params) throws ServiceException {
         String filePath = fileKey;
         try {
             Path path = Paths.get(filePath);

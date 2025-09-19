@@ -27,9 +27,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.draft.DraftEntity;
-import org.twins.core.dao.draft.DraftStatus;
+import org.twins.core.enums.twinclass.OwnerType;
+import org.twins.core.enums.draft.DraftStatus;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -42,6 +43,7 @@ import org.twins.core.service.validator.TwinValidatorService;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.draft.DraftCollector;
+import org.twins.core.enums.twinflow.TwinflowTransitionType;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.search.TransitionAliasSearch;
 import org.twins.core.domain.search.TransitionSearch;
@@ -220,7 +222,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public void loadValidTransitions(Collection<TwinEntity> twinEntityList) throws ServiceException {
         Map<UUID, TwinEntity> needLoad = new HashMap<>();
         for (TwinEntity twinEntity : twinEntityList) {
-            if (twinEntity.getTwinClass().getOwnerType().equals(TwinClassEntity.OwnerType.SYSTEM)) //no transitions available for such twins, because they are cross-domain
+            if (twinEntity.getTwinClass().getOwnerType().equals(OwnerType.SYSTEM)) //no transitions available for such twins, because they are cross-domain
                 continue;
             if (twinEntity.getValidTransitionsKit() != null)
                 continue;

@@ -170,7 +170,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     ACT_AS_USER_NONCE_IS_NOT_UNIQ(12801, "act as user authentication error", HttpStatus.UNAUTHORIZED),
     NOTIFICATION_CONFIGURATION_ERROR(12901, "something wrong with notification configuration"),
     FACE_CONFIG_IS_NOT_UNIQ(13001, "face has few config variants"),
-    FACE_NO_CONFIG_IS_SUITABLE(13002, "no suitable face config found"),;
+    FACE_NO_CONFIG_IS_SUITABLE(13002, "no suitable face config found"),
+    TWIN_VALIDATOR_INCORRECT(13101, "incorrect twin validator for this case");
 
     private final int code;
     private final String message;

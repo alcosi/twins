@@ -8,6 +8,7 @@ import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.enums.twin.Touch;
 import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinSearch;
 
@@ -83,7 +84,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         };
     }
 
-    protected static <T> Specification<T> checkTouchSearch(UUID userId, boolean exclude, Collection<TwinTouchEntity.Touch> touchCollection, String... touchFieldPath) {
+    protected static <T> Specification<T> checkTouchSearch(UUID userId, boolean exclude, Collection<Touch> touchCollection, String... touchFieldPath) {
         return (root, q, cb) -> {
             if (touchCollection == null || touchCollection.isEmpty()) {
                 return cb.conjunction();

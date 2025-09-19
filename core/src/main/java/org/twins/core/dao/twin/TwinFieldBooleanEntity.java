@@ -58,21 +58,4 @@ public class TwinFieldBooleanEntity implements EasyLoggable {
                 .setValue(value);
     }
 
-    @Getter
-    public enum CheckboxType {
-        STANDARD("STANDARD"),
-        TOGGLE("TOGGLE"),
-        CUSTOM("CUSTOM");
-
-        private final String id;
-
-        CheckboxType(String id) {
-            this.id = id;
-        }
-
-        public static TwinFieldBooleanEntity.CheckboxType valueOfId(String type) {
-            return Arrays.stream(TwinFieldBooleanEntity.CheckboxType.values()).filter(c -> c.id.equalsIgnoreCase(type)).findAny().orElseThrow();
-        }
-    }
-
 }

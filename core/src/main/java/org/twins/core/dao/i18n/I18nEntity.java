@@ -9,6 +9,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.enums.i18n.I18nType;
 
 import java.util.List;
 import java.util.Locale;

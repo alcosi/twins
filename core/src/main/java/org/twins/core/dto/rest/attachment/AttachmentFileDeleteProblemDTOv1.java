@@ -3,7 +3,7 @@ package org.twins.core.dto.rest.attachment;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.attachment.AttachmentFileDeleteProblem;
+import org.twins.core.enums.attachment.problem.AttachmentFileDeleteProblem;
 
 @Data
 @Accessors(chain = true)

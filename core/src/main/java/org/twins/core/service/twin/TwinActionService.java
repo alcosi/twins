@@ -20,6 +20,7 @@ import org.twins.core.dao.validator.TwinActionValidatorRuleRepository;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.service.validator.TwinValidatorService;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.enums.action.TwinAction;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.permission.PermissionService;

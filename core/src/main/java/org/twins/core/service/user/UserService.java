@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
-import org.twins.core.dao.user.UserStatus;
+import org.twins.core.enums.user.UserStatus;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.SystemEntityService;

@@ -20,10 +20,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListRepository;
-import org.twins.core.dao.domain.DomainType;
+import org.twins.core.enums.EntityRelinkOperationStrategy;
+import org.twins.core.enums.domain.DomainType;
 import org.twins.core.dao.domain.DomainTypeTwinClassOwnerTypeRepository;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.twin.TwinRepository;
@@ -32,6 +33,7 @@ import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.domain.twinclass.TwinClassCreate;
 import org.twins.core.domain.twinclass.TwinClassUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -649,7 +651,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             setNewExtendsTwinClass(dbTwinClassEntity, newExtendsTwinClass);
             return;
         }
-        if (extendsRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict
+        if (extendsRelinkOperation.getStrategy() == EntityRelinkOperationStrategy.restrict
                 && MapUtils.isEmpty(extendsRelinkOperation.getReplaceMap()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide extendsReplaceMap for classFields: " + StringUtils.join(inheritedAndUsedTwinClassFields.getIdSet()));
         KitGrouped<TwinClassFieldEntity, UUID, UUID> replacementKit = twinClassFieldService.findTwinClassFields(extendsRelinkOperation.getReplaceMap().values());
@@ -657,7 +659,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         for (TwinClassFieldEntity twinClassFieldForReplace : inheritedAndUsedTwinClassFields.getCollection()) {
             UUID replacement = extendsRelinkOperation.getReplaceMap().get(twinClassFieldForReplace.getId());
             if (replacement == null) {
-                if (extendsRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict)
+                if (extendsRelinkOperation.getStrategy() == EntityRelinkOperationStrategy.restrict)
                     throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide extendsReplaceMap value for " + twinClassFieldForReplace.logShort());
                 else
                     replacement = UuidUtils.NULLIFY_MARKER;
@@ -734,7 +736,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             setNewHeadTwinClass(dbTwinClassEntity, newHeadTwinClassEntity);
             return;
         }
-        if (headRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict
+        if (headRelinkOperation.getStrategy() == EntityRelinkOperationStrategy.restrict
                 && MapUtils.isEmpty(headRelinkOperation.getReplaceMap()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "Please provide headReplaceMap for heads: " + StringUtils.join(existedTwinHeadIds));
         Set<UUID> twinsForDeletion = new HashSet<>();
@@ -742,7 +744,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         for (UUID headForReplace : existedTwinHeadIds) {
             UUID replacement = headRelinkOperation.getReplaceMap().get(headForReplace);
             if (replacement == null) {
-                if (headRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict)
+                if (headRelinkOperation.getStrategy() == EntityRelinkOperationStrategy.restrict)
                     throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "Please provide headReplaceMap value for head: " + headForReplace);
                 else
                     replacement = UuidUtils.NULLIFY_MARKER;
@@ -803,7 +805,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public boolean isOwnerSystemType(TwinClassEntity entity) {
-        return entity.getOwnerType().equals(TwinClassEntity.OwnerType.SYSTEM);
+        return entity.getOwnerType().equals(OwnerType.SYSTEM);
     }
 
     public Set<TwinClassOwnerTypeEntity> findTwinClassOwnerType() throws ServiceException {

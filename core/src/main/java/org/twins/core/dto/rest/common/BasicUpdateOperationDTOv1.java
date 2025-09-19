@@ -2,7 +2,7 @@ package org.twins.core.dto.rest.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import org.twins.core.domain.EntityRelinkOperation.Strategy;
+import org.twins.core.enums.EntityRelinkOperationStrategy;
 
 import java.util.Map;
 import java.util.UUID;
@@ -15,7 +15,7 @@ public class BasicUpdateOperationDTOv1 {
     public UUID newId;
 
     @Schema(description = "what should be done with old values, if no replacement was given")
-    public Strategy onUnreplacedStrategy = Strategy.delete;
+    public EntityRelinkOperationStrategy onUnreplacedStrategy = EntityRelinkOperationStrategy.delete;
 
     @Schema(description = "map [old_id -> new_id]")
     public Map<UUID, UUID> replaceMap;
