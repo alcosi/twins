@@ -27,7 +27,7 @@ create table if not exists subscription_event_type
 );
 
 insert into subscription_event_type (id)
-values ('TWIN_UPDATED'), ('TWIN_CREATE'), ('TWIN_DELETE')
+values ('TWIN_UPDATED'), ('TWIN_CREATED'), ('TWIN_DELETED')
 on conflict do nothing;
 
 -- table instead of allow_client_subscribing_for_twin_cud_operations column in domain table
