@@ -51,6 +51,7 @@ public class DomainSubscriptionEventCreateController extends ApiController {
             @MapperContextBinding(roots = DomainSubscriptionEventBaseRestDTOMapper.class, response = DomainSubscriptionEventRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody DomainSubscriptionEventCreateRqDTOv1 request) {
         DomainSubscriptionEventRsDTOv1 rs = new DomainSubscriptionEventRsDTOv1();
+
         try {
             DomainSubscriptionEventEntity domainSubscriptionEventEntity = domainSubscriptionEventService.createDomainSubscriptionEvent(domainSubscriptionEventCreateRestDTOReverseMapper.convert(request));
 
@@ -62,6 +63,7 @@ public class DomainSubscriptionEventCreateController extends ApiController {
         } catch (Exception e) {
             return createErrorRs(e, rs);
         }
+
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 }
