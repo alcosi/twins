@@ -35,4 +35,24 @@ public enum TwinflowMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum TwinflowFactory2TwinflowMode implements MapperModePointer<TwinflowMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public TwinflowMode point() {
+            return switch (this) {
+                case HIDE -> TwinflowMode.HIDE;
+                case SHORT -> TwinflowMode.SHORT;
+                case DETAILED -> TwinflowMode.DETAILED;
+            };
+        }
+    }
 }

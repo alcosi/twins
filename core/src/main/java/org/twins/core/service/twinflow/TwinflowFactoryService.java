@@ -6,6 +6,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -63,7 +64,23 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty factoryLauncher");
 
         switch (entityValidateMode) {
-            case beforeSave:
+            case beforeSave -> {
+                if (entity.getTwinflow() == null || !entity.getTwinflow().getId().equals(entity.getTwinflowId())) {
+                    try {
+                        entity.setTwinflow(twinflowService.findEntitySafe(entity.getTwinflowId()));
+                    } catch (ServiceException e) {
+                        return logErrorAndReturnFalse("Twinflow with id[" + entity.getTwinflowId() + "] does not exist");
+                    }
+                }
+
+                if (entity.getTwinFactory() == null || !entity.getTwinFactory().getId().equals(entity.getTwinFactoryId())) {
+                    try {
+                        entity.setTwinFactory(twinFactoryService.findEntitySafe(entity.getTwinFactoryId()));
+                    } catch (ServiceException e) {
+                        return logErrorAndReturnFalse("TwinFactory with id[" + entity.getTwinFactoryId() + "] does not exist");
+                    }
+                }
+            }
         }
         return true;
     }
@@ -136,5 +153,43 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
         } else
             twinEntity = twinSave.getTwinEntity();
         return twinEntity;
+    }
+
+    public TwinflowFactoryEntity createTwinflowFactory(TwinflowFactoryEntity twinflowFactoryEntity) throws ServiceException {
+        return saveSafe(twinflowFactoryEntity);
+    }
+
+    public TwinflowFactoryEntity updateTwinflowFactory(TwinflowFactoryEntity updateEntity) throws ServiceException {
+        TwinflowFactoryEntity dbEntity = findEntitySafe(updateEntity.getId());
+        ChangesHelper changesHelper = new ChangesHelper();
+
+        updateEntityFieldByValueIfNotNull(
+                updateEntity.getTwinflowId(),
+                dbEntity,
+                TwinflowFactoryEntity::getTwinflowId,
+                TwinflowFactoryEntity::setTwinflowId,
+                TwinflowFactoryEntity.Fields.twinflowId,
+                changesHelper
+        );
+
+        updateEntityFieldByValueIfNotNull(
+                updateEntity.getTwinFactoryId(),
+                dbEntity,
+                TwinflowFactoryEntity::getTwinFactoryId,
+                TwinflowFactoryEntity::setTwinFactoryId,
+                TwinflowFactoryEntity.Fields.twinFactoryId,
+                changesHelper
+        );
+
+        updateEntityFieldByValueIfNotNull(
+                updateEntity.getTwinFactorylauncher(),
+                dbEntity,
+                TwinflowFactoryEntity::getTwinFactorylauncher,
+                TwinflowFactoryEntity::setTwinFactorylauncher,
+                TwinflowFactoryEntity.Fields.twinFactorylauncher,
+                changesHelper
+        );
+
+        return updateSafe(dbEntity, changesHelper);
     }
 }
