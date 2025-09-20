@@ -11,7 +11,7 @@ import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.featurer.dispatcher.Dispatcher;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 // todo change doc
@@ -46,7 +46,7 @@ public class DomainSubscriptionEventEntity implements EasyLoggable {
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "dispatcher_featurer_params", columnDefinition = "hstore")
-    private HashMap<String, String> dispatcherFeaturerParams;
+    private Map<String, String> dispatcherFeaturerParams;
 
     @FeaturerList(type = Dispatcher.class)
     @ManyToOne(fetch = FetchType.EAGER)
