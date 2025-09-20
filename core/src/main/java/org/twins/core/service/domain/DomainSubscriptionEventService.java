@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.ChangesHelper;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerRepository;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -87,8 +88,47 @@ public class DomainSubscriptionEventService extends EntitySecureFindServiceImpl<
         return saveSafe(domainSubscriptionEventEntity);
     }
 
-    public DomainSubscriptionEventEntity updateDomainSubscriptionEvent(DomainSubscriptionEventEntity domainSubscriptionEventEntity) throws ServiceException {
-        return saveSafe(domainSubscriptionEventEntity);
+    public DomainSubscriptionEventEntity updateDomainSubscriptionEvent(DomainSubscriptionEventEntity updateEntity) throws ServiceException {
+        DomainSubscriptionEventEntity dbEntity = findEntitySafe(updateEntity.getId());
+        ChangesHelper changesHelper = new ChangesHelper();
+
+        updateEntityFieldByValue(
+                updateEntity.getDomainId(),
+                dbEntity,
+                DomainSubscriptionEventEntity::getDomainId,
+                DomainSubscriptionEventEntity::setDomainId,
+                DomainSubscriptionEventEntity.Fields.domainId,
+                changesHelper
+        );
+
+        updateEntityFieldByValue(
+                updateEntity.getSubscriptionEventTypeId(),
+                dbEntity,
+                DomainSubscriptionEventEntity::getSubscriptionEventTypeId,
+                DomainSubscriptionEventEntity::setSubscriptionEventTypeId,
+                DomainSubscriptionEventEntity.Fields.subscriptionEventTypeId,
+                changesHelper
+        );
+
+        updateEntityFieldByValue(
+                updateEntity.getDispatcherFeaturerId(),
+                dbEntity,
+                DomainSubscriptionEventEntity::getDispatcherFeaturerId,
+                DomainSubscriptionEventEntity::setDispatcherFeaturerId,
+                DomainSubscriptionEventEntity.Fields.dispatcherFeaturerId,
+                changesHelper
+        );
+
+        updateEntityFieldByValue(
+                updateEntity.getDispatcherFeaturerParams(),
+                dbEntity,
+                DomainSubscriptionEventEntity::getDispatcherFeaturerParams,
+                DomainSubscriptionEventEntity::setDispatcherFeaturerParams,
+                DomainSubscriptionEventEntity.Fields.dispatcherFeaturerParams,
+                changesHelper
+        );
+
+        return updateSafe(dbEntity, changesHelper);
     }
 
     public void deleteDomainSubscriptionEvent(UUID id) throws ServiceException {
