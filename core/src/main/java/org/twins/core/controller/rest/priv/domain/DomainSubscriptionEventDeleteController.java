@@ -39,7 +39,8 @@ public class DomainSubscriptionEventDeleteController extends ApiController {
     @Operation(operationId = "domainSubscriptionEventDeleteV1", summary = "Delete domain subscription event")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Domain subscription event was deleted successfully", content = {
-                    @Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))}),
+                    @Content(mediaType = "application/json", schema = @Schema(implementation = Response.class))
+            }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @DeleteMapping(value = "/private/domain/subscription_event/{domainSubscriptionEventId}/v1")
     public ResponseEntity<?> domainSubscriptionEventDeleteV1(@Parameter(example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainSubscriptionEventId) {
