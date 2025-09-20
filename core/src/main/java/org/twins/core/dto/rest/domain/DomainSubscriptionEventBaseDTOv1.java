@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.domain.SubscriptionEventType;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 
 import java.util.Map;
 import java.util.UUID;
@@ -28,4 +29,7 @@ public class DomainSubscriptionEventBaseDTOv1 {
 
   @Schema(description = "dispatcher featurer params", example = DTOExamples.FEATURER_PARAM)
   public Map<String, String> dispatcherFeaturerParams;
+
+  @Schema(name = "dispatcher featurer")
+  public FeaturerDTOv1 dispatcherFeaturer;
 }
