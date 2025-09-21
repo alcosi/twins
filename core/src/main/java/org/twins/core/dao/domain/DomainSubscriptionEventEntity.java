@@ -3,6 +3,8 @@ package org.twins.core.dao.domain;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -48,8 +50,10 @@ public class DomainSubscriptionEventEntity implements EasyLoggable {
     @Column(name = "dispatcher_featurer_params", columnDefinition = "hstore")
     private Map<String, String> dispatcherFeaturerParams;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @FeaturerList(type = Dispatcher.class)
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dispatcher_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity dispatcherFeaturer;
 
