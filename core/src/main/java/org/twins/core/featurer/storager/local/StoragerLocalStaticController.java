@@ -122,9 +122,12 @@ public class StoragerLocalStaticController extends StoragerAbstractChecked {
         String domainId = addSlashAtTheEndIfNeeded(getDomainId().map(UUID::toString).orElse("defaultDomain"));
         String businessAccount = addSlashAtTheEndIfNeeded(getBusinessAccountId().map(UUID::toString).orElse("defaultBusinessAccount"));
         String baseLocalPathString = addSlashAtTheEndIfNeeded(baseLocalPath.extract(properties));
-        String key = baseLocalPathString.replace("{domainId}", domainId).replace("{businessAccountId}", businessAccount) + fileId.toString();
+        String key = baseLocalPathString.replace("{domainId}", domainId).replace("{businessAccountId}", businessAccount) + addSlashAtTheEndIfNeeded(fileId.toString());
         String removedDoubleSlashes = removeDoubleSlashes(key);
-        return removedDoubleSlashes;
+        if (removedDoubleSlashes.startsWith("/")) {
+            return removedDoubleSlashes.substring(1);
+        } else {
+            return removedDoubleSlashes;
+        }
     }
-
 }

@@ -163,15 +163,12 @@ public abstract class StoragerAbstractChecked extends Storager {
             cachedReadInputStream = new CacheReadenInputStream(fileStream, false, Short.MAX_VALUE);
         }
         String mimeType = tika.detect(cachedReadInputStream);
-        String extension = "unknown";
+        String extension = ".unknown";
         try {
             var mimeTypeInfo = MimeTypes.getDefaultMimeTypes().forName(mimeType);
-            extension = mimeTypeInfo.getExtension();
+            extension = "." + mimeTypeInfo.getExtension();
         } catch (Exception e) {
             log.warn("Error parsing mime type: {}", mimeType, e);
-        }
-        if (!extension.startsWith(".")) {
-            extension = "." + extension;
         }
         //And then continue to read IS as usual
         fileStream = cachedReadInputStream.toUnreadPushbackInputStream();
