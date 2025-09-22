@@ -2,14 +2,14 @@ package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
-import org.hibernate.annotations.BatchSize;
 
-import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -31,10 +31,9 @@ public class TwinPointerValidatorRuleEntity implements ContainsTwinValidatorSet,
     @JoinColumn(name = "twin_pointer_id", insertable = false, updatable = false)
     private TwinPointerEntity twinPointer;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "twin_validator_set_id", referencedColumnName = "twin_validator_set_id", insertable = false, updatable = false)
-    @BatchSize(size = 20)
-    private Set<TwinValidatorEntity> twinValidators;
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinValidatorEntity, UUID> twinValidatorKit;
 
     @Transient
     private TwinValidatorSetEntity twinValidatorSet;

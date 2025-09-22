@@ -78,7 +78,8 @@ public class CommentActionService {
                     log.info("{} will not be used, since it is inactive.", twinCommentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                     continue;
                 }
-                List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(twinCommentActionAlienValidatorRule.getTwinValidators());
+                twinValidatorService.loadValidators(twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidatorRules());
+                List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(twinCommentActionAlienValidatorRule.getTwinValidatorKit().getList());
                 sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                 isValid = true;
                 for(TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
@@ -149,7 +150,7 @@ public class CommentActionService {
         }
         if (MapUtils.isNotEmpty(needLoadByValidators)) {
             List<TwinCommentActionAlienValidatorRuleEntity> twinClassCommentActionValidatorEntities = twinCommentActionAlienValidatorRuleRepository.findByTwinClassIdIn(needLoadByValidators.keySet());
-            twinValidatorService.initializeValidatorCollections(twinClassCommentActionValidatorEntities);
+            twinValidatorService.loadValidators(twinClassCommentActionValidatorEntities);
             KitGrouped<TwinCommentActionAlienValidatorRuleEntity, UUID, UUID> commentActionGroupedByClass = new KitGrouped<>(twinClassCommentActionValidatorEntities, TwinCommentActionAlienValidatorRuleEntity::getId, TwinCommentActionAlienValidatorRuleEntity::getTwinClassId);
             for (TwinClassEntity twinClassEntity : needLoadByValidators.values()) {
                 twinClassEntity.setCommentAlienActionsProtectedByValidatorRules(new KitGrouped<>(commentActionGroupedByClass.getGrouped(twinClassEntity.getId()), TwinCommentActionAlienValidatorRuleEntity::getId, TwinCommentActionAlienValidatorRuleEntity::getTwinCommentAction));

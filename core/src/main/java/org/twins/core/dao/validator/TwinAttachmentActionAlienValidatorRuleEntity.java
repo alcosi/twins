@@ -3,12 +3,12 @@ package org.twins.core.dao.validator;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
-import org.hibernate.annotations.BatchSize;
+import org.cambium.common.kit.Kit;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
 
-import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -36,10 +36,9 @@ public class TwinAttachmentActionAlienValidatorRuleEntity implements ContainsTwi
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "twin_validator_set_id", referencedColumnName = "twin_validator_set_id", insertable = false, updatable = false)
-    @BatchSize(size = 20)
-    private Set<TwinValidatorEntity> twinValidators;
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinValidatorEntity, UUID> twinValidatorKit;
 
     @Transient
     private TwinValidatorSetEntity twinValidatorSet;

@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.draft.DraftEntity;
+import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.enums.draft.DraftStatus;
 import org.twins.core.dao.i18n.I18nEntity;
@@ -700,7 +701,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (transitionContext.isValidated())
             return;
         List<TwinflowTransitionValidatorRuleEntity> transitionValidatorEntityList = twinflowTransitionValidatorRuleRepository.findByTwinflowTransitionIdOrderByOrder(transitionContext.getTransitionEntity().getId());
-        twinValidatorService.initializeValidatorCollections(transitionValidatorEntityList);
+        twinValidatorService.loadValidators(transitionValidatorEntityList);
         for (TwinEntity twinEntity : transitionContext.getTargetTwinList().values())
             if (!runTransitionValidators(transitionContext.getTransitionEntity(), transitionValidatorEntityList, twinEntity))
                 throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_DENIED);
@@ -711,7 +712,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         // findByTwinflowTransitionIdOrderByOrder method result must be cached to avoid extra query count (in case of loading for list of twins)
         // if cache will be disabled - validator must be loaded in one query
         List<TwinflowTransitionValidatorRuleEntity> transitionValidatorEntityList = twinflowTransitionValidatorRuleRepository.findByTwinflowTransitionIdOrderByOrder(twinflowTransitionEntity.getId());
-        twinValidatorService.initializeValidatorCollections(transitionValidatorEntityList);
+        twinValidatorService.loadValidators(transitionValidatorEntityList);
         return runTransitionValidators(twinflowTransitionEntity, transitionValidatorEntityList, twinEntity);
     }
 
@@ -720,13 +721,14 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         // validator rules -> OR
         // validators -> AND
         boolean validationResultOfRule = true;
+        twinValidatorService.loadValidators(transitionValidatorEntityList);
         for (TwinflowTransitionValidatorRuleEntity transitionValidatorRuleEntity : transitionValidatorEntityList) {
             validationResultOfRule = true;
             if (!transitionValidatorRuleEntity.isActive()) {
                 log.info(transitionValidatorRuleEntity.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
                 continue;
             }
-            validationResultOfRule = twinValidatorSetService.isValid(twinEntity, transitionValidatorRuleEntity, transitionValidatorRuleEntity.getTwinValidators());
+            validationResultOfRule = twinValidatorSetService.isValid(twinEntity, transitionValidatorRuleEntity, new HashSet<>(transitionValidatorRuleEntity.getTwinValidatorKit().getList()));
             if (validationResultOfRule)
                 break;
         }

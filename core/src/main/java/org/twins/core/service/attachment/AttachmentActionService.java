@@ -74,7 +74,8 @@ public class AttachmentActionService {
                     log.info("{} will not be used, since it is inactive", twinAttachmentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                     continue;
                 }
-                List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(twinAttachmentActionAlienValidatorRule.getTwinValidators());
+                twinValidatorService.loadValidators(twinEntity.getTwinClass().getAttachmentAlienActionsProtectedByValidatorRules());
+                List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(twinAttachmentActionAlienValidatorRule.getTwinValidatorKit().getList());
                 sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                 boolean allRuleValidatorsAreValid = true;
                 for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
@@ -173,7 +174,7 @@ public class AttachmentActionService {
         if (MapUtils.isNotEmpty(needLoadByValidators)) {
             List<TwinAttachmentActionAlienValidatorRuleEntity> twinClassAttachmentActionValidatorEntities =
                     twinAttachmentActionAlienValidatorRuleRepository.findByTwinClassIdIn(needLoadByValidators.keySet());
-            twinValidatorService.initializeValidatorCollections(twinClassAttachmentActionValidatorEntities);
+            twinValidatorService.loadValidators(twinClassAttachmentActionValidatorEntities);
             KitGrouped<TwinAttachmentActionAlienValidatorRuleEntity, UUID, UUID> attachmentActionGroupedByClass =
                     new KitGrouped<>(twinClassAttachmentActionValidatorEntities,
                             TwinAttachmentActionAlienValidatorRuleEntity::getId,

@@ -1,6 +1,7 @@
 package org.twins.core.dao.validator;
 
-import java.util.Set;
+import org.cambium.common.kit.Kit;
+
 import java.util.UUID;
 
 public interface ContainsTwinValidatorSet {
@@ -8,5 +9,6 @@ public interface ContainsTwinValidatorSet {
     UUID getTwinValidatorSetId();
     TwinValidatorSetEntity getTwinValidatorSet();
     ContainsTwinValidatorSet setTwinValidatorSet(TwinValidatorSetEntity twinValidatorSet);
-    ContainsTwinValidatorSet setTwinValidators(Set<TwinValidatorEntity> twinValidators);
+    Kit<TwinValidatorEntity, UUID> getTwinValidatorKit();
+    ContainsTwinValidatorSet setTwinValidatorKit(Kit<TwinValidatorEntity, UUID> twinValidators);
 }

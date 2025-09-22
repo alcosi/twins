@@ -2,8 +2,10 @@ package org.twins.core.dao.validator;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.BatchSize;
 import org.twins.core.enums.action.TwinAction;
 
@@ -36,13 +38,12 @@ public class TwinActionValidatorRuleEntity implements ContainsTwinValidatorSet, 
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "twin_validator_set_id", referencedColumnName = "twin_validator_set_id", insertable = false, updatable = false)
-    @BatchSize(size = 20)
-    private Set<TwinValidatorEntity> twinValidators;
-
     @Transient
     private TwinValidatorSetEntity twinValidatorSet;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinValidatorEntity, UUID> twinValidatorKit;
 
     @Override
     public String easyLog(Level level) {
