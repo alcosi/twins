@@ -18,7 +18,7 @@ public interface DraftRepository extends JpaRepository<DraftEntity, UUID>, JpaSp
     @Query(value = "select d from DraftEntity d where d.status in (:statusIds)")
     List<DraftEntity> findByStatusIdIn(@Param("statusIds") Collection<DraftStatus> statusIds);
 
-    @Query(value = "select d from DraftEntity d where d.status = org.twins.core.dao.draft.DraftStatus.UNCOMMITED and d.autoCommit = true")
+    @Query(value = "select d from DraftEntity d where d.status = org.twins.core.enums.draft.DraftStatus.UNCOMMITED and d.autoCommit = true")
     List<DraftEntity> findDraftsForCommit();
 
     @Transactional
