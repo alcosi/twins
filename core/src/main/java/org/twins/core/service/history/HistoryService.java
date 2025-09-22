@@ -22,6 +22,7 @@ import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.domain.SubscriptionEventType;
 import org.twins.core.dao.history.*;
 import org.twins.core.dao.history.context.*;
 import org.twins.core.dao.history.context.snapshot.FieldSnapshot;
@@ -33,6 +34,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.mappers.SubscriptionEventTypeToHistoryTypeMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinActionService;
@@ -362,8 +364,8 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return historyRepository.findRecentHistoryItems(before);
     }
 
-    public List<HistoryRepository.TwinUsersProjection> getHistoryItemsForDispatching(Timestamp before, int batchSize) {
-        List<HistoryRepository.PickedBatch> picked = historyRepository.pickBatch(before, batchSize);
+    public List<HistoryRepository.TwinUsersProjection> getHistoryItemsForDispatching(Timestamp before, int batchSize, SubscriptionEventType type) {
+        List<HistoryRepository.PickedBatch> picked = historyRepository.pickBatch(before, batchSize, SubscriptionEventTypeToHistoryTypeMapper.map(type));
         Map<UUID, UUID[]> idsPerTwin =
                 picked.stream()
                         .collect(Collectors.toMap(

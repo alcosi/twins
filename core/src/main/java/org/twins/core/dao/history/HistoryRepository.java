@@ -66,6 +66,7 @@ public interface HistoryRepository extends CrudRepository<HistoryEntity, UUID>, 
                    SET dispatch_status = 'IN_PROGRESS'
                  WHERE dispatch_status = 'NEW'
                    AND created_at >= :before
+                   AND history_type_id = ANY(:historyTypes)
                  ORDER BY created_at
                  LIMIT :limit
                  RETURNING id, twin_id
@@ -77,7 +78,7 @@ public interface HistoryRepository extends CrudRepository<HistoryEntity, UUID>, 
             JOIN twin t ON t.id = m.twin_id
             GROUP BY m.twin_id, t.domain_id
             """, nativeQuery = true)
-    List<PickedBatch> pickBatch(@Param("before") Timestamp before, @Param("limit") int limit);
+    List<PickedBatch> pickBatch(@Param("before") Timestamp before, @Param("limit") int limit, List<HistoryType> historyTypes);
 
     interface PickedBatch {
         UUID getTwinId();

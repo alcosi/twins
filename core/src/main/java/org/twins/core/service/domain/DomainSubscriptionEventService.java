@@ -17,6 +17,8 @@ import org.twins.core.dao.domain.DomainSubscriptionEventRepository;
 import org.twins.core.dao.domain.SubscriptionEventType;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -134,4 +136,9 @@ public class DomainSubscriptionEventService extends EntitySecureFindServiceImpl<
     public void deleteDomainSubscriptionEvent(UUID id) throws ServiceException {
         deleteSafe(id);
     }
+
+    public Collection<DomainSubscriptionEventEntity> findAllByDomainIdInAndSubscriptionEventTypeId(Set<UUID> domainIds, SubscriptionEventType type) {
+        return domainSubscriptionEventRepository.findAllByDomainIdInAndSubscriptionEventTypeId(domainIds, type);
+    }
+
 }
