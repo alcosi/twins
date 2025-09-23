@@ -15,6 +15,7 @@ import java.util.UUID;
 @Slf4j
 public abstract class UserFinderRequested extends UserFinder {
     public static final String PARAM_SPACE_ID = "spaceId";
+    public static final String PARAM_BUSINESS_ACCOUNT_ID = "businessAccountId";
 
     @FeaturerParam(name = "Required", description = "", order = 10, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean required = new FeaturerParamBoolean("required");
@@ -22,17 +23,16 @@ public abstract class UserFinderRequested extends UserFinder {
     public UUID getRequestedId(FeaturerParamString paramKey, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
         String paramKeyStr = paramKey.extract(properties);
         String paramValue = namedParamsMap.get(paramKeyStr);
-        if (StringUtils.isBlank(paramValue))
+        if (StringUtils.isBlank(paramValue)) {
             if (required.extract(properties))
                 throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_PARAM_MISSED, "search param[" + paramKeyStr + "] missed");
             else
                 return null;
-        UUID ret = null;
+        }
         try {
-            ret = UUID.fromString(paramValue);
+            return UUID.fromString(paramValue);
         } catch (Exception e) {
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "search param[" + paramKeyStr + "] is not uuid (or uuid list)");
         }
-        return ret;
     }
 }

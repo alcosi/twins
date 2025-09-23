@@ -146,15 +146,20 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
         };
     }
 
-    public Specification<UserEntity> createUserSpecification(UserSearch search, UUID domainId, UUID businessAccountId) throws ServiceException {
+    public Specification<UserEntity> createUserSpecification(UserSearch search, UUID domainId, UUID businessAccountId) {
         return Specification.allOf(
                 checkUserDomain(domainId),
+                checkBusinessAccountId(businessAccountId),
                 checkUuidIn(search.getUserIdList(), false, false, UserEntity.Fields.id),
                 checkUuidIn(search.getUserIdExcludeList(), true, false, UserEntity.Fields.id),
                 checkFieldLikeIn(search.getUserNameLikeList(), false, true, UserEntity.Fields.name),
                 checkFieldLikeIn(search.getUserNameLikeExcludeList(), true, false, UserEntity.Fields.name),
                 checkFieldLikeIn(search.getUserEmailLikeList(), false, true, UserEntity.Fields.email),
                 checkFieldLikeIn(search.getUserEmailLikeExcludeList(), true, false, UserEntity.Fields.email),
+                checkFieldNameOrEmailLikeIn(search.getUserNameOrEmailLikeList(), false, true),
+                checkFieldNameOrEmailLikeIn(search.getUserNameOrEmailExcludeList(), true, false),
+                checkUserGroupIdIn(search.getUserGroupIdList(), false, true),
+                checkUserGroupIdIn(search.getUserGroupIdExcludeList(), true, false),
                 checkStatusLikeIn(search.getStatusIdList(), false),
                 checkStatusLikeIn(search.getStatusIdExcludeList(), true),
                 checkSpaceRoleLikeIn(search.getSpaceList(), domainId, businessAccountId, false),

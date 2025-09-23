@@ -34,6 +34,18 @@ public class UserSearchDTOv1 {
     @Schema(description = "email exclude list")
     public Set<String> userEmailLikeExcludeList;
 
+    @Schema(description = "name or email list")
+    public Set<String> userNameOrEmailLikeList;
+
+    @Schema(description = "name or email exclude list")
+    public Set<String> userNameOrEmailLikeExcludeList;
+
+    @Schema(description = "user group id list")
+    public Set<UUID> userGroupIdList;
+
+    @Schema(description = "user group id exclude list")
+    public Set<UUID> userGroupIdExcludeList;
+
     @Schema(description = "status id list")
     public Set<UserStatus> statusIdList;
 
