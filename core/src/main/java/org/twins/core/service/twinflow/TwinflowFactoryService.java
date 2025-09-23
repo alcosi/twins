@@ -38,6 +38,7 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
     @Lazy
     private final TwinFactoryService twinFactoryService;
     private final TwinflowFactoryRepository repository;
+    private final TwinflowFactoryRepository twinflowFactoryRepository;
 
     @Override
     public CrudRepository<TwinflowFactoryEntity, UUID> entityRepository() {
@@ -77,6 +78,11 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
 
                 if (!twinflowService.existsById(entity.getTwinflowId())) {
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect twinflowId");
+                }
+
+                if (twinflowFactoryRepository.existsByTwinflowIdAndTwinFactorylauncher(entity.getTwinflowId(), entity.getTwinFactorylauncher())) {
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " entity with twinflowId[" + entity.getTwinflowId() +
+                            "] and factoryLauncher[" + entity.getTwinFactorylauncher() + "] already exists");
                 }
 
                 if (entity.getTwinflow() == null || !entity.getTwinflow().getId().equals(entity.getTwinflowId())) {
