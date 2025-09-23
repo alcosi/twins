@@ -5,16 +5,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.attachment.AttachmentCudDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkAddDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkUpdateDTOv1;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 @Accessors(chain = true)
@@ -56,4 +54,25 @@ public class TwinUpdateDTOv1 extends Request {
 
     @JsonIgnore
     public UUID twinId;
+
+    public TwinUpdateDTOv1 putFieldsItem(String key, String item) {
+        if (this.fields == null) this.fields = new HashMap<>();
+        this.fields.put(key, item);
+        return this;
+    }
+
+    public TwinUpdateDTOv1 addTwinLinksAddItem(TwinLinkAddDTOv1 item) {
+        CollectionUtils.safeAdd(twinLinksAdd, item);
+        return this;
+    }
+
+    public TwinUpdateDTOv1 addTwinLinksDeleteItem(UUID item) {
+        CollectionUtils.safeAdd(twinLinksDelete, item);
+        return this;
+    }
+
+    public TwinUpdateDTOv1 addTwinLinksUpdateItem(TwinLinkUpdateDTOv1 item) {
+        CollectionUtils.safeAdd(twinLinksUpdate, item);
+        return this;
+    }
 }
