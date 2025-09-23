@@ -25,12 +25,6 @@ public class TwinStatusSaveRqDTOv1 extends Request {
     @Schema(description = "[optional] description")
     public I18nSaveDTOv1 descriptionI18n;
 
-    @Schema(description = "Icon dark uri")
-    public String iconDark;
-
-    @Schema(description = "Icon light uri")
-    public String iconLight;
-
     @Schema(description = "[optional] background color hex", example = DTOExamples.COLOR_HEX)
     public String backgroundColor;
 
