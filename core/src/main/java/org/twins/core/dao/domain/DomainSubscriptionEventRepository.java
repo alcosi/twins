@@ -12,4 +12,6 @@ import java.util.UUID;
 public interface DomainSubscriptionEventRepository extends CrudRepository<DomainSubscriptionEventEntity, UUID>, JpaSpecificationExecutor<DomainSubscriptionEventEntity> {
 
     Collection<DomainSubscriptionEventEntity> findAllByDomainIdInAndSubscriptionEventTypeId(Set<UUID> domainIds, SubscriptionEventType type);
+
+    boolean existsByDomainIdAndSubscriptionEventTypeId(UUID domainId, SubscriptionEventType type);
 }

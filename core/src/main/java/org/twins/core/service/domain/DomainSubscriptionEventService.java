@@ -6,12 +6,10 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.featurer.dao.FeaturerRepository;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.domain.DomainRepository;
 import org.twins.core.dao.domain.DomainSubscriptionEventEntity;
 import org.twins.core.dao.domain.DomainSubscriptionEventRepository;
 import org.twins.core.dao.domain.SubscriptionEventType;
@@ -29,8 +27,7 @@ public class DomainSubscriptionEventService extends EntitySecureFindServiceImpl<
 
     private final DomainSubscriptionEventRepository domainSubscriptionEventRepository;
     private final FeaturerService featurerService;
-    private final FeaturerRepository featurerRepository;
-    private final DomainRepository domainRepository;
+    private final DomainService domainService;
 
     @Override
     public CrudRepository<DomainSubscriptionEventEntity, UUID> entityRepository() {
@@ -61,12 +58,17 @@ public class DomainSubscriptionEventService extends EntitySecureFindServiceImpl<
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty featurerId");
                 }
 
-                if (!domainRepository.existsById(entity.getDomainId())) {
+                if (!domainService.existsById(entity.getDomainId())) {
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect domain id");
                 }
 
-                if (!featurerRepository.existsById(entity.getDispatcherFeaturerId())) {
+                if (!featurerService.existsById(entity.getDispatcherFeaturerId())) {
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect featurer id");
+                }
+
+                if (domainSubscriptionEventRepository.existsByDomainIdAndSubscriptionEventTypeId(entity.getDomainId(), entity.getSubscriptionEventTypeId())) {
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " entity with domainId[" + entity.getDomainId() +
+                            "] and subscriptionEventType[" + entity.getSubscriptionEventTypeId() + "] already exists");
                 }
 
                 if (Arrays.stream(SubscriptionEventType.values()).noneMatch(item -> item == entity.getSubscriptionEventTypeId())) {

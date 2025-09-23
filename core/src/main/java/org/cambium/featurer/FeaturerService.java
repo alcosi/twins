@@ -363,4 +363,8 @@ public class FeaturerService {
         }
         return featurerParams;
     }
+
+    public boolean existsById(Integer dispatcherFeaturerId) {
+        return featurerRepository.existsById(dispatcherFeaturerId);
+    }
 }
