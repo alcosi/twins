@@ -56,9 +56,6 @@ public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggab
     private Integer order;
 
     @Transient
-    private Set<TwinValidatorEntity> twinValidators;
-
-    @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinValidatorEntity, UUID> twinValidatorKit;
 
