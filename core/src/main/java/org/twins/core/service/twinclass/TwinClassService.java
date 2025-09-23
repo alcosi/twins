@@ -357,9 +357,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
         for (TwinClassCreate create : twinClassCreates) {
             TwinClassEntity twinClass = create.getTwinClass();
-            createByOriginalKey.put(twinClass.getKey(), create);
-
             String classKey = KeyUtils.upperCaseNullFriendly(twinClass.getKey(), ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT);
+            createByOriginalKey.put(classKey, create);
             twinClass.setKey(classKey);
 
             if (twinClassRepository.existsByDomainIdAndKey(apiUser.getDomainId(), classKey)) {
