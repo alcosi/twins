@@ -13,12 +13,10 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.factory.TwinFactoryRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowFactoryEntity;
 import org.twins.core.dao.twinflow.TwinflowFactoryRepository;
-import org.twins.core.dao.twinflow.TwinflowRepository;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinSave;
@@ -39,9 +37,7 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
     private final TwinflowService twinflowService;
     @Lazy
     private final TwinFactoryService twinFactoryService;
-    private final TwinFactoryRepository twinFactoryRepository;
     private final TwinflowFactoryRepository repository;
-    private final TwinflowRepository twinflowRepository;
 
     @Override
     public CrudRepository<TwinflowFactoryEntity, UUID> entityRepository() {
@@ -75,11 +71,11 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty factoryLauncher");
                 }
 
-                if (!twinFactoryRepository.existsById(entity.getTwinFactoryId())) {
+                if (!twinFactoryService.existsById(entity.getTwinFactoryId())) {
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect twinFactoryId");
                 }
 
-                if (!twinflowRepository.existsById(entity.getTwinflowId())) {
+                if (!twinflowService.existsById(entity.getTwinflowId())) {
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect twinflowId");
                 }
 
