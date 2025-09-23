@@ -571,4 +571,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             return;
         dbTwinClassFieldEntity.setRequired(newRequiredFlag);
     }
+
+    public boolean existsById(UUID id) {
+        return twinClassFieldRepository.existsById(id);
+    }
 }
