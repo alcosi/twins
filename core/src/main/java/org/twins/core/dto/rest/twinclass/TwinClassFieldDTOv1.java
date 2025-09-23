@@ -54,4 +54,15 @@ public class TwinClassFieldDTOv1 {
     @Schema(description = "external id", example = "")
     public String externalId;
 
+    @Schema(description = "frontend validation error", example = "")
+    public String feValidationError;
+
+    @Schema(description = "backend validation error", example = "")
+    public String beValidationError;
+
+    @Schema(description = "frontend validation error i18n id", example = "")
+    public UUID feValidationErrorI18nId;
+
+    @Schema(description = "backend validation error i18n id", example = "")
+    public UUID beValidationErrorI18nId;
 }

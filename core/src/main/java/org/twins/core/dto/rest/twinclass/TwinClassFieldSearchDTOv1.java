@@ -72,4 +72,16 @@ public class TwinClassFieldSearchDTOv1 {
 
     @Schema(description = "required", example = DTOExamples.TERNARY)
     public Ternary required;
+
+    @Schema(description = "frontend validation error i18n like list")
+    public Set<String> feValidationErrorI18nLikeList;
+
+    @Schema(description = "frontend validation error i18n not like list")
+    public Set<String> feValidationErrorI18nNotLikeList;
+
+    @Schema(description = "backend validation error i18n like list")
+    public Set<String> beValidationErrorI18nLikeList;
+
+    @Schema(description = "backend validation error i18n not like list")
+    public Set<String> beValidationErrorI18nNotLikeList;
 }
