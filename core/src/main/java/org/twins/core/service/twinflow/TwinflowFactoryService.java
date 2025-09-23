@@ -13,10 +13,12 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.factory.TwinFactoryRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowFactoryEntity;
 import org.twins.core.dao.twinflow.TwinflowFactoryRepository;
+import org.twins.core.dao.twinflow.TwinflowRepository;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinSave;
@@ -33,10 +35,13 @@ import java.util.function.Function;
 @Lazy
 @RequiredArgsConstructor
 public class TwinflowFactoryService extends EntitySecureFindServiceImpl<TwinflowFactoryEntity> {
-    private final TwinflowFactoryRepository repository;
+
     private final TwinflowService twinflowService;
     @Lazy
     private final TwinFactoryService twinFactoryService;
+    private final TwinFactoryRepository twinFactoryRepository;
+    private final TwinflowFactoryRepository repository;
+    private final TwinflowRepository twinflowRepository;
 
     @Override
     public CrudRepository<TwinflowFactoryEntity, UUID> entityRepository() {
@@ -56,15 +61,28 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
 
     @Override
     public boolean validateEntity(TwinflowFactoryEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        if(entity.getTwinflowId() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinflowId");
-        if(entity.getTwinFactoryId() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinFactoryId");
-        if(entity.getTwinFactorylauncher() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty factoryLauncher");
-
         switch (entityValidateMode) {
             case beforeSave -> {
+                if (entity.getTwinflowId() == null) {
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinflowId");
+                }
+
+                if (entity.getTwinFactoryId() == null) {
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinFactoryId");
+                }
+
+                if (entity.getTwinFactorylauncher() == null) {
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty factoryLauncher");
+                }
+
+                if (!twinFactoryRepository.existsById(entity.getTwinFactoryId())) {
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect twinFactoryId");
+                }
+
+                if (!twinflowRepository.existsById(entity.getTwinflowId())) {
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect twinflowId");
+                }
+
                 if (entity.getTwinflow() == null || !entity.getTwinflow().getId().equals(entity.getTwinflowId())) {
                     try {
                         entity.setTwinflow(twinflowService.findEntitySafe(entity.getTwinflowId()));
