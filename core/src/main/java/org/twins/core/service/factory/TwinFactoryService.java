@@ -697,4 +697,8 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         Map<UUID, Integer> mulitplierFilterMap = mapUuidInt(twinFactoryMultiplierFilterRepository.countByMultiplierIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(multiplierFilter -> multiplierFilter.setFactoryMultiplierFiltersCount(mulitplierFilterMap.getOrDefault(multiplierFilter.getId(), 0)));
     }
+
+    public boolean existsById(UUID twinFactoryId) {
+        return twinFactoryRepository.existsById(twinFactoryId);
+    }
 }

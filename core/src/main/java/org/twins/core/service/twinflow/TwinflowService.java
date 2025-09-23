@@ -309,5 +309,8 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         dbTwinflowEntity.setInitialTwinStatusId(initStatusId);
     }
 
+    public boolean existsById(UUID twinflowId) {
+        return twinflowRepository.existsById(twinflowId);
+    }
 }
 
