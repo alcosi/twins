@@ -701,7 +701,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (transitionContext.isValidated())
             return;
         List<TwinflowTransitionValidatorRuleEntity> transitionValidatorEntityList = twinflowTransitionValidatorRuleRepository.findByTwinflowTransitionIdOrderByOrder(transitionContext.getTransitionEntity().getId());
-        twinValidatorService.loadValidators(transitionValidatorEntityList);
         for (TwinEntity twinEntity : transitionContext.getTargetTwinList().values())
             if (!runTransitionValidators(transitionContext.getTransitionEntity(), transitionValidatorEntityList, twinEntity))
                 throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_DENIED);
@@ -712,7 +711,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         // findByTwinflowTransitionIdOrderByOrder method result must be cached to avoid extra query count (in case of loading for list of twins)
         // if cache will be disabled - validator must be loaded in one query
         List<TwinflowTransitionValidatorRuleEntity> transitionValidatorEntityList = twinflowTransitionValidatorRuleRepository.findByTwinflowTransitionIdOrderByOrder(twinflowTransitionEntity.getId());
-        twinValidatorService.loadValidators(transitionValidatorEntityList);
         return runTransitionValidators(twinflowTransitionEntity, transitionValidatorEntityList, twinEntity);
     }
 
@@ -728,7 +726,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 log.info(transitionValidatorRuleEntity.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
                 continue;
             }
-            validationResultOfRule = twinValidatorSetService.isValid(twinEntity, transitionValidatorRuleEntity, new HashSet<>(transitionValidatorRuleEntity.getTwinValidatorKit().getList()));
+            validationResultOfRule = twinValidatorSetService.isValid(twinEntity, transitionValidatorRuleEntity, transitionValidatorRuleEntity.getTwinValidatorKit().getList());
             if (validationResultOfRule)
                 break;
         }

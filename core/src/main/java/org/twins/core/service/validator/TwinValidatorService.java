@@ -50,10 +50,10 @@ public class TwinValidatorService extends EntitySecureFindServiceImpl<TwinValida
     }
 
     public <T extends ContainsTwinValidatorSet> void loadValidators(Collection<T> entities) throws ServiceException {
-        Map<UUID, T> needLoad = new HashMap<>();
+        Kit<T, UUID> needLoad = new Kit<>(T::getTwinValidatorSetId);
         for (T entity : entities) {
             if (entity.getTwinValidatorKit() == null && entity.getTwinValidatorSetId() != null) {
-                needLoad.put(entity.getTwinValidatorSetId(), entity);
+                needLoad.add(entity);
             }
         }
 
@@ -62,16 +62,12 @@ public class TwinValidatorService extends EntitySecureFindServiceImpl<TwinValida
         }
 
         KitGrouped<TwinValidatorEntity, UUID, UUID> validatorKit = new KitGrouped<>(
-                twinValidatorRepository.findByTwinValidatorSetIdIn(needLoad.keySet()),
+                twinValidatorRepository.findByTwinValidatorSetIdIn(needLoad.getIdSet()),
                 TwinValidatorEntity::getId,
                 TwinValidatorEntity::getTwinValidatorSetId);
 
-        for (Map.Entry<UUID, T> entry : needLoad.entrySet()) {
-            try {
-                entry.getValue().setTwinValidatorKit(new Kit<>(validatorKit.getGrouped(entry.getKey()), TwinValidatorEntity::getId));
-            } catch (Exception e) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_VALIDATOR_INCORRECT, "Failed to set collection twinValidators for entity " + entry.getValue().getClass().getSimpleName());
-            }
+        for (Map.Entry<UUID, T> entry : needLoad.getMap().entrySet()) {
+            entry.getValue().setTwinValidatorKit(new Kit<>(validatorKit.getGrouped(entry.getKey()), TwinValidatorEntity::getId));
         }
     }
 }
