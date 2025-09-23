@@ -3,7 +3,7 @@ package org.twins.core.mappers.rest.twinclass;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldSave;
+import org.twins.core.domain.twinclass.TwinClassFieldSave;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldSaveDTOv1;
 import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;

@@ -4,9 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.dao.comment.TwinCommentAction;
+import org.twins.core.enums.comment.TwinCommentAction;
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 

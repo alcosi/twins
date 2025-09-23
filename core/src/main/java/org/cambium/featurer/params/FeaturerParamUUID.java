@@ -21,7 +21,9 @@ public class FeaturerParamUUID extends FeaturerParam<UUID> {
 
     @Override
     public UUID extract(Properties properties) {
-        return UUID.fromString(properties.get(key).toString());
+        var value = properties.get(key);
+        if (value == null || value.toString().isBlank()) return null;
+        return UUID.fromString(value.toString());
     }
 
     @Override

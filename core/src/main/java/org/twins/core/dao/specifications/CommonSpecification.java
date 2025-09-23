@@ -16,7 +16,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.DataTimeRange;
-import org.twins.core.domain.LongRange;
+import org.cambium.common.math.LongRange;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
 
 import java.sql.Timestamp;
@@ -26,10 +26,13 @@ import java.util.stream.Collectors;
 import static org.cambium.common.util.ArrayUtils.concatArray;
 import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
-import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
+import static org.twins.core.enums.twinclass.OwnerType.*;
 
 @Slf4j
 public class CommonSpecification<T> extends AbstractSpecification<T> {
+
+    public static final Character escapeChar = '\\';
+
     /**
      * Generates a Specification to check hierarchy of child elements based on the given parameters.
      * The method supports filtering based on a list of UUIDs, negating the condition,
@@ -49,7 +52,14 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return (root, query, cb) -> {
             if (org.cambium.common.util.CollectionUtils.isEmpty(ids))
                 return cb.conjunction();
-            var range = (depthLimit == null || depthLimit <= 0) ? null : Range.of(1, depthLimit);
+            Range<Integer> range = null;
+            if (depthLimit == null || depthLimit == 0)
+                range = Range.of(1, (int) Short.MAX_VALUE);
+            else if (depthLimit > 0)
+                range = Range.of(1, depthLimit);
+            else if (depthLimit < 0) {
+                range = Range.of(0, (int) Short.MAX_VALUE);
+            }
             var preparedIds = LTreeUtils.findChildsLQuery(ids.stream().map(UUID::toString).collect(Collectors.toList()), range);
             Path<String> ltreePath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, ltreeFieldPath);
             Predicate idPredicate;
@@ -421,7 +431,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                 return cb.conjunction();
 
             List<Predicate> predicates = search.stream().map(name -> {
-                Predicate predicate = cb.like(cb.lower(getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, fieldPath)), name.toLowerCase());
+                Predicate predicate = cb.like(cb.lower(getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, fieldPath)), name.toLowerCase(), escapeChar);
                 if (not) predicate = cb.not(predicate);
                 return predicate;
             }).toList();

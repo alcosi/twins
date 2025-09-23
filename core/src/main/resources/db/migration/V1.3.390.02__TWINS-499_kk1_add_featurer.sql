@@ -1,0 +1,1 @@
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2437, 24, 'org.twins.core.featurer.factory.conditioner.ConditionerFactoryItemTwinOperation', 'fields by class field ids', '', false) on conflict do nothing;

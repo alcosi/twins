@@ -14,7 +14,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.action.TwinAction;
+import org.twins.core.enums.action.TwinAction;
 import org.twins.core.dao.attachment.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -38,9 +38,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.cambium.common.util.InformationVolumeUtils.convertToGb;
-import static org.twins.core.dao.attachment.AttachmentFileCreateUpdateProblem.*;
-import static org.twins.core.dao.attachment.AttachmentGlobalCreateDeleteProblem.MAX_COUNT_EXCEEDED;
-import static org.twins.core.dao.attachment.AttachmentGlobalCreateDeleteProblem.MIN_COUNT_NOT_REACHED;
+import static org.twins.core.enums.attachment.problem.AttachmentFileCreateUpdateProblem.*;
+import static org.twins.core.enums.attachment.problem.AttachmentGlobalCreateDeleteProblem.MAX_COUNT_EXCEEDED;
+import static org.twins.core.enums.attachment.problem.AttachmentGlobalCreateDeleteProblem.MIN_COUNT_NOT_REACHED;
 
 @Slf4j
 @Service
@@ -159,10 +159,10 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
             if (fieldTyper.getStorageType() != TwinFieldStorageAttachment.class) {
                 throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Wrong fieldTyper for [" + fieldEntity.getId() + "]");
             }
-
-            UUID restrictionId = ((FieldTyperAttachment) fieldTyper).getRestrictionId(fieldEntity.getFieldTyperParams());
+            FieldTyperAttachment<?> fieldTyperAttachment = (FieldTyperAttachment) fieldTyper;
+            UUID restrictionId = fieldTyperAttachment.getRestrictionId(fieldEntity.getFieldTyperParams());
             if (restrictionId != null) {
-                result.put(fieldEntity.getId(), ((FieldTyperAttachment) fieldTyper).getRestrictionId(fieldEntity.getFieldTyperParams()));
+                result.put(fieldEntity.getId(), restrictionId);
             }
         }
 

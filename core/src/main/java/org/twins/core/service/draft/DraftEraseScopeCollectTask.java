@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.draft.DraftEntity;
-import org.twins.core.dao.draft.DraftStatus;
+import org.twins.core.enums.draft.DraftStatus;
 import org.twins.core.domain.draft.DraftCollector;
 import org.twins.core.service.auth.AuthService;
 

@@ -48,26 +48,26 @@ public class TwinUpdate extends TwinSave {
     }
 
     public boolean isChanged() {
-        return !(
-                Objects.equals(dbTwinEntity, getTwinEntity()) &&
-                        (null == attachmentCUD || attachmentCUD.isEmpty()) &&
-                        (null == twinLinkCUD || twinLinkCUD.isEmpty()) &&
-                        (null == fields || fields.isEmpty()) &&
-                        (null == tagsDelete || tagsDelete.isEmpty()) &&
-                        (null == markersDelete || markersDelete.isEmpty()) &&
-                        (null == markersAdd || markersAdd.isEmpty()) &&
-                        (null == tagsAddNew || tagsAddNew.isEmpty()) &&
-                        (null == tagsAddExisted || tagsAddExisted.isEmpty())
-        );
+        return !Objects.equals(dbTwinEntity, getTwinEntity()) ||
+                mode == Mode.sketchUpdate || // this mode helps to overcome "has changes" check logic. Sketch twin can have no direct changes, but some children dependent logic
+                !(null == attachmentCUD || attachmentCUD.isEmpty()) ||
+                !(null == twinLinkCUD || twinLinkCUD.isEmpty()) ||
+                !(null == fields || fields.isEmpty()) ||
+                !(null == tagsDelete || tagsDelete.isEmpty()) ||
+                !(null == markersDelete || markersDelete.isEmpty()) ||
+                !(null == markersAdd || markersAdd.isEmpty()) ||
+                !(null == tagsAddNew || tagsAddNew.isEmpty()) ||
+                !(null == tagsAddExisted || tagsAddExisted.isEmpty());
     }
 
     public enum Mode {
         twinUpdate,
         sketchUpdate,
-        sketchFinalize;
+        sketchFinalize,
+        sketchFinalizeRestricted;
 
         public boolean isSketch() {
-            return this == sketchUpdate || this == sketchFinalize;
+            return this == sketchUpdate || this == sketchFinalize || this == sketchFinalizeRestricted;
         }
     }
 }

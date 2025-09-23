@@ -1,9 +1,9 @@
 package org.twins.face.dao.tc.tc001;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.ToString;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.face.FaceEntity;
@@ -11,13 +11,10 @@ import org.twins.core.dao.face.FaceVariantEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-
 
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
 @Entity
 @Table(name = "face_tc001")
 public class FaceTC001Entity implements EasyLoggable, FaceVariantEntity {
@@ -57,22 +54,31 @@ public class FaceTC001Entity implements EasyLoggable, FaceVariantEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FaceEntity face;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "header_i18n_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity headerI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "header_icon_resource_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private ResourceEntity iconResource;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<FaceTC001OptionEntity, UUID> options;
 
     @Override

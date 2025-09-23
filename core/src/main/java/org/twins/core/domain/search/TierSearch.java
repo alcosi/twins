@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.Ternary;
-import org.twins.core.domain.LongRange;
+import org.cambium.common.math.LongRange;
 
 import java.util.Set;
 import java.util.UUID;

@@ -3,7 +3,7 @@ package org.twins.core.dto.rest.validator;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.comment.TwinCommentAction;
+import org.twins.core.enums.comment.TwinCommentAction;
 
 import java.util.UUID;
 

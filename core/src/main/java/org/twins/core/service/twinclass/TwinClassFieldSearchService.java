@@ -21,13 +21,12 @@ import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinClassFieldSearch;
-import org.twins.core.featurer.fieldfinder.FieldFinder;
+import org.twins.core.featurer.classfield.finder.FieldFinder;
+import org.twins.core.featurer.classfield.sorter.FieldSorter;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -52,12 +51,20 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
     public PaginationResult<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search, SimplePagination pagination) throws ServiceException {
         if (search.isInactiveSearch())
             return PaginationResult.EMPTY;
-        Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
-        Page<TwinClassFieldEntity> ret = twinClassFieldRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
+        Specification<TwinClassFieldEntity> specification = createTwinClassFieldSearchSpecification(search);
+        specification = addSorting(search, pagination, specification);
+        Page<TwinClassFieldEntity> ret = twinClassFieldRepository.findAll(specification, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    public PaginationResult<TwinClassFieldEntity> findTwinClassField(UUID searchId, TwinClassFieldSearch narrowSearch, SimplePagination pagination) throws ServiceException {
+    public List<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search) throws ServiceException {
+        if (search.isInactiveSearch())
+            return Collections.emptyList();
+        Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
+        return twinClassFieldRepository.findAll(spec);
+    }
+
+    public PaginationResult<TwinClassFieldEntity> findTwinClassField(UUID searchId, Map<String, String> namedParamsMap, TwinClassFieldSearch narrowSearch, SimplePagination pagination) throws ServiceException {
         if (SystemEntityService.TWIN_CLASS_FIELD_SEARCH_UNLIMITED.equals(searchId)) {
             return findTwinClassField(narrowSearch, pagination);
         }
@@ -65,11 +72,12 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
         List<TwinClassFieldSearchPredicateEntity> searchPredicates = fieldSearchPredicateRepository.findByTwinClassFieldSearchId(searchEntity.getId());
         TwinClassFieldSearch mainSearch = new TwinClassFieldSearch()
                 .setExcludeSystemFields(false);
-        for(TwinClassFieldSearchPredicateEntity predicate: searchPredicates) {
+        for (TwinClassFieldSearchPredicateEntity predicate : searchPredicates) {
             FieldFinder fieldFinder = featurerService.getFeaturer(predicate.getFieldFinderFeaturerId(), FieldFinder.class);
-            fieldFinder.concatSearch(predicate.getFieldFinderParams(), mainSearch);
+            fieldFinder.concatSearch(predicate.getFieldFinderParams(), mainSearch, namedParamsMap);
         }
         narrowSearch(mainSearch, narrowSearch);
+        mainSearch.setConfiguredSearch(searchEntity);
         return findTwinClassField(mainSearch, pagination);
     }
 
@@ -96,6 +104,21 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
                 checkTernary(search.getRequired(), TwinClassFieldEntity.Fields.required),
                 checkFieldLikeIn(search.getExternalIdLikeList(), false, true, TwinClassFieldEntity.Fields.externalId),
                 checkFieldLikeIn(search.getExternalIdNotLikeList(), true, true, TwinClassFieldEntity.Fields.externalId));
+    }
+
+    private Specification<TwinClassFieldEntity> addSorting(TwinClassFieldSearch search, SimplePagination pagination, Specification<TwinClassFieldEntity> specification) throws ServiceException {
+        TwinClassFieldSearchEntity searchEntity = search.getConfiguredSearch();
+        if (searchEntity != null &&
+                (searchEntity.isForceSorting() || pagination == null || pagination.getSort() == null)) {
+            FieldSorter fieldSorter = featurerService.getFeaturer(searchEntity.getFieldSorterFeaturerId(), FieldSorter.class);
+            var sortFunction = fieldSorter.createSort(searchEntity.getFieldSorterParams());
+            if (sortFunction != null) {
+                specification = sortFunction.apply(specification);
+                if (pagination != null)
+                    pagination.setSort(null);
+            }
+        }
+        return specification;
     }
 
     @Override
@@ -126,10 +149,11 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
     protected void narrowSearch(TwinClassFieldSearch mainSearch, TwinClassFieldSearch narrowSearch) {
         if (narrowSearch == null)
             return;
-        for (Pair<Function<TwinClassFieldSearch, Set>, BiConsumer<TwinClassFieldSearch, Set>> functioPair : TwinClassFieldSearch.SET_FIELDS) {
-            Set mainSet = functioPair.getKey().apply(mainSearch);
-            Set narrowSet = functioPair.getKey().apply(narrowSearch);
-            functioPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
+
+        for (Pair<Function<TwinClassFieldSearch, Set>, BiConsumer<TwinClassFieldSearch, Set>> functionPair : TwinClassFieldSearch.SET_FIELDS) {
+            Set mainSet = functionPair.getKey().apply(mainSearch);
+            Set narrowSet = functionPair.getKey().apply(narrowSearch);
+            functionPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
         }
         for (Pair<Function<TwinClassFieldSearch, Ternary>, BiConsumer<TwinClassFieldSearch, Ternary>> functionPair : TwinClassFieldSearch.TERNARY_FIELD) {
             Ternary mainSet = functionPair.getKey().apply(mainSearch);

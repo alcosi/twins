@@ -16,14 +16,15 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.action.TwinAction;
+import org.twins.core.enums.action.TwinAction;
 import org.twins.core.dao.attachment.*;
-import org.twins.core.dao.history.HistoryType;
+import org.twins.core.enums.history.HistoryType;
 import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
 import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.*;
+import org.twins.core.enums.attachment.TwinAttachmentAction;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.Storager;
@@ -83,9 +84,14 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         return changesApplyResult.getForClassAsList(TwinAttachmentEntity.class);
     }
 
+    public void addAttachment(TwinAttachmentEntity attachment, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        addAttachments(Collections.singletonList(attachment), twinChangesCollector);
+    }
+
     public void addAttachments(List<TwinAttachmentEntity> attachments, TwinChangesCollector twinChangesCollector) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         loadTwins(attachments);
+        storageService.loadStorages(attachments);
         for (TwinAttachmentEntity attachmentEntity : attachments) {
             final UUID uuid = UUID.randomUUID();
             twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
@@ -179,7 +185,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         }
         for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet()) {
             List<TwinAttachmentEntity> twinAttachmentsList = attachmentMap.get(entry.getKey());
-            if(!CollectionUtils.isEmpty(twinAttachmentsList))
+            if (!CollectionUtils.isEmpty(twinAttachmentsList))
                 entry.getValue().getAttachmentKit().addAll(twinAttachmentsList);
         }
     }
@@ -277,10 +283,15 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         }
     }
 
+    public void updateAttachment(TwinAttachmentEntity attachmentEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        updateAttachments(Collections.singletonList(attachmentEntity), twinChangesCollector);
+    }
+
     //todo collect only delta for correct drafting (minimize lockers)
     public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentEntityList))
             return;
+        storageService.loadStorages(attachmentEntityList);
         Kit<TwinAttachmentEntity, UUID> newAttachmentKit = new Kit<>(attachmentEntityList, TwinAttachmentEntity::getId);
         Kit<TwinAttachmentEntity, UUID> dbAttachmentKit = new Kit<>(twinAttachmentRepository.findByIdIn(newAttachmentKit.getIdSet()), TwinAttachmentEntity::getId);
         TwinAttachmentEntity dbAttachmentEntity;
@@ -303,15 +314,12 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 historyItem.getContext().setNewTitle(attachmentEntity.getTitle());
                 dbAttachmentEntity.setTitle(attachmentEntity.getTitle());
             }
-            if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.storageFileKey, dbAttachmentEntity.getStorageFileKey(), attachmentEntity.getStorageFileKey())) {
-                if (StringUtils.isEmpty(attachmentEntity.getStorageFileKey())) {
-                    throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "storageFileKey is empty");
-                }
-                historyItem.getContext().setNewStorageFileKey(attachmentEntity.getStorageFileKey());
+            if (attachmentEntity.isFileChanged() || twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.storageFileKey, dbAttachmentEntity.getStorageFileKey(), attachmentEntity.getStorageFileKey())) {
                 deleteFile(dbAttachmentEntity);
                 saveFile(attachmentEntity, dbAttachmentEntity.getId());
                 dbAttachmentEntity.setStorageFileKey(attachmentEntity.getStorageFileKey());
                 historyItem.getContext().setNewStorageFileKey(attachmentEntity.getStorageFileKey());
+
             }
             if (KitUtils.isNotEmpty(attachmentEntity.getModifications())) {
                 updateAttachmentModifications(attachmentEntity, dbAttachmentEntity, twinChangesCollector);

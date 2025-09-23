@@ -15,6 +15,7 @@ import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
+import org.twins.core.enums.twinflow.TwinflowTransitionType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -79,9 +80,6 @@ public class TwinflowTransitionEntity implements EasyLoggable {
 
     @Column(name = "drafting_twin_factory_id")
     private UUID draftingTwinFactoryId;
-
-    @Column(name = "after_perform_twin_factory_id")
-    private UUID afterPerformTwinFactoryId;
 
     @Column(name = "twinflow_transition_alias_id")
     private UUID twinflowTransitionAliasId;

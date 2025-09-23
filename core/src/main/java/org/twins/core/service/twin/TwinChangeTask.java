@@ -42,7 +42,7 @@ public class TwinChangeTask implements Runnable {
     @Override
     public void run() {
         try {
-            LoggerUtils.logSession();
+            LoggerUtils.logSession(twinChangeTaskEntity.getRequestId());
             LoggerUtils.logController("twinChangeTask$");
             LoggerUtils.logPrefix("CHANGE_TASK[" + twinChangeTaskEntity.getId() + "]:");
             log.info("Performing async twin change run: {}", twinChangeTaskEntity.logDetailed());

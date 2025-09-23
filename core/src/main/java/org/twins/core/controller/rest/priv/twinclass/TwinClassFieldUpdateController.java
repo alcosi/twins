@@ -21,7 +21,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldRsDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldSave;
+import org.twins.core.domain.twinclass.TwinClassFieldSave;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldUpdateRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldUpdateRqDTOv2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;

@@ -7,7 +7,7 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilderParamCurrentTwinId;
+import org.twins.core.featurer.twin.finder.TwinFinderRequested;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -61,7 +61,7 @@ public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<FaceWT001Entity,
                     if (pointedTwin == null) {
                         throw new ServiceException(ErrorCodeTwins.POINTER_ON_NULL, "configured search pointer is pointed on null");
                     }
-                    searchParams.put(SearchCriteriaBuilderParamCurrentTwinId.PARAM_CURRENT_TWIN_ID, pointedTwin.getId().toString());
+                    searchParams.put(TwinFinderRequested.PARAM_TWIN_ID, pointedTwin.getId().toString());
                     dst.setSearchParams(searchParams);
                 }
             }

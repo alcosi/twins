@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
@@ -64,7 +64,7 @@ public class TwinClassSaveRqDTOv1 extends Request {
     public UUID deletePermissionId;
 
     @Schema(description = "[optional] owner typ of class")
-    public TwinClassEntity.OwnerType ownerType;
+    public OwnerType ownerType;
 
     @Schema(description = "[optional] is assignee required")
     public Boolean assigneeRequired;

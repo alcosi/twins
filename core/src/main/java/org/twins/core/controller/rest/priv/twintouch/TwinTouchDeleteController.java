@@ -19,7 +19,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
-import org.twins.core.dao.twin.TwinTouchEntity;
+import org.twins.core.enums.twin.Touch;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.service.permission.Permissions;
@@ -45,7 +45,7 @@ public class TwinTouchDeleteController extends ApiController {
     @PutMapping(value = "/private/twin/{twinId}/untouch/{touchId}/v1")
     public ResponseEntity<?> twinUntouchV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @Parameter(example = DTOExamples.TWIN_TOUCH) @PathVariable TwinTouchEntity.Touch touchId) {
+            @Parameter(example = DTOExamples.TWIN_TOUCH) @PathVariable Touch touchId) {
         Response rs = new Response();
         try {
             twinTouchService.deleteCurrentUserTouch(twinId, touchId);

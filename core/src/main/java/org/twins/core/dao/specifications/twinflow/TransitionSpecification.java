@@ -9,9 +9,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twinflow.TwinflowTransitionAliasEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
-import org.twins.core.dao.twinflow.TwinflowTransitionType;
-import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dao.user.UserStatus;
+import org.twins.core.enums.twinflow.TwinflowTransitionType;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,7 +26,7 @@ public class TransitionSpecification extends CommonSpecification<TwinflowTransit
             ArrayList<Predicate> predicates = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search))
                 for (String s : search) {
-                    Predicate predicate = cb.like(cb.lower(twinflowAliasJoin.get(TwinflowTransitionAliasEntity.Fields.alias)), "%" + s.toLowerCase() + "%");
+                    Predicate predicate = cb.like(cb.lower(twinflowAliasJoin.get(TwinflowTransitionAliasEntity.Fields.alias)), "%" + s.toLowerCase() + "%", escapeChar);
                     predicates.add(predicate);
                 }
             return getPredicate(cb, predicates, or);
