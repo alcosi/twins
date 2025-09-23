@@ -30,7 +30,6 @@ public class TwinClassSaveRestDTOReverseMapper extends RestSimpleDTOMapper<TwinC
                         .setTwinflowSchemaSpace(BooleanUtils.isTrue(src.getTwinflowSchemaSpace()))
                         .setHeadHunterFeaturerId(src.getHeadHunterFeaturerId())
                         .setHeadHunterParams(src.getHeadHunterParams())
-                        .setLogo(src.getLogo())
                         .setViewPermissionId(src.getViewPermissionId())
                         .setCreatePermissionId(src.getCreatePermissionId())
                         .setEditPermissionId(src.getEditPermissionId())
