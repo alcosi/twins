@@ -14,6 +14,7 @@ import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
+import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.dao.action.TwinActionPermissionEntity;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
@@ -102,8 +103,11 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @Column(name = "logo")
-    private String logo;
+    @Column(name = "icon_light_resource_id")
+    private UUID iconLightResourceId;
+
+    @Column(name = "icon_dark_resource_id")
+    private UUID iconDarkResourceId;
 
     @Column(name = "head_twin_class_id")
     private UUID headTwinClassId;
@@ -175,6 +179,18 @@ public class TwinClassEntity implements EasyLoggable {
 //    @ManyToOne
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
 //    private DomainEntity domain;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "icon_light_resource_id", insertable = false, updatable = false)
+    private ResourceEntity iconLightResource;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "icon_dark_resource_id", insertable = false, updatable = false)
+    private ResourceEntity iconDarkResource;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
