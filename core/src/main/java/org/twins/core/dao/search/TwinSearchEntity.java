@@ -38,13 +38,6 @@ public class TwinSearchEntity implements EasyLoggable {
     @Column(name = "force_sorting")
     private boolean forceSorting;
 
-    @Column(name = "twin_sorter_featurer_id")
-    private int twinSorterFeaturerId;
-
-    @Type(PostgreSQLHStoreType.class)
-    @Column(name = "twin_sorter_params", columnDefinition = "hstore")
-    private HashMap<String, String> twinSorterParams;
-
     @Column(name = "created_at")
     private Timestamp createdAt;
 
@@ -56,6 +49,12 @@ public class TwinSearchEntity implements EasyLoggable {
     @ToString.Exclude
     @JoinColumn(name = "twin_search_id", insertable = false, updatable = false, nullable = true)
     private List<TwinSearchPredicateEntity> searchPredicateList;
+
+    @OneToMany(fetch = FetchType.EAGER)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @JoinColumn(name = "twin_search_id", insertable = false, updatable = false, nullable = true)
+    private List<TwinSearchSortEntity> sortList;
 
     public String easyLog(Level level)  {
         switch (level) {

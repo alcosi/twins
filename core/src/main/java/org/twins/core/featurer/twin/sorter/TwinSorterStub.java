@@ -18,7 +18,7 @@ import java.util.function.Function;
         description = "")
 public class TwinSorterStub extends TwinSorter {
     @Override
-    public Function<Specification<TwinEntity>, Specification<TwinEntity>> createSort(Properties properties) throws ServiceException {
-        return null;
+    public Function<Specification<TwinEntity>, Specification<TwinEntity>> createSort(Properties properties, org.twins.core.dao.twinclass.TwinClassFieldEntity twinClassFieldEntity, org.hibernate.query.SortDirection direction) throws ServiceException {
+        return baseSpec -> baseSpec; // no sorting
     }
 }

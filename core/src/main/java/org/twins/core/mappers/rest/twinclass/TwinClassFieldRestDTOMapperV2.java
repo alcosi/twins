@@ -44,7 +44,9 @@ public class TwinClassFieldRestDTOMapperV2 extends RestSimpleDTOMapper<TwinClass
         if (mapperContext.hasModeButNot(FeaturerMode.TwinClassField2FeaturerMode.HIDE))
             dst
                     .setFieldTyperFeaturer(featurerRestDTOMapper.convertOrPostpone(src.getFieldTyperFeaturer(), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT)))
-                    .setFieldTyperFeaturerId(src.getFieldTyperFeaturerId());
+                    .setTwinSorterFeaturer(featurerRestDTOMapper.convertOrPostpone(src.getTwinSorterFeaturer(), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT)))
+                    .setFieldTyperFeaturerId(src.getFieldTyperFeaturerId())
+                    .setTwinSorterFeaturerId(src.getTwinSorterFeaturerId());
         if (mapperContext.hasModeButNot(PermissionMode.TwinClassField2PermissionMode.HIDE)) {
             dst
                     .setViewPermission(permissionRestDTOMapper.convertOrPostpone(src.getViewPermission(), mapperContext.forkOnPoint(PermissionMode.TwinClassField2PermissionMode.SHORT)))

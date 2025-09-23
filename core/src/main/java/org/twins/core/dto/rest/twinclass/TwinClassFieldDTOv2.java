@@ -23,4 +23,7 @@ public class TwinClassFieldDTOv2 extends TwinClassFieldDTOv1 {
 
     @Schema(description = "field typer featurer")
     public FeaturerDTOv1 fieldTyperFeaturer;
+
+    @Schema(description = "twin sorter featurer")
+    public FeaturerDTOv1 twinSorterFeaturer;
 }
