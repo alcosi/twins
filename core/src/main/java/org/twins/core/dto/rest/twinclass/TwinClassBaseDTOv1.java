@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.enums.twinclass.OwnerType;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -114,5 +114,5 @@ public class TwinClassBaseDTOv1 {
     public Map<String, String> externalProperties;
 
     @Schema(description = "flag that indicates existence of pluggable ")
-    public boolean hasPluggedFields;
+    public Boolean hasPluggedFields;
 }

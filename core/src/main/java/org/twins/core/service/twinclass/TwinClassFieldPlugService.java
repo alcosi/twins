@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldPlugEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldPlugRepository;
+import org.twins.core.enums.twinclass.TwinClassFieldVisibility;
 import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.ArrayList;
@@ -67,7 +68,7 @@ public class TwinClassFieldPlugService extends EntitySecureFindServiceImpl<TwinC
                 TwinClassFieldEntity field = twinClassFieldService.findEntitySafe(entity.getTwinClassFieldId());
                 if (field == null) {
                     return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_ID_UNKNOWN.getMessage());
-                } else if (field.getTwinClassFieldVisibilityId() != TwinClassFieldEntity.TwinClassFieldVisibility.PLUGGABLE) {
+                } else if (field.getTwinClassFieldVisibilityId() != TwinClassFieldVisibility.PLUGGABLE) {
                     return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_IS_NOT_PLUGGABLE.getMessage());
                 }
 

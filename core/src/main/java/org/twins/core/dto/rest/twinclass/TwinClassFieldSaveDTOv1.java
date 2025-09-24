@@ -3,9 +3,9 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
+import org.twins.core.enums.twinclass.TwinClassFieldVisibility;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -43,7 +43,7 @@ public abstract class TwinClassFieldSaveDTOv1{
     public HashMap<String, String> fieldTyperParams;
 
     @Schema(description = "field visibility", example = "PUBLIC")
-    public TwinClassFieldEntity.TwinClassFieldVisibility fieldVisibility;
+    public TwinClassFieldVisibility fieldVisibility;
 
     @Schema(description = "I18n frontend validation error", example = "")
     public I18nSaveDTOv1 feValidationErrorI18n;

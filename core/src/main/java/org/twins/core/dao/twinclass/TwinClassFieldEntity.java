@@ -4,7 +4,6 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
@@ -14,6 +13,7 @@ import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.enums.twinclass.TwinClassFieldVisibility;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.service.SystemEntityService;
@@ -124,10 +124,5 @@ public class TwinClassFieldEntity implements EasyLoggable {
 
     public boolean isBaseField() {
         return SystemEntityService.isSystemField(id);
-    }
-
-    @Getter
-    public enum TwinClassFieldVisibility {
-        PUBLIC, PRIVATE, PLUGGABLE
     }
 }
