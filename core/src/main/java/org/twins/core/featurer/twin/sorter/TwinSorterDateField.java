@@ -8,10 +8,11 @@ import org.hibernate.query.SortDirection;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldBooleanEntity;
+import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.FeaturerTwins;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -20,10 +21,10 @@ import java.util.function.Function;
 
 @Slf4j
 @Component
-@Featurer(id = FeaturerTwins.ID_4103,
-        name = "Sort by boolean field",
-        description = "Sort twins by boolean field value with NULLS LAST")
-public class TwinSorterBooleanFields extends TwinSorter {
+@Featurer(id = FeaturerTwins.ID_4102,
+        name = "Sort by date field",
+        description = "Sort twins by date/time field as LocalDateTime with NULLS LAST")
+public class TwinSorterDateField extends TwinSorter {
     @Override
     public Function<Specification<TwinEntity>, Specification<TwinEntity>> createSort(Properties properties, TwinClassFieldEntity twinClassFieldEntity, SortDirection direction) throws ServiceException {
         UUID fieldId = twinClassFieldEntity.getId();
@@ -31,46 +32,33 @@ public class TwinSorterBooleanFields extends TwinSorter {
             Predicate basePredicate = baseSpec == null ? null : baseSpec.toPredicate(root, query, cb);
             if (!query.getResultType().equals(Long.class)) {
                 List<Order> orders = new ArrayList<>();
-                // Check for existing join to avoid duplication
-//                TODO
-//    left join
-//        public.twin_field_boolean fb1_0                    search(check it)
-//            on te1_0.id=fb1_0.twin_id
-//            and fb1_0.twin_class_field_id=?
-//    left join
-//        public.twin_field_boolean fb2_0                    sort
-//            on te1_0.id=fb2_0.twin_id
-//            and fb2_0.twin_class_field_id=?
-//    left join
-//        public.twin_field_simple fs1_0
-//            on te1_0.id=fs1_0.twin_id
-//            and fs1_0.twin_class_field_id=?
-//
-//
-//
-                Join<TwinEntity, TwinFieldBooleanEntity> tfJoin = null;
+                // Check if a join to TwinFieldSimpleEntity already exists to avoid conflicts
+                Join<TwinEntity, TwinFieldSimpleEntity> tfJoin = null;
                 for (Join<TwinEntity, ?> join : root.getJoins()) {
-                    if (join.getAttribute().getName().equals(TwinEntity.Fields.fieldsBoolean) && join.getOn().toString().contains(fieldId.toString())) {
-                        tfJoin = (Join<TwinEntity, TwinFieldBooleanEntity>) join;
+                    if (join.getAttribute().getName().equals(TwinEntity.Fields.fieldsSimple) && join.getJoinType() == JoinType.INNER && join.getOn().toString().contains(fieldId.toString())) {
+                        tfJoin = (Join<TwinEntity, TwinFieldSimpleEntity>) join;
                         break;
                     }
                 }
                 // If no suitable join exists, create a LEFT JOIN
                 if (tfJoin == null) {
-                    tfJoin = root.join(TwinEntity.Fields.fieldsBoolean, JoinType.LEFT);
-                    tfJoin.on(cb.equal(tfJoin.get(TwinFieldBooleanEntity.Fields.twinClassFieldId), fieldId));
-                }
-                // Get boolean value for sorting
-                Expression<Boolean> value = tfJoin.get(TwinFieldBooleanEntity.Fields.value);
-                // Ensure NULL values are placed at the end
-                orders.add(cb.asc(cb.selectCase().when(cb.isNull(value), 1).otherwise(0)));
-                // Sort by boolean value
-                if (direction.equals(SortDirection.DESCENDING)) {
-                    orders.add(cb.desc(value));
+                    tfJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.LEFT);
+                    tfJoin.on(cb.equal(tfJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), fieldId));
                 } else {
-                    orders.add(cb.asc(value));
+                    // If INNER JOIN exists from search spec, wrap it to handle NULLs correctly
                 }
 
+                // Convert string value to LocalDateTime for proper date comparison
+                Expression<String> stringValue = tfJoin.get(TwinFieldSimpleEntity.Fields.value);
+                Expression<LocalDateTime> dateTimeValue = cb.function("text2timestamp", LocalDateTime.class, stringValue);
+                // Ensure NULL values are placed at the end
+                orders.add(cb.asc(cb.selectCase().when(cb.isNull(dateTimeValue), 1).otherwise(0)));
+                // Sort by date value
+                if (direction.equals(SortDirection.DESCENDING)) {
+                    orders.add(cb.desc(dateTimeValue));
+                } else {
+                    orders.add(cb.asc(dateTimeValue));
+                }
                 // Combine with existing orders
                 List<Order> current = new ArrayList<>(query.getOrderList());
                 current.addAll(orders);

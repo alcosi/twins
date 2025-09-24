@@ -220,9 +220,14 @@ public class TwinSearchService {
             BasicSearch basicSearch = new BasicSearch();
             twinSearchPredicateService.loadPredicates(twinSearchEntity);
             twinSearchSortService.loadSorts(twinSearchEntity);
+            // narrow applies to every search
             addPredicates(twinSearchEntity.getSearchPredicateKit().getList(), searchByAlias.getParams(), basicSearch, searchByAlias.getNarrow());
-            if (CollectionUtils.isNotEmpty(twinSearchEntity.getSortKit()))
+            // narrow sort overrides every search sort
+            if (searchByAlias.getNarrow() != null && CollectionUtils.isNotEmpty(searchByAlias.getNarrow().getSorts())) {
+                basicSearch.setSorts(searchByAlias.getNarrow().getSorts());
+            } else if (CollectionUtils.isNotEmpty(twinSearchEntity.getSortKit())) {
                 addSorts(twinSearchEntity, basicSearch);
+            }
             if (twinSearchEntity.getHeadTwinSearchId() != null) {
                 List<TwinSearchPredicateEntity> headSearchPredicates = twinSearchPredicateRepository.findByTwinSearchId(twinSearchEntity.getHeadTwinSearchId());
                 if (CollectionUtils.isNotEmpty(headSearchPredicates) && basicSearch.getHeadSearch() == null)
@@ -315,18 +320,14 @@ public class TwinSearchService {
     }
 
     private Specification<TwinEntity> addSorting(BasicSearch search, SimplePagination pagination, Specification<TwinEntity> specification) throws ServiceException {
-        TwinSearchEntity searchEntity = search.getConfiguredSearch();
-        if (searchEntity != null && (searchEntity.isForceSorting() || pagination == null || pagination.getSort() == null)) {
-
-            for(TwinSort twinSort : search.getSorts()) {
-                TwinClassFieldEntity twinClassField = twinClassFieldService.findEntitySafe(twinSort.getTwinClassFieldId());
-                TwinSorter fieldSorter = featurerService.getFeaturer(twinClassField.getTwinSorterFeaturerId(), TwinSorter.class);
-                var sortFunction = fieldSorter.createSort(twinClassField.getTwinSorterParams(), twinClassField, twinSort.getDirection());
-                if (sortFunction != null) {
-                    specification = sortFunction.apply(specification);
-                    if (pagination != null)
-                        pagination.setSort(null);
-                }
+        for (TwinSort twinSort : search.getSorts()) {
+            TwinClassFieldEntity twinClassField = twinClassFieldService.findEntitySafe(twinSort.getTwinClassFieldId());
+            TwinSorter fieldSorter = featurerService.getFeaturer(twinClassField.getTwinSorterFeaturerId(), TwinSorter.class);
+            var sortFunction = fieldSorter.createSort(twinClassField.getTwinSorterParams(), twinClassField, twinSort.getDirection());
+            if (sortFunction != null) {
+                specification = sortFunction.apply(specification);
+                if (pagination != null)
+                    pagination.setSort(null);
             }
         }
         return specification;

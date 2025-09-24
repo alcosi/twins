@@ -5,28 +5,27 @@ INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated
 VALUES (4102, 41, '', '', '', false) ON CONFLICT (id) DO NOTHING;
 INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
 VALUES (4103, 41, '', '', '', false) ON CONFLICT (id) DO NOTHING;
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
+VALUES (4104, 41, '', '', '', false) ON CONFLICT (id) DO NOTHING;
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
+VALUES (4105, 41, '', '', '', false) ON CONFLICT (id) DO NOTHING;
 
 ALTER TABLE IF EXISTS twin_class_field
     ADD COLUMN IF NOT EXISTS twin_sorter_featurer_id int,
     ADD COLUMN IF NOT EXISTS twin_sorter_params hstore;
 
--- Auto-assign sorter featurer per field type
--- Text (1301), Date (1302), Numeric (1317) -> Simple fields sorter 4102
-UPDATE twin_class_field
-SET twin_sorter_featurer_id = 4102
-WHERE twin_sorter_featurer_id IS NULL
-  AND field_typer_featurer_id IN (1301, 1302, 1317);
-
+-- null
+UPDATE twin_class_field SET twin_sorter_featurer_id = NULL;
 -- Boolean (1306) -> Boolean fields sorter 4103
-UPDATE twin_class_field
-SET twin_sorter_featurer_id = 4103
-WHERE twin_sorter_featurer_id IS NULL
-  AND field_typer_featurer_id IN (1306);
-
--- All other field types -> Stub sorter 4101
-UPDATE twin_class_field
-SET twin_sorter_featurer_id = 4101
-WHERE twin_sorter_featurer_id IS NULL;
+UPDATE twin_class_field SET twin_sorter_featurer_id = 4103 WHERE twin_sorter_featurer_id IS NULL AND field_typer_featurer_id IN (1306);
+--text
+UPDATE twin_class_field SET twin_sorter_featurer_id = 4104 WHERE twin_sorter_featurer_id IS NULL AND field_typer_featurer_id IN (1301);
+-- num
+UPDATE twin_class_field SET twin_sorter_featurer_id = 4105 WHERE twin_sorter_featurer_id IS NULL AND field_typer_featurer_id IN (1317);
+-- date
+UPDATE twin_class_field SET twin_sorter_featurer_id = 4102 WHERE twin_sorter_featurer_id IS NULL AND field_typer_featurer_id IN (1302);
+-- other
+UPDATE twin_class_field SET twin_sorter_featurer_id = 4101 WHERE twin_sorter_featurer_id IS NULL;
 
 CREATE TABLE IF NOT EXISTS twin_search_sort
 (
