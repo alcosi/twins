@@ -24,6 +24,7 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.mappers.rest.attachment.AttachmentCreateRestDTOReverseMapper;
@@ -85,7 +86,9 @@ public class TwinCreateController extends ApiController {
             twinCreate
                     .setAttachmentEntityList(attachmentCreateRestDTOReverseMapper.convertCollection(request.getAttachments()))
                     .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertCollection(request.getLinks()))
-                    .setCheckCreatePermission(true);
+                    .setCheckCreatePermission(true)
+                    .setLauncher(TwinOperation.Launcher.direct);
+
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
                             .createTwin(twinCreate));
@@ -147,8 +150,10 @@ public class TwinCreateController extends ApiController {
         TwinCreateRsDTOv1 rs = new TwinCreateRsDTOv1();
         try {
             attachmentCreateRestDTOReverseMapper.preProcessAttachments(request.attachments, filesMap);
-            TwinCreate twinCreate = twinCreateRqRestDTOReverseMapper.convert(request)
-                    .setCheckCreatePermission(true);
+            TwinCreate twinCreate = twinCreateRqRestDTOReverseMapper.convert(request);
+            twinCreate
+                    .setCheckCreatePermission(true)
+                    .setLauncher(TwinOperation.Launcher.direct);
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
                             .createTwin(twinCreate));
@@ -205,7 +210,9 @@ public class TwinCreateController extends ApiController {
             });
             List<TwinCreate> twinCreates = twinCreateRqRestDTOReverseMapper.convertCollection(request.getTwins());
             for (TwinCreate twinCreate : twinCreates) {
-                twinCreate.setCheckCreatePermission(true);
+                twinCreate
+                        .setCheckCreatePermission(true)
+                        .setLauncher(TwinOperation.Launcher.direct);
             }
             twinService.createTwinsAsyncBatch(twinCreates);
         } catch (TwinFieldValidationException ve) {

@@ -12,7 +12,6 @@ import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.DomainRepository;
 import org.twins.core.dao.domain.DomainTypeEntity;
 import org.twins.core.dao.domain.TierRepository;
-import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaRepository;
 import org.twins.core.dao.twin.TwinEntity;
@@ -24,6 +23,8 @@ import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaRepository;
 import org.twins.core.dao.twinflow.*;
+import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
@@ -102,8 +103,8 @@ public abstract class DomainInitiator extends FeaturerTwins {
 
     protected abstract void init(Properties properties, DomainEntity domainEntity) throws ServiceException;
 
-    public abstract TwinClassEntity.OwnerType getDefaultTwinClassOwnerType();
-    public abstract boolean isSupportedTwinClassOwnerType(TwinClassEntity.OwnerType ownerType);
+    public abstract OwnerType getDefaultTwinClassOwnerType();
+    public abstract boolean isSupportedTwinClassOwnerType(OwnerType ownerType);
 
     @Transactional(rollbackFor = Throwable.class)
     protected void postInit(Properties properties, DomainEntity domainEntity) throws ServiceException {
@@ -126,7 +127,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setAbstractt(false)
                 .setKey("DOMAIN_USER_FOR_" + domainEntity.getKey().toUpperCase())
                 .setHeadTwinClassId(SystemEntityService.TWIN_CLASS_USER)
-                .setOwnerType(TwinClassEntity.OwnerType.DOMAIN_USER)
+                .setOwnerType(OwnerType.DOMAIN_USER)
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(systemEntityService.getUserIdSystem())
                 .setAssigneeRequired(false)
@@ -178,7 +179,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setDomainId(domainEntity.getId())
                 .setAbstractt(true)
                 .setKey(domainEntity.getKey().toUpperCase())
-                .setOwnerType(TwinClassEntity.OwnerType.DOMAIN)
+                .setOwnerType(OwnerType.DOMAIN)
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setExtendsTwinClassId(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR)
                 .setCreatedByUserId(systemEntityService.getUserIdSystem())

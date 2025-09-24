@@ -2,8 +2,8 @@ package org.twins.core.service.history;
 
 import lombok.Getter;
 import org.apache.commons.lang3.tuple.Pair;
-import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.history.context.HistoryContext;
+import org.twins.core.enums.history.HistoryType;
 
 import java.util.ArrayList;
 import java.util.List;

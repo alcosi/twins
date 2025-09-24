@@ -46,41 +46,50 @@ public class FaceTW007Entity implements EasyLoggable, FacePointedEntity {
     @Column(name = "label_id")
     private UUID labelId;
 
-    @ManyToOne
+    @Column(name = "save_changes_label_i18n_id")
+    private UUID saveChangesLabelI18nId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private FaceEntity face;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_class_search_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TwinClassSearchEntity twinClassSearch;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_selector_label_i18n_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private I18nEntity classSelectorLabelI18n;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_resource_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private ResourceEntity iconResource;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "label_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private I18nEntity label;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "save_changes_label_i18n_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private I18nEntity saveChangesLabelI18n;
 
     @Override
     public String easyLog(Level level) {

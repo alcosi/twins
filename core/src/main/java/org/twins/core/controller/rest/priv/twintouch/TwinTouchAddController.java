@@ -22,6 +22,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinListTouchAddRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinTouchListRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinTouchRsDTOv1;
+import org.twins.core.enums.twin.Touch;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.twin.TwinTouchRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
@@ -55,7 +56,7 @@ public class TwinTouchAddController extends ApiController {
             @MapperContextBinding(roots = TwinTouchRestDTOMapper.class, response = TwinTouchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext) {
         TwinTouchRsDTOv1 rs = new TwinTouchRsDTOv1();
         try {
-            TwinTouchEntity twinTouchEntity = twinTouchService.addTouch(twinId, TwinTouchEntity.Touch.valueOfId(touchId.toUpperCase()));
+            TwinTouchEntity twinTouchEntity = twinTouchService.addTouch(twinId, Touch.valueOfId(touchId.toUpperCase()));
             rs
                     .twinTouch(twinTouchRestDTOMapper.convert(twinTouchEntity, mapperContext));
         } catch (ServiceException se) {
@@ -80,7 +81,7 @@ public class TwinTouchAddController extends ApiController {
             @RequestBody TwinListTouchAddRqDTOv1 request) {
         TwinTouchListRsDTOv1 rs = new TwinTouchListRsDTOv1();
         try {
-            List<TwinTouchEntity> list = twinTouchService.addTouch(request.getTwinIdList(), TwinTouchEntity.Touch.valueOfId(touchId.toUpperCase()));
+            List<TwinTouchEntity> list = twinTouchService.addTouch(request.getTwinIdList(), Touch.valueOfId(touchId.toUpperCase()));
             rs
                     .setTouchTwins(twinTouchRestDTOMapper.convertCollection(list, mapperContext));
         } catch (ServiceException se) {

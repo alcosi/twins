@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.enums.i18n.I18nType;
 
 import java.util.Locale;
 import java.util.Map;

@@ -41,6 +41,9 @@ public class FaceTC001OptionEntity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "label_i18n_id")
     private UUID labelI18nId;
 
+    @Column(name = "twin_class_id")
+    private UUID twinClassId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude

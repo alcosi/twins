@@ -1,6 +1,8 @@
 package org.twins.core.dao.user;
 
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.domain.DomainUserEntity;
@@ -8,8 +10,12 @@ import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserGroupEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.domain.search.SpaceSearch;
+import org.twins.core.enums.user.UserStatus;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 public class UserSpecification extends CommonSpecification<UserEntity> {
     public static Specification<UserEntity> checkUserDomain(UUID domainId) {

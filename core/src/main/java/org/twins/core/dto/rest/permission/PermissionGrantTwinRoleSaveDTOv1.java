@@ -3,8 +3,8 @@ package org.twins.core.dto.rest.permission;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.domain.TwinRole;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.enums.twin.TwinRole;
 
 import java.util.UUID;
 

@@ -79,7 +79,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
             validatorRule.setTwinValidatorSet(twinValidatorSetEntitiesKit.get(validatorRule.getTwinValidatorSetId()));
     }
 
-    public boolean isValid(TwinEntity twinEntity, EasyLoggable validationForEntity, Set<TwinValidatorEntity> validatorsSet) throws ServiceException {
+    public boolean isValid(TwinEntity twinEntity, EasyLoggable validationForEntity, Collection<TwinValidatorEntity> validatorsSet) throws ServiceException {
         List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validatorsSet);
         sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
         boolean validationResultOfSet = true;

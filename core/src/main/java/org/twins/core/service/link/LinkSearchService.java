@@ -11,9 +11,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkRepository;
-import org.twins.core.dao.link.LinkStrength;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.LinkSearch;
+import org.twins.core.enums.link.LinkStrength;
+import org.twins.core.enums.link.LinkType;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.Collection;
@@ -63,7 +64,7 @@ public class LinkSearchService {
         );
     }
 
-    private Set<String> safeConvertTypeLink(Collection<LinkEntity.TwinlinkType> list) {
+    private Set<String> safeConvertTypeLink(Collection<LinkType> list) {
         return list == null ? Collections.emptySet() : list.stream().map(Enum::name).collect(Collectors.toSet());
     }
 

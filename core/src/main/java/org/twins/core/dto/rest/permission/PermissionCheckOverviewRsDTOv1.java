@@ -4,13 +4,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.domain.TwinRole;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.space.SpaceRoleUserDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleUserGroupDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
+import org.twins.core.enums.twin.TwinRole;
 
 import java.util.List;
 import java.util.Set;

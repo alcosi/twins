@@ -3,9 +3,9 @@ package org.twins.core.dto.rest.twinflow;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.twinflow.TwinflowTransitionType;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
+import org.twins.core.enums.twinflow.TwinflowTransitionType;
 
 import java.util.UUID;
 

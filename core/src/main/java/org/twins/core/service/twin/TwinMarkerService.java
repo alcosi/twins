@@ -23,6 +23,7 @@ import org.twins.core.dao.twin.TwinMarkerRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.enums.EntityRelinkOperationStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListOptionService;
@@ -196,7 +197,7 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
             return; // nice :) we have nothing to do
         }
 
-        if (entityRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict
+        if (entityRelinkOperation.getStrategy() == EntityRelinkOperationStrategy.restrict
                 && MapUtils.isEmpty(entityRelinkOperation.getReplaceMap()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide markersReplaceMap for markers: " + org.cambium.common.util.StringUtils.join(existedTwinMarkerIds));
 
@@ -207,7 +208,7 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
                 continue;
             UUID replacement = entityRelinkOperation.getReplaceMap().get(markerForReplace);
             if (replacement == null) {
-                if (entityRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict)
+                if (entityRelinkOperation.getStrategy() == EntityRelinkOperationStrategy.restrict)
                     throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide markersReplaceMap value for marker: " + markerForReplace);
                 else
                     replacement = UuidUtils.NULLIFY_MARKER;

@@ -23,11 +23,12 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListOptionCreate;
 import org.twins.core.domain.datalist.DataListOptionUpdate;
 import org.twins.core.domain.search.DataListOptionSearch;
+import org.twins.core.enums.datalist.DataListStatus;
+import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
@@ -107,7 +108,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                     .setOptionI18NId(dataListOptionCreate.getNameI18n().getId())
                     .setDataListId(dataListOptionCreate.getDataListId())
                     .setIcon(dataListOptionCreate.getIcon())
-                    .setStatus(DataListOptionEntity.Status.active)
+                    .setStatus(DataListStatus.active)
                     .setBackgroundColor(dataListOptionCreate.getBackgroundColor())
                     .setFontColor(dataListOptionCreate.getFontColor())
                     .setExternalId(dataListOptionCreate.getExternalId());

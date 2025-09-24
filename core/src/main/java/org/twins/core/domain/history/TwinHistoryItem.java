@@ -2,8 +2,8 @@ package org.twins.core.domain.history;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.enums.history.HistoryType;
 
 import java.time.Instant;
 import java.util.UUID;

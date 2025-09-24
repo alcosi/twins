@@ -2,6 +2,7 @@ package org.twins.core.dao.attachment;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.twins.core.enums.attachment.TwinAttachmentAction;
 
 import java.util.UUID;
 

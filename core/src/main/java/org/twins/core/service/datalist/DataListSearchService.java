@@ -16,6 +16,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.DataListSearch;
+import org.twins.core.enums.datalist.DataListStatus;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.Collections;
@@ -69,7 +70,7 @@ public class DataListSearchService {
                 checkFieldLikeIn(search.getExternalIdNotLikeList(), true, false, DataListEntity.Fields.externalId));
     }
 
-    private Set<String> safeConvert(Set<DataListOptionEntity.Status> collection) {
+    private Set<String> safeConvert(Set<DataListStatus> collection) {
         return collection == null ? Collections.emptySet() : collection.stream().map(Enum::name).collect(Collectors.toSet());
     }
 }

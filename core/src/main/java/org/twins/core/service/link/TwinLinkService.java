@@ -21,7 +21,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.link.LinkStrength;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinLinkNoRelationsProjection;
@@ -31,6 +30,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.linker.Linker;
 import org.twins.core.service.TwinChangesService;
@@ -392,6 +392,17 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         if (twinEntity.getTwinLinks() != null && twinEntity.getTwinLinks().getForwardLinks() != null)
             return twinEntity.getTwinLinks().getForwardLinks().containsGroupedKey(linkId);
         return twinLinkRepository.existsBySrcTwinIdAndLinkId(twinEntity.getId(), linkId);
+    }
+
+    public boolean isLinkDstTwinStatusIn(TwinEntity twin, UUID linkId, Set<UUID> statusIds) throws ServiceException {
+        loadTwinLinks(twin);
+        List<TwinLinkEntity> twinLinkEntityList = twin.getTwinLinks().getForwardLinks().getGrouped(linkId);
+
+        if (twinLinkEntityList.size() != 1) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_VALIDATOR_INCORRECT, "this validator can't validate twin with more than 1 link with linkId[" + linkId + "]");
+        } else {
+            return statusIds.contains(twinLinkEntityList.getFirst().getDstTwin().getTwinStatusId());
+        }
     }
 
     public void cudTwinLinks(TwinEntity twinEntity, EntityCUD<TwinLinkEntity> twinLinkCUD, TwinChangesCollector twinChangesCollector) throws ServiceException {

@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.draft.DraftCounters;
+import org.twins.core.enums.draft.DraftStatus;
 
 import java.sql.Timestamp;
 import java.util.UUID;

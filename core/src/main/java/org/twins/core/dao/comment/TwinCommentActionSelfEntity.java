@@ -2,6 +2,7 @@ package org.twins.core.dao.comment;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.twins.core.enums.comment.TwinCommentAction;
 
 import java.util.UUID;
 

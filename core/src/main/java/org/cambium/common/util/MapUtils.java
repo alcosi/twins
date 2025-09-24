@@ -1,6 +1,7 @@
 package org.cambium.common.util;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -63,5 +64,11 @@ public class MapUtils extends org.apache.commons.collections.MapUtils {
         }
         return first.entrySet().stream()
                 .allMatch(e -> e.getValue().equals(second.get(e.getKey())));
+    }
+
+    public static <T, V> void safeAdd(Map<T, Set<V>> map, T key, V element) {
+        if (element == null || key == null || map == null)
+            return;
+        map.computeIfAbsent(key, k -> new HashSet<>()).add(element);
     }
 }

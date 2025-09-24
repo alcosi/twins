@@ -22,6 +22,9 @@ public class FaceTW007DTOv1 extends FaceTwidgetDTOv1 {
     @Schema(description = "class selector label")
     public String classSelectorLabel;
 
+    @Schema(description = "save button label")
+    public String saveChangesLabel;
+
     @Schema(description = "label")
     public String label;
 

@@ -28,12 +28,13 @@ import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListAttribute;
 import org.twins.core.domain.datalist.DataListSave;
 import org.twins.core.domain.datalist.DataListUpdate;
+import org.twins.core.enums.datalist.DataListStatus;
+import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperSharedSelectInHead;
@@ -341,7 +342,7 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
                 DataListOptionEntity newOption = new DataListOptionEntity();
                 newOption.setOption(optionName);
                 newOption.setBusinessAccountId(businessAccountId);
-                newOption.setStatus(DataListOptionEntity.Status.active);
+                newOption.setStatus(DataListStatus.active);
                 newOption.setDataListId(dataListId);
                 optionsForSave.add(newOption);
             }

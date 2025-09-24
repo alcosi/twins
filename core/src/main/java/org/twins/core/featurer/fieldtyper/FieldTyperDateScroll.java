@@ -56,15 +56,15 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (!value.isNullified()) {
-            LocalDateTime localDateTime = parseDateTime(value.getDate(), properties);
-            value.setDate(formatDate(localDateTime, properties));
+            LocalDateTime localDateTime = parseDateTime(value.getDateStr(), properties);
+            value.setDateStr(formatDate(localDateTime, properties));
         }
-        detectValueChange(twinFieldEntity, twinChangesCollector, value.getDate());
+        detectValueChange(twinFieldEntity, twinChangesCollector, value.getDateStr());
     }
 
     @Override
     protected FieldValueDate deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
-        return new FieldValueDate(twinField.getTwinClassField()).setDate(twinFieldEntity != null && !StringUtils.isEmpty(twinFieldEntity.getValue()) ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : null);
+        return new FieldValueDate(twinField.getTwinClassField()).setDateStr(twinFieldEntity != null && !StringUtils.isEmpty(twinFieldEntity.getValue()) ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : null);
     }
 
     public String validDateOrEmpty(String dateStr, Properties properties) {
@@ -105,7 +105,7 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
         String errorMessage = i18nService.translateToLocale(value.getTwinClassField().getBeValidationErrorI18nId());
         TwinValidator.ValidationResult result = new TwinValidator.ValidationResult(true);
         try {
-            String dateValue = value.getDate();
+            String dateValue = value.getDateStr();
             boolean clearedValue = !twinFieldEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(dateValue);
             if (!GenericValidator.isDate(dateValue, datePattern, false) && !clearedValue)
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " date[" + value + "] does not match pattern[" + datePattern + "]");

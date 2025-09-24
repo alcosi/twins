@@ -4,8 +4,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.user.UserStatus;
+import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dto.rest.twin.TwinSearchListDTOv1;
+import org.twins.core.enums.user.UserStatus;
 
 import java.util.List;
 import java.util.Set;
@@ -48,4 +49,55 @@ public class UserSearchDTOv1 {
 
     @Schema(description = "child twins searches")
     public TwinSearchListDTOv1 childTwinSearches;
+
+    public UserSearchDTOv1 addUserIdListItem(UUID item) {
+        CollectionUtils.safeAdd(userIdList, item);
+        return this;
+    }
+
+    public UserSearchDTOv1 addUserIdExcludeListItem(UUID item) {
+        CollectionUtils.safeAdd(userIdExcludeList, item);
+        return this;
+    }
+
+    public UserSearchDTOv1 addUserNameLikeListItem(String item) {
+        CollectionUtils.safeAdd(userNameLikeList, item);
+        return this;
+    }
+
+    public UserSearchDTOv1 addUserNameLikeExcludeListItem(String item) {
+        CollectionUtils.safeAdd(userNameLikeExcludeList, item);
+        return this;
+    }
+
+    public UserSearchDTOv1 addUserEmailLikeListItem(String item) {
+        CollectionUtils.safeAdd(userEmailLikeList, item);
+        return this;
+    }
+
+    public UserSearchDTOv1 addUserEmailLikeExcludeListItem(String item) {
+        CollectionUtils.safeAdd(userEmailLikeExcludeList, item);
+        return this;
+    }
+
+    public UserSearchDTOv1 addStatusIdListItem(UserStatus item) {
+        CollectionUtils.safeAdd(statusIdList, item);
+        return this;
+    }
+
+    public UserSearchDTOv1 addStatusIdExcludeListItem(UserStatus item) {
+        CollectionUtils.safeAdd(statusIdExcludeList, item);
+        return this;
+    }
+
+    public UserSearchDTOv1 addSpaceListItem(SpaceSearchDTOv1 item) {
+        CollectionUtils.safeAdd(spaceList, item);
+        return this;
+    }
+
+    public UserSearchDTOv1 addSpaceExcludeListItem(SpaceSearchDTOv1 item) {
+        CollectionUtils.safeAdd(spaceExcludeList, item);
+        return this;
+    }
+
 }

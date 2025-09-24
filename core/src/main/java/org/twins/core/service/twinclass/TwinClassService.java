@@ -6,15 +6,12 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.CacheEvictCollector;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
-import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
-import org.twins.core.dto.rest.twinclass.TwinClassCreate;
-import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -24,18 +21,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListRepository;
-import org.twins.core.dao.domain.DomainType;
 import org.twins.core.dao.domain.DomainTypeTwinClassOwnerTypeRepository;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionRepository;
+import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
-import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
+import org.twins.core.domain.twinclass.TwinClassCreate;
 import org.twins.core.domain.twinclass.TwinClassUpdate;
+import org.twins.core.enums.EntityRelinkOperationStrategy;
+import org.twins.core.enums.domain.DomainType;
+import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.headhunter.HeadHunter;
 import org.twins.core.featurer.headhunter.HeadHunterImpl;
@@ -44,7 +46,9 @@ import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.resource.ResourceService;
 import org.twins.core.service.twin.TwinMarkerService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
@@ -77,6 +81,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     private final DataListRepository dataListRepository;
     private final PermissionRepository permissionRepository;
     private final DomainTypeTwinClassOwnerTypeRepository domainTypeTwinClassOwnerTypeRepository;
+    private final ResourceService resourceService;
     @Lazy
     private final PermissionService permissionService;
     @Lazy
@@ -198,7 +203,10 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 .setAbstractt(srcTwinClassEntity.getAbstractt())
                 .setExtendsTwinClassId(srcTwinClassEntity.getExtendsTwinClassId())
                 .setHeadTwinClassId(srcTwinClassEntity.getHeadTwinClassId())
-                .setLogo(srcTwinClassEntity.getLogo())
+                .setIconDarkResourceId(srcTwinClassEntity.getIconDarkResourceId())
+                .setIconDarkResource(srcTwinClassEntity.getIconDarkResource())
+                .setIconLightResourceId(srcTwinClassEntity.getIconLightResourceId())
+                .setIconLightResource(srcTwinClassEntity.getIconLightResource())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setDomainId(srcTwinClassEntity.getDomainId())
                 .setOwnerType(srcTwinClassEntity.getOwnerType())
@@ -339,12 +347,12 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinClassEntity createInDomainClass(TwinClassCreate twinClassCreate) throws ServiceException {
-        return createInDomainClass(List.of(twinClassCreate)).getFirst();
+    public TwinClassEntity createInDomainClass(TwinClassCreate twinClassCreate, FileData iconLight, FileData iconDark) throws ServiceException {
+        return createInDomainClass((List.of(twinClassCreate)).getFirst(), iconLight, iconDark);
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public List<TwinClassEntity> createInDomainClass(List<TwinClassCreate> twinClassCreates) throws ServiceException {
+    public List<TwinClassEntity> createInDomainClass(List<TwinClassCreate> twinClassCreates,  FileData iconLight, FileData iconDark) throws ServiceException {
         if (CollectionUtils.isEmpty(twinClassCreates)) {
             return Collections.emptyList();
         }
@@ -356,9 +364,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
         for (TwinClassCreate create : twinClassCreates) {
             TwinClassEntity twinClass = create.getTwinClass();
-            createByOriginalKey.put(twinClass.getKey(), create);
-
             String classKey = KeyUtils.upperCaseNullFriendly(twinClass.getKey(), ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT);
+            createByOriginalKey.put(classKey, create);
             twinClass.setKey(classKey);
 
             if (twinClassRepository.existsByDomainIdAndKey(apiUser.getDomainId(), classKey)) {
@@ -410,6 +417,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             }
 
             validateEntityAndThrow(twinClass, EntitySmartService.EntityValidateMode.beforeSave);
+            processIcons(twinClass, iconLight, iconDark);
             classesToSave.add(twinClass);
         }
 
@@ -517,12 +525,12 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinClassEntity updateTwinClasses(TwinClassUpdate twinClassUpdate) throws ServiceException {
-        return updateTwinClasses(List.of(twinClassUpdate)).getFirst();
+    public TwinClassEntity updateTwinClasses(TwinClassUpdate twinClassUpdate, FileData iconLight, FileData iconDark) throws ServiceException {
+        return updateTwinClasses((List.of(twinClassUpdate)).getFirst(), iconLight, iconDark);
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public List<TwinClassEntity> updateTwinClasses(List<TwinClassUpdate> twinClassUpdates) throws ServiceException {
+    public List<TwinClassEntity> updateTwinClasses(List<TwinClassUpdate> twinClassUpdates, FileData iconLight, FileData iconDark) throws ServiceException {
         if (CollectionUtils.isEmpty(twinClassUpdates)) {
             return Collections.emptyList();
         }
@@ -555,7 +563,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getCreatePermissionId, TwinClassEntity::setCreatePermissionId, TwinClassEntity.Fields.createPermissionId, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getDeletePermissionId, TwinClassEntity::setDeletePermissionId, TwinClassEntity.Fields.deletePermissionId, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getKey, TwinClassEntity::setKey, TwinClassEntity.Fields.key, changesHelper);
-            updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getLogo, TwinClassEntity::setLogo, TwinClassEntity.Fields.logo, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getExternalId, TwinClassEntity::setExternalId, TwinClassEntity.Fields.externalId, changesHelper);
 
 
@@ -566,6 +573,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             updateTwinClassExtendsTwinClass(dbTwinClassEntity, twinClassUpdate.getExtendsTwinClassUpdate(), changesHelper);
             updateTwinClassMarkerDataList(dbTwinClassEntity, twinClassUpdate.getMarkerDataListUpdate(), changesHelper);
             updateTwinClassTagDataList(dbTwinClassEntity, twinClassUpdate.getTagDataListUpdate(), changesHelper);
+            updateTwinClassIcons(dbTwinClassEntity, iconLight, iconDark, changesHelper);
 
             if (changesHelper.hasChanges()) {
                 changes.add(dbTwinClassEntity, changesHelper);
@@ -584,6 +592,25 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         return allEntities;
     }
 
+    public void updateTwinClassIcons(TwinClassEntity dbTwinClassEntity, FileData iconLight, FileData iconDark, ChangesHelper changesHelper) throws ServiceException {
+        if (iconLight != null) {
+            ResourceEntity newValue = saveIconResourceIfExist(iconLight);
+            if (changesHelper.isChanged(TwinClassEntity.Fields.iconLightResourceId, dbTwinClassEntity.getIconLightResourceId(), newValue.getId())) {
+                dbTwinClassEntity
+                        .setIconLightResourceId(newValue.getId())
+                        .setIconLightResource(newValue);
+            }
+        }
+        if (iconDark != null) {
+            ResourceEntity newValue = saveIconResourceIfExist(iconDark);
+            if (changesHelper.isChanged(TwinClassEntity.Fields.iconDarkResourceId, dbTwinClassEntity.getIconDarkResourceId(), newValue.getId())) {
+                dbTwinClassEntity
+                        .setIconLightResourceId(newValue.getId())
+                        .setIconLightResource(newValue);
+            }
+        }
+    }
+
     public void updateTwinClassFeaturer(TwinClassEntity dbTwinClassEntity, Integer newHeadhunterFeaturerId, HashMap<String, String> headHunterParams, ChangesHelper changesHelper) throws ServiceException {
         if (changesHelper.isChanged(TwinClassEntity.Fields.headHunterFeaturerId, dbTwinClassEntity.getHeadHunterFeaturerId(), newHeadhunterFeaturerId)) {
             FeaturerEntity newHeadHunterFeaturer = featurerService.checkValid(newHeadhunterFeaturerId, headHunterParams, HeadHunter.class);
@@ -591,7 +618,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                     .setHeadHunterFeaturerId(newHeadHunterFeaturer.getId())
                     .setHeadHunterFeaturer(newHeadHunterFeaturer);
         }
-        featurerService.prepareForStore(newHeadhunterFeaturerId, headHunterParams);
+        featurerService.prepareForStore(dbTwinClassEntity.getHeadHunterFeaturerId(), headHunterParams);
         if (!MapUtils.areEqual(dbTwinClassEntity.getHeadHunterParams(), headHunterParams)) {
             changesHelper.add(TwinClassEntity.Fields.headHunterParams, dbTwinClassEntity.getHeadHunterParams(), headHunterParams);
             dbTwinClassEntity
@@ -650,7 +677,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             setNewExtendsTwinClass(dbTwinClassEntity, newExtendsTwinClass);
             return;
         }
-        if (extendsRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict
+        if (extendsRelinkOperation.getStrategy() == EntityRelinkOperationStrategy.restrict
                 && MapUtils.isEmpty(extendsRelinkOperation.getReplaceMap()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide extendsReplaceMap for classFields: " + StringUtils.join(inheritedAndUsedTwinClassFields.getIdSet()));
         KitGrouped<TwinClassFieldEntity, UUID, UUID> replacementKit = twinClassFieldService.findTwinClassFields(extendsRelinkOperation.getReplaceMap().values());
@@ -658,7 +685,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         for (TwinClassFieldEntity twinClassFieldForReplace : inheritedAndUsedTwinClassFields.getCollection()) {
             UUID replacement = extendsRelinkOperation.getReplaceMap().get(twinClassFieldForReplace.getId());
             if (replacement == null) {
-                if (extendsRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict)
+                if (extendsRelinkOperation.getStrategy() == EntityRelinkOperationStrategy.restrict)
                     throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide extendsReplaceMap value for " + twinClassFieldForReplace.logShort());
                 else
                     replacement = UuidUtils.NULLIFY_MARKER;
@@ -735,7 +762,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             setNewHeadTwinClass(dbTwinClassEntity, newHeadTwinClassEntity);
             return;
         }
-        if (headRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict
+        if (headRelinkOperation.getStrategy() == EntityRelinkOperationStrategy.restrict
                 && MapUtils.isEmpty(headRelinkOperation.getReplaceMap()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "Please provide headReplaceMap for heads: " + StringUtils.join(existedTwinHeadIds));
         Set<UUID> twinsForDeletion = new HashSet<>();
@@ -743,7 +770,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         for (UUID headForReplace : existedTwinHeadIds) {
             UUID replacement = headRelinkOperation.getReplaceMap().get(headForReplace);
             if (replacement == null) {
-                if (headRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict)
+                if (headRelinkOperation.getStrategy() == EntityRelinkOperationStrategy.restrict)
                     throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "Please provide headReplaceMap value for head: " + headForReplace);
                 else
                     replacement = UuidUtils.NULLIFY_MARKER;
@@ -804,7 +831,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public boolean isOwnerSystemType(TwinClassEntity entity) {
-        return entity.getOwnerType().equals(TwinClassEntity.OwnerType.SYSTEM);
+        return entity.getOwnerType().equals(OwnerType.SYSTEM);
     }
 
     public Set<TwinClassOwnerTypeEntity> findTwinClassOwnerType() throws ServiceException {
@@ -854,5 +881,28 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
     public boolean allExist(Set<UUID> twinClassIds) {
         return twinClassRepository.existsAll(twinClassIds);
+    }
+
+    protected TwinClassEntity processIcons(TwinClassEntity twinClassEntity, FileData lightIcon, FileData darkIcon) throws ServiceException {
+        var lightIconEntity = saveIconResourceIfExist(lightIcon);
+        var darkIconEntity = saveIconResourceIfExist(darkIcon);
+        if (lightIconEntity != null) {
+            twinClassEntity.setIconLightResourceId(lightIconEntity.getId());
+            twinClassEntity.setIconLightResource(lightIconEntity);
+        }
+        if (darkIconEntity != null) {
+            twinClassEntity.setIconDarkResourceId(darkIconEntity.getId());
+            twinClassEntity.setIconDarkResource(darkIconEntity);
+        }
+        return twinClassEntity;
+    }
+
+
+    private ResourceEntity saveIconResourceIfExist(FileData icon) throws ServiceException {
+        if (icon != null) {
+            return resourceService.addResource(icon.originalFileName(), icon.content());
+        } else {
+            return null;
+        }
     }
 }

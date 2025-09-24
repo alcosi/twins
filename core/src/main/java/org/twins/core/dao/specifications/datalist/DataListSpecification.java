@@ -7,7 +7,6 @@ import jakarta.persistence.criteria.Root;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.datalist.DataListEntity;
-import org.twins.core.dao.datalist.DataListSubsetEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
 
 import java.util.ArrayList;
@@ -50,7 +49,7 @@ public class DataListSpecification extends CommonSpecification<DataListEntity> {
 
             List<Predicate> predicates = new ArrayList<>();
             for (String value : search) {
-                Predicate predicate = cb.like(cb.lower(getOrCreateJoin(root).get(field)), value.toLowerCase());
+                Predicate predicate = cb.like(cb.lower(getOrCreateJoin(root).get(field)), value.toLowerCase(), escapeChar);
                 if (not) predicate = cb.not(predicate);
                 predicates.add(predicate);
             }

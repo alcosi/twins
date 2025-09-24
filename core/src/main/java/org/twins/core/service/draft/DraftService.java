@@ -17,7 +17,6 @@ import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 import org.twins.core.dao.draft.*;
 import org.twins.core.dao.eraseflow.EraseflowEntity;
 import org.twins.core.dao.eraseflow.EraseflowLinkCascadeEntity;
-import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.ApiUser;
@@ -28,6 +27,10 @@ import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.enums.draft.DraftStatus;
+import org.twins.core.enums.draft.DraftTwinEraseReason;
+import org.twins.core.enums.draft.DraftTwinEraseStatus;
+import org.twins.core.enums.factory.FactoryEraserAction;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.eraseflow.EraseflowService;
@@ -129,7 +132,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         DraftCollector draftCollector = beginDraft();
         try {
             for (TwinEntity twinEntity : twinEntityList) {
-                draftErase(draftCollector, twinEntity, twinEntity, DraftTwinEraseReason.TARGET, new EraseAction(TwinFactoryEraserEntity.Action.ERASE_CANDIDATE, ""));
+                draftErase(draftCollector, twinEntity, twinEntity, DraftTwinEraseReason.TARGET, new EraseAction(FactoryEraserAction.ERASE_CANDIDATE, ""));
             }
             flush(draftCollector);
             createEraseScope(draftCollector);
@@ -235,10 +238,10 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 if (twinDelete != null) { //p.3, p.4, p.5
                     if (twinDelete.getEraseAction().isCauseGlobalLock()) { //p.3
                         lock(draftCollector, eraseEntity, twinDelete);
-                    } else if (twinDelete.getEraseAction().getAction() == TwinFactoryEraserEntity.Action.ERASE_CANDIDATE
-                            || twinDelete.getEraseAction().getAction() == TwinFactoryEraserEntity.Action.NOT_SPECIFIED) { //p.5
+                    } else if (twinDelete.getEraseAction().getAction() == FactoryEraserAction.ERASE_CANDIDATE
+                            || twinDelete.getEraseAction().getAction() == FactoryEraserAction.NOT_SPECIFIED) { //p.5
                         throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "Unreachable action for current factory launcher");
-                    } else if (twinDelete.getEraseAction().getAction() == TwinFactoryEraserEntity.Action.ERASE_IRREVOCABLE) { //p.4
+                    } else if (twinDelete.getEraseAction().getAction() == FactoryEraserAction.ERASE_IRREVOCABLE) { //p.4
                         log.warn("{} was marked by eraser as 'ERASE_IRREVOCABLE'", eraseEntity.getTwin().logShort());
                         eraseEntity
                                 .setStatus(DraftTwinEraseStatus.IRREVOCABLE_ERASE_DETECTED)
@@ -272,8 +275,8 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 if (twinDelete != null) { //p.1, p.2, p.5
                     if (twinDelete.getEraseAction().isCauseGlobalLock()) { //p.1
                         lock(draftCollector, eraseEntity, twinDelete);
-                    } else if (twinDelete.getEraseAction().getAction() == TwinFactoryEraserEntity.Action.ERASE_CANDIDATE
-                            || twinDelete.getEraseAction().getAction() == TwinFactoryEraserEntity.Action.NOT_SPECIFIED) { //p.5
+                    } else if (twinDelete.getEraseAction().getAction() == FactoryEraserAction.ERASE_CANDIDATE
+                            || twinDelete.getEraseAction().getAction() == FactoryEraserAction.NOT_SPECIFIED) { //p.5
                         throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "Unreachable action for current factory launcher");
                     } else { //p.2
                         draftFactoryResult(draftCollector, factoryResultUncommited, eraseEntity.getTwin());
@@ -446,7 +449,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     public DraftCollector draftErase(DraftCollector draftCollector, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseReason reason, EraseAction eraseAction) throws ServiceException {
         if (eraseAction.isCauseGlobalLock()) //adding extra lock
             lockDraft(draftCollector, twinEntity);
-        else if (eraseAction.getAction() == TwinFactoryEraserEntity.Action.NOT_SPECIFIED)
+        else if (eraseAction.getAction() == FactoryEraserAction.NOT_SPECIFIED)
             return draftCollector;
         return draftCollector.add(createTwinEraseDraft(draftCollector.getDraftEntity(), twinEntity, reasonTwin, reason, eraseAction));
     }

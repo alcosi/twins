@@ -7,7 +7,10 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.i18n.*;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nRepository;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
+import org.twins.core.dao.i18n.I18nTranslationRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -18,6 +21,8 @@ import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
+import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.sql.Timestamp;
@@ -116,6 +121,7 @@ public class SystemEntityService {
     public static final UUID TWIN_CLASS_FIELD_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000001");
     public static final UUID TWIN_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000002");
     public static final UUID TWIN_CLASS_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000003");
+    public static final UUID USER_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000004");
 
     public static final List<SystemClass> SYSTEM_CLASSES;
     public static Set<UUID> SYSTEM_TWIN_CLASS_FIELDS_UUIDS = new HashSet<>();
@@ -194,7 +200,7 @@ public class SystemEntityService {
             TwinClassEntity twinClassEntity = new TwinClassEntity()
                     .setId(systemClass.id())
                     .setKey(systemClass.key())
-                    .setOwnerType(TwinClassEntity.OwnerType.SYSTEM)
+                    .setOwnerType(OwnerType.SYSTEM)
                     .setCreatedByUserId(USER_SYSTEM)
                     .setAbstractt(systemClass.abstractt)
                     .setExtendsHierarchyTree(convertToLTreeFormat(systemClass.id))
@@ -313,7 +319,7 @@ public class SystemEntityService {
         TwinClassEntity twinClassEntity = new TwinClassEntity()
                 .setDomainId(domainId)
                 .setKey("DOMAIN_BUSINESS_ACCOUNT")
-                .setOwnerType(TwinClassEntity.OwnerType.DOMAIN_BUSINESS_ACCOUNT)
+                .setOwnerType(OwnerType.DOMAIN_BUSINESS_ACCOUNT)
                 .setCreatedByUserId(USER_SYSTEM)
                 .setCreatedAt(Timestamp.from(Instant.now()));
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
@@ -336,4 +342,55 @@ public class SystemEntityService {
     public record SystemField(UUID id, UUID twinClassId, Integer fieldTyperId, I18n name, I18n description, String fieldKey, Boolean required) {}
 
     public record I18n(UUID i18nId, String translation) {}
+
+    public static Object getSystemFieldValue(TwinEntity twinEntity, UUID systemFieldId) throws ServiceException {
+        //todo to use deserialize logic in future
+        if (systemFieldId == null || twinEntity == null) {
+            return null;
+        }
+
+        if (TWIN_CLASS_FIELD_TWIN_NAME.equals(systemFieldId)) {
+            return twinEntity.getName();
+        }
+        if (TWIN_CLASS_FIELD_TWIN_DESCRIPTION.equals(systemFieldId)) {
+            return twinEntity.getDescription();
+        }
+        if (TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID.equals(systemFieldId)) {
+            return twinEntity.getExternalId();
+        }
+        if (TWIN_CLASS_FIELD_TWIN_OWNER_USER.equals(systemFieldId)) {
+            return twinEntity.getOwnerUserId();
+        }
+        if (TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER.equals(systemFieldId)) {
+            return twinEntity.getAssignerUserId();
+        }
+        if (TWIN_CLASS_FIELD_TWIN_CREATOR_USER.equals(systemFieldId)) {
+            return twinEntity.getCreatedByUserId();
+        }
+        if (TWIN_CLASS_FIELD_TWIN_HEAD.equals(systemFieldId)) {
+            return twinEntity.getHeadTwinId();
+        }
+        if (TWIN_CLASS_FIELD_TWIN_STATUS.equals(systemFieldId)) {
+            return twinEntity.getTwinStatusId();
+        }
+        if (TWIN_CLASS_FIELD_TWIN_CREATED_AT.equals(systemFieldId)) {
+            return twinEntity.getCreatedAt();
+        }
+        if (TWIN_CLASS_FIELD_TWIN_ID.equals(systemFieldId)) {
+            return twinEntity.getId();
+        }
+        if (TWIN_CLASS_FIELD_TWIN_TWIN_CLASS_ID.equals(systemFieldId)) {
+            return twinEntity.getTwinClassId();
+        }
+        if (TWIN_CLASS_FIELD_TWIN_ALIASES.equals(systemFieldId)) {
+            return twinEntity.getTwinAliases();
+        }
+        if (TWIN_CLASS_FIELD_TWIN_TAGS.equals(systemFieldId)) {
+            return twinEntity.getTags();
+        }
+        if (TWIN_CLASS_FIELD_TWIN_MARKERS.equals(systemFieldId)) {
+            return twinEntity.getMarkers();
+        }
+        return null;
+    }
 }

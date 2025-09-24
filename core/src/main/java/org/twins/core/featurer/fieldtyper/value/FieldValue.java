@@ -46,4 +46,8 @@ public abstract class FieldValue implements Cloneable {
     public boolean isValidated() {
         return validationResult != null;
     }
+
+    public boolean isEmpty() {
+        return !isFilled() || isNullified();
+    }
 }

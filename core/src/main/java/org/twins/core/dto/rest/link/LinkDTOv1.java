@@ -3,10 +3,10 @@ package org.twins.core.dto.rest.link;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.link.LinkStrength;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
+import org.twins.core.enums.link.LinkStrength;
+import org.twins.core.enums.link.LinkType;
 
 import java.util.UUID;
 
@@ -30,5 +30,5 @@ public class LinkDTOv1 {
     public LinkStrength linkStrengthId;
 
     @Schema(description = "link type", example = "ManyToOne")
-    public LinkEntity.TwinlinkType type;
+    public LinkType type;
 }

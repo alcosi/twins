@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.twin.TwinTouchEntity;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.enums.twin.Touch;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -22,7 +22,7 @@ public class TwinTouchDTOv1 {
     public UUID twinId;
 
     @Schema(description = "touchId", example = DTOExamples.TWIN_TOUCH)
-    public TwinTouchEntity.Touch touchId;
+    public Touch touchId;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)

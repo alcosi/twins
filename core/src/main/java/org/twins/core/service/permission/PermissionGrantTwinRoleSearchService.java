@@ -12,8 +12,8 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.permission.PermissionGrantTwinRoleEntity;
 import org.twins.core.dao.permission.PermissionGrantTwinRoleRepository;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
-import org.twins.core.domain.TwinRole;
 import org.twins.core.domain.search.PermissionGrantTwinRoleSearch;
+import org.twins.core.enums.twin.TwinRole;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.Collections;

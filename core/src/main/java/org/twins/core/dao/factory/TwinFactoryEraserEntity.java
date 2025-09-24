@@ -3,14 +3,13 @@ package org.twins.core.dao.factory;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.enums.factory.FactoryEraserAction;
 
-import java.util.Arrays;
 import java.util.UUID;
 
 @Data
@@ -44,7 +43,7 @@ public class TwinFactoryEraserEntity implements EasyLoggable {
 
     @Column(name = "twin_factory_eraser_action")
     @Convert(converter = TwinFactoryEraserActionConverter.class)
-    private Action eraserAction;
+    private FactoryEraserAction eraserAction;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -73,22 +72,4 @@ public class TwinFactoryEraserEntity implements EasyLoggable {
         };
     }
 
-    @Getter
-    public enum Action {
-        NOT_SPECIFIED("NOT_SPECIFIED"),
-        RESTRICT("RESTRICT"),
-        ERASE_IRREVOCABLE("ERASE_IRREVOCABLE"),
-        ERASE_CANDIDATE("ERASE_CANDIDATE");
-
-        private final String id;
-
-        Action(String id) {
-            this.id = id;
-        }
-
-        public static Action valueOd(String type) {
-            return Arrays.stream(values()).filter(t -> t.id.equals(type)).findAny().orElse(NOT_SPECIFIED);
-        }
-
-    }
 }

@@ -15,11 +15,11 @@ import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchText;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
@@ -71,20 +71,8 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
         return Specification.where(TwinSpecification.checkFieldText(search, TwinEntity.Fields.fieldsSimple, TwinFieldSimpleEntity.Fields.value));
     }
 
-    public enum TextEditorType {
-        PLAIN,
-        MARKDOWN_GITHUB,
-        MARKDOWN_BASIC,
-        HTML;
-
-        @Override
-        public String toString() {
-            return name();
-        }
-    }
-
     private void checkForUniqueness(TwinFieldSimpleEntity twinFieldEntity, FieldValueText value) throws ServiceException {
-        TwinClassEntity.OwnerType ownerType = twinFieldEntity.getTwin().getTwinClass().getOwnerType();
+        OwnerType ownerType = twinFieldEntity.getTwin().getTwinClass().getOwnerType();
 
         switch (ownerType) {
             case USER, DOMAIN_USER -> {

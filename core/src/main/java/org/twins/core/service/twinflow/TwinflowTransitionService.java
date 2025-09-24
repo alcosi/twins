@@ -27,12 +27,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.draft.DraftEntity;
-import org.twins.core.dao.draft.DraftStatus;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionEntity;
-import org.twins.core.dao.twin.TwinChangeTaskEntity;
-import org.twins.core.dao.twin.TwinChangeTaskStatus;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
@@ -49,6 +45,10 @@ import org.twins.core.domain.search.TransitionSearch;
 import org.twins.core.domain.transition.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.enums.draft.DraftStatus;
+import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.twinclass.OwnerType;
+import org.twins.core.enums.twinflow.TwinflowTransitionType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 import org.twins.core.service.TwinChangesService;
@@ -65,9 +65,8 @@ import org.twins.core.service.twin.TwinValidatorSetService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
+import org.twins.core.service.validator.TwinValidatorService;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 
@@ -97,6 +96,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     private final AuthService authService;
     @Lazy
     private final DraftService draftService;
+    @Lazy
+    private final TwinValidatorService twinValidatorService;
     @Lazy
     private final DraftCommitService draftCommitService;
     private final UserGroupService userGroupService;
@@ -221,7 +222,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public void loadValidTransitions(Collection<TwinEntity> twinEntityList) throws ServiceException {
         Map<UUID, TwinEntity> needLoad = new HashMap<>();
         for (TwinEntity twinEntity : twinEntityList) {
-            if (twinEntity.getTwinClass().getOwnerType().equals(TwinClassEntity.OwnerType.SYSTEM)) //no transitions available for such twins, because they are cross-domain
+            if (twinEntity.getTwinClass().getOwnerType().equals(OwnerType.SYSTEM)) //no transitions available for such twins, because they are cross-domain
                 continue;
             if (twinEntity.getValidTransitionsKit() != null)
                 continue;
@@ -332,20 +333,20 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         return dbTwinflowTransitionEntity;
     }
 
-    public void cudValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, EntityCUD<TwinflowTransitionValidatorRuleEntity> validatorCUD) throws ServiceException {
-        if (validatorCUD == null)
-            return;
-        if (CollectionUtils.isNotEmpty(validatorCUD.getCreateList())) {
-            createValidators(dbTwinflowTransitionEntity, validatorCUD.getCreateList());
-        }
-        if (CollectionUtils.isNotEmpty(validatorCUD.getUpdateList())) {
-            updateValidators(dbTwinflowTransitionEntity, validatorCUD.getUpdateList());
-        }
-        if (CollectionUtils.isNotEmpty(validatorCUD.getDeleteList())) {
-            deleteValidators(dbTwinflowTransitionEntity, validatorCUD.getDeleteList());
-        }
-        CacheUtils.evictCache(cacheManager, TwinflowTransitionValidatorRuleRepository.CACHE_TRANSITION_VALIDATOR_RULES_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
-    }
+//    public void cudValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, EntityCUD<TwinflowTransitionValidatorRuleEntity> validatorCUD) throws ServiceException {
+//        if (validatorCUD == null)
+//            return;
+//        if (CollectionUtils.isNotEmpty(validatorCUD.getCreateList())) {
+//            createValidators(dbTwinflowTransitionEntity, validatorCUD.getCreateList());
+//        }
+//        if (CollectionUtils.isNotEmpty(validatorCUD.getUpdateList())) {
+//            updateValidators(dbTwinflowTransitionEntity, validatorCUD.getUpdateList());
+//        }
+//        if (CollectionUtils.isNotEmpty(validatorCUD.getDeleteList())) {
+//            deleteValidators(dbTwinflowTransitionEntity, validatorCUD.getDeleteList());
+//        }
+//        CacheUtils.evictCache(cacheManager, TwinflowTransitionValidatorRuleRepository.CACHE_TRANSITION_VALIDATOR_RULES_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
+//    }
 
     @Transactional
     public void deleteValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionValidatorRuleEntity> validatorDeleteList) throws ServiceException {
@@ -717,13 +718,14 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         // validator rules -> OR
         // validators -> AND
         boolean validationResultOfRule = true;
+        twinValidatorService.loadValidators(transitionValidatorEntityList);
         for (TwinflowTransitionValidatorRuleEntity transitionValidatorRuleEntity : transitionValidatorEntityList) {
             validationResultOfRule = true;
             if (!transitionValidatorRuleEntity.isActive()) {
                 log.info(transitionValidatorRuleEntity.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
                 continue;
             }
-            validationResultOfRule = twinValidatorSetService.isValid(twinEntity, transitionValidatorRuleEntity, transitionValidatorRuleEntity.getTwinValidators());
+            validationResultOfRule = twinValidatorSetService.isValid(twinEntity, transitionValidatorRuleEntity, transitionValidatorRuleEntity.getTwinValidatorKit().getList());
             if (validationResultOfRule)
                 break;
         }
@@ -787,7 +789,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         }
         //triggers and after perform factory should be postponed in case of majorTransition, because they should be started only after draft commitment
         runTriggers(transitionContextBatch);
-        runAfterPerformFactories(transitionContextBatch);
         return transitionResult;
     }
 
@@ -934,23 +935,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     transitionTrigger.run(triggerEntity.getTransitionTriggerParams(), targetTwin, transitionEntity.getSrcTwinStatus(), transitionEntity.getDstTwinStatus());
                 }
         }
-    }
-
-    private void runAfterPerformFactories(TransitionContextBatch transitionContextBatch) throws ServiceException {
-        List<TwinChangeTaskEntity> changeTaskList = new ArrayList<>();
-        for (TransitionContext transitionContext : transitionContextBatch.getAll()) {
-            if (transitionContext.getTransitionEntity().getAfterPerformTwinFactoryId() != null) {
-                for (var transitionedTwin : transitionContext.getTargetTwinList().values()) {
-                    changeTaskList.add(new TwinChangeTaskEntity()
-                            .setTwinId(transitionedTwin.getId())
-                            .setTwinFactoryId(transitionContext.getTransitionEntity().getAfterPerformTwinFactoryId())
-                            .setTwinFactorylauncher(FactoryLauncher.afterTransitionPerform)
-                            .setStatusId(transitionContextBatch.isMustBeDrafted() ? TwinChangeTaskStatus.WAITING_FOR_DRAFT_COMMIT : TwinChangeTaskStatus.NEED_START)
-                            .setCreatedAt(Timestamp.from(Instant.now())));
-                }
-            }
-        }
-        twinChangeTaskService.addTasks(changeTaskList);
     }
 
     public PaginationResult<TwinflowTransitionAliasEntity> findTransitionAliases(TransitionAliasSearch search, SimplePagination pagination) throws ServiceException {

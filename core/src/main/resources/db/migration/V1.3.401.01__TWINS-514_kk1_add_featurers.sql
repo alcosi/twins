@@ -1,0 +1,1 @@
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1615, 16, 'org.twins.core.featurer.twin.validator.TwinValidatorTwinFieldDate', '', 'Twin field date value', false) on conflict do nothing;

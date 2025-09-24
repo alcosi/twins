@@ -2,13 +2,11 @@ package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
-import java.util.Arrays;
 import java.util.UUID;
 
 @Entity
@@ -56,23 +54,6 @@ public class TwinFieldBooleanEntity implements EasyLoggable {
                 .setTwinClassField(twinClassField)
                 .setTwinClassFieldId(twinClassFieldId)
                 .setValue(value);
-    }
-
-    @Getter
-    public enum CheckboxType {
-        STANDARD("STANDARD"),
-        TOGGLE("TOGGLE"),
-        CUSTOM("CUSTOM");
-
-        private final String id;
-
-        CheckboxType(String id) {
-            this.id = id;
-        }
-
-        public static TwinFieldBooleanEntity.CheckboxType valueOfId(String type) {
-            return Arrays.stream(TwinFieldBooleanEntity.CheckboxType.values()).filter(c -> c.id.equalsIgnoreCase(type)).findAny().orElseThrow();
-        }
     }
 
 }

@@ -41,6 +41,9 @@ public class TwinFactoryPipelineEntity implements EasyLoggable {
     @Column(name = "next_twin_factory_id")
     private UUID nextTwinFactoryId;
 
+    @Column(name = "after_commit_twin_factory_id")
+    private UUID afterCommitTwinFactoryId;
+
     @Column(name = "next_twin_factory_limit_scope")
     private Boolean nextTwinFactoryLimitScope;
 
