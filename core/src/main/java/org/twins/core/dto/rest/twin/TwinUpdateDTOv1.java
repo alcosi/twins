@@ -17,7 +17,7 @@ import java.util.*;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinUpdateV1")
+@Schema(name = "TwinUpdateV1")
 public class TwinUpdateDTOv1 extends Request {
     @Schema(description = "Head twin id, if selected class had to be linked to some head twin", example = DTOExamples.HEAD_TWIN_ID)
     public UUID headTwinId;
@@ -62,17 +62,17 @@ public class TwinUpdateDTOv1 extends Request {
     }
 
     public TwinUpdateDTOv1 addTwinLinksAddItem(TwinLinkAddDTOv1 item) {
-        CollectionUtils.safeAdd(twinLinksAdd, item);
+        this.twinLinksAdd = CollectionUtils.safeAdd(this.twinLinksAdd, item);
         return this;
     }
 
     public TwinUpdateDTOv1 addTwinLinksDeleteItem(UUID item) {
-        CollectionUtils.safeAdd(twinLinksDelete, item);
+        this.twinLinksDelete = CollectionUtils.safeAdd(this.twinLinksDelete, item);
         return this;
     }
 
     public TwinUpdateDTOv1 addTwinLinksUpdateItem(TwinLinkUpdateDTOv1 item) {
-        CollectionUtils.safeAdd(twinLinksUpdate, item);
+        this.twinLinksUpdate = CollectionUtils.safeAdd(this.twinLinksUpdate, item);
         return this;
     }
 }

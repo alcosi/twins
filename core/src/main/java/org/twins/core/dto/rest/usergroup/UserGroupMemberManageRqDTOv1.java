@@ -22,11 +22,12 @@ public class UserGroupMemberManageRqDTOv1 extends Request {
     public Set<UUID> userGroupExitList;
 
     public UserGroupMemberManageRqDTOv1 addUserGroupEnterListItem(UUID item) {
-        CollectionUtils.safeAdd(userGroupEnterList, item);
-        return this;}
+        this.userGroupEnterList = CollectionUtils.safeAdd(this.userGroupEnterList, item);
+        return this;
+    }
 
     public UserGroupMemberManageRqDTOv1 addUserGroupExitListItem(UUID item) {
-        CollectionUtils.safeAdd(userGroupExitList, item);
+        this.userGroupExitList = CollectionUtils.safeAdd(this.userGroupExitList, item);
         return this;
     }
 

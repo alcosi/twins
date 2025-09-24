@@ -10,12 +10,15 @@ import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.attachment.AttachmentCreateDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkAddDTOv1;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinDraftV1")
+@Schema(name = "TwinDraftV1")
 public class TwinDraftDTOv1 extends Request {
     @Schema(description = "Class Id", example = DTOExamples.TWIN_CLASS_ID)
     public UUID classId;
@@ -57,12 +60,12 @@ public class TwinDraftDTOv1 extends Request {
     }
 
     public TwinDraftDTOv1 addAttachmentsItem(AttachmentCreateDTOv1 item) {
-        CollectionUtils.safeAdd(attachments, item);
+        this.attachments = CollectionUtils.safeAdd(this.attachments, item);
         return this;
     }
 
     public TwinDraftDTOv1 addLinksItem(TwinLinkAddDTOv1 item) {
-        CollectionUtils.safeAdd(links, item);
+        this.links = CollectionUtils.safeAdd(this.links, item);
         return this;
     }
 
