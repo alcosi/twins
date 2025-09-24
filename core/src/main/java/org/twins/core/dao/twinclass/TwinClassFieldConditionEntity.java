@@ -65,31 +65,13 @@ public class TwinClassFieldConditionEntity implements EasyLoggable {
     @Column(name = "condition_operator")
     private TwinClassFieldConditionOperator conditionOperator;
 
-    /**
-     * Value we compare base field with
-     */
-    @Column(name = "cmp_value")
-    private String cmpValue;
+    @Column(name = "condition_evaluator_featurer_id")
+    private Integer conditionEvaluatorFeaturerId;
 
-    /**
-     * Optional additional comparison parameters
-     */
     @Type(PostgreSQLHStoreType.class)
-    @Column(name = "cmp_params", columnDefinition = "hstore")
-    private HashMap<String, String> cmpParams;
+    @Column(name = "condition_evaluator_params", columnDefinition = "hstore")
+    private HashMap<String, String> conditionEvaluatorParams;
 
-    /**
-     * Part of a base field that should be evaluated
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "evaluated_element")
-    private TwinClassFieldConditionElementType evaluatedElement;
-
-    /**
-     * Parameter key that should be evaluated
-     */
-    @Column(name = "evaluated_param_key")
-    private String evaluatedParamKey;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

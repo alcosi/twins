@@ -30,6 +30,9 @@ import org.twins.core.mappers.rest.twinclass.TwinClassFieldRuleRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassFieldRuleService;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * REST-controller that allows to create a {@link TwinClassFieldRuleEntity} together with its
  * child {@code twin_class_field_condition} rows.
@@ -42,7 +45,7 @@ import org.twins.core.service.twinclass.TwinClassFieldRuleService;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_UPDATE})
+@ProtectedBy({Permissions.TWIN_CLASS_FIELD_RULE_MANAGE, Permissions.TWIN_CLASS_FIELD_RULE_CREATE})
 public class TwinClassFieldRuleCreateController extends ApiController {
 
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -64,10 +67,10 @@ public class TwinClassFieldRuleCreateController extends ApiController {
         TwinClassFieldRuleRsDTOv1 rs = new TwinClassFieldRuleRsDTOv1();
         try {
             // convert DTO list -> entities, persist, convert back -> DTO list
-            java.util.List<TwinClassFieldRuleEntity> ruleEntities = twinClassFieldRuleCreateDTOReverseMapper.convertCollection(request.getRules(), mapperContext);
+            List<TwinClassFieldRuleEntity> ruleEntities = twinClassFieldRuleCreateDTOReverseMapper.convertCollection(request.getRules(), mapperContext);
             ruleEntities = twinClassFieldRuleService.createRules(ruleEntities);
 
-            java.util.List<TwinClassFieldRuleDTOv1> ruleDtos = new java.util.ArrayList<>(ruleEntities.size());
+            List<TwinClassFieldRuleDTOv1> ruleDtos = new ArrayList<>(ruleEntities.size());
             for (TwinClassFieldRuleEntity entity : ruleEntities) {
                 ruleDtos.add(twinClassFieldRuleRestDTOMapper.convert(entity, mapperContext));
             }

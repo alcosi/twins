@@ -9,11 +9,9 @@ import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
-import org.twins.core.mappers.rest.mappercontext.modes.PermissionMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
+import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
+import org.twins.core.service.twinclass.TwinClassFieldRuleService;
 
 
 @Component
@@ -30,6 +28,12 @@ public class TwinClassFieldRestDTOMapperV2 extends RestSimpleDTOMapper<TwinClass
 
     @MapperModePointerBinding(modes = FeaturerMode.TwinClassField2FeaturerMode.class)
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
+
+    @MapperModePointerBinding(modes = TwinClassDependentFieldBundleMode.TwinField2TwinClassDependentFieldBundleMode.class)
+    private final
+    TwinClassDependentFieldRestDTOMapperV1 twinClassDependentFieldRestDTOMapperV1;
+
+    private final TwinClassFieldRuleService twinClassFieldRuleService;
 
     @Override
     public void map(TwinClassFieldEntity src, TwinClassFieldDTOv2 dst, MapperContext mapperContext) throws Exception {
@@ -52,6 +56,9 @@ public class TwinClassFieldRestDTOMapperV2 extends RestSimpleDTOMapper<TwinClass
             dst
                     .setEditPermission(permissionRestDTOMapper.convertOrPostpone(src.getEditPermission(), mapperContext.forkOnPoint(PermissionMode.TwinClassField2PermissionMode.SHORT)))
                     .setEditPermissionId(src.getEditPermissionId());
+        }
+        if (mapperContext.hasModeButNot(TwinClassFieldRuleBundleMode.TwinField2TwinClassFieldRuleBundleMode.HIDE)) {
+            dst.setConditionBundles(twinClassDependentFieldRestDTOMapperV1.convertCollection(twinClassFieldRuleService.loadRulesByTwinClassField(src.getId())));
         }
     }
 

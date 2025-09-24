@@ -6,6 +6,8 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
+import java.util.List;
+
 /**
  * Request wrapper for creating a new field–dependency rule together with its conditions.
  * <p>
@@ -20,5 +22,5 @@ import org.twins.core.dto.rest.Request;
 public class TwinClassFieldRuleCreateRqDTOv1 extends Request {
 
     @Schema(description = "rules that should be created")
-    public java.util.List<TwinClassFieldRuleDTOv1> rules;
+    public List<TwinClassFieldRuleCreateDTOv1> rules;
 }

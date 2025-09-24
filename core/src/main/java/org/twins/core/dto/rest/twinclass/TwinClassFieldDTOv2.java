@@ -7,6 +7,8 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 
+import java.util.List;
+
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
@@ -23,4 +25,7 @@ public class TwinClassFieldDTOv2 extends TwinClassFieldDTOv1 {
 
     @Schema(description = "field typer featurer")
     public FeaturerDTOv1 fieldTyperFeaturer;
+
+    @Schema(description = "rules bundles associated with this field")
+    public List<TwinClassDependentFieldBundleDTOv1> conditionBundles;
 }

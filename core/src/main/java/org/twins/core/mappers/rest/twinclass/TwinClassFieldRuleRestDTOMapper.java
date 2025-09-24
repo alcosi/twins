@@ -30,6 +30,7 @@ public class TwinClassFieldRuleRestDTOMapper extends RestSimpleDTOMapper<TwinCla
                 .setTargetElement(src.getTargetElement())
                 .setTargetParamKey(src.getTargetParamKey())
                 .setDependentOverwrittenValue(src.getDependentOverwrittenValue())
+                .setDependentOverwrittenDatalistId(src.getDependentOverwrittenDatalistId())
                 .setRulePriority(src.getRulePriority());
 
         // map conditions if present
@@ -38,8 +39,6 @@ public class TwinClassFieldRuleRestDTOMapper extends RestSimpleDTOMapper<TwinCla
                     .sorted(java.util.Comparator.comparing(org.twins.core.dao.twinclass.TwinClassFieldConditionEntity::getConditionOrder, java.util.Comparator.nullsLast(Integer::compareTo)))
                     .toList();
             dst.setConditions(twinClassFieldConditionRestDTOMapper.convertCollectionPostpone(sorted, mapperContext));
-        } else {
-            dst.setConditions(null);
         }
     }
 

@@ -23,6 +23,7 @@ public class TwinClassFieldRuleService {
     private final TwinClassFieldConditionRepository twinClassFieldConditionRepository;
     private final EntitySmartService entitySmartService;
 
+
     /**
      * Persists a TwinClass field–dependency rule together with all its conditions.
      * <p>
@@ -65,4 +66,39 @@ public class TwinClassFieldRuleService {
         }
         return result;
     }
+
+
+    /**
+     * Returns all rules (with eager-loaded conditions) for the specified Twin-Class.
+     */
+    public java.util.List<TwinClassFieldRuleEntity> getRulesByTwinClass(java.util.UUID twinClassId) {
+        if (twinClassId == null)
+            return java.util.Collections.emptyList();
+        return twinClassFieldRuleRepository.findByTwinClassId(twinClassId);
+    }
+
+    /**
+     * Returns all rules (with eager-loaded conditions) that affect the specified Twin-Class field.
+     */
+    public java.util.List<TwinClassFieldRuleEntity> loadRulesByTwinClassField(java.util.UUID twinClassFieldId) {
+        if (twinClassFieldId == null)
+            return java.util.Collections.emptyList();
+        return twinClassFieldRuleRepository.findByDependentTwinClassFieldId(twinClassFieldId);
+    }
+
+
+
+    /**
+     * Removes every rule and its conditions associated with the given Twin-Class.
+     * <p>Order is important: first conditions – because they reference the rules via FK, then rules themselves.</p>
+     */
+    @Transactional(rollbackFor = Throwable.class)
+    public void deleteRulesByTwinClass(java.util.UUID twinClassId) {
+        if (twinClassId == null)
+            return;
+        twinClassFieldConditionRepository.deleteByTwinClassId(twinClassId);
+        twinClassFieldRuleRepository.deleteByTwinClassId(twinClassId);
+    }
+
+
 }

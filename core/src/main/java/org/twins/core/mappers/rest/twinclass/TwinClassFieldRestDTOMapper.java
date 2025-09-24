@@ -5,7 +5,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
-import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -14,7 +13,6 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldRuleMode;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
@@ -26,9 +24,6 @@ import org.twins.core.service.permission.Permissions;
 public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFieldEntity, TwinClassFieldDTOv1> {
 
     private final TwinClassFieldDescriptorRestDTOMapper twinClassFieldDescriptorRestDTOMapper;
-
-    @MapperModePointerBinding(modes = TwinClassFieldRuleMode.TwinField2TwinClassFieldRuleMode.class)
-    private final TwinClassFieldRuleRestDTOMapper twinClassFieldRuleRestDTOMapper;
 
     private final I18nService i18nService;
     private final FeaturerService featurerService;

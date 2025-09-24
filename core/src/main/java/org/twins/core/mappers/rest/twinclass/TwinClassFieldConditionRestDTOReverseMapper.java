@@ -2,16 +2,14 @@ package org.twins.core.mappers.rest.twinclass;
 
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionCreateDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
-import java.util.HashMap;
-
 @Component
-public class TwinClassFieldConditionRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassFieldConditionDTOv1, TwinClassFieldConditionEntity> {
+public class TwinClassFieldConditionRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassFieldConditionCreateDTOv1, TwinClassFieldConditionEntity> {
     @Override
-    public void map(TwinClassFieldConditionDTOv1 src, TwinClassFieldConditionEntity dst, MapperContext mapperContext) {
+    public void map(TwinClassFieldConditionCreateDTOv1 src, TwinClassFieldConditionEntity dst, MapperContext mapperContext) {
         if (src == null || dst == null)
             return;
         dst
@@ -22,10 +20,7 @@ public class TwinClassFieldConditionRestDTOReverseMapper extends RestSimpleDTOMa
                 .setGroupNo(src.getGroupNo());
         if (src.getConditionOperator() != null)
             dst.setConditionOperator(src.getConditionOperator());
-        dst.setCmpValue(src.getCmpValue())
-                .setCmpParams((HashMap<String, String>) src.getCmpParams());
-        if (src.getEvaluatedElement() != null)
-            dst.setEvaluatedElement(src.getEvaluatedElement());
-        dst.setEvaluatedParamKey(src.getEvaluatedParamKey());
+       dst.setConditionEvaluatorFeaturerId(src.getConditionEvaluatorFeaturerId());
+       dst.setConditionEvaluatorParams(src.getConditionEvaluatorParams());
     }
 }

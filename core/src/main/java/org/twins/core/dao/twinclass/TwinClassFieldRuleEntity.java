@@ -60,6 +60,9 @@ public class TwinClassFieldRuleEntity implements EasyLoggable {
     @Column(name = "dependent_overwritten_value")
     private String dependentOverwrittenValue;
 
+    @Column(name = "dependent_overwritten_datalist_id")
+    private UUID dependentOverwrittenDatalistId;
+
     /**
      * Priority of the rule – lower value means the rule will be evaluated earlier.
      */
