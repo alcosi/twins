@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.CollectionUtils;
 import org.twins.core.enums.datalist.DataListStatus;
 import org.twins.core.dto.rest.Request;
 
@@ -74,4 +75,106 @@ public class DataListOptionSearchDTOv1 extends Request {
 
     @Schema(description = "external id not like list")
     public Set<String> externalIdNotLikeList;
+
+    public DataListOptionSearchDTOv1 addIdListItem(UUID item) {
+        CollectionUtils.safeAdd(idList, item);
+        return this;
+    }
+
+    public DataListOptionSearchDTOv1 addIdExcludeListItem(UUID item) {
+        CollectionUtils.safeAdd(idExcludeList, item);
+        return this;
+    }
+
+    public DataListOptionSearchDTOv1 addDataListIdListItem(UUID item) {
+        CollectionUtils.safeAdd(dataListIdList, item);
+        return this;
+    }
+
+    public DataListOptionSearchDTOv1 addDataListIdExcludeListItem(UUID item) {
+        CollectionUtils.safeAdd(dataListIdExcludeList, item);
+        return this;
+    }
+
+    public DataListOptionSearchDTOv1 addDataListKeyListItem(String item) {
+        CollectionUtils.safeAdd(dataListKeyList, item);
+        return this;
+    }
+
+    public DataListOptionSearchDTOv1 addDataListKeyExcludeListItem(String item) {
+        CollectionUtils.safeAdd(dataListKeyExcludeList, item);
+        return this;
+    }
+
+
+    public DataListOptionSearchDTOv1 addOptionLikeListItem(String item) {
+        CollectionUtils.safeAdd(optionLikeList, item);
+        return this;
+    }
+
+    public DataListOptionSearchDTOv1 addOptionNotLikeListItem(String item) {
+        CollectionUtils.safeAdd(optionNotLikeList, item);
+        return this;
+    }
+
+    public DataListOptionSearchDTOv1 addOptionI18nLikeListItem(String item) {
+        CollectionUtils.safeAdd(optionI18nLikeList, item);
+        return this;
+    }
+
+    public DataListOptionSearchDTOv1 addOptionI18nNotLikeListItem(String item) {
+        CollectionUtils.safeAdd(optionI18nNotLikeList, item);
+        return this;
+    }
+
+    public DataListOptionSearchDTOv1 addBusinessAccountIdListItem(UUID item) {
+        CollectionUtils.safeAdd(businessAccountIdList, item);
+        return this;
+    }
+
+    public DataListOptionSearchDTOv1 addBusinessAccountIdExcludeListItem(UUID item) {
+        CollectionUtils.safeAdd(businessAccountIdExcludeList, item);
+        return this;
+    }
+
+    public DataListOptionSearchDTOv1 addDataListSubsetIdListItem(UUID item) {
+        CollectionUtils.safeAdd(dataListSubsetIdList, item);
+        return this;
+    }
+
+    public DataListOptionSearchDTOv1 addDataListSubsetIdExcludeListItem(UUID item) {
+        CollectionUtils.safeAdd(dataListSubsetIdExcludeList, item);
+        return this;
+    }
+
+    public DataListOptionSearchDTOv1 addDataListSubsetKeyListItem(String item) {
+        CollectionUtils.safeAdd(dataListSubsetKeyList, item);
+        return this;
+    }
+
+    public DataListOptionSearchDTOv1 addDataListSubsetKeyExcludeListItem(String item) {
+        CollectionUtils.safeAdd(dataListSubsetKeyExcludeList, item);
+        return this;
+    }
+
+    public DataListOptionSearchDTOv1 addStatusIdListItem(DataListStatus item) {
+        CollectionUtils.safeAdd(statusIdList, item);
+        return this;
+    }
+
+    public DataListOptionSearchDTOv1 addStatusIdExcludeListItem(DataListStatus item) {
+        CollectionUtils.safeAdd(statusIdExcludeList, item);
+        return this;
+    }
+
+    public DataListOptionSearchDTOv1 addExternalIdLikeListItem(String item) {
+        CollectionUtils.safeAdd(externalIdLikeList, item);
+        return this;
+    }
+
+    public DataListOptionSearchDTOv1 addExternalIdNotLikeListItem(String item) {
+        CollectionUtils.safeAdd(externalIdNotLikeList, item);
+        return this;
+    }
+
 }

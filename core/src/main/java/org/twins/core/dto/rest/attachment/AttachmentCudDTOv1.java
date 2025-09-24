@@ -3,10 +3,9 @@ package org.twins.core.dto.rest.attachment;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.CollectionUtils;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 @Accessors(chain = true)
@@ -20,4 +19,20 @@ public class AttachmentCudDTOv1 {
 
     @Schema(description = "Attachments id list for deleting")
     public Set<UUID> delete;
+
+    public AttachmentCudDTOv1 addCreateItem(AttachmentCreateDTOv1 item) {
+        CollectionUtils.safeAdd(create, item);
+        return this;
+    }
+
+    public AttachmentCudDTOv1 addUpdateItem(AttachmentUpdateDTOv1 item) {
+        CollectionUtils.safeAdd(update, item);
+        return this;
+    }
+
+    public AttachmentCudDTOv1 addDeleteItem(UUID item) {
+        CollectionUtils.safeAdd(delete, item);
+        return this;
+    }
+
 }
