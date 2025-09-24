@@ -5,10 +5,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
-import org.twins.core.enums.user.UserStatus;
 import org.twins.core.dto.rest.twin.TwinSearchListDTOv1;
+import org.twins.core.enums.user.UserStatus;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
@@ -49,52 +51,52 @@ public class UserSearchDTOv1 {
     public TwinSearchListDTOv1 childTwinSearches;
 
     public UserSearchDTOv1 addUserIdListItem(UUID item) {
-        CollectionUtils.safeAdd(userIdList, item);
+        this.userIdList = CollectionUtils.safeAdd(this.userIdList, item);
         return this;
     }
 
     public UserSearchDTOv1 addUserIdExcludeListItem(UUID item) {
-        CollectionUtils.safeAdd(userIdExcludeList, item);
+        this.userIdExcludeList = CollectionUtils.safeAdd(this.userIdExcludeList, item);
         return this;
     }
 
     public UserSearchDTOv1 addUserNameLikeListItem(String item) {
-        CollectionUtils.safeAdd(userNameLikeList, item);
+        this.userNameLikeList = CollectionUtils.safeAdd(this.userNameLikeList, item);
         return this;
     }
 
     public UserSearchDTOv1 addUserNameLikeExcludeListItem(String item) {
-        CollectionUtils.safeAdd(userNameLikeExcludeList, item);
+        this.userNameLikeExcludeList = CollectionUtils.safeAdd(this.userNameLikeExcludeList, item);
         return this;
     }
 
     public UserSearchDTOv1 addUserEmailLikeListItem(String item) {
-        CollectionUtils.safeAdd(userEmailLikeList, item);
+        this.userEmailLikeList = CollectionUtils.safeAdd(this.userEmailLikeList, item);
         return this;
     }
 
     public UserSearchDTOv1 addUserEmailLikeExcludeListItem(String item) {
-        CollectionUtils.safeAdd(userEmailLikeExcludeList, item);
+        this.userEmailLikeExcludeList = CollectionUtils.safeAdd(this.userEmailLikeExcludeList, item);
         return this;
     }
 
     public UserSearchDTOv1 addStatusIdListItem(UserStatus item) {
-        CollectionUtils.safeAdd(statusIdList, item);
+        this.statusIdList = CollectionUtils.safeAdd(this.statusIdList, item);
         return this;
     }
 
     public UserSearchDTOv1 addStatusIdExcludeListItem(UserStatus item) {
-        CollectionUtils.safeAdd(statusIdExcludeList, item);
+        this.statusIdExcludeList = CollectionUtils.safeAdd(this.statusIdExcludeList, item);
         return this;
     }
 
     public UserSearchDTOv1 addSpaceListItem(SpaceSearchDTOv1 item) {
-        CollectionUtils.safeAdd(spaceList, item);
+        this.spaceList = CollectionUtils.safeAdd(this.spaceList, item);
         return this;
     }
 
     public UserSearchDTOv1 addSpaceExcludeListItem(SpaceSearchDTOv1 item) {
-        CollectionUtils.safeAdd(spaceExcludeList, item);
+        this.spaceExcludeList = CollectionUtils.safeAdd(this.spaceExcludeList, item);
         return this;
     }
 

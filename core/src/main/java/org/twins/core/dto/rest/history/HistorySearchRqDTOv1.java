@@ -46,42 +46,42 @@ public class HistorySearchRqDTOv1 {
     public DataTimeRangeDTOv1 createdAt;
 
     public HistorySearchRqDTOv1 addIdListItem(UUID item) {
-        CollectionUtils.safeAdd(idList, item);
+        this.idList = CollectionUtils.safeAdd(this.idList, item);
         return this;
     }
 
     public HistorySearchRqDTOv1 addIdExcludeListItem(UUID item) {
-        CollectionUtils.safeAdd(idExcludeList, item);
+        this.idExcludeList = CollectionUtils.safeAdd(this.idExcludeList, item);
         return this;
     }
 
     public HistorySearchRqDTOv1 addTwinIdListItem(UUID item) {
-        CollectionUtils.safeAdd(twinIdList, item);
+        this.twinIdList = CollectionUtils.safeAdd(this.twinIdList, item);
         return this;
     }
 
     public HistorySearchRqDTOv1 addTwinIdExcludeListItem(UUID item) {
-        CollectionUtils.safeAdd(twinIdExcludeList, item);
+        this.twinIdExcludeList = CollectionUtils.safeAdd(this.twinIdExcludeList, item);
         return this;
     }
 
     public HistorySearchRqDTOv1 addActorUseridListItem(UUID item) {
-        CollectionUtils.safeAdd(actorUseridList, item);
+        this.actorUseridList = CollectionUtils.safeAdd(this.actorUseridList, item);
         return this;
     }
 
     public HistorySearchRqDTOv1 addActorUserIdExcludeListItem(UUID item) {
-        CollectionUtils.safeAdd(actorUserIdExcludeList, item);
+        this.actorUserIdExcludeList = CollectionUtils.safeAdd(this.actorUserIdExcludeList, item);
         return this;
     }
 
     public HistorySearchRqDTOv1 addTypeListItem(HistoryType item) {
-        CollectionUtils.safeAdd(typeList, item);
+        this.typeList = CollectionUtils.safeAdd(this.typeList, item);
         return this;
     }
 
     public HistorySearchRqDTOv1 addTypeExcludeListItem(HistoryType item) {
-        CollectionUtils.safeAdd(typeExcludeList, item);
+        this.typeExcludeList = CollectionUtils.safeAdd(this.typeExcludeList, item);
         return this;
     }
 }
