@@ -18,7 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.factory.*;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.enums.factory.FactoryEraserAction;
+import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
 import org.twins.core.dao.twin.TwinChangeTaskStatus;
@@ -366,11 +367,11 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 log.info("Skipping {} because of empty input", eraserEntity.logShort());
                 continue;
             }
-            TwinFactoryEraserEntity.Action action;
+            FactoryEraserAction action;
             for (FactoryItem eraserInput : eraserInputList) {
                 //if we are in erase mode then input twin can not be marked as candidate, it's already candidate for deletion, so me will replace action to ERASE_IRREVOCABLE
-                if (factoryContext.getFactoryLauncher().isDeletion() && eraserInput.isFactoryInputItem() && eraserEntity.getEraserAction() == TwinFactoryEraserEntity.Action.ERASE_CANDIDATE)
-                    action = TwinFactoryEraserEntity.Action.ERASE_IRREVOCABLE;
+                if (factoryContext.getFactoryLauncher().isDeletion() && eraserInput.isFactoryInputItem() && eraserEntity.getEraserAction() == FactoryEraserAction.ERASE_CANDIDATE)
+                    action = FactoryEraserAction.ERASE_IRREVOCABLE;
                 else
                     action = eraserEntity.getEraserAction();
                 log.info("Eraser action {} was detected for {}", action, eraserInput.logDetailed());

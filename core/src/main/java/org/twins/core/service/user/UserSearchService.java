@@ -61,7 +61,7 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
     @Override
     public boolean isEntityReadDenied(UserSearchEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if (!entity.getDomainId().equals(authService.getApiUser().getDomainId())) {
+        if (entity.getDomainId() != null && !entity.getDomainId().equals(authService.getApiUser().getDomainId())) {
             EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allows in domain[" + apiUser.getDomainId() + "]");
             return true;
         }

@@ -41,7 +41,7 @@ public class TwinValidatorTwinHasLinkAndDstTwinHasStatus extends TwinValidator {
     protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
         UUID linkIdUUID = linkId.extract(properties);
         Set<UUID> statusIds = twinStatusIds.extract(properties);
-        boolean isValid = twinLinkService.hasLink(twinEntity, linkIdUUID) && twinLinkService.dstTwinStatusIdIn(linkIdUUID, statusIds);
+        boolean isValid = twinLinkService.hasLink(twinEntity, linkIdUUID) && twinLinkService.isLinkDstTwinStatusIn(twinEntity, linkIdUUID, statusIds);
 
         return buildResult(
                 isValid,

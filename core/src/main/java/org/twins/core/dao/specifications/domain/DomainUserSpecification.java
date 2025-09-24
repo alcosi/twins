@@ -5,11 +5,10 @@ import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dao.user.UserStatus;
+import org.twins.core.enums.user.UserStatus;
 
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 

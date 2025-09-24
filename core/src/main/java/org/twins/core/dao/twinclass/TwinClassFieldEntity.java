@@ -73,6 +73,12 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Column(name = "twin_class_field_visibility_id")
     private TwinClassFieldVisibility twinClassFieldVisibilityId = TwinClassFieldVisibility.PUBLIC;
 
+    @Column(name = "fe_validation_error_i18n_id")
+    private UUID feValidationErrorI18nId;
+
+    @Column(name = "be_validation_error_i18n_id")
+    private UUID beValidationErrorI18nId;
+
     @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;

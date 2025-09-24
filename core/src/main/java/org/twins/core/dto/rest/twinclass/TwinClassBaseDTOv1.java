@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 
@@ -32,8 +32,11 @@ public class TwinClassBaseDTOv1 {
     @Schema(description = "created at", example = DTOExamples.INSTANT)
     public LocalDateTime createdAt;
 
-    @Schema(description = "logo", example = "http://twins.org/t/class/project.png")
-    public String logo;
+    @Schema(description = "iconDark", example = "http://twins.org/t/class/project.png")
+    public String iconDark;
+
+    @Schema(description = "iconLight", example = "http://twins.org/t/class/project.png")
+    public String iconLight;
 
     @Schema(description = "if class is abstract no twin of it can be created. Some child class must be used")
     public Boolean abstractClass;
@@ -48,7 +51,7 @@ public class TwinClassBaseDTOv1 {
     public UUID tagsDataListId;
 
     @Schema(description = "twin class owner type")
-    public TwinClassEntity.OwnerType ownerType;
+    public OwnerType ownerType;
 
     @Schema(description = "extends class id or empty if class is not linked to any classes")
     public UUID extendsClassId;

@@ -1,10 +1,10 @@
 package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.service.i18n.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassOwnerTypeEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassOwnerTypeDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -22,7 +22,7 @@ public class TwinClassOwnerTypeRestDTOMapper extends RestSimpleDTOMapper<TwinCla
     @Override
     public void map(TwinClassOwnerTypeEntity src, TwinClassOwnerTypeDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
-                .setId(TwinClassEntity.OwnerType.valueOd(src.getId()))
+                .setId(OwnerType.valueOd(src.getId()))
                 .setName(i18nService.translateToLocale(src.getNameI18nId()))
                 .setDescription(i18nService.translateToLocale(src.getDescriptionI18nId()));
     }

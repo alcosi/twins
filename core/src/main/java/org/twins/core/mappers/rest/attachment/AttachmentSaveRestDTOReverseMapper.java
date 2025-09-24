@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
-import org.twins.core.domain.file.DomainFile;
+import org.cambium.common.file.FileData;
 import org.twins.core.dto.rest.attachment.AttachmentSaveDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -57,7 +57,7 @@ public class AttachmentSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Atta
                 throw new ServiceException(BAD_REQUEST_MULTIPART_FILE_IS_NOT_PRESENTED, "File not found " + fileKey);
             }
             try {
-                DomainFile domainFile = new DomainFile(file.getInputStream(), file.getOriginalFilename(), file.getSize());
+                FileData domainFile = new FileData(file.getInputStream(), file.getOriginalFilename(), file.getSize());
                 att.setDomainFile(domainFile);
                 att.fileChanged = true;
                 if (att.size == null || att.size < 1) {

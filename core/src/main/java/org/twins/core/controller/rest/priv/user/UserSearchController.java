@@ -78,7 +78,7 @@ public class UserSearchController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "configuredUserSearchV1", summary = "Return a list of users by configured search criteria")
+    @Operation(operationId = "userSearchConfiguredV1", summary = "Return a list of users by configured search criteria")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
@@ -86,7 +86,7 @@ public class UserSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")
     })
     @PostMapping(value = "/private/user/search/{searchId}/v1")
-    public ResponseEntity<?> configuredUserSearchV1(
+    public ResponseEntity<?> userSearchConfiguredV1(
             @MapperContextBinding(roots = UserRestDTOMapper.class, response = UserSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @Parameter(example = DTOExamples.SEARCH_ID) @PathVariable UUID searchId,

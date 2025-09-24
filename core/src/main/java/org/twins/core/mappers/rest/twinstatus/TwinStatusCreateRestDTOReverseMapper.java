@@ -16,7 +16,6 @@ public class TwinStatusCreateRestDTOReverseMapper extends RestSimpleDTOMapper<Tw
         dst
                 .setTwinClassId(src.getTwinClassId())
                 .setKey(src.getKey())
-                .setLogo(src.getLogo())
                 .setBackgroundColor(src.getBackgroundColor())
                 .setFontColor(src.getFontColor())
         ;

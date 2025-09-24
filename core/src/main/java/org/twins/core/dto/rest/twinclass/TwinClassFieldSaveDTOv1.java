@@ -44,4 +44,10 @@ public abstract class TwinClassFieldSaveDTOv1{
 
     @Schema(description = "field visibility", example = "PUBLIC")
     public TwinClassFieldEntity.TwinClassFieldVisibility fieldVisibility;
+
+    @Schema(description = "I18n frontend validation error", example = "")
+    public I18nSaveDTOv1 feValidationErrorI18n;
+
+    @Schema(description = "I18n backend validation error", example = "")
+    public I18nSaveDTOv1 beValidationErrorI18n;
 }

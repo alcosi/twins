@@ -57,4 +57,16 @@ public class TwinClassFieldDTOv1 {
 
     @Schema(description = "field visibility", example = "PUBLIC")
     public TwinClassFieldEntity.TwinClassFieldVisibility twinClassFieldVisibilityId;
+
+    @Schema(description = "frontend validation error", example = "")
+    public String feValidationError;
+
+    @Schema(description = "backend validation error", example = "")
+    public String beValidationError;
+
+    @Schema(description = "frontend validation error i18n id", example = "")
+    public UUID feValidationErrorI18nId;
+
+    @Schema(description = "backend validation error i18n id", example = "")
+    public UUID beValidationErrorI18nId;
 }
