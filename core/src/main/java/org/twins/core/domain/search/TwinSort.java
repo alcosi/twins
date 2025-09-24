@@ -12,6 +12,7 @@ import java.util.UUID;
 public class TwinSort {
 
     UUID twinClassFieldId;
+    //TODO for collection load
     TwinClassFieldEntity twinClassField;
     SortDirection direction;
 }

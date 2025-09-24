@@ -321,6 +321,7 @@ public class TwinSearchService {
 
     private Specification<TwinEntity> addSorting(BasicSearch search, SimplePagination pagination, Specification<TwinEntity> specification) throws ServiceException {
         for (TwinSort twinSort : search.getSorts()) {
+            //TODO create load for collection
             TwinClassFieldEntity twinClassField = twinClassFieldService.findEntitySafe(twinSort.getTwinClassFieldId());
             TwinSorter fieldSorter = featurerService.getFeaturer(twinClassField.getTwinSorterFeaturerId(), TwinSorter.class);
             var sortFunction = fieldSorter.createSort(twinClassField.getTwinSorterParams(), twinClassField, twinSort.getDirection());
