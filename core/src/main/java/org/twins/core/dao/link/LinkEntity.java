@@ -4,7 +4,6 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
@@ -16,6 +15,8 @@ import org.hibernate.annotations.Type;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.enums.link.LinkStrength;
+import org.twins.core.enums.link.LinkType;
 import org.twins.core.featurer.linker.Linker;
 
 import java.sql.Timestamp;
@@ -49,7 +50,7 @@ public class LinkEntity implements EasyLoggable {
 
     @Column(name = "link_type_id")
     @Enumerated(EnumType.STRING)
-    private TwinlinkType type;
+    private LinkType type;
 
     @Column(name = "link_strength_id")
     @Enumerated(EnumType.STRING)
@@ -111,22 +112,5 @@ public class LinkEntity implements EasyLoggable {
             default -> "link[id:" + id + ", srcTwinClassId:" + srcTwinClassId + "], dstTwinClassId:" + dstTwinClassId + "]";
         };
 
-    }
-
-    @Getter
-    public enum TwinlinkType {
-        ManyToOne(true, true, false),
-        ManyToMany(true, false, false),
-        OneToOne(false, true, true);
-
-        private final boolean many;
-        private final boolean uniqForSrcTwin;
-        private final boolean uniqForDstTwin;
-
-        TwinlinkType(boolean many, boolean uniqForSrcTwin, boolean uniqForDstTwin) {
-            this.many = many;
-            this.uniqForSrcTwin = uniqForSrcTwin;
-            this.uniqForDstTwin = uniqForDstTwin;
-        }
     }
 }

@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -44,12 +45,13 @@ public class AuthLoginController extends ApiController {
                     @Schema(implementation = AuthLoginRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/auth/login/v1")
-    public ResponseEntity<?> authLoginV1(@RequestBody AuthLoginRqDTOv1 request) {
+    public ResponseEntity<?> authLoginV1(@RequestBody AuthLoginRqDTOv1 request, HttpServletResponse servletResponse) {
         AuthLoginRsDTOv1 rs = new AuthLoginRsDTOv1();
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
             ClientSideAuthData clientSideAuthData = identityProviderService.login(authLoginRestDTOReverseMapper.convert(request));
             rs.setAuthData(clientSideAuthDataRestDTOMapper.convert(clientSideAuthData));
+            clientSideAuthData.addCookiesToResponse(servletResponse);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

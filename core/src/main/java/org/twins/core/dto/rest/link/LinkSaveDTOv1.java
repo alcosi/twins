@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.link.LinkStrength;
+import org.twins.core.enums.link.LinkStrength;
+import org.twins.core.enums.link.LinkType;
 import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
@@ -24,7 +24,7 @@ public class LinkSaveDTOv1 extends Request {
     public I18nSaveDTOv1 backwardNameI18n;
 
     @Schema(description = "Link type (Many-to-one, Many-to-many, One-to-one)")
-    public LinkEntity.TwinlinkType type;
+    public LinkType type;
 
     @Schema(description = "Link strength (MANDATORY, OPTIONAL, OPTIONAL_BUT_DELETE_CASCADE)")
     public LinkStrength linkStrength;

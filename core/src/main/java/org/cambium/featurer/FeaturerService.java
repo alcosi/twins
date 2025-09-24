@@ -259,15 +259,19 @@ public class FeaturerService {
 
     public Properties extractProperties(Integer featurerId, HashMap<String, String> params, Map<String, Object> context) throws ServiceException {
         Properties ret = new Properties();
+
         var paramsAnnotationsMap = featurerParamsAnnotationsMap.get(featurerId);
-        int paramsCount = params != null ? (int) params.values().stream().filter(Objects::nonNull).count() : 0;
+
+        params = params != null ? params : new HashMap<>();
+
+        int paramsCount = (int) params.values().stream().filter(Objects::nonNull).count();
         int notOptionalParamsCountSetting = (int) paramsAnnotationsMap.values().stream().filter(it -> !it.optional()).count();
         int totalParamsCountSetting = paramsAnnotationsMap.values().size();
+
         if (paramsCount < notOptionalParamsCountSetting) {
             throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, String.format("Incorrect params count for featurer[%s]. Expected (%s,%s), got %s", featurerId, notOptionalParamsCountSetting, totalParamsCountSetting, paramsCount));
         }
-        if (paramsCount == 0)
-            return ret;//no params
+
         for (var entry : paramsAnnotationsMap.entrySet()) {
             String value = null;
             if (params.get(entry.getKey()) != null) {

@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.twins.core.dao.twinclass.TwinClassOwnerTypeEntity;
+import org.twins.core.enums.domain.DomainType;
 
 import java.util.Set;
 import java.util.UUID;

@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
-import org.twins.core.dao.history.HistoryType;
+import org.twins.core.enums.history.HistoryType;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -203,6 +203,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public TwinEntity findTwinByAlias(String twinAlias) throws ServiceException {
         return twinAliasService.findAlias(twinAlias).getTwin();
+    }
+
+    public TwinEntity findHeadTwin(UUID twinId) {
+        TwinEntity headTwin = twinRepository.findHeadTwin(twinId);
+        if (headTwin == null)
+            return null;
+        if (isEntityReadDenied(headTwin))
+            return null;
+        return headTwin;
     }
 
     public FieldValue getTwinFieldValue(TwinField twinField) throws ServiceException {
@@ -1340,7 +1349,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twin == null || twinClassFieldEntity == null) {
             return res;
         }
-        
+
         var fieldValue = getTwinFieldValue(twin, twinClassFieldEntity.getId());
 
         if (fieldValue instanceof FieldValueText text) {

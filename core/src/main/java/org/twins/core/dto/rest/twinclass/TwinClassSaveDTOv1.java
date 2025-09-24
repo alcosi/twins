@@ -3,11 +3,12 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -31,9 +32,6 @@ public class TwinClassSaveDTOv1 {
 
     @Schema(description = "[optional] if true, then not twin of given class can be created. Abstract classes must be extended", example = "false")
     public Boolean abstractClass;
-
-    @Schema(description = "[optional] url for class UI logo", example = "https://twins.org/img/twin_class_default.png")
-    public String logo;
 
     @Schema(description = "[optional] if true then twins of current class can have own permission_schema and this schema will cover children twins", example = "false")
     public Boolean permissionSchemaSpace;
@@ -60,11 +58,14 @@ public class TwinClassSaveDTOv1 {
     public UUID deletePermissionId;
 
     @Schema(description = "[optional] owner typ of class")
-    public TwinClassEntity.OwnerType ownerType;
+    public OwnerType ownerType;
 
     @Schema(description = "[optional] is assignee required")
     public Boolean assigneeRequired;
 
     @Schema(description = "[optional] external id")
     public String externalId;
+
+    @Schema(description = "[optional] external properties")
+    public Map<String, String> externalProperties;
 }

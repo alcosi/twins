@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.history.HistoryEntity;
-import org.twins.core.dao.history.HistoryType;
+import org.twins.core.enums.history.HistoryType;
 import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.DataTimeRange;

@@ -2,11 +2,12 @@ package org.twins.core.dao.validator;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -32,10 +33,9 @@ public class TwinflowTransitionValidatorRuleEntity implements ContainsTwinValida
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;
 
-    //TODO think over @ManyToMany https://alcosi.atlassian.net/browse/TWINS-220
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "twin_validator_set_id", referencedColumnName = "twin_validator_set_id", insertable = false, updatable = false)
-    private Set<TwinValidatorEntity> twinValidators;
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinValidatorEntity, UUID> twinValidatorKit;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)

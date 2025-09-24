@@ -12,7 +12,6 @@ import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.domain.system.CacheInfo;
-import org.twins.core.domain.system.CacheInfoDTO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +48,7 @@ public class CacheService {
         }
 
         return new CacheInfo()
+                .setCacheName(cacheKey)
                 .setItemsCount(itemCount)
                 .setSizeInMb(sizeInMb);
     }
@@ -84,19 +84,15 @@ public class CacheService {
      *
      * @return A list of CacheInfoDTO objects, each containing information about a specific cache.
      */
-    public List<CacheInfoDTO> getAllCachesInfo() {
-        List<CacheInfoDTO> result = new ArrayList<>();
+    public List<CacheInfo> getAllCachesInfo() {
+        List<CacheInfo> result = new ArrayList<>();
 
         for (String cacheName : cacheManager.getCacheNames()) {
             Cache cache = cacheManager.getCache(cacheName);
             if (cache != null) {
                 try {
                     CacheInfo cacheInfo = getCacheInfo(cacheName);
-                    CacheInfoDTO cacheInfoDTO = new CacheInfoDTO()
-                            .setCacheName(cacheName)
-                            .setSizeInMb(cacheInfo.getSizeInMb())
-                            .setItemsCount(cacheInfo.getItemsCount());
-                    result.add(cacheInfoDTO);
+                    result.add(cacheInfo);
                 } catch (ServiceException e) {
                     // Log the error but continue processing other caches
                     log.error("Error getting info for cache '{}': {}", cacheName, e.getMessage());

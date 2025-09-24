@@ -22,8 +22,11 @@ public class TwinStatusDTOv1 {
     @Schema(description = "description")
     public String description;
 
-    @Schema(description = "url for status UI logo", example = "https://twins.org/img/twin_status_default.png")
-    public String logo;
+    @Schema(description = "Icon dark uri")
+    public String iconDark;
+
+    @Schema(description = "Icon light uri")
+    public String iconLight;
 
     @Schema(description = "background color hex", example = DTOExamples.COLOR_HEX)
     public String backgroundColor;

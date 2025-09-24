@@ -8,7 +8,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
-import org.twins.core.dao.history.HistoryType;
+import org.twins.core.enums.history.HistoryType;
 import org.twins.core.dao.history.HistoryTypeConverter;
 import org.twins.core.dao.history.context.HistoryContext;
 

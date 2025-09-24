@@ -12,12 +12,11 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldRepository;
-import org.twins.core.dao.twinclass.TwinClassRepository;
+import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
+import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.sql.Timestamp;
@@ -116,6 +115,7 @@ public class SystemEntityService {
     public static final UUID TWIN_CLASS_FIELD_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000001");
     public static final UUID TWIN_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000002");
     public static final UUID TWIN_CLASS_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000003");
+    public static final UUID USER_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000004");
 
     public static final List<SystemClass> SYSTEM_CLASSES;
     public static Set<UUID> SYSTEM_TWIN_CLASS_FIELDS_UUIDS = new HashSet<>();
@@ -194,7 +194,7 @@ public class SystemEntityService {
             TwinClassEntity twinClassEntity = new TwinClassEntity()
                     .setId(systemClass.id())
                     .setKey(systemClass.key())
-                    .setOwnerType(TwinClassEntity.OwnerType.SYSTEM)
+                    .setOwnerType(OwnerType.SYSTEM)
                     .setCreatedByUserId(USER_SYSTEM)
                     .setAbstractt(systemClass.abstractt)
                     .setExtendsHierarchyTree(convertToLTreeFormat(systemClass.id))
@@ -313,7 +313,7 @@ public class SystemEntityService {
         TwinClassEntity twinClassEntity = new TwinClassEntity()
                 .setDomainId(domainId)
                 .setKey("DOMAIN_BUSINESS_ACCOUNT")
-                .setOwnerType(TwinClassEntity.OwnerType.DOMAIN_BUSINESS_ACCOUNT)
+                .setOwnerType(OwnerType.DOMAIN_BUSINESS_ACCOUNT)
                 .setCreatedByUserId(USER_SYSTEM)
                 .setCreatedAt(Timestamp.from(Instant.now()));
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);

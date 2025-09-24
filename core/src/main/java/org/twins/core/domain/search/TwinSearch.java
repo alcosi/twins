@@ -6,7 +6,8 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
-import org.twins.core.dao.twin.TwinTouchEntity;
+import org.twins.core.dao.search.TwinSearchEntity;
+import org.twins.core.enums.twin.Touch;
 import org.twins.core.domain.DataTimeRange;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
 
@@ -53,10 +54,11 @@ public class TwinSearch {
     private Set<UUID> tagDataListOptionIdExcludeList;
     private Set<UUID> markerDataListOptionIdList;
     private Set<UUID> markerDataListOptionIdExcludeList;
-    private Set<TwinTouchEntity.Touch> touchList;
-    private Set<TwinTouchEntity.Touch> touchExcludeList;
+    private Set<Touch> touchList;
+    private Set<Touch> touchExcludeList;
     private List<TwinFieldSearch> fields;
     private DataTimeRange createdAt;
+    private TwinSearchEntity configuredSearch;
 
     public boolean isEmpty() {
         return CollectionUtils.isEmpty(twinIdList) &&
@@ -107,6 +109,14 @@ public class TwinSearch {
         return this;
     }
 
+    public TwinSearch addTwinId(Collection<UUID> twinIds, boolean exclude) {
+        if (exclude)
+            twinIdExcludeList = CollectionUtils.safeAdd(twinIdExcludeList, twinIds);
+        else
+            twinIdList = CollectionUtils.safeAdd(twinIdList, twinIds);
+        return this;
+    }
+
     public TwinSearch addTwinNameLike(String twinNameLike) {
         twinNameLikeList = CollectionUtils.safeAdd(twinNameLikeList, twinNameLike);
         return this;
@@ -133,7 +143,7 @@ public class TwinSearch {
         return this;
     }
 
-    public TwinSearch addHeadTwinId(List<UUID> headerTwinIds) {
+    public TwinSearch addHeadTwinId(Collection<UUID> headerTwinIds) {
         headTwinIdList = CollectionUtils.safeAdd(headTwinIdList, headerTwinIds);
         return this;
     }
@@ -162,6 +172,14 @@ public class TwinSearch {
         return this;
     }
 
+    public TwinSearch addAssigneeUserId(Collection<UUID>  assigneeUserIds, boolean exclude) {
+        if (exclude)
+            assigneeUserIdList = CollectionUtils.safeAdd(assigneeUserIdList, assigneeUserIds);
+        else
+            assigneeUserIdExcludeList = CollectionUtils.safeAdd(assigneeUserIdExcludeList, assigneeUserIds);
+        return this;
+    }
+
     public TwinSearch addCreatedByUserId(UUID createdByUserId, boolean exclude) {
         if (exclude)
             createdByUserIdList = CollectionUtils.safeAdd(createdByUserIdList, createdByUserId);
@@ -169,6 +187,15 @@ public class TwinSearch {
             createdByUserIdExcludeList = CollectionUtils.safeAdd(createdByUserIdExcludeList, createdByUserId);
         return this;
     }
+
+    public TwinSearch addCreatedByUserId(Collection<UUID> createdByUserIds, boolean exclude) {
+        if (exclude)
+            createdByUserIdList = CollectionUtils.safeAdd(createdByUserIdList, createdByUserIds);
+        else
+            createdByUserIdExcludeList = CollectionUtils.safeAdd(createdByUserIdExcludeList, createdByUserIds);
+        return this;
+    }
+
 
     public TwinSearch addOwnerUserId(UUID ownerUserId) {
         ownerUserIdList = CollectionUtils.safeAdd(ownerUserIdList, ownerUserId);
@@ -249,7 +276,15 @@ public class TwinSearch {
         return this;
     }
 
-    public TwinSearch addTouchId(TwinTouchEntity.Touch touchId, boolean exclude) {//todo need use in SearchCriteriaBuilderSingleUUID ???
+    public TwinSearch addMarkerDataListOptionId(Collection<UUID> markerDataListOptionId, boolean exclude) {
+        if (exclude)
+            markerDataListOptionIdExcludeList = CollectionUtils.safeAdd(markerDataListOptionIdExcludeList, markerDataListOptionId);
+        else
+            markerDataListOptionIdList = CollectionUtils.safeAdd(markerDataListOptionIdList, markerDataListOptionId);
+        return this;
+    }
+
+    public TwinSearch addTouchId(Touch touchId, boolean exclude) {//todo need use in SearchCriteriaBuilderSingleUUID ???
         if (exclude)
             touchExcludeList = CollectionUtils.safeAdd(touchExcludeList, touchId);
         else
@@ -262,6 +297,14 @@ public class TwinSearch {
             tagDataListOptionIdExcludeList = CollectionUtils.safeAdd(tagDataListOptionIdExcludeList, tagDataListOptionId);
         else
             tagDataListOptionIdList = CollectionUtils.safeAdd(tagDataListOptionIdList, tagDataListOptionId);
+        return this;
+    }
+
+    public TwinSearch addTagDataListOptionId(Collection<UUID> tagDataListOptionIds, boolean exclude) {
+        if (exclude)
+            tagDataListOptionIdExcludeList = CollectionUtils.safeAdd(tagDataListOptionIdExcludeList, tagDataListOptionIds);
+        else
+            tagDataListOptionIdList = CollectionUtils.safeAdd(tagDataListOptionIdList, tagDataListOptionIds);
         return this;
     }
 

@@ -162,7 +162,7 @@ task createManifest { //task for manifest.mf file creation on local run from IDE
             manifestDir.mkdirs()
         }
         manifestFile.text =
-"""Main-Class: org.twins.core.Application
+                """Main-Class: org.twins.core.Application
 Built-By: ${System.properties['user.name']}
 Build-Timestamp: ${new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date())}
 Build-Revision: ${versioning.info.commit}

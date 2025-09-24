@@ -2,13 +2,14 @@ package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
 
-import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -32,11 +33,13 @@ public class TwinPointerValidatorRuleEntity implements ContainsTwinValidatorSet,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
-    private TwinValidatorSetEntity twinValidatorSet;
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinValidatorEntity, UUID> twinValidatorKit;
 
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "twin_validator_set_id", referencedColumnName = "twin_validator_set_id", insertable = false, updatable = false)
-    private Set<TwinValidatorEntity> twinValidators;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
+    private TwinValidatorSetEntity twinValidatorSet;
 
     @Override
     public String easyLog(Level level) {

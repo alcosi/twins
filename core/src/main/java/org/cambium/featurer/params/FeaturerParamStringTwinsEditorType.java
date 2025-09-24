@@ -3,7 +3,7 @@ package org.cambium.featurer.params;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParamType;
-import org.twins.core.featurer.fieldtyper.FieldTyperTextField;
+import org.twins.core.enums.twinclass.FieldTextEditorType;
 
 import java.util.Properties;
 
@@ -12,17 +12,17 @@ import java.util.Properties;
         description = "string twins editor type",
         regexp = FeaturerParamStringTwinsEditorType.EDITOR_TYPE_REGEXP,
         example = "PLAIN")
-public class FeaturerParamStringTwinsEditorType extends FeaturerParam<FieldTyperTextField.TextEditorType> {
+public class FeaturerParamStringTwinsEditorType extends FeaturerParam<FieldTextEditorType> {
     public static final String EDITOR_TYPE_REGEXP = "PLAIN|MARKDOWN_GITHUB|MARKDOWN_BASIC|HTML";
 
     public FeaturerParamStringTwinsEditorType(String key) {super(key);}
 
     @Override
-    public FieldTyperTextField.TextEditorType extract(Properties properties) {
+    public FieldTextEditorType extract(Properties properties) {
         String value = (String) properties.get(key);
         return value != null ?
-                FieldTyperTextField.TextEditorType.valueOf(value) :
-                FieldTyperTextField.TextEditorType.PLAIN;
+                FieldTextEditorType.valueOf(value) :
+                FieldTextEditorType.PLAIN;
     }
 
     @Override
