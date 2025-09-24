@@ -25,7 +25,7 @@ public class DomainBusinessAccountSpecification extends CommonSpecification<Doma
             Join<DomainBusinessAccountEntity, BusinessAccountEntity> baJoin = root.join(DomainBusinessAccountEntity.Fields.businessAccount, JoinType.INNER);
             if (search != null && !search.isEmpty()) {
                 for (String name : search) {
-                    Predicate predicate = cb.like(cb.lower(baJoin.get(field)), name.toLowerCase());
+                    Predicate predicate = cb.like(cb.lower(baJoin.get(field)), name.toLowerCase(), escapeChar);
                     predicates.add(predicate);
                 }
             }
@@ -39,7 +39,7 @@ public class DomainBusinessAccountSpecification extends CommonSpecification<Doma
             Join<DomainBusinessAccountEntity, BusinessAccountEntity> baJoin = root.join(DomainBusinessAccountEntity.Fields.businessAccount, JoinType.INNER);
             if (search != null && !search.isEmpty()) {
                 for (String name : search) {
-                    Predicate predicate = cb.not(cb.like(cb.lower(baJoin.get(field)), name.toLowerCase()));
+                    Predicate predicate = cb.not(cb.like(cb.lower(baJoin.get(field)), name.toLowerCase(), escapeChar));
                     predicates.add(predicate);
                 }
             }

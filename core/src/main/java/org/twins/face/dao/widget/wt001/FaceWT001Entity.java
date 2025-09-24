@@ -37,7 +37,7 @@ public class FaceWT001Entity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "twin_class_id")
     private UUID twinClassId;
 
-    @Column(name = "search_id")
+    @Column(name = "twin_search_id")
     private UUID searchId;
 
     @Column(name = "search_target_twin_pointer_id")

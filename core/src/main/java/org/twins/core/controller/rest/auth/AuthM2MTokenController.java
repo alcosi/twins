@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -46,7 +47,7 @@ public class AuthM2MTokenController extends ApiController {
                     @Schema(implementation = AuthM2MTokenRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/auth/m2m/login/v1")
-    public ResponseEntity<?> authM2MLoginV1(@RequestBody AuthM2MLoginRqDTOv1 request) {
+    public ResponseEntity<?> authM2MLoginV1(@RequestBody AuthM2MLoginRqDTOv1 request, HttpServletResponse servletResponse) {
         AuthM2MTokenRsDTOv1 rs = new AuthM2MTokenRsDTOv1();
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
@@ -54,6 +55,8 @@ public class AuthM2MTokenController extends ApiController {
             rs
                     .setAuthData(clientSideAuthDataRestDTOMapper.convert(m2MAuthData.getClientSideAuthData()))
                     .setActAsUserPublicKey(cryptKeyRestDTOMapper.convert(m2MAuthData.getActAsUserKey()));
+            m2MAuthData.getClientSideAuthData().addCookiesToResponse(servletResponse);
+
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -70,7 +73,7 @@ public class AuthM2MTokenController extends ApiController {
                     @Schema(implementation = AuthM2MTokenRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/auth/m2m/token/v1")
-    public ResponseEntity<?> authM2MTokenV1(@RequestBody AuthM2MLoginRqDTOv1 request) {
+    public ResponseEntity<?> authM2MTokenV1(@RequestBody AuthM2MLoginRqDTOv1 request, HttpServletResponse servletResponse) {
         AuthM2MTokenRsDTOv1 rs = new AuthM2MTokenRsDTOv1();
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
@@ -78,6 +81,7 @@ public class AuthM2MTokenController extends ApiController {
             rs
                     .setAuthData(clientSideAuthDataRestDTOMapper.convert(m2MAuthData.getClientSideAuthData()))
                     .setActAsUserPublicKey(cryptKeyRestDTOMapper.convert(m2MAuthData.getActAsUserKey()));
+            m2MAuthData.getClientSideAuthData().addCookiesToResponse(servletResponse);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
