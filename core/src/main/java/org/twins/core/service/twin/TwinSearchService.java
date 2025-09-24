@@ -39,6 +39,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DBUService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.search.TwinSearchPredicateService;
 import org.twins.core.service.search.TwinSearchSortService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.user.UserGroupService;
@@ -65,6 +66,7 @@ public class TwinSearchService {
     private final TwinSearchAliasRepository twinSearchAliasRepository;
     private final TwinSearchPredicateRepository twinSearchPredicateRepository;
     private final TwinSearchSortService twinSearchSortService;
+    private final TwinSearchPredicateService twinSearchPredicateService;
     private final TwinClassFieldService twinClassFieldService;
     private final PermissionService permissionService;
     @Lazy
@@ -216,8 +218,10 @@ public class TwinSearchService {
         List<BasicSearch> basicSearches = new ArrayList<>();
         for (TwinSearchEntity twinSearchEntity : searchEntities) {
             BasicSearch basicSearch = new BasicSearch();
-            addPredicates(twinSearchEntity.getSearchPredicateList(), searchByAlias.getParams(), basicSearch, searchByAlias.getNarrow());
-            if (CollectionUtils.isNotEmpty(twinSearchEntity.getSortList()))
+            twinSearchPredicateService.loadPredicates(twinSearchEntity);
+            twinSearchSortService.loadSorts(twinSearchEntity);
+            addPredicates(twinSearchEntity.getSearchPredicateKit().getList(), searchByAlias.getParams(), basicSearch, searchByAlias.getNarrow());
+            if (CollectionUtils.isNotEmpty(twinSearchEntity.getSortKit()))
                 addSorts(twinSearchEntity, basicSearch);
             if (twinSearchEntity.getHeadTwinSearchId() != null) {
                 List<TwinSearchPredicateEntity> headSearchPredicates = twinSearchPredicateRepository.findByTwinSearchId(twinSearchEntity.getHeadTwinSearchId());
@@ -305,8 +309,7 @@ public class TwinSearchService {
 
     protected void addSorts(TwinSearchEntity searchEntity, BasicSearch basicSearch) throws ServiceException {
         List<TwinSort> sorts = new ArrayList<>();
-        twinSearchSortService.sortByOrder(searchEntity.getSortList());
-        for (TwinSearchSortEntity twinSort : searchEntity.getSortList())
+        for (TwinSearchSortEntity twinSort : searchEntity.getSortKit().getList())
             sorts.add(new TwinSort().setTwinClassFieldId(twinSort.getTwinClassFieldId()).setDirection(twinSort.getDirection()));
         basicSearch.setSorts(sorts);
     }

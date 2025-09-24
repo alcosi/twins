@@ -100,16 +100,6 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     private I18nEntity descriptionI18n;
 
-    @FeaturerList(type = FieldTyper.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "field_typer_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity fieldTyperFeaturer;
-
-    @FeaturerList(type = FieldTyper.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "twin_sorter_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity twinSorterFeaturer;
-
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)

@@ -106,11 +106,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             case beforeSave:
                 if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getTwinClassId()))
                     entity.setTwinClass(twinClassService.findEntitySafe(entity.getTwinClassId()));
-                if (entity.getFieldTyperFeaturer() == null || !(entity.getFieldTyperFeaturer().getId() == entity.getFieldTyperFeaturerId())){
-                    entity.setFieldTyperFeaturer(featurerService.checkValid(entity.getFieldTyperFeaturerId(), entity.getFieldTyperParams(), FieldTyper.class));
-                    featurerService.prepareForStore(entity.getFieldTyperFeaturerId(), entity.getFieldTyperParams());
-                }
-
+                featurerService.prepareForStore(entity.getFieldTyperFeaturerId(), entity.getFieldTyperParams());
             default:
         }
         return true;
@@ -175,7 +171,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         }
         twinClassEntity.setFieldStorageSet(new HashSet<>());
         for (TwinClassFieldEntity twinClassField : twinClassEntity.getTwinClassFieldKit().getCollection()) {
-            FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturer(), FieldTyper.class);
+            FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
             //storage hashCode is important here, this will help to do bulk load
             TwinFieldStorage storage = fieldTyper.getStorage(twinClassField);
             twinClassEntity.getFieldStorageSet().add(storage);
@@ -250,9 +246,10 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 .setKey(KeyUtils.lowerCaseNullSafe(srcFieldEntity.getKey(), ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT))
                 .setTwinClassId(duplicateTwinClassId)
                 .setTwinClass(srcFieldEntity.getTwinClass())
-                .setFieldTyperFeaturer(srcFieldEntity.getFieldTyperFeaturer())
                 .setFieldTyperFeaturerId(srcFieldEntity.getFieldTyperFeaturerId())
                 .setFieldTyperParams(srcFieldEntity.getFieldTyperParams())
+                .setTwinSorterFeaturerId(srcFieldEntity.getTwinSorterFeaturerId())
+                .setTwinSorterParams(srcFieldEntity.getTwinSorterParams())
                 .setViewPermissionId(srcFieldEntity.getViewPermissionId())
                 .setEditPermissionId(srcFieldEntity.getEditPermissionId())
                 .setRequired(srcFieldEntity.getRequired());
@@ -347,13 +344,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
             if (field.getFieldTyperFeaturerId() != null) {
                 featurerService.prepareForStore(field.getFieldTyperFeaturerId(), field.getFieldTyperParams());
-                field.setFieldTyperFeaturer(featurerService.checkValid(
-                        field.getFieldTyperFeaturerId(),
-                        field.getFieldTyperParams(),
-                        FieldTyper.class
-                ));
             } else {
-                field.setFieldTyperFeaturer(featurerRepository.getById(1301))
+                field
+                        .setFieldTyperFeaturerId(1301)
                         .setFieldTyperParams(SIMPLE_FIELD_PARAMS);
             }
 
