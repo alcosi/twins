@@ -3,13 +3,11 @@ package org.twins.core.dto.rest.twin;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.enums.twin.Touch;
+import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dto.rest.DataTimeRangeDTOv1;
+import org.twins.core.enums.twin.Touch;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 @Accessors(chain = true)
@@ -105,26 +103,181 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Twin touch exclude list ids")
     public List<Touch> touchExcludeList;
 
-    @Schema(description = "Twin Field Search. Key TwinClassField id.",
-            type = "object",
-            additionalPropertiesSchema = TwinFieldSearchDTOv1.class,
-            example = """
-                    {
-                        "550e8400-e29b-41d4-a716-446655440000": {
-                            "type": "TwinFieldSearchNumericV1",
-                            "lessThen": "10",
-                            "moreThen": "5",
-                            "equals": "7"
-                        },
-                        "550e8400-e29b-41d4-a716-446655440001": {
-                            "type": "TwinFieldSearchTextV1",
-                            "valueLikeAllOfList": ["test%"]
-                        }
-                    }
-                    """
-    )
+    @Schema(description = "Twin Field Search. Key TwinClassField id.", type = "object", additionalPropertiesSchema = TwinFieldSearchDTOv1.class, example = """
+            {
+                "550e8400-e29b-41d4-a716-446655440000": {
+                    "type": "TwinFieldSearchNumericV1",
+                    "lessThen": "10",
+                    "moreThen": "5",
+                    "equals": "7"
+                },
+                "550e8400-e29b-41d4-a716-446655440001": {
+                    "type": "TwinFieldSearchTextV1",
+                    "valueLikeAllOfList": ["test%"]
+                }
+            }
+            """)
     public Map<UUID, TwinFieldSearchDTOv1> fields;
 
     @Schema(description = "created at")
     public DataTimeRangeDTOv1 createdAt;
+
+
+
+    public TwinSearchDTOv1 addTwinClassIdListItem(UUID item) {
+        CollectionUtils.safeAdd(twinClassIdList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addTwinClassIdExcludeListItem(UUID item) {
+        CollectionUtils.safeAdd(twinClassIdExcludeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addTwinNameLikeListItem(String item) {
+        CollectionUtils.safeAdd(twinNameLikeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addTwinNameNotLikeListItem(String item) {
+        CollectionUtils.safeAdd(twinNameNotLikeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addDescriptionLikeListItem(String item) {
+        CollectionUtils.safeAdd(descriptionLikeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addDescriptionNotLikeListItem(String item) {
+        CollectionUtils.safeAdd(descriptionNotLikeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addHeadTwinIdListItem(UUID item) {
+        CollectionUtils.safeAdd(headTwinIdList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addTwinIdListItem(UUID item) {
+        CollectionUtils.safeAdd(twinIdList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addTwinIdExcludeListItem(UUID item) {
+        CollectionUtils.safeAdd(twinIdExcludeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addStatusIdListItem(UUID item) {
+        CollectionUtils.safeAdd(statusIdList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addAssignerUserIdListItem(UUID item) {
+        CollectionUtils.safeAdd(assignerUserIdList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addAssignerUserIdExcludeListItem(UUID item) {
+        CollectionUtils.safeAdd(assignerUserIdExcludeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addCreatedByUserIdListItem(UUID item) {
+        CollectionUtils.safeAdd(createdByUserIdList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addCreatedByUserIdExcludeListItem(UUID item) {
+        CollectionUtils.safeAdd(createdByUserIdExcludeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addExternalIdListItem(String item) {
+        CollectionUtils.safeAdd(externalIdList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addExternalIdExcludeListItem(String item) {
+        CollectionUtils.safeAdd(externalIdExcludeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addLinksAnyOfListItem(TwinSearchByLinkDTOv1 item) {
+        CollectionUtils.safeAdd(linksAnyOfList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addLinksNoAnyOfListItem(TwinSearchByLinkDTOv1 item) {
+        CollectionUtils.safeAdd(linksNoAnyOfList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addLinksAllOfListItem(TwinSearchByLinkDTOv1 item) {
+        CollectionUtils.safeAdd(linksAllOfList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addLinksNoAllOfListItem(TwinSearchByLinkDTOv1 item) {
+        CollectionUtils.safeAdd(linksNoAllOfList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addHierarchyTreeContainsIdListItem(UUID item) {
+        CollectionUtils.safeAdd(hierarchyTreeContainsIdList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addStatusIdExcludeListItem(UUID item) {
+        CollectionUtils.safeAdd(statusIdExcludeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addTagDataListOptionIdListItem(UUID item) {
+        CollectionUtils.safeAdd(tagDataListOptionIdList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addTagDataListOptionIdExcludeListItem(UUID item) {
+        CollectionUtils.safeAdd(tagDataListOptionIdExcludeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addMarkerDataListOptionIdListItem(UUID item) {
+        CollectionUtils.safeAdd(markerDataListOptionIdList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addMarkerDataListOptionIdExcludeListItem(UUID item) {
+        CollectionUtils.safeAdd(markerDataListOptionIdExcludeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addTwinClassExtendsHierarchyContainsIdListItem(UUID item) {
+        CollectionUtils.safeAdd(twinClassExtendsHierarchyContainsIdList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addHeadTwinClassIdListItem(UUID item) {
+        CollectionUtils.safeAdd(headTwinClassIdList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addTouchListItem(Touch item) {
+        CollectionUtils.safeAdd(touchList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 addTouchExcludeListItem(Touch item) {
+        CollectionUtils.safeAdd(touchExcludeList, item);
+        return this;
+    }
+
+    public TwinSearchDTOv1 putFieldsItem(UUID key, TwinFieldSearchDTOv1 item) {
+        if (this.fields == null) this.fields = new HashMap<>();
+        this.fields.put(key, item);
+        return this;
+    }
+
 }
