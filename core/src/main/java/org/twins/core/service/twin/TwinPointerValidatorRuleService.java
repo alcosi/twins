@@ -64,7 +64,6 @@ public class TwinPointerValidatorRuleService extends EntitySecureFindServiceImpl
         twinValidatorSetService.loadTwinValidatorSet(pointerValidatorRuleEntity);
         twinValidatorService.loadValidators(pointerValidatorRuleEntity);
         TwinEntity pointedTwin = twinPointerService.getPointer(currentTwin, pointerValidatorRuleEntity.getTwinPointerId());
-        return twinValidatorSetService.isValid(pointedTwin, pointerValidatorRuleEntity, pointerValidatorRuleEntity.getTwinValidatorKit().getList());
-        return twinValidatorSetService.isValid(pointedTwin, pointerValidatorRuleEntity, pointerValidatorRuleEntity.getTwinValidators(), pointerValidatorRuleEntity.getTwinValidatorSet());
+        return twinValidatorSetService.isValid(pointedTwin, pointerValidatorRuleEntity, pointerValidatorRuleEntity.getTwinValidatorKit().getList(), pointerValidatorRuleEntity.getTwinValidatorSet());
     }
 }
