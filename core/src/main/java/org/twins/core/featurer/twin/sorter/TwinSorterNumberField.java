@@ -11,6 +11,8 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,36 +33,23 @@ public class TwinSorterNumberField extends TwinSorter {
             Predicate basePredicate = baseSpec == null ? null : baseSpec.toPredicate(root, query, cb);
             if (!query.getResultType().equals(Long.class)) {
                 List<Order> orders = new ArrayList<>();
-                // Check for existing join to avoid duplication
-                Join<TwinEntity, TwinFieldSimpleEntity> tfJoin = null;
-                for (Join<TwinEntity, ?> join : root.getJoins()) {
-                    if (join.getAttribute().getName().equals(TwinEntity.Fields.fieldsSimple) && join.getOn().toString().contains(fieldId.toString())) {
-                        tfJoin = (Join<TwinEntity, TwinFieldSimpleEntity>) join;
-                        break;
-                    }
-                }
-                // If no suitable join exists, create a LEFT JOIN
-                if (tfJoin == null) {
-                    tfJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.LEFT);
-                    tfJoin.on(cb.equal(tfJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), fieldId));
-                }
+                // Get or create JOIN
+                Join<TwinEntity, TwinFieldSimpleEntity> tfJoin = getOrCreateJoin(root, cb, fieldId, TwinEntity.Fields.fieldsSimple);
                 // Convert string value to Double for numeric sorting
                 Expression<String> stringValue = tfJoin.get(TwinFieldSimpleEntity.Fields.value);
                 Expression<Double> numericValue = cb.function("text2double", Double.class, stringValue);
                 // Ensure NULL values are placed at the end
-                orders.add(cb.asc(cb.selectCase().when(cb.isNull(numericValue), 1).otherwise(0)));
+                addNullsPositionOrder(orders, cb, tfJoin, TwinFieldSimpleEntity.Fields.value, properties);
                 // Sort by numeric value
-                if (direction == SortDirection.DESCENDING) {
-                    orders.add(cb.desc(numericValue));
-                } else {
-                    orders.add(cb.asc(numericValue));
-                }
-                // Combine with existing orders
-                List<Order> current = new ArrayList<>(query.getOrderList());
-                current.addAll(orders);
-                query.orderBy(current);
+                addValueAndCombineOrders(orders, cb, query, numericValue, direction);
+
             }
             return basePredicate;
         };
+    }
+
+    @Override
+    public boolean checkCompatibleSorter(FieldTyper fieldTyper) {
+        return fieldTyper.getStorageType().equals(TwinFieldStorageSimple.class);
     }
 }

@@ -9,6 +9,10 @@ INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated
 VALUES (4104, 41, '', '', '', false) ON CONFLICT (id) DO NOTHING;
 INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
 VALUES (4105, 41, '', '', '', false) ON CONFLICT (id) DO NOTHING;
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
+VALUES (4106, 41, '', '', '', false) ON CONFLICT (id) DO NOTHING;
+
+
 
 ALTER TABLE IF EXISTS twin_class_field
     ADD COLUMN IF NOT EXISTS twin_sorter_featurer_id int,
@@ -26,6 +30,8 @@ UPDATE twin_class_field SET twin_sorter_featurer_id = 4105 WHERE twin_sorter_fea
 UPDATE twin_class_field SET twin_sorter_featurer_id = 4102 WHERE twin_sorter_featurer_id IS NULL AND field_typer_featurer_id IN (1302);
 -- other
 UPDATE twin_class_field SET twin_sorter_featurer_id = 4101 WHERE twin_sorter_featurer_id IS NULL;
+-- select with multiple=false
+UPDATE twin_class_field SET twin_sorter_featurer_id = 4106 WHERE field_typer_featurer_id = 1305 AND (twin_sorter_params->'multiple' = 'false' OR twin_sorter_params->'multiple' IS NULL);
 
 CREATE TABLE IF NOT EXISTS twin_search_sort
 (

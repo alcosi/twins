@@ -320,15 +320,17 @@ public class TwinSearchService {
     }
 
     private Specification<TwinEntity> addSorting(BasicSearch search, SimplePagination pagination, Specification<TwinEntity> specification) throws ServiceException {
-        for (TwinSort twinSort : search.getSorts()) {
-            //TODO create load for collection
-            TwinClassFieldEntity twinClassField = twinClassFieldService.findEntitySafe(twinSort.getTwinClassFieldId());
-            TwinSorter fieldSorter = featurerService.getFeaturer(twinClassField.getTwinSorterFeaturerId(), TwinSorter.class);
-            var sortFunction = fieldSorter.createSort(twinClassField.getTwinSorterParams(), twinClassField, twinSort.getDirection());
-            if (sortFunction != null) {
-                specification = sortFunction.apply(specification);
-                if (pagination != null)
-                    pagination.setSort(null);
+        if (CollectionUtils.isNotEmpty(search.getSorts())) {
+            twinClassFieldService.loadTwinClassFieldsForTwinSorts(search.getSorts());
+            for (TwinSort twinSort : search.getSorts()) {
+                TwinClassFieldEntity twinClassField = twinSort.getTwinClassField();
+                TwinSorter fieldSorter = featurerService.getFeaturer(twinClassField.getTwinSorterFeaturerId(), TwinSorter.class);
+                var sortFunction = fieldSorter.createSort(twinClassField.getTwinSorterParams(), twinClassField, twinSort.getDirection());
+                if (sortFunction != null) {
+                    specification = sortFunction.apply(specification);
+                    if (pagination != null)
+                        pagination.setSort(null);
+                }
             }
         }
         return specification;

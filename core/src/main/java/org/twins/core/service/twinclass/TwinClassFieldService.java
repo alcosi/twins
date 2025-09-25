@@ -29,6 +29,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.search.TwinSort;
 import org.twins.core.domain.twinclass.TwinClassFieldSave;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -148,6 +149,23 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             twinClassEntity.setTwinClassFieldKit(new Kit<>(classFields, TwinClassFieldEntity::getId));
         }
     }
+
+    public void loadTwinClassFieldsForTwinSorts(Collection<TwinSort> twinSorts) {
+        if (twinSorts == null || twinSorts.isEmpty()) return;
+
+        Set<UUID> fieldIdsToLoad = new HashSet<>();
+        for (TwinSort twinSort : twinSorts)
+            if (twinSort.getTwinClassField() == null && twinSort.getTwinClassFieldId() != null)
+                fieldIdsToLoad.add(twinSort.getTwinClassFieldId());
+
+        if (fieldIdsToLoad.isEmpty()) return;
+
+        Kit<TwinClassFieldEntity, UUID> loadedFields = new Kit<>(twinClassFieldRepository.findByIdIn(new ArrayList<>(fieldIdsToLoad)), TwinClassFieldEntity::getId);
+        for (TwinSort twinSort : twinSorts)
+            if (twinSort.getTwinClassField() == null)
+                twinSort.setTwinClassField(loadedFields.get(twinSort.getTwinClassFieldId()));
+    }
+
 
     public void loadFields(Collection<TwinAttachmentEntity> attachments) throws ServiceException {
         KitGrouped<TwinAttachmentEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinAttachmentEntity::getId, TwinAttachmentEntity::getTwinClassFieldId);

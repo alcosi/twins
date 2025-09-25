@@ -11,6 +11,8 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -32,39 +34,23 @@ public class TwinSorterDateField extends TwinSorter {
             Predicate basePredicate = baseSpec == null ? null : baseSpec.toPredicate(root, query, cb);
             if (!query.getResultType().equals(Long.class)) {
                 List<Order> orders = new ArrayList<>();
-                // Check if a join to TwinFieldSimpleEntity already exists to avoid conflicts
-                Join<TwinEntity, TwinFieldSimpleEntity> tfJoin = null;
-                for (Join<TwinEntity, ?> join : root.getJoins()) {
-                    if (join.getAttribute().getName().equals(TwinEntity.Fields.fieldsSimple) && join.getJoinType() == JoinType.INNER && join.getOn().toString().contains(fieldId.toString())) {
-                        tfJoin = (Join<TwinEntity, TwinFieldSimpleEntity>) join;
-                        break;
-                    }
-                }
-                // If no suitable join exists, create a LEFT JOIN
-                if (tfJoin == null) {
-                    tfJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.LEFT);
-                    tfJoin.on(cb.equal(tfJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), fieldId));
-                } else {
-                    // If INNER JOIN exists from search spec, wrap it to handle NULLs correctly
-                }
-
+                // Get or create JOIN
+                Join<TwinEntity, TwinFieldSimpleEntity> tfJoin = getOrCreateJoin(root, cb, fieldId, TwinEntity.Fields.fieldsSimple);
                 // Convert string value to LocalDateTime for proper date comparison
                 Expression<String> stringValue = tfJoin.get(TwinFieldSimpleEntity.Fields.value);
                 Expression<LocalDateTime> dateTimeValue = cb.function("text2timestamp", LocalDateTime.class, stringValue);
                 // Ensure NULL values are placed at the end
-                orders.add(cb.asc(cb.selectCase().when(cb.isNull(dateTimeValue), 1).otherwise(0)));
+                addNullsPositionOrder(orders, cb, tfJoin, TwinFieldSimpleEntity.Fields.value, properties);
                 // Sort by date value
-                if (direction.equals(SortDirection.DESCENDING)) {
-                    orders.add(cb.desc(dateTimeValue));
-                } else {
-                    orders.add(cb.asc(dateTimeValue));
-                }
-                // Combine with existing orders
-                List<Order> current = new ArrayList<>(query.getOrderList());
-                current.addAll(orders);
-                query.orderBy(current);
+                addValueAndCombineOrders(orders, cb, query, dateTimeValue, direction);
+
             }
             return basePredicate;
         };
+    }
+
+    @Override
+    public boolean checkCompatibleSorter(FieldTyper fieldTyper) {
+        return fieldTyper.getStorageType().equals(TwinFieldStorageSimple.class);
     }
 }
