@@ -60,6 +60,18 @@ public abstract class TwinValidator extends FeaturerTwins {
     public static class ValidationResult {
         boolean valid = false;
         String message;
+
+        public ValidationResult() {
+        }
+
+        public ValidationResult(boolean valid) {
+            this.valid = valid;
+        }
+
+        public ValidationResult(boolean valid, String message) {
+            this.valid = valid;
+            this.message = message;
+        }
     }
 
     @Data

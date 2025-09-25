@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.exception.TwinFieldValidationException;
 import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -118,6 +119,8 @@ public class TwinUpdateController extends ApiController {
             rs
                     .setTwin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(twinId), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
+        } catch (TwinFieldValidationException ve) {
+            return createErrorRs(ve, rs);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

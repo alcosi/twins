@@ -1,5 +1,6 @@
 package org.twins.core.featurer.fieldtyper;
 
+import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -14,18 +15,20 @@ import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
-import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchText;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.featurer.twin.validator.TwinValidator;
 
 import java.util.Properties;
 
+@Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_1301,
         name = "Text",
@@ -43,23 +46,16 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
 
     @Override
     public FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
-        return new FieldDescriptorText()
+        FieldDescriptorText descriptorText = new FieldDescriptorText()
                 .regExp(regexp.extract(properties))
                 .editorType(editorType.extract(properties))
                 .unique(unique.extract(properties));
+        descriptorText.backendValidated(descriptorText.unique());
+        return descriptorText;
     }
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        String pattern = regexp.extract(properties);
-        if (!value.getValue().matches(pattern)) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + value.getValue() + "] does not match pattern[" + pattern + "]");
-        }
-
-        if (unique.extract(properties).equals(true)) {
-            checkForUniqueness(twinFieldEntity, value);
-        }
-
         detectValueChange(twinFieldEntity, twinChangesCollector, value.getValue());
     }
 
@@ -96,4 +92,22 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
             }
         }
     }
+
+    @Override
+    protected TwinValidator.ValidationResult validate(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueText fieldValue) {
+        String errorMessage = i18nService.translateToLocale(fieldValue.getTwinClassField().getBeValidationErrorI18nId());
+        try {
+            String pattern = regexp.extract(properties);
+            if (!fieldValue.getValue().matches(pattern)) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + fieldValue.getValue() + "] does not match pattern[" + pattern + "]");
+            }
+            if (unique.extract(properties).equals(true)) {
+                checkForUniqueness(twinFieldEntity, fieldValue);
+            }
+        } catch (ServiceException e) {
+            return new TwinValidator.ValidationResult(false, errorMessage);
+        }
+        return new TwinValidator.ValidationResult(true);
+    }
+
 }

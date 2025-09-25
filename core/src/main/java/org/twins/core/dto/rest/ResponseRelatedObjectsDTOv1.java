@@ -10,7 +10,7 @@ import org.twins.core.dto.rest.related.RelatedObjectsDTOv1;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "ResponseRelatedObjectsV1")
-public class ResponseRelatedObjectsDTOv1 extends Response {
+public class ResponseRelatedObjectsDTOv1 extends TwinChangeResponse {
     @Schema(description = "results - related objects, if lazeRelation is false")
     public RelatedObjectsDTOv1 relatedObjects;
 }

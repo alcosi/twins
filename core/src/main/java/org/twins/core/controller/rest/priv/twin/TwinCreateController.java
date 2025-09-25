@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.exception.TwinFieldValidationException;
 import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -91,6 +92,8 @@ public class TwinCreateController extends ApiController {
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
                             .createTwin(twinCreate));
+        } catch (TwinFieldValidationException ve) {
+            return createErrorRs(ve, rs);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -154,6 +157,8 @@ public class TwinCreateController extends ApiController {
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
                             .createTwin(twinCreate));
+        } catch (TwinFieldValidationException ve) {
+            return createErrorRs(ve, rs);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -210,6 +215,8 @@ public class TwinCreateController extends ApiController {
                         .setLauncher(TwinOperation.Launcher.direct);
             }
             twinService.createTwinsAsyncBatch(twinCreates);
+        } catch (TwinFieldValidationException ve) {
+            return createErrorRs(ve, rs);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

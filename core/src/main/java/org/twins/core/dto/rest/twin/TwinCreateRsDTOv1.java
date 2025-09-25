@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.Response;
+import org.twins.core.dto.rest.TwinChangeResponse;
 
 import java.util.List;
 import java.util.UUID;
@@ -13,7 +13,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "TwinCreateRsV1")
-public class TwinCreateRsDTOv1 extends Response {
+public class TwinCreateRsDTOv1 extends TwinChangeResponse {
     @Schema(description = "new twin id")
     public UUID twinId;
 
