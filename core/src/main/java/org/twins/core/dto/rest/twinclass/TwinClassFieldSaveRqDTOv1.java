@@ -44,4 +44,10 @@ public abstract class TwinClassFieldSaveRqDTOv1 extends Request {
 
     @Schema(description = "Field typer parameters", example = "{}")
     public HashMap<String, String> fieldTyperParams;
+
+    @Schema(description = "Twin sorter featurer ID", example = "1")
+    public Integer twinSorterFeaturerId;
+
+    @Schema(description = "Twin Sorter parameters", example = "{}")
+    public HashMap<String, String> twinSorterParams;
 }
