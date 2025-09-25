@@ -92,6 +92,26 @@ public class UserSearchDTOv1 {
         return this;
     }
 
+    public UserSearchDTOv1 addUserNameOrEmailLikeListItem(String item) {
+        this.userNameOrEmailLikeList = CollectionUtils.safeAdd(this.userNameOrEmailLikeList, item);
+        return this;
+    }
+
+    public UserSearchDTOv1 addUserNameOrEmailLikeExcludeListItem(String item) {
+        this.userNameOrEmailLikeExcludeList = CollectionUtils.safeAdd(this.userNameOrEmailLikeExcludeList, item);
+        return this;
+    }
+
+    public UserSearchDTOv1 addUserGroupIdListItem(UUID item) {
+        this.userGroupIdList = CollectionUtils.safeAdd(this.userGroupIdList, item);
+        return this;
+    }
+
+    public UserSearchDTOv1 addUserGroupIdExcludeListItem(UUID item) {
+        this.userGroupIdExcludeList = CollectionUtils.safeAdd(this.userGroupIdExcludeList, item);
+        return this;
+    }
+
     public UserSearchDTOv1 addStatusIdListItem(UserStatus item) {
         this.statusIdList = CollectionUtils.safeAdd(this.statusIdList, item);
         return this;

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
@@ -24,6 +25,7 @@ import org.twins.core.dao.user.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.UserSearch;
+import org.twins.core.enums.user.UserGroupType;
 import org.twins.core.featurer.user.finder.UserFinder;
 import org.twins.core.featurer.user.sorter.UserSorter;
 import org.twins.core.service.SystemEntityService;
@@ -47,6 +49,7 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
     private final UserSearchPredicateRepository userSearchPredicateRepository;
     private final FeaturerService featurerService;
     private final UserSearchRepository userSearchRepository;
+    private final UserGroupRepository userGroupRepository;
 
     @Override
     public CrudRepository<UserSearchEntity, UUID> entityRepository() {
@@ -158,8 +161,8 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
                 checkFieldLikeIn(search.getUserEmailLikeExcludeList(), true, false, UserEntity.Fields.email),
                 checkFieldNameOrEmailLikeIn(search.getUserNameOrEmailLikeList(), false, true),
                 checkFieldNameOrEmailLikeIn(search.getUserNameOrEmailExcludeList(), true, false),
-                checkUserGroupIdIn(search.getUserGroupIdList(), false, true),
-                checkUserGroupIdIn(search.getUserGroupIdExcludeList(), true, false),
+                checkUserGroupType(search.getUserGroupIdList(), false, true),
+                checkUserGroupType(search.getUserGroupIdExcludeList(), true, false),
                 checkStatusLikeIn(search.getStatusIdList(), false),
                 checkStatusLikeIn(search.getStatusIdExcludeList(), true),
                 checkSpaceRoleLikeIn(search.getSpaceList(), domainId, businessAccountId, false),
@@ -191,5 +194,19 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
             }
         }
         return specification;
+    }
+
+    public Specification<UserEntity> checkUserGroupType(final Collection<UUID> userGroupIds, final boolean exclude, final boolean or) {
+        KitGrouped<UserGroupEntity, UUID, String> userGroupEntities = new KitGrouped<>(userGroupRepository.findByIdIn(userGroupIds), UserGroupEntity::getId, UserGroupEntity::getUserGroupTypeId);
+        for (Map.Entry<String, List<UserGroupEntity>> entry : userGroupEntities.getGroupedMap().entrySet()) {
+            if (entry.getKey().equals(UserGroupType.domainScopeDomainManage.name())) {
+                return UserSpecification.checkUserGroupIn(userGroupIds, exclude, or, UserGroupMapType1Entity.class);
+            } else if (entry.getKey().equals(UserGroupType.domainScopeBusinessAccountManage.name())) {
+                return UserSpecification.checkUserGroupIn(userGroupIds, exclude, or, UserGroupMapType2Entity.class);
+            } else {
+                return UserSpecification.checkUserGroupIn(userGroupIds, exclude, or, UserGroupMapType3Entity.class);
+            }
+        }
+        return null;
     }
 }

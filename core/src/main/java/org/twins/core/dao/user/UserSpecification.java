@@ -162,21 +162,33 @@ public class UserSpecification extends CommonSpecification<UserEntity> {
         };
     }
 
-    public static Specification<UserEntity> checkUserGroupIdIn(final Collection<UUID> userGroupIds, final boolean exclude, final boolean or) {
+    public static <T> Specification<UserEntity> checkUserGroupIn(final Collection<UUID> userGroupIds, final boolean exclude, final boolean or, final Class<T> userGroupMapEntityClass) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(userGroupIds)) {
                 return cb.conjunction();
             }
 
-            Root<UserGroupMapType2Entity> userGroupMapRoot = query.from(UserGroupMapType2Entity.class);
-            Predicate joinCondition = cb.equal(root.get(UserEntity.Fields.id), userGroupMapRoot.get(UserGroupMapType2Entity.Fields.userId));
-            Predicate groupIdCondition = userGroupMapRoot.get(UserGroupMapType2Entity.Fields.userGroupId).in(userGroupIds);
+            Root<T> userGroupMapRoot = query.from(userGroupMapEntityClass);
+
+            Predicate joinCondition = cb.equal(
+                    root.get(UserEntity.Fields.id),
+                    userGroupMapRoot.get("userId")
+            );
+
+            List<Predicate> groupPredicates = userGroupIds.stream()
+                    .map(groupId -> cb.equal(
+                            userGroupMapRoot.get("userGroupId"),
+                            groupId
+                    ))
+                    .toList();
+
+            Predicate groupIdCondition = or
+                    ? cb.or(groupPredicates.toArray(new Predicate[0]))
+                    : cb.and(groupPredicates.toArray(new Predicate[0]));
+
             Predicate combinedCondition = cb.and(joinCondition, groupIdCondition);
 
-            if (exclude) {
-                combinedCondition = cb.not(combinedCondition);
-            }
-            return combinedCondition;
+            return exclude ? cb.not(combinedCondition) : combinedCondition;
         };
     }
 
