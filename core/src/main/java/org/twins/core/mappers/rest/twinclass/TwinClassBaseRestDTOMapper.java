@@ -13,6 +13,7 @@ import org.twins.core.service.face.FaceService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.resource.ResourceService;
 
 @Slf4j
 @Component
@@ -23,6 +24,7 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
     private final I18nService i18nService;
     private final PermissionService permissionService;
     private final FaceService faceService;
+    private final ResourceService resourceService;
 
     @Override
     public void map(TwinClassEntity src, TwinClassBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -42,7 +44,8 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setTagsDataListId(src.getTagDataListId())
                         .setName(i18nService.translateToLocale(src.getNameI18NId()))
                         .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
-                        .setLogo(src.getLogo())
+                        .setIconDark(resourceService.getResourceUri(src.getIconDarkResource()))
+                        .setIconLight(resourceService.getResourceUri(src.getIconLightResource()))
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setHeadHunterFeaturerId(src.getHeadHunterFeaturerId())
                         .setHeadHunterParams(src.getHeadHunterParams())
@@ -77,7 +80,8 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setTagsDataListId(src.getTagDataListId())
                         .setName(i18nService.translateToLocale(src.getNameI18NId()))
                         .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
-                        .setLogo(src.getLogo())
+                        .setIconDark(resourceService.getResourceUri(src.getIconDarkResource()))
+                        .setIconLight(resourceService.getResourceUri(src.getIconLightResource()))
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setExternalId(src.getExternalId())
                         .setExternalProperties(src.getExternalProperties());

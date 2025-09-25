@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.*;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.resource.StorageEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
@@ -150,10 +151,29 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                 DomainEntity.Fields.navbarFaceId, changesHelper);
         updateBusinessAccountInitiatorFeaturerId(dbEntity, updateEntity.getBusinessAccountInitiatorFeaturerId(), updateEntity.getBusinessAccountInitiatorParams(), changesHelper);
         updateUserGroupManagerFeaturerId(dbEntity, updateEntity.getUserGroupManagerFeaturerId(), updateEntity.getUserGroupManagerParams(), changesHelper);
+        updateDomainIcons(dbEntity, lightIcon, darkIcon, changesHelper);
 
         updateSafe(dbEntity, changesHelper);
-        processIcons(dbEntity, lightIcon, darkIcon);
         return dbEntity;
+    }
+
+    public void updateDomainIcons(DomainEntity dbDomainEntity, FileData iconLight, FileData iconDark, ChangesHelper changesHelper) throws ServiceException {
+        if (iconLight != null) {
+            ResourceEntity newValue = saveIconResourceIfExist(iconLight);
+            if (changesHelper.isChanged(DomainEntity.Fields.iconLightResourceId, dbDomainEntity.getIconLightResourceId(), newValue.getId())) {
+                dbDomainEntity
+                        .setIconLightResourceId(newValue.getId())
+                        .setIconLightResource(newValue);
+            }
+        }
+        if (iconDark != null) {
+            ResourceEntity newValue = saveIconResourceIfExist(iconDark);
+            if (changesHelper.isChanged(DomainEntity.Fields.iconDarkResourceId, dbDomainEntity.getIconDarkResourceId(), newValue.getId())) {
+                dbDomainEntity
+                        .setIconLightResourceId(newValue.getId())
+                        .setIconLightResource(newValue);
+            }
+        }
     }
 
     public void updateBusinessAccountInitiatorFeaturerId(DomainEntity dbDomainEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
@@ -198,8 +218,8 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     }
 
     protected DomainEntity processIcons(DomainEntity domainEntity, FileData lightIcon, FileData darkIcon) throws ServiceException {
-        var lightIconEntity = saveIconResourceIfExist(domainEntity, lightIcon);
-        var darkIconEntity = saveIconResourceIfExist(domainEntity, darkIcon);
+        var lightIconEntity = saveIconResourceIfExist(lightIcon);
+        var darkIconEntity = saveIconResourceIfExist(darkIcon);
         if (lightIconEntity != null) {
             domainEntity.setIconLightResourceId(lightIconEntity.getId());
             domainEntity.setIconLightResource(lightIconEntity);
@@ -214,7 +234,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         return domainEntity;
     }
 
-    private ResourceEntity saveIconResourceIfExist(DomainEntity domainEntity, FileData icon) throws ServiceException {
+    private ResourceEntity saveIconResourceIfExist(FileData icon) throws ServiceException {
         if (icon != null) {
             return resourceService.addResource(icon.originalFileName(), icon.content());
         } else {

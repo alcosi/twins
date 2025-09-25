@@ -32,8 +32,11 @@ public class TwinClassBaseDTOv1 {
     @Schema(description = "created at", example = DTOExamples.INSTANT)
     public LocalDateTime createdAt;
 
-    @Schema(description = "logo", example = "http://twins.org/t/class/project.png")
-    public String logo;
+    @Schema(description = "iconDark", example = "http://twins.org/t/class/project.png")
+    public String iconDark;
+
+    @Schema(description = "iconLight", example = "http://twins.org/t/class/project.png")
+    public String iconLight;
 
     @Schema(description = "if class is abstract no twin of it can be created. Some child class must be used")
     public Boolean abstractClass;

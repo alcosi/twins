@@ -4,11 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CacheUtils;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KeyUtils;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.service.i18n.I18nService;
 import org.cambium.common.util.KitUtils;
@@ -26,6 +28,7 @@ import org.twins.core.dao.twin.TwinStatusRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.resource.ResourceService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
@@ -40,6 +43,8 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     final TwinStatusRepository twinStatusRepository;
     final TwinClassService twinClassService;
     final I18nService i18nService;
+
+    private final ResourceService resourceService;
 
     @Autowired
     private CacheManager cacheManager;
@@ -142,7 +147,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinStatusEntity createStatus(TwinStatusEntity twinStatusEntity, I18nEntity nameI18n, I18nEntity descriptionsI18n) throws ServiceException {
+    public TwinStatusEntity createStatus(TwinStatusEntity twinStatusEntity, I18nEntity nameI18n, I18nEntity descriptionsI18n, FileData lightIcon, FileData darkIcon) throws ServiceException {
         TwinClassEntity twinClassEntity = twinClassService.findEntitySafe(twinStatusEntity.getTwinClassId());
         twinStatusEntity
                 .setKey(KeyUtils.lowerCaseNullSafe(twinStatusEntity.getKey(), ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT))
@@ -151,7 +156,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         validateEntityAndThrow(twinStatusEntity, EntitySmartService.EntityValidateMode.beforeSave);
         TwinStatusEntity savedStatus = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         evictClassesCache(twinClassEntity);
-        return savedStatus;
+        return processIcons(savedStatus, lightIcon, darkIcon);
     }
 
     private void evictClassesCache(TwinClassEntity twinClassEntity) throws ServiceException {
@@ -165,7 +170,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinStatusEntity updateStatus(TwinStatusEntity updateEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+    public TwinStatusEntity updateStatus(TwinStatusEntity updateEntity, I18nEntity nameI18n, I18nEntity descriptionI18n, FileData lightIcon, FileData darkIcon) throws ServiceException {
         TwinStatusEntity dbEntity = findEntitySafe(updateEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
         if (changesHelper.isChanged(TwinStatusEntity.Fields.key, dbEntity.getKey(), updateEntity.getKey()))
@@ -174,8 +179,6 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
             dbEntity.setBackgroundColor(updateEntity.getBackgroundColor());
         if (changesHelper.isChanged(TwinStatusEntity.Fields.fontColor, dbEntity.getFontColor(), updateEntity.getFontColor()))
             dbEntity.setFontColor(updateEntity.getFontColor());
-        if (changesHelper.isChanged(TwinStatusEntity.Fields.logo, dbEntity.getLogo(), updateEntity.getLogo()))
-            dbEntity.setLogo(updateEntity.getLogo());
         if (nameI18n != null) {
             if (dbEntity.getNameI18nId() != null)
                 nameI18n.setId(dbEntity.getNameI18nId());
@@ -190,6 +193,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
             if (changesHelper.isChanged(TwinStatusEntity.Fields.descriptionI18nId, dbEntity.getDescriptionI18nId(), descriptionI18n.getId()))
                 dbEntity.setDescriptionI18nId(descriptionI18n.getId());  // if new i18n was added
         }
+        updateTwinStatusIcons(dbEntity, lightIcon, darkIcon, changesHelper);
         dbEntity = updateSafe(dbEntity, changesHelper);
         if (changesHelper.hasChanges()) {
             evictClassesCache(dbEntity.getTwinClass());
@@ -197,5 +201,48 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         return dbEntity;
     }
 
+    public void updateTwinStatusIcons(TwinStatusEntity dbEntity, FileData iconLight, FileData iconDark, ChangesHelper changesHelper) throws ServiceException {
+        if (iconLight != null) {
+            ResourceEntity newValue = saveIconResourceIfExist(iconLight);
+            if (changesHelper.isChanged(TwinStatusEntity.Fields.iconLightResourceId, dbEntity.getIconLightResourceId(), newValue.getId())) {
+                dbEntity
+                        .setIconLightResourceId(newValue.getId())
+                        .setIconLightResource(newValue);
+            }
+        }
+        if (iconDark != null) {
+            ResourceEntity newValue = saveIconResourceIfExist(iconDark);
+            if (changesHelper.isChanged(TwinStatusEntity.Fields.iconDarkResourceId, dbEntity.getIconDarkResourceId(), newValue.getId())) {
+                dbEntity
+                        .setIconLightResourceId(newValue.getId())
+                        .setIconLightResource(newValue);
+            }
+        }
+    }
 
+    protected TwinStatusEntity processIcons(TwinStatusEntity twinStatusEntity, FileData lightIcon, FileData darkIcon) throws ServiceException {
+        var lightIconEntity = saveIconResourceIfExist(lightIcon);
+        var darkIconEntity = saveIconResourceIfExist(darkIcon);
+        if (lightIconEntity != null) {
+            twinStatusEntity.setIconLightResourceId(lightIconEntity.getId());
+            twinStatusEntity.setIconLightResource(lightIconEntity);
+        }
+        if (darkIconEntity != null) {
+            twinStatusEntity.setIconDarkResourceId(darkIconEntity.getId());
+            twinStatusEntity.setIconDarkResource(darkIconEntity);
+        }
+        if (darkIconEntity != null || lightIconEntity != null) {
+            twinStatusRepository.save(twinStatusEntity);
+        }
+        return twinStatusEntity;
+    }
+
+
+    private ResourceEntity saveIconResourceIfExist(FileData icon) throws ServiceException {
+        if (icon != null) {
+            return resourceService.addResource(icon.originalFileName(), icon.content());
+        } else {
+            return null;
+        }
+    }
 }

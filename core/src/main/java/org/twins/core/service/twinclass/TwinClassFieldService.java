@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -31,7 +30,9 @@ import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.twinclass.TwinClassFieldSave;
+import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperLink;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
@@ -352,7 +353,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                         FieldTyper.class
                 ));
             } else {
-                field.setFieldTyperFeaturer(featurerRepository.getById(1301))
+                field
+                        .setFieldTyperFeaturerId(FeaturerTwins.ID_1301)
+                        .setFieldTyperFeaturer(featurerRepository.getById(FeaturerTwins.ID_1301))
                         .setFieldTyperParams(SIMPLE_FIELD_PARAMS);
             }
 
