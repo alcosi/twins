@@ -79,8 +79,8 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
             validatorRule.setTwinValidatorSet(twinValidatorSetEntitiesKit.get(validatorRule.getTwinValidatorSetId()));
     }
 
-    public boolean isValid(TwinEntity twinEntity, EasyLoggable validationForEntity, Collection<TwinValidatorEntity> validators, TwinValidatorSetEntity validatorSet) throws ServiceException {
-        List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validators);
+    public boolean isValid(TwinEntity twinEntity, EasyLoggable validationForEntity, ContainsTwinValidatorSet validatorContainer) throws ServiceException {
+        List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validatorContainer.getTwinValidatorKit().getList());
         sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
         boolean validationResultOfSet = true;
         for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
@@ -97,6 +97,6 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
                 break;
             }
         }
-        return validatorSet.isInvert() != validationResultOfSet;
+        return validatorContainer.getTwinValidatorSet().isInvert() != validationResultOfSet;
     }
 }
