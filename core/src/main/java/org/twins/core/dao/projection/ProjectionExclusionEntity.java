@@ -13,7 +13,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "projection_exclusion")
-public class ProjectionExclusion implements EasyLoggable {
+public class ProjectionExclusionEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -26,6 +26,6 @@ public class ProjectionExclusion implements EasyLoggable {
 
     @Override
     public String easyLog(Level level) {
-        return "projection_exclusion[id:" + id + "]";
+        return "projectionExclusion[id:" + id + "]";
     }
 }

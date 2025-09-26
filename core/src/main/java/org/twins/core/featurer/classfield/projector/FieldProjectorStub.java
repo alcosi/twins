@@ -16,6 +16,6 @@ import java.util.Properties;
 public class FieldProjectorStub extends FieldProjector {
 
     @Override
-    protected void projection(Properties properties) throws ServiceException {
+    protected void project(Properties properties) throws ServiceException {
     }
 }

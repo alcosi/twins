@@ -12,7 +12,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name =  "TwinDeleteRqV1")
+@Schema(name =  "ProjectionDeleteRqV1")
 public class ProjectionDeleteRqDTOv1 extends Request {
     @Schema(description = "projection id's set")
     public Set<UUID> projectionIds;

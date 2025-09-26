@@ -21,14 +21,10 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.projection.ProjectionEntity;
-import org.twins.core.dto.rest.projection.ProjectionCreateRqDTOv1;
-import org.twins.core.dto.rest.projection.ProjectionCreateRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.projection.ProjectionCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.projection.ProjectionRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.projection.ProjectionService;
 
 import java.util.List;
 
@@ -36,29 +32,29 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.PROJECTION_MANAGE, Permissions.PROJECTION_CREATE})
-public class ProjectionCreateController extends ApiController {
-    private final ProjectionRestDTOMapper projectionRestDTOMapper;
-    private final ProjectionCreateRestDTOReverseMapper projectionCreateRestDTOReverseMapper;
-    private final ProjectionService projectionService;
+@ProtectedBy({Permissions.PROJECTION_EXCLUSION_MANAGE, Permissions.PROJECTION_EXCLUSION_CREATE})
+public class ProjectionExclusionCreateController extends ApiController {
+    private final ProjectionExclusionRestDTOMapper projectionExclusionRestDTOMapper;
+    private final ProjectionExclusionCreateRestDTOReverseMapper projectionExclusionCreateRestDTOReverseMapper;
+    private final ProjectionEsxclusionService projectionExclusionService;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "projectionCreateV1", summary = "Create new projections")
+    @Operation(operationId = "projectionExclusionCreateV1", summary = "Create new projection exclusions")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Projection data", content = {
+            @ApiResponse(responseCode = "200", description = "Projection exclusion data", content = {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema =
-                    @Schema(implementation = ProjectionCreateRsDTOv1.class)),}),
+                    @Schema(implementation = ProjectionExclusionCreateRsDTOv1.class)),}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/projection/v1", consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/private/projection_exclusion/v1", consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> projectionCreateV1(
-            @MapperContextBinding(roots = ProjectionRestDTOMapper.class, response = ProjectionCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody ProjectionCreateRqDTOv1 request) {
-        ProjectionCreateRsDTOv1 rs = new ProjectionCreateRsDTOv1();
+            @MapperContextBinding(roots = ProjectionRestDTOMapper.class, response = ProjectionExclusionCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @RequestBody ProjectionExclusionCreateRqDTOv1 request) {
+        ProjectionExclusionCreateRsDTOv1 rs = new ProjectionExclusionCreateRsDTOv1();
         try {
-            List<ProjectionEntity> projectionEntityList = projectionService.createProjectionList(projectionCreateRestDTOReverseMapper.convertCollection(request.getProjectionList()));
+            List<ProjectionEntity> projectionEntityList = projectionExclusionService.createProjectionExclusionList(projectionExclusionCreateRestDTOReverseMapper.convertCollection(request.getProjectionList()));
             rs
-                    .setProjectionList(projectionRestDTOMapper.convertCollection(projectionEntityList, mapperContext))
+                    .setProjectionList(projectionExclusionRestDTOMapper.convertCollection(projectionEntityList, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
