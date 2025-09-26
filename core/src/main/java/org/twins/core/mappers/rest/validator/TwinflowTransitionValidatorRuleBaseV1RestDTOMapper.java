@@ -49,19 +49,13 @@ public class TwinflowTransitionValidatorRuleBaseV1RestDTOMapper extends RestSimp
         if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinflowTransitionValidatorRule2TwinValidatorSetMode.HIDE))
             dst
                     .setTwinValidatorSet(twinValidatorSetBaseV1RestDTOMapper.convert(
-                            twinValidatorSetService.loadTwinValidatorSet(src), mapperContext.forkOnPoint(TwinValidatorSetMode.TwinflowTransitionValidatorRule2TwinValidatorSetMode.SHORT)))
+                           src.getTwinValidatorSet(), mapperContext.forkOnPoint(TwinValidatorSetMode.TwinflowTransitionValidatorRule2TwinValidatorSetMode.SHORT)))
                     .setTwinValidatorSetId(src.getTwinValidatorSetId());
         if (mapperContext.hasModeButNot(TwinValidatorMode.TwinflowTransitionValidatorRule2TwinValidatorMode.HIDE)) {
             twinValidatorService.loadValidators(src);
             dst.setTwinValidators(twinValidatorBaseV1RestDTOMapper.convertCollection(
                     src.getTwinValidatorKit().getList(), mapperContext.forkOnPoint(TwinValidatorMode.TwinflowTransitionValidatorRule2TwinValidatorMode.SHORT)));
         }
-    }
-
-    @Override
-    public void beforeCollectionConversion(Collection<TwinflowTransitionValidatorRuleEntity> srcCollection, MapperContext mapperContext) throws ServiceException {
-        if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinflowTransitionValidatorRule2TwinValidatorSetMode.HIDE))
-            twinValidatorSetService.loadTwinValidatorSet(srcCollection);
     }
 
     @Override
