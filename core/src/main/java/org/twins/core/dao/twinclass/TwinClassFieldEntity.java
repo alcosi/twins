@@ -56,6 +56,14 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Column(name = "field_typer_params", columnDefinition = "hstore")
     private HashMap<String, String> fieldTyperParams;
 
+    @Column(name = "twin_sorter_featurer_id")
+    private Integer twinSorterFeaturerId;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "twin_sorter_params", columnDefinition = "hstore")
+    private HashMap<String, String> twinSorterParams;
+
+
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
 
@@ -91,11 +99,6 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     private I18nEntity descriptionI18n;
-
-    @FeaturerList(type = FieldTyper.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "field_typer_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity fieldTyperFeaturer;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

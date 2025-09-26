@@ -123,154 +123,153 @@ public class TwinSearchDTOv1 {
     public DataTimeRangeDTOv1 createdAt;
 
 
-
     public TwinSearchDTOv1 addTwinClassIdListItem(UUID item) {
-        CollectionUtils.safeAdd(twinClassIdList, item);
+        this.twinClassIdList = CollectionUtils.safeAdd(this.twinClassIdList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addTwinClassIdExcludeListItem(UUID item) {
-        CollectionUtils.safeAdd(twinClassIdExcludeList, item);
+        this.twinClassIdExcludeList = CollectionUtils.safeAdd(this.twinClassIdExcludeList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addTwinNameLikeListItem(String item) {
-        CollectionUtils.safeAdd(twinNameLikeList, item);
+        this.twinNameLikeList = CollectionUtils.safeAdd(this.twinNameLikeList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addTwinNameNotLikeListItem(String item) {
-        CollectionUtils.safeAdd(twinNameNotLikeList, item);
+        this.twinNameNotLikeList = CollectionUtils.safeAdd(this.twinNameNotLikeList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addDescriptionLikeListItem(String item) {
-        CollectionUtils.safeAdd(descriptionLikeList, item);
+        this.descriptionLikeList = CollectionUtils.safeAdd(this.descriptionLikeList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addDescriptionNotLikeListItem(String item) {
-        CollectionUtils.safeAdd(descriptionNotLikeList, item);
+        this.descriptionNotLikeList = CollectionUtils.safeAdd(this.descriptionNotLikeList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addHeadTwinIdListItem(UUID item) {
-        CollectionUtils.safeAdd(headTwinIdList, item);
+        this.headTwinIdList = CollectionUtils.safeAdd(this.headTwinIdList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addTwinIdListItem(UUID item) {
-        CollectionUtils.safeAdd(twinIdList, item);
+        this.twinIdList = CollectionUtils.safeAdd(this.twinIdList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addTwinIdExcludeListItem(UUID item) {
-        CollectionUtils.safeAdd(twinIdExcludeList, item);
+        this.twinIdExcludeList = CollectionUtils.safeAdd(this.twinIdExcludeList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addStatusIdListItem(UUID item) {
-        CollectionUtils.safeAdd(statusIdList, item);
+        this.statusIdList = CollectionUtils.safeAdd(this.statusIdList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addAssignerUserIdListItem(UUID item) {
-        CollectionUtils.safeAdd(assignerUserIdList, item);
+        this.assignerUserIdList = CollectionUtils.safeAdd(this.assignerUserIdList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addAssignerUserIdExcludeListItem(UUID item) {
-        CollectionUtils.safeAdd(assignerUserIdExcludeList, item);
+        this.assignerUserIdExcludeList = CollectionUtils.safeAdd(this.assignerUserIdExcludeList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addCreatedByUserIdListItem(UUID item) {
-        CollectionUtils.safeAdd(createdByUserIdList, item);
+        this.createdByUserIdList = CollectionUtils.safeAdd(this.createdByUserIdList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addCreatedByUserIdExcludeListItem(UUID item) {
-        CollectionUtils.safeAdd(createdByUserIdExcludeList, item);
+        this.createdByUserIdExcludeList = CollectionUtils.safeAdd(this.createdByUserIdExcludeList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addExternalIdListItem(String item) {
-        CollectionUtils.safeAdd(externalIdList, item);
+        this.externalIdList = CollectionUtils.safeAdd(this.externalIdList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addExternalIdExcludeListItem(String item) {
-        CollectionUtils.safeAdd(externalIdExcludeList, item);
+        this.externalIdExcludeList = CollectionUtils.safeAdd(this.externalIdExcludeList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addLinksAnyOfListItem(TwinSearchByLinkDTOv1 item) {
-        CollectionUtils.safeAdd(linksAnyOfList, item);
+        this.linksAnyOfList = CollectionUtils.safeAdd(this.linksAnyOfList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addLinksNoAnyOfListItem(TwinSearchByLinkDTOv1 item) {
-        CollectionUtils.safeAdd(linksNoAnyOfList, item);
+        this.linksNoAnyOfList = CollectionUtils.safeAdd(this.linksNoAnyOfList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addLinksAllOfListItem(TwinSearchByLinkDTOv1 item) {
-        CollectionUtils.safeAdd(linksAllOfList, item);
+        this.linksAllOfList = CollectionUtils.safeAdd(this.linksAllOfList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addLinksNoAllOfListItem(TwinSearchByLinkDTOv1 item) {
-        CollectionUtils.safeAdd(linksNoAllOfList, item);
+        this.linksNoAllOfList = CollectionUtils.safeAdd(this.linksNoAllOfList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addHierarchyTreeContainsIdListItem(UUID item) {
-        CollectionUtils.safeAdd(hierarchyTreeContainsIdList, item);
+        this.hierarchyTreeContainsIdList = CollectionUtils.safeAdd(this.hierarchyTreeContainsIdList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addStatusIdExcludeListItem(UUID item) {
-        CollectionUtils.safeAdd(statusIdExcludeList, item);
+        this.statusIdExcludeList = CollectionUtils.safeAdd(this.statusIdExcludeList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addTagDataListOptionIdListItem(UUID item) {
-        CollectionUtils.safeAdd(tagDataListOptionIdList, item);
+        this.tagDataListOptionIdList = CollectionUtils.safeAdd(this.tagDataListOptionIdList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addTagDataListOptionIdExcludeListItem(UUID item) {
-        CollectionUtils.safeAdd(tagDataListOptionIdExcludeList, item);
+        this.tagDataListOptionIdExcludeList = CollectionUtils.safeAdd(this.tagDataListOptionIdExcludeList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addMarkerDataListOptionIdListItem(UUID item) {
-        CollectionUtils.safeAdd(markerDataListOptionIdList, item);
+        this.markerDataListOptionIdList = CollectionUtils.safeAdd(this.markerDataListOptionIdList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addMarkerDataListOptionIdExcludeListItem(UUID item) {
-        CollectionUtils.safeAdd(markerDataListOptionIdExcludeList, item);
+        this.markerDataListOptionIdExcludeList = CollectionUtils.safeAdd(this.markerDataListOptionIdExcludeList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addTwinClassExtendsHierarchyContainsIdListItem(UUID item) {
-        CollectionUtils.safeAdd(twinClassExtendsHierarchyContainsIdList, item);
+        this.twinClassExtendsHierarchyContainsIdList = CollectionUtils.safeAdd(this.twinClassExtendsHierarchyContainsIdList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addHeadTwinClassIdListItem(UUID item) {
-        CollectionUtils.safeAdd(headTwinClassIdList, item);
+        this.headTwinClassIdList = CollectionUtils.safeAdd(this.headTwinClassIdList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addTouchListItem(Touch item) {
-        CollectionUtils.safeAdd(touchList, item);
+        this.touchList = CollectionUtils.safeAdd(this.touchList, item);
         return this;
     }
 
     public TwinSearchDTOv1 addTouchExcludeListItem(Touch item) {
-        CollectionUtils.safeAdd(touchExcludeList, item);
+        this.touchExcludeList = CollectionUtils.safeAdd(this.touchExcludeList, item);
         return this;
     }
 
