@@ -142,7 +142,7 @@ public class TwinUpdateClassService {
             Map<TwinFieldStorage, Set<UUID>> storageToFieldIds = new HashMap<>();
             //group field-classes by storage
             for (UUID fieldId : deleteFields) {
-                FieldTyper fieldTyper = featurerService.getFeaturer(oldClassFields.get(fieldId).getFieldTyperFeaturer(), FieldTyper.class);
+                FieldTyper fieldTyper = featurerService.getFeaturer(oldClassFields.get(fieldId).getFieldTyperFeaturerId(), FieldTyper.class);
                 TwinFieldStorage storage = fieldTyper.getStorage(oldClassFields.get(fieldId));
                 storageToFieldIds.computeIfAbsent(storage, k -> new HashSet<>()).add(fieldId);
             }

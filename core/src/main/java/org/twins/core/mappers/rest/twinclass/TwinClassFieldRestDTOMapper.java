@@ -3,17 +3,24 @@ package org.twins.core.mappers.rest.twinclass;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
-import org.twins.core.service.i18n.I18nService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
+import org.twins.core.mappers.rest.mappercontext.modes.PermissionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
+import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 
@@ -25,9 +32,20 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
 
     private final TwinClassFieldDescriptorRestDTOMapper twinClassFieldDescriptorRestDTOMapper;
 
+    @Lazy
+    @MapperModePointerBinding(modes = TwinClassMode.TwinClassField2TwinClassMode.class)
+    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
+
+    @MapperModePointerBinding(modes = PermissionMode.TwinClassField2PermissionMode.class)
+    private final PermissionRestDTOMapper permissionRestDTOMapper;
+
+    @MapperModePointerBinding(modes = FeaturerMode.TwinClassField2FeaturerMode.class)
+    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+
     private final I18nService i18nService;
     private final FeaturerService featurerService;
     private final PermissionService permissionService;
+
 
     @Override
     public void map(TwinClassFieldEntity src, TwinClassFieldDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -37,7 +55,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
             case MANAGED:
                 if (!permissionService.currentUserHasPermission(Permissions.TWIN_CLASS_MANAGE))
                     throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + TwinClassFieldMode.MANAGED + "] is not allowed for current user");
-                fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturer(), FieldTyper.class);
+                fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturerId(), FieldTyper.class);
                 fieldDescriptor = fieldTyper.getFieldDescriptor(src);
                 dst
                         .setId(src.getId())
@@ -49,14 +67,26 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setNameI18nId(src.getNameI18nId())
                         .setDescriptionI18nId(src.getDescriptionI18nId())
                         .setFieldTyperFeaturerId(src.getFieldTyperFeaturerId())
-                        .setFieldTyperParams(src.getFieldTyperParams())
+                        .setTwinSorterFeaturerId(src.getTwinSorterFeaturerId())
+                        .setTwinSorterParams(src.getFieldTyperParams())
                         .setViewPermissionId(src.getViewPermissionId())
                         .setEditPermissionId(src.getEditPermissionId())
                         .setDescriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext))
                         .setExternalId(src.getExternalId());
+                if (mapperContext.hasModeButNot(FeaturerMode.TwinClassField2FeaturerMode.HIDE)) {
+                    dst.setFieldTyperFeaturerId(src.getFieldTyperFeaturerId());
+                    featurerRestDTOMapper.postpone(featurerService.getFeaturerEntity(src.getFieldTyperFeaturerId()), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
+                }
+                if (mapperContext.hasModeButNot(PermissionMode.TwinClassField2PermissionMode.HIDE)) {
+                    dst
+                            .setViewPermissionId(src.getViewPermissionId())
+                            .setEditPermissionId(src.getEditPermissionId());
+                    permissionRestDTOMapper.postpone(src.getViewPermission(), mapperContext.forkOnPoint(PermissionMode.TwinClassField2PermissionMode.SHORT));
+                    permissionRestDTOMapper.postpone(src.getEditPermission(), mapperContext.forkOnPoint(PermissionMode.TwinClassField2PermissionMode.SHORT));
+                }
                 break;
             case DETAILED:
-                fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturer(), FieldTyper.class);
+                fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturerId(), FieldTyper.class);
                 fieldDescriptor = fieldTyper.getFieldDescriptor(src);
                 dst
                         .setId(src.getId())
@@ -72,6 +102,10 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setId(src.getId())
                         .setKey(src.getKey());
                 break;
+        }
+        if (mapperContext.hasModeButNot(TwinClassMode.TwinClassField2TwinClassMode.HIDE)) {
+            dst.setTwinClassId(src.getTwinClassId());
+            twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinClassField2TwinClassMode.SHORT));
         }
     }
 

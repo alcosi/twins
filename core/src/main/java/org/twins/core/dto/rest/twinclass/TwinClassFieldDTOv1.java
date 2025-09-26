@@ -45,6 +45,12 @@ public class TwinClassFieldDTOv1 {
     @Schema(description = "field typer params", example = "")
     public Map<String, String> fieldTyperParams;
 
+    @Schema(description = "twin sorter featurer id", example = "")
+    public Integer twinSorterFeaturerId;
+
+    @Schema(description = "twin sorter params", example = "")
+    public Map<String, String> twinSorterParams;
+
     @Schema(description = "view permission id", example = "")
     public UUID viewPermissionId;
 

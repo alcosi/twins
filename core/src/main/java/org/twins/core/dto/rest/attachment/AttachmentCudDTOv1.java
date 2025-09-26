@@ -5,11 +5,13 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name =  "AttachmentCudV1")
+@Schema(name = "AttachmentCudV1")
 public class AttachmentCudDTOv1 {
     @Schema(description = "Attachments for adding")
     public List<AttachmentCreateDTOv1> create;
@@ -21,17 +23,17 @@ public class AttachmentCudDTOv1 {
     public Set<UUID> delete;
 
     public AttachmentCudDTOv1 addCreateItem(AttachmentCreateDTOv1 item) {
-        CollectionUtils.safeAdd(create, item);
+        this.create = CollectionUtils.safeAdd(this.create, item);
         return this;
     }
 
     public AttachmentCudDTOv1 addUpdateItem(AttachmentUpdateDTOv1 item) {
-        CollectionUtils.safeAdd(update, item);
+        this.update = CollectionUtils.safeAdd(this.update, item);
         return this;
     }
 
     public AttachmentCudDTOv1 addDeleteItem(UUID item) {
-        CollectionUtils.safeAdd(delete, item);
+        this.delete = CollectionUtils.safeAdd(this.delete, item);
         return this;
     }
 

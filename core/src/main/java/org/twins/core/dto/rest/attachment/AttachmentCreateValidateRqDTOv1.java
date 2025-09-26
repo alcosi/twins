@@ -19,7 +19,7 @@ public class AttachmentCreateValidateRqDTOv1 {
     public List<AttachmentCreateDTOv1> create;
 
     public AttachmentCreateValidateRqDTOv1 addCreateItem(AttachmentCreateDTOv1 item) {
-        CollectionUtils.safeAdd(create, item);
+        this.create = CollectionUtils.safeAdd(this.create, item);
         return this;
     }
 }
