@@ -726,7 +726,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 log.info(transitionValidatorRuleEntity.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
                 continue;
             }
-            validationResultOfRule = twinValidatorSetService.isValid(twinEntity, transitionValidatorRuleEntity, transitionValidatorRuleEntity);
+            validationResultOfRule = twinValidatorSetService.isValid(twinEntity, transitionValidatorRuleEntity);
             if (validationResultOfRule)
                 break;
         }

@@ -63,6 +63,6 @@ public class TwinPointerValidatorRuleService extends EntitySecureFindServiceImpl
                 .orElseThrow(() -> new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION));
         twinValidatorService.loadValidators(pointerValidatorRuleEntity);
         TwinEntity pointedTwin = twinPointerService.getPointer(currentTwin, pointerValidatorRuleEntity.getTwinPointerId());
-        return twinValidatorSetService.isValid(pointedTwin, pointerValidatorRuleEntity, pointerValidatorRuleEntity);
+        return twinValidatorSetService.isValid(pointedTwin, pointerValidatorRuleEntity);
     }
 }

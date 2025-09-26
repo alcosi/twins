@@ -16,7 +16,7 @@ import java.util.UUID;
 @Entity
 @Accessors(chain = true)
 @Table(name = "twin_pointer_validator_rule")
-public class TwinPointerValidatorRuleEntity implements ContainsTwinValidatorSet, EasyLoggable {
+public class TwinPointerValidatorRuleEntity implements ContainsTwinValidatorSet {
     @Id
     @Column(name = "id")
     private UUID id;
