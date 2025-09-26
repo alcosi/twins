@@ -23,14 +23,14 @@ public class ProjectionRestDTOMapper extends RestSimpleDTOMapper<ProjectionEntit
         switch (mapperContext.getModeOrUse(ProjectionMode.DETAILED)) {
             case DETAILED -> dst
                     .setId(src.getId())
-                    .setSrcPointedTwinId(srcTwin.getId())
+                    .setSrcPointedTwinId(srcTwin == null ? null : srcTwin.getId())
                     .setSrcTwinClassFieldId(src.getSrcTwinClassFieldId())
                     .setDstTwinClassId(src.getDstTwinClassId())
                     .setDstTwinClassFieldId(src.getDstTwinClassFieldId());
 
             case SHORT -> dst
                     .setId(src.getId())
-                    .setSrcPointedTwinId(srcTwin == null? null : srcTwin.getId());
+                    .setSrcPointedTwinId(srcTwin == null ? null : srcTwin.getId());
         }
     }
 }
