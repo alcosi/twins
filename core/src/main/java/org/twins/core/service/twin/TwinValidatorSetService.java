@@ -79,13 +79,13 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
             validatorRule.setTwinValidatorSet(twinValidatorSetEntitiesKit.get(validatorRule.getTwinValidatorSetId()));
     }
 
-    public boolean isValid(TwinEntity twinEntity, EasyLoggable validationForEntity, Collection<TwinValidatorEntity> validatorsSet) throws ServiceException {
-        List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validatorsSet);
+    public boolean isValid(TwinEntity twinEntity, ContainsTwinValidatorSet validatorContainer) throws ServiceException {
+        List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validatorContainer.getTwinValidatorKit().getList());
         sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
         boolean validationResultOfSet = true;
         for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
             if (!twinValidatorEntity.isActive()) {
-                log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.logNormal(), validationForEntity.logNormal());
+                log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.logNormal(), validatorContainer.logNormal());
                 continue;
             }
 
@@ -93,10 +93,10 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
             TwinValidator.ValidationResult validationResult = transitionValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
             validationResultOfSet = validationResult.isValid();
             if (!validationResultOfSet) {
-                log.info("{} from {} is not valid. {}", twinValidatorEntity.logNormal(), validationForEntity.logNormal(), validationResult.getMessage());
+                log.info("{} from {} is not valid. {}", twinValidatorEntity.logNormal(), validatorContainer.logNormal(), validationResult.getMessage());
                 break;
             }
         }
-        return validationResultOfSet;
+        return validatorContainer.getTwinValidatorSet().isInvert() != validationResultOfSet;
     }
 }
