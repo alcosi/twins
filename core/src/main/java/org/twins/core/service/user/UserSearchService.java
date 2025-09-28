@@ -93,9 +93,7 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
     }
 
     public PaginationResult<UserEntity> findUsers(UserSearch search, SimplePagination pagination) throws ServiceException {
-        UUID domainId = authService.getApiUser().getDomainId();
-        UUID businessAccountId = authService.getApiUser().getBusinessAccountId();
-        Specification<UserEntity> userSpec = createUserSpecification(search, domainId, businessAccountId);
+        Specification<UserEntity> userSpec = createUserSpecification(search);
 
         if (search.getChildTwinSearches() != null && CollectionUtils.isNotEmpty(search.getChildTwinSearches().getSearches())) {
             Specification<UserEntity> twinSpec = search.getChildTwinSearches().getSearches().stream()
@@ -149,7 +147,9 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
         };
     }
 
-    public Specification<UserEntity> createUserSpecification(UserSearch search, UUID domainId, UUID businessAccountId) {
+    public Specification<UserEntity> createUserSpecification(UserSearch search) throws ServiceException {
+        UUID domainId = authService.getApiUser().getDomainId();
+        UUID businessAccountId = authService.getApiUser().getBusinessAccountId();
         return Specification.allOf(
                 checkUserDomain(domainId),
                 checkBusinessAccountId(businessAccountId),
@@ -161,8 +161,8 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
                 checkFieldLikeIn(search.getUserEmailLikeExcludeList(), true, false, UserEntity.Fields.email),
                 checkFieldNameOrEmailLikeIn(search.getUserNameOrEmailLikeList(), false, true),
                 checkFieldNameOrEmailLikeIn(search.getUserNameOrEmailExcludeList(), true, false),
-                checkUserGroupType(search.getUserGroupIdList(), false, true),
-                checkUserGroupType(search.getUserGroupIdExcludeList(), true, false),
+                checkUserGroupType(search.getUserGroupIdList(), false, true, businessAccountId, domainId),
+                checkUserGroupType(search.getUserGroupIdExcludeList(), true, false, businessAccountId, domainId),
                 checkStatusLikeIn(search.getStatusIdList(), false),
                 checkStatusLikeIn(search.getStatusIdExcludeList(), true),
                 checkSpaceRoleLikeIn(search.getSpaceList(), domainId, businessAccountId, false),
@@ -196,15 +196,15 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
         return specification;
     }
 
-    public Specification<UserEntity> checkUserGroupType(final Collection<UUID> userGroupIds, final boolean exclude, final boolean or) {
+    public Specification<UserEntity> checkUserGroupType(final Collection<UUID> userGroupIds, final boolean exclude, final boolean or, UUID businessAccountId, UUID domainId) throws ServiceException {
         KitGrouped<UserGroupEntity, UUID, String> userGroupEntities = new KitGrouped<>(userGroupRepository.findByIdIn(userGroupIds), UserGroupEntity::getId, UserGroupEntity::getUserGroupTypeId);
         for (Map.Entry<String, List<UserGroupEntity>> entry : userGroupEntities.getGroupedMap().entrySet()) {
             if (entry.getKey().equals(UserGroupType.domainScopeDomainManage.name())) {
-                return UserSpecification.checkUserGroupIn(userGroupIds, exclude, or, UserGroupMapType1Entity.class);
+                return UserSpecification.checkUserGroupMapType1IdIn(userGroupIds, exclude, or);
             } else if (entry.getKey().equals(UserGroupType.domainScopeBusinessAccountManage.name())) {
-                return UserSpecification.checkUserGroupIn(userGroupIds, exclude, or, UserGroupMapType2Entity.class);
+                return UserSpecification.checkUserGroupMapType2IdIn(userGroupIds, businessAccountId , exclude, or);
             } else {
-                return UserSpecification.checkUserGroupIn(userGroupIds, exclude, or, UserGroupMapType3Entity.class);
+                return UserSpecification.checkUserGroupMapType3IdIn(userGroupIds, domainId, exclude, or);
             }
         }
         return null;
