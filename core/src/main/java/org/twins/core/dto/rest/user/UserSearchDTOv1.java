@@ -35,6 +35,18 @@ public class UserSearchDTOv1 {
     @Schema(description = "email exclude list")
     public Set<String> userEmailLikeExcludeList;
 
+    @Schema(description = "name or email list")
+    public Set<String> userNameOrEmailLikeList;
+
+    @Schema(description = "name or email exclude list")
+    public Set<String> userNameOrEmailLikeExcludeList;
+
+    @Schema(description = "user group id list")
+    public Set<UUID> userGroupIdList;
+
+    @Schema(description = "user group id exclude list")
+    public Set<UUID> userGroupIdExcludeList;
+
     @Schema(description = "status id list")
     public Set<UserStatus> statusIdList;
 
@@ -77,6 +89,26 @@ public class UserSearchDTOv1 {
 
     public UserSearchDTOv1 addUserEmailLikeExcludeListItem(String item) {
         this.userEmailLikeExcludeList = CollectionUtils.safeAdd(this.userEmailLikeExcludeList, item);
+        return this;
+    }
+
+    public UserSearchDTOv1 addUserNameOrEmailLikeListItem(String item) {
+        this.userNameOrEmailLikeList = CollectionUtils.safeAdd(this.userNameOrEmailLikeList, item);
+        return this;
+    }
+
+    public UserSearchDTOv1 addUserNameOrEmailLikeExcludeListItem(String item) {
+        this.userNameOrEmailLikeExcludeList = CollectionUtils.safeAdd(this.userNameOrEmailLikeExcludeList, item);
+        return this;
+    }
+
+    public UserSearchDTOv1 addUserGroupIdListItem(UUID item) {
+        this.userGroupIdList = CollectionUtils.safeAdd(this.userGroupIdList, item);
+        return this;
+    }
+
+    public UserSearchDTOv1 addUserGroupIdExcludeListItem(UUID item) {
+        this.userGroupIdExcludeList = CollectionUtils.safeAdd(this.userGroupIdExcludeList, item);
         return this;
     }
 
