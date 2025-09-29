@@ -15,6 +15,8 @@ public class UserSearchConfiguredDTOReverseMapper extends RestSimpleDTOMapper<Us
 
     @Override
     public void map(UserSearchConfiguredDTOv1 src, UserSearch dst, MapperContext mapperContext) throws Exception {
-        userSearchDTOReverseMapper.map(src.getNarrow(), dst, mapperContext);
+        if (src.getNarrow() != null) {
+            userSearchDTOReverseMapper.map(src.getNarrow(), dst, mapperContext);
+        }
     }
 }
