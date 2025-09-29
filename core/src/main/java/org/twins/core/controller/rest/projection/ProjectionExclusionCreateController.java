@@ -20,11 +20,16 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
-import org.twins.core.dao.projection.ProjectionEntity;
+import org.twins.core.dao.projection.ProjectionExclusionEntity;
+import org.twins.core.dto.rest.projection.ProjectionExclusionCreateRqDTOv1;
+import org.twins.core.dto.rest.projection.ProjectionExclusionCreateRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.projection.ProjectionExclusionCreateRestDTOReverseMapper;
+import org.twins.core.mappers.rest.projection.ProjectionExclusionRestDTOMapper;
 import org.twins.core.mappers.rest.projection.ProjectionRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.projection.ProjectionExclusionService;
 
 import java.util.List;
 
@@ -36,7 +41,7 @@ import java.util.List;
 public class ProjectionExclusionCreateController extends ApiController {
     private final ProjectionExclusionRestDTOMapper projectionExclusionRestDTOMapper;
     private final ProjectionExclusionCreateRestDTOReverseMapper projectionExclusionCreateRestDTOReverseMapper;
-    private final ProjectionEsxclusionService projectionExclusionService;
+    private final ProjectionExclusionService projectionExclusionService;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
@@ -47,12 +52,12 @@ public class ProjectionExclusionCreateController extends ApiController {
                     @Schema(implementation = ProjectionExclusionCreateRsDTOv1.class)),}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/projection_exclusion/v1", consumes = {MediaType.APPLICATION_JSON_VALUE}, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> projectionCreateV1(
+    public ResponseEntity<?> projectionExclusionCreateV1(
             @MapperContextBinding(roots = ProjectionRestDTOMapper.class, response = ProjectionExclusionCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody ProjectionExclusionCreateRqDTOv1 request) {
         ProjectionExclusionCreateRsDTOv1 rs = new ProjectionExclusionCreateRsDTOv1();
         try {
-            List<ProjectionEntity> projectionEntityList = projectionExclusionService.createProjectionExclusionList(projectionExclusionCreateRestDTOReverseMapper.convertCollection(request.getProjectionList()));
+            List<ProjectionExclusionEntity> projectionEntityList = projectionExclusionService.createProjectionExclusionList(projectionExclusionCreateRestDTOReverseMapper.convertCollection(request.getProjectionList()));
             rs
                     .setProjectionList(projectionExclusionRestDTOMapper.convertCollection(projectionEntityList, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

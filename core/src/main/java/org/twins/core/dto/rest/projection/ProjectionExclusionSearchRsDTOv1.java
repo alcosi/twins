@@ -12,11 +12,11 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "ProjectionSearchRsV1")
-public class ProjectionSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+@Schema(name = "ProjectionExclusionSearchRsV1")
+public class ProjectionExclusionSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 
-    @Schema(description = "projection list")
-    public List<ProjectionDTOv1> projections;
+    @Schema(description = "projection exclusion list")
+    public List<ProjectionExclusionDTOv1> projectionExclusions;
 }

@@ -9,8 +9,8 @@ import org.twins.core.dto.rest.Request;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "ProjectionSearchRqV1")
-public class ProjectionSearchRqDTOv1 extends Request {
+@Schema(name = "ProjectionExclusionSearchRqV1")
+public class ProjectionExclusionSearchRqDTOv1 extends Request {
     @Schema
-    public ProjectionSearchDTOv1 search;
+    public ProjectionExclusionSearchDTOv1 search;
 }
