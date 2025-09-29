@@ -188,7 +188,7 @@ public class UserSpecification extends CommonSpecification<UserEntity> {
 
     public static Specification<UserEntity> checkUserGroupMapType2IdIn(final Collection<UUID> userGroupIds, UUID businessAccountId, final boolean exclude, final boolean or) {
         return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(userGroupIds))
+            if (CollectionUtils.isEmpty(userGroupIds) || businessAccountId == null)
                 return cb.conjunction();
 
             Root<UserGroupMapType2Entity> userGroupMapRoot = query.from(UserGroupMapType2Entity.class);
@@ -204,9 +204,7 @@ public class UserSpecification extends CommonSpecification<UserEntity> {
 
             Predicate groupIdCondition = getPredicate(cb, groupPredicates, or);
 
-            Predicate businessAccountCondition = businessAccountId != null
-                    ? cb.equal(userGroupMapRoot.get(UserGroupMapType2Entity.Fields.businessAccountId), businessAccountId)
-                    : cb.conjunction();
+            Predicate businessAccountCondition = cb.equal(userGroupMapRoot.get(UserGroupMapType2Entity.Fields.businessAccountId), businessAccountId);
 
             Predicate combinedCondition = cb.and(joinCondition, groupIdCondition, businessAccountCondition);
 
