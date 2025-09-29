@@ -6,9 +6,9 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv2;
-import org.twins.core.mappers.rest.factory.FactoryRestDTOMapper;
-import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.factory.FactoryRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
@@ -29,7 +29,7 @@ public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
     private final PermissionRestDTOMapper permissionRestDTOMapper;
 
     @MapperModePointerBinding(modes = TwinflowMode.Transition2TwinflowMode.class)
-    private final TwinflowBaseV2RestDTOMapper twinflowBaseV2RestDTOMapper;
+    private final TwinflowBaseV1RestDTOMapper twinflowBaseV1RestDTOMapper;
 
     @MapperModePointerBinding(modes = {UserMode.Transition2UserMode.class})
     private final UserRestDTOMapper userRestDTOMapper;
@@ -63,7 +63,7 @@ public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
         if (mapperContext.hasModeButNot(TwinflowMode.Transition2TwinflowMode.HIDE) && src.getTwinflowId() != null)
             dst
                     .setTwinflowId(src.getTwinflowId())
-                    .setTwinflow(twinflowBaseV2RestDTOMapper.convertOrPostpone(src.getTwinflow(), mapperContext.forkOnPoint(TwinflowMode.Transition2TwinflowMode.SHORT)));
+                    .setTwinflow(twinflowBaseV1RestDTOMapper.convertOrPostpone(src.getTwinflow(), mapperContext.forkOnPoint(TwinflowMode.Transition2TwinflowMode.SHORT)));
         if (mapperContext.hasModeButNot(UserMode.Transition2UserMode.HIDE) && src.getCreatedByUserId() != null)
             dst
                     .setCreatedByUserId(src.getCreatedByUserId())
