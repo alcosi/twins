@@ -2,11 +2,14 @@ package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.Specification;
+import org.twins.core.dao.error.ErrorEntity;
+import org.twins.core.dao.error.ErrorRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
@@ -18,7 +21,6 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.storage.FieldStorageService;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
@@ -41,6 +43,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     @Lazy
     @Autowired
     I18nService i18nService;
+
+    @Lazy
+    @Autowired
+    private ErrorRepository errorRepository;
 
     @Lazy
     @Autowired
@@ -107,10 +113,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     protected abstract D getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException;
 
     public void serializeValue(TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        checkTwinFieldType(twin, value);
-        checkRequired(twin, value);
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams(), new HashMap<>());
-        serializeValue(properties, twin, value, twinChangesCollector);
+        if (validate(twin, value).isValid()) {
+            serializeValue(properties, twin, value, twinChangesCollector);
+        }
     }
 
     protected abstract void serializeValue(Properties properties, TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException;
@@ -155,28 +161,46 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         return twinFieldStorage;
     }
 
-    protected void checkRequired(TwinEntity twinEntity, T fieldValue) throws ServiceException {
+    protected ValidationResult checkRequired(TwinEntity twinEntity, T fieldValue) throws ServiceException {
+        ValidationResult result = new ValidationResult(true);
         if (!twinEntity.isSketch()
                 && fieldValue.getTwinClassField().getRequired()
                 && !fieldValue.isFilled()) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, fieldValue.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         }
+        return result;
     }
 
     private void checkTwinFieldType(TwinEntity twin, T value) throws ServiceException {
         if (!valuetype.isInstance(value)) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT);
         }
+        //todo - correct after merging TWINS-418 branch (pluggable fields logic)
         if (!twinClassService.isInstanceOf(twin.getTwinClass(), value.getTwinClassField().getTwinClassId()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField().logShort() + " is not suitable for " + twin.logNormal());
     }
 
-    public TwinValidator.ValidationResult validate(TwinEntity twin, T value) throws ServiceException {
-        if (value.isValidated())
-            return value.getValidationResult(); // already validated, no need to validate again
-        checkTwinFieldType(twin, value);
+    public ValidationResult validate(TwinEntity twin, T value) throws ServiceException {
+        if (value.isValidated()) { // already validated, no need to validate again
+            return value.getValidationResult();
+        }
+        Hashtable<String, String> context = new Hashtable<>();
+        if (!twin.isSketch() // check required for non-sketch twins
+                && value.getTwinClassField().getRequired()
+                && !value.isFilled()) {
+            context.put("field", value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
+            return new ValidationResult(false, getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED.getCode(), context));
+        }
+        if (!valuetype.isInstance(value)) {
+            return new ValidationResult(false, getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), new Hashtable<>()));
+        }
+        //todo - correct after merging TWINS-418 branch (pluggable fields logic)
+        if (!twinClassService.isInstanceOf(twin.getTwinClass(), value.getTwinClassField().getTwinClassId())) {
+            context.put("field", value.getTwinClassField().logShort() + " is not suitable for " + twin.logNormal());
+            return new ValidationResult(false, getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT.getCode(), context));
+        }
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams(), new HashMap<>());
-        TwinValidator.ValidationResult validationResult = validate(properties, twin, value);
+        ValidationResult validationResult = validate(properties, twin, value);
         value.setValidationResult(validationResult);
         return validationResult;
     }
@@ -184,7 +208,15 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     /*
      * Override this method if you want to validate a field value.
      */
-    protected TwinValidator.ValidationResult validate(Properties properties, TwinEntity twin, T fieldValue) throws ServiceException {
-        return new TwinValidator.ValidationResult(true);
+    protected ValidationResult validate(Properties properties, TwinEntity twin, T fieldValue) throws ServiceException {
+        return new ValidationResult(true);
+    }
+
+    private String getErrorMessage(int statusCode, Hashtable<String, String> context) {
+        ErrorEntity errorEntity = errorRepository.findByErrorCodeLocal(statusCode);
+        if (errorEntity != null)
+            return i18nService.translateToLocale(errorEntity.getClientMsgI18nId(), context);
+        else
+            return "error " + statusCode;
     }
 }

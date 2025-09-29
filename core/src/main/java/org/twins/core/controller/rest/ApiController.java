@@ -13,7 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.dao.error.ErrorEntity;
 import org.twins.core.dao.error.ErrorRepository;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.TwinChangeResponse;
+import org.twins.core.dto.rest.TwinSaveRsV1;
 import org.twins.core.service.i18n.I18nService;
 
 import java.util.Hashtable;
@@ -77,8 +77,8 @@ public abstract class ApiController {
 
     public ResponseEntity<Response> createErrorRs(TwinFieldValidationException ex, Response rs) {
         ResponseEntity<Response> response = createErrorRs(ex, ex.getErrorCode(), ex.getMessage(), ex.getHttpStatus(), rs, ex.getContext());
-        if (rs instanceof TwinChangeResponse) {
-            ((TwinChangeResponse) response.getBody()).setInvalidTwinFieldErrors(ex.getInvalidFieldIds());
+        if (rs instanceof TwinSaveRsV1) {
+            ((TwinSaveRsV1) response.getBody()).setInvalidTwinFieldErrors(ex.getInvalidFieldIds());
         }
         return response;
     }

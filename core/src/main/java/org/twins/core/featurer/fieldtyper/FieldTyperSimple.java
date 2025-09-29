@@ -1,5 +1,6 @@
 package org.twins.core.featurer.fieldtyper;
 
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
@@ -10,7 +11,6 @@ import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.featurer.twin.validator.TwinValidator;
 
 import java.util.Properties;
 
@@ -51,16 +51,9 @@ public abstract class FieldTyperSimple<D extends FieldDescriptor, T extends Fiel
     protected abstract T deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) throws ServiceException;
 
     @Override
-    public TwinValidator.ValidationResult validate(Properties properties, TwinEntity twin, T fieldValue) throws ServiceException {
-        TwinFieldSimpleEntity twinFieldEntity = convertToTwinFieldEntity(twin, fieldValue.getTwinClassField());
-        if (twinFieldEntity == null) {
-            twinFieldEntity = twinService.createTwinFieldEntity(twin, fieldValue.getTwinClassField(), null);
-        }
-        return validate(properties, twinFieldEntity, fieldValue);
+    public ValidationResult validate(Properties properties, TwinEntity twin, T fieldValue) throws ServiceException {
+        return new ValidationResult(true);
     }
 
-    protected TwinValidator.ValidationResult validate(Properties properties, TwinFieldSimpleEntity twinFieldEntity, T value) {
-        return new TwinValidator.ValidationResult(true);
-    }
 
 }

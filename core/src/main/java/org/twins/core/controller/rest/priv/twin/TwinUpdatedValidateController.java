@@ -24,7 +24,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.TwinChangeResponse;
+import org.twins.core.dto.rest.TwinSaveRsV1;
 import org.twins.core.dto.rest.twin.TwinUpdateRqDTOv1;
 import org.twins.core.mappers.rest.twin.TwinUpdateRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
@@ -36,7 +36,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_VIEW})
+@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_UPDATE})
 public class TwinUpdatedValidateController extends ApiController {
     private final TwinService twinService;
     private final TwinUpdateRestDTOReverseMapper twinUpdateRestDTOReverseMapper;
@@ -49,23 +49,23 @@ public class TwinUpdatedValidateController extends ApiController {
     @Operation(summary = "twinUpdatedValidateV1", description = "Validates a twin using a standard JSON payload.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
-                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TwinChangeResponse.class))
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TwinSaveRsV1.class))
             }),
             @ApiResponse(responseCode = "401", description = "Access is denied")
     })
-    @PostMapping(value = "/private/twin/{twinId}/v2/validate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/private/twin/{twinId}/v1/validate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinValidate(@Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
                                           @RequestBody TwinUpdateRqDTOv1 request) {
         return validateTwin(request, twinId);
     }
 
     protected ResponseEntity<Response> validateTwin(TwinUpdateRqDTOv1 request, UUID twinId) {
-        TwinChangeResponse rs = new TwinChangeResponse();
+        TwinSaveRsV1 rs = new TwinSaveRsV1();
         try {
             TwinEntity dbTwinEntity = twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
             TwinUpdate twinUpdate = twinUpdateRestDTOReverseMapper.convert(Pair.of(request.setTwinId(twinId), dbTwinEntity))
                     .setCheckEditPermission(true);
-            twinService.checkFieldsValidity(dbTwinEntity, twinUpdate.getFields(), true);
+            twinService.validateFields(dbTwinEntity, twinUpdate.getFields());
         } catch (TwinFieldValidationException ve) {
             return createErrorRs(ve, rs);
         } catch (ServiceException se) {

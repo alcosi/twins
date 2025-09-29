@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.GenericValidator;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -22,7 +23,6 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorDate;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
-import org.twins.core.featurer.twin.validator.TwinValidator;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -49,7 +49,7 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
                 .pattern(pattern.extract(properties))
                 .beforeDate(now.minusHours(hoursPast.extract(properties)))
                 .afterDate(now.plusHours(hoursFuture.extract(properties)));
-        fieldDescriptorDate.backendValidated(true);
+        fieldDescriptorDate.backendValidated(false);
         return fieldDescriptorDate;
     }
 
@@ -107,15 +107,14 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     }
 
     @Override
-    protected TwinValidator.ValidationResult validate(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueDate value) {
+    public ValidationResult validate(Properties properties, TwinEntity twin, FieldValueDate value) {
         String datePattern = pattern.extract(properties);
-        String errorMessage = i18nService.translateToLocale(value.getTwinClassField().getBeValidationErrorI18nId());
-        TwinValidator.ValidationResult result = new TwinValidator.ValidationResult(true);
+        ValidationResult result = new ValidationResult(true);
         try {
             String dateValue = value.getDateStr();
-            boolean clearedValue = !twinFieldEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(dateValue);
+            boolean clearedValue = !value.getTwinClassField().getRequired() && StringUtils.isEmpty(dateValue);
             if (!GenericValidator.isDate(dateValue, datePattern, false) && !clearedValue)
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " date[" + value + "] does not match pattern[" + datePattern + "]");
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " date[" + value + "] does not match pattern[" + datePattern + "]");
             LocalDateTime localDateTime = parseDateTime(dateValue, properties);
             LocalDateTime now = LocalDateTime.now();
             Integer minHours = FieldTyperDateScroll.hoursPast.extract(properties);
@@ -133,7 +132,7 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
                 }
             }
         } catch (ServiceException e) {
-            result = new TwinValidator.ValidationResult(false, errorMessage);
+            result = new ValidationResult(false, i18nService.translateToLocale(value.getTwinClassField().getBeValidationErrorI18nId()));
         }
         return result;
     }

@@ -22,7 +22,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.TwinChangeResponse;
+import org.twins.core.dto.rest.TwinSaveRsV1;
 import org.twins.core.dto.rest.twin.TwinCreateRqDTOv2;
 import org.twins.core.mappers.rest.twin.TwinCreateRqRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
@@ -32,7 +32,7 @@ import org.twins.core.service.twin.TwinService;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_VIEW})
+@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_CREATE})
 public class TwinCreatedValidateController extends ApiController {
     private final TwinService twinService;
     private final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
@@ -45,20 +45,20 @@ public class TwinCreatedValidateController extends ApiController {
     @Operation(summary = "twinCreatedValidateV1", description = "Validates a twin using a standard JSON payload.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
-                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TwinChangeResponse.class))
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TwinSaveRsV1.class))
             }),
             @ApiResponse(responseCode = "401", description = "Access is denied")
     })
-    @PostMapping(value = "/private/twin/v2/validate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/private/twin/v1/validate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinValidate(@RequestBody TwinCreateRqDTOv2 request) {
         return validateTwin(request);
     }
 
     protected ResponseEntity<Response> validateTwin(TwinCreateRqDTOv2 request) {
-        TwinChangeResponse rs = new TwinChangeResponse();
+        TwinSaveRsV1 rs = new TwinSaveRsV1();
         try {
             TwinCreate twinCreate = twinCreateRqRestDTOReverseMapper.convert(request);
-            twinService.checkFieldsValidity(twinCreate.getTwinEntity(), twinCreate.getFields(), true);
+            twinService.validateFields(twinCreate.getTwinEntity(), twinCreate.getFields());
         } catch (TwinFieldValidationException ve) {
             return createErrorRs(ve, rs);
         } catch (ServiceException se) {
