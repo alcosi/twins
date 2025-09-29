@@ -72,4 +72,8 @@ public class ProjectionExclusionService extends EntitySecureFindServiceImpl<Proj
     public void deleteProjectionExclusions(Set<UUID> projectionIds) {
         entityRepository().deleteAllById(projectionIds);
     }
+
+    public List<ProjectionExclusionEntity> findByClassFieldIdSet(Set<UUID> classFieldIdSet) {
+        return projectionExclusionRepository.findByTwinClassFieldIdIn(classFieldIdSet);
+    }
 }
