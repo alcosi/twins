@@ -47,10 +47,13 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
                         .setId(src.getId())
                         .setName(src.getOptionI18NId() != null ? i18nService.translateToLocale(src.getOptionI18NId()) : src.getOption());
         }
-        if (mapperContext.hasModeButNot(DataListMode.DataListOption2DataListMode.HIDE))
+        if (mapperContext.hasModeButNot(DataListMode.DataListOption2DataListMode.HIDE)) {
+            dst.setDataListId(src.getDataListId());
             dataListRestDTOMapper.postpone(src.getDataList(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListMode.DataListOption2DataListMode.SHORT)));
-        if (mapperContext.hasModeButNot(BusinessAccountMode.DataListOption2BusinessAccountMode.HIDE))
+        } if (mapperContext.hasModeButNot(BusinessAccountMode.DataListOption2BusinessAccountMode.HIDE)) {
+            dst.setBusinessAccountId(src.getBusinessAccountId());
             businessAccountDTOMapper.postpone(src.getBusinessAccount(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(BusinessAccountMode.DataListOption2BusinessAccountMode.SHORT)));
+        }
     }
 
     protected Hashtable<String, String> getAttributes(DataListOptionEntity src) {
