@@ -22,7 +22,7 @@ public class TwinSearchSortEntity implements EasyLoggable {
     @Column(name = "order")
     private Integer order; // use wrapper to avoid primitive default
 
-    @Column(name = "twin_class_field__id")
+    @Column(name = "twin_class_field_id")
     private UUID twinClassFieldId;
 
     @Enumerated(EnumType.STRING)
