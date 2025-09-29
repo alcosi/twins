@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Schema(name = "DataListOptionRsV3")
 public class DataListOptionRsDTOv3 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "data lists option")
-    public DataListOptionDTOv3 option;
+    public DataListOptionDTOv1 option;
 }
