@@ -14,6 +14,8 @@ public enum I18nType  {
     TWIN_STATUS_DESCRIPTION("twinStatusDescription", "Twin status description", Category.TEXT),
     TWIN_CLASS_FIELD_NAME("twinClassFieldName", "Twin class field name", Category.TEXT),
     TWIN_CLASS_FIELD_DESCRIPTION("twinClassFieldDescription", "Twin class field description", Category.TEXT),
+    TWIN_CLASS_FIELD_FE_VALIDATION_ERROR("twinClassFieldFeValidationError", "Twin class field FE validation error", Category.TEXT),
+    TWIN_CLASS_FIELD_BE_VALIDATION_ERROR("twinClassFieldBeValidationError", "Twin class field BE validation error", Category.TEXT),
     TWIN_CLASS_OWNER_TYPE_NAME("twinClassOwnerTypeName", "Twin class owner type name", Category.TEXT),
     TWIN_CLASS_OWNER_TYPE_DESCRIPTION("twinClassOwnerTypeDescription", "Twin class owner type description", Category.TEXT),
     CARD_NAME("cardName", "Twin card name", Category.TEXT),
