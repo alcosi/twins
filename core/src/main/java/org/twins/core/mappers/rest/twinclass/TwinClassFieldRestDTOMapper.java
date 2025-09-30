@@ -72,7 +72,8 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setViewPermissionId(src.getViewPermissionId())
                         .setEditPermissionId(src.getEditPermissionId())
                         .setDescriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext))
-                        .setExternalId(src.getExternalId());
+                        .setExternalId(src.getExternalId())
+                        .setExternalProperties(src.getExternalProperties());
                 if (mapperContext.hasModeButNot(FeaturerMode.TwinClassField2FeaturerMode.HIDE)) {
                     dst.setFieldTyperFeaturerId(src.getFieldTyperFeaturerId());
                     featurerRestDTOMapper.postpone(featurerService.getFeaturerEntity(src.getFieldTyperFeaturerId()), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
@@ -95,7 +96,8 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setRequired(src.getRequired())
                         .setDescription(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
                         .setDescriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext))
-                        .setExternalId(src.getExternalId());
+                        .setExternalId(src.getExternalId())
+                        .setExternalProperties(src.getExternalProperties());
                 break;
             case SHORT:
                 dst
