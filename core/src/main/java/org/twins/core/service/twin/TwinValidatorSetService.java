@@ -3,7 +3,6 @@ package org.twins.core.service.twin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -80,6 +79,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
     }
 
     public boolean isValid(TwinEntity twinEntity, ContainsTwinValidatorSet validatorContainer) throws ServiceException {
+        boolean isValid = validatorContainer.getTwinValidatorSet().isInvert(); // needs to be initialized at the beginning because of FetchType.LAZY
         List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validatorContainer.getTwinValidatorKit().getList());
         sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
         boolean validationResultOfSet = true;
@@ -97,6 +97,6 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
                 break;
             }
         }
-        return validatorContainer.getTwinValidatorSet().isInvert() != validationResultOfSet;
+        return isValid != validationResultOfSet;
     }
 }
