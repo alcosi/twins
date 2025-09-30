@@ -11,4 +11,6 @@ public class TwinClassFieldSave {
     private TwinClassFieldEntity field;
     private I18nEntity nameI18n;
     private I18nEntity descriptionI18n;
+    private I18nEntity feValidationErrorI18n;
+    private I18nEntity beValidationErrorI18n;
 }
