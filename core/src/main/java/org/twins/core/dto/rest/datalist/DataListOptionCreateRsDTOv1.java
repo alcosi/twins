@@ -14,5 +14,5 @@ import java.util.List;
 @Schema(name = "DataListOptionCreateRsV1")
 public class DataListOptionCreateRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "data list")
-    public List<DataListOptionDTOv2> options;
+    public List<DataListOptionDTOv1> options;
 }

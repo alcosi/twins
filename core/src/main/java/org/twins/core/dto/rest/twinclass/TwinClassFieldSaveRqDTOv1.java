@@ -9,6 +9,7 @@ import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Deprecated
@@ -38,6 +39,9 @@ public abstract class TwinClassFieldSaveRqDTOv1 extends Request {
 
     @Schema(description = "external id", example = "")
     public String externalId;
+
+    @Schema(description = "external properties")
+    public Map<String, String> externalProperties;
 
     @Schema(description = "Field typer featurer ID", example = "1")
     public Integer fieldTyperFeaturerId;

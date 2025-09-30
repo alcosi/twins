@@ -34,7 +34,7 @@ public class TwinflowTransitionBaseDTOv2 extends TwinflowTransitionBaseDTOv1 {
     public UUID twinflowId;
 
     @Schema(description = "twinflow")
-    public TwinflowBaseDTOv2 twinflow;
+    public TwinflowBaseDTOv1 twinflow;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)
