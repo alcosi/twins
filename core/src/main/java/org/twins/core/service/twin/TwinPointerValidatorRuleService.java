@@ -12,7 +12,12 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleRepository;
+import org.twins.core.dao.validator.TwinValidatorEntity;
+import org.twins.core.service.validator.TwinValidatorService;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -24,6 +29,8 @@ public class TwinPointerValidatorRuleService extends EntitySecureFindServiceImpl
     private final TwinPointerValidatorRuleRepository twinPointerValidatorRuleRepository;
     private final TwinPointerService twinPointerService;
     private final TwinValidatorSetService twinValidatorSetService;
+    @Lazy
+    private final TwinValidatorService twinValidatorService;
 
     @Override
     public CrudRepository<TwinPointerValidatorRuleEntity, UUID> entityRepository() {
@@ -55,7 +62,8 @@ public class TwinPointerValidatorRuleService extends EntitySecureFindServiceImpl
         TwinPointerValidatorRuleEntity pointerValidatorRuleEntity = twinPointerValidatorRuleRepository.findById(twinPointerValidatorRuleId)
                 .orElseThrow(() -> new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION));
         twinValidatorSetService.loadTwinValidatorSet(pointerValidatorRuleEntity);
+        twinValidatorService.loadValidators(pointerValidatorRuleEntity);
         TwinEntity pointedTwin = twinPointerService.getPointer(currentTwin, pointerValidatorRuleEntity.getTwinPointerId());
-        return twinValidatorSetService.isValid(pointedTwin, pointerValidatorRuleEntity, pointerValidatorRuleEntity.getTwinValidators());
+        return twinValidatorSetService.isValid(pointedTwin, pointerValidatorRuleEntity, pointerValidatorRuleEntity.getTwinValidatorKit().getList());
     }
 }

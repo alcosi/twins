@@ -18,6 +18,7 @@ import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinActionValidatorRuleRepository;
 import org.twins.core.dao.validator.TwinValidatorEntity;
+import org.twins.core.service.validator.TwinValidatorService;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.validator.TwinValidator;
@@ -34,6 +35,8 @@ public class TwinActionService {
     final TwinActionValidatorRuleRepository twinActionValidatorRuleRepository;
     private final EntitySmartService entitySmartService;
     final TwinRepository twinRepository;
+    @Lazy
+    final TwinValidatorService twinValidatorService;
     @Lazy
     final PermissionService permissionService;
     @Lazy
@@ -61,7 +64,8 @@ public class TwinActionService {
             }
             for (TwinActionValidatorRuleEntity twinActionValidatorRuleEntity : twinEntity.getTwinClass().getActionsProtectedByValidatorRules().getGrouped(twinAction)) {
                 boolean isValid = true;
-                List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(twinActionValidatorRuleEntity.getTwinValidators());
+                twinValidatorService.loadValidators(twinActionValidatorRuleEntity);
+                List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(twinActionValidatorRuleEntity.getTwinValidatorKit().getList());
                 sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                 for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
                     if (!twinValidatorEntity.isActive()) {
@@ -96,7 +100,7 @@ public class TwinActionService {
                     TwinActionValidatorRuleEntity::getTwinAction));
     }
 
-    public void loadClassProtectedActions(Collection<TwinClassEntity> twinClassCollection) {
+    public void loadClassProtectedActions(Collection<TwinClassEntity> twinClassCollection) throws ServiceException {
         Map<UUID, TwinClassEntity> needLoadByPermissions = new HashMap<>();
         Map<UUID, TwinClassEntity> needLoadByValidators = new HashMap<>();
         for (TwinClassEntity twinClassEntity : twinClassCollection) {
@@ -113,7 +117,8 @@ public class TwinActionService {
             }
         }
         if (!needLoadByValidators.isEmpty()) {
-            List<TwinActionValidatorRuleEntity> twinClassActionValidatorEntities = twinActionValidatorRuleRepository.findByTwinClassIdIn(needLoadByPermissions.keySet());
+            List<TwinActionValidatorRuleEntity> twinClassActionValidatorEntities = twinActionValidatorRuleRepository.findByTwinClassIdIn(needLoadByValidators.keySet());
+            twinValidatorService.loadValidators(twinClassActionValidatorEntities);
             KitGrouped<TwinActionValidatorRuleEntity, UUID, UUID> actionGroupedByClass = new KitGrouped<>(twinClassActionValidatorEntities, TwinActionValidatorRuleEntity::getId, TwinActionValidatorRuleEntity::getTwinClassId);
             for (TwinClassEntity twinClassEntity : needLoadByValidators.values()) {
                 twinClassEntity.setActionsProtectedByValidatorRules(new KitGrouped<>(actionGroupedByClass.getGrouped(twinClassEntity.getId()), TwinActionValidatorRuleEntity::getId, TwinActionValidatorRuleEntity::getTwinAction));
@@ -183,7 +188,8 @@ public class TwinActionService {
                         // Map for checked and valid twin for current action <twin.id:uuid, valid: boolean>
                         Map<UUID, Boolean> twinByTwinValidatorsIsValid = new HashMap<>();
                         // Check each validator for the action
-                        List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(actionValidatorRuleEntity.getTwinValidators());
+                        twinValidatorService.loadValidators(actionValidatorRuleEntity);
+                        List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(actionValidatorRuleEntity.getTwinValidatorKit().getList());
                         sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                         for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
                             if (!twinValidatorEntity.isActive()) {

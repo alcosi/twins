@@ -63,6 +63,7 @@ import org.twins.core.service.twin.TwinValidatorSetService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
+import org.twins.core.service.validator.TwinValidatorService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -93,6 +94,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     private final AuthService authService;
     @Lazy
     private final DraftService draftService;
+    @Lazy
+    private final TwinValidatorService twinValidatorService;
     @Lazy
     private final DraftCommitService draftCommitService;
     private final UserGroupService userGroupService;
@@ -713,13 +716,14 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         // validator rules -> OR
         // validators -> AND
         boolean validationResultOfRule = true;
+        twinValidatorService.loadValidators(transitionValidatorEntityList);
         for (TwinflowTransitionValidatorRuleEntity transitionValidatorRuleEntity : transitionValidatorEntityList) {
             validationResultOfRule = true;
             if (!transitionValidatorRuleEntity.isActive()) {
                 log.info(transitionValidatorRuleEntity.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
                 continue;
             }
-            validationResultOfRule = twinValidatorSetService.isValid(twinEntity, transitionValidatorRuleEntity, transitionValidatorRuleEntity.getTwinValidators());
+            validationResultOfRule = twinValidatorSetService.isValid(twinEntity, transitionValidatorRuleEntity, transitionValidatorRuleEntity.getTwinValidatorKit().getList());
             if (validationResultOfRule)
                 break;
         }
