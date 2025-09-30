@@ -1,8 +1,8 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.ValidationResult;
+import org.cambium.common.exception.ErrorCode;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -161,43 +161,25 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         return twinFieldStorage;
     }
 
-    protected ValidationResult checkRequired(TwinEntity twinEntity, T fieldValue) throws ServiceException {
-        ValidationResult result = new ValidationResult(true);
-        if (!twinEntity.isSketch()
-                && fieldValue.getTwinClassField().getRequired()
-                && !fieldValue.isFilled()) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, fieldValue.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
-        }
-        return result;
-    }
-
-    private void checkTwinFieldType(TwinEntity twin, T value) throws ServiceException {
-        if (!valuetype.isInstance(value)) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT);
-        }
-        //todo - correct after merging TWINS-418 branch (pluggable fields logic)
-        if (!twinClassService.isInstanceOf(twin.getTwinClass(), value.getTwinClassField().getTwinClassId()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField().logShort() + " is not suitable for " + twin.logNormal());
-    }
-
     public ValidationResult validate(TwinEntity twin, T value) throws ServiceException {
         if (value.isValidated()) { // already validated, no need to validate again
             return value.getValidationResult();
         }
-        Hashtable<String, String> context = new Hashtable<>();
+
         if (!twin.isSketch() // check required for non-sketch twins
                 && value.getTwinClassField().getRequired()
                 && !value.isFilled()) {
-            context.put("field", value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
-            return new ValidationResult(false, getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED.getCode(), context));
+            log.error("{} is required", value.getTwinClassField().logNormal());
+            return new ValidationResult(false, getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, value.getTwinClassField()));
         }
         if (!valuetype.isInstance(value)) {
-            return new ValidationResult(false, getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), new Hashtable<>()));
+            log.error("{} incorrect value type", value.getTwinClassField().logNormal());
+            return new ValidationResult(false, getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, value.getTwinClassField()));
         }
         //todo - correct after merging TWINS-418 branch (pluggable fields logic)
         if (!twinClassService.isInstanceOf(twin.getTwinClass(), value.getTwinClassField().getTwinClassId())) {
-            context.put("field", value.getTwinClassField().logShort() + " is not suitable for " + twin.logNormal());
-            return new ValidationResult(false, getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT.getCode(), context));
+            log.error("{} is not suitable for {}", value.getTwinClassField().logNormal(), twin.logNormal());
+            return new ValidationResult(false, getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField()));
         }
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams(), new HashMap<>());
         ValidationResult validationResult = validate(properties, twin, value);
@@ -212,11 +194,14 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         return new ValidationResult(true);
     }
 
-    private String getErrorMessage(int statusCode, Hashtable<String, String> context) {
-        ErrorEntity errorEntity = errorRepository.findByErrorCodeLocal(statusCode);
+    private String getErrorMessage(ErrorCode errorCode, TwinClassFieldEntity twinClassField) throws ServiceException {
+        Hashtable<String, String> context = new Hashtable<>();
+        context.put("field.name", i18nService.translateToLocale(twinClassField.getNameI18nId())); //todo think over batch load
+        //todo change to errorService call also think over errorCode to twinClassField mapping
+        ErrorEntity errorEntity = errorRepository.findByErrorCodeLocal(errorCode.getCode());
         if (errorEntity != null)
             return i18nService.translateToLocale(errorEntity.getClientMsgI18nId(), context);
         else
-            return "error " + statusCode;
+            return errorCode.getMessage();
     }
 }
