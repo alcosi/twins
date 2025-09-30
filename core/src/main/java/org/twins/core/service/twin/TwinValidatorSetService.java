@@ -79,7 +79,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
     }
 
     public boolean isValid(TwinEntity twinEntity, ContainsTwinValidatorSet validatorContainer) throws ServiceException {
-        boolean isValid = validatorContainer.getTwinValidatorSet().isInvert(); // needs to be initialized at the beginning because of FetchType.LAZY
+        boolean isInvert = validatorContainer.getTwinValidatorSet().isInvert(); // needs to be initialized at the beginning because of FetchType.LAZY
         List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validatorContainer.getTwinValidatorKit().getList());
         sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
         boolean validationResultOfSet = true;
@@ -97,6 +97,6 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
                 break;
             }
         }
-        return isValid != validationResultOfSet;
+        return isInvert != validationResultOfSet;
     }
 }
