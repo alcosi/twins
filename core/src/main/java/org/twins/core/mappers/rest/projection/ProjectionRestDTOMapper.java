@@ -30,7 +30,8 @@ public class ProjectionRestDTOMapper extends RestSimpleDTOMapper<ProjectionEntit
 
             case SHORT -> dst
                     .setId(src.getId())
-                    .setSrcPointedTwinId(srcTwin == null ? null : srcTwin.getId());
+                    .setSrcTwinClassFieldId(src.getSrcTwinClassFieldId())
+                    .setDstTwinClassFieldId(src.getDstTwinClassFieldId());
         }
     }
 }
