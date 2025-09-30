@@ -12,6 +12,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorEntity;
@@ -78,8 +79,8 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
             validatorRule.setTwinValidatorSet(twinValidatorSetEntitiesKit.get(validatorRule.getTwinValidatorSetId()));
     }
 
+    @Transactional
     public boolean isValid(TwinEntity twinEntity, ContainsTwinValidatorSet validatorContainer) throws ServiceException {
-        boolean isInvert = validatorContainer.getTwinValidatorSet().isInvert(); // needs to be initialized at the beginning because of FetchType.LAZY
         List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validatorContainer.getTwinValidatorKit().getList());
         sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
         boolean validationResultOfSet = true;
@@ -97,6 +98,6 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
                 break;
             }
         }
-        return isInvert != validationResultOfSet;
+        return validatorContainer.getTwinValidatorSet().isInvert() != validationResultOfSet;
     }
 }
