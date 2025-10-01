@@ -67,7 +67,8 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setInheritedBreadCrumbsFaceId(src.getInheritedBreadCrumbsFaceId())
                         .setAssigneeRequired(src.getAssigneeRequired())
                         .setExternalId(src.getExternalId())
-                        .setExternalProperties(src.getExternalProperties());
+                        .setExternalProperties(src.getExternalProperties())
+                        .setHasPluggedFields(src.isHasPluggedFields());
                 break;
             case DETAILED:
                 dst

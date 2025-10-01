@@ -11,6 +11,8 @@ import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.enums.twinclass.TwinClassFieldVisibility;
+import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.service.SystemEntityService;
 
@@ -61,7 +63,6 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Column(name = "twin_sorter_params", columnDefinition = "hstore")
     private HashMap<String, String> twinSorterParams;
 
-
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
 
@@ -77,6 +78,10 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "external_properties", columnDefinition = "hstore")
     private Map<String, String> externalProperties;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "twin_class_field_visibility_id")
+    private TwinClassFieldVisibility twinClassFieldVisibilityId = TwinClassFieldVisibility.PUBLIC;
 
     @Column(name = "fe_validation_error_i18n_id")
     private UUID feValidationErrorI18nId;

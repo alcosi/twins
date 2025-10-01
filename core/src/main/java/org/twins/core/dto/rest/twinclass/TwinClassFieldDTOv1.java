@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.enums.twinclass.TwinClassFieldVisibility;
 
 import java.util.Map;
 import java.util.UUID;
@@ -62,6 +63,9 @@ public class TwinClassFieldDTOv1 {
 
     @Schema(description = "external properties")
     public Map<String, String> externalProperties;
+
+    @Schema(description = "field visibility", example = "PUBLIC")
+    public TwinClassFieldVisibility twinClassFieldVisibilityId;
 
     @Schema(description = "frontend validation error", example = "")
     public String feValidationError;

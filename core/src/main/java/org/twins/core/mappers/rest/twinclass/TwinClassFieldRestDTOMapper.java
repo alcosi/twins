@@ -46,7 +46,6 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     private final FeaturerService featurerService;
     private final PermissionService permissionService;
 
-
     @Override
     public void map(TwinClassFieldEntity src, TwinClassFieldDTOv1 dst, MapperContext mapperContext) throws Exception {
         FieldTyper fieldTyper;
@@ -72,6 +71,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setViewPermissionId(src.getViewPermissionId())
                         .setEditPermissionId(src.getEditPermissionId())
                         .setDescriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext))
+                        .setTwinClassFieldVisibilityId(src.getTwinClassFieldVisibilityId())
                         .setFeValidationErrorI18nId(src.getFeValidationErrorI18nId())
                         .setFeValidationError(src.getFeValidationErrorI18nId() != null ? i18nService.translateToLocale(src.getFeValidationErrorI18nId()) : "")
                         .setBeValidationErrorI18nId(src.getBeValidationErrorI18nId())
