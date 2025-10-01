@@ -76,7 +76,7 @@ public abstract class ApiController {
     }
 
     public ResponseEntity<Response> createErrorRs(TwinFieldValidationException ex, Response rs) {
-        ResponseEntity<Response> response = createErrorRs(ex, ex.getErrorCode(), ex.getMessage(), ex.getHttpStatus(), rs, ex.getContext());
+        ResponseEntity<Response> response = createErrorRs(ex, ex.getErrorCode(), ex.getMessage(), HttpStatus.OK, rs, ex.getContext());
         if (rs instanceof TwinSaveRsV1) {
             ((TwinSaveRsV1) response.getBody()).setInvalidTwinFieldErrors(ex.getInvalidFieldIds());
         }

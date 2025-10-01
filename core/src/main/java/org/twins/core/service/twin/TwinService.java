@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
-import org.twins.core.enums.history.HistoryType;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -42,6 +41,7 @@ import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.enums.history.HistoryType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;
@@ -1455,6 +1455,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
         int deletedCount = twinRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
         log.info(deletedCount + " number of twins were deleted");
+    }
+
+    public void validateFields(TwinCreate twinCreate) throws ServiceException {
+        if (twinCreate.isSketchMode()) {
+            twinCreate.getTwinEntity().setTwinStatusId(SystemEntityService.TWIN_STATUS_SKETCH);
+        }
+        validateFields(twinCreate.getTwinEntity(), twinCreate.getFields());
     }
 
     public void validateFields(TwinEntity twinEntity, Map<UUID, FieldValue> fields) throws ServiceException {
