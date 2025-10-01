@@ -304,7 +304,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     public abstract boolean validateEntity(T entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException;
 
     // todo somehow force other devs to implement this method if they want to use validateEntitiesAndThrow
-    public boolean validateEntities(Collection<T> entities, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+    public boolean validateEntities(Collection<T> entities, EntitySmartService.EntityValidateMode entityValidateMode) {
         return true;
     }
 
