@@ -11,5 +11,4 @@ import org.twins.core.enums.twinclass.FieldTextEditorType;
 public class FieldDescriptorText extends FieldDescriptor {
     private String regExp;
     private FieldTextEditorType editorType;
-    private boolean unique;
 }

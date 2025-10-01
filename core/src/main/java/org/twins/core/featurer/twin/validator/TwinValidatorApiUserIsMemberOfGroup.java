@@ -1,6 +1,7 @@
 package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.annotations.Featurer;

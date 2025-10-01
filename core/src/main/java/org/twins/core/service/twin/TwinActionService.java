@@ -2,6 +2,7 @@ package org.twins.core.service.twin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -12,18 +13,19 @@ import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.action.*;
+import org.twins.core.dao.action.TwinActionPermissionEntity;
+import org.twins.core.dao.action.TwinActionPermissionRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinActionValidatorRuleRepository;
 import org.twins.core.dao.validator.TwinValidatorEntity;
-import org.twins.core.service.validator.TwinValidatorService;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.validator.TwinValidatorService;
 
 import java.util.*;
 
@@ -74,7 +76,7 @@ public class TwinActionService {
                         continue;
                     }
                     TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
-                    TwinValidator.ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
+                    ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
                     if (!validationResult.isValid()) {
                         log.error(validationResult.getMessage());
                         isValid = false;
@@ -202,7 +204,7 @@ public class TwinActionService {
                             TwinValidator.CollectionValidationResult collectionValidationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinsNeedsValidatorCheck, twinValidatorEntity.isInvert());
                             // Process the validation result for each entity
                             for (TwinEntity twinEntity : twinsNeedsValidatorCheck) {
-                                TwinValidator.ValidationResult validationResult = collectionValidationResult.getTwinsResults().get(twinEntity.getId());
+                                ValidationResult validationResult = collectionValidationResult.getTwinsResults().get(twinEntity.getId());
                                 if (validationResult == null) {
                                     log.warn(twinValidatorEntity.logShort() + " from " + actionValidatorRuleEntity.logShort() + " validation result should not be null");
                                     continue;

@@ -3,6 +3,7 @@ package org.twins.core.service.attachment;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -12,8 +13,10 @@ import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.attachment.*;
-import org.twins.core.dao.twin.*;
+import org.twins.core.dao.attachment.TwinAttachmentActionAlienPermissionEntity;
+import org.twins.core.dao.attachment.TwinAttachmentActionAlienPermissionRepository;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.validator.*;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
@@ -84,7 +87,7 @@ public class AttachmentActionService {
                         continue;
                     }
                     TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
-                    TwinValidator.ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
+                    ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
                     if (!validationResult.isValid()) {
                         log.error(validationResult.getMessage());
                         allRuleValidatorsAreValid = false;
@@ -122,7 +125,7 @@ public class AttachmentActionService {
                         continue;
                     }
                     TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
-                    TwinValidator.ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twin, twinValidatorEntity.isInvert());
+                    ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twin, twinValidatorEntity.isInvert());
                     if (validationResult.isValid()) {
                         log.error(validationResult.getMessage());
                         isRestricted = true;
