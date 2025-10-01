@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.twins.core.enums.twinclass.TwinClassFieldVisibility;
 
 import java.util.Collection;
 import java.util.List;
@@ -30,9 +29,14 @@ public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldE
     @Cacheable(value = CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN, key = "T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#twinClassIdList)")
     List<TwinClassFieldEntity> findByTwinClassIdIn(Set<UUID> twinClassIdList);
 
-    String CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN_AND_VISIBILITY = "TwinClassFieldRepository.findByTwinClassIdInAndTwinClassFieldVisibilityId";
-    @Cacheable(value = CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN_AND_VISIBILITY, key = "T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#twinClassIdList) + '_' + #visibility")
-    List<TwinClassFieldEntity> findByTwinClassIdInAndTwinClassFieldVisibilityId(Set<UUID> twinClassIdList, TwinClassFieldVisibility visibility);
+    String CACHE_TWIN_CLASS_FIELDS_BY_TWIN_CLASS_ID_IN_AND_ANCESTOR_ID_IN = "TwinClassFieldRepository.findAllFieldsExcludingPlugged";
+    @Cacheable(value = CACHE_TWIN_CLASS_FIELDS_BY_TWIN_CLASS_ID_IN_AND_ANCESTOR_ID_IN, key = "T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#classes) + '_' + T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#ancestors)")
+    @Query(
+            value = "select field from TwinClassFieldEntity field where field.twinClassId in (:classes) and field.twinClassFieldVisibilityId in (org.twins.core.enums.twinclass.TwinClassFieldVisibility.PRIVATE, org.twins.core.enums.twinclass.TwinClassFieldVisibility.PUBLIC)" +
+                    "union all " +
+                    "select field from TwinClassFieldEntity field where field.twinClassId in (:ancestors) and field.twinClassFieldVisibilityId=org.twins.core.enums.twinclass.TwinClassFieldVisibility.PUBLIC"
+    )
+    List<TwinClassFieldEntity> findAllFieldsExcludingPlugged(Set<UUID> classes, Set<UUID> ancestors);
 
     List<TwinClassFieldEntity> findByTwinClassIdOrTwinClassId(UUID twinClassId, UUID parentTwinClassId);
 

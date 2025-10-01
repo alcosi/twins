@@ -21,23 +21,23 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListRepository;
-import org.twins.core.dao.resource.ResourceEntity;
-import org.twins.core.enums.EntityRelinkOperationStrategy;
-import org.twins.core.enums.domain.DomainType;
 import org.twins.core.dao.domain.DomainTypeTwinClassOwnerTypeRepository;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionRepository;
+import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
-import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.domain.twinclass.TwinClassCreate;
 import org.twins.core.domain.twinclass.TwinClassUpdate;
+import org.twins.core.enums.EntityRelinkOperationStrategy;
+import org.twins.core.enums.domain.DomainType;
+import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.headhunter.HeadHunter;
 import org.twins.core.featurer.headhunter.HeadHunterImpl;
@@ -880,8 +880,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         return ret;
     }
 
-    public boolean existsById(UUID twinClassId) {
-        return twinClassRepository.existsById(twinClassId);
+    public Collection<TwinClassEntity> findAllByIdIn(Collection<UUID> ids) {
+        return twinClassRepository.findByIdIn(ids);
     }
 
     protected TwinClassEntity processIcons(TwinClassEntity twinClassEntity, FileData lightIcon, FileData darkIcon) throws ServiceException {

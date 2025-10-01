@@ -29,8 +29,6 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinSort;
 import org.twins.core.domain.twinclass.TwinClassFieldSave;
 import org.twins.core.enums.i18n.I18nType;
-import org.twins.core.enums.twinclass.TwinClassFieldVisibility;
-import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperLink;
@@ -72,6 +70,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     private CacheManager cacheManager;
     @Autowired
     private TwinClassRepository twinClassRepository;
+    @Autowired
+    private TwinClassFieldPlugService twinClassFieldPlugService;
 
     @Override
     public CrudRepository<TwinClassFieldEntity, UUID> entityRepository() {
@@ -128,19 +128,23 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     public void loadTwinClassFields(Collection<TwinClassEntity> twinClassEntities) {
+        // todo change map to kit
         Map<UUID, TwinClassEntity> needLoad = new HashMap<>();
-        Set<UUID> forClasses = new HashSet<>();
+        Set<UUID> ancestorsToLoad = new HashSet<>();
         for (TwinClassEntity twinClassEntity : twinClassEntities)
             if (twinClassEntity.getTwinClassFieldKit() == null) {
                 needLoad.put(twinClassEntity.getId(), twinClassEntity);
-                forClasses.addAll(twinClassEntity.getExtendedClassIdSet());
+                ancestorsToLoad.addAll(twinClassEntity.getExtendedClassIdSet());
             }
 
-        if (needLoad.isEmpty())
+        if (needLoad.isEmpty()) {
             return;
-        forClasses.remove(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR);
+        }
 
-        KitGrouped<TwinClassFieldEntity, UUID, UUID> fields = loadAllTwinClassFields(forClasses);
+        ancestorsToLoad.remove(SystemEntityService.TWIN_CLASS_GLOBAL_ANCESTOR);
+        ancestorsToLoad.removeAll(needLoad.keySet()); // we only need ancestors in this set
+
+        KitGrouped<TwinClassFieldEntity, UUID, UUID> fields = loadAllTwinClassFields(needLoad.keySet(), ancestorsToLoad);
 
         for (TwinClassEntity twinClassEntity : needLoad.values()) {
             List<TwinClassFieldEntity> classFields = new ArrayList<>();
@@ -168,39 +172,32 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 twinSort.setTwinClassField(loadedFields.get(twinSort.getTwinClassFieldId()));
     }
 
-    private KitGrouped<TwinClassFieldEntity, UUID, UUID> loadAllTwinClassFields(Set<UUID> forClasses) {
+    private KitGrouped<TwinClassFieldEntity, UUID, UUID> loadAllTwinClassFields(Set<UUID> classes, Set<UUID> ancestors) {
         KitGrouped<TwinClassFieldEntity, UUID, UUID> fields = new KitGrouped<>(
-                twinClassFieldRepository.findByTwinClassIdInAndTwinClassFieldVisibilityId(forClasses, TwinClassFieldVisibility.PUBLIC),
+                twinClassFieldRepository.findAllFieldsExcludingPlugged(classes, ancestors),
                 TwinClassFieldEntity::getId,
                 TwinClassFieldEntity::getTwinClassId
         );
 
-        List<UUID> classesWithPluggedFieldsIds = twinClassRepository.findByIdIn(forClasses).stream()
-                .filter(TwinClassEntity::isHasPluggedFields)
-                .map(TwinClassEntity::getId)
-                .toList();
-
-        if (!classesWithPluggedFieldsIds.isEmpty()) {
-            addPluggableFields(fields, classesWithPluggedFieldsIds);
-        }
-
-        return fields;
-    }
-
-    private void addPluggableFields(KitGrouped<TwinClassFieldEntity, UUID, UUID> fields, List<UUID> classesWithPluggedFieldsIds) {
+        //  need to load plugged fields in other request to db because otherwise plugged fields will be connected to their real classes in KitGrouped
         KitGrouped<TwinClassFieldPlugEntity, UUID, UUID> pluggedEntities = new KitGrouped<>(
-                twinClassFieldPlugRepository.findByTwinClassIdIn(classesWithPluggedFieldsIds),
+                twinClassFieldPlugRepository.findByTwinClassIdIn(classes),  //  maybe use left join and not null check? if a huge amount of classes won't use pluggable logic then simple findIn method can be too overwhelming for db
+                                                                            //  but if pluggable mechanism will be popular then it's good
                 TwinClassFieldPlugEntity::getId,
                 TwinClassFieldPlugEntity::getTwinClassId
         );
 
-        for (UUID twinClassId : classesWithPluggedFieldsIds) {
-            fields.getGrouped(twinClassId).addAll(
-                    pluggedEntities.getGrouped(twinClassId).stream()
+        twinClassFieldPlugService.loadFields(pluggedEntities.getCollection());
+
+        for (var entry : fields.getGroupedMap().entrySet()) {
+            entry.getValue().addAll(
+                    pluggedEntities.getGrouped(entry.getKey()).stream()
                             .map(TwinClassFieldPlugEntity::getTwinClassField)
                             .toList()
             );
         }
+
+        return fields;
     }
 
     public void loadFields(Collection<TwinAttachmentEntity> attachments) throws ServiceException {
@@ -505,7 +502,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
             cacheEvictCollector.add(
                     TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_ID_IN,
-                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN_AND_VISIBILITY,
+                    TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELDS_BY_TWIN_CLASS_ID_IN_AND_ANCESTOR_ID_IN,
                     TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN,
                     TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_KEY_AND_TWIN_CLASS_ID_IN,
                     CACHE_TWIN_CLASS_FIELD_FOR_LINK,
@@ -632,7 +629,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         dbTwinClassFieldEntity.setRequired(newRequiredFlag);
     }
 
-    public boolean existsById(UUID id) {
-        return twinClassFieldRepository.existsById(id);
+    public Collection<TwinClassFieldEntity> findAllByIdIn(Collection<UUID> ids) {
+        return twinClassFieldRepository.findByIdIn(ids);
     }
 }

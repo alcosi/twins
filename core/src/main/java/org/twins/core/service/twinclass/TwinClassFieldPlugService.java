@@ -92,13 +92,13 @@ public class TwinClassFieldPlugService extends EntitySecureFindServiceImpl<TwinC
     @Override
     public boolean validateEntities(Collection<TwinClassFieldPlugEntity> entities, EntitySmartService.EntityValidateMode entityValidateMode) {
         try {
-            loadClasses(entities);
+            twinClassService.findEntitiesSafe(entities.stream().map(TwinClassFieldPlugEntity::getTwinClassId).toList());
         } catch (ServiceException e) {
             return logErrorAndReturnFalse("List contains invalid class ids");
         }
 
         try {
-            loadFields(entities);
+            twinClassFieldService.findEntitiesSafe(entities.stream().map(TwinClassFieldPlugEntity::getTwinClassFieldId).toList());
         } catch (ServiceException e) {
             return logErrorAndReturnFalse("List contains invalid field ids");
         }
@@ -147,7 +147,7 @@ public class TwinClassFieldPlugService extends EntitySecureFindServiceImpl<TwinC
         entitySmartService.deleteAllEntitiesAndLog(entitiesToDelete, entityRepository());
     }
 
-    public void loadClasses(Collection<TwinClassFieldPlugEntity> entities) throws ServiceException {
+    public void loadClasses(Collection<TwinClassFieldPlugEntity> entities) {
         if (CollectionUtils.isEmpty(entities)) {
             return;
         }
@@ -164,7 +164,7 @@ public class TwinClassFieldPlugService extends EntitySecureFindServiceImpl<TwinC
         }
 
         KitGrouped<TwinClassFieldPlugEntity, UUID, UUID> entitiesKit = new KitGrouped<>(needLoad, TwinClassFieldPlugEntity::getId, TwinClassFieldPlugEntity::getTwinClassId);
-        Kit<TwinClassEntity, UUID> classesKit = new Kit<>(twinClassService.findEntitiesSafe(entitiesKit.getGroupedKeySet()), TwinClassEntity::getId);
+        Kit<TwinClassEntity, UUID> classesKit = new Kit<>(twinClassService.findAllByIdIn(entitiesKit.getGroupedKeySet()), TwinClassEntity::getId);
 
         for (var entry : classesKit.getMap().entrySet()) {
             for (var entity : entitiesKit.getGrouped(entry.getKey())) {
@@ -173,7 +173,7 @@ public class TwinClassFieldPlugService extends EntitySecureFindServiceImpl<TwinC
         }
     }
 
-    public void loadFields(Collection<TwinClassFieldPlugEntity> entities) throws ServiceException {
+    public void loadFields(Collection<TwinClassFieldPlugEntity> entities) {
         if (CollectionUtils.isEmpty(entities)) {
             return;
         }
@@ -190,7 +190,7 @@ public class TwinClassFieldPlugService extends EntitySecureFindServiceImpl<TwinC
         }
 
         KitGrouped<TwinClassFieldPlugEntity, UUID, UUID> entitiesKit = new KitGrouped<>(needLoad, TwinClassFieldPlugEntity::getId, TwinClassFieldPlugEntity::getTwinClassFieldId);
-        Kit<TwinClassFieldEntity, UUID> classesKit = new Kit<>(twinClassFieldService.findEntitiesSafe(entitiesKit.getGroupedKeySet()), TwinClassFieldEntity::getId);
+        Kit<TwinClassFieldEntity, UUID> classesKit = new Kit<>(twinClassFieldService.findAllByIdIn(entitiesKit.getGroupedKeySet()), TwinClassFieldEntity::getId);
 
         for (var entry : classesKit.getMap().entrySet()) {
             for (var entity : entitiesKit.getGrouped(entry.getKey())) {
