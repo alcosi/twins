@@ -53,7 +53,7 @@ public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolea
         where tfb.twin_id is null or tfb.value = false|true;
     */
 
-    @FeaturerParam(name = "Nullable", description = "", order = 2, optional = true, defaultValue = "false")
+    @FeaturerParam(name = "DefaultValue", description = "", order = 2, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean defaultValue = new FeaturerParamBoolean("defaultValue");
 
     @Override

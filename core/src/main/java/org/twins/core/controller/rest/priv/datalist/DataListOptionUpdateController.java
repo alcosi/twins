@@ -24,7 +24,7 @@ import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv3;
 import org.twins.core.dto.rest.datalist.DataListOptionUpdateRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionUpdateRqDTOv2;
-import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapperV3;
+import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionUpdateDTOReverseMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionUpdateDTOReverseMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -46,7 +46,7 @@ public class DataListOptionUpdateController extends ApiController {
     private final DataListOptionUpdateDTOReverseMapper dataListOptionUpdateDTOReverseMapper;
     private final DataListOptionUpdateDTOReverseMapperV2 dataListOptionUpdateDTOReverseMapperV2;
     private final DataListOptionService dataListOptionService;
-    private final DataListOptionRestDTOMapperV3 dataListOptionRestDTOMapperV3;
+    private final DataListOptionRestDTOMapper DataListOptionRestDTOMapper;
 
     @Deprecated
     @ParametersApiUserHeaders
@@ -58,14 +58,14 @@ public class DataListOptionUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/data_list_option/{dataListOptionId}/v1")
     public ResponseEntity<?> dataListOptionUpdateV1(
-            @MapperContextBinding(roots = DataListOptionRestDTOMapperV3.class, response = DataListOptionRsDTOv3.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, response = DataListOptionRsDTOv3.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_OPTION_ID) @PathVariable UUID dataListOptionId,
             @RequestBody DataListOptionUpdateRqDTOv1 request) {
         DataListOptionRsDTOv3 rs = new DataListOptionRsDTOv3();
         try {
             DataListOptionEntity dataListOption = dataListOptionService.updateDataListOptions(dataListOptionUpdateDTOReverseMapper.convert(request).setId(dataListOptionId));
             rs
-                    .setOption(dataListOptionRestDTOMapperV3.convert(dataListOption, mapperContext))
+                    .setOption(DataListOptionRestDTOMapper.convert(dataListOption, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

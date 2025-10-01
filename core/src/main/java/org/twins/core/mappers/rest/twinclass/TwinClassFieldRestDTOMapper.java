@@ -55,7 +55,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
             case MANAGED:
                 if (!permissionService.currentUserHasPermission(Permissions.TWIN_CLASS_MANAGE))
                     throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + TwinClassFieldMode.MANAGED + "] is not allowed for current user");
-                fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturer(), FieldTyper.class);
+                fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturerId(), FieldTyper.class);
                 fieldDescriptor = fieldTyper.getFieldDescriptor(src);
                 dst
                         .setId(src.getId())
@@ -67,11 +67,17 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setNameI18nId(src.getNameI18nId())
                         .setDescriptionI18nId(src.getDescriptionI18nId())
                         .setFieldTyperFeaturerId(src.getFieldTyperFeaturerId())
-                        .setFieldTyperParams(src.getFieldTyperParams())
+                        .setTwinSorterFeaturerId(src.getTwinSorterFeaturerId())
+                        .setTwinSorterParams(src.getFieldTyperParams())
                         .setViewPermissionId(src.getViewPermissionId())
                         .setEditPermissionId(src.getEditPermissionId())
                         .setDescriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext))
-                        .setExternalId(src.getExternalId());
+                        .setFeValidationErrorI18nId(src.getFeValidationErrorI18nId())
+                        .setFeValidationError(src.getFeValidationErrorI18nId() != null ? i18nService.translateToLocale(src.getFeValidationErrorI18nId()) : "")
+                        .setBeValidationErrorI18nId(src.getBeValidationErrorI18nId())
+                        .setBeValidationError(src.getBeValidationErrorI18nId() != null ? i18nService.translateToLocale(src.getBeValidationErrorI18nId()) : "")
+                        .setExternalId(src.getExternalId())
+                        .setExternalProperties(src.getExternalProperties());
                 if (mapperContext.hasModeButNot(FeaturerMode.TwinClassField2FeaturerMode.HIDE)) {
                     dst.setFieldTyperFeaturerId(src.getFieldTyperFeaturerId());
                     featurerRestDTOMapper.postpone(featurerService.getFeaturerEntity(src.getFieldTyperFeaturerId()), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
@@ -85,7 +91,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                 }
                 break;
             case DETAILED:
-                fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturer(), FieldTyper.class);
+                fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturerId(), FieldTyper.class);
                 fieldDescriptor = fieldTyper.getFieldDescriptor(src);
                 dst
                         .setId(src.getId())
@@ -94,7 +100,9 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setRequired(src.getRequired())
                         .setDescription(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
                         .setDescriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext))
-                        .setExternalId(src.getExternalId());
+                        .setFeValidationError(src.getFeValidationErrorI18nId() != null ? i18nService.translateToLocale(src.getFeValidationErrorI18nId()) : "")
+                        .setExternalId(src.getExternalId())
+                        .setExternalProperties(src.getExternalProperties());
                 break;
             case SHORT:
                 dst

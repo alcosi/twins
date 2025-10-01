@@ -7,6 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.fieldtyper.FieldTyper;
 
 import java.util.Properties;
 import java.util.function.Function;
@@ -18,7 +19,12 @@ import java.util.function.Function;
         description = "")
 public class TwinSorterStub extends TwinSorter {
     @Override
-    public Function<Specification<TwinEntity>, Specification<TwinEntity>> createSort(Properties properties) throws ServiceException {
-        return null;
+    public Function<Specification<TwinEntity>, Specification<TwinEntity>> createSort(Properties properties, org.twins.core.dao.twinclass.TwinClassFieldEntity twinClassFieldEntity, org.hibernate.query.SortDirection direction) throws ServiceException {
+        return baseSpec -> baseSpec; // no sorting
+    }
+
+    @Override
+    public boolean checkCompatibleSorter(FieldTyper fieldTyper) {
+        return true;
     }
 }

@@ -15,7 +15,7 @@ import java.util.UUID;
 @Table(name = "twinflow_transition_validator_rule")
 @FieldNameConstants
 @Accessors(chain = true)
-public class TwinflowTransitionValidatorRuleEntity implements ContainsTwinValidatorSet, EasyLoggable {
+public class TwinflowTransitionValidatorRuleEntity implements ContainsTwinValidatorSet {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -37,7 +37,8 @@ public class TwinflowTransitionValidatorRuleEntity implements ContainsTwinValida
     @EqualsAndHashCode.Exclude
     private Kit<TwinValidatorEntity, UUID> twinValidatorKit;
 
-    @Transient
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
     private TwinValidatorSetEntity twinValidatorSet;
 
     public String easyLog(EasyLoggable.Level level) {

@@ -28,7 +28,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TagSearchRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TagSearchRsDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapperV3;
+import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
@@ -48,7 +48,7 @@ import java.util.UUID;
 @ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_VIEW})
 public class TwinClassTagSearchController extends ApiController {
 
-    private final DataListOptionRestDTOMapperV3 dataListOptionRestDTOMapperV3;
+    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
     private final TagSearchDTOReverseMapper tagSearchDTOReverseMapper;
     private final DataListOptionSearchService dataListOptionSearchService;
     private final PaginationMapper paginationMapper;
@@ -90,7 +90,7 @@ public class TwinClassTagSearchController extends ApiController {
             PaginationResult<DataListOptionEntity> tags = dataListOptionSearchService
                     .findDataListOptionForDomain(dataListOptionSearch, pagination);
 
-            rs.setOptions(dataListOptionRestDTOMapperV3.convertCollection(tags.getList(), mapperContext))
+            rs.setOptions(dataListOptionRestDTOMapper.convertCollection(tags.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(tags));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

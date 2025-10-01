@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
-import org.twins.core.dto.rest.datalist.DataListOptionDTOv3;
+import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 
 import java.util.List;
@@ -20,5 +20,5 @@ public class TagSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - tag option list")
-    public List<DataListOptionDTOv3> options;
+    public List<DataListOptionDTOv1> options;
 }

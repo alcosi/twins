@@ -29,6 +29,7 @@ import org.twins.core.dto.rest.twinstatus.TwinStatusCreateRqDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusCreateRsDTOv1;
 import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
@@ -49,6 +50,7 @@ public class TwinStatusCreateController extends ApiController {
     private final TwinStatusCreateRestDTOReverseMapper twinStatusCreateRestDTOReverseMapper;
     private final TwinStatusService twinStatusService;
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
@@ -99,7 +101,9 @@ public class TwinStatusCreateController extends ApiController {
             I18nEntity nameI18n = i18NSaveRestDTOReverseMapper.convert(request.getNameI18n());
             I18nEntity descriptionsI18n = i18NSaveRestDTOReverseMapper.convert(request.getDescriptionI18n());
             twinStatusService.createStatus(twinStatusEntity, nameI18n, descriptionsI18n, convert(iconLight), convert(iconDark));
-            rs.setTwinStatus(twinStatusRestDTOMapper.convert(twinStatusEntity, mapperContext));
+            rs
+                    .setTwinStatus(twinStatusRestDTOMapper.convert(twinStatusEntity, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

@@ -74,7 +74,7 @@ import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassSchemaDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
-import org.twins.core.mappers.rest.twinflow.TwinflowBaseV2RestDTOMapper;
+import org.twins.core.mappers.rest.twinflow.TwinflowBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
@@ -103,7 +103,7 @@ public class RelatedObjectsRestDTOConverter {
     private final PermissionGroupRestDTOMapper permissionGroupRestDTOMapper;
     private final PermissionRestDTOMapper permissionRestDTOMapper;
     private final PermissionSchemaRestDTOMapperV2 permissionSchemaRestDTOMapperV2;
-    private final TwinflowBaseV2RestDTOMapper twinflowBaseV2RestDTOMapper;
+    private final TwinflowBaseV1RestDTOMapper twinflowBaseV1RestDTOMapper;
     private final TwinClassSchemaDTOMapper twinClassSchemaDTOMapper;
     private final FactoryRestDTOMapper factoryRestDTOMapper;
     private final FactoryPipelineRestDTOMapperV2 factoryPipelineRestDTOMapperV2;
@@ -172,7 +172,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContext.getRelatedPermissionSchemaMap().isEmpty())
             convertAndPut(mapperContext.getRelatedPermissionSchemaMap(), permissionSchemaRestDTOMapperV2, mapperContextLevel2, permissionSchemaMap, PermissionSchemaEntity::getId);
         if (!mapperContext.getRelatedTwinflowMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinflowMap(), twinflowBaseV2RestDTOMapper, mapperContextLevel2, twinflowMap, TwinflowEntity::getId);
+            convertAndPut(mapperContext.getRelatedTwinflowMap(), twinflowBaseV1RestDTOMapper, mapperContextLevel2, twinflowMap, TwinflowEntity::getId);
         if (!mapperContext.getRelatedFactoryMap().isEmpty())
             convertAndPut(mapperContext.getRelatedFactoryMap(), factoryRestDTOMapper, mapperContextLevel2, factoryMap, TwinFactoryEntity::getId);
         if (!mapperContext.getRelatedFactoryPipelineMap().isEmpty())
@@ -223,7 +223,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContextLevel2.getRelatedPermissionSchemaMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedPermissionSchemaMap(), permissionSchemaRestDTOMapperV2, mapperContextLevel3, permissionSchemaMap, PermissionSchemaEntity::getId);
         if (!mapperContextLevel2.getRelatedPermissionSchemaMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinflowMap(), twinflowBaseV2RestDTOMapper, mapperContextLevel3, twinflowMap, TwinflowEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedTwinflowMap(), twinflowBaseV1RestDTOMapper, mapperContextLevel3, twinflowMap, TwinflowEntity::getId);
         if (!mapperContextLevel2.getRelatedFactoryMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedFactoryMap(), factoryRestDTOMapper, mapperContextLevel3, factoryMap, TwinFactoryEntity::getId);
         if (!mapperContextLevel2.getRelatedFactoryPipelineMap().isEmpty())
@@ -275,7 +275,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContextLevel3.getRelatedPermissionSchemaMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedPermissionSchemaMap(), permissionSchemaRestDTOMapperV2, mapperContextLevel3, permissionSchemaMap, PermissionSchemaEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinflowMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinflowMap(), twinflowBaseV2RestDTOMapper, mapperContextLevel3, twinflowMap, TwinflowEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedTwinflowMap(), twinflowBaseV1RestDTOMapper, mapperContextLevel3, twinflowMap, TwinflowEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedFactoryMap(), factoryRestDTOMapper, mapperContextLevel3, factoryMap, TwinFactoryEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryPipelineMap().isEmpty())

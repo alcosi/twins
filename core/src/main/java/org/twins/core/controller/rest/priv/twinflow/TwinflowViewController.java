@@ -24,7 +24,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinflow.TwinflowViewRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twinflow.TwinflowBaseV3RestDTOMapper;
+import org.twins.core.mappers.rest.twinflow.TwinflowBaseV1RestDTOMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowService;
 
@@ -37,7 +37,7 @@ import java.util.UUID;
 @ProtectedBy({Permissions.TWINFLOW_MANAGE, Permissions.TWINFLOW_VIEW})
 public class TwinflowViewController extends ApiController {
     private final TwinflowService twinflowService;
-    private final TwinflowBaseV3RestDTOMapper twinflowBaseV3RestDTOMapper;
+    private final TwinflowBaseV1RestDTOMapper twinflowBaseV1RestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
@@ -49,14 +49,13 @@ public class TwinflowViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twinflow/{twinflowId}/v1")
     public ResponseEntity<?> twinflowViewV1(
-            @MapperContextBinding(roots = TwinflowBaseV3RestDTOMapper.class, response = TwinflowViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinflowBaseV1RestDTOMapper.class, response = TwinflowViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_ID) @PathVariable UUID twinflowId) {
         TwinflowViewRsDTOv1 rs = new TwinflowViewRsDTOv1();
         try {
             rs
-                    .setTwinflow(twinflowBaseV3RestDTOMapper.convert(twinflowService.findEntitySafe(twinflowId), mapperContext))
+                    .setTwinflow(twinflowBaseV1RestDTOMapper.convert(twinflowService.findEntitySafe(twinflowId), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
-
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
