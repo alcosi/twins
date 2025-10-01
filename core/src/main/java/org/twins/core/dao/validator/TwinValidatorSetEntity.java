@@ -27,6 +27,9 @@ public class TwinValidatorSetEntity implements EasyLoggable {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "invert")
+    private boolean invert;
+
     @Override
     public String easyLog(Level level) {
         return switch (level) {

@@ -13,9 +13,8 @@ import java.util.HashMap;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinCreateRqV2")
+@Schema(name = "TwinCreateRqV2")
 public class TwinCreateRqDTOv2 extends TwinDraftDTOv1 {
-
 
 
     @Override
@@ -27,13 +26,13 @@ public class TwinCreateRqDTOv2 extends TwinDraftDTOv1 {
 
     @Override
     public TwinCreateRqDTOv2 addAttachmentsItem(AttachmentCreateDTOv1 item) {
-        CollectionUtils.safeAdd(attachments, item);
+        this.attachments = CollectionUtils.safeAdd(this.attachments, item);
         return this;
     }
 
     @Override
     public TwinCreateRqDTOv2 addLinksItem(TwinLinkAddDTOv1 item) {
-        CollectionUtils.safeAdd(links, item);
+        this.links = CollectionUtils.safeAdd(this.links, item);
         return this;
     }
 }

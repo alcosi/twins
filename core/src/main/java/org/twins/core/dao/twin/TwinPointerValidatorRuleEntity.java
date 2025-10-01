@@ -16,7 +16,7 @@ import java.util.UUID;
 @Entity
 @Accessors(chain = true)
 @Table(name = "twin_pointer_validator_rule")
-public class TwinPointerValidatorRuleEntity implements ContainsTwinValidatorSet, EasyLoggable {
+public class TwinPointerValidatorRuleEntity implements ContainsTwinValidatorSet {
     @Id
     @Column(name = "id")
     private UUID id;
@@ -35,7 +35,8 @@ public class TwinPointerValidatorRuleEntity implements ContainsTwinValidatorSet,
     @EqualsAndHashCode.Exclude
     private Kit<TwinValidatorEntity, UUID> twinValidatorKit;
 
-    @Transient
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
     private TwinValidatorSetEntity twinValidatorSet;
 
     @Override

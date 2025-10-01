@@ -14,7 +14,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinUpdateRqV1")
+@Schema(name = "TwinUpdateRqV1")
 public class TwinUpdateRqDTOv1 extends TwinUpdateDTOv1 {
     @Schema
     public String comment;
@@ -28,19 +28,19 @@ public class TwinUpdateRqDTOv1 extends TwinUpdateDTOv1 {
 
     @Override
     public TwinUpdateRqDTOv1 addTwinLinksAddItem(TwinLinkAddDTOv1 item) {
-        CollectionUtils.safeAdd(twinLinksAdd, item);
+        this.twinLinksAdd = CollectionUtils.safeAdd(this.twinLinksAdd, item);
         return this;
     }
 
     @Override
     public TwinUpdateRqDTOv1 addTwinLinksDeleteItem(UUID item) {
-        CollectionUtils.safeAdd(twinLinksDelete, item);
+        this.twinLinksDelete = CollectionUtils.safeAdd(this.twinLinksDelete, item);
         return this;
     }
 
     @Override
     public TwinUpdateRqDTOv1 addTwinLinksUpdateItem(TwinLinkUpdateDTOv1 item) {
-        CollectionUtils.safeAdd(twinLinksUpdate, item);
+        this.twinLinksUpdate = CollectionUtils.safeAdd(this.twinLinksUpdate, item);
         return this;
     }
 }

@@ -526,7 +526,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinClassEntity updateTwinClasses(TwinClassUpdate twinClassUpdate, FileData iconLight, FileData iconDark) throws ServiceException {
-        return updateTwinClasses((List.of(twinClassUpdate)).getFirst(), iconLight, iconDark);
+        return updateTwinClasses(List.of(twinClassUpdate), iconLight, iconDark).getFirst();
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -564,6 +564,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getDeletePermissionId, TwinClassEntity::setDeletePermissionId, TwinClassEntity.Fields.deletePermissionId, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getKey, TwinClassEntity::setKey, TwinClassEntity.Fields.key, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getExternalId, TwinClassEntity::setExternalId, TwinClassEntity.Fields.externalId, changesHelper);
+            updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getExternalProperties, TwinClassEntity::setExternalProperties, TwinClassEntity.Fields.externalProperties, changesHelper);
 
 
             updateTwinClassFeaturer(dbTwinClassEntity, twinClassUpdate.getTwinClass().getHeadHunterFeaturerId(), twinClassUpdate.getTwinClass().getHeadHunterParams(), changesHelper);

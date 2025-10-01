@@ -118,19 +118,23 @@ public class SpaceUserRoleService {
         Set<UUID> usersToAdd = new HashSet<>();
         Set<UUID> usersToDelete = new HashSet<>();
         Kit<SpaceRoleUserEntity, UUID> existingUserKit = getExistingUsers(spaceId, roleId);
-        for (UUID userId : spaceRoleUserEnterList) {
-            if (existingUserKit.containsKey(userId)) {
-                log.warn("user[{}] is already registered for role[{}] in space[{}]", userId, roleId, spaceId);
-                continue;
+        if (CollectionUtils.isNotEmpty(spaceRoleUserEnterList)) {
+            for (UUID userId : spaceRoleUserEnterList) {
+                if (existingUserKit.containsKey(userId)) {
+                    log.warn("user[{}] is already registered for role[{}] in space[{}]", userId, roleId, spaceId);
+                    continue;
+                }
+                usersToAdd.add(userId);
             }
-            usersToAdd.add(userId);
         }
-        for (UUID userId : spaceRoleUserExitList) {
-            if (!existingUserKit.containsKey(userId)) {
-                log.warn("user[{}] is not registered for role[{}] in space[{}]", userId, roleId, spaceId);
-                continue;
+        if (CollectionUtils.isNotEmpty(spaceRoleUserEnterList)) {
+            for (UUID userId : spaceRoleUserExitList) {
+                if (!existingUserKit.containsKey(userId)) {
+                    log.warn("user[{}] is not registered for role[{}] in space[{}]", userId, roleId, spaceId);
+                    continue;
+                }
+                usersToDelete.add(userId);
             }
-            usersToDelete.add(userId);
         }
         addUsersToSpaceRole(spaceId, roleId, usersToAdd);
         deleteUsersFromSpaceRole(spaceId, roleId, usersToDelete);

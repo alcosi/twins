@@ -8,8 +8,6 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.annotations.FeaturerList;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
@@ -19,6 +17,7 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.service.SystemEntityService;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -57,6 +56,13 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Column(name = "field_typer_params", columnDefinition = "hstore")
     private HashMap<String, String> fieldTyperParams;
 
+    @Column(name = "twin_sorter_featurer_id")
+    private Integer twinSorterFeaturerId;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "twin_sorter_params", columnDefinition = "hstore")
+    private HashMap<String, String> twinSorterParams;
+
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
 
@@ -68,6 +74,10 @@ public class TwinClassFieldEntity implements EasyLoggable {
 
     @Column(name = "external_id")
     private String externalId;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "external_properties", columnDefinition = "hstore")
+    private Map<String, String> externalProperties;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "twin_class_field_visibility_id")
@@ -96,11 +106,6 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     private I18nEntity descriptionI18n;
-
-    @FeaturerList(type = FieldTyper.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "field_typer_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity fieldTyperFeaturer;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
