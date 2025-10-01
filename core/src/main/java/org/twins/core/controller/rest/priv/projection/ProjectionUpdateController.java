@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.projection;
+package org.twins.core.controller.rest.priv.projection;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
