@@ -3,11 +3,15 @@ package org.twins.core.service.twinclass;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldPlugEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldPlugRepository;
@@ -53,16 +57,8 @@ public class TwinClassFieldPlugService extends EntitySecureFindServiceImpl<TwinC
                     return logErrorAndReturnFalse(ErrorCodeTwins.ENTITY_INVALID.getMessage());
                 }
 
-                if (twinClassFieldPlugRepository.existsByTwinClassIdAndTwinClassFieldId(entity.getTwinClassId(), entity.getTwinClassFieldId())) {
+                if (existsByTwinClassIdAndTwinClassFieldId(entity.getTwinClassId(), entity.getTwinClassFieldId())) {
                     return logErrorAndReturnFalse(ErrorCodeTwins.ENTITY_ALREADY_EXIST.getMessage());
-                }
-
-                if (!twinClassService.existsById(entity.getTwinClassId())) {
-                    return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN.getMessage());
-                }
-
-                if (!twinClassFieldService.existsById(entity.getTwinClassFieldId())) {
-                    return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_ID_UNKNOWN.getMessage());
                 }
 
                 TwinClassFieldEntity field = twinClassFieldService.findEntitySafe(entity.getTwinClassFieldId());
@@ -93,6 +89,27 @@ public class TwinClassFieldPlugService extends EntitySecureFindServiceImpl<TwinC
         return true;
     }
 
+    @Override
+    public boolean validateEntities(Collection<TwinClassFieldPlugEntity> entities, EntitySmartService.EntityValidateMode entityValidateMode) {
+        try {
+            loadClasses(entities);
+        } catch (ServiceException e) {
+            return logErrorAndReturnFalse("List contains invalid class ids");
+        }
+
+        try {
+            loadFields(entities);
+        } catch (ServiceException e) {
+            return logErrorAndReturnFalse("List contains invalid field ids");
+        }
+
+        if (!existsNone(entities)) {
+            return logErrorAndReturnFalse("Entity from list already exists in db");
+        }
+
+        return true;
+    }
+
     @Transactional(rollbackFor = Throwable.class)
     public TwinClassFieldPlugEntity plugField(TwinClassFieldPlugEntity entity) throws ServiceException {
         return plugFields(List.of(entity)).getFirst();
@@ -110,7 +127,7 @@ public class TwinClassFieldPlugService extends EntitySecureFindServiceImpl<TwinC
 
     @Transactional(rollbackFor = Throwable.class)
     public void unplugFields(Collection<TwinClassFieldPlugEntity> entities) throws ServiceException {
-        if (entities == null || entities.isEmpty()) {
+        if (CollectionUtils.isEmpty(entities)) {
             return;
         }
 
@@ -128,5 +145,66 @@ public class TwinClassFieldPlugService extends EntitySecureFindServiceImpl<TwinC
         }
 
         entitySmartService.deleteAllEntitiesAndLog(entitiesToDelete, entityRepository());
+    }
+
+    public void loadClasses(Collection<TwinClassFieldPlugEntity> entities) throws ServiceException {
+        if (CollectionUtils.isEmpty(entities)) {
+            return;
+        }
+
+        List<TwinClassFieldPlugEntity> needLoad = new ArrayList<>();
+        for (var entity : entities) {
+            if (entity.getTwinClass() == null) {
+                needLoad.add(entity);
+            }
+        }
+
+        if (needLoad.isEmpty()) {
+            return;
+        }
+
+        KitGrouped<TwinClassFieldPlugEntity, UUID, UUID> entitiesKit = new KitGrouped<>(needLoad, TwinClassFieldPlugEntity::getId, TwinClassFieldPlugEntity::getTwinClassId);
+        Kit<TwinClassEntity, UUID> classesKit = new Kit<>(twinClassService.findEntitiesSafe(entitiesKit.getGroupedKeySet()), TwinClassEntity::getId);
+
+        for (var entry : classesKit.getMap().entrySet()) {
+            for (var entity : entitiesKit.getGrouped(entry.getKey())) {
+                entity.setTwinClass(entry.getValue());
+            }
+        }
+    }
+
+    public void loadFields(Collection<TwinClassFieldPlugEntity> entities) throws ServiceException {
+        if (CollectionUtils.isEmpty(entities)) {
+            return;
+        }
+
+        List<TwinClassFieldPlugEntity> needLoad = new ArrayList<>();
+        for (var entity : entities) {
+            if (entity.getTwinClassField() == null) {
+                needLoad.add(entity);
+            }
+        }
+
+        if (needLoad.isEmpty()) {
+            return;
+        }
+
+        KitGrouped<TwinClassFieldPlugEntity, UUID, UUID> entitiesKit = new KitGrouped<>(needLoad, TwinClassFieldPlugEntity::getId, TwinClassFieldPlugEntity::getTwinClassFieldId);
+        Kit<TwinClassFieldEntity, UUID> classesKit = new Kit<>(twinClassFieldService.findEntitiesSafe(entitiesKit.getGroupedKeySet()), TwinClassFieldEntity::getId);
+
+        for (var entry : classesKit.getMap().entrySet()) {
+            for (var entity : entitiesKit.getGrouped(entry.getKey())) {
+                entity.setTwinClassField(entry.getValue());
+            }
+        }
+    }
+
+    public boolean existsByTwinClassIdAndTwinClassFieldId(UUID twinClassId, UUID twinClassFieldId) {
+        return twinClassFieldPlugRepository.existsByTwinClassIdAndTwinClassFieldId(twinClassId, twinClassFieldId);
+    }
+
+    public boolean existsNone(Collection<TwinClassFieldPlugEntity> entities) {
+        return entities.stream()
+                .noneMatch(entity -> existsByTwinClassIdAndTwinClassFieldId(entity.getTwinClassId(), entity.getTwinClassFieldId()));
     }
 }

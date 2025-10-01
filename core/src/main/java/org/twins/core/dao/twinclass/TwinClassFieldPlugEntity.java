@@ -27,16 +27,14 @@ public class TwinClassFieldPlugEntity implements EasyLoggable {
     @Column(name = "twin_class_field_id")
     private UUID twinClassFieldId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "twin_class_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @Transient
     private TwinClassEntity twinClass;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "twin_class_field_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @Transient
     private TwinClassFieldEntity twinClassField;
 
     @Override

@@ -11,7 +11,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     UUID_UNKNOWN(10000, "uuid is unknown"),
     UUID_ALREADY_EXIST(10001, "uuid is already exist"),
     ENTITY_INVALID(10002, "entity invalid"),
-    ENTITY_ALREADY_EXIST(10003, "entity is already exist in db. Please check unique keys"),
+    ENTITY_ALREADY_EXIST(10003, "entity is already exist in db. please check unique keys"),
     UUID_NOT_BE_NULLIFY_MARKER(10004, "uuid not be ffffffff-ffff-ffff-ffff-ffffffffffff"),
     UUID_IS_NULL(10005, "uuid is null"),
     CONFIGURATION_IS_INVALID(10006, "some part of domain config is invalid"),

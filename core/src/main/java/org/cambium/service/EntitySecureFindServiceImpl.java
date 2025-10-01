@@ -246,14 +246,8 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     }
 
     public Iterable<T> saveSafe(Collection<T> entities) throws ServiceException {
-        List<T> entitiesToSave = new ArrayList<>();
-
-        for (T entity : entities) {
-            validateEntityAndThrow(entity, EntitySmartService.EntityValidateMode.beforeSave);
-            entitiesToSave.add(entity);
-        }
-
-        return entitySmartService.saveAllAndLog(entitiesToSave, entityRepository());
+        validateEntitiesAndThrow(entities, EntitySmartService.EntityValidateMode.beforeSave);
+        return entitySmartService.saveAllAndLog(entities, entityRepository());
     }
 
     public T updateSafe(T entity, ChangesHelper changesHelper) throws ServiceException {
@@ -294,8 +288,25 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         return entity;
     }
 
+    public Collection<T> validateEntitiesAndThrow(Collection<T> entities, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entityValidateMode == EntitySmartService.EntityValidateMode.none) {
+            return entities;
+        }
+
+        if (!validateEntities(entities, entityValidateMode)) {
+            throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
+        }
+
+        return entities;
+    }
+
     @Override
     public abstract boolean validateEntity(T entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException;
+
+    // todo somehow force other devs to implement this method if they want to use validateEntitiesAndThrow
+    public boolean validateEntities(Collection<T> entities, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
+    }
 
     public boolean logErrorAndReturnFalse(String message) {
         log.error(message);
