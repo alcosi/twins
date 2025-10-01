@@ -114,9 +114,11 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     public void serializeValue(TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams(), new HashMap<>());
-        if (validate(twin, value).isValid()) {
-            serializeValue(properties, twin, value, twinChangesCollector);
+        if (!validate(twin, value).isValid()) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Can not serialize invalid value for " + value.getTwinClassField().logNormal());
         }
+        serializeValue(properties, twin, value, twinChangesCollector);
+
     }
 
     protected abstract void serializeValue(Properties properties, TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException;
