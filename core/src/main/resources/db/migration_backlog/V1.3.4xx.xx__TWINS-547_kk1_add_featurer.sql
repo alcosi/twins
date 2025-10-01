@@ -1,0 +1,2 @@
+UPDATE public.featurer SET class = 'org.twins.core.featurer.classfield.finder.FieldFinderByProjectionSrc'::varchar, name = 'Field finder by projection src'::varchar WHERE id = 3209::integer;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (3210::integer, 32::integer, 'org.twins.core.featurer.classfield.finder.FieldFinderByProjectionDst'::varchar, 'Field finder by projection dst'::varchar, null::varchar(255), false::boolean) on conflict do nothing;

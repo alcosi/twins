@@ -41,6 +41,8 @@ public class ProjectionDeleteController extends ApiController {
         Response rs = new Response();
         try {
             projectionService.deleteProjections(projectionDeleteRqDTOv1.getProjectionIds());
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
         } catch (Exception e) {
             return createErrorRs(e, rs);
         }

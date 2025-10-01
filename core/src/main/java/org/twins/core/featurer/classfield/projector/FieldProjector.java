@@ -13,6 +13,8 @@ import java.util.Properties;
         description = "Field projections")
 @Slf4j
 public abstract class FieldProjector extends FeaturerTwins {
+
+    //todo refactor
     public void project(HashMap<String, String> fieldProjectionParams) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, fieldProjectionParams, new HashMap<>());
         project(properties);
