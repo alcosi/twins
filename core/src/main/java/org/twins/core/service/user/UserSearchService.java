@@ -24,6 +24,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.domain.search.BasicSearchList;
 import org.twins.core.domain.search.UserSearch;
 import org.twins.core.enums.user.UserGroupType;
 import org.twins.core.featurer.user.finder.UserFinder;
@@ -179,6 +180,22 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
             Set narrowSet = functionPair.getKey().apply(narrowSearch);
             functionPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
         }
+
+        if (narrowSearch.getChildTwinSearches() != null) {
+            if (mainSearch.getChildTwinSearches() == null) {
+                mainSearch.setChildTwinSearches(narrowSearch.getChildTwinSearches());
+            } else {
+                BasicSearchList mainChild = mainSearch.getChildTwinSearches();
+                BasicSearchList narrowChild = narrowSearch.getChildTwinSearches();
+
+                if (mainChild.getSearches() != null && narrowChild.getSearches() != null) {
+                    mainChild.getSearches().retainAll(narrowChild.getSearches());
+                }
+
+                mainChild.setMatchAll(mainChild.isMatchAll() || narrowChild.isMatchAll());
+            }
+        }
+
     }
 
     private Specification<UserEntity> addSorting(UserSearch search, SimplePagination pagination, Specification<UserEntity> specification) throws ServiceException {
