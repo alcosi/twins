@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -43,6 +44,8 @@ public class ProjectionExclusionDeleteController extends ApiController {
         Response rs = new Response();
         try {
             projectionExclusionService.deleteProjectionExclusions(projectionExclusionDeleteRqDTOv1.getProjectionExclusionIds());
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
         } catch (Exception e) {
             return createErrorRs(e, rs);
         }

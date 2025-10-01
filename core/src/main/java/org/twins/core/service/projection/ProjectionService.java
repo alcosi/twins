@@ -148,7 +148,11 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
         }
     }
 
-    public void deleteProjections(Set<UUID> projectionIds) {
-        entityRepository().deleteAllById(projectionIds);
+    public void deleteProjections(Set<UUID> projectionIds) throws ServiceException {
+        deleteSafe(projectionIds);
+    }
+
+    public List<ProjectionEntity> findAll() {
+        return StreamSupport.stream(entityRepository().findAll().spliterator(), false).toList();
     }
 }

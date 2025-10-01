@@ -69,8 +69,8 @@ public class ProjectionExclusionService extends EntitySecureFindServiceImpl<Proj
         return StreamSupport.stream(entityRepository().saveAll(projectionExclusionEntities).spliterator(), false).toList();
     }
 
-    public void deleteProjectionExclusions(Set<UUID> projectionIds) {
-        entityRepository().deleteAllById(projectionIds);
+    public void deleteProjectionExclusions(Set<UUID> projectionIds) throws ServiceException {
+        deleteSafe(projectionIds);
     }
 
     public List<ProjectionExclusionEntity> findByClassFieldIdSet(Set<UUID> classFieldIdSet) {
