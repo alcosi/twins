@@ -100,8 +100,8 @@ public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClas
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinClassSearch.getNameI18nNotLikeList(), locale, true, true))
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinClassSearch.getDescriptionI18nLikeList(), locale, false, false))
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinClassSearch.getDescriptionI18nNotLikeList(), locale, true, true))
-                        .and(checkFieldLikeIn(twinClassSearch.getExternalIdLikeList(), false, false, TwinClassEntity.Fields.externalId))
-                        .and(checkFieldLikeIn(twinClassSearch.getExternalIdNotLikeList(), true, false, TwinClassEntity.Fields.externalId))
+                        .and(checkFieldLikeIn(twinClassSearch.getExternalIdLikeList(), false, true, TwinClassEntity.Fields.externalId))
+                        .and(checkFieldLikeIn(twinClassSearch.getExternalIdNotLikeList(), true, true, TwinClassEntity.Fields.externalId))
 
                         .and(checkHeadTwinClassChilds(headHierarchyChildrenForTwinClassSearch.getIdList(), false, false, headHierarchyChildrenForTwinClassSearch.getDepth()))
                         .and(checkHeadTwinClassChilds(headHierarchyChildrenForTwinClassSearch.getIdExcludeList(), true, true, headHierarchyChildrenForTwinClassSearch.getDepth()))
