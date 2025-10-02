@@ -94,7 +94,7 @@ public class TwinClassDependentFieldRestDTOMapperV1 extends RestSimpleDTOMapper<
      * are considered the same change descriptor.
      */
     private String buildRuleDescriptorHash(TwinClassFieldRuleEntity rule) {
-        return rule.getTargetElement() + "|" +
+        return rule.getTargetTwinClassFieldElementTypeId() + "|" +
                 Optional.ofNullable(rule.getTargetParamKey()).orElse("") + "|" +
                 Optional.ofNullable(rule.getDependentOverwrittenValue()).orElse("") + "|" +
                 Optional.ofNullable(rule.getDependentOverwrittenDatalistId()).map(UUID::toString).orElse("");

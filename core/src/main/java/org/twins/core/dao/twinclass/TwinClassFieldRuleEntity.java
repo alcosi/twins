@@ -44,11 +44,11 @@ public class TwinClassFieldRuleEntity implements EasyLoggable {
      * Part of the base field that should be compared – its stored value or one of its parameters.
      */
     @Enumerated(EnumType.STRING)
-    @Column(name = "target_element")
-    private TwinClassFieldConditionElementType targetElement;
+    @Column(name = "target_twin_class_field_element_type_id")
+    private TwinClassFieldConditionElementType targetTwinClassFieldElementTypeId;
 
     /**
-     * Parameter key that has to be checked when {@link #targetElement} is {@link TwinClassFieldConditionElementType#param}.
+     * Parameter key that has to be checked when {@link #targetTwinClassFieldElementTypeId} is {@link TwinClassFieldConditionElementType#param}.
      */
     @Column(name = "target_param_key")
     private String targetParamKey;
@@ -77,8 +77,8 @@ public class TwinClassFieldRuleEntity implements EasyLoggable {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "rule_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_class_field_rule_id", referencedColumnName = "id", insertable = false, updatable = false)
     private Set<TwinClassFieldConditionEntity> conditions;
 
     @Override

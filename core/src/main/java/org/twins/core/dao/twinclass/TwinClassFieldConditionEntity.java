@@ -38,7 +38,7 @@ public class TwinClassFieldConditionEntity implements EasyLoggable {
      * Parent rule
      */
     @Column(name = "twin_class_field_rule_id")
-    private UUID ruleId;
+    private UUID twinClassFieldRuleId;
 
     /**
      * Base field we compare against.
@@ -62,8 +62,8 @@ public class TwinClassFieldConditionEntity implements EasyLoggable {
      * Comparison operator
      */
     @Enumerated(EnumType.STRING)
-    @Column(name = "condition_operator")
-    private TwinClassFieldConditionOperator conditionOperator;
+    @Column(name = "twin_class_field_condition_operator_type_id")
+    private TwinClassFieldConditionOperator twinClassFieldConditionOperatorTypeId;
 
     @Column(name = "condition_evaluator_featurer_id")
     private Integer conditionEvaluatorFeaturerId;
@@ -73,18 +73,18 @@ public class TwinClassFieldConditionEntity implements EasyLoggable {
     private HashMap<String, String> conditionEvaluatorParams;
 
 
-    @EqualsAndHashCode.Exclude
+   /* @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "rule_id", insertable = false, updatable = false)
-    private TwinClassFieldRuleEntity rule;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "twin_class_field_rule_id", insertable = false, updatable = false)
+    private TwinClassFieldRuleEntity rule;*/
 
     @Override
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinClassFieldCondition[" + id + "]";
             default ->
-                    "twinClassFieldCondition[id:" + id + ", ruleId:" + ruleId + ", baseFieldId:" + baseTwinClassFieldId + "]";
+                    "twinClassFieldCondition[id:" + id + ", ruleId:" + twinClassFieldRuleId + ", baseFieldId:" + baseTwinClassFieldId + "]";
         };
     }
 }

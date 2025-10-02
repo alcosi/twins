@@ -27,7 +27,7 @@ public class TwinClassFieldRuleRestDTOMapper extends RestSimpleDTOMapper<TwinCla
         dst
                 .setId(src.getId())
                 .setDependentTwinClassFieldId(src.getDependentTwinClassFieldId())
-                .setTargetElement(src.getTargetElement())
+                .setTargetElement(src.getTargetTwinClassFieldElementTypeId())
                 .setTargetParamKey(src.getTargetParamKey())
                 .setDependentOverwrittenValue(src.getDependentOverwrittenValue())
                 .setDependentOverwrittenDatalistId(src.getDependentOverwrittenDatalistId())

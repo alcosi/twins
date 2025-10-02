@@ -13,14 +13,12 @@ public class TwinClassFieldConditionRestDTOReverseMapper extends RestSimpleDTOMa
         if (src == null || dst == null)
             return;
         dst
-                .setId(src.getId())
-                .setRuleId(src.getRuleId())
                 .setBaseTwinClassFieldId(src.getBaseTwinClassFieldId())
                 .setConditionOrder(src.getConditionOrder())
                 .setGroupNo(src.getGroupNo());
         if (src.getConditionOperator() != null)
-            dst.setConditionOperator(src.getConditionOperator());
-       dst.setConditionEvaluatorFeaturerId(src.getConditionEvaluatorFeaturerId());
-       dst.setConditionEvaluatorParams(src.getConditionEvaluatorParams());
+            dst.setTwinClassFieldConditionOperatorTypeId(src.getConditionOperator());
+        dst.setConditionEvaluatorFeaturerId(src.getConditionEvaluatorFeaturerId());
+        dst.setConditionEvaluatorParams(src.getConditionEvaluatorParams());
     }
 }

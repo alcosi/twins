@@ -33,18 +33,18 @@ public class TwinClassFieldConditionRestDTOMapper extends RestSimpleDTOMapper<Tw
             case SHORT -> {
                 // minimal representation
                 dst.setId(src.getId())
-                   .setRuleId(src.getRuleId());
+                   .setRuleId(src.getTwinClassFieldRuleId());
             }
             case DETAILED -> {
                 // full mapping
                 dst
                     .setId(src.getId())
-                    .setRuleId(src.getRuleId())
+                    .setRuleId(src.getTwinClassFieldRuleId())
                     .setBaseTwinClassFieldId(src.getBaseTwinClassFieldId())
                     .setConditionOrder(src.getConditionOrder())
                     .setGroupNo(src.getGroupNo());
-                if (src.getConditionOperator() != null)
-                    dst.setConditionOperator(src.getConditionOperator());
+                if (src.getTwinClassFieldConditionOperatorTypeId() != null)
+                    dst.setConditionOperator(src.getTwinClassFieldConditionOperatorTypeId());
 
                 if (src.getConditionEvaluatorFeaturerId() != null) {
                     ConditionEvaluator evaluator = featurerService.getFeaturer(src.getConditionEvaluatorFeaturerId(), ConditionEvaluator.class);

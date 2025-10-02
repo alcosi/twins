@@ -2,6 +2,7 @@ package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.twinclass.TwinClassFieldConditionElementType;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldRuleCreateDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -21,13 +22,14 @@ public class TwinClassFieldRuleCreateRestDTOReverseMapper extends RestSimpleDTOM
             return;
         // map simple scalar fields
         dst
-                .setId(src.getId())
                 .setDependentTwinClassFieldId(src.getDependentTwinClassFieldId())
-                .setTargetElement(src.getTargetElement())
-                .setTargetParamKey(src.getTargetParamKey())
+                .setTargetTwinClassFieldElementTypeId(src.getTargetElement())
                 .setDependentOverwrittenValue(src.getDependentOverwrittenValue())
                 .setDependentOverwrittenDatalistId(src.getDependentOverwrittenDatalistId())
                 .setRulePriority(src.getRulePriority());
+         if(src.getTargetElement().equals(TwinClassFieldConditionElementType.param)){
+             dst.setTargetParamKey(src.getTargetParamKey());
+         }
 
         // map conditions (if provided)
         if (src.getConditions() != null && !src.getConditions().isEmpty()) {

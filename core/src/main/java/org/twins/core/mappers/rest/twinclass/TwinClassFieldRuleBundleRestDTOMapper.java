@@ -93,7 +93,7 @@ public class TwinClassFieldRuleBundleRestDTOMapper extends RestSimpleDTOMapper<T
     }
 
     private String buildConditionKeyHash(TwinClassFieldConditionEntity cond) {
-        return cond.getBaseTwinClassFieldId() + "|" + cond.getConditionOperator() + "|" + cond.getConditionEvaluatorParams();
+        return cond.getBaseTwinClassFieldId() + "|" + cond.getTwinClassFieldConditionOperatorTypeId() + "|" + cond.getConditionEvaluatorParams();
     }
 
     @Override

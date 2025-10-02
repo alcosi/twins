@@ -12,8 +12,6 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "TwinClassFieldRuleCreateV1")
 public class TwinClassFieldRuleCreateDTOv1 {
-    @Schema(description = "id")
-    public UUID id;
 
     @Schema(description = "field whose value or parameter will be overwritten if the rule fires")
     public UUID dependentTwinClassFieldId;

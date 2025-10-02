@@ -21,7 +21,7 @@ public interface TwinClassFieldConditionRepository extends CrudRepository<TwinCl
             delete from twin_class_field_condition c
             using twin_class_field_rule r,
                  twin_class_field f
-            where c.rule_id = r.id
+            where c.twin_class_field_rule_id = r.id
               and r.dependent_twin_class_field_id = f.id
               and f.twin_class_id = :twinClassId
             """, nativeQuery = true)

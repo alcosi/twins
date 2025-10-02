@@ -3,6 +3,7 @@ package org.twins.core.service.twinclass;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.IteratorUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +13,8 @@ import org.twins.core.dao.twinclass.TwinClassFieldConditionRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleRepository;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldMode;
+
+import java.util.*;
 
 @Slf4j
 @Component
@@ -37,18 +40,19 @@ public class TwinClassFieldRuleService {
     public TwinClassFieldRuleEntity createRule(TwinClassFieldRuleEntity rule) throws Exception {
         if (rule == null)
             return null;
-
+        Set<TwinClassFieldConditionEntity> conditions = rule.getConditions();
+        rule.setConditions(null); // avoid FK constraint violation on initial save
         // Save rule entity first (to get id)
         rule = entitySmartService.save(rule, twinClassFieldRuleRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
         // Save conditions if present
-        if (CollectionUtils.isNotEmpty(rule.getConditions())) {
-            for (TwinClassFieldConditionEntity condition : rule.getConditions()) {
-                condition.setRuleId(rule.getId());
+        if (CollectionUtils.isNotEmpty(conditions)) {
+            for (TwinClassFieldConditionEntity condition : conditions) {
+                condition.setTwinClassFieldRuleId(rule.getId());
             }
-            var saved = twinClassFieldConditionRepository.saveAll(rule.getConditions());
+            var saved = twinClassFieldConditionRepository.saveAll(conditions);
             // ensure we have a consistent set instance
-            rule.setConditions(new java.util.HashSet<>(org.apache.commons.collections4.IteratorUtils.toList(saved.iterator())));
+            rule.setConditions(new java.util.HashSet<>(IteratorUtils.toList(saved.iterator())));
         }
         return rule;
     }
@@ -56,11 +60,11 @@ public class TwinClassFieldRuleService {
     /**
      * Bulk creation of multiple rules.
      */
-    @Transactional(rollbackFor = Throwable.class)
-    public java.util.List<TwinClassFieldRuleEntity> createRules(java.util.List<TwinClassFieldRuleEntity> rules) throws Exception {
+  //  @Transactional(rollbackFor = Throwable.class)
+    public List<TwinClassFieldRuleEntity> createRules(List<TwinClassFieldRuleEntity> rules) throws Exception {
         if (CollectionUtils.isEmpty(rules))
-            return java.util.Collections.emptyList();
-        java.util.List<TwinClassFieldRuleEntity> result = new java.util.ArrayList<>(rules.size());
+            return Collections.emptyList();
+        List<TwinClassFieldRuleEntity> result = new ArrayList<>(rules.size());
         for (TwinClassFieldRuleEntity rule : rules) {
             result.add(createRule(rule));
         }
@@ -71,18 +75,18 @@ public class TwinClassFieldRuleService {
     /**
      * Returns all rules (with eager-loaded conditions) for the specified Twin-Class.
      */
-    public java.util.List<TwinClassFieldRuleEntity> getRulesByTwinClass(java.util.UUID twinClassId) {
+    public List<TwinClassFieldRuleEntity> getRulesByTwinClass(UUID twinClassId) {
         if (twinClassId == null)
-            return java.util.Collections.emptyList();
+            return Collections.emptyList();
         return twinClassFieldRuleRepository.findByTwinClassId(twinClassId);
     }
 
     /**
      * Returns all rules (with eager-loaded conditions) that affect the specified Twin-Class field.
      */
-    public java.util.List<TwinClassFieldRuleEntity> loadRulesByTwinClassField(java.util.UUID twinClassFieldId) {
+    public List<TwinClassFieldRuleEntity> loadRulesByTwinClassField(UUID twinClassFieldId) {
         if (twinClassFieldId == null)
-            return java.util.Collections.emptyList();
+            return Collections.emptyList();
         return twinClassFieldRuleRepository.findByDependentTwinClassFieldId(twinClassFieldId);
     }
 
@@ -93,7 +97,7 @@ public class TwinClassFieldRuleService {
      * <p>Order is important: first conditions – because they reference the rules via FK, then rules themselves.</p>
      */
     @Transactional(rollbackFor = Throwable.class)
-    public void deleteRulesByTwinClass(java.util.UUID twinClassId) {
+    public void deleteRulesByTwinClass(UUID twinClassId) {
         if (twinClassId == null)
             return;
         twinClassFieldConditionRepository.deleteByTwinClassId(twinClassId);

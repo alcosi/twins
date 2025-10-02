@@ -12,11 +12,6 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "TwinClassFieldConditionCreateV1")
 public class TwinClassFieldConditionCreateDTOv1 {
-    @Schema(description = "id")
-    public UUID id;
-
-    @Schema(description = "rule id this condition belongs to")
-    public UUID ruleId;
 
     @Schema(description = "base (source) twin class field id")
     public UUID baseTwinClassFieldId;
