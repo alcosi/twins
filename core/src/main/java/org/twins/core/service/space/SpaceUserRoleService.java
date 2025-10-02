@@ -127,7 +127,7 @@ public class SpaceUserRoleService {
                 usersToAdd.add(userId);
             }
         }
-        if (CollectionUtils.isNotEmpty(spaceRoleUserEnterList)) {
+        if (CollectionUtils.isNotEmpty(spaceRoleUserExitList)) {
             for (UUID userId : spaceRoleUserExitList) {
                 if (!existingUserKit.containsKey(userId)) {
                     log.warn("user[{}] is not registered for role[{}] in space[{}]", userId, roleId, spaceId);
