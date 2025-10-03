@@ -880,7 +880,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 //        saveTwinFields(twinFieldEntityList, twinChangesHelper);
 //    }
 
-    public TwinEntity loadSpaceForTwin(TwinEntity twinEntity) {
+    public TwinEntity loadSpaceForTwin(TwinEntity twinEntity) throws ServiceException {
         if (twinEntity.getSpaceTwin() != null)
             return twinEntity.getSpaceTwin();
         loadHeadForTwin(twinEntity);
@@ -890,17 +890,54 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twinEntity.getSpaceTwin();
     }
 
-    public TwinEntity loadHeadForTwin(TwinEntity twinEntity) {
-        if (twinEntity.getHeadTwin() != null)
-            return twinEntity.getHeadTwin();
-        if (twinEntity.getHeadTwinId() == null)
-            return null;
-        TwinEntity headTwin = twinRepository.findById(twinEntity.getHeadTwinId()).get(); //fix
-        twinEntity.setHeadTwin(headTwin);
-        return headTwin;
+    public TwinEntity loadHeadForTwin(TwinEntity twinEntity) throws ServiceException {
+        loadHeadForTwin(Collections.singletonList(twinEntity));
+        return twinEntity.getHeadTwin();
     }
 
-    protected TwinEntity findSpaceForTwin(TwinEntity twinEntity, TwinEntity headTwin, int recursionDepth) {
+    public void loadHeadForTwin(Collection<TwinEntity> srcCollection) throws ServiceException {
+        KitGrouped<TwinEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinEntity::getId, TwinEntity::getHeadTwinId);
+        for (var twin : srcCollection) {
+            if (twin.getHeadTwin() != null || twin.getHeadTwinId() == null)
+                continue;
+            needLoad.add(twin);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        Kit<TwinEntity, UUID> heads = findEntitiesSafe(needLoad.getGroupedKeySet());
+        for (var twin : heads) {
+            twin.setHeadTwin(heads.get(twin.getHeadTwinId()));
+        }
+    }
+
+    public void loadSegments(TwinEntity twinEntity) {
+        loadSegments(Collections.singletonList(twinEntity));
+    }
+
+    public void loadSegments(Collection<TwinEntity> srcCollection) {
+        Kit<TwinEntity, UUID> needLoad = new Kit<>(TwinEntity::getId);
+        for (var twin : srcCollection) {
+            if (twin.getSegments() != null) {
+                continue;
+            } else if (Boolean.FALSE.equals(twin.getTwinClass().getHasSegment())) {
+                twin.setSegments(Kit.EMPTY);
+            }
+            needLoad.add(twin);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        KitGrouped<TwinEntity, UUID, UUID> segments = new KitGrouped<>(
+                twinRepository.findSegments(needLoad.getIdSet()), TwinEntity::getId, TwinEntity::getHeadTwinId);
+        for (var twin : needLoad) {
+            if (segments.containsGroupedKey(twin.getId())) {
+                twin.setSegments(new Kit<>(segments.getGrouped(twin.getId()), TwinEntity::getId));
+            } else {
+                twin.setSegments(Kit.EMPTY);
+            }
+        }
+    }
+
+    protected TwinEntity findSpaceForTwin(TwinEntity twinEntity, TwinEntity headTwin, int recursionDepth) throws ServiceException {
         if (headTwin == null)
             return null;
         else if (headTwin.getTwinClass().isSpace())

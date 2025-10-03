@@ -11,7 +11,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
-import org.twins.core.enums.action.TwinAction;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -24,6 +23,7 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinAttachmentsCount;
+import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.twin.TwinAliasType;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.SystemEntityService;
@@ -344,6 +344,10 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinAliasEntity, TwinAliasType> twinAliases;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinEntity, UUID> segments;
 
     @Transient
     @EqualsAndHashCode.Exclude

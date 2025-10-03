@@ -8,8 +8,8 @@ import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.domain.space.UserRefSpaceRole;
 import org.twins.core.dto.rest.space.UserWithinSpaceRolesRsDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.SpaceRoleMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
@@ -33,7 +33,7 @@ public class UserRefSpaceRoleDTOMapper extends RestSimpleDTOMapper<UserRefSpaceR
         if (mapperContext.hasModeButNot(SpaceRoleMode.HIDE))
             convertOrPostpone(new Kit<>(src.getRoles().stream().map(SpaceRoleUserEntity::getSpaceRole).toList(), SpaceRoleEntity::getId),
                     dst, spaceRoleDTOMapperV2,
-                    mapperContext.cloneWithIsolatedModes(),
+                    mapperContext.fork(),
                     UserWithinSpaceRolesRsDTOv1::setSpaceRoleList,
                     UserWithinSpaceRolesRsDTOv1::setSpaceRoleIdsList
             );

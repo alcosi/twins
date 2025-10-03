@@ -5,8 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
-import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.enums.twinclass.OwnerType;
 
 import java.util.Set;
 import java.util.UUID;
@@ -69,6 +69,12 @@ public class TwinClassSearchDTOv1 {
 
     @Schema(description = "twin class is abstract", example = DTOExamples.TERNARY)
     public Ternary abstractt;
+
+    @Schema(description = "twin class is a segment", example = DTOExamples.TERNARY)
+    public Ternary segment;
+
+    @Schema(description = "twin class has segments", example = DTOExamples.TERNARY)
+    public Ternary hasSegments;
 
     @Schema(description = "twin class has twinflow schema space", example = DTOExamples.TERNARY)
     public Ternary twinflowSchemaSpace;

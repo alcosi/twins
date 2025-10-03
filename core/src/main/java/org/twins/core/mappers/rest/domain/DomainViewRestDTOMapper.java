@@ -13,7 +13,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapper;
 import org.twins.core.mappers.rest.tier.TierRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinclass.TwinClassSchemaDTOMapper;
 import org.twins.core.service.domain.DomainService;
 
@@ -35,11 +35,14 @@ public class DomainViewRestDTOMapper extends RestSimpleDTOMapper<DomainEntity, D
     @MapperModePointerBinding(modes = {
             TwinMode.DomainBusinessAccountTemplate2TwinMode.class,
             TwinMode.DomainUserTemplate2TwinMode.class})
-    private final TwinRestDTOMapper twinRestDTOMapper;
+    private final TwinRestDTOMapperV2 twinRestDTOMapper;
+
     @MapperModePointerBinding(modes = PermissionSchemaMode.Domain2PermissionSchemaMode.class)
     private final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
+
     @MapperModePointerBinding(modes = TwinClassSchemaMode.Domain2TwinClassSchemaMode.class)
     private final TwinClassSchemaDTOMapper twinclassSchemaDTOMapper;
+
     @MapperModePointerBinding(modes = TierMode.Domain2TierMode.class)
     private final TierRestDTOMapper tierRestDTOMapper;
 

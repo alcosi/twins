@@ -22,12 +22,10 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinSearchByAliasRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRqDTOv1;
-import org.twins.core.dto.rest.twin.TwinSearchRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twin.TwinSearchByAliasDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinSearchExtendedDTOReverseMapper;
@@ -46,39 +44,10 @@ import java.util.UUID;
 public class TwinListController extends ApiController {
     private final TwinSearchService twinSearchService;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    private final TwinRestDTOMapper twinRestDTOMapper;
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     private final TwinSearchExtendedDTOReverseMapper twinSearchExtendedDTOReverseMapper;
     private final PaginationMapper paginationMapper;
     private final TwinSearchByAliasDTOReverseMapper twinSearchByAliasDTOReverseMapper;
-
-    @ParametersApiUserHeaders
-    @Operation(operationId = "twinSearchV1", summary = "Twins basic search")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Twin list", content = {
-                    @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinSearchRsDTOv1.class))}),
-            @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/twin/search/v1")
-    @Loggable(rsBodyThreshold = 2000)
-    public ResponseEntity<?> twinSearchV1(
-            @MapperContextBinding(roots = TwinRestDTOMapper.class, response = TwinSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @SimplePaginationParams(sortAsc = false, sortField = TwinEntity.Fields.createdAt) SimplePagination pagination,
-            @RequestBody TwinSearchRqDTOv1 request) {
-        TwinSearchRsDTOv1 rs = new TwinSearchRsDTOv1();
-        try {
-            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(twinSearchExtendedDTOReverseMapper.convert(request), pagination);
-            rs
-                    .setTwinList(twinRestDTOMapper.convertCollection(twins.getList(), mapperContext))
-                    .setPagination(paginationMapper.convert(twins))
-                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
-        } catch (ServiceException se) {
-            return createErrorRs(se, rs);
-        } catch (Exception e) {
-            return createErrorRs(e, rs);
-        }
-        return new ResponseEntity<>(rs, HttpStatus.OK);
-    }
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinSearchV2", summary = "Twins basic search")
