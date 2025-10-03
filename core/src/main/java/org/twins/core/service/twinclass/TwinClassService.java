@@ -415,6 +415,10 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             if (twinClass.getAssigneeRequired() == null) {
                 twinClass.setAssigneeRequired(false);
             }
+            if (twinClass.getSegment() == null) {
+                twinClass.setSegment(false);
+            }
+            twinClass.setHasSegment(false);
 
             validateEntityAndThrow(twinClass, EntitySmartService.EntityValidateMode.beforeSave);
             processIcons(twinClass, iconLight, iconDark);
@@ -868,7 +872,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         for (TwinClassEntity twinClass : twinClassCollection) {
             if (twinClass.getSegmentTwinsClassKit() != null) {
                 continue;
-            } else if (!twinClass.isHasSegment()) {
+            } else if (Boolean.FALSE.equals(twinClass.getHasSegment())) {
                 twinClass.setSegmentTwinsClassKit(Kit.EMPTY);
             } else {
                 needLoad.add(twinClass);

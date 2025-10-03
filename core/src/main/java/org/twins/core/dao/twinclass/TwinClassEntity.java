@@ -114,10 +114,10 @@ public class TwinClassEntity implements EasyLoggable {
     private UUID headTwinClassId;
 
     @Column(name = "segment")
-    private boolean segment;
+    private Boolean segment;
 
     @Column(name = "has_segments")
-    private boolean hasSegment;
+    private Boolean hasSegment;
 
     @Column(name = "extends_twin_class_id")
     private UUID extendsTwinClassId;

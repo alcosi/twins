@@ -19,7 +19,7 @@ import java.util.Properties;
         description = "")
 public class ClassFinderHasSegment extends ClassFinder {
 
-    @FeaturerParam(name = "Exclude has segment / include only has segment", description = "", optional = true, defaultValue = "true")
+    @FeaturerParam(name = "Exclude", description = "", optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean exclude = new FeaturerParamBoolean("exclude");
 
     @Override

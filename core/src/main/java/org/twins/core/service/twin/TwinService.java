@@ -919,7 +919,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (var twin : srcCollection) {
             if (twin.getSegments() != null) {
                 continue;
-            } else if (!twin.getTwinClass().isHasSegment()) {
+            } else if (Boolean.FALSE.equals(twin.getTwinClass().getHasSegment())) {
                 twin.setSegments(Kit.EMPTY);
             }
             needLoad.add(twin);
