@@ -18,7 +18,7 @@ import org.twins.core.service.resource.ResourceService;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = {TwinClassMode.class, ExternalJsonMode.ExternalJson2TwinClassMode.class})
+@MapperModeBinding(modes = {TwinClassMode.class, ExternalJsonMode.class})
 public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity, TwinClassBaseDTOv1> {
 
     private final I18nService i18nService;
@@ -68,7 +68,7 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setExternalId(src.getExternalId())
                         .setExternalProperties(src.getExternalProperties());
 
-                if (mapperContext.hasModeButNot(ExternalJsonMode.ExternalJson2TwinClassMode.HIDE))
+                if (mapperContext.hasModeButNot(ExternalJsonMode.HIDE))
                     dst.setExternalJson(src.getExternalJson());
 
                 break;
@@ -89,7 +89,7 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setExternalId(src.getExternalId())
                         .setExternalProperties(src.getExternalProperties());
 
-                if (mapperContext.hasModeButNot(ExternalJsonMode.ExternalJson2TwinClassMode.HIDE))
+                if (mapperContext.hasModeButNot(ExternalJsonMode.HIDE))
                     dst.setExternalJson(src.getExternalJson());
 
                 break;
