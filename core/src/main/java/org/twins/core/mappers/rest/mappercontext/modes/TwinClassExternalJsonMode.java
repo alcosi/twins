@@ -4,12 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldNameConstants;
 import org.twins.core.mappers.rest.mappercontext.MapperMode;
-import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 
 @Getter
 @AllArgsConstructor
 @FieldNameConstants(onlyExplicitlyIncluded = true)
-public enum ExternalJsonMode implements MapperMode {
+public enum TwinClassExternalJsonMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include SHOW(1);
 

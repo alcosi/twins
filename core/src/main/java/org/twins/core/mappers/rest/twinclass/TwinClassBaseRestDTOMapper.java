@@ -8,7 +8,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.ExternalJsonMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinClassExternalJsonMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
@@ -18,7 +18,7 @@ import org.twins.core.service.resource.ResourceService;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = {TwinClassMode.class, ExternalJsonMode.class})
+@MapperModeBinding(modes = {TwinClassMode.class, TwinClassExternalJsonMode.class})
 public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity, TwinClassBaseDTOv1> {
 
     private final I18nService i18nService;
@@ -31,8 +31,6 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
             log.warn("Show Mode [{}] is not allowed for current user", TwinClassMode.MANAGED);
             mapperContext.setMode(TwinClassMode.DETAILED);
         }
-        if (mapperContext.hasModeButNot(ExternalJsonMode.HIDE))
-            dst.setExternalJson(src.getExternalJson());
 
         switch (mapperContext.getModeOrUse(TwinClassMode.DETAILED)) {
             case MANAGED:
@@ -93,6 +91,8 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setKey(src.getKey());
                 break;
         }
+        if (mapperContext.hasModeButNot(TwinClassExternalJsonMode.HIDE))
+            dst.setExternalJson(src.getExternalJson());
     }
 
     @Override
