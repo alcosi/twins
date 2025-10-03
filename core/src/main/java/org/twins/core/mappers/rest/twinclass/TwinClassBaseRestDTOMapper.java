@@ -31,6 +31,8 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
             log.warn("Show Mode [{}] is not allowed for current user", TwinClassMode.MANAGED);
             mapperContext.setMode(TwinClassMode.DETAILED);
         }
+        if (mapperContext.hasModeButNot(ExternalJsonMode.HIDE))
+            dst.setExternalJson(src.getExternalJson());
 
         switch (mapperContext.getModeOrUse(TwinClassMode.DETAILED)) {
             case MANAGED:
@@ -67,10 +69,6 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setAssigneeRequired(src.getAssigneeRequired())
                         .setExternalId(src.getExternalId())
                         .setExternalProperties(src.getExternalProperties());
-
-                if (mapperContext.hasModeButNot(ExternalJsonMode.HIDE))
-                    dst.setExternalJson(src.getExternalJson());
-
                 break;
             case DETAILED:
                 dst
@@ -88,10 +86,6 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setExternalId(src.getExternalId())
                         .setExternalProperties(src.getExternalProperties());
-
-                if (mapperContext.hasModeButNot(ExternalJsonMode.HIDE))
-                    dst.setExternalJson(src.getExternalJson());
-
                 break;
             case SHORT:
                 dst

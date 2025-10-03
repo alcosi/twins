@@ -352,7 +352,7 @@ public class FeaturerService {
     }
 
     public HashMap<String, String> prepareForStore(Integer featurerId, HashMap<String, String> featurerParams) throws ServiceException {
-
+        if(null == featurerId) return null;
         Featurer featurer = featurerMap.get(featurerId);
         if (featurer == null)
             throw new ServiceException(ErrorCodeCommon.FEATURER_ID_UNKNOWN, "unknown featurer id[" + featurerId + "]");
