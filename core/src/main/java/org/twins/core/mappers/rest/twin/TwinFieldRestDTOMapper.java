@@ -6,9 +6,9 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.domain.TwinField;
 import org.twins.core.dto.rest.twin.TwinFieldDTOv1;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldMode;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.service.twin.TwinService;
 
@@ -30,6 +30,6 @@ public class TwinFieldRestDTOMapper extends RestSimpleDTOMapper<TwinField, TwinF
         dst.value(twinFieldValueRestDTOMapper.convert(fieldValue));
         if (mapperContext.hasModeButNot(TwinClassFieldMode.TwinField2TwinClassFieldMode.HIDE))
             dst
-                    .twinClassField(twinClassFieldRestDTOMapper.convert(src.getTwinClassField(), mapperContext.cloneWithIsolatedModes().setModeIfNotPresent(TwinClassFieldMode.TwinField2TwinClassFieldMode.SHORT)));
+                    .twinClassField(twinClassFieldRestDTOMapper.convert(src.getTwinClassField(), mapperContext.fork().setModeIfNotPresent(TwinClassFieldMode.TwinField2TwinClassFieldMode.SHORT)));
     }
 }

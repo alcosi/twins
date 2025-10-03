@@ -27,7 +27,7 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = {TwinActionMode.class})
+@MapperModeBinding(modes = {TwinActionMode.class, TwinSegmentMode.class})
 public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinBaseDTOv3> {
 
     private final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
@@ -100,6 +100,11 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             twinHeadService.loadCreatableChildTwinClasses(src);
             convertOrPostpone(src.getCreatableChildTwinClasses(), dst, twinClassRestDTOMapper, mapperContext.forkOnPoint(TwinClassMode.TwinCreatableChild2TwinClassMode.HIDE), TwinBaseDTOv3::setCreatableChildTwinClasses, TwinBaseDTOv3::setCreatableChildTwinClassIds);
         }
+        if (showSegments(mapperContext)) {
+            twinService.loadSegments(src);
+            dst.setSegmentTwinIdList(src.getSegments().getIdSet());
+            postpone(src.getSegments(), mapperContext.forkAndExclude(TwinSegmentMode.SHOW));
+        }
     }
 
     private static boolean showMarkers(MapperContext mapperContext) {
@@ -134,6 +139,10 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         return mapperContext.hasModeButNot(TwinAttachmentCountMode.HIDE);
     }
 
+    private static boolean showSegments(MapperContext mapperContext) {
+        return mapperContext.hasModeButNot(TwinSegmentMode.HIDE);
+    }
+
     @Override
     public void beforeCollectionConversion(Collection<TwinEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
@@ -154,6 +163,8 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             twinAttachmentsCounterRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
         if (showCreatableChildTwinClasses(mapperContext))
             twinHeadService.loadCreatableChildTwinClasses(srcCollection);
+        if (showSegments(mapperContext))
+            twinService.loadSegments(srcCollection);
     }
 
     @Override

@@ -18,7 +18,7 @@ import java.util.*;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@Featurer(id = FeaturerTwins.ID_3208,
+@Featurer(id = FeaturerTwins.ID_3209,
         name = "Field finder by id exclude projection",
         description = "")
 public class FieldFinderByIdExcludeProjection extends FieldFinder {

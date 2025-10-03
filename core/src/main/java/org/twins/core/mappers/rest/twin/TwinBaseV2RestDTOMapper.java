@@ -101,8 +101,9 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasModeButNot(TwinAliasMode.HIDE))
             twinAliasService.loadAliases(srcCollection);
-
-        //todo load heads for collection
+        if (mapperContext.hasModeButNot(RelationTwinMode.TwinByHeadMode.WHITE)) {
+            twinService.loadHeadForTwin(srcCollection);
+        }
     }
 
     @Override

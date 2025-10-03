@@ -37,6 +37,9 @@ public abstract class TwinClassFieldSaveRqDTOv1 extends Request {
     @Schema(description = "Required field", example = "true")
     public Boolean required;
 
+    @Schema(description = "System field", example = "true")
+    public Boolean system;
+
     @Schema(description = "external id", example = "")
     public String externalId;
 

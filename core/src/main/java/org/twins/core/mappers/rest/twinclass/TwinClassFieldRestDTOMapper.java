@@ -77,6 +77,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setBeValidationErrorI18nId(src.getBeValidationErrorI18nId())
                         .setBeValidationError(src.getBeValidationErrorI18nId() != null ? i18nService.translateToLocale(src.getBeValidationErrorI18nId()) : "")
                         .setExternalId(src.getExternalId())
+                        .setSystem(src.isSystem())
                         .setExternalProperties(src.getExternalProperties());
                 if (mapperContext.hasModeButNot(FeaturerMode.TwinClassField2FeaturerMode.HIDE)) {
                     dst.setFieldTyperFeaturerId(src.getFieldTyperFeaturerId());
@@ -102,6 +103,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setDescriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext))
                         .setFeValidationError(src.getFeValidationErrorI18nId() != null ? i18nService.translateToLocale(src.getFeValidationErrorI18nId()) : "")
                         .setExternalId(src.getExternalId())
+                        .setSystem(src.isSystem())
                         .setExternalProperties(src.getExternalProperties());
                 break;
             case SHORT:

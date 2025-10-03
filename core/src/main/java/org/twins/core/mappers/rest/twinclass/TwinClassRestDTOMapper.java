@@ -2,7 +2,6 @@ package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.kit.Kit;
-import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListEntity;
@@ -40,7 +39,8 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     @MapperModePointerBinding(modes = {
             TwinClassMode.class,
             TwinClassMode.TwinClassHead2TwinClassMode.class,
-            TwinClassMode.TwinClassExtends2TwinClassMode.class
+            TwinClassMode.TwinClassExtends2TwinClassMode.class,
+            TwinClassSegmentMode.class
     })
     private final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
 
@@ -76,8 +76,6 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     private final TwinStatusService twinStatusService;
     private final LinkService linkService;
     private final DataListService dataListService;
-    private final FeaturerService featurerService;
-
 
     @Override
     public void map(TwinClassEntity src, TwinClassDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -170,6 +168,11 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             faceRestDTOMapper.postpone(src.getPageFace(), mapperContext.forkOnPoint(FaceMode.TwinClassPage2FaceMode.SHORT));
             dst.setPageFaceId(src.getPageFaceId());
         }
+        if (mapperContext.hasModeButNot(TwinClassSegmentMode.HIDE)) {
+            twinClassService.loadSegments(src);
+            dst.setSegmentClassIds(src.getSegmentTwinsClassKit().getIdSet());
+            postpone(src.getSegmentTwinsClassKit(), mapperContext.forkAndExclude(TwinClassSegmentMode.SHOW));
+        }
     }
 
     @Override
@@ -195,6 +198,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         }
         if (mapperContext.hasModeButNot(FeaturerMode.TwinClass2FeaturerMode.HIDE)) {
             twinClassService.loadHeadHunter(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(TwinClassSegmentMode.HIDE)) {
+            twinClassService.loadSegments(srcCollection);
         }
     }
 
