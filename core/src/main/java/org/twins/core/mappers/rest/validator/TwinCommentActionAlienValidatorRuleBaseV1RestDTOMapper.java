@@ -51,9 +51,11 @@ public class TwinCommentActionAlienValidatorRuleBaseV1RestDTOMapper extends Rest
                     .setTwinValidatorSet(twinValidatorSetBaseV1RestDTOMapper.convert(
                             twinValidatorSetService.loadTwinValidatorSet(src), mapperContext.forkOnPoint(TwinValidatorMode.TwinCommentActionAlienValidatorRule2TwinValidatorMode.SHORT)))
                     .setTwinValidatorSetId(src.getTwinValidatorSetId());
-        if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinCommentActionAlienValidatorRule2TwinValidatorSetMode.HIDE))
-            dst
-                    .setTwinValidators(twinValidatorBaseV1RestDTOMapper.convertCollection(src.getTwinValidators(), mapperContext.forkOnPoint(TwinValidatorMode.TwinCommentActionAlienValidatorRule2TwinValidatorMode.SHORT)));
+        if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinCommentActionAlienValidatorRule2TwinValidatorSetMode.HIDE)) {
+            twinValidatorSetService.loadTwinValidatorSet(src);
+            dst.setTwinValidators(twinValidatorBaseV1RestDTOMapper.convertCollection(
+                            src.getTwinValidatorKit().getList(), mapperContext.forkOnPoint(TwinValidatorMode.TwinCommentActionAlienValidatorRule2TwinValidatorMode.SHORT)));
+        }
     }
 
     @Override

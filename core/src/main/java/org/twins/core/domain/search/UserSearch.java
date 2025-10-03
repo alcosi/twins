@@ -7,7 +7,7 @@ import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.user.UserSearchEntity;
-import org.twins.core.dao.user.UserStatus;
+import org.twins.core.enums.user.UserStatus;
 
 import java.util.List;
 import java.util.Set;
@@ -25,6 +25,10 @@ public class UserSearch {
     private Set<String> userNameLikeExcludeList;
     private Set<String> userEmailLikeList;
     private Set<String> userEmailLikeExcludeList;
+    private Set<String> userNameOrEmailLikeList;
+    private Set<String> userNameOrEmailExcludeList;
+    private Set<UUID> userGroupIdList;
+    private Set<UUID> userGroupIdExcludeList;
     private Set<UserStatus> statusIdList;
     private Set<UserStatus> statusIdExcludeList;
     private List<SpaceSearch> spaceList;
@@ -47,6 +51,11 @@ public class UserSearch {
             Pair.of(UserSearch::getUserNameLikeExcludeList, UserSearch::setUserNameLikeExcludeList),
             Pair.of(UserSearch::getUserEmailLikeList, UserSearch::setUserEmailLikeList),
             Pair.of(UserSearch::getUserEmailLikeExcludeList, UserSearch::setUserEmailLikeExcludeList),
+            Pair.of(UserSearch::getUserNameOrEmailLikeList, UserSearch::setUserNameOrEmailLikeList),
+            Pair.of(UserSearch::getUserNameOrEmailExcludeList, UserSearch::setUserNameOrEmailExcludeList),
+            Pair.of(UserSearch::getUserNameOrEmailExcludeList, UserSearch::setUserNameOrEmailExcludeList),
+            Pair.of(UserSearch::getUserGroupIdList, UserSearch::setUserGroupIdList),
+            Pair.of(UserSearch::getUserGroupIdExcludeList, UserSearch::setUserGroupIdExcludeList),
             Pair.of(UserSearch::getStatusIdList, UserSearch::setStatusIdList),
             Pair.of(UserSearch::getStatusIdExcludeList, UserSearch::setStatusIdExcludeList)
     );

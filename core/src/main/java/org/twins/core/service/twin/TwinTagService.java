@@ -9,6 +9,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.enums.EntityRelinkOperationStrategy;
 import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -218,7 +219,7 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
                     .setTagDataListId(newTagsDataList.getId());
             return;
         }
-        if (entityRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict
+        if (entityRelinkOperation.getStrategy() == EntityRelinkOperationStrategy.restrict
                 && MapUtils.isEmpty(entityRelinkOperation.getReplaceMap()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide tagsReplaceMap for tags: " + org.cambium.common.util.StringUtils.join(existedTwinTagIds));
 
@@ -229,7 +230,7 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
                 continue;
             UUID replacement = entityRelinkOperation.getReplaceMap().get(tagForReplace);
             if (replacement == null) {
-                if (entityRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict)
+                if (entityRelinkOperation.getStrategy() == EntityRelinkOperationStrategy.restrict)
                     throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide tagsReplaceMap value for tag: " + tagForReplace);
                 else
                     replacement = UuidUtils.NULLIFY_MARKER;

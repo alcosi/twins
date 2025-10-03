@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -45,6 +46,12 @@ public class TwinClassFieldDTOv1 {
     @Schema(description = "field typer params", example = "")
     public Map<String, String> fieldTyperParams;
 
+    @Schema(description = "twin sorter featurer id", example = "")
+    public Integer twinSorterFeaturerId;
+
+    @Schema(description = "twin sorter params", example = "")
+    public Map<String, String> twinSorterParams;
+
     @Schema(description = "view permission id", example = "")
     public UUID viewPermissionId;
 
@@ -53,5 +60,23 @@ public class TwinClassFieldDTOv1 {
 
     @Schema(description = "external id", example = "")
     public String externalId;
+
+    @Schema(description = "external properties")
+    public Map<String, String> externalProperties;
+
+    @Schema(description = "frontend validation error", example = "")
+    public String feValidationError;
+
+    @Schema(description = "backend validation error", example = "")
+    public String beValidationError;
+
+    @Schema(description = "frontend validation error i18n id", example = "")
+    public UUID feValidationErrorI18nId;
+
+    @Schema(description = "backend validation error i18n id", example = "")
+    public UUID beValidationErrorI18nId;
+
+    @Schema(description = "rules bundles associated with this field")
+    public List<TwinClassDependentFieldBundleDTOv1> conditionBundles;
 
 }

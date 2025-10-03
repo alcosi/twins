@@ -2,7 +2,7 @@ package org.twins.core.mappers.rest;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.twins.core.domain.LongRange;
+import org.cambium.common.math.LongRange;
 import org.twins.core.dto.rest.LongRangeDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 

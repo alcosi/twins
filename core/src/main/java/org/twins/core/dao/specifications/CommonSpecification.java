@@ -16,7 +16,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.DataTimeRange;
-import org.twins.core.domain.LongRange;
+import org.cambium.common.math.LongRange;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
 
 import java.sql.Timestamp;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 import static org.cambium.common.util.ArrayUtils.concatArray;
 import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
-import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
+import static org.twins.core.enums.twinclass.OwnerType.*;
 
 @Slf4j
 public class CommonSpecification<T> extends AbstractSpecification<T> {

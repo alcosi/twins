@@ -1,16 +1,12 @@
 package org.twins.core.mappers.rest.domain;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dto.rest.domain.DomainSaveDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.i18n.I18nService;
-
-import java.util.UUID;
-
 
 @Component
 @RequiredArgsConstructor

@@ -3,8 +3,8 @@ package org.twins.core.dto.rest.datalist;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.enums.datalist.DataListStatus;
 
 import java.util.Map;
 import java.util.UUID;
@@ -23,7 +23,7 @@ public class DataListOptionDTOv1 {
     public String icon;
 
     @Schema(description = "status", example = DTOExamples.DATA_LIST_OPTION_STATUS)
-    public DataListOptionEntity.Status status;
+    public DataListStatus status;
 
     @Schema(description = "map attributes (key : value)")
     public Map<String, String> attributes;
@@ -36,4 +36,10 @@ public class DataListOptionDTOv1 {
 
     @Schema(description = "external id [optional]")
     public String externalId;
+
+    @Schema(description = "datalist id", example = DTOExamples.DATA_LIST_ID)
+    public UUID dataListId;
+
+    @Schema(description = "business account id", example = DTOExamples.BUSINESS_ACCOUNT_ID)
+    public UUID businessAccountId;
 }

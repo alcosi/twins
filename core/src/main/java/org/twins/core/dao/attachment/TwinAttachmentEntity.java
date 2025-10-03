@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
+import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.comment.TwinCommentEntity;
@@ -16,7 +17,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.file.DomainFile;
+import org.twins.core.enums.attachment.TwinAttachmentAction;
 
 import java.sql.Timestamp;
 import java.util.Set;
@@ -114,7 +115,7 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private DomainFile attachmentFile;
+    private FileData attachmentFile;
 
     @Transient
     @EqualsAndHashCode.Exclude

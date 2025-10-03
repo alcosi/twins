@@ -1,6 +1,7 @@
 package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -41,7 +42,7 @@ public class TwinValidatorTwinHasLinkAndDstTwinHasStatus extends TwinValidator {
     protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
         UUID linkIdUUID = linkId.extract(properties);
         Set<UUID> statusIds = twinStatusIds.extract(properties);
-        boolean isValid = twinLinkService.hasLink(twinEntity, linkIdUUID) && twinLinkService.dstTwinStatusIdIn(linkIdUUID, statusIds);
+        boolean isValid = twinLinkService.hasLink(twinEntity, linkIdUUID) && twinLinkService.isLinkDstTwinStatusIn(twinEntity, linkIdUUID, statusIds);
 
         return buildResult(
                 isValid,

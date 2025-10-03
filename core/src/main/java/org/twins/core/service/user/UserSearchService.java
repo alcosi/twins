@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
@@ -23,7 +24,9 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.domain.search.BasicSearchList;
 import org.twins.core.domain.search.UserSearch;
+import org.twins.core.enums.user.UserGroupType;
 import org.twins.core.featurer.user.finder.UserFinder;
 import org.twins.core.featurer.user.sorter.UserSorter;
 import org.twins.core.service.SystemEntityService;
@@ -47,6 +50,7 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
     private final UserSearchPredicateRepository userSearchPredicateRepository;
     private final FeaturerService featurerService;
     private final UserSearchRepository userSearchRepository;
+    private final UserGroupRepository userGroupRepository;
 
     @Override
     public CrudRepository<UserSearchEntity, UUID> entityRepository() {
@@ -61,7 +65,7 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
     @Override
     public boolean isEntityReadDenied(UserSearchEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if (!entity.getDomainId().equals(authService.getApiUser().getDomainId())) {
+        if (entity.getDomainId() != null && !entity.getDomainId().equals(authService.getApiUser().getDomainId())) {
             EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allows in domain[" + apiUser.getDomainId() + "]");
             return true;
         }
@@ -90,9 +94,7 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
     }
 
     public PaginationResult<UserEntity> findUsers(UserSearch search, SimplePagination pagination) throws ServiceException {
-        UUID domainId = authService.getApiUser().getDomainId();
-        UUID businessAccountId = authService.getApiUser().getBusinessAccountId();
-        Specification<UserEntity> userSpec = createUserSpecification(search, domainId, businessAccountId);
+        Specification<UserEntity> userSpec = createUserSpecification(search);
 
         if (search.getChildTwinSearches() != null && CollectionUtils.isNotEmpty(search.getChildTwinSearches().getSearches())) {
             Specification<UserEntity> twinSpec = search.getChildTwinSearches().getSearches().stream()
@@ -146,15 +148,22 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
         };
     }
 
-    public Specification<UserEntity> createUserSpecification(UserSearch search, UUID domainId, UUID businessAccountId) throws ServiceException {
+    public Specification<UserEntity> createUserSpecification(UserSearch search) throws ServiceException {
+        UUID domainId = authService.getApiUser().getDomainId();
+        UUID businessAccountId = authService.getApiUser().getBusinessAccountId();
         return Specification.allOf(
                 checkUserDomain(domainId),
+                checkBusinessAccountId(businessAccountId),
                 checkUuidIn(search.getUserIdList(), false, false, UserEntity.Fields.id),
                 checkUuidIn(search.getUserIdExcludeList(), true, false, UserEntity.Fields.id),
                 checkFieldLikeIn(search.getUserNameLikeList(), false, true, UserEntity.Fields.name),
                 checkFieldLikeIn(search.getUserNameLikeExcludeList(), true, false, UserEntity.Fields.name),
                 checkFieldLikeIn(search.getUserEmailLikeList(), false, true, UserEntity.Fields.email),
                 checkFieldLikeIn(search.getUserEmailLikeExcludeList(), true, false, UserEntity.Fields.email),
+                checkFieldNameOrEmailLikeIn(search.getUserNameOrEmailLikeList(), false, true),
+                checkFieldNameOrEmailLikeIn(search.getUserNameOrEmailExcludeList(), true, false),
+                checkUserGroupType(search.getUserGroupIdList(), false, true, businessAccountId, domainId),
+                checkUserGroupType(search.getUserGroupIdExcludeList(), true, false, businessAccountId, domainId),
                 checkStatusLikeIn(search.getStatusIdList(), false),
                 checkStatusLikeIn(search.getStatusIdExcludeList(), true),
                 checkSpaceRoleLikeIn(search.getSpaceList(), domainId, businessAccountId, false),
@@ -171,6 +180,22 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
             Set narrowSet = functionPair.getKey().apply(narrowSearch);
             functionPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
         }
+
+        if (narrowSearch.getChildTwinSearches() != null) {
+            if (mainSearch.getChildTwinSearches() == null) {
+                mainSearch.setChildTwinSearches(narrowSearch.getChildTwinSearches());
+            } else {
+                BasicSearchList mainChild = mainSearch.getChildTwinSearches();
+                BasicSearchList narrowChild = narrowSearch.getChildTwinSearches();
+
+                if (mainChild.getSearches() != null && narrowChild.getSearches() != null) {
+                    mainChild.getSearches().retainAll(narrowChild.getSearches());
+                }
+
+                mainChild.setMatchAll(mainChild.isMatchAll() || narrowChild.isMatchAll());
+            }
+        }
+
     }
 
     private Specification<UserEntity> addSorting(UserSearch search, SimplePagination pagination, Specification<UserEntity> specification) throws ServiceException {
@@ -186,5 +211,19 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
             }
         }
         return specification;
+    }
+
+    public Specification<UserEntity> checkUserGroupType(final Collection<UUID> userGroupIds, final boolean exclude, final boolean or, UUID businessAccountId, UUID domainId) throws ServiceException {
+        KitGrouped<UserGroupEntity, UUID, String> userGroupEntities = new KitGrouped<>(userGroupRepository.findByIdIn(userGroupIds), UserGroupEntity::getId, UserGroupEntity::getUserGroupTypeId);
+        for (Map.Entry<String, List<UserGroupEntity>> entry : userGroupEntities.getGroupedMap().entrySet()) {
+            if (entry.getKey().equals(UserGroupType.domainScopeDomainManage.name())) {
+                return UserSpecification.checkUserGroupMapType1IdIn(userGroupIds, exclude, or);
+            } else if (entry.getKey().equals(UserGroupType.domainScopeBusinessAccountManage.name())) {
+                return UserSpecification.checkUserGroupMapType2IdIn(userGroupIds, businessAccountId , exclude, or);
+            } else {
+                return UserSpecification.checkUserGroupMapType3IdIn(userGroupIds, domainId, exclude, or);
+            }
+        }
+        return null;
     }
 }

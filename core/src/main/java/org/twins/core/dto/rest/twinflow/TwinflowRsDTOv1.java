@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Schema(name = "TwinflowRsV1")
 public class TwinflowRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "results - twin class")
-    public TwinflowBaseDTOv2 twinflow;
+    public TwinflowBaseDTOv1 twinflow;
 }

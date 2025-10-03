@@ -18,5 +18,5 @@ public class TwinClassFieldSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - twin class field list")
-    public List<TwinClassFieldDTOv2> fields;
+    public List<TwinClassFieldDTOv1> fields;
 }

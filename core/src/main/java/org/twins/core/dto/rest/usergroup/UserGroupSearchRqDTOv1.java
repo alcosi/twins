@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.user.UserGroupTypeEntity;
+import org.twins.core.enums.user.UserGroupType;
 import org.twins.core.dto.rest.Request;
 
 import java.util.Set;
@@ -34,8 +34,8 @@ public class UserGroupSearchRqDTOv1 extends Request {
     public Set<String> descriptionI18NNotLikeList;
 
     @Schema(description = "type list")
-    public Set<UserGroupTypeEntity.UserGroupType> typeList;
+    public Set<UserGroupType> typeList;
 
     @Schema(description = "type exclude list")
-    public Set<UserGroupTypeEntity.UserGroupType> typeExcludeList;
+    public Set<UserGroupType> typeExcludeList;
 }

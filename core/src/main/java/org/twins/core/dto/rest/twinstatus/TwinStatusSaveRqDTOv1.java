@@ -25,9 +25,6 @@ public class TwinStatusSaveRqDTOv1 extends Request {
     @Schema(description = "[optional] description")
     public I18nSaveDTOv1 descriptionI18n;
 
-    @Schema(description = "[optional] url for status UI logo", example = "https://twins.org/img/twin_status_default.png")
-    public String logo;
-
     @Schema(description = "[optional] background color hex", example = DTOExamples.COLOR_HEX)
     public String backgroundColor;
 
