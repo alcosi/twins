@@ -18,10 +18,10 @@ public class TwinClassSaveDTOv1 {
     @Schema(description = "unique key within the domain", example = DTOExamples.TWIN_CLASS_KEY)
     public String key;
 
-    @Schema(description = "name", example = DTOExamples.TWIN_CLASS_NAME)
+    @Schema(description = "name")
     public I18nSaveDTOv1 nameI18n;
 
-    @Schema(description = "[optional] description", example = DTOExamples.TWIN_CLASS_DESCRIPTION)
+    @Schema(description = "[optional] description")
     public I18nSaveDTOv1 descriptionI18n;
 
     @Schema(description = "[optional] an id of head hunter featurer. The field has a sense only if headTwinClassId filled", example = "")
@@ -68,4 +68,7 @@ public class TwinClassSaveDTOv1 {
 
     @Schema(description = "[optional] external properties")
     public Map<String, String> externalProperties;
+
+    @Schema(description = "[optional] External JSON data", example = "{\"key1\": \"value1\", \"key2\": 123}")
+    public Map<String, Object> externalJson;
 }

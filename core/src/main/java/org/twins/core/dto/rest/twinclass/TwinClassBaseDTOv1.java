@@ -112,4 +112,7 @@ public class TwinClassBaseDTOv1 {
 
     @Schema(description = "external properties")
     public Map<String, String> externalProperties;
+
+    @Schema(description = "External JSON data")
+    public Map<String, Object> externalJson;
 }
