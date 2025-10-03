@@ -1,4 +1,4 @@
-package org.twins.core.featurer.conditionevaluator;
+package org.twins.core.featurer.fieldrule.conditionevaluator;
 
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -8,7 +8,7 @@ import org.cambium.featurer.params.FeaturerParamStringTwinConditionElementType;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.conditionevaluator.conditiondescriptor.ConditionDescriptorBasic;
+import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptorBasic;
 
 import java.util.Properties;
 

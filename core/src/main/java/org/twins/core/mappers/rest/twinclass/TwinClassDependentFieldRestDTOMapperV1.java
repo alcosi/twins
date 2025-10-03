@@ -96,7 +96,6 @@ public class TwinClassDependentFieldRestDTOMapperV1 extends RestSimpleDTOMapper<
     private String buildRuleDescriptorHash(TwinClassFieldRuleEntity rule) {
         return rule.getTargetTwinClassFieldElementTypeId() + "|" +
                 Optional.ofNullable(rule.getTargetParamKey()).orElse("") + "|" +
-                Optional.ofNullable(rule.getDependentOverwrittenValue()).orElse("") + "|" +
-                Optional.ofNullable(rule.getDependentOverwrittenDatalistId()).map(UUID::toString).orElse("");
+                Optional.ofNullable(rule.getDependentOverwrittenValue()).orElse("");
     }
 }

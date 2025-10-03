@@ -6,8 +6,8 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionDescriptorBasicDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionDescriptorDTO;
-import org.twins.core.featurer.conditionevaluator.conditiondescriptor.ConditionDescriptor;
-import org.twins.core.featurer.conditionevaluator.conditiondescriptor.ConditionDescriptorBasic;
+import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptor;
+import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptorBasic;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 

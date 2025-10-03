@@ -1,23 +1,24 @@
-package org.twins.core.featurer.conditionevaluator;
+package org.twins.core.featurer.fieldrule.fieldoverwriter;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
-import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.conditionevaluator.conditiondescriptor.ConditionDescriptor;
+import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptor;
+import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 
 import java.lang.reflect.Type;
 import java.util.*;
 
-@FeaturerType(id = FeaturerTwins.TYPE_45,
-        name = "ConditionEvaluator",
-        description = "Evaluates conditions on twin class fields")
+@FeaturerType(id = FeaturerTwins.TYPE_46,
+        name = "FieldOverwriter",
+        description = "Overwrites value or params of twin class field after rules application")
 @Slf4j
-public abstract class ConditionEvaluator<D extends ConditionDescriptor> extends FeaturerTwins {
+public abstract class FieldOverwriter <D extends FieldDescriptor> extends FeaturerTwins{
     private Class<D> descriptorType = null;
 
-   public ConditionEvaluator() {
+    public FieldOverwriter() {
         // Collect all parameterized types up the inheritance chain to detect concrete descriptor class
         List<Type> collected = collectParameterizedTypes(getClass(), new ArrayList<>());
         for (Type ptType : collected) {
@@ -28,12 +29,9 @@ public abstract class ConditionEvaluator<D extends ConditionDescriptor> extends 
                 descriptorType = (Class<D>) cl;
         }
         if (descriptorType == null)
-            throw new RuntimeException("Can not initialize ConditionEvaluator: descriptor type not resolved for " + getClass().getSimpleName());
+            throw new RuntimeException("Can not initialize FieldOverwriter: descriptor type not resolved for " + getClass().getSimpleName());
     }
 
-    public Class<D> getDescriptorType() {
-        return descriptorType;
-    }
 
     private static List<Type> collectParameterizedTypes(Class<?> _class, List<Type> collected) {
         Type t = _class.getGenericSuperclass();
@@ -45,11 +43,11 @@ public abstract class ConditionEvaluator<D extends ConditionDescriptor> extends 
         return collectParameterizedTypes(_class.getSuperclass(), collected);
     }
 
-    public D getConditionDescriptor(TwinClassFieldConditionEntity twinClassFieldConditionEntity) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, twinClassFieldConditionEntity.getConditionEvaluatorParams(), new HashMap<>());
-        return getConditionDescriptor(twinClassFieldConditionEntity, properties);
+    public D getFieldOverwriterDescriptor(TwinClassFieldRuleEntity twinClassFieldRuleEntity) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, twinClassFieldRuleEntity.getFieldOverwriterParams(), new HashMap<>());
+        return getFieldOverwriterDescriptor(twinClassFieldRuleEntity, properties);
     }
 
-    protected abstract D getConditionDescriptor(TwinClassFieldConditionEntity twinClassFieldConditionEntity, Properties properties) throws ServiceException;
+    protected abstract D getFieldOverwriterDescriptor(TwinClassFieldRuleEntity twinClassFieldRuleEntity, Properties properties) throws ServiceException;
 
 }

@@ -1,5 +1,6 @@
 package org.twins.core.dao.twinclass;
 
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -7,7 +8,9 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.Type;
 
+import java.util.HashMap;
 import java.util.Set;
 import java.util.UUID;
 
@@ -60,8 +63,8 @@ public class TwinClassFieldRuleEntity implements EasyLoggable {
     @Column(name = "dependent_overwritten_value")
     private String dependentOverwrittenValue;
 
-    @Column(name = "dependent_overwritten_datalist_id")
-    private UUID dependentOverwrittenDatalistId;
+    @Column(name = "required", nullable = false)
+    private Boolean required; //not a primitive type because the update logic will break
 
     /**
      * Priority of the rule – lower value means the rule will be evaluated earlier.
@@ -74,6 +77,14 @@ public class TwinClassFieldRuleEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dependent_twin_class_field_id", insertable = false, updatable = false)
     private TwinClassFieldEntity dependentTwinClassField;
+
+    @Column(name = "field_overwriter_featurer_id")
+    private Integer fieldOverwriterFeaturerId;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "field_overwriter_params", columnDefinition = "hstore")
+    private HashMap<String, String> fieldOverwriterParams;
+
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

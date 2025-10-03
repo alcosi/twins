@@ -25,10 +25,12 @@ public class TwinClassFieldRuleCreateRestDTOReverseMapper extends RestSimpleDTOM
                 .setDependentTwinClassFieldId(src.getDependentTwinClassFieldId())
                 .setTargetTwinClassFieldElementTypeId(src.getTargetElement())
                 .setDependentOverwrittenValue(src.getDependentOverwrittenValue())
-                .setDependentOverwrittenDatalistId(src.getDependentOverwrittenDatalistId())
+                .setRequired(src.getRequired())
                 .setRulePriority(src.getRulePriority());
          if(src.getTargetElement().equals(TwinClassFieldConditionElementType.param)){
              dst.setTargetParamKey(src.getTargetParamKey());
+             dst.setFieldOverwriterFeaturerId(src.getFieldOverwriterFeaturerId());
+             dst.setFieldOverwriterParams(src.getFieldOverwriterParams());
          }
 
         // map conditions (if provided)

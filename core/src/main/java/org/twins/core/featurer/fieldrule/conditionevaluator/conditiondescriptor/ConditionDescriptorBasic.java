@@ -1,4 +1,4 @@
-package org.twins.core.featurer.conditionevaluator.conditiondescriptor;
+package org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

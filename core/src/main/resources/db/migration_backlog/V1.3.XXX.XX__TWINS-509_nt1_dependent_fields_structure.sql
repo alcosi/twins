@@ -28,7 +28,9 @@ CREATE TABLE IF NOT EXISTS twin_class_field_rule (
     on update cascade on delete restrict,
     target_param_key VARCHAR NULL,
     dependent_overwritten_value VARCHAR NULL,
-    dependent_overwritten_datalist_id UUID NULL REFERENCES data_list(id) ON DELETE SET NULL,
+    required BOOLEAN NULL,
+    field_overwriter_featurer_id int NULL REFERENCES featurer(id) ON DELETE SET NULL,
+    field_overwriter_params hstore NULL
     rule_priority INT NULL);
 
 CREATE TABLE IF NOT EXISTS twin_class_field_condition (
@@ -45,31 +47,6 @@ CREATE TABLE IF NOT EXISTS twin_class_field_condition (
     condition_evaluator_params hstore NULL);
 
 
-/* 1. Rules that work with a PARAM → target_param_key participates
-       in the uniqueness check                                     */
-CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS
-    ux_twin_class_field_rule_param
-    ON  twin_class_field_rule (
-    dependent_twin_class_field_id,
-    target_twin_class_field_element_type_id,
-    target_param_key,
-    dependent_overwritten_value,
-    dependent_overwritten_datalist_id
-    )
-    WHERE target_twin_class_field_element_type_id = 'param';
-
-
-/* 2. Rules that work with VALUE / other element types → target_param_key
-       is ignored (can stay NULL or anything)                            */
-CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS
-    ux_twin_class_field_rule_nonparam
-    ON  twin_class_field_rule (
-    dependent_twin_class_field_id,
-    target_twin_class_field_element_type_id,
-    dependent_overwritten_value,
-    dependent_overwritten_datalist_id
-    )
-    WHERE target_twin_class_field_element_type_id <> 'param';
 INSERT INTO i18n (id,"name","key",i18n_type_id,domain_id) VALUES
                                                                      ('abc12875-47a3-4e5b-a6ec-8c6e2a06f6f0'::uuid,'Twin class field rule manage',NULL,'permissionName',NULL),
                                                                      ('abc12875-9dbf-4c07-a871-f5c57df87f69'::uuid,'Twin class field rule manage',NULL,'permissionDescription',NULL),
@@ -106,4 +83,18 @@ VALUES (45, 'ConditionEvaluator', '')
 on conflict (id) do nothing;
 
 INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
- VALUES (4501, 45, 'org.twins.core.featurer.conditionevaluator.ConditionEvaluatorBasic', '', 'Condition Evaluator Basic', false) on conflict do nothing;
+ VALUES (4501, 45, 'org.twins.core.featurer.fieldrule.conditionevaluator.ConditionEvaluatorBasic', '', 'Condition Evaluator Basic', false) on conflict do nothing;
+
+
+INSERT INTO featurer_type (id, name, description)
+VALUES (46, 'FieldOverwriter', '')
+    on conflict (id) do nothing;
+
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
+VALUES (4601, 46, 'org.twins.core.featurer.fieldrule.fieldoverwriter.FieldOverwriterNumeric', '', 'FieldOverwriterNumeric', false) on conflict do nothing;
+
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
+VALUES (4602, 46, 'org.twins.core.featurer.fieldrule.fieldoverwriter.FieldOverwriterSelect', '', 'FieldOverwriterSelect', false) on conflict do nothing;
+
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
+VALUES (4603, 46, 'org.twins.core.featurer.fieldrule.fieldoverwriter.FieldOverwriterText', '', 'FieldOverwriterText', false) on conflict do nothing;
