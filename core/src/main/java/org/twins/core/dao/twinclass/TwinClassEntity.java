@@ -1,6 +1,7 @@
 package org.twins.core.dao.twinclass;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -175,6 +176,10 @@ public class TwinClassEntity implements EasyLoggable {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "external_properties", columnDefinition = "hstore")
     private Map<String, String> externalProperties;
+
+    @Type(JsonType.class)
+    @Column(name = "external_json", columnDefinition = "jsonb")
+    private Map<String, Object> externalJson;
 
 //    @ManyToOne
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)

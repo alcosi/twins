@@ -8,8 +8,8 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.ExternalJsonMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
-import org.twins.core.service.face.FaceService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
@@ -18,12 +18,11 @@ import org.twins.core.service.resource.ResourceService;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = TwinClassMode.class)
+@MapperModeBinding(modes = {TwinClassMode.class, ExternalJsonMode.ExternalJson2TwinClassMode.class})
 public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity, TwinClassBaseDTOv1> {
 
     private final I18nService i18nService;
     private final PermissionService permissionService;
-    private final FaceService faceService;
     private final ResourceService resourceService;
 
     @Override
@@ -68,6 +67,10 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setAssigneeRequired(src.getAssigneeRequired())
                         .setExternalId(src.getExternalId())
                         .setExternalProperties(src.getExternalProperties());
+
+                if (mapperContext.hasModeButNot(ExternalJsonMode.ExternalJson2TwinClassMode.HIDE))
+                    dst.setExternalJson(src.getExternalJson());
+
                 break;
             case DETAILED:
                 dst
@@ -85,6 +88,10 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setExternalId(src.getExternalId())
                         .setExternalProperties(src.getExternalProperties());
+
+                if (mapperContext.hasModeButNot(ExternalJsonMode.ExternalJson2TwinClassMode.HIDE))
+                    dst.setExternalJson(src.getExternalJson());
+
                 break;
             case SHORT:
                 dst
