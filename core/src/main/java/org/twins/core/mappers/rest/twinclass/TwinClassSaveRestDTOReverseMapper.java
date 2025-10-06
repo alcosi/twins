@@ -36,6 +36,7 @@ public class TwinClassSaveRestDTOReverseMapper extends RestSimpleDTOMapper<TwinC
                         .setDeletePermissionId(src.getDeletePermissionId())
                         .setOwnerType(src.getOwnerType())
                         .setAssigneeRequired(src.getAssigneeRequired())
+                        .setSegment(src.getSegment())
                         .setExternalId(src.getExternalId())
                         .setExternalProperties(src.getExternalProperties())
                         .setExternalJson(src.getExternalJson())

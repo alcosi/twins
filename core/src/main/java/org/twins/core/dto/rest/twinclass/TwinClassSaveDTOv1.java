@@ -3,9 +3,9 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
+import org.twins.core.enums.twinclass.OwnerType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -62,6 +62,9 @@ public class TwinClassSaveDTOv1 {
 
     @Schema(description = "[optional] is assignee required")
     public Boolean assigneeRequired;
+
+    @Schema(description = "[optional] is segment")
+    public Boolean segment;
 
     @Schema(description = "[optional] external id")
     public String externalId;
