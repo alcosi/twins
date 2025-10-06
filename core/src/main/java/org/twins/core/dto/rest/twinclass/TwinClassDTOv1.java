@@ -8,12 +8,10 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.link.LinkDTOv1;
-import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -23,18 +21,6 @@ import java.util.UUID;
 public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
     @Schema(description = "Class fields list")
     public List<TwinClassFieldDTOv1> fields;
-
-    @Schema(description = "Class fields id list")
-    public Set<UUID> fieldIds;
-
-    @Schema(description = "List of status id." + DTOExamples.LAZY_RELATION_MODE_OFF)
-    public List<UUID> statusList;
-
-    @Schema(description = "List of marker id." + DTOExamples.LAZY_RELATION_MODE_OFF)
-    public List<UUID> markerList;
-
-    @Schema(description = "List of tag id." + DTOExamples.LAZY_RELATION_MODE_OFF)
-    public List<UUID> tagList;
 
     @Schema()
     public Map<UUID, LinkDTOv1> forwardLinkMap;
@@ -56,18 +42,6 @@ public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
 
     @Schema(description = "extends class")
     public TwinClassBaseDTOv1 extendsClass;
-
-    @Schema(description = "view permission")
-    public PermissionDTOv1 viewPermission;
-
-    @Schema(description = "create permission")
-    public PermissionDTOv1 createPermission;
-
-    @Schema(description = "edit permission")
-    public PermissionDTOv1 editPermission;
-
-    @Schema(description = "delete permission")
-    public PermissionDTOv1 deletePermission;
 
     @Schema(description = "head hunter featurer")
     public FeaturerDTOv1 headHunterFeaturer;
