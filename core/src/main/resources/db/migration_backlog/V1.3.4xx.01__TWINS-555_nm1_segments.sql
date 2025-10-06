@@ -17,26 +17,26 @@ create index if not exists twin_class_has_segments_index
 create index if not exists twin_class_field_system_index
     on twin_class_field (system);
 
-CREATE OR REPLACE FUNCTION twin_class_has_segments_check(old twin_class) returns void
+CREATE OR REPLACE FUNCTION twin_class_has_segments_check(item twin_class) returns void
     LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF old.head_twin_class_id IS NOT NULL THEN
+    IF item.head_twin_class_id IS NOT NULL THEN
         UPDATE twin_class
         SET has_segments = (
             SELECT EXISTS (
                 SELECT 1
                 FROM twin_class child
-                WHERE child.head_twin_class_id = old.head_twin_class_id
+                WHERE child.head_twin_class_id = item.head_twin_class_id
                   AND child.segment = TRUE
             )
         )
-        WHERE id = old.head_twin_class_id;
+        WHERE id = item.head_twin_class_id;
     END IF;
 END;
 $$;
 
-create or replace function public.twin_class_after_delete_wrapper() returns trigger
+create or replace function twin_class_after_delete_wrapper() returns trigger
     language plpgsql
 as
 $$
@@ -48,7 +48,7 @@ begin
 end;
 $$;
 
-create or replace function public.twin_class_after_insert_wrapper() returns trigger
+create or replace function twin_class_after_insert_wrapper() returns trigger
     language plpgsql
 as
 $$
@@ -60,7 +60,7 @@ begin
 end;
 $$;
 
-create or replace function public.twin_class_after_update_wrapper() returns trigger
+create or replace function twin_class_after_update_wrapper() returns trigger
     language plpgsql
 as
 $$
