@@ -34,7 +34,7 @@ import java.util.Properties;
         name = "Text",
         description = "")
 public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, FieldValueText, TwinFieldSearchText> {
-    @FeaturerParam(name = "Regexp", description = "", order = 1)
+    @FeaturerParam(name = "Regexp", description = "", optional = true, defaultValue = "(?s).*", order = 1)
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
     @FeaturerParam(name = "EditorType", description = "", order = 2, optional = true, defaultValue = "PLAIN")
     public static final FeaturerParamStringTwinsEditorType editorType = new FeaturerParamStringTwinsEditorType("editorType");
