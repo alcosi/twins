@@ -17,21 +17,21 @@ create index if not exists twin_class_has_segments_index
 create index if not exists twin_class_field_system_index
     on twin_class_field (system);
 
-CREATE OR REPLACE FUNCTION twin_class_has_segments_check(item twin_class) returns void
+CREATE OR REPLACE FUNCTION twin_class_has_segments_check(head_id uuid) returns void
     LANGUAGE plpgsql
 AS $$
 BEGIN
-    IF item.head_twin_class_id IS NOT NULL THEN
+    IF head_id IS NOT NULL THEN
         UPDATE twin_class
         SET has_segments = (
             SELECT EXISTS (
                 SELECT 1
                 FROM twin_class child
-                WHERE child.head_twin_class_id = item.head_twin_class_id
+                WHERE child.head_twin_class_id = head_id
                   AND child.segment = TRUE
             )
         )
-        WHERE id = item.head_twin_class_id;
+        WHERE id = head_id;
     END IF;
 END;
 $$;
@@ -43,7 +43,7 @@ $$
 begin
     -- Remove i18n and translations for deleted twin_class
     perform twin_class_on_delete_i18n_and_translations_delete(old);
-    perform twin_class_has_segments_check(old);
+    perform twin_class_has_segments_check(old.head_twin_class_id);
     return old;
 end;
 $$;
@@ -55,7 +55,7 @@ $$
 begin
     -- Call tree update on insert when extends_twin_class_id is set
     perform hierarchy_twin_class_extends_process_tree_update(old, new, TG_OP);
-    perform twin_class_has_segments_check(new);
+    perform twin_class_has_segments_check(new.head_twin_class_id);
     return new;
 end;
 $$;
@@ -75,13 +75,13 @@ begin
     -- Update tree and has_segments if head_twin_class_id changed
     if new.head_twin_class_id is distinct from old.head_twin_class_id then
         perform hierarchy_twin_class_head_process_tree_update(old, new, TG_OP);
-        perform twin_class_has_segments_check(old);
-        perform twin_class_has_segments_check(new);
+        perform twin_class_has_segments_check(old.head_twin_class_id);
+        perform twin_class_has_segments_check(new.head_twin_class_id);
     end if;
 
     -- Update has_segments if segment changed
     if new.segment is distinct from old.segment then
-        perform twin_class_has_segments_check(new);
+        perform twin_class_has_segments_check(new.head_twin_class_id);
     end if;
 
     -- Recalculate hierarchy if schema space fields changed
