@@ -60,6 +60,9 @@ public class TwinClassFieldDTOv1 {
     @Schema(description = "external id", example = "")
     public String externalId;
 
+    @Schema(description = "external id", example = "")
+    public Boolean system;
+
     @Schema(description = "external properties")
     public Map<String, String> externalProperties;
 

@@ -22,7 +22,6 @@ import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionCheckOverviewRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionCheckOverviewRsDTOv1;
-import org.twins.core.dto.rest.twin.TwinSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionCheckOverviewDTOMapper;
 import org.twins.core.service.permission.PermissionService;
@@ -45,7 +44,7 @@ public class TwinPermissionCheckOverviewController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin list", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinSearchRsDTOv1.class))}),
+                    @Schema(implementation = PermissionCheckOverviewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/{twinId}/permisson_check_overview/v1")
     @Loggable(rsBodyThreshold = 2000)

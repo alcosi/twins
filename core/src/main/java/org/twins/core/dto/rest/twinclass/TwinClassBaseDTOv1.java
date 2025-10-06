@@ -4,12 +4,13 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.enums.twinclass.OwnerType;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -115,4 +116,16 @@ public class TwinClassBaseDTOv1 {
 
     @Schema(description = "External JSON data")
     public Map<String, Object> externalJson;
+
+    @Schema(description = "segment class id")
+    public Set<UUID> segmentClassIds;
+
+    @Schema(description = "Class fields id list")
+    public Set<UUID> fieldIds;
+
+    @Schema(description = "List of status id." + DTOExamples.LAZY_RELATION_MODE_OFF)
+    public Set<UUID> statusList;
+
+    @Schema(description = "List of marker id." + DTOExamples.LAZY_RELATION_MODE_OFF)
+    public Set<UUID> markerList;
 }

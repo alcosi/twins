@@ -367,15 +367,24 @@ public class MapperContext {
         return mapperContext;
     }
 
-    public MapperContext cloneWithIsolatedModes() {
+    public MapperContext fork() {
         MapperContext mapperContext = cloneIgnoreRelatedObjects();
         linkToRelatedObjects(this, mapperContext);
         return mapperContext;
     }
 
+    public MapperContext forkAndExclude(MapperMode... excludeModes) {
+        MapperContext fork = fork();
+        if (excludeModes != null) {
+            for (MapperMode mapperMode : excludeModes) {
+                fork.removeMode(mapperMode);
+            }
+        }
+        return fork;
+    }
+
     public MapperContext forkOnPoint(MapperModePointer<?>... mapperModePointers) {
-        MapperContext fork = null;
-        fork = cloneWithIsolatedModes();
+        MapperContext fork = fork();
         for (MapperModePointer<?> mapperModePointer : mapperModePointers) {
             MapperModePointer<?> configuredPointer = getModeOrUse(mapperModePointer);
             MapperMode pointedMode = configuredPointer.point();
@@ -427,8 +436,8 @@ public class MapperContext {
         dstMapperContext.relatedAttachmentRestrictionMap = srcMapperContext.relatedAttachmentRestrictionMap;
     }
 
-    public MapperContext cloneWithIsolatedModes(MapperModeCollection mapperModeCollection) {
-        MapperContext cloneMapperContext = cloneWithIsolatedModes();
+    public MapperContext fork(MapperModeCollection mapperModeCollection) {
+        MapperContext cloneMapperContext = fork();
         mapperModeCollection = getModeOrUse(mapperModeCollection);
         cloneMapperContext.setModes(mapperModeCollection.getConfiguredModes());
         return cloneMapperContext;
