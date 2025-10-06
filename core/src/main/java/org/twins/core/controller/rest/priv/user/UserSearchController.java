@@ -61,7 +61,7 @@ public class UserSearchController extends ApiController {
     @PostMapping(value = "/private/user/search/v1")
     public ResponseEntity<?> userSearchV1(
             @MapperContextBinding(roots = UserRestDTOMapper.class, response = UserSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @SimplePaginationParams SimplePagination pagination,
+            @SimplePaginationParams(sortField = UserEntity.Fields.createdAt) SimplePagination pagination,
             @RequestBody UserSearchRqDTOv1 request) {
         UserSearchRsDTOv1 rs = new UserSearchRsDTOv1();
         try {
@@ -89,7 +89,7 @@ public class UserSearchController extends ApiController {
     @PostMapping(value = "/private/user/search/{searchId}/v1")
     public ResponseEntity<?> userSearchConfiguredV1(
             @MapperContextBinding(roots = UserRestDTOMapper.class, response = UserSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @SimplePaginationParams SimplePagination pagination,
+            @SimplePaginationParams(sortField = UserEntity.Fields.createdAt) SimplePagination pagination,
             @Parameter(example = DTOExamples.SEARCH_ID) @PathVariable UUID searchId,
             @RequestBody UserSearchConfiguredRqDTOv1 request) {
         UserSearchRsDTOv1 rs = new UserSearchRsDTOv1();
