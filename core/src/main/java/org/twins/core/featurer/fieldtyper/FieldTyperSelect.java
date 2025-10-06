@@ -26,13 +26,13 @@ import java.util.UUID;
         description = "")
 @Slf4j
 public class FieldTyperSelect extends FieldTyperList {
-    @FeaturerParam(name = "Multiple", description = "If true, then multiple select available", order = 2)
+    @FeaturerParam(name = "Multiple", description = "If true, then multiple select available", order = 1)
     public static final FeaturerParamBoolean multiple = new FeaturerParamBoolean("multiple");
 
-    @FeaturerParam(name = "Support custom", description = "If true, then user can enter custom value", order = 3)
+    @FeaturerParam(name = "Support custom", description = "If true, then user can enter custom value", order = 2)
     public static final FeaturerParamBoolean supportCustom = new FeaturerParamBoolean("supportCustom");
 
-    @FeaturerParam(name = "Long list threshold", description = "If options count is bigger then given threshold longList type will be used", order = 4)
+    @FeaturerParam(name = "Long list threshold", description = "If options count is bigger then given threshold longList type will be used", order = 3)
     public static final FeaturerParamInt longListThreshold = new FeaturerParamInt("longListThreshold");
 
     @Override
