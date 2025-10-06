@@ -134,7 +134,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         if (StringUtils.isEmpty(attributeKey))
             return null; //no attribute configured
         if (MapUtils.isEmpty(optionAttributes) || !optionAttributes.containsKey(attributeKey))
-            throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_INVALID_ATTRIBUTE, "Incorrect data list option attribute[" + attributeKey + "]");
+            throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_INVALID_ATTRIBUTE, "Incorrect data list option attribute, expected [" + attributeKey + "] not found");
         return optionAttributes.get(attributeKey);
     }
 
