@@ -22,6 +22,7 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.user.UserSearchConfiguredDTOv1;
 import org.twins.core.dto.rest.user.UserSearchConfiguredRqDTOv1;
 import org.twins.core.dto.rest.user.UserSearchRqDTOv1;
 import org.twins.core.dto.rest.user.UserSearchRsDTOv1;
@@ -93,7 +94,13 @@ public class UserSearchController extends ApiController {
             @RequestBody UserSearchConfiguredRqDTOv1 request) {
         UserSearchRsDTOv1 rs = new UserSearchRsDTOv1();
         try {
-            PaginationResult<UserEntity> users = userSearchService.findUsers(searchId, userSearchConfiguredDTOReverseMapper.convert(request.getSearch()), request.getSearch().getParams(), pagination);
+            UserSearchConfiguredDTOv1 search = request.getSearch();
+            PaginationResult<UserEntity> users = userSearchService.findUsers(
+                    searchId,
+                    userSearchConfiguredDTOReverseMapper.convert(search),
+                    search != null ? search.getParams() : null,
+                    pagination
+            );
             rs
                     .setUsers(userRestDTOMapper.convertCollection(users.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(users))
