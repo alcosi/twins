@@ -1,11 +1,9 @@
 package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.kit.Kit;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListEntity;
-import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
@@ -27,7 +25,6 @@ import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -101,9 +98,8 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             };
             List<TwinClassFieldEntity> collect = fieldsStream.toList();
 
-            dst
-                    .setFieldIds(collect.stream().map(TwinClassFieldEntity::getId).collect(Collectors.toSet()))
-                    .setFields(twinClassFieldRestDTOMapper.convertCollectionPostpone(collect, mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassFieldMode.TwinClass2TwinClassFieldMode.HIDE)))); //todo only required
+            dst.setFieldIds(collect.stream().map(TwinClassFieldEntity::getId).collect(Collectors.toSet()));
+            twinClassFieldRestDTOMapper.postpone(collect, mapperContext.forkOnPoint(TwinClassFieldMode.TwinClass2TwinClassFieldMode.HIDE)); //todo only required
         }
         if (mapperContext.hasModeButNot(LinkMode.TwinClass2LinkMode.HIDE)) {
             //todo think over beforeCollectionConversion optimization
@@ -113,15 +109,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                     .setBackwardLinkMap(linkBackwardRestDTOMapper.convertMap(findTwinClassLinksResult.getBackwardLinks(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(LinkMode.TwinClass2LinkMode.SHORT))));
         }
         if (mapperContext.hasModeButNot(StatusMode.TwinClass2StatusMode.HIDE)) {
-            Kit<TwinStatusEntity, UUID> statusKit = twinStatusService.loadStatusesForTwinClasses(src);
-            if (statusKit != null) {
-                MapperContext statusMapperContext = mapperContext.forkOnPoint(mapperContext.getModeOrUse(StatusMode.TwinClass2StatusMode.SHORT));
-                if (mapperContext.isLazyRelations())
-                    dst.setStatusMap(twinStatusRestDTOMapper.convertMap(statusKit.getMap(), statusMapperContext));
-                else {
-                    dst.setStatusList(statusMapperContext.addRelatedObjectMap(statusKit.getMap()));
-                }
-            }
+            twinStatusService.loadStatusesForTwinClasses(src);
+            dst.setStatusList(src.getTwinStatusKit().getIdSet());
+            twinStatusRestDTOMapper.postpone(src.getTwinStatusKit(), mapperContext.forkOnPoint(StatusMode.TwinClass2StatusMode.SHORT));
         }
         if (mapperContext.hasModeButNot(DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE) && src.getMarkerDataListId() != null) {
             twinClassService.loadMarkerDataList(src);
@@ -152,9 +142,8 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         }
         if (mapperContext.hasModeButNot(TwinClassMode.TwinClassHead2TwinClassMode.HIDE) && src.getHeadTwinClassId() != null) {
             twinClassService.loadHeadTwinClass(src);
-            dst
-                    .setHeadClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getHeadTwinClass(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.TwinClassHead2TwinClassMode.SHORT))))
-                    .setHeadClassId(src.getHeadTwinClassId());
+            dst.setHeadClassId(src.getHeadTwinClassId());
+            twinClassBaseRestDTOMapper.postpone(src.getHeadTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinClassHead2TwinClassMode.SHORT));
         }
         if (mapperContext.hasModeButNot(TwinClassMode.TwinClassExtends2TwinClassMode.HIDE) && src.getExtendsTwinClassId() != null) {
             twinClassService.loadExtendsTwinClass(src);
@@ -166,14 +155,14 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                 (src.getViewPermissionId() != null || src.getCreatePermissionId() != null || src.getEditPermissionId() != null || src.getDeletePermissionId() != null)) {
             twinClassService.loadPermissions(src);
             dst
-                    .setViewPermission(permissionRestDTOMapper.convertOrPostpone(src.getViewPermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.TwinClass2PermissionMode.SHORT))))
-                    .setCreatePermission(permissionRestDTOMapper.convertOrPostpone(src.getCreatePermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.TwinClass2PermissionMode.SHORT))))
-                    .setEditPermission(permissionRestDTOMapper.convertOrPostpone(src.getEditPermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.TwinClass2PermissionMode.SHORT))))
-                    .setDeletePermission(permissionRestDTOMapper.convertOrPostpone(src.getDeletePermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.TwinClass2PermissionMode.SHORT))))
                     .setViewPermissionId(src.getViewPermissionId())
                     .setCreatePermissionId(src.getCreatePermissionId())
                     .setEditPermissionId(src.getEditPermissionId())
                     .setDeletePermissionId(src.getDeletePermissionId());
+            permissionRestDTOMapper.postpone(src.getViewPermission(), mapperContext.forkOnPoint(PermissionMode.TwinClass2PermissionMode.SHORT));
+            permissionRestDTOMapper.postpone(src.getCreatePermission(), mapperContext.forkOnPoint(PermissionMode.TwinClass2PermissionMode.SHORT));
+            permissionRestDTOMapper.postpone(src.getEditPermission(), mapperContext.forkOnPoint(PermissionMode.TwinClass2PermissionMode.SHORT));
+            permissionRestDTOMapper.postpone(src.getDeletePermission(), mapperContext.forkOnPoint(PermissionMode.TwinClass2PermissionMode.SHORT));
         }
         if (mapperContext.hasModeButNot(FeaturerMode.TwinClass2FeaturerMode.HIDE)) {
             twinClassService.loadHeadHunter(src);

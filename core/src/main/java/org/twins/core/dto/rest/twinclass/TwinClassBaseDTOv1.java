@@ -119,4 +119,13 @@ public class TwinClassBaseDTOv1 {
 
     @Schema(description = "segment class id")
     public Set<UUID> segmentClassIds;
+
+    @Schema(description = "Class fields id list")
+    public Set<UUID> fieldIds;
+
+    @Schema(description = "List of status id." + DTOExamples.LAZY_RELATION_MODE_OFF)
+    public Set<UUID> statusList;
+
+    @Schema(description = "List of marker id." + DTOExamples.LAZY_RELATION_MODE_OFF)
+    public Set<UUID> markerList;
 }
