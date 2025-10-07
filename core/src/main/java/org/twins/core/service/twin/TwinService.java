@@ -72,7 +72,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.twins.core.featurer.fieldtyper.FieldTyperList.LIST_SPLITTER;
-import static org.twins.core.service.SystemEntityService.TWIN_CLASS_AVAILABILITY_INIT;
+import static org.twins.core.service.SystemEntityService.TWIN_CLASS_AVAILABILITY_SPIRIT;
 import static org.twins.core.service.SystemEntityService.TWIN_STATUS_SPIRIT;
 
 //Log calls that took more then 2 seconds
@@ -1417,7 +1417,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public UUID checkTwinStatus(TwinEntity src) throws ServiceException {
-        if(!src.getTwinClass().getTwinClassAvailabilityId().equals(TWIN_CLASS_AVAILABILITY_INIT))
+        if(!src.getTwinClass().getTwinClassAvailabilityId().equals(TWIN_CLASS_AVAILABILITY_SPIRIT))
             return src.getTwinStatusId();
         src.setTwinStatusId(TWIN_STATUS_SPIRIT); // todo wtf???
         src.setTwinStatus(twinStatusService.findEntitySafe(TWIN_STATUS_SPIRIT));

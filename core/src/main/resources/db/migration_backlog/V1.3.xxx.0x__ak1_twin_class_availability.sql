@@ -1,6 +1,6 @@
 INSERT INTO public.i18n_type (id, name) VALUES ('twinClassAvailabilityName'::varchar, 'Twin class availability name'::varchar(255)) on conflict (id) do nothing;
 INSERT INTO public.i18n_type (id, name) VALUES ('twinClassAvailabilityDescription'::varchar, 'Twin class availability description'::varchar(255)) on conflict (id) do nothing;
-INSERT INTO public.twin_class_availability (id, key, name_i18n_id, description_i18n_id) VALUES ('00000000-0000-0000-0015-000000000001', 'INIT', null, null) on conflict (id) do nothing;
+INSERT INTO public.twin_class_availability (id, key, name_i18n_id, description_i18n_id) VALUES ('00000000-0000-0000-0015-000000000001', 'SPIRIT', null, null) on conflict (id) do nothing;
 INSERT INTO public.twin_class_availability (id, key, name_i18n_id, description_i18n_id) VALUES ('00000000-0000-0000-0015-000000000002', 'ACTIVE', null, null) on conflict (id) do nothing;
 
 

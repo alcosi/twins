@@ -252,7 +252,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContextLevel2.getRelatedAttachmentRestrictionMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedAttachmentRestrictionMap(), attachmentRestrictionRestDTOMapper, mapperContextLevel3, attachmentRestrictionMap, TwinAttachmentRestrictionEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinClassAvailabilityMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinClassAvailabilityMap(), twinClassAvailabilityDTOMapper, mapperContextLevel3, twinClassAvailabilityMap, TwinClassAvailabilityEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedTwinClassAvailabilityMap(), twinClassAvailabilityDTOMapper, mapperContextLevel3, twinClassAvailabilityMap, TwinClassAvailabilityEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         //this level was added because of dataLists. In case of search twins, twinClass will be detected on level1, twinClass.tagDataList will be detected on level2 and list options for tagDataList will be detected only on level3
@@ -306,7 +306,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContextLevel3.getRelatedAttachmentRestrictionMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedAttachmentRestrictionMap(), attachmentRestrictionRestDTOMapper, mapperContextLevel3, attachmentRestrictionMap, TwinAttachmentRestrictionEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinClassAvailabilityMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinClassAvailabilityMap(), twinClassAvailabilityDTOMapper, mapperContextLevel3, twinClassAvailabilityMap, TwinClassAvailabilityEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedTwinClassAvailabilityMap(), twinClassAvailabilityDTOMapper, mapperContextLevel3, twinClassAvailabilityMap, TwinClassAvailabilityEntity::getId);
 
         ret
                 .setTwinClassMap(twinClassMap.isEmpty() ? null : twinClassMap)

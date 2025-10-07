@@ -230,6 +230,8 @@ public class MapperContext {
             smartPut(relatedTierMap, tier, tier.getId());
         else if (relatedObject instanceof TwinAttachmentRestrictionEntity entity)
             smartPut(relatedAttachmentRestrictionMap, entity, entity.getId());
+        else if (relatedObject instanceof TwinClassAvailabilityEntity entity)
+            smartPut(relatedTwinClassAvailabilityMap, entity, entity.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -437,6 +439,7 @@ public class MapperContext {
         dstMapperContext.relatedTwinClassSchemaMap = srcMapperContext.relatedTwinClassSchemaMap;
         dstMapperContext.relatedTierMap = srcMapperContext.relatedTierMap;
         dstMapperContext.relatedAttachmentRestrictionMap = srcMapperContext.relatedAttachmentRestrictionMap;
+        dstMapperContext.relatedTwinClassAvailabilityMap = srcMapperContext.relatedTwinClassAvailabilityMap;
     }
 
     public MapperContext fork(MapperModeCollection mapperModeCollection) {

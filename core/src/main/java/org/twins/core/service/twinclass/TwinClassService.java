@@ -147,6 +147,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                                 (entity.getExtendsTwinClassId() != null && entity.getExtendsTwinClassId().equals(entity.getId()))
                 )
                     return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_CYCLE.getMessage());
+                if(!twinClassAvailabilityRepository.existsById(entity.getTwinClassAvailabilityId()))
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_AVAILABILITY_UNKNOWN, "unknown twin class availability id[" + entity.getTwinClassAvailabilityId() + "]");
                 if (entity.getTwinClassAvailability() != null && !entity.getTwinClassAvailability().getId().equals(entity.getTwinClassAvailabilityId())) {
                     entity.setTwinClassAvailabilityId(null);
                     loadAvailability(entity);
