@@ -19,6 +19,7 @@ import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.tier.TierDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
+import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
@@ -106,4 +107,61 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related tier map", example = "{tier map}")
     public Map<UUID, TierDTOv1> tierMap;
+
+    public <T> T get(Class<T> relatedObjectClass, UUID id) {
+        if (relatedObjectClass == TwinClassBaseDTOv1.class) {
+            return (T) twinClassMap.get(id);
+        } else if (relatedObjectClass == TwinDTOv2.class) {
+            return (T) twinMap.get(id);
+        } else if (relatedObjectClass == TwinStatusDTOv1.class) {
+            return (T) statusMap.get(id);
+        } else if (relatedObjectClass == UserDTOv1.class) {
+            return (T) userMap.get(id);
+        } else if (relatedObjectClass == UserGroupDTOv1.class) {
+            return (T) userGroupMap.get(id);
+        } else if (relatedObjectClass == TwinClassDTOv1.class) {
+            return (T) twinClassMap.get(id);
+        } else if (relatedObjectClass == TwinflowTransitionBaseDTOv1.class) {
+            return (T) transitionsMap.get(id);
+        } else if (relatedObjectClass == DataListDTOv1.class) {
+            return (T) dataListsMap.get(id);
+        } else if (relatedObjectClass == DataListOptionDTOv1.class) {
+            return (T) dataListsOptionMap.get(id);
+        } else if (relatedObjectClass == SpaceRoleDTOv1.class) {
+            return (T) spaceRoleMap.get(id);
+        } else if (relatedObjectClass == BusinessAccountDTOv1.class) {
+            return (T) businessAccountMap.get(id);
+        } else if (relatedObjectClass == PermissionGroupDTOv1.class) {
+            return (T) permissionGroupMap.get(id);
+        } else if (relatedObjectClass == PermissionDTOv1.class) {
+            return (T) permissionMap.get(id);
+        } else if (relatedObjectClass == PermissionSchemaDTOv2.class) {
+            return (T) permissionSchemaMap.get(id);
+        } else if (relatedObjectClass == TwinflowBaseDTOv1.class) {
+            return (T) twinflowMap.get(id);
+        } else if (relatedObjectClass == FactoryDTOv1.class) {
+            return (T) factoryMap.get(id);
+        } else if (relatedObjectClass == FactoryPipelineDTOv1.class) {
+            return (T) factoryPipelineMap.get(id);
+        } else if (relatedObjectClass == TwinClassSchemaDTOv1.class) {
+            return (T) twinClassSchemaMap.get(id);
+        } else if (relatedObjectClass == CommentDTOv1.class) {
+            return (T) commentMap.get(id);
+        } else if (relatedObjectClass == FaceDTOv1.class) {
+            return (T) faceMap.get(id);
+        } else if (relatedObjectClass == I18nDTOv1.class) {
+            return (T) i18nMap.get(id);
+        } else if (relatedObjectClass == TwinClassFieldDTOv1.class) {
+            return (T) twinClassFieldMap.get(id);
+        } else if (relatedObjectClass == AttachmentRestrictionDTOv1.class) {
+            return (T) attachmentRestrictionMap.get(id);
+        } else if (relatedObjectClass == TierDTOv1.class) {
+            return (T) tierMap.get(id);
+        }
+        return null;
+    }
+
+    public FeaturerDTOv1 getFeaturerById(Integer id) {
+        return featurerMap.get(id);
+    }
 }

@@ -6,6 +6,9 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.datalist.DataListDTOv1;
+import org.twins.core.dto.rest.permission.PermissionDTOv1;
+import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.enums.twinclass.OwnerType;
 
 import java.time.LocalDateTime;
@@ -42,18 +45,22 @@ public class TwinClassBaseDTOv1 {
     @Schema(description = "if class is abstract no twin of it can be created. Some child class must be used")
     public Boolean abstractClass;
 
+    @RelatedObject(type = TwinClassBaseDTOv1.class, name = "headClass")
     @Schema(description = "head class id or empty if class is not linked to any head", example = DTOExamples.TWIN_CLASS_HEAD_CLASS_ID)
     public UUID headClassId;
 
+    @RelatedObject(type = DataListDTOv1.class, name = "markersDataList")
     @Schema(description = "some markers for twins. Are domain level and not editable by user")
     public UUID markersDataListId;
 
+    @RelatedObject(type = DataListDTOv1.class, name = "tagsDataList")
     @Schema(description = "some tags for twins. Can be business account level and editable by user")
     public UUID tagsDataListId;
 
     @Schema(description = "twin class owner type")
     public OwnerType ownerType;
 
+    @RelatedObject(type = TwinClassBaseDTOv1.class, name = "extendsClass")
     @Schema(description = "extends class id or empty if class is not linked to any classes")
     public UUID extendsClassId;
 
@@ -75,15 +82,19 @@ public class TwinClassBaseDTOv1 {
     @Schema(description = "head hunter featurer params")
     public Map<String, String> headHunterParams;
 
+    @RelatedObject(type = PermissionDTOv1.class, name = "viewPermission")
     @Schema(description = "view permission id")
     public UUID viewPermissionId;
 
+    @RelatedObject(type = PermissionDTOv1.class, name = "createPermission")
     @Schema(description = "create permission id")
     public UUID createPermissionId;
 
+    @RelatedObject(type = PermissionDTOv1.class, name = "editPermission")
     @Schema(description = "edit permission id")
     public UUID editPermissionId;
 
+    @RelatedObject(type = PermissionDTOv1.class, name = "deletePermission")
     @Schema(description = "delete permission id")
     public UUID deletePermissionId;
 

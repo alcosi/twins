@@ -37,9 +37,6 @@ public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
     @Schema(description = "Map of tags." + DTOExamples.LAZY_RELATION_MODE_ON)
     public Map<UUID, DataListOptionDTOv1> tagMap;
 
-    @Schema(description = "extends class")
-    public TwinClassBaseDTOv1 extendsClass;
-
     @Schema(description = "head hunter featurer")
     public FeaturerDTOv1 headHunterFeaturer;
 }
