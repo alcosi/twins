@@ -65,6 +65,7 @@ import java.util.stream.StreamSupport;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
 import static org.twins.core.dao.twinclass.TwinClassEntity.convertUuidFromLtreeFormat;
+import static org.twins.core.service.SystemEntityService.TWIN_CLASS_AVAILABILITY_ACTIVE;
 
 @Slf4j
 @Service
@@ -146,6 +147,10 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                                 (entity.getExtendsTwinClassId() != null && entity.getExtendsTwinClassId().equals(entity.getId()))
                 )
                     return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_CYCLE.getMessage());
+                if (entity.getTwinClassAvailability() != null && !entity.getTwinClassAvailability().getId().equals(entity.getTwinClassAvailabilityId())) {
+                    entity.setTwinClassAvailabilityId(null);
+                    loadAvailability(entity);
+                }
                 if (entity.getMarkerDataListId() != null
                         && !dataListRepository.existsByIdAndDomainIdOrIdAndDomainIdIsNull(entity.getMarkerDataListId(), apiUser.getDomainId(), entity.getMarkerDataListId()))
                     throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown marker data list id[" + entity.getMarkerDataListId() + "]");
@@ -346,7 +351,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
         return true;
     }
-//todo create update validate
+
     @Transactional(rollbackFor = Throwable.class)
     public TwinClassEntity createInDomainClass(TwinClassCreate twinClassCreate, FileData iconLight, FileData iconDark) throws ServiceException {
         return createInDomainClass((List.of(twinClassCreate)), iconLight, iconDark).getFirst();
@@ -372,6 +377,9 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             if (twinClassRepository.existsByDomainIdAndKey(apiUser.getDomainId(), classKey)) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_ALREADY_IN_USE, "Class key already exists: " + classKey);
             }
+
+            if(twinClass.getTwinClassAvailabilityId() == null || twinClass.getTwinClassAvailabilityId().equals(UuidUtils.NULLIFY_MARKER))
+                twinClass.setTwinClassAvailabilityId(TWIN_CLASS_AVAILABILITY_ACTIVE);
 
             if (twinClass.getHeadTwinClassId() == null ||
                     SystemEntityService.isSystemClass(twinClass.getHeadTwinClassId())) {
@@ -578,7 +586,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             updateTwinClassDescription(dbTwinClassEntity, twinClassUpdate.getDescriptionI18n(), changesHelper);
             updateTwinClassHeadTwinClass(dbTwinClassEntity, twinClassUpdate.getHeadTwinClassUpdate(), changesHelper);
             updateTwinClassExtendsTwinClass(dbTwinClassEntity, twinClassUpdate.getExtendsTwinClassUpdate(), changesHelper);
-            updateTwinClassMarkerDataList(dbTwinClassEntity, twinClassUpdate.getMarkerDataListUpdate(), changesHelper);
+            updateTwinClassAvailability(dbTwinClassEntity, twinClassUpdate.getTwinClass().getTwinClassAvailabilityId(), changesHelper);
             updateTwinClassTagDataList(dbTwinClassEntity, twinClassUpdate.getTagDataListUpdate(), changesHelper);
             updateTwinClassIcons(dbTwinClassEntity, iconLight, iconDark, changesHelper);
 
@@ -664,6 +672,12 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         if (updateOperation == null || !changesHelper.isChanged(TwinClassEntity.Fields.markerDataListId, dbTwinClassEntity.getMarkerDataListId(), updateOperation.getNewId()))
             return;
         twinMarkerService.replaceMarkersForTwinsOfClass(dbTwinClassEntity, updateOperation);
+    }
+
+    public void updateTwinClassAvailability(TwinClassEntity dbTwinClassEntity, UUID newAvailabilityId, ChangesHelper changesHelper) throws ServiceException {
+        if (newAvailabilityId == null || newAvailabilityId.equals(UuidUtils.NULLIFY_MARKER) || !changesHelper.isChanged(TwinClassEntity.Fields.twinClassAvailabilityId, dbTwinClassEntity.getTwinClassAvailabilityId(), newAvailabilityId))
+            return;
+        dbTwinClassEntity.setTwinClassAvailabilityId(newAvailabilityId);
     }
 
     public void updateTwinClassExtendsTwinClass(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation extendsRelinkOperation, ChangesHelper changesHelper) throws ServiceException {

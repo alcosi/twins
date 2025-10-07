@@ -1,3 +1,16 @@
+INSERT INTO public.i18n_type (id, name) VALUES ('twinClassAvailabilityName'::varchar, 'Twin class availability name'::varchar(255)) on conflict (id) do nothing;
+INSERT INTO public.i18n_type (id, name) VALUES ('twinClassAvailabilityDescription'::varchar, 'Twin class availability description'::varchar(255)) on conflict (id) do nothing;
+INSERT INTO public.twin_class_availability (id, key, name_i18n_id, description_i18n_id) VALUES ('00000000-0000-0000-0015-000000000001', 'INIT', null, null) on conflict (id) do nothing;
+INSERT INTO public.twin_class_availability (id, key, name_i18n_id, description_i18n_id) VALUES ('00000000-0000-0000-0015-000000000002', 'ACTIVE', null, null) on conflict (id) do nothing;
+
+
+INSERT INTO public.i18n (id, name, key, i18n_type_id, domain_id) VALUES ('00000001-0000-0000-0000-000000000003', null, null, 'twinStatusName', null) on conflict do nothing;
+INSERT INTO public.i18n (id, name, key, i18n_type_id, domain_id) VALUES ('00000001-0000-0000-0000-000000000004', null, null, 'twinStatusDescription', null) on conflict do nothing;
+INSERT INTO public.i18n_translation (i18n_id, locale, translation, usage_counter) VALUES ('00000001-0000-0000-0000-000000000003', 'en', 'Spirit', 0) on conflict do nothing;
+INSERT INTO public.i18n_translation (i18n_id, locale, translation, usage_counter) VALUES ('00000001-0000-0000-0000-000000000004', 'en', '', 0) on conflict do nothing;
+INSERT INTO public.twin_status (id, twins_class_id, name_i18n_id, description_i18n_id, background_color, key, font_color)
+    VALUES ('00000001-0000-0000-0000-000000000002', '00000000-0000-0000-0001-000000000004', '00000001-0000-0000-0000-000000000003', '00000001-0000-0000-0000-000000000004', '#000000', 'spirit', '#000000') on conflict do nothing;
+
 CREATE TABLE IF NOT EXISTS twin_class_availability
 (
     id                  UUID NOT NULL,
@@ -25,8 +38,7 @@ $$
     END
 $$;
 
--- todo add system, set default values
+UPDATE twin_class SET twin_class_availability_id = '00000000-0000-0000-0015-000000000002' WHERE twin_class_availability_id IS NULL;
 
-alter table public.twin_class
-    alter column twin_class_availability_id set not null;
+alter table public.twin_class alter column twin_class_availability_id set not null;
 

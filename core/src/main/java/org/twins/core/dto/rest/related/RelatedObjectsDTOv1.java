@@ -108,6 +108,6 @@ public class RelatedObjectsDTOv1 {
     @Schema(description = "related tier map", example = "{tier map}")
     public Map<UUID, TierDTOv1> tierMap;
 
-    @Schema(description = "related twinclass availability map", example = "{twin class availability map}")
+    @Schema(description = "related twinclass availabilityId map", example = "{twin class availabilityId map}")
     public Map<UUID, TwinClassAvailabilityDTOv1> twinClassAvailabilityMap;
 }

@@ -9,7 +9,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
 import org.twins.core.service.face.FaceService;
-
+import org.twins.core.service.twin.TwinService;
 
 @Component
 @RequiredArgsConstructor
@@ -17,6 +17,7 @@ import org.twins.core.service.face.FaceService;
 public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinBaseDTOv1> {
 
     private final FaceService faceService;
+    private final TwinService twinService;
 
     @Override
     public void map(TwinEntity src, TwinBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -29,7 +30,7 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
                         .headTwinId(src.getHeadTwinId())
                         .assignerUserId(src.getAssignerUserId())
                         .authorUserId(src.getCreatedByUserId())
-                        .statusId(src.getTwinStatusId())
+                        .statusId(twinService.checkTwinStatus(src))
                         .twinClassId(src.getTwinClassId())
                         .description(src.getDescription())
                         .ownerBusinessAccountId(src.getOwnerBusinessAccountId())

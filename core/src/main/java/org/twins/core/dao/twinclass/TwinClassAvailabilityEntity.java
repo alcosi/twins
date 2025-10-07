@@ -2,12 +2,9 @@ package org.twins.core.dao.twinclass;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.dao.i18n.I18nEntity;
 
 import java.util.UUID;
 
@@ -36,23 +33,6 @@ public class TwinClassAvailabilityEntity implements EasyLoggable {
 
     @Column(name = "description_i18n_id")
     private UUID descriptionI18NId;
-
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    @Deprecated //for specification only
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private I18nEntity nameI18n;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-    @Deprecated //for specification only
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private I18nEntity descriptionI18n;
-
-
 
     public String easyLog(Level level) {
         return switch (level) {

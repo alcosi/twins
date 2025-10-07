@@ -54,8 +54,7 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         twinBaseRestDTOMapper.map(src, dst, mapperContext);
         if (mapperContext.hasModeButNot(StatusMode.Twin2StatusMode.HIDE))
             dst
-                    .status(twinStatusRestDTOMapper.convertOrPostpone(src.getTwinStatus(), mapperContext.forkOnPoint(StatusMode.Twin2StatusMode.SHORT)))
-                    .statusId(src.getTwinStatusId());
+                    .status(twinStatusRestDTOMapper.convertOrPostpone(src.getTwinStatus(), mapperContext.forkOnPoint(StatusMode.Twin2StatusMode.SHORT)));
         if (mapperContext.hasModeButNot(UserMode.Twin2UserMode.HIDE)) {
             dst
                     .assignerUser(userDTOMapper.convertOrPostpone(src.getAssignerUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Twin2UserMode.SHORT))))

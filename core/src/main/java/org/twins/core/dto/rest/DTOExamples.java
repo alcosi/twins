@@ -1,5 +1,7 @@
 package org.twins.core.dto.rest;
 
+import static org.twins.core.service.SystemEntityService.TWIN_CLASS_AVAILABILITY_ACTIVE;
+
 public interface DTOExamples {
     String TERNARY = "ANY";
     String BOOLEAN_TRUE = "true";
@@ -16,7 +18,7 @@ public interface DTOExamples {
     String TWIN_CLASS_NAME = "Tool";
     String TWIN_CLASS_DESCRIPTION = "Professional tool class";
     String TWIN_CLASS_HEAD_CLASS_ID = "c2854a55-1dfe-41cd-bb36-f71eeaf16f81";
-    String TWIN_CLASS_AVAILABILITY_ID = "x";
+    String TWIN_CLASS_AVAILABILITY_ID = "00000000-0000-0000-0015-000000000002";
     String TWIN_STATUS_ID = "a1178c4a-b974-449b-b51b-9a2bc54c5ea5";
     String TWIN_STATUS_KEY = "toDo";
     String TWIN_STATUS_NAME = "To Do";
