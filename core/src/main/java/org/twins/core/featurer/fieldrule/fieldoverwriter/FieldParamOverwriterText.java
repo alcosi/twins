@@ -16,9 +16,9 @@ import java.util.Properties;
 @Component
 @Featurer(id = FeaturerTwins.ID_4603,
         name = "Field Overwriter - Text",
-        description = "Overwrite a text field with a fixed value or params")
-public class FieldOverwriterText extends FieldOverwriter<FieldDescriptorText> {
-    @FeaturerParam(name = "Regexp", description = "", order = 1)
+        description = "Overwrite a text field with given params")
+public class FieldParamOverwriterText extends FieldParamOverwriter<FieldDescriptorText> {
+    @FeaturerParam(name = "Regexp", description = "", order = 1, optional = true)
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
     @FeaturerParam(name = "EditorType", description = "", order = 2, optional = true, defaultValue = "PLAIN")
     public static final FeaturerParamStringTwinsEditorType editorType = new FeaturerParamStringTwinsEditorType("editorType");

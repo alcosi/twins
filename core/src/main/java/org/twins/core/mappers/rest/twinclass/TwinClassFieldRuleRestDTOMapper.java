@@ -8,7 +8,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDescriptorDTO;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldRuleDTOv1;
-import org.twins.core.featurer.fieldrule.fieldoverwriter.FieldOverwriter;
+import org.twins.core.featurer.fieldrule.fieldoverwriter.FieldParamOverwriter;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -34,24 +34,19 @@ public class TwinClassFieldRuleRestDTOMapper extends RestSimpleDTOMapper<TwinCla
         // map scalar fields
         dst
                 .setId(src.getId())
-                .setDependentTwinClassFieldId(src.getDependentTwinClassFieldId())
-                .setTargetElement(src.getTargetTwinClassFieldElementTypeId())
-                .setTargetParamKey(src.getTargetParamKey())
-                .setDependentOverwrittenValue(src.getDependentOverwrittenValue())
-                .setRequired(src.getRequired())
+                .setTwinClassFieldId(src.getTwinClassFieldId())
+                .setOverwrittenValue(src.getOverwrittenValue())
+                .setOverwrittenRequired(src.getOverwrittenRequired())
                 .setRulePriority(src.getRulePriority());
         if (src.getFieldOverwriterFeaturerId() != null) {
-            FieldOverwriter overwriter = featurerService.getFeaturer(src.getFieldOverwriterFeaturerId(), FieldOverwriter.class);
+            FieldParamOverwriter overwriter = featurerService.getFeaturer(src.getFieldOverwriterFeaturerId(), FieldParamOverwriter.class);
             FieldDescriptor descriptor = overwriter.getFieldOverwriterDescriptor(src);
             TwinClassFieldDescriptorDTO dto = twinClassFieldDescriptorRestDTOMapper.convert(descriptor, mapperContext);
             dst.setDescriptor(dto);
         }
         // map conditions if present
         if (src.getConditions() != null && !src.getConditions().isEmpty()) {
-            java.util.List<org.twins.core.dao.twinclass.TwinClassFieldConditionEntity> sorted = src.getConditions().stream()
-                    .sorted(java.util.Comparator.comparing(org.twins.core.dao.twinclass.TwinClassFieldConditionEntity::getConditionOrder, java.util.Comparator.nullsLast(Integer::compareTo)))
-                    .toList();
-            dst.setConditions(twinClassFieldConditionRestDTOMapper.convertCollectionPostpone(sorted, mapperContext));
+                     dst.setConditions(twinClassFieldConditionRestDTOMapper.convertCollection(src.getConditions(), mapperContext));
         }
     }
 
@@ -62,7 +57,7 @@ public class TwinClassFieldRuleRestDTOMapper extends RestSimpleDTOMapper<TwinCla
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        // For now we don’t have dedicated mode, always show
+        // todo - check if the mode is set
         return false;
     }
 }

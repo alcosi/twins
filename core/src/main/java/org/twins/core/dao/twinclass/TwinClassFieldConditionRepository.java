@@ -22,7 +22,7 @@ public interface TwinClassFieldConditionRepository extends CrudRepository<TwinCl
             using twin_class_field_rule r,
                  twin_class_field f
             where c.twin_class_field_rule_id = r.id
-              and r.dependent_twin_class_field_id = f.id
+              and r.twin_class_field_id = f.id
               and f.twin_class_id = :twinClassId
             """, nativeQuery = true)
     void deleteByTwinClassId(UUID twinClassId);

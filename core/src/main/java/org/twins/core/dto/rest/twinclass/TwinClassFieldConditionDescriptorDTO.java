@@ -6,13 +6,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "conditionType", visible = true)
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = TwinClassFieldConditionDescriptorBasicDTOv1.class, name = TwinClassFieldConditionDescriptorBasicDTOv1.KEY),
+        @JsonSubTypes.Type(value = TwinClassFieldConditonDescriptorValueDTOv1.class, name = TwinClassFieldConditonDescriptorValueDTOv1.KEY),
+        @JsonSubTypes.Type(value = TwinClassFieldConditionDescriptorParamDTOv1.class, name = TwinClassFieldConditionDescriptorParamDTOv1.KEY)
 })
 @Schema(additionalProperties = Schema.AdditionalPropertiesValue.FALSE,
         description = "One of values",
         discriminatorProperty = "conditionType",
         oneOf = {
-                TwinClassFieldConditionDescriptorBasicDTOv1.class,
+                TwinClassFieldConditonDescriptorValueDTOv1.class,
+                TwinClassFieldConditionDescriptorParamDTOv1.class
         }
 )
 public interface TwinClassFieldConditionDescriptorDTO {

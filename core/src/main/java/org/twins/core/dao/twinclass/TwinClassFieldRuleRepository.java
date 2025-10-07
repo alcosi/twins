@@ -21,7 +21,7 @@ public interface TwinClassFieldRuleRepository extends CrudRepository<TwinClassFi
     @Query(value = """
             delete from twin_class_field_rule r
             using twin_class_field f
-            where r.dependent_twin_class_field_id = f.id
+            where r.twin_class_field_id = f.id
               and f.twin_class_id = :twinClassId
             """, nativeQuery = true)
     void deleteByTwinClassId(UUID twinClassId);
@@ -33,7 +33,7 @@ public interface TwinClassFieldRuleRepository extends CrudRepository<TwinClassFi
     @Query("""
             select r
             from TwinClassFieldRuleEntity r
-            join TwinClassFieldEntity f on r.dependentTwinClassFieldId = f.id
+            join TwinClassFieldEntity f on r.twinClassFieldId = f.id
             where f.twinClassId = :twinClassId
             order by coalesce(r.rulePriority, 0) asc, r.id
             """)
@@ -43,5 +43,5 @@ public interface TwinClassFieldRuleRepository extends CrudRepository<TwinClassFi
      * Fetches all rules (with eager-loaded conditions) for the specified Twin-Class field.
      */
 
-    List<TwinClassFieldRuleEntity> findByDependentTwinClassFieldId(UUID twinClassFieldId);
+    List<TwinClassFieldRuleEntity> findByTwinClassFieldId(UUID twinClassFieldId);
 }

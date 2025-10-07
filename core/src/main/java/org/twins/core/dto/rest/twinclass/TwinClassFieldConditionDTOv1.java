@@ -4,7 +4,6 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.twinclass.TwinClassFieldConditionOperator;
 
 import java.util.UUID;
 
@@ -26,9 +25,6 @@ public class TwinClassFieldConditionDTOv1 {
 
     @Schema(description = "group number – conditions inside the same group are AND-ed; different groups are OR-ed")
     public Integer groupNo;
-
-    @Schema(description = "comparison operator, e.g. eq, neq, lt, gt, contains")
-    public TwinClassFieldConditionOperator conditionOperator;
 
     @Schema(description = "condition descriptor", example = "")
     public TwinClassFieldConditionDescriptorDTO descriptor;

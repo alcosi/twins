@@ -3,8 +3,6 @@ package org.twins.core.dao.twinclass;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -57,13 +55,6 @@ public class TwinClassFieldConditionEntity implements EasyLoggable {
      */
     @Column(name = "group_no")
     private Integer groupNo = 1;
-
-    /**
-     * Comparison operator
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "twin_class_field_condition_operator_type_id")
-    private TwinClassFieldConditionOperator twinClassFieldConditionOperatorTypeId;
 
     @Column(name = "condition_evaluator_featurer_id")
     private Integer conditionEvaluatorFeaturerId;

@@ -40,31 +40,18 @@ public class TwinClassFieldRuleEntity implements EasyLoggable {
     /**
      * Field that will be affected when the rule is triggered.
      */
-    @Column(name = "dependent_twin_class_field_id")
-    private UUID dependentTwinClassFieldId;
-
-    /**
-     * Part of the base field that should be compared – its stored value or one of its parameters.
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(name = "target_twin_class_field_element_type_id")
-    private TwinClassFieldConditionElementType targetTwinClassFieldElementTypeId;
-
-    /**
-     * Parameter key that has to be checked when {@link #targetTwinClassFieldElementTypeId} is {@link TwinClassFieldConditionElementType#param}.
-     */
-    @Column(name = "target_param_key")
-    private String targetParamKey;
+    @Column(name = "twin_class_field_id")
+    private UUID twinClassFieldId;
 
     /**
      * Value that will be assigned to the dependent field (or its parameter) if all conditions evaluate to TRUE.
      * todo - what in case of a sublist?
      */
-    @Column(name = "dependent_overwritten_value")
-    private String dependentOverwrittenValue;
+    @Column(name = "overwritten_value")
+    private String overwrittenValue;
 
-    @Column(name = "required", nullable = false)
-    private Boolean required; //not a primitive type because the update logic will break
+    @Column(name = "overwritten_required", nullable = false)
+    private Boolean overwrittenRequired; //not a primitive type because the update logic will break
 
     /**
      * Priority of the rule – lower value means the rule will be evaluated earlier.
@@ -75,8 +62,8 @@ public class TwinClassFieldRuleEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "dependent_twin_class_field_id", insertable = false, updatable = false)
-    private TwinClassFieldEntity dependentTwinClassField;
+    @JoinColumn(name = "twin_class_field_id", insertable = false, updatable = false)
+    private TwinClassFieldEntity twinClassField;
 
     @Column(name = "field_overwriter_featurer_id")
     private Integer fieldOverwriterFeaturerId;
@@ -96,7 +83,7 @@ public class TwinClassFieldRuleEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinClassFieldRule[" + id + "]";
-            default -> "twinClassFieldRule[id:" + id + ", dependentTwinClassFieldId:" + dependentTwinClassFieldId + "]";
+            default -> "twinClassFieldRule[id:" + id + ", dependentTwinClassFieldId:" + twinClassFieldId + "]";
         };
     }
 }

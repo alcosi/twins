@@ -5,5 +5,6 @@ public enum TwinClassFieldConditionOperator {
     neq,
     lt,
     gt,
-    contains //todo - is it possible to use sql constants?
+    contains,
+    in//todo - is it possible to use sql constants?
 }

@@ -43,9 +43,6 @@ public class TwinClassFieldConditionRestDTOMapper extends RestSimpleDTOMapper<Tw
                     .setBaseTwinClassFieldId(src.getBaseTwinClassFieldId())
                     .setConditionOrder(src.getConditionOrder())
                     .setGroupNo(src.getGroupNo());
-                if (src.getTwinClassFieldConditionOperatorTypeId() != null)
-                    dst.setConditionOperator(src.getTwinClassFieldConditionOperatorTypeId());
-
                 if (src.getConditionEvaluatorFeaturerId() != null) {
                     ConditionEvaluator evaluator = featurerService.getFeaturer(src.getConditionEvaluatorFeaturerId(), ConditionEvaluator.class);
                     ConditionDescriptor descriptor = evaluator.getConditionDescriptor(src);
@@ -63,6 +60,7 @@ public class TwinClassFieldConditionRestDTOMapper extends RestSimpleDTOMapper<Tw
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(TwinClassFieldConditionMode.HIDE);
+        return false;
+        // todo - check if the mode is set
     }
 }

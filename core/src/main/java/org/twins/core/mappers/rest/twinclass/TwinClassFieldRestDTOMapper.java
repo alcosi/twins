@@ -18,7 +18,6 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.service.i18n.I18nService;
-import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassFieldRuleService;
@@ -41,9 +40,9 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     @MapperModePointerBinding(modes = FeaturerMode.TwinClassField2FeaturerMode.class)
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
 
-    @MapperModePointerBinding(modes = TwinClassDependentFieldBundleMode.TwinField2TwinClassDependentFieldBundleMode.class)
+    @MapperModePointerBinding(modes = TwinClassFieldRuleMode.TwinField2TwinClassFieldRuleMode.class)
     private final
-    TwinClassDependentFieldRestDTOMapperV1 twinClassDependentFieldRestDTOMapperV1;
+    TwinClassFieldRuleRestDTOMapper twinClassFieldRuleRestDTOMapper;
 
     private final I18nService i18nService;
     private final FeaturerService featurerService;
@@ -120,8 +119,8 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
             dst.setTwinClassId(src.getTwinClassId());
             twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinClassField2TwinClassMode.SHORT));
         }
-        if (mapperContext.hasModeButNot(TwinClassFieldRuleBundleMode.TwinField2TwinClassFieldRuleBundleMode.HIDE)) {
-            dst.setConditionBundles(twinClassDependentFieldRestDTOMapperV1.convertCollection(twinClassFieldRuleService.loadRulesByTwinClassField(src.getId())));
+        if (mapperContext.hasModeButNot(TwinClassFieldRuleMode.TwinField2TwinClassFieldRuleMode.HIDE)) {
+            dst.setFieldRules(twinClassFieldRuleRestDTOMapper.convertCollection(twinClassFieldRuleService.loadRulesByTwinClassField(src.getId())));
         //todo - do I need to add postpone here?
         }
     }

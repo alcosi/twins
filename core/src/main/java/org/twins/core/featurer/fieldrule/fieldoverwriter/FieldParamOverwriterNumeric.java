@@ -14,21 +14,21 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import java.util.Properties;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_4601,
+@Featurer(id = FeaturerTwins.ID_4604,
         name = "Field Overwriter Numeric",
-        description = "Overwrite a numeric field with a specified value or params")
-public class FieldOverwriterNumeric extends FieldOverwriter<FieldDescriptorNumeric> {
-    @FeaturerParam(name = "Min", description = "Min possible value", order = 1)
+        description = "Overwrite a numeric field with a specified params")
+public class FieldParamOverwriterNumeric extends FieldParamOverwriter<FieldDescriptorNumeric> {
+    @FeaturerParam(name = "Min", description = "Min possible value", order = 1, optional = true)
     public static final FeaturerParamDouble min = new FeaturerParamDouble("min");
-    @FeaturerParam(name = "Max", description = "Max possible value", order = 2)
+    @FeaturerParam(name = "Max", description = "Max possible value", order = 2, optional = true)
     public static final FeaturerParamDouble max = new FeaturerParamDouble("max");
-    @FeaturerParam(name = "Step", description = "Step of value change", order = 3)
+    @FeaturerParam(name = "Step", description = "Step of value change", order = 3, optional = true)
     public static final FeaturerParamDouble step = new FeaturerParamDouble("step");
-    @FeaturerParam(name = "Thousand separator", description = "Thousand separator. Must not be equal to decimal separator.", order = 4)
+    @FeaturerParam(name = "Thousand separator", description = "Thousand separator. Must not be equal to decimal separator.", order = 4, optional = true)
     public static final FeaturerParamString thousandSeparator = new FeaturerParamString("thousandSeparator");
-    @FeaturerParam(name = "Decimal separator", description = "Decimal separator. Must not be equal to thousand separator.", order = 5)
+    @FeaturerParam(name = "Decimal separator", description = "Decimal separator. Must not be equal to thousand separator.", order = 5, optional = true)
     public static final FeaturerParamString decimalSeparator = new FeaturerParamString("decimalSeparator");
-    @FeaturerParam(name = "Decimal places", description = "Number of decimal places.", order = 6)
+    @FeaturerParam(name = "Decimal places", description = "Number of decimal places.", order = 6, optional = true)
     public static final FeaturerParamInt decimalPlaces = new FeaturerParamInt("decimalPlaces");
 
     @Override

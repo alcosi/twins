@@ -60,7 +60,7 @@ public class TwinClassFieldRuleService {
     /**
      * Bulk creation of multiple rules.
      */
-  //  @Transactional(rollbackFor = Throwable.class)
+    @Transactional(rollbackFor = Throwable.class)
     public List<TwinClassFieldRuleEntity> createRules(List<TwinClassFieldRuleEntity> rules) throws Exception {
         if (CollectionUtils.isEmpty(rules))
             return Collections.emptyList();
@@ -87,7 +87,7 @@ public class TwinClassFieldRuleService {
     public List<TwinClassFieldRuleEntity> loadRulesByTwinClassField(UUID twinClassFieldId) {
         if (twinClassFieldId == null)
             return Collections.emptyList();
-        return twinClassFieldRuleRepository.findByDependentTwinClassFieldId(twinClassFieldId);
+        return twinClassFieldRuleRepository.findByTwinClassFieldId(twinClassFieldId);
     }
 
 

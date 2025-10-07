@@ -77,6 +77,6 @@ public class TwinClassFieldDTOv1 {
     public UUID beValidationErrorI18nId;
 
     @Schema(description = "rules bundles associated with this field")
-    public List<TwinClassDependentFieldBundleDTOv1> conditionBundles;
+    public List<TwinClassFieldRuleDTOv1> fieldRules;
 
 }

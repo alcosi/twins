@@ -1,36 +1,11 @@
-create table if not exists twin_class_field_condition_operator_type
-(   id varchar(20) not null
-    constraint twin_class_field_condition_operator_type_pk primary key
-    );
-
-insert into twin_class_field_condition_operator_type (id)
-values ('eq'),
-       ('neq'),
-       ('lt'),
-       ('gt'),
-       ('contains') on conflict do nothing;
-
-create table if not exists twin_class_field_element_type
-(   id varchar(20) not null
-    constraint twin_class_field_element_type_pk primary key
-    );
-
-insert into twin_class_field_element_type (id)
-values ('value'),
-       ('param') on conflict do nothing;
 
 CREATE TABLE IF NOT EXISTS twin_class_field_rule (
     id UUID PRIMARY KEY,
-    dependent_twin_class_field_id UUID NOT NULL REFERENCES twin_class_field(id) ON DELETE CASCADE,
-    target_twin_class_field_element_type_id varchar(20)  not null default 'value'
-    constraint twin_class_field_element_type_id_fk
-    references twin_class_field_element_type
-    on update cascade on delete restrict,
-    target_param_key VARCHAR NULL,
-    dependent_overwritten_value VARCHAR NULL,
-    required BOOLEAN NULL,
-    field_overwriter_featurer_id int NULL REFERENCES featurer(id) ON DELETE SET NULL,
-    field_overwriter_params hstore NULL
+    twin_class_field_id   UUID NOT NULL REFERENCES twin_class_field (id) ON DELETE CASCADE,
+    overwritten_value     VARCHAR NULL,
+    overwritten_required  BOOLEAN NULL,
+    field_overwriter_featurer_id int NOT NULL REFERENCES featurer(id) ON UPDATE CASCADE,
+    field_overwriter_params hstore NULL,
     rule_priority INT NULL);
 
 CREATE TABLE IF NOT EXISTS twin_class_field_condition (
@@ -39,13 +14,17 @@ CREATE TABLE IF NOT EXISTS twin_class_field_condition (
     base_twin_class_field_id UUID NOT NULL REFERENCES twin_class_field(id) ON DELETE CASCADE,
     condition_order INT NULL,
     group_no INT NULL,
-    twin_class_field_condition_operator_type_id varchar(20)  not null
-    constraint twin_class_field_condition_operator_type_id_fk
-    references twin_class_field_condition_operator_type
-    on update cascade on delete restrict,
-    condition_evaluator_featurer_id int NULL REFERENCES featurer(id) ON DELETE SET NULL,
+    condition_evaluator_featurer_id int NOT NULL REFERENCES featurer(id) ON UPDATE CASCADE,
     condition_evaluator_params hstore NULL);
 
+CREATE UNIQUE INDEX IF NOT EXISTS uq_twin_class_field_rule_index
+    ON twin_class_field_rule (
+    twin_class_field_id,
+    overwritten_value,
+    overwritten_required,
+    field_overwriter_featurer_id,
+    field_overwriter_params
+    );
 
 INSERT INTO i18n (id,"name","key",i18n_type_id,domain_id) VALUES
                                                                      ('abc12875-47a3-4e5b-a6ec-8c6e2a06f6f0'::uuid,'Twin class field rule manage',NULL,'permissionName',NULL),
@@ -83,7 +62,10 @@ VALUES (45, 'ConditionEvaluator', '')
 on conflict (id) do nothing;
 
 INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
- VALUES (4501, 45, 'org.twins.core.featurer.fieldrule.conditionevaluator.ConditionEvaluatorBasic', '', 'Condition Evaluator Basic', false) on conflict do nothing;
+ VALUES (4501, 45, 'org.twins.core.featurer.fieldrule.conditionevaluator.ConditionEvaluatorValue', '', 'Condition Evaluator Value', false) on conflict do nothing;
+
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
+VALUES (4502, 45, 'org.twins.core.featurer.fieldrule.conditionevaluator.ConditionEvaluatorParam', '', 'Condition Evaluator Param', false) on conflict do nothing;
 
 
 INSERT INTO featurer_type (id, name, description)
@@ -91,10 +73,13 @@ VALUES (46, 'FieldOverwriter', '')
     on conflict (id) do nothing;
 
 INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
-VALUES (4601, 46, 'org.twins.core.featurer.fieldrule.fieldoverwriter.FieldOverwriterNumeric', '', 'FieldOverwriterNumeric', false) on conflict do nothing;
+VALUES (4601, 46, 'org.twins.core.featurer.fieldrule.fieldoverwriter.FieldParamOverwriterStub', '', 'FieldOverwriterStub', false) on conflict do nothing;
 
 INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
-VALUES (4602, 46, 'org.twins.core.featurer.fieldrule.fieldoverwriter.FieldOverwriterSelect', '', 'FieldOverwriterSelect', false) on conflict do nothing;
+VALUES (4602, 46, 'org.twins.core.featurer.fieldrule.fieldoverwriter.FieldParamOverwriterSelect', '', 'FieldOverwriterSelect', false) on conflict do nothing;
 
 INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
-VALUES (4603, 46, 'org.twins.core.featurer.fieldrule.fieldoverwriter.FieldOverwriterText', '', 'FieldOverwriterText', false) on conflict do nothing;
+VALUES (4603, 46, 'org.twins.core.featurer.fieldrule.fieldoverwriter.FieldParamOverwriterText', '', 'FieldOverwriterText', false) on conflict do nothing;
+
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
+VALUES (4604, 46, 'org.twins.core.featurer.fieldrule.fieldoverwriter.FieldParamOverwriterNumeric', '', 'FieldOverwriterNumeric', false) on conflict do nothing;

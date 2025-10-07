@@ -21,7 +21,6 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldRuleCreateRqDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldRuleDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldRuleRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -30,7 +29,6 @@ import org.twins.core.mappers.rest.twinclass.TwinClassFieldRuleRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassFieldRuleService;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -70,11 +68,7 @@ public class TwinClassFieldRuleCreateController extends ApiController {
             List<TwinClassFieldRuleEntity> ruleEntities = twinClassFieldRuleCreateDTOReverseMapper.convertCollection(request.getRules(), mapperContext);
             ruleEntities = twinClassFieldRuleService.createRules(ruleEntities);
 
-            List<TwinClassFieldRuleDTOv1> ruleDtos = new ArrayList<>(ruleEntities.size());
-            for (TwinClassFieldRuleEntity entity : ruleEntities) {
-                ruleDtos.add(twinClassFieldRuleRestDTOMapper.convert(entity, mapperContext));
-            }
-            rs.setRules(ruleDtos);
+            rs.setRules(twinClassFieldRuleRestDTOMapper.convertCollection(ruleEntities, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

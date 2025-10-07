@@ -2,9 +2,9 @@ package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twinclass.TwinClassFieldConditionElementType;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldRuleCreateDTOv1;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class TwinClassFieldRuleCreateRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassFieldRuleCreateDTOv1, TwinClassFieldRuleEntity> {
-
+    private static int FIELD_OVERWRITER_STUB_ID = FeaturerTwins.ID_4601; // "no overwriter" stub featurer
     private final TwinClassFieldConditionRestDTOReverseMapper twinClassFieldConditionRestDTOReverseMapper;
 
     @Override
@@ -22,16 +22,16 @@ public class TwinClassFieldRuleCreateRestDTOReverseMapper extends RestSimpleDTOM
             return;
         // map simple scalar fields
         dst
-                .setDependentTwinClassFieldId(src.getDependentTwinClassFieldId())
-                .setTargetTwinClassFieldElementTypeId(src.getTargetElement())
-                .setDependentOverwrittenValue(src.getDependentOverwrittenValue())
-                .setRequired(src.getRequired())
+                .setTwinClassFieldId(src.getDependentTwinClassFieldId())
+                .setOverwrittenValue(src.getOverwrittenValue())
+                .setOverwrittenRequired(src.getOverwrittenRequired())
                 .setRulePriority(src.getRulePriority());
-         if(src.getTargetElement().equals(TwinClassFieldConditionElementType.param)){
-             dst.setTargetParamKey(src.getTargetParamKey());
-             dst.setFieldOverwriterFeaturerId(src.getFieldOverwriterFeaturerId());
-             dst.setFieldOverwriterParams(src.getFieldOverwriterParams());
-         }
+        if (src.getFieldParamOverwriterFeaturerId() != null) {
+            dst.setFieldOverwriterFeaturerId(src.getFieldParamOverwriterFeaturerId());
+            dst.setFieldOverwriterParams(src.getFieldParamOverwriterParams());
+        } else {
+            dst.setFieldOverwriterFeaturerId(FIELD_OVERWRITER_STUB_ID);
+        }
 
         // map conditions (if provided)
         if (src.getConditions() != null && !src.getConditions().isEmpty()) {

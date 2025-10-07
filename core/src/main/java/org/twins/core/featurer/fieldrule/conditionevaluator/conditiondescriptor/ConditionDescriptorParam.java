@@ -3,14 +3,10 @@ package org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.twinclass.TwinClassFieldConditionElementType;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(fluent = true)
-public class ConditionDescriptorBasic extends ConditionDescriptor{
-    private TwinClassFieldConditionElementType conditionElement;
-    private String valueToCompareWith;
+public class ConditionDescriptorParam extends ConditionDescriptor{
     private String evaluatedParamKey;
-    private String compareParams;
 }
