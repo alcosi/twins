@@ -76,6 +76,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     private final TwinClassSchemaRepository twinClassSchemaRepository;
     private final TwinClassSchemaMapRepository twinClassSchemaMapRepository;
     private final TwinClassFieldService twinClassFieldService;
+    private final TwinClassAvailabilityRepository twinClassAvailabilityRepository;
     private final EntitySmartService entitySmartService;
     private final I18nService i18nService;
     private final DataListRepository dataListRepository;
@@ -345,7 +346,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
         return true;
     }
-
+//todo create update validate
     @Transactional(rollbackFor = Throwable.class)
     public TwinClassEntity createInDomainClass(TwinClassCreate twinClassCreate, FileData iconLight, FileData iconDark) throws ServiceException {
         return createInDomainClass((List.of(twinClassCreate)), iconLight, iconDark).getFirst();
@@ -861,6 +862,22 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         for (Map.Entry<Integer, TwinClassEntity> map : needLoad.entrySet()) {
             map.getValue().setHeadHunterFeaturer(featurerList.get(map.getKey()));
         }
+    }
+
+    public void loadAvailability(TwinClassEntity src) {
+        loadAvailability(Collections.singletonList(src));
+    }
+
+    public void loadAvailability(Collection<TwinClassEntity> twinClassCollection) {
+        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getTwinClassAvailabilityId);
+        for (TwinClassEntity twinClass : twinClassCollection)
+            if (twinClass.getTwinClassAvailability() == null) needLoad.add(twinClass);
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        Kit<TwinClassAvailabilityEntity, UUID> items = new Kit<>(twinClassAvailabilityRepository.findAllByIdIn(needLoad.getGroupedKeySet()), TwinClassAvailabilityEntity::getId);
+        for (var twinClass : twinClassCollection)
+            if (needLoad.containsKey(twinClass.getId()))
+                twinClass.setTwinClassAvailability(items.get(twinClass.getTwinClassAvailabilityId()));
     }
 
     public void loadSegments(TwinClassEntity src) {

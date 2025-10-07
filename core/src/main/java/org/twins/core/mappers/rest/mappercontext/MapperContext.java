@@ -20,6 +20,7 @@ import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.dao.twinclass.TwinClassAvailabilityEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
@@ -86,6 +87,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<TierEntity>> relatedTierMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinAttachmentRestrictionEntity>> relatedAttachmentRestrictionMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinClassAvailabilityEntity>> relatedTwinClassAvailabilityMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects

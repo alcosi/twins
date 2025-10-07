@@ -28,6 +28,9 @@ public class TwinClassSaveRqDTOv1 extends Request {
     @Schema(description = "[optional] description")
     public I18nSaveDTOv1 descriptionI18n;
 
+    @Schema(description = "availability of twin class", example = DTOExamples.TWIN_CLASS_AVAILABILITY_ID)
+    public UUID twinClassAvailabilityId;
+
     @Schema(description = "[optional] an id of head hunter featurer. The field has a sense only if headTwinClassId filled", example = "")
     public Integer headHunterFeaturerId;
 

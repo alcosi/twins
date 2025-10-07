@@ -19,6 +19,7 @@ import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.tier.TierDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
+import org.twins.core.dto.rest.twinclass.TwinClassAvailabilityDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
@@ -106,4 +107,7 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related tier map", example = "{tier map}")
     public Map<UUID, TierDTOv1> tierMap;
+
+    @Schema(description = "related twinclass availability map", example = "{twin class availability map}")
+    public Map<UUID, TwinClassAvailabilityDTOv1> twinClassAvailabilityMap;
 }

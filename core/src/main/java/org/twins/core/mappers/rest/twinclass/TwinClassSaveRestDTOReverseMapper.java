@@ -40,6 +40,7 @@ public class TwinClassSaveRestDTOReverseMapper extends RestSimpleDTOMapper<TwinC
                         .setExternalId(src.getExternalId())
                         .setExternalProperties(src.getExternalProperties())
                         .setExternalJson(src.getExternalJson())
+                        .setTwinClassAvailabilityId(src.getTwinClassAvailabilityId())
                 );
     }
 }

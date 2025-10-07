@@ -33,6 +33,9 @@ public class TwinClassBaseDTOv1 {
     @Schema(description = "created at", example = DTOExamples.INSTANT)
     public LocalDateTime createdAt;
 
+    @Schema(description = "availability of twin class", example = DTOExamples.TWIN_CLASS_AVAILABILITY_ID)
+    public UUID twinClassAvailabilityId;
+
     @Schema(description = "iconDark", example = "http://twins.org/t/class/project.png")
     public String iconDark;
 

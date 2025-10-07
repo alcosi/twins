@@ -43,6 +43,8 @@ public class SystemEntityService {
     final TwinClassFieldRepository twinClassFieldRepository;
     final EntitySmartService entitySmartService;
 
+    //TODO validates
+
     public static final UUID USER_SYSTEM = UUID.fromString("00000000-0000-0000-0000-000000000000");
     public static final UUID TWIN_CLASS_USER = UUID.fromString("00000000-0000-0000-0001-000000000001");
     public static final UUID TWIN_CLASS_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0001-000000000003");
