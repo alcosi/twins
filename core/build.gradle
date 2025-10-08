@@ -185,3 +185,8 @@ task generateRelatedObjectsDTO(type: GenerateRelatedObjectsTask) {
     description = 'Generates DTOs with related objects handling in the generated folder'
     group = 'code generation'
 }
+
+task generateInitRelatedObjectsDTO(type: GenerateInitRelatedObjectsTask) {
+    description = 'Generates init related objects methods in the generated folder'
+    group = 'code generation'
+}

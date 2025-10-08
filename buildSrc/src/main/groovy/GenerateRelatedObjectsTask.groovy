@@ -1,5 +1,5 @@
-import com.github.javaparser.StaticJavaParser
 import com.github.javaparser.ParserConfiguration
+import com.github.javaparser.StaticJavaParser
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
 import com.github.javaparser.ast.body.FieldDeclaration
 import com.github.javaparser.ast.body.MethodDeclaration
@@ -9,26 +9,27 @@ import com.github.javaparser.ast.expr.NormalAnnotationExpr
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
+
 import java.nio.file.Files
 import java.nio.file.Path
 
 abstract class GenerateRelatedObjectsTask extends DefaultTask {
     @TaskAction
     void generate() {
-        // Создаем новую конфигурацию JavaParser и устанавливаем уровень языка Java 15
+        // Create a new JavaParser configuration and set the Java language level to 15
         def parserConfig = new ParserConfiguration()
         parserConfig.setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_21)
         StaticJavaParser.setConfiguration(parserConfig)
 
         def sourceDir = project.file('src/main/java/org/twins/core/dto/rest')
-        def outputDir = project.file('build/generated/sources/dto/java/main')
+        def outputDir = project.file('build/generated/sources/dto/java/main/org/twins/core/dto/rest')
 
         if (outputDir.exists()) {
             outputDir.deleteDir()
         }
         outputDir.mkdirs()
 
-        // Обходим файлы в sourceDir
+        // Traverse files in sourceDir
         Files.walk(sourceDir.toPath())
                 .filter { it.toString().endsWith('.java') }
                 .forEach { Path sourcePath ->
