@@ -1,4 +1,4 @@
-package org.twins.core.dao.twinclass;
+package org.twins.core.enums.twinclass;
 
 public enum TwinClassFieldConditionOperator {
     eq,

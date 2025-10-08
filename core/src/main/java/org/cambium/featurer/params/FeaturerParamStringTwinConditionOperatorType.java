@@ -3,7 +3,7 @@ package org.cambium.featurer.params;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParamType;
-import org.twins.core.dao.twinclass.TwinClassFieldConditionOperator;
+import org.twins.core.enums.twinclass.TwinClassFieldConditionOperator;
 
 import java.util.Properties;
 
