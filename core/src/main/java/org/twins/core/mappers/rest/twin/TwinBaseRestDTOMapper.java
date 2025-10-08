@@ -43,7 +43,8 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
             case SHORT:
                 dst
                         .id(src.getId())
-                        .name(src.getName());
+                        .name(src.getName())
+                        .freeze(twinService.checkIsFreezeStatus(src));
                 break;
         }
 

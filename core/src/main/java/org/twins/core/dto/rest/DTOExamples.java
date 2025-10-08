@@ -16,7 +16,7 @@ public interface DTOExamples {
     String TWIN_CLASS_NAME = "Tool";
     String TWIN_CLASS_DESCRIPTION = "Professional tool class";
     String TWIN_CLASS_HEAD_CLASS_ID = "c2854a55-1dfe-41cd-bb36-f71eeaf16f81";
-    String TWIN_CLASS_FREEZE_ID = "00000000-0000-0000-0015-000000000001";
+    String TWIN_CLASS_FREEZE_ID = "06908b8e-5ab1-4af5-8a22-ab617f449e26";
     String TWIN_STATUS_ID = "a1178c4a-b974-449b-b51b-9a2bc54c5ea5";
     String TWIN_STATUS_KEY = "toDo";
     String TWIN_STATUS_NAME = "To Do";

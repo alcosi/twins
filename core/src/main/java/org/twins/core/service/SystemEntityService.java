@@ -38,7 +38,6 @@ public class SystemEntityService {
     final TwinStatusRepository twinStatusRepository;
     final UserRepository userRepository;
     final TwinClassFieldRepository twinClassFieldRepository;
-    final TwinClassFreezeRepository twinClassFreezeRepository;
     final EntitySmartService entitySmartService;
     private final I18nRepository i18nRepository;
     private final I18nTranslationRepository i18nTranslationRepository;
@@ -335,8 +334,6 @@ public class SystemEntityService {
     }
 
     public record SystemClass(UUID id, String key, List<SystemStatus> statuses, List<SystemField> fields, boolean abstractt, boolean assigneeRequired) {}
-
-    public record SystemClassFreeze(UUID id, String key, I18n name, I18n description) {}
 
     public record SystemStatus(UUID id, UUID twinClassId, I18n name, I18n description) {}
 
