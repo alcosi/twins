@@ -72,8 +72,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.twins.core.featurer.fieldtyper.FieldTyperList.LIST_SPLITTER;
-import static org.twins.core.service.SystemEntityService.TWIN_CLASS_AVAILABILITY_SPIRIT;
-import static org.twins.core.service.SystemEntityService.TWIN_STATUS_SPIRIT;
 
 //Log calls that took more then 2 seconds
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
@@ -1416,12 +1414,22 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return res;
     }
 
-    public UUID checkTwinStatus(TwinEntity src) throws ServiceException {
-        if(!src.getTwinClass().getTwinClassAvailabilityId().equals(TWIN_CLASS_AVAILABILITY_SPIRIT))
-            return src.getTwinStatusId();
-        src.setTwinStatusId(TWIN_STATUS_SPIRIT); // todo wtf???
-        src.setTwinStatus(twinStatusService.findEntitySafe(TWIN_STATUS_SPIRIT));
-        return src.getTwinStatusId();
+    public TwinStatusEntity checkFreezeStatus(TwinEntity src) {
+        if(src.getTwinClass().getTwinClassFreezeId() != null) {
+            twinClassService.loadFreeze(src.getTwinClass());
+            if (src.getTwinClass().getTwinClassFreeze().getTwinStatusId() != null)
+                return src.getTwinClass().getTwinClassFreeze().getTwinStatus();
+        }
+        return src.getTwinStatus();
+    }
+
+    public boolean checkIsFreezeStatus(TwinEntity src){
+        if(src.getTwinClass().getTwinClassFreezeId() != null) {
+            twinClassService.loadFreeze(src.getTwinClass());
+            if (src.getTwinClass().getTwinClassFreeze().getTwinStatusId() != null)
+                return true;
+        }
+        return false;
     }
 
     @Data

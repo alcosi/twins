@@ -30,14 +30,15 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
                         .headTwinId(src.getHeadTwinId())
                         .assignerUserId(src.getAssignerUserId())
                         .authorUserId(src.getCreatedByUserId())
-                        .statusId(twinService.checkTwinStatus(src))
+                        .statusId(twinService.checkFreezeStatus(src).getId())
                         .twinClassId(src.getTwinClassId())
                         .description(src.getDescription())
                         .ownerBusinessAccountId(src.getOwnerBusinessAccountId())
                         .ownerUserId(src.getOwnerUserId())
                         .createdAt(src.getCreatedAt().toLocalDateTime())
                         .pageFaceId(faceService.resolvePageFaceId(src))
-                        .breadCrumbsFaceId(faceService.resolveBreadCrumbsFaceId(src));
+                        .breadCrumbsFaceId(faceService.resolveBreadCrumbsFaceId(src))
+                        .freeze(twinService.checkIsFreezeStatus(src));
                 break;
             case SHORT:
                 dst
@@ -45,6 +46,7 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
                         .name(src.getName());
                 break;
         }
+
     }
 
     @Override

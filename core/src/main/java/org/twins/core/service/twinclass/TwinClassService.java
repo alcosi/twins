@@ -65,7 +65,6 @@ import java.util.stream.StreamSupport;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
 import static org.twins.core.dao.twinclass.TwinClassEntity.convertUuidFromLtreeFormat;
-import static org.twins.core.service.SystemEntityService.TWIN_CLASS_AVAILABILITY_ACTIVE;
 
 @Slf4j
 @Service
@@ -77,7 +76,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     private final TwinClassSchemaRepository twinClassSchemaRepository;
     private final TwinClassSchemaMapRepository twinClassSchemaMapRepository;
     private final TwinClassFieldService twinClassFieldService;
-    private final TwinClassAvailabilityRepository twinClassAvailabilityRepository;
+    private final TwinClassFreezeRepository twinClassFreezeRepository;
     private final EntitySmartService entitySmartService;
     private final I18nService i18nService;
     private final DataListRepository dataListRepository;
@@ -147,12 +146,16 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                                 (entity.getExtendsTwinClassId() != null && entity.getExtendsTwinClassId().equals(entity.getId()))
                 )
                     return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_CYCLE.getMessage());
-                if(!twinClassAvailabilityRepository.existsById(entity.getTwinClassAvailabilityId()))
-                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_AVAILABILITY_UNKNOWN, "unknown twin class availability id[" + entity.getTwinClassAvailabilityId() + "]");
-                if (entity.getTwinClassAvailability() != null && !entity.getTwinClassAvailability().getId().equals(entity.getTwinClassAvailabilityId())) {
-                    entity.setTwinClassAvailabilityId(null);
-                    loadAvailability(entity);
+                if(!twinClassFreezeRepository.existsById(entity.getTwinClassFreezeId()))
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FREEZE_UNKNOWN, "unknown twin class freeze id[" + entity.getTwinClassFreezeId() + "]");
+
+                if (entity.getTwinClassFreezeId() != null && entity.getTwinClassFreeze() != null && !entity.getTwinClassFreeze().getId().equals(entity.getTwinClassFreezeId())) {
+                    entity.setTwinClassFreezeId(null);
+                    loadFreeze(entity);
+                } else if (entity.getTwinClassFreezeId() == null) {
+                    entity.setTwinClassFreezeId(null);
                 }
+
                 if (entity.getMarkerDataListId() != null
                         && !dataListRepository.existsByIdAndDomainIdOrIdAndDomainIdIsNull(entity.getMarkerDataListId(), apiUser.getDomainId(), entity.getMarkerDataListId()))
                     throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown marker data list id[" + entity.getMarkerDataListId() + "]");
@@ -380,9 +383,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_ALREADY_IN_USE, "Class key already exists: " + classKey);
             }
 
-            if(twinClass.getTwinClassAvailabilityId() == null || twinClass.getTwinClassAvailabilityId().equals(UuidUtils.NULLIFY_MARKER))
-                twinClass.setTwinClassAvailabilityId(TWIN_CLASS_AVAILABILITY_ACTIVE);
-
             if (twinClass.getHeadTwinClassId() == null ||
                     SystemEntityService.isSystemClass(twinClass.getHeadTwinClassId())) {
                 twinClass
@@ -581,6 +581,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getExternalId, TwinClassEntity::setExternalId, TwinClassEntity.Fields.externalId, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getExternalProperties, TwinClassEntity::setExternalProperties, TwinClassEntity.Fields.externalProperties, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getExternalJson, TwinClassEntity::setExternalJson, TwinClassEntity.Fields.externalJson, changesHelper);
+            updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getTwinClassFreezeId, TwinClassEntity::setTwinClassFreezeId, TwinClassEntity.Fields.twinClassFreezeId, changesHelper);
 
 
             updateTwinClassFeaturer(dbTwinClassEntity, twinClassUpdate.getTwinClass().getHeadHunterFeaturerId(), twinClassUpdate.getTwinClass().getHeadHunterParams(), changesHelper);
@@ -588,7 +589,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             updateTwinClassDescription(dbTwinClassEntity, twinClassUpdate.getDescriptionI18n(), changesHelper);
             updateTwinClassHeadTwinClass(dbTwinClassEntity, twinClassUpdate.getHeadTwinClassUpdate(), changesHelper);
             updateTwinClassExtendsTwinClass(dbTwinClassEntity, twinClassUpdate.getExtendsTwinClassUpdate(), changesHelper);
-            updateTwinClassAvailability(dbTwinClassEntity, twinClassUpdate.getTwinClass().getTwinClassAvailabilityId(), changesHelper);
             updateTwinClassTagDataList(dbTwinClassEntity, twinClassUpdate.getTagDataListUpdate(), changesHelper);
             updateTwinClassIcons(dbTwinClassEntity, iconLight, iconDark, changesHelper);
 
@@ -674,12 +674,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         if (updateOperation == null || !changesHelper.isChanged(TwinClassEntity.Fields.markerDataListId, dbTwinClassEntity.getMarkerDataListId(), updateOperation.getNewId()))
             return;
         twinMarkerService.replaceMarkersForTwinsOfClass(dbTwinClassEntity, updateOperation);
-    }
-
-    public void updateTwinClassAvailability(TwinClassEntity dbTwinClassEntity, UUID newAvailabilityId, ChangesHelper changesHelper) throws ServiceException {
-        if (newAvailabilityId == null || newAvailabilityId.equals(UuidUtils.NULLIFY_MARKER) || !changesHelper.isChanged(TwinClassEntity.Fields.twinClassAvailabilityId, dbTwinClassEntity.getTwinClassAvailabilityId(), newAvailabilityId))
-            return;
-        dbTwinClassEntity.setTwinClassAvailabilityId(newAvailabilityId);
     }
 
     public void updateTwinClassExtendsTwinClass(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation extendsRelinkOperation, ChangesHelper changesHelper) throws ServiceException {
@@ -880,20 +874,20 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
     }
 
-    public void loadAvailability(TwinClassEntity src) {
-        loadAvailability(Collections.singletonList(src));
+    public void loadFreeze(TwinClassEntity src) {
+        loadFreeze(Collections.singletonList(src));
     }
 
-    public void loadAvailability(Collection<TwinClassEntity> twinClassCollection) {
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getTwinClassAvailabilityId);
+    public void loadFreeze(Collection<TwinClassEntity> twinClassCollection) {
+        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getTwinClassFreezeId);
         for (TwinClassEntity twinClass : twinClassCollection)
-            if (twinClass.getTwinClassAvailability() == null) needLoad.add(twinClass);
+            if (twinClass.getTwinClassFreezeId() != null && twinClass.getTwinClassFreeze() == null) needLoad.add(twinClass);
         if (KitUtils.isEmpty(needLoad))
             return;
-        Kit<TwinClassAvailabilityEntity, UUID> items = new Kit<>(twinClassAvailabilityRepository.findAllByIdIn(needLoad.getGroupedKeySet()), TwinClassAvailabilityEntity::getId);
+        Kit<TwinClassFreezeEntity, UUID> items = new Kit<>(twinClassFreezeRepository.findAllByIdIn(needLoad.getGroupedKeySet()), TwinClassFreezeEntity::getId);
         for (var twinClass : twinClassCollection)
             if (needLoad.containsKey(twinClass.getId()))
-                twinClass.setTwinClassAvailability(items.get(twinClass.getTwinClassAvailabilityId()));
+                twinClass.setTwinClassFreeze(items.get(twinClass.getTwinClassFreezeId()));
     }
 
     public void loadSegments(TwinClassEntity src) {

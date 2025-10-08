@@ -66,7 +66,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     FIELD_TYPER_STORAGE_NOT_INIT(10425, "Field typer getStorage should be implemented"),
     TWIN_CLASS_LIST_CYCLE(10426, "Twin class list id can't be equals id of class."),
     TWIN_CLASS_FIELD_SORTER_IS_INCOMPATIBLE(10427, "twin class field sorter is incompatible with field typer"),
-    TWIN_CLASS_AVAILABILITY_UNKNOWN(10428, "twin class availability not found"),
+    TWIN_CLASS_FREEZE_UNKNOWN(10428, "twin class freeze not found"),
     TWINFLOW_SCHEMA_NOT_ALLOWED(10501, "twinflow schema is not allowed"),
     TWINFLOW_SCHEMA_NOT_CONFIGURED(10502, "twinflow schema is not configured"),
     TWINFLOW_TRANSACTION_INCORRECT(10503, "twinflow transition can not be performed"),

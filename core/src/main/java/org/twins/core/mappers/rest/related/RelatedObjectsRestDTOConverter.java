@@ -19,7 +19,7 @@ import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.dao.twinclass.TwinClassAvailabilityEntity;
+import org.twins.core.dao.twinclass.TwinClassFreezeEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
@@ -44,7 +44,7 @@ import org.twins.core.dto.rest.related.RelatedObjectsDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.tier.TierDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
-import org.twins.core.dto.rest.twinclass.TwinClassAvailabilityDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassFreezeDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
@@ -72,7 +72,7 @@ import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapperV2;
 import org.twins.core.mappers.rest.space.SpaceRoleDTOMapper;
 import org.twins.core.mappers.rest.tier.TierRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
-import org.twins.core.mappers.rest.twinclass.TwinClassAvailabilityDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassFreezeDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassSchemaDTOMapper;
@@ -117,7 +117,7 @@ public class RelatedObjectsRestDTOConverter {
     private final I18nRestDTOMapper i18nRestDTOMapper;
     private final TierRestDTOMapper tierRestDTOMapper;
     private final AttachmentRestrictionRestDTOMapper attachmentRestrictionRestDTOMapper;
-    private final TwinClassAvailabilityDTOMapper twinClassAvailabilityDTOMapper;
+    private final TwinClassFreezeDTOMapper twinClassFreezeDTOMapper;
 
     public RelatedObjectsDTOv1 convert(MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())
@@ -147,7 +147,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, TwinClassFieldDTOv1> twinClassFiledMap = new HashMap<>();
         Map<UUID, TierDTOv1> tierMap = new HashMap<>();
         Map<UUID, AttachmentRestrictionDTOv1> attachmentRestrictionMap = new HashMap<>();
-        Map<UUID, TwinClassAvailabilityDTOv1> twinClassAvailabilityMap = new HashMap<>();
+        Map<UUID, TwinClassFreezeDTOv1> twinClassFreezeMap = new HashMap<>();
 
         MapperContext mapperContextLevel2 = mapperContext.cloneIgnoreRelatedObjects();
         if (!mapperContext.getRelatedTwinClassMap().isEmpty())
@@ -198,8 +198,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContext.getRelatedTierMap(), tierRestDTOMapper, mapperContextLevel2, tierMap, TierEntity::getId);
         if (!mapperContext.getRelatedAttachmentRestrictionMap().isEmpty())
             convertAndPut(mapperContext.getRelatedAttachmentRestrictionMap(), attachmentRestrictionRestDTOMapper, mapperContextLevel2, attachmentRestrictionMap, TwinAttachmentRestrictionEntity::getId);
-        if (!mapperContext.getRelatedTwinClassAvailabilityMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinClassAvailabilityMap(), twinClassAvailabilityDTOMapper, mapperContextLevel2, twinClassAvailabilityMap, TwinClassAvailabilityEntity::getId);
+        if (!mapperContext.getRelatedTwinClassFreezeMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedTwinClassFreezeMap(), twinClassFreezeDTOMapper, mapperContextLevel2, twinClassFreezeMap, TwinClassFreezeEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         MapperContext mapperContextLevel3 = mapperContextLevel2.cloneIgnoreRelatedObjects();
@@ -251,8 +251,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel2.getRelatedTierMap(), tierRestDTOMapper, mapperContextLevel3, tierMap, TierEntity::getId);
         if (!mapperContextLevel2.getRelatedAttachmentRestrictionMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedAttachmentRestrictionMap(), attachmentRestrictionRestDTOMapper, mapperContextLevel3, attachmentRestrictionMap, TwinAttachmentRestrictionEntity::getId);
-        if (!mapperContextLevel2.getRelatedTwinClassAvailabilityMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinClassAvailabilityMap(), twinClassAvailabilityDTOMapper, mapperContextLevel3, twinClassAvailabilityMap, TwinClassAvailabilityEntity::getId);
+        if (!mapperContextLevel2.getRelatedTwinClassFreezeMap().isEmpty())
+            convertAndPut(mapperContextLevel2.getRelatedTwinClassFreezeMap(), twinClassFreezeDTOMapper, mapperContextLevel3, twinClassFreezeMap, TwinClassFreezeEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         //this level was added because of dataLists. In case of search twins, twinClass will be detected on level1, twinClass.tagDataList will be detected on level2 and list options for tagDataList will be detected only on level3
@@ -305,8 +305,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedTierMap(), tierRestDTOMapper, mapperContextLevel3, tierMap, TierEntity::getId);
         if (!mapperContextLevel3.getRelatedAttachmentRestrictionMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedAttachmentRestrictionMap(), attachmentRestrictionRestDTOMapper, mapperContextLevel3, attachmentRestrictionMap, TwinAttachmentRestrictionEntity::getId);
-        if (!mapperContextLevel3.getRelatedTwinClassAvailabilityMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinClassAvailabilityMap(), twinClassAvailabilityDTOMapper, mapperContextLevel3, twinClassAvailabilityMap, TwinClassAvailabilityEntity::getId);
+        if (!mapperContextLevel3.getRelatedTwinClassFreezeMap().isEmpty())
+            convertAndPut(mapperContextLevel3.getRelatedTwinClassFreezeMap(), twinClassFreezeDTOMapper, mapperContextLevel3, twinClassFreezeMap, TwinClassFreezeEntity::getId);
 
         ret
                 .setTwinClassMap(twinClassMap.isEmpty() ? null : twinClassMap)
@@ -333,7 +333,7 @@ public class RelatedObjectsRestDTOConverter {
                 .setTwinClassSchemaMap(twinClassSchemaMap.isEmpty() ? null : twinClassSchemaMap)
                 .setTierMap(tierMap.isEmpty() ? null : tierMap)
                 .setAttachmentRestrictionMap(attachmentRestrictionMap.isEmpty() ? null : attachmentRestrictionMap)
-                .setTwinClassAvailabilityMap(twinClassAvailabilityMap.isEmpty() ? null : twinClassAvailabilityMap)
+                .setTwinClassFreezeMap(twinClassFreezeMap.isEmpty() ? null : twinClassFreezeMap)
         ;
         return ret;
     }

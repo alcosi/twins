@@ -8,7 +8,6 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinClassAvailabilityMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassExternalJsonMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.service.i18n.I18nService;
@@ -42,7 +41,7 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setAbstractClass(src.getAbstractt())
                         .setMarkersDataListId(src.getMarkerDataListId())
                         .setTagsDataListId(src.getTagDataListId())
-                        .setTwinClassAvailabilityId(src.getTwinClassAvailabilityId())
+                        .setTwinClassFreezeId(src.getTwinClassFreezeId())
                         .setName(i18nService.translateToLocale(src.getNameI18NId()))
                         .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
                         .setIconDark(resourceService.getResourceUri(src.getIconDarkResource()))
@@ -79,7 +78,7 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setAbstractClass(src.getAbstractt())
                         .setMarkersDataListId(src.getMarkerDataListId())
                         .setTagsDataListId(src.getTagDataListId())
-                        .setTwinClassAvailabilityId(src.getTwinClassAvailabilityId())
+                        .setTwinClassFreezeId(src.getTwinClassFreezeId())
                         .setName(i18nService.translateToLocale(src.getNameI18NId()))
                         .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
                         .setIconDark(resourceService.getResourceUri(src.getIconDarkResource()))

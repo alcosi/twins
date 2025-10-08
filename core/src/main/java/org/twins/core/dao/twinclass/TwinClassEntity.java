@@ -65,8 +65,8 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "key")
     private String key;
 
-    @Column(name = "twin_class_availability_id")
-    private UUID twinClassAvailabilityId;
+    @Column(name = "twin_class_freeze_id")
+    private UUID twinClassFreezeId;
 
     @Column(name = "permission_schema_space")
     private Boolean permissionSchemaSpace;
@@ -323,7 +323,7 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private TwinClassAvailabilityEntity twinClassAvailability;
+    private TwinClassFreezeEntity twinClassFreeze;
 
     @Transient
     @EqualsAndHashCode.Exclude

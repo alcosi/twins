@@ -73,7 +73,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     @MapperModePointerBinding(modes = FaceMode.TwinClassPage2FaceMode.class)
     private final FaceRestDTOMapper faceRestDTOMapper;
 
-    private final TwinClassAvailabilityDTOMapper twinClassAvailabilityDTOMapper;
+    private final TwinClassFreezeDTOMapper twinClassFreezeDTOMapper;
 
 
     private final TwinClassFieldService twinClassFieldService;
@@ -181,9 +181,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             dst.setSegmentClassIds(src.getSegmentTwinsClassKit().getIdSet());
             postpone(src.getSegmentTwinsClassKit(), mapperContext.forkAndExclude(TwinClassSegmentMode.SHOW));
         }
-        if (mapperContext.hasModeButNot(TwinClassAvailabilityMode.HIDE))
-            twinClassService.loadAvailability(src);
-            twinClassAvailabilityDTOMapper.postpone(src.getTwinClassAvailability(), mapperContext);
+        if (mapperContext.hasModeButNot(TwinClassFreezeMode.HIDE))
+            twinClassService.loadFreeze(src);
+            twinClassFreezeDTOMapper.postpone(src.getTwinClassFreeze(), mapperContext);
     }
 
     @Override
@@ -213,8 +213,8 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (mapperContext.hasModeButNot(TwinClassSegmentMode.HIDE)) {
             twinClassService.loadSegments(srcCollection);
         }
-        if (mapperContext.hasModeButNot(TwinClassAvailabilityMode.HIDE)) {
-            twinClassService.loadAvailability(srcCollection);
+        if (mapperContext.hasModeButNot(TwinClassFreezeMode.HIDE)) {
+            twinClassService.loadFreeze(srcCollection);
         }
     }
 

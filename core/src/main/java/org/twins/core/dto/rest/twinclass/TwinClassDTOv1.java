@@ -43,6 +43,6 @@ public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
     @Schema(description = "head hunter featurer")
     public FeaturerDTOv1 headHunterFeaturer;
 
-    @Schema(description = "twin class availability")
-    public TwinClassAvailabilityDTOv1 twinClassAvailability;
+    @Schema(description = "twin class freeze")
+    public TwinClassFreezeDTOv1 twinClassFreeze;
 }

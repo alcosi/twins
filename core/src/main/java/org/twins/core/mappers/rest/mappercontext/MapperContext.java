@@ -20,7 +20,7 @@ import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.dao.twinclass.TwinClassAvailabilityEntity;
+import org.twins.core.dao.twinclass.TwinClassFreezeEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
@@ -88,7 +88,7 @@ public class MapperContext {
     @Getter
     private Map<UUID, RelatedObject<TwinAttachmentRestrictionEntity>> relatedAttachmentRestrictionMap = new LinkedHashMap<>();
     @Getter
-    private Map<UUID, RelatedObject<TwinClassAvailabilityEntity>> relatedTwinClassAvailabilityMap = new LinkedHashMap<>();
+    private Map<UUID, RelatedObject<TwinClassFreezeEntity>> relatedTwinClassFreezeMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
@@ -230,8 +230,8 @@ public class MapperContext {
             smartPut(relatedTierMap, tier, tier.getId());
         else if (relatedObject instanceof TwinAttachmentRestrictionEntity entity)
             smartPut(relatedAttachmentRestrictionMap, entity, entity.getId());
-        else if (relatedObject instanceof TwinClassAvailabilityEntity entity)
-            smartPut(relatedTwinClassAvailabilityMap, entity, entity.getId());
+        else if (relatedObject instanceof TwinClassFreezeEntity entity)
+            smartPut(relatedTwinClassFreezeMap, entity, entity.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -439,7 +439,7 @@ public class MapperContext {
         dstMapperContext.relatedTwinClassSchemaMap = srcMapperContext.relatedTwinClassSchemaMap;
         dstMapperContext.relatedTierMap = srcMapperContext.relatedTierMap;
         dstMapperContext.relatedAttachmentRestrictionMap = srcMapperContext.relatedAttachmentRestrictionMap;
-        dstMapperContext.relatedTwinClassAvailabilityMap = srcMapperContext.relatedTwinClassAvailabilityMap;
+        dstMapperContext.relatedTwinClassFreezeMap = srcMapperContext.relatedTwinClassFreezeMap;
     }
 
     public MapperContext fork(MapperModeCollection mapperModeCollection) {

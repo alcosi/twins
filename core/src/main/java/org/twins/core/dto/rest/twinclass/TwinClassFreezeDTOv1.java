@@ -1,31 +1,32 @@
 package org.twins.core.dto.rest.twinclass;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.enums.twinclass.OwnerType;
+import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name =  "TwinClassAvailabilityV1")
-public class TwinClassAvailabilityDTOv1 {
-    @Schema(description = "id", example = DTOExamples.TWIN_CLASS_AVAILABILITY_ID)
+@Schema(name =  "TwinClassFreezeV1")
+public class TwinClassFreezeDTOv1 {
+    @Schema(description = "id", example = DTOExamples.TWIN_CLASS_FREEZE_ID)
     public UUID id;
 
     @Schema(description = "key")
     public String key;
+
+    @Schema(description = "statusId")
+    public UUID statusId;
 
     @Schema(description = "name")
     public String name;
 
     @Schema(description = "description")
     public String description;
+
+    @Schema(description = "status")
+    public TwinStatusDTOv1 status;
 }
