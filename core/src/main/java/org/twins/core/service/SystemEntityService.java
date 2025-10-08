@@ -15,10 +15,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldRepository;
-import org.twins.core.dao.twinclass.TwinClassRepository;
+import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
 import org.twins.core.enums.i18n.I18nType;
@@ -42,7 +39,10 @@ public class SystemEntityService {
     final UserRepository userRepository;
     final TwinClassFieldRepository twinClassFieldRepository;
     final EntitySmartService entitySmartService;
+    private final I18nRepository i18nRepository;
+    private final I18nTranslationRepository i18nTranslationRepository;
 
+    // last type.id = 0014
     public static final UUID USER_SYSTEM = UUID.fromString("00000000-0000-0000-0000-000000000000");
     public static final UUID TWIN_CLASS_USER = UUID.fromString("00000000-0000-0000-0001-000000000001");
     public static final UUID TWIN_CLASS_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0001-000000000003");
@@ -66,8 +66,7 @@ public class SystemEntityService {
     public static final UUID TWIN_CLASS_FIELD_TWIN_ALIASES = UUID.fromString("00000000-0000-0000-0011-000000000014");
     public static final UUID TWIN_CLASS_FIELD_TWIN_TAGS = UUID.fromString("00000000-0000-0000-0011-000000000015");
     public static final UUID TWIN_CLASS_FIELD_TWIN_MARKERS = UUID.fromString("00000000-0000-0000-0011-000000000016");
-
-    // last i18.id = 38
+    // last i18.id = 46
     public static final UUID I18N_4CLASS_USER_FIELD_EMAIL_NAME = UUID.fromString("00000000-0000-0000-0012-000000000001");
     public static final UUID I18N_4CLASS_USER_FIELD_AVATAR_NAME = UUID.fromString("00000000-0000-0000-0012-000000000002");
     public static final UUID I18N_4CLASS_GLOBAL_ANCESTOR_FIELD_NAME_NAME = UUID.fromString("00000000-0000-0000-0012-000000000003");
@@ -109,15 +108,14 @@ public class SystemEntityService {
     public static final UUID I18N_4CLASS_FACE_PAGE_STATUS_DESCRIPTION = UUID.fromString("00000000-0000-0000-0012-000000000038");
 
     public static final UUID TWIN_ATTACHMENT_EXTERNAL_URI_STORAGER_ID = UUID.fromString("00000000-0000-0000-0013-000000000002");
-
     public static final UUID TWIN_STATUS_USER = UUID.fromString("00000000-0000-0000-0003-000000000001");
     public static final UUID TWIN_STATUS_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0003-000000000003");
     public static final UUID TWIN_STATUS_FACE_PAGE = UUID.fromString("00000000-0000-0000-0003-000000000004");
+
     public static final UUID TWIN_STATUS_SKETCH = UUID.fromString("00000001-0000-0000-0000-000000000001"); //todo changge my id
 
     public static final UUID TWIN_TEMPLATE_USER = UUID.fromString("00000000-0000-0000-0002-000000000001");
     public static final UUID TWIN_TEMPLATE_BUSINESS_ACCOUNT = UUID.fromString("00000000-0000-0000-0002-000000000003");
-
     public static final UUID TWIN_CLASS_FIELD_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000001");
     public static final UUID TWIN_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000002");
     public static final UUID TWIN_CLASS_SEARCH_UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000003");
@@ -134,7 +132,7 @@ public class SystemEntityService {
                         List.of(new SystemStatus(TWIN_STATUS_USER, TWIN_CLASS_USER, new I18n(I18N_4CLASS_USER_STATUS_NAME, "Active"), new I18n(I18N_4CLASS_USER_STATUS_DESCRIPTION, "User is active"))),
                         List.of(
                                 new SystemField(TWIN_CLASS_FIELD_USER_EMAIL, TWIN_CLASS_USER, 1318, new I18n(I18N_4CLASS_USER_FIELD_EMAIL_NAME, "Email"), new I18n(I18N_4CLASS_USER_FIELD_EMAIL_DESCRIPTION, "User email address"), "email", false, true),
-                                new SystemField(TWIN_CLASS_FIELD_USER_AVATAR, TWIN_CLASS_USER, 1319, new I18n(I18N_4CLASS_USER_FIELD_AVATAR_NAME, "Avatar"), new I18n(I18N_4CLASS_USER_FIELD_AVATAR_DESCRIPTION, "User avatar image"),  "avatar", false, true)
+                                new SystemField(TWIN_CLASS_FIELD_USER_AVATAR, TWIN_CLASS_USER, 1319, new I18n(I18N_4CLASS_USER_FIELD_AVATAR_NAME, "Avatar"), new I18n(I18N_4CLASS_USER_FIELD_AVATAR_DESCRIPTION, "User avatar image"), "avatar", false, true)
                         ),
                         false,
                         true
@@ -181,9 +179,6 @@ public class SystemEntityService {
         ));
     }
 
-    private final I18nRepository i18nRepository;
-    private final I18nTranslationRepository i18nTranslationRepository;
-
     @PostConstruct
     public void postConstruct() throws ServiceException {
         UserEntity systemUser = new UserEntity()
@@ -196,6 +191,7 @@ public class SystemEntityService {
         List<I18nTranslationEntity> i18nTranslationEntities = new ArrayList<>();
         List<TwinStatusEntity> statusEntities = new ArrayList<>();
         List<TwinClassFieldEntity> fieldEntities = new ArrayList<>();
+
         for (SystemClass systemClass : SYSTEM_CLASSES) {
             TwinClassEntity twinClassEntity = new TwinClassEntity()
                     .setId(systemClass.id())
@@ -209,7 +205,6 @@ public class SystemEntityService {
                     .setHasSegment(false)
                     .setCreatedAt(Timestamp.from(Instant.now()));
             entitySmartService.save(twinClassEntity.getId(), twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndLogOnException);
-
 
             for (SystemStatus status : systemClass.statuses()) {
                 i18nEntities.add(new I18nEntity()
@@ -290,10 +285,10 @@ public class SystemEntityService {
     }
 
     public static Set<UUID> getSystemFieldsIds() {
-        if(!SYSTEM_TWIN_CLASS_FIELDS_UUIDS.isEmpty())
+        if (!SYSTEM_TWIN_CLASS_FIELDS_UUIDS.isEmpty())
             return SYSTEM_TWIN_CLASS_FIELDS_UUIDS;
         for (SystemClass systemClass : SYSTEM_CLASSES)
-            for(SystemField systemField : systemClass.fields())
+            for (SystemField systemField : systemClass.fields())
                 SYSTEM_TWIN_CLASS_FIELDS_UUIDS.add(systemField.id());
         return SYSTEM_TWIN_CLASS_FIELDS_UUIDS;
     }
@@ -342,7 +337,7 @@ public class SystemEntityService {
 
     public record SystemStatus(UUID id, UUID twinClassId, I18n name, I18n description) {}
 
-    public record SystemField(UUID id, UUID twinClassId, Integer fieldTyperId, I18n name, I18n description, String fieldKey, Boolean required, Boolean system) {}
+    public record SystemField(UUID id, UUID twinClassId, Integer fieldTyperId, I18n name, I18n description, String fieldKey, Boolean required, Boolean system) { }
 
     public record I18n(UUID i18nId, String translation) {}
 

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
@@ -52,10 +53,12 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     @Override
     public void map(TwinEntity src, TwinBaseDTOv2 dst, MapperContext mapperContext) throws Exception {
         twinBaseRestDTOMapper.map(src, dst, mapperContext);
-        if (mapperContext.hasModeButNot(StatusMode.Twin2StatusMode.HIDE))
+        if (mapperContext.hasModeButNot(StatusMode.Twin2StatusMode.HIDE)) {
+            TwinStatusEntity statusEntity = twinService.getStatusOrFreeze(src);
             dst
-                    .status(twinStatusRestDTOMapper.convertOrPostpone(src.getTwinStatus(), mapperContext.forkOnPoint(StatusMode.Twin2StatusMode.SHORT)))
-                    .statusId(src.getTwinStatusId());
+                    .status(twinStatusRestDTOMapper.convertOrPostpone(statusEntity, mapperContext.forkOnPoint(StatusMode.Twin2StatusMode.SHORT)))
+                    .statusId(statusEntity.getId());
+        }
         if (mapperContext.hasModeButNot(UserMode.Twin2UserMode.HIDE)) {
             dst
                     .assignerUser(userDTOMapper.convertOrPostpone(src.getAssignerUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Twin2UserMode.SHORT))))

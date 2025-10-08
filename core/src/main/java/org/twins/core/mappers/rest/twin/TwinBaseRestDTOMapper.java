@@ -5,11 +5,11 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
 import org.twins.core.service.face.FaceService;
-
+import org.twins.core.service.twin.TwinService;
 
 @Component
 @RequiredArgsConstructor
@@ -17,6 +17,7 @@ import org.twins.core.service.face.FaceService;
 public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinBaseDTOv1> {
 
     private final FaceService faceService;
+    private final TwinService twinService;
 
     @Override
     public void map(TwinEntity src, TwinBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -29,21 +30,24 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
                         .headTwinId(src.getHeadTwinId())
                         .assignerUserId(src.getAssignerUserId())
                         .authorUserId(src.getCreatedByUserId())
-                        .statusId(src.getTwinStatusId())
+                        .statusId(twinService.getStatusOrFreeze(src).getId())
                         .twinClassId(src.getTwinClassId())
                         .description(src.getDescription())
                         .ownerBusinessAccountId(src.getOwnerBusinessAccountId())
                         .ownerUserId(src.getOwnerUserId())
                         .createdAt(src.getCreatedAt().toLocalDateTime())
                         .pageFaceId(faceService.resolvePageFaceId(src))
-                        .breadCrumbsFaceId(faceService.resolveBreadCrumbsFaceId(src));
+                        .breadCrumbsFaceId(faceService.resolveBreadCrumbsFaceId(src))
+                        .freeze(twinService.checkIsFreezeStatus(src));
                 break;
             case SHORT:
                 dst
                         .id(src.getId())
-                        .name(src.getName());
+                        .name(src.getName())
+                        .freeze(twinService.checkIsFreezeStatus(src));
                 break;
         }
+
     }
 
     @Override
