@@ -76,7 +76,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     private final TwinClassSchemaRepository twinClassSchemaRepository;
     private final TwinClassSchemaMapRepository twinClassSchemaMapRepository;
     private final TwinClassFieldService twinClassFieldService;
-    private final TwinClassFreezeRepository twinClassFreezeRepository;
+    private final TwinClassFreezeService twinClassFreezeService;
     private final EntitySmartService entitySmartService;
     private final I18nService i18nService;
     private final DataListRepository dataListRepository;
@@ -146,14 +146,9 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                                 (entity.getExtendsTwinClassId() != null && entity.getExtendsTwinClassId().equals(entity.getId()))
                 )
                     return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_CYCLE.getMessage());
-                if(!twinClassFreezeRepository.existsById(entity.getTwinClassFreezeId()))
-                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FREEZE_UNKNOWN, "unknown twin class freeze id[" + entity.getTwinClassFreezeId() + "]");
 
-                if (entity.getTwinClassFreezeId() != null && entity.getTwinClassFreeze() != null && !entity.getTwinClassFreeze().getId().equals(entity.getTwinClassFreezeId())) {
-                    entity.setTwinClassFreezeId(null);
-                    loadFreeze(entity);
-                } else if (entity.getTwinClassFreezeId() == null) {
-                    entity.setTwinClassFreezeId(null);
+                if (entity.getTwinClassFreezeId() != null && (entity.getTwinClassFreeze() == null || !entity.getTwinClassFreeze().getId().equals(entity.getTwinClassFreezeId()))) {
+                    entity.setTwinClassFreeze(twinClassFreezeService.findEntitySafe(entity.getTwinClassFreezeId()));
                 }
 
                 if (entity.getMarkerDataListId() != null
@@ -875,20 +870,21 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
     }
 
-    public void loadFreeze(TwinClassEntity src) {
+    public void loadFreeze(TwinClassEntity src) throws ServiceException {
         loadFreeze(Collections.singletonList(src));
     }
 
-    public void loadFreeze(Collection<TwinClassEntity> twinClassCollection) {
+    public void loadFreeze(Collection<TwinClassEntity> twinClassCollection) throws ServiceException {
         KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getTwinClassFreezeId);
-        for (TwinClassEntity twinClass : twinClassCollection)
-            if (twinClass.getTwinClassFreezeId() != null && twinClass.getTwinClassFreeze() == null) needLoad.add(twinClass);
+        for (TwinClassEntity twinClass : twinClassCollection) {
+            if (twinClass.getTwinClassFreezeId() != null && twinClass.getTwinClassFreeze() == null)
+                needLoad.add(twinClass);
+        }
         if (KitUtils.isEmpty(needLoad))
             return;
-        Kit<TwinClassFreezeEntity, UUID> items = new Kit<>(twinClassFreezeRepository.findAllByIdIn(needLoad.getGroupedKeySet()), TwinClassFreezeEntity::getId);
-        for (var twinClass : twinClassCollection)
-            if (needLoad.containsKey(twinClass.getId()))
-                twinClass.setTwinClassFreeze(items.get(twinClass.getTwinClassFreezeId()));
+        Kit<TwinClassFreezeEntity, UUID> items = twinClassFreezeService.findEntitiesSafe(needLoad.getGroupedKeySet());
+        for (var twinClass : needLoad)
+            twinClass.setTwinClassFreeze(items.get(twinClass.getTwinClassFreezeId()));
     }
 
     public void loadSegments(TwinClassEntity src) {

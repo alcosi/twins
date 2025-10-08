@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS twin_class_freeze
 (
     id                  UUID NOT NULL,
     key                 VARCHAR(255),
-    twin_status_id      UUID,
+    twin_status_id      UUID not null,
     name_i18n_id        UUID,
     description_i18n_id UUID,
     CONSTRAINT pk_twin_class_freeze PRIMARY KEY (id),

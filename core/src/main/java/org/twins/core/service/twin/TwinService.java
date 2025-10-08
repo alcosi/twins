@@ -1414,22 +1414,16 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return res;
     }
 
-    public TwinStatusEntity checkFreezeStatus(TwinEntity src) {
-        if(src.getTwinClass().getTwinClassFreezeId() != null) {
+    public TwinStatusEntity getStatusOrFreeze(TwinEntity src) throws ServiceException {
+        if (src.getTwinClass().getTwinClassFreezeId() != null) {
             twinClassService.loadFreeze(src.getTwinClass());
-            if (src.getTwinClass().getTwinClassFreeze().getTwinStatusId() != null)
-                return src.getTwinClass().getTwinClassFreeze().getTwinStatus();
+            return src.getTwinClass().getTwinClassFreeze().getTwinStatus();
         }
         return src.getTwinStatus();
     }
 
-    public boolean checkIsFreezeStatus(TwinEntity src){
-        if(src.getTwinClass().getTwinClassFreezeId() != null) {
-            twinClassService.loadFreeze(src.getTwinClass());
-            if (src.getTwinClass().getTwinClassFreeze().getTwinStatusId() != null)
-                return true;
-        }
-        return false;
+    public boolean checkIsFreezeStatus(TwinEntity src) {
+        return src.getTwinClass().getTwinClassFreezeId() != null;
     }
 
     @Data

@@ -5,8 +5,8 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
 import org.twins.core.service.face.FaceService;
 import org.twins.core.service.twin.TwinService;
@@ -30,7 +30,7 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
                         .headTwinId(src.getHeadTwinId())
                         .assignerUserId(src.getAssignerUserId())
                         .authorUserId(src.getCreatedByUserId())
-                        .statusId(twinService.checkFreezeStatus(src).getId())
+                        .statusId(twinService.getStatusOrFreeze(src).getId())
                         .twinClassId(src.getTwinClassId())
                         .description(src.getDescription())
                         .ownerBusinessAccountId(src.getOwnerBusinessAccountId())

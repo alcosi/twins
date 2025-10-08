@@ -54,7 +54,7 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     public void map(TwinEntity src, TwinBaseDTOv2 dst, MapperContext mapperContext) throws Exception {
         twinBaseRestDTOMapper.map(src, dst, mapperContext);
         if (mapperContext.hasModeButNot(StatusMode.Twin2StatusMode.HIDE)) {
-            TwinStatusEntity statusEntity = twinService.checkFreezeStatus(src);
+            TwinStatusEntity statusEntity = twinService.getStatusOrFreeze(src);
             dst
                     .status(twinStatusRestDTOMapper.convertOrPostpone(statusEntity, mapperContext.forkOnPoint(StatusMode.Twin2StatusMode.SHORT)))
                     .statusId(statusEntity.getId());

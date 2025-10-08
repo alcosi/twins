@@ -46,9 +46,8 @@ public class TwinClassFreezeDTOMapper extends RestSimpleDTOMapper<TwinClassFreez
         }
 
         if (mapperContext.hasModeButNot(StatusMode.TwinClassFreeze2StatusMode.HIDE)) {
-            dst
-                    .setStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getTwinStatus(), mapperContext.forkOnPoint(StatusMode.Twin2StatusMode.SHORT)))
-                    .setStatusId(src.getTwinStatusId());
+            dst.setStatusId(src.getTwinStatusId());
+            twinStatusRestDTOMapper.postpone(src.getTwinStatus(), mapperContext.forkOnPoint(StatusMode.Twin2StatusMode.SHORT));
         }
     }
 

@@ -181,9 +181,10 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             dst.setSegmentClassIds(src.getSegmentTwinsClassKit().getIdSet());
             postpone(src.getSegmentTwinsClassKit(), mapperContext.forkAndExclude(TwinClassSegmentMode.SHOW));
         }
-        if (mapperContext.hasModeButNot(TwinClassFreezeMode.HIDE))
+        if (mapperContext.hasModeButNot(TwinClassFreezeMode.HIDE)) {
             twinClassService.loadFreeze(src);
             twinClassFreezeDTOMapper.postpone(src.getTwinClassFreeze(), mapperContext);
+        }
     }
 
     @Override
