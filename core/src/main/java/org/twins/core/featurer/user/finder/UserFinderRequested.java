@@ -9,6 +9,7 @@ import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.twins.core.exception.ErrorCodeTwins;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -22,7 +23,7 @@ public abstract class UserFinderRequested extends UserFinder {
 
     public UUID getRequestedId(FeaturerParamString paramKey, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
         if (CollectionUtils.isEmpty(namedParamsMap)) {
-            throw new ServiceException(ErrorCodeTwins.USER_SEARCH_CONFIG_INCORRECT);
+            namedParamsMap = Collections.EMPTY_MAP;
         }
         String paramKeyStr = paramKey.extract(properties);
         String paramValue = namedParamsMap.get(paramKeyStr);
