@@ -2,6 +2,7 @@ package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.featurer.FeaturerService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
@@ -23,6 +24,7 @@ public class TwinClassFieldConditionRestDTOMapper extends RestSimpleDTOMapper<Tw
 
     private final FeaturerService featurerService;
     private final TwinClassFieldConditionDescriptorRestDTOMapper conditionDescriptorMapper;
+    @Lazy
     @MapperModePointerBinding(modes = TwinClassFieldMode.TwinClassFieldCondition2TwinClassFieldMode.class)
     private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
     private final TwinClassFieldService twinClassFieldService;
