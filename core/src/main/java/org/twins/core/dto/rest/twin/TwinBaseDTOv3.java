@@ -9,6 +9,7 @@ import org.twins.core.dto.rest.attachment.AttachmentDTOv1;
 import org.twins.core.dto.rest.attachment.AttachmentsCountDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkListDTOv1;
+import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.transition.TwinTransitionViewDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.enums.action.TwinAction;
@@ -53,6 +54,7 @@ public class TwinBaseDTOv3 extends TwinBaseDTOv2 {
     public Set<TwinAction> actions;
 
     @Schema(description = "Twins of which classes are possible to create as children for given twin")
+    @RelatedObject(type = TwinDTOv2.class, name = "creatableChildTwinClassList")
     public Set<UUID> creatableChildTwinClassIds;
 
     @Schema(description = "Twins of which classes are possible to create as children for given twin")
@@ -61,3 +63,5 @@ public class TwinBaseDTOv3 extends TwinBaseDTOv2 {
     @Schema(description = "List of twin segments")
     public Set<UUID> segmentTwinIdList;
 }
+
+

@@ -7,7 +7,9 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv2;
+import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.LocalDateTime;
@@ -26,6 +28,7 @@ public class TwinLinkViewDTOv1 extends TwinLinkAddDTOv1 {
     public LocalDateTime createdAt;
 
     @Schema(description = "createdByUser", example = DTOExamples.USER_ID)
+    @RelatedObject(type = TwinDTOv2.class, name = "createdByUser")
     public UUID createdByUserId;
 
     @Schema(description = "createdByUser")
@@ -37,3 +40,5 @@ public class TwinLinkViewDTOv1 extends TwinLinkAddDTOv1 {
     @Schema(description = "Destination twin")
     public TwinBaseDTOv2 dstTwin;
 }
+
+

@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
 
 import java.util.Set;
 import java.util.UUID;
@@ -25,5 +27,8 @@ public class UserDTOv1 {
     public String avatar;
 
     @Schema(description = "an ids of user groups")
+    @RelatedObject(type = UserGroupDTOv1.class, name = "userGroupList")
     public Set<UUID> userGroupIds;
 }
+
+

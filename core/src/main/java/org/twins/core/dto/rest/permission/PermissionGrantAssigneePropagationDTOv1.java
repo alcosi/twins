@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.twin.TwinDTOv2;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -18,21 +20,28 @@ public class PermissionGrantAssigneePropagationDTOv1 {
     public UUID id;
 
     @Schema(description = "permission schema id", example = DTOExamples.PERMISSION_SCHEMA_ID)
+    @RelatedObject(type = PermissionSchemaDTOv2.class, name = "permissionSchema")
     public UUID permissionSchemaId;
 
     @Schema(description = "permission id", example = DTOExamples.PERMISSION_ID)
+    @RelatedObject(type = PermissionDTOv1.class, name = "permission")
     public UUID permissionId;
 
     @Schema(description = "propagation twin class id", example = DTOExamples.TWIN_CLASS_ID)
+    @RelatedObject(type = TwinDTOv2.class, name = "propagationTwinClass")
     public UUID propagationTwinClassId;
 
     @Schema(description = "twin status id", example = DTOExamples.TWIN_STATUS_ID)
+    @RelatedObject(type = TwinDTOv2.class, name = "propagationTwinStatus")
     public UUID propagationTwinStatusId;
 
     @Schema(description = "granted by user id", example = DTOExamples.USER_ID)
+    @RelatedObject(type = TwinDTOv2.class, name = "grantedByUser")
     public UUID grantedByUserId;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "granted at", example = DTOExamples.INSTANT)
     public LocalDateTime grantedAt;
 }
+
+

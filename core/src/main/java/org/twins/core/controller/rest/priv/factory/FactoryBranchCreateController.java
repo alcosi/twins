@@ -22,6 +22,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryBranchCreateRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryBranchRsDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryBranchCreateDTOReverseMapper;
+import org.twins.core.mappers.rest.factory.FactoryBranchRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryBranchRestDTOMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -36,7 +37,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.BRANCH_MANAGE, Permissions.BRANCH_CREATE})
 public class FactoryBranchCreateController extends ApiController {
-    private final FactoryBranchRestDTOMapperV2 factoryBranchRestDTOMapperV2;
+    private final FactoryBranchRestDTOMapper factoryBranchRestDTOMapper;
     private final FactoryBranchCreateDTOReverseMapper factoryBranchCreateDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final FactoryBranchService factoryBranchService;
@@ -59,7 +60,7 @@ public class FactoryBranchCreateController extends ApiController {
             branchEntity.setTwinFactoryId(factoryId);
             branchEntity = factoryBranchService.createFactoryBranch(branchEntity);
             rs
-                    .setFactoryBranch(factoryBranchRestDTOMapperV2.convert(branchEntity, mapperContext))
+                    .setFactoryBranch(factoryBranchRestDTOMapper.convert(branchEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.related.RelatedObject;
 
 import java.util.UUID;
 
@@ -13,9 +14,11 @@ import java.util.UUID;
 public class TwinBasicFieldsDTOv1 {
 
     @Schema(description = "assignee user id", example = DTOExamples.USER_ID)
+    @RelatedObject(type = TwinDTOv2.class, name = "assigneeUser")
     public UUID assigneeUserId;
 
     @Schema(description = "created by user_id", example = DTOExamples.USER_ID)
+    @RelatedObject(type = TwinDTOv2.class, name = "createdByUser")
     public UUID createdByUserId;
 
     @Schema(name = "name")
@@ -25,3 +28,5 @@ public class TwinBasicFieldsDTOv1 {
     public String description;
 
 }
+
+

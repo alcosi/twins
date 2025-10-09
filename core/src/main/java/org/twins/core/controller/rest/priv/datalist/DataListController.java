@@ -23,7 +23,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
-import org.twins.core.mappers.rest.datalist.DataListRestDTOMapperV2;
+import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
@@ -39,7 +39,7 @@ import java.util.UUID;
 public class DataListController extends ApiController {
     private final AuthService authService;
     private final DataListService dataListService;
-    private final DataListRestDTOMapperV2 dataListRestDTOMapperV2;
+    private final DataListRestDTOMapper dataListRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListViewV1", summary = "Returns list data")
@@ -51,11 +51,12 @@ public class DataListController extends ApiController {
     @GetMapping(value = "/private/data_list/{dataListId}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListViewV1(
-            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
-            rs.dataList = dataListRestDTOMapperV2.convert(dataListService.findEntitySafe(dataListId), mapperContext);
+            rs.setDataList(dataListRestDTOMapper.convert(
+                    dataListService.findEntitySafe(dataListId), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -74,12 +75,12 @@ public class DataListController extends ApiController {
     @GetMapping(value = "/private/data_list_by_key/{dataListKey}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListByKeyViewV1(
-            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_KEY) @PathVariable String dataListKey) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
-            rs.dataList = dataListRestDTOMapperV2.convert(
-                    dataListService.findEntitySafe(dataListKey), mapperContext);
+            rs.setDataList(dataListRestDTOMapper.convert(
+                    dataListService.findEntitySafe(dataListKey), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

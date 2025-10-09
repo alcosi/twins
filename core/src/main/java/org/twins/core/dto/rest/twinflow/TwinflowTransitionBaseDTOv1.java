@@ -3,9 +3,11 @@ package org.twins.core.dto.rest.twinflow;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.enums.twinflow.TwinflowTransitionType;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
+import org.twins.core.enums.twinflow.TwinflowTransitionType;
 
 import java.util.UUID;
 
@@ -17,6 +19,7 @@ public class TwinflowTransitionBaseDTOv1 {
     public UUID id;
 
     @Schema(example = DTOExamples.TWIN_STATUS_ID)
+    @RelatedObject(type = TwinDTOv2.class, name = "dstTwinStatus")
     public UUID dstTwinStatusId;
 
     @Schema(description = "status")
@@ -43,3 +46,5 @@ public class TwinflowTransitionBaseDTOv1 {
     @Schema()
     public boolean allowLinks;
 }
+
+

@@ -18,5 +18,5 @@ public class DomainUserDTOv2 extends DomainUserDTOv1 {
     public UserDTOv1 user;
 
     @Schema(description = "Business account users." + DTOExamples.LAZY_RELATION_MODE_ON)
-    public List<BusinessAccountUserDTOv2> businessAccountUsers;
+    public List<BusinessAccountUserDTOv1> businessAccountUsers;
 }

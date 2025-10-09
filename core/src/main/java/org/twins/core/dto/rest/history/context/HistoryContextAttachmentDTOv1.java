@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.attachment.AttachmentDTOv1;
+import org.twins.core.dto.rest.attachment.AttachmentRestrictionDTOv1;
+import org.twins.core.dto.rest.related.RelatedObject;
 
 import java.util.UUID;
 
@@ -16,8 +18,11 @@ public class HistoryContextAttachmentDTOv1 implements HistoryContextDTO {
     public String contextType = KEY;
 
     @Schema(description = "Attachment id", example = DTOExamples.ATTACHMENT_ID)
+    @RelatedObject(type = AttachmentRestrictionDTOv1.class, name = "attachment")
     public UUID attachmentId;
 
     @Schema(description = "Attachment")
     public AttachmentDTOv1 attachment;
 }
+
+

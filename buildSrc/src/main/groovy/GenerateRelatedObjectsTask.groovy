@@ -14,9 +14,9 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 abstract class GenerateRelatedObjectsTask extends DefaultTask {
+
     @TaskAction
     void generate() {
-        // Create a new JavaParser configuration and set the Java language level to 15
         def parserConfig = new ParserConfiguration()
         parserConfig.setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_21)
         StaticJavaParser.setConfiguration(parserConfig)
@@ -29,7 +29,6 @@ abstract class GenerateRelatedObjectsTask extends DefaultTask {
         }
         outputDir.mkdirs()
 
-        // Traverse files in sourceDir
         Files.walk(sourceDir.toPath())
                 .filter { it.toString().endsWith('.java') }
                 .forEach { Path sourcePath ->
@@ -42,7 +41,7 @@ abstract class GenerateRelatedObjectsTask extends DefaultTask {
                     def hasRelatedObjects = false
                     def relatedFields = []
 
-                    // Visitor to find fields with @RelatedObject
+                    // --- Collect fields annotated with @RelatedObject ---
                     cu.accept(new VoidVisitorAdapter<Void>() {
                         @Override
                         void visit(FieldDeclaration n, Void arg) {
@@ -61,88 +60,113 @@ abstract class GenerateRelatedObjectsTask extends DefaultTask {
                                             }
                                         }
                                     }
+
                                     def fieldName = n.variables.first().nameAsString
-                                    def capitalizedName = name ? name.capitalize() : fieldName.capitalize().replace('Id', '')
-                                    relatedFields << [fieldName: fieldName, getterName: "get${capitalizedName}", type: type]
+                                    def elementType = n.elementType.toString()
+                                    def isCollection = elementType.startsWith("List") ||
+                                            elementType.startsWith("Set") ||
+                                            elementType.startsWith("Collection")
+
+                                    // Determine getter name: use annotation "name" if present, otherwise fallback
+                                    def getterName = name ? "get${name.capitalize()}" :
+                                            "get${fieldName.capitalize().replaceAll('Ids?$', '').replaceAll('Id$', '')}"
+
+                                    relatedFields << [
+                                            fieldName    : fieldName,
+                                            getterName   : getterName,
+                                            type         : type,
+                                            isCollection : isCollection
+                                    ]
                                 }
                             }
                         }
                     }, null)
 
                     if (!hasRelatedObjects) {
-                        // Just copy the file if no @RelatedObject
                         outputFile.text = sourceFile.text
-                    } else {
-                        cu.accept(new VoidVisitorAdapter<Void>() {
-                            @Override
-                            public void visit(FieldDeclaration n, Void arg) {
-                                super.visit(n, arg);
-                                n.getAnnotations().removeIf(ann -> ann.getNameAsString().equals("RelatedObject"));
+                        return
+                    }
+
+                    // --- Remove @RelatedObject annotations ---
+                    cu.accept(new VoidVisitorAdapter<Void>() {
+                        @Override
+                        public void visit(FieldDeclaration n, Void arg) {
+                            super.visit(n, arg)
+                            n.getAnnotations().removeIf(ann -> ann.getNameAsString().equals("RelatedObject"))
+                        }
+                    }, null)
+
+                    // --- Work with class declaration ---
+                    def classDecl = cu.findFirst(ClassOrInterfaceDeclaration).get()
+
+                    // Add interface implementation if missing
+                    if (!classDecl.implementedTypes.any { it.nameAsString == 'ContainsRelatedObjects' }) {
+                        classDecl.addImplementedType('ContainsRelatedObjects')
+                    }
+
+                    // Add required imports
+                    if (!cu.getImports().any { it.nameAsString == 'org.twins.core.dto.rest.related.ContainsRelatedObjects' })
+                        cu.addImport('org.twins.core.dto.rest.related.ContainsRelatedObjects')
+                    if (!cu.getImports().any { it.nameAsString == 'org.twins.core.dto.rest.related.RelatedObjectsDTOv1' })
+                        cu.addImport('org.twins.core.dto.rest.related.RelatedObjectsDTOv1')
+                    if (!cu.getImports().any { it.nameAsString == 'jakarta.persistence.Transient' })
+                        cu.addImport('jakarta.persistence.Transient')
+                    if (!cu.getImports().any { it.nameAsString == 'java.util.List' })
+                        cu.addImport('java.util.List')
+
+                    // Add private field "relatedObjects"
+                    classDecl.addField('RelatedObjectsDTOv1', 'relatedObjects', com.github.javaparser.ast.Modifier.Keyword.PRIVATE)
+
+                    // --- Generate getter methods for all related fields ---
+                    relatedFields.each { field ->
+                        def getter = classDecl.addMethod(field.getterName, com.github.javaparser.ast.Modifier.Keyword.PUBLIC)
+                        getter.addAnnotation('Transient')
+                        getter.setComment(new com.github.javaparser.ast.comments.JavadocComment(
+                                "Generated by GenerateRelatedObjectsTask"
+                        ))
+
+                        if (field.isCollection) {
+                            getter.setType("List<${field.type}>")
+                            getter.setBody(StaticJavaParser.parseBlock("""
+                            {
+                                return (List<${field.type}>) getRelatedObjectList(${field.fieldName});
                             }
-                        }, null);
-                        // Modify the compilation unit
-                        def classDecl = cu.findFirst(ClassOrInterfaceDeclaration).get()
-
-                        // Add implements ContainsRelatedObjects if not present
-                        if (!classDecl.implementedTypes.any { it.nameAsString == 'ContainsRelatedObjects' }) {
-                            classDecl.addImplementedType('ContainsRelatedObjects')
-                        }
-
-                        // Add imports explicitly
-                        if (!cu.getImports().any { it.nameAsString == 'org.twins.core.dto.rest.related.ContainsRelatedObjects' }) {
-                            cu.addImport('org.twins.core.dto.rest.related.ContainsRelatedObjects')
-                        }
-                        if (!cu.getImports().any { it.nameAsString == 'org.twins.core.dto.rest.related.RelatedObjectsDTOv1' }) {
-                            cu.addImport('org.twins.core.dto.rest.related.RelatedObjectsDTOv1')
-                        }
-                        if (!cu.getImports().any { it.nameAsString == 'jakarta.persistence.Transient' }) {
-                            cu.addImport('jakarta.persistence.Transient')
-                        }
-
-                        // Add private RelatedObjectsDTOv1 relatedObjects field
-                        classDecl.addField('RelatedObjectsDTOv1', 'relatedObjects', com.github.javaparser.ast.Modifier.Keyword.PRIVATE)
-
-                        // Add getter methods for each related field
-                        relatedFields.each { field ->
-                            def getter = classDecl.addMethod(field.getterName, com.github.javaparser.ast.Modifier.Keyword.PUBLIC)
-                            getter.addAnnotation('Transient')
-                            getter.setComment(new com.github.javaparser.ast.comments.JavadocComment(
-                                    "Generated by GenerateRelatedObjectsTask"
-                            ));
+                            """))
+                        } else {
                             getter.setType(field.type)
                             getter.setBody(StaticJavaParser.parseBlock("""
-                        {
-                            return (${field.type}) getRelatedObject(${field.fieldName});                            
+                            {
+                                return (${field.type}) getRelatedObject(${field.fieldName});
+                            }
+                            """))
                         }
-                        """))
-                        }
-
-                        // Add @Override for getRelatedObjects if needed
-                        if (!classDecl.members.any { it instanceof MethodDeclaration && it.nameAsString == 'getRelatedObjects' }) {
-                            def getRelatedObjectsMethod = classDecl.addMethod('getRelatedObjects', com.github.javaparser.ast.Modifier.Keyword.PUBLIC)
-                            getRelatedObjectsMethod.addAnnotation('Override')
-                            getRelatedObjectsMethod.setComment(new com.github.javaparser.ast.comments.JavadocComment(
-                                    "Generated by GenerateRelatedObjectsTask"
-                            ));
-                            getRelatedObjectsMethod.setType('RelatedObjectsDTOv1')
-                            getRelatedObjectsMethod.setBody(StaticJavaParser.parseBlock('{ return relatedObjects; }'))
-                        }
-
-                        // Add setRelatedObjects method if not present
-                        if (!classDecl.members.any { it instanceof MethodDeclaration && it.nameAsString == 'setRelatedObjects' }) {
-                            def setRelatedObjectsMethod = classDecl.addMethod('setRelatedObjects', com.github.javaparser.ast.Modifier.Keyword.PUBLIC)
-                            setRelatedObjectsMethod.addAnnotation('Override')
-                            setRelatedObjectsMethod.setComment(new com.github.javaparser.ast.comments.JavadocComment(
-                                    "Generated by GenerateRelatedObjectsTask"
-                            ));
-                            setRelatedObjectsMethod.addParameter('RelatedObjectsDTOv1', 'relatedObjects')
-                            setRelatedObjectsMethod.setType('void')
-                            setRelatedObjectsMethod.setBody(StaticJavaParser.parseBlock('{ this.relatedObjects = relatedObjects; }'))
-                        }
-
-                        // Write the modified file
-                        outputFile.text = cu.toString()
                     }
+
+                    // --- Generate getRelatedObjects() if missing ---
+                    if (!classDecl.members.any { it instanceof MethodDeclaration && it.nameAsString == 'getRelatedObjects' }) {
+                        def getRelatedObjectsMethod = classDecl.addMethod('getRelatedObjects', com.github.javaparser.ast.Modifier.Keyword.PUBLIC)
+                        getRelatedObjectsMethod.addAnnotation('Override')
+                        getRelatedObjectsMethod.setComment(new com.github.javaparser.ast.comments.JavadocComment(
+                                "Generated by GenerateRelatedObjectsTask"
+                        ))
+                        getRelatedObjectsMethod.setType('RelatedObjectsDTOv1')
+                        getRelatedObjectsMethod.setBody(StaticJavaParser.parseBlock('{ return relatedObjects; }'))
+                    }
+
+                    // --- Generate setRelatedObjects() if missing ---
+                    if (!classDecl.members.any { it instanceof MethodDeclaration && it.nameAsString == 'setRelatedObjects' }) {
+                        def setRelatedObjectsMethod = classDecl.addMethod('setRelatedObjects', com.github.javaparser.ast.Modifier.Keyword.PUBLIC)
+                        setRelatedObjectsMethod.addAnnotation('Override')
+                        setRelatedObjectsMethod.setComment(new com.github.javaparser.ast.comments.JavadocComment(
+                                "Generated by GenerateRelatedObjectsTask"
+                        ))
+                        setRelatedObjectsMethod.addParameter('RelatedObjectsDTOv1', 'relatedObjects')
+                        setRelatedObjectsMethod.setType('void')
+                        setRelatedObjectsMethod.setBody(StaticJavaParser.parseBlock('{ this.relatedObjects = relatedObjects; }'))
+                    }
+
+                    // --- Write generated class to output directory ---
+                    outputFile.text = cu.toString()
                 }
     }
 }

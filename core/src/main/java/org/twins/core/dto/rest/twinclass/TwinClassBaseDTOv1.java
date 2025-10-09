@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
+import org.twins.core.dto.rest.face.FaceDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.enums.twinclass.OwnerType;
@@ -18,7 +19,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name =  "TwinClassBaseV1")
+@Schema(name = "TwinClassBaseV1")
 public class TwinClassBaseDTOv1 {
     @Schema(description = "id", example = DTOExamples.TWIN_CLASS_ID)
     public UUID id;
@@ -104,15 +105,19 @@ public class TwinClassBaseDTOv1 {
     @Schema(description = "uuid of description in I18n table")
     public UUID descriptionI18nId;
 
+    @RelatedObject(type = FaceDTOv1.class, name = "pageFace")
     @Schema(description = "twin display page pointer")
     public UUID pageFaceId;
 
+    @RelatedObject(type = FaceDTOv1.class, name = "breadCrumbsFace")
     @Schema(description = "breadcrumbs face id")
     public UUID breadCrumbsFaceId;
 
+    @RelatedObject(type = FaceDTOv1.class, name = "inheritedPageFace")
     @Schema(description = "inherited page face id")
     public UUID inheritedPageFaceId;
 
+    @RelatedObject(type = FaceDTOv1.class, name = "inheritedBreadCrumbsFace")
     @Schema(description = "inherited breadcrumbs face id")
     public UUID inheritedBreadCrumbsFaceId;
 
@@ -128,6 +133,7 @@ public class TwinClassBaseDTOv1 {
     @Schema(description = "External JSON data")
     public Map<String, Object> externalJson;
 
+    @RelatedObject(type = TwinClassDTOv1.class, name = "segmentClassList")
     @Schema(description = "segment class id")
     public Set<UUID> segmentClassIds;
 
