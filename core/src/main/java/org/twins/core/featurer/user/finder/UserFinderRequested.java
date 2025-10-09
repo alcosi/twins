@@ -22,7 +22,7 @@ public abstract class UserFinderRequested extends UserFinder {
     public static final FeaturerParamBoolean required = new FeaturerParamBoolean("required");
 
     public UUID getRequestedId(FeaturerParamString paramKey, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
-        if (CollectionUtils.isEmpty(namedParamsMap)) {
+        if (namedParamsMap == null) {
             namedParamsMap = Collections.EMPTY_MAP;
         }
         String paramKeyStr = paramKey.extract(properties);
