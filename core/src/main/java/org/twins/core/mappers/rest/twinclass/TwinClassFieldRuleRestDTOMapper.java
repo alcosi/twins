@@ -14,6 +14,9 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldConditionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldRuleMode;
+import org.twins.core.service.twinclass.TwinClassFieldConditionService;
+
+import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
@@ -24,6 +27,8 @@ public class TwinClassFieldRuleRestDTOMapper extends RestSimpleDTOMapper<TwinCla
     private final TwinClassFieldConditionRestDTOMapper twinClassFieldConditionRestDTOMapper;
 
     private final TwinClassFieldDescriptorRestDTOMapper twinClassFieldDescriptorRestDTOMapper;
+
+    private final TwinClassFieldConditionService twinClassFieldConditionService;
 
     private final FeaturerService featurerService;
 
@@ -44,10 +49,17 @@ public class TwinClassFieldRuleRestDTOMapper extends RestSimpleDTOMapper<TwinCla
             TwinClassFieldDescriptorDTO dto = twinClassFieldDescriptorRestDTOMapper.convert(descriptor, mapperContext);
             dst.setDescriptor(dto);
         }
-        // map conditions if present
-        if (src.getConditions() != null && !src.getConditions().isEmpty()) {
-                     dst.setConditions(twinClassFieldConditionRestDTOMapper.convertCollection(src.getConditions(), mapperContext));
+        if (mapperContext.hasModeButNot(TwinClassFieldConditionMode.TwinRule2TwinClassFieldConditionMode.HIDE)) {
+            twinClassFieldConditionService.loadConditions(src);
+            dst.setConditions(twinClassFieldConditionRestDTOMapper.convertCollection(src.getConditionKit(), mapperContext.forkOnPoint(TwinClassFieldConditionMode.TwinRule2TwinClassFieldConditionMode.SHORT)));
         }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<TwinClassFieldRuleEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(TwinClassFieldConditionMode.HIDE))
+            twinClassFieldConditionService.loadConditions(srcCollection);
     }
 
     @Override
@@ -57,7 +69,6 @@ public class TwinClassFieldRuleRestDTOMapper extends RestSimpleDTOMapper<TwinCla
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        // todo - check if the mode is set
-        return false;
+        return mapperContext.hasModeOrEmpty(TwinClassFieldRuleMode.HIDE);
     }
 }

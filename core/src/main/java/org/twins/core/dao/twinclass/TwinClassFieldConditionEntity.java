@@ -3,6 +3,8 @@ package org.twins.core.dao.twinclass;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -29,7 +31,6 @@ public class TwinClassFieldConditionEntity implements EasyLoggable {
      * Primary key
      */
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
 
     /**
@@ -64,11 +65,17 @@ public class TwinClassFieldConditionEntity implements EasyLoggable {
     private HashMap<String, String> conditionEvaluatorParams;
 
 
-   /* @EqualsAndHashCode.Exclude
+    @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "twin_class_field_rule_id", insertable = false, updatable = false)
-    private TwinClassFieldRuleEntity rule;*/
+    private TwinClassFieldRuleEntity twinClassFieldRule;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "base_twin_class_field_id", insertable = false, updatable = false)
+    private TwinClassFieldEntity baseTwinClassField;
 
     @Override
     public String easyLog(Level level) {

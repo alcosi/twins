@@ -247,6 +247,10 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         return twinClassFieldList;
     }
 
+    public TwinClassFieldEntity findByTwinClassFieldId(UUID twinClassFieldId) {
+        return twinClassFieldRepository.findById(twinClassFieldId).orElse(null);
+    }
+
     @Transactional
     public void duplicateFieldsForClass(ApiUser apiUser, UUID srcTwinClassId, UUID duplicateTwinClassId) throws ServiceException {
         List<TwinClassFieldEntity> fieldEntityList = findTwinClassFields(srcTwinClassId);

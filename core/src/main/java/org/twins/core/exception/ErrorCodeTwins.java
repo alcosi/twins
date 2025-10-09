@@ -171,7 +171,12 @@ public enum ErrorCodeTwins implements ErrorCode {
     NOTIFICATION_CONFIGURATION_ERROR(12901, "something wrong with notification configuration"),
     FACE_CONFIG_IS_NOT_UNIQ(13001, "face has few config variants"),
     FACE_NO_CONFIG_IS_SUITABLE(13002, "no suitable face config found"),
-    TWIN_VALIDATOR_INCORRECT(13101, "incorrect twin validator for this case");
+    TWIN_VALIDATOR_INCORRECT(13101, "incorrect twin validator for this case"),
+    TWIN_CLASS_FIELD_RULE_TWIN_CLASS_FIELD_NOT_SPECIFIED(13102, "Twin class field rule twin class field is not specified"),
+    TWIN_CLASS_FIELD_RULE_FEATURER_NOT_SPECIFIED(13102, "Twin class field rule featurer is not specified"),
+    TWIN_CLASS_FIELD_CONDITION_BASE_FIELD_NOT_SPECIFIED(13103, "Twin class field condition base field is not specified"),
+    TWIN_CLASS_FIELD_CONDITION_FEATURER_NOT_SPECIFIED(13104, "Twin class field condition featurer is not specified")
+    ;
 
     private final int code;
     private final String message;

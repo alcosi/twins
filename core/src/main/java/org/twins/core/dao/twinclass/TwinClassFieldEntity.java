@@ -8,6 +8,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
@@ -117,6 +118,10 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private TwinFieldStorage fieldStorage;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinClassFieldRuleEntity, UUID> ruleKit;
 
     public String easyLog(Level level) {
         return "twinClassField[id:" + id + ", key:" + key + "]";
