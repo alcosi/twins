@@ -3,6 +3,7 @@ package org.twins.core.featurer.user.finder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamString;
@@ -20,6 +21,9 @@ public abstract class UserFinderRequested extends UserFinder {
     public static final FeaturerParamBoolean required = new FeaturerParamBoolean("required");
 
     public UUID getRequestedId(FeaturerParamString paramKey, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
+        if (CollectionUtils.isEmpty(namedParamsMap)) {
+            throw new ServiceException(ErrorCodeTwins.USER_SEARCH_CONFIG_INCORRECT);
+        }
         String paramKeyStr = paramKey.extract(properties);
         String paramValue = namedParamsMap.get(paramKeyStr);
         if (StringUtils.isBlank(paramValue)) {
