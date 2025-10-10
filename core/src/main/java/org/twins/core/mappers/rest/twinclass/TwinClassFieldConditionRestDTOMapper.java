@@ -15,7 +15,9 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldConditionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldMode;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclass.TwinClassFieldConditionService;
+
+import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
@@ -27,7 +29,7 @@ public class TwinClassFieldConditionRestDTOMapper extends RestSimpleDTOMapper<Tw
     @Lazy
     @MapperModePointerBinding(modes = TwinClassFieldMode.TwinClassFieldCondition2TwinClassFieldMode.class)
     private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
-    private final TwinClassFieldService twinClassFieldService;
+    private final TwinClassFieldConditionService twinClassFieldConditionService;
 
     @Override
     public void map(TwinClassFieldConditionEntity src, TwinClassFieldConditionDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -58,8 +60,17 @@ public class TwinClassFieldConditionRestDTOMapper extends RestSimpleDTOMapper<Tw
             }
         }
         if (mapperContext.hasModeButNot(TwinClassFieldMode.TwinClassFieldCondition2TwinClassFieldMode.HIDE)) {
+            twinClassFieldConditionService.loadBaseTwinClassField(src);
             dst.setBaseTwinClassFieldId(src.getBaseTwinClassFieldId());
-            twinClassFieldRestDTOMapper.postpone(twinClassFieldService.findByTwinClassFieldId(src.getBaseTwinClassFieldId()), mapperContext.forkOnPoint(TwinClassFieldMode.TwinClassFieldCondition2TwinClassFieldMode.SHORT));
+            twinClassFieldRestDTOMapper.postpone(src.getBaseTwinClassField(), mapperContext.forkOnPoint(TwinClassFieldMode.TwinClassFieldCondition2TwinClassFieldMode.SHORT));
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<TwinClassFieldConditionEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(TwinClassFieldMode.TwinClassFieldCondition2TwinClassFieldMode.HIDE)) {
+            twinClassFieldConditionService.loadBaseTwinClassFields(srcCollection);
         }
     }
 

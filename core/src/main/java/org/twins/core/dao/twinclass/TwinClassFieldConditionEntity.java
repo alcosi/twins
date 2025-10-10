@@ -71,10 +71,7 @@ public class TwinClassFieldConditionEntity implements EasyLoggable {
     @JoinColumn(name = "twin_class_field_rule_id", insertable = false, updatable = false)
     private TwinClassFieldRuleEntity twinClassFieldRule;
 
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "base_twin_class_field_id", insertable = false, updatable = false)
+    @Transient
     private TwinClassFieldEntity baseTwinClassField;
 
     @Override

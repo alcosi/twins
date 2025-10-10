@@ -60,6 +60,25 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
         }
     }
 
+    public void loadBaseTwinClassField(TwinClassFieldConditionEntity conditionEntity) throws ServiceException {
+        loadBaseTwinClassFields(Collections.singleton(conditionEntity));
+    }
+
+    public void loadBaseTwinClassFields(Collection<TwinClassFieldConditionEntity> entities) throws ServiceException {
+        Kit<TwinClassFieldConditionEntity, UUID> needLoad = new Kit<>(TwinClassFieldConditionEntity::getId);
+        for (var entity : entities) {
+            if (entity.getBaseTwinClassField() == null) {
+                needLoad.add(entity);
+            }
+        }
+        if (needLoad.isEmpty())
+            return;
+        Kit<TwinClassFieldEntity, UUID> loaded = twinClassFieldService.findEntitiesSafe(needLoad.getIdSet());
+        for (var entity : needLoad) {
+            entity.setBaseTwinClassField(loaded.get(entity.getBaseTwinClassFieldId()));
+        }
+    }
+
     public List<TwinClassFieldConditionEntity> saveConditions(Collection<TwinClassFieldConditionEntity> conditions) {
         Iterable<TwinClassFieldConditionEntity> savedEntities = entitySmartService.saveAllAndLog(
                 conditions,
