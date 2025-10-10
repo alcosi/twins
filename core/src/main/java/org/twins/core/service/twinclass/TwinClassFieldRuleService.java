@@ -35,8 +35,6 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
     private final TwinClassFieldConditionService twinClassFieldConditionService;
 
     @Lazy
-    private final AuthService authService;
-    @Lazy
     private final TwinClassService twinClassService;
 
     @Lazy

@@ -38,6 +38,8 @@ public class TwinClassFieldSearch {
     private Set<UUID> editPermissionIdExcludeList;
     private Ternary required;
     private Ternary system;
+    private Ternary dependentField;
+    private Ternary hasDependentFields;
     private boolean excludeSystemFields = true;
     private boolean inactiveSearch = false;
     private TwinClassFieldSearchEntity configuredSearch;

@@ -88,6 +88,13 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Column(name = "system")
     private Boolean system;  //not a primitive type because the update logic will break
 
+    @Column(name = "dependent_field")
+    private Boolean dependentField;
+
+    @Column(name = "has_dependent_fields")
+    private Boolean hasDependentFields;
+
+
     @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;

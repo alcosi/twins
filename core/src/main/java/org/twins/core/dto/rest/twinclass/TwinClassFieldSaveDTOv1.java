@@ -34,6 +34,11 @@ public abstract class TwinClassFieldSaveDTOv1{
 
     @Schema(description = "System field", example = "true")
     public Boolean system;
+    @Schema(description = "Is dependent field", example = "true")
+    public Boolean dependentField;
+
+    @Schema(description = "has dependent fields", example = "true")
+    public Boolean hasDependentFields;
 
     @Schema(description = "external id", example = "")
     public String externalId;
