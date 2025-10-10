@@ -65,4 +65,7 @@ public class TwinBaseDTOv1 {
 
     @Schema(description = "breadcrumbs face id")
     public UUID breadCrumbsFaceId;
+
+    @Schema(description = "freeze")
+    public Boolean freeze;
 }

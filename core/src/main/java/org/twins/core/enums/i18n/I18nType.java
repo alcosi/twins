@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 public enum I18nType  {
     TWIN_CLASS_NAME("twinClassName", "Twin class name", Category.TEXT),
     TWIN_CLASS_DESCRIPTION("twinClassDescription", "Twin class description", Category.TEXT),
+    TWIN_CLASS_FREEZE_NAME("twinClassFreezeName", "Twin class freeze name", Category.TEXT),
+    TWIN_CLASS_FREEZE_DESCRIPTION("twinClassFreezeDescription", "Twin class freeze description", Category.TEXT),
     TWIN_STATUS_NAME("twinStatusName", "Twin status name", Category.TEXT),
     TWIN_STATUS_DESCRIPTION("twinStatusDescription", "Twin status description", Category.TEXT),
     TWIN_CLASS_FIELD_NAME("twinClassFieldName", "Twin class field name", Category.TEXT),

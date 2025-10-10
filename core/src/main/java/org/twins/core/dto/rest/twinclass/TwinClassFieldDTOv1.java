@@ -7,6 +7,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -86,6 +87,10 @@ public class TwinClassFieldDTOv1 {
     @Schema(description = "backend validation error i18n id", example = "")
     @RelatedObject(type = TwinDTOv2.class, name = "beValidationErrorI18n")
     public UUID beValidationErrorI18nId;
+
+    @Schema(description = "rules bundles associated with this field")
+    public List<TwinClassFieldRuleDTOv1> fieldRules;
+
 }
 
 

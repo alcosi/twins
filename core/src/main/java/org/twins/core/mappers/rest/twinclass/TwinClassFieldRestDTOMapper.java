@@ -15,14 +15,12 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
-import org.twins.core.mappers.rest.mappercontext.modes.PermissionMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
+import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.twinclass.TwinClassFieldRuleService;
 
 
 @Component
@@ -42,10 +40,17 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     @MapperModePointerBinding(modes = FeaturerMode.TwinClassField2FeaturerMode.class)
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
 
+    @MapperModePointerBinding(modes = TwinClassFieldRuleMode.TwinField2TwinClassFieldRuleMode.class)
+    private final
+    TwinClassFieldRuleRestDTOMapper twinClassFieldRuleRestDTOMapper;
+
     private final I18nService i18nService;
     private final FeaturerService featurerService;
     private final PermissionService permissionService;
+    private final TwinClassFieldRuleService twinClassFieldRuleService;
 
+
+    //todo - map rules
 
     @Override
     public void map(TwinClassFieldEntity src, TwinClassFieldDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -115,6 +120,10 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
         if (mapperContext.hasModeButNot(TwinClassMode.TwinClassField2TwinClassMode.HIDE)) {
             dst.setTwinClassId(src.getTwinClassId());
             twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinClassField2TwinClassMode.SHORT));
+        }
+        if (mapperContext.hasModeButNot(TwinClassFieldRuleMode.TwinField2TwinClassFieldRuleMode.HIDE)) {
+            dst.setFieldRules(twinClassFieldRuleRestDTOMapper.convertCollection(twinClassFieldRuleService.loadRulesByTwinClassField(src.getId())));
+        //todo - do I need to add postpone here?
         }
     }
 
