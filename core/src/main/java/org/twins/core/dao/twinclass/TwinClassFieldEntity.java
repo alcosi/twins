@@ -62,7 +62,6 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Column(name = "twin_sorter_params", columnDefinition = "hstore")
     private HashMap<String, String> twinSorterParams;
 
-
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
 
@@ -93,7 +92,6 @@ public class TwinClassFieldEntity implements EasyLoggable {
 
     @Column(name = "has_dependent_fields")
     private Boolean hasDependentFields;
-
 
     @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)

@@ -30,9 +30,7 @@ public class TwinClassFieldSaveRestDTOReverseMapperV2 extends RestSimpleDTOMappe
                         .setSystem(src.getSystem())
                         .setFieldTyperFeaturerId(src.getFieldTyperFeaturerId())
                         .setFieldTyperParams(src.getFieldTyperParams())
-                        .setExternalId(src.getExternalId())
-                        .setDependentField(src.getDependentField())
-                        .setHasDependentFields(src.getHasDependentFields()));
+                        .setExternalId(src.getExternalId()));
 
     }
 }

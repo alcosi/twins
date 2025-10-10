@@ -376,12 +376,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             if (field.getSystem() == null) {
                 field.setSystem(false);
             }
-            if(field.getDependentField() == null){
-                field.setDependentField(false);
-            }
-            field.setHasDependentFields(false);
-
             field
+                    .setDependentField(false)
+                    .setHasDependentFields(false)
                     .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_NAME, save.getNameI18n()).getId())
                     .setDescriptionI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_DESCRIPTION, save.getDescriptionI18n()).getId())
                     .setFeValidationErrorI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_FE_VALIDATION_ERROR, save.getFeValidationErrorI18n()).getId())
