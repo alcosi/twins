@@ -56,6 +56,10 @@ public class DomainUserRestDTOMapper extends RestSimpleDTOMapper<DomainUserEntit
             dst.setUserId(src.getUserId());
             userDTOMapper.postpone(src.getUser(), mapperContext.forkOnPoint(UserMode.DomainUser2UserMode.SHORT));
         }
+        if (mapperContext.hasModeButNot(BusinessAccountUserMode.DomainUser2BusinessAccountUserMode.HIDE) && mapperContext.hasModeButNot(BusinessAccountUserCollectionMode.HIDE))
+            dst
+                    .setBusinessAccountUsers(businessAccountUserDTOMapper.convertCollectionPostpone(src.getBusinessAccountUserKit().getCollection(), mapperContext.forkOnPoint(BusinessAccountUserMode.DomainUser2BusinessAccountUserMode.SHORT)))
+                    .setBusinessAccountUserIdList(src.getBusinessAccountUserKit().getIdSet());
     }
 
     private static boolean showBusinessAccountUserCollection(MapperContext mapperContext) {

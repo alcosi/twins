@@ -6,9 +6,13 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.face.FaceDTOv1;
+import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
 import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.tier.TierDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
+import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
 import org.twins.core.enums.domain.DomainType;
 
@@ -24,12 +28,14 @@ public class DomainViewDTOv1 extends DomainViewPublicDTOv1 {
     public DomainType type;
 
     @Schema(description = "business account initiator featurer id", example = DTOExamples.FEATURER_ID)
+    @RelatedObject(type = FeaturerDTOv1.class, name = "businessAccountInitiatorFeaturer")
     public Integer businessAccountInitiatorFeaturerId;
 
     @Schema(description = "business account initiator params", example = DTOExamples.FEATURER_PARAM)
     public HashMap<String, String> businessAccountInitiatorParams;
 
     @Schema(description = "user group manager featurer id", example = DTOExamples.FEATURER_ID)
+    @RelatedObject(type = FeaturerDTOv1.class, name = "userGroupManagerFeaturer")
     public Integer userGroupManagerFeaturerId;
 
     @Schema(description = "user group manager params", example = DTOExamples.FEATURER_PARAM)
@@ -40,7 +46,7 @@ public class DomainViewDTOv1 extends DomainViewPublicDTOv1 {
     public UUID permissionSchemaId;
 
     @Schema(description = "twinflow schema id", example = DTOExamples.TWINFLOW_SCHEMA_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "twinflowSchema")
+    //TODO @RelatedObject(type = TwinFlowSchemaDTOv1.class, name = "twinflowSchema")
     public UUID twinflowSchemaId;
 
     @Schema(description = "twinclass schema id", example = DTOExamples.TWIN_CLASS_SCHEMA_ID)
@@ -59,11 +65,11 @@ public class DomainViewDTOv1 extends DomainViewPublicDTOv1 {
     public String defaultLocale;
 
     @Schema(description = "ancestor twin class id", example = DTOExamples.TWIN_CLASS_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "ancestorTwinClass")
+    @RelatedObject(type = TwinClassDTOv1.class, name = "ancestorTwinClass")
     public UUID ancestorTwinClassId;
 
     @Schema(description = "default tier id", example = DTOExamples.TIER_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "defaultTier")
+    @RelatedObject(type = TierDTOv1.class, name = "defaultTier")
     public UUID defaultTierId;
 
     @Schema(description = "attachment storage used count")
@@ -77,15 +83,15 @@ public class DomainViewDTOv1 extends DomainViewPublicDTOv1 {
     public UUID domainUserTemplateTwinId;
 
     @Schema(description = "Resource storage type", example = DTOExamples.RESOURCE_STORAGE_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "resourceStorage")
+    //todo add @RelatedObject(type = StorageDTOv1.class, name = "resourceStorage")
     public UUID resourceStorageId;
 
     @Schema(description = "Attachment storage type", example = DTOExamples.RESOURCE_STORAGE_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "attachmentStorage")
+    //todo add @RelatedObject(type = StorageDTOv1.class, name = "attachmentStorage")
     public UUID attachmentStorageId;
 
     @Schema(description = "domain navigation bar pointer", example = DTOExamples.FACE_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "navbarFace")
+    @RelatedObject(type = FaceDTOv1.class, name = "navbarFace")
     public UUID navbarFaceId;
 }
 

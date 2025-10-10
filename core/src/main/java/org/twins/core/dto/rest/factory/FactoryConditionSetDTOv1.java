@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twin.TwinDTOv2;
+import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -26,7 +26,7 @@ public class FactoryConditionSetDTOv1 {
     public String description;
 
     @Schema(description = "created by user id", example = DTOExamples.USER_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "createdByUser")
+    @RelatedObject(type = UserDTOv1.class, name = "createdByUser")
     public UUID createdByUserId;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)

@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twin.TwinDTOv2;
 
 import java.util.UUID;
 
@@ -31,7 +30,7 @@ public class FactoryBranchDTOv1 {
     public Boolean active;
 
     @Schema(description = "next factory id", example = DTOExamples.FACTORY_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "nextFactory")
+    @RelatedObject(type = FactoryDTOv1.class, name = "nextFactory")
     public UUID nextFactoryId;
 
     @Schema(description = "description", example = DTOExamples.DESCRIPTION)

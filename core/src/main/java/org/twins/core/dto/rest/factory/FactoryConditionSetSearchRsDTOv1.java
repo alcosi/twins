@@ -18,5 +18,5 @@ public class FactoryConditionSetSearchRsDTOv1 extends ResponseRelatedObjectsDTOv
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - condition list")
-    public List<FactoryConditionSetDTOv2> conditionSets;
+    public List<FactoryConditionSetDTOv1> conditionSets;
 }
