@@ -1,11 +1,10 @@
-package org.twins.core.dto.rest.factory;
+package org.twins.core.dto.rest.link;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
-import org.twins.core.dto.rest.link.LinkDTOv3;
 
 @Data
 @Accessors(chain = true)
@@ -13,5 +12,5 @@ import org.twins.core.dto.rest.link.LinkDTOv3;
 @Schema(name = "LinkViewRsV1")
 public class LinkViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "result - link")
-    public LinkDTOv3 link;
+    public LinkDTOv2 link;
 }

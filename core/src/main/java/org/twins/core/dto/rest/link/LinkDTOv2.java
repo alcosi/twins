@@ -16,15 +16,17 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name =  "LinkV2")
 public class LinkDTOv2 extends LinkDTOv1 {
-
     @Schema(description = "Source twin class id", example = DTOExamples.TWIN_CLASS_ID)
     @RelatedObject(type = TwinDTOv2.class, name = "srcTwinClass")
     public UUID srcTwinClassId;
+
     @Schema(description = "Backward name", example = "dst -> src")
     public String backwardName;
+
     @Schema(description = "Creator user id", example = DTOExamples.USER_ID)
     @RelatedObject(type = TwinDTOv2.class, name = "createdByUser")
     public UUID createdByUserId;
+
     @Schema(description = "Creation timestamp")
     public LocalDateTime createdAt;
 

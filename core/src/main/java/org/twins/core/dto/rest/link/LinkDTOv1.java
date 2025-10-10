@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.enums.link.LinkType;
@@ -20,11 +19,8 @@ public class LinkDTOv1 {
     public UUID id;
 
     @Schema(example = DTOExamples.TWIN_CLASS_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "dstTwinClass")
+    @RelatedObject(type = TwinClassDTOv1.class, name = "dstTwinClass")
     public UUID dstTwinClassId;
-
-    @Schema(description = "key", example = DTOExamples.TWIN_CLASS_ID)
-    public TwinClassDTOv1 dstTwinClass;
 
     @Schema(description = "name", example = "Serial number")
     public String name;

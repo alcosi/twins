@@ -1,11 +1,10 @@
-package org.twins.core.dto.rest.factory;
+package org.twins.core.dto.rest.link;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
-import org.twins.core.dto.rest.link.LinkDTOv3;
 import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 
 import java.util.List;
@@ -19,5 +18,5 @@ public class LinkSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - link list")
-    public List<LinkDTOv3> links;
+    public List<LinkDTOv2> links;
 }
