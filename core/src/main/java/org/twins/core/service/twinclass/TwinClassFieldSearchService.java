@@ -102,7 +102,9 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
                 checkUuidIn(search.getViewPermissionIdList(), false, false, TwinClassFieldEntity.Fields.editPermissionId),
                 checkUuidIn(search.getViewPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.editPermissionId),
                 checkTernary(search.getRequired(), TwinClassFieldEntity.Fields.required),
-                checkTernary(search.getRequired(), TwinClassFieldEntity.Fields.system),
+                checkTernary(search.getSystem(), TwinClassFieldEntity.Fields.system),
+                checkTernary(search.getDependentField(), TwinClassFieldEntity.Fields.dependentField),
+                checkTernary(search.getHasDependentFields(), TwinClassFieldEntity.Fields.hasDependentFields),
                 checkFieldLikeIn(search.getExternalIdLikeList(), false, true, TwinClassFieldEntity.Fields.externalId),
                 checkFieldLikeIn(search.getExternalIdNotLikeList(), true, true, TwinClassFieldEntity.Fields.externalId));
     }

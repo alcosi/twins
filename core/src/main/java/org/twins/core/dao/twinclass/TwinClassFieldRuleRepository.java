@@ -7,6 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -38,6 +39,8 @@ public interface TwinClassFieldRuleRepository extends CrudRepository<TwinClassFi
             order by coalesce(r.rulePriority, 0) asc, r.id
             """)
     List<TwinClassFieldRuleEntity> findByTwinClassId(UUID twinClassId);
+
+    List<TwinClassFieldRuleEntity> findByTwinClassFieldIdIn(Set<UUID> twinClassFieldIdList);
 
     /**
      * Fetches all rules (with eager-loaded conditions) for the specified Twin-Class field.

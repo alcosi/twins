@@ -251,7 +251,9 @@ public class SystemEntityService {
                         .setDescriptionI18nId(field.description().i18nId())
                         .setFieldTyperFeaturerId(field.fieldTyperId())
                         .setRequired(field.required())
-                        .setSystem(field.system()));
+                        .setSystem(field.system())
+                        .setDependentField(false)
+                        .setHasDependentFields(false));
             }
         }
         entitySmartService.saveAllAndLog(i18nEntities, i18nRepository);

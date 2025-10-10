@@ -23,6 +23,7 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassFreezeEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
@@ -89,6 +90,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<TwinAttachmentRestrictionEntity>> relatedAttachmentRestrictionMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinClassFreezeEntity>> relatedTwinClassFreezeMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID,RelatedObject<TwinClassFieldRuleEntity>> relatedClassFieldRuleMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
@@ -230,6 +233,8 @@ public class MapperContext {
             smartPut(relatedTierMap, tier, tier.getId());
         else if (relatedObject instanceof TwinAttachmentRestrictionEntity entity)
             smartPut(relatedAttachmentRestrictionMap, entity, entity.getId());
+        else if (relatedObject instanceof TwinClassFieldRuleEntity entity)
+            smartPut(relatedClassFieldRuleMap, entity, entity.getId());
         else if (relatedObject instanceof TwinClassFreezeEntity entity)
             smartPut(relatedTwinClassFreezeMap, entity, entity.getId());
         else {
@@ -440,6 +445,7 @@ public class MapperContext {
         dstMapperContext.relatedTierMap = srcMapperContext.relatedTierMap;
         dstMapperContext.relatedAttachmentRestrictionMap = srcMapperContext.relatedAttachmentRestrictionMap;
         dstMapperContext.relatedTwinClassFreezeMap = srcMapperContext.relatedTwinClassFreezeMap;
+        dstMapperContext.relatedClassFieldRuleMap = srcMapperContext.relatedClassFieldRuleMap;
     }
 
     public MapperContext fork(MapperModeCollection mapperModeCollection) {

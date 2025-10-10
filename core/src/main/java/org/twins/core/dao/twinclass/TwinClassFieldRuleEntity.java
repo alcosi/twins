@@ -8,10 +8,10 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.Type;
 
 import java.util.HashMap;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -34,7 +34,6 @@ public class TwinClassFieldRuleEntity implements EasyLoggable {
      * Primary key
      */
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
 
     /**
@@ -73,17 +72,15 @@ public class TwinClassFieldRuleEntity implements EasyLoggable {
     private HashMap<String, String> fieldOverwriterParams;
 
 
+    @Transient
     @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "twin_class_field_rule_id", referencedColumnName = "id", insertable = false, updatable = false)
-    private Set<TwinClassFieldConditionEntity> conditions;
+    private Kit<TwinClassFieldConditionEntity, UUID> conditionKit;
 
     @Override
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinClassFieldRule[" + id + "]";
-            default -> "twinClassFieldRule[id:" + id + ", dependentTwinClassFieldId:" + twinClassFieldId + "]";
+            default -> "twinClassFieldRule[id:" + id + ", twinClassFieldId:" + twinClassFieldId + "]";
         };
     }
 }

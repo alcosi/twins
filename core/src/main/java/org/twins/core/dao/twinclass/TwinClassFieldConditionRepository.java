@@ -6,10 +6,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
 public interface TwinClassFieldConditionRepository extends CrudRepository<TwinClassFieldConditionEntity, UUID>, JpaSpecificationExecutor<TwinClassFieldConditionEntity> {
+    List<TwinClassFieldConditionEntity> findByTwinClassFieldRuleIdIn(Set<UUID> twinClassFieldRuleIdList);
 
     /**
      * Deletes all rule-conditions whose owning rule belongs to fields of the provided Twin-Class.

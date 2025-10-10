@@ -5,8 +5,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -79,7 +79,8 @@ public class TwinClassFieldDTOv1 {
     @Schema(description = "backend validation error i18n id", example = "")
     public UUID beValidationErrorI18nId;
 
-    @Schema(description = "rules bundles associated with this field")
-    public List<TwinClassFieldRuleDTOv1> fieldRules;
+    @Schema(description = "field rule ids", example = "")
+    public Set<UUID> ruleIds;
+
 
 }

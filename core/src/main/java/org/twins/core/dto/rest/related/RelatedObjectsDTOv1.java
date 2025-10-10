@@ -22,6 +22,7 @@ import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinclass.TwinClassFreezeDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldRuleDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
@@ -110,4 +111,7 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related twinclass freeze map", example = "{twin class freeze map}")
     public Map<UUID, TwinClassFreezeDTOv1> twinClassFreezeMap;
+
+    @Schema(description = "related field rules")
+    public Map<UUID, TwinClassFieldRuleDTOv1> fieldRuleMap;
 }

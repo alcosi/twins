@@ -27,5 +27,5 @@ public class TwinClassFieldConditionDTOv1 {
     public Integer groupNo;
 
     @Schema(description = "condition descriptor", example = "")
-    public TwinClassFieldConditionDescriptorDTO descriptor;
+    public TwinClassFieldConditionDescriptorDTO conditionDescriptor;
 }

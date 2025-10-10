@@ -3,12 +3,13 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 
 import java.util.List;
 import java.util.UUID;
 
 /**
- * REST representation of TwinClassFieldRuleEntity.
+ * REST representation of {@link TwinClassFieldRuleEntity}.
  * <p>
  * It contains all rule-level settings as well as the list of atomic
  * {@link TwinClassFieldConditionDTOv1 conditions} that must be evaluated in order to decide
@@ -35,7 +36,7 @@ public class TwinClassFieldRuleDTOv1 {
     public Integer rulePriority;
 
     @Schema(description = "rule overwritten field descriptor", example = "")
-    public TwinClassFieldDescriptorDTO descriptor;
+    public TwinClassFieldDescriptorDTO overwrittenDescriptor;
 
     @Schema(description = "list of atomic conditions that make up the rule")
     public List<TwinClassFieldConditionDTOv1> conditions;
