@@ -47,7 +47,7 @@ public class TwinClassFieldRuleRestDTOMapper extends RestSimpleDTOMapper<TwinCla
             FieldParamOverwriter overwriter = featurerService.getFeaturer(src.getFieldOverwriterFeaturerId(), FieldParamOverwriter.class);
             FieldDescriptor descriptor = overwriter.getFieldOverwriterDescriptor(src);
             TwinClassFieldDescriptorDTO dto = twinClassFieldDescriptorRestDTOMapper.convert(descriptor, mapperContext);
-            dst.setDescriptor(dto);
+            dst.setOverwrittenDescriptor(dto);
         }
         if (mapperContext.hasModeButNot(TwinClassFieldConditionMode.TwinRule2TwinClassFieldConditionMode.HIDE)) {
             twinClassFieldConditionService.loadConditions(src);

@@ -36,7 +36,7 @@ public class TwinClassFieldRuleDTOv1 {
     public Integer rulePriority;
 
     @Schema(description = "rule overwritten field descriptor", example = "")
-    public TwinClassFieldDescriptorDTO descriptor;
+    public TwinClassFieldDescriptorDTO overwrittenDescriptor;
 
     @Schema(description = "list of atomic conditions that make up the rule")
     public List<TwinClassFieldConditionDTOv1> conditions;
