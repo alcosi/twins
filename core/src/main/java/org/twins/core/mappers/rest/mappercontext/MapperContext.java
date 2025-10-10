@@ -20,6 +20,7 @@ import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.dao.twinclass.TwinClassFreezeEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
@@ -87,6 +88,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<TierEntity>> relatedTierMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinAttachmentRestrictionEntity>> relatedAttachmentRestrictionMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinClassFreezeEntity>> relatedTwinClassFreezeMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID,RelatedObject<TwinClassFieldRuleEntity>> relatedClassFieldRuleMap = new LinkedHashMap<>();
 
@@ -232,6 +235,8 @@ public class MapperContext {
             smartPut(relatedAttachmentRestrictionMap, entity, entity.getId());
         else if (relatedObject instanceof TwinClassFieldRuleEntity entity)
             smartPut(relatedClassFieldRuleMap, entity, entity.getId());
+        else if (relatedObject instanceof TwinClassFreezeEntity entity)
+            smartPut(relatedTwinClassFreezeMap, entity, entity.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -372,15 +377,24 @@ public class MapperContext {
         return mapperContext;
     }
 
-    public MapperContext cloneWithIsolatedModes() {
+    public MapperContext fork() {
         MapperContext mapperContext = cloneIgnoreRelatedObjects();
         linkToRelatedObjects(this, mapperContext);
         return mapperContext;
     }
 
+    public MapperContext forkAndExclude(MapperMode... excludeModes) {
+        MapperContext fork = fork();
+        if (excludeModes != null) {
+            for (MapperMode mapperMode : excludeModes) {
+                fork.removeMode(mapperMode);
+            }
+        }
+        return fork;
+    }
+
     public MapperContext forkOnPoint(MapperModePointer<?>... mapperModePointers) {
-        MapperContext fork = null;
-        fork = cloneWithIsolatedModes();
+        MapperContext fork = fork();
         for (MapperModePointer<?> mapperModePointer : mapperModePointers) {
             MapperModePointer<?> configuredPointer = getModeOrUse(mapperModePointer);
             MapperMode pointedMode = configuredPointer.point();
@@ -430,11 +444,12 @@ public class MapperContext {
         dstMapperContext.relatedTwinClassSchemaMap = srcMapperContext.relatedTwinClassSchemaMap;
         dstMapperContext.relatedTierMap = srcMapperContext.relatedTierMap;
         dstMapperContext.relatedAttachmentRestrictionMap = srcMapperContext.relatedAttachmentRestrictionMap;
+        dstMapperContext.relatedTwinClassFreezeMap = srcMapperContext.relatedTwinClassFreezeMap;
         dstMapperContext.relatedClassFieldRuleMap = srcMapperContext.relatedClassFieldRuleMap;
     }
 
-    public MapperContext cloneWithIsolatedModes(MapperModeCollection mapperModeCollection) {
-        MapperContext cloneMapperContext = cloneWithIsolatedModes();
+    public MapperContext fork(MapperModeCollection mapperModeCollection) {
+        MapperContext cloneMapperContext = fork();
         mapperModeCollection = getModeOrUse(mapperModeCollection);
         cloneMapperContext.setModes(mapperModeCollection.getConfiguredModes());
         return cloneMapperContext;

@@ -365,11 +365,16 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             }
 
             if (field.getFieldTyperFeaturerId() != null) {
+                featurerService.checkValid(field.getFieldTyperFeaturerId(), field.getFieldTyperParams(), FieldTyper.class);
                 featurerService.prepareForStore(field.getFieldTyperFeaturerId(), field.getFieldTyperParams());
             } else {
                 field
                         .setFieldTyperFeaturerId(1301)
                         .setFieldTyperParams(SIMPLE_FIELD_PARAMS);
+            }
+
+            if (field.getSystem() == null) {
+                field.setSystem(false);
             }
 
             field
@@ -456,6 +461,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             updateTwinClassFieldViewPermission(dbField, save.getField().getViewPermissionId(), changesHelper);
             updateTwinClassFieldEditPermission(dbField, save.getField().getEditPermissionId(), changesHelper);
             updateTwinClassFieldRequiredFlag(dbField, save.getField().getRequired(), changesHelper);
+            updateEntityFieldByEntity(save.getField(), dbField, TwinClassFieldEntity::getSystem, TwinClassFieldEntity::setSystem, TwinClassFieldEntity.Fields.system, changesHelper);
             updateEntityFieldByEntity(save.getField(), dbField, TwinClassFieldEntity::getExternalId, TwinClassFieldEntity::setExternalId, TwinClassFieldEntity.Fields.externalId, changesHelper);
             updateEntityFieldByEntity(save.getField(), dbField, TwinClassFieldEntity::getExternalProperties, TwinClassFieldEntity::setExternalProperties, TwinClassFieldEntity.Fields.externalProperties, changesHelper);
 
@@ -597,5 +603,11 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         if (newRequiredFlag == null || !changesHelper.isChanged(TwinClassFieldEntity.Fields.required, dbTwinClassFieldEntity.getRequired(), newRequiredFlag))
             return;
         dbTwinClassFieldEntity.setRequired(newRequiredFlag);
+    }
+
+    public void updateTwinClassFieldSystemFlag(TwinClassFieldEntity dbTwinClassFieldEntity, Boolean newSystemFlag, ChangesHelper changesHelper) throws ServiceException {
+        if (newSystemFlag == null || !changesHelper.isChanged(TwinClassFieldEntity.Fields.system, dbTwinClassFieldEntity.getRequired(), newSystemFlag))
+            return;
+        dbTwinClassFieldEntity.setRequired(newSystemFlag);
     }
 }

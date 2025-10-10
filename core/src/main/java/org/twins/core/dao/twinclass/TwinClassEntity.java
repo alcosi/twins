@@ -15,13 +15,9 @@ import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
-import org.twins.core.dao.resource.ResourceEntity;
-import org.twins.core.enums.action.TwinAction;
 import org.twins.core.dao.action.TwinActionPermissionEntity;
-import org.twins.core.enums.attachment.TwinAttachmentAction;
 import org.twins.core.dao.attachment.TwinAttachmentActionAlienPermissionEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
-import org.twins.core.enums.comment.TwinCommentAction;
 import org.twins.core.dao.comment.TwinCommentActionAlienPermissionEntity;
 import org.twins.core.dao.comment.TwinCommentActionSelfEntity;
 import org.twins.core.dao.datalist.DataListEntity;
@@ -29,6 +25,7 @@ import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
@@ -36,6 +33,9 @@ import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionAlienValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionSelfValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleEntity;
+import org.twins.core.enums.action.TwinAction;
+import org.twins.core.enums.attachment.TwinAttachmentAction;
+import org.twins.core.enums.comment.TwinCommentAction;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.headhunter.HeadHunter;
@@ -64,6 +64,9 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Column(name = "key")
     private String key;
+
+    @Column(name = "twin_class_freeze_id")
+    private UUID twinClassFreezeId;
 
     @Column(name = "permission_schema_space")
     private Boolean permissionSchemaSpace;
@@ -112,6 +115,12 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Column(name = "head_twin_class_id")
     private UUID headTwinClassId;
+
+    @Column(name = "segment")
+    private Boolean segment;
+
+    @Column(name = "has_segments")
+    private Boolean hasSegment;
 
     @Column(name = "extends_twin_class_id")
     private UUID extendsTwinClassId;
@@ -314,6 +323,10 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    private TwinClassFreezeEntity twinClassFreeze;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
     private PermissionEntity viewPermission;
 
     @Transient
@@ -347,6 +360,10 @@ public class TwinClassEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private TwinAttachmentRestrictionEntity generalAttachmentRestriction;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinClassEntity, UUID> segmentTwinsClassKit;
 
 
     public Set<UUID> getExtendedClassIdSet() {

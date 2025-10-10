@@ -19,6 +19,7 @@ import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.tier.TierDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
+import org.twins.core.dto.rest.twinclass.TwinClassFreezeDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldRuleDTOv1;
@@ -107,6 +108,9 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related tier map", example = "{tier map}")
     public Map<UUID, TierDTOv1> tierMap;
+
+    @Schema(description = "related twinclass freeze map", example = "{twin class freeze map}")
+    public Map<UUID, TwinClassFreezeDTOv1> twinClassFreezeMap;
 
     @Schema(description = "related field rules")
     public Map<UUID, TwinClassFieldRuleDTOv1> fieldRuleMap;

@@ -34,7 +34,7 @@ public class ProjectionEntity implements EasyLoggable {
     @Column(name = "dst_twin_class_field_id")
     private UUID dstTwinClassFieldId;
 
-    @Column(name = "field_projector_featurer_id", insertable = false, updatable = false)
+    @Column(name = "field_projector_featurer_id")
     private Integer fieldProjectorFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)

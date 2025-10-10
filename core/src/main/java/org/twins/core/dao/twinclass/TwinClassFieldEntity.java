@@ -85,6 +85,9 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Column(name = "be_validation_error_i18n_id")
     private UUID beValidationErrorI18nId;
 
+    @Column(name = "system")
+    private Boolean system;  //not a primitive type because the update logic will break
+
     @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
