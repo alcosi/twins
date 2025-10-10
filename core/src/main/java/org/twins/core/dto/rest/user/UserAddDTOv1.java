@@ -14,6 +14,9 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "UserAddV1")
 public class UserAddDTOv1 extends UserSaveDTOv1 {
+    @Schema(description = "User ID")
+    private UUID id;
+
     @Schema(description = "Business account ID", example = DTOExamples.BUSINESS_ACCOUNT_ID)
     private UUID businessAccountId;
 
@@ -22,7 +25,4 @@ public class UserAddDTOv1 extends UserSaveDTOv1 {
 
     @Schema(description = "Locale [optional]", example = DTOExamples.LOCALE)
     private String locale;
-
-    @Transient
-    private UUID id;
 }

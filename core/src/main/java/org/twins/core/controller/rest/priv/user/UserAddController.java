@@ -130,8 +130,6 @@ public class UserAddController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
 
-            request.getUser().setId(UUID.randomUUID());
-
             UUID businessAccountId = request.getUser().getBusinessAccountId();
             UUID domainId = request.getUser().getDomainId();
 
