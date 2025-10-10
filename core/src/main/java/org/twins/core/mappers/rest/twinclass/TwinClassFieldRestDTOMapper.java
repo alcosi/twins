@@ -121,6 +121,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
         }
         if (mapperContext.hasModeButNot(TwinClassFieldRuleMode.TwinClassField2TwinClassFieldRuleMode.HIDE)) {
             twinClassFieldRuleService.loadRules(src);
+            dst.setRuleIds(src.getRuleKit().getIdSet());
             twinClassFieldRuleRestDTOMapper.postpone(src.getRuleKit(), mapperContext.forkOnPoint(TwinClassFieldRuleMode.TwinClassField2TwinClassFieldRuleMode.SHORT));
         }
     }

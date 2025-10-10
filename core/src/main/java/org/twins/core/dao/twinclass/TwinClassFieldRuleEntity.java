@@ -34,7 +34,6 @@ public class TwinClassFieldRuleEntity implements EasyLoggable {
      * Primary key
      */
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
 
     /**

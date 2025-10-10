@@ -2,6 +2,7 @@ package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
@@ -30,7 +31,7 @@ public class TwinClassFieldRuleCreateRestDTOReverseMapper extends RestSimpleDTOM
         }
 
         // map conditions (if provided)
-        if (src.getConditions() != null && !src.getConditions().isEmpty()) {
+        if (CollectionUtils.isNotEmpty(src.getConditions())) {
             dst.setConditionKit(new Kit<>(twinClassFieldConditionRestDTOReverseMapper.convertCollection(src.getConditions()), TwinClassFieldConditionEntity::getId));
         }
     }

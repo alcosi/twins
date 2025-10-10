@@ -16,7 +16,10 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -40,21 +43,20 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
     }
 
     public void loadConditions(Collection<TwinClassFieldRuleEntity> ruleEntities) {
-        Map<UUID, TwinClassFieldRuleEntity> needLoad = new HashMap<>();
-        Set<UUID> forRules = new HashSet<>();
-        for (TwinClassFieldRuleEntity ruleEntity : ruleEntities)
+        Kit<TwinClassFieldRuleEntity, UUID> needLoad = new Kit<>(TwinClassFieldRuleEntity::getId);
+        for (TwinClassFieldRuleEntity ruleEntity : ruleEntities) {
             if (ruleEntity.getConditionKit() == null) {
-                needLoad.put(ruleEntity.getId(), ruleEntity);
-                forRules.add(ruleEntity.getId());
+                needLoad.add(ruleEntity);
             }
+        }
         if (needLoad.isEmpty())
             return;
-        KitGrouped<TwinClassFieldConditionEntity, UUID, UUID> conditions = new KitGrouped<>(twinClassFieldConditionRepository.findByTwinClassFieldRuleIdIn(forRules), TwinClassFieldConditionEntity::getId, TwinClassFieldConditionEntity::getTwinClassFieldRuleId);
-        for (TwinClassFieldRuleEntity ruleEntity : needLoad.values()) {
-            List<TwinClassFieldConditionEntity> ruleConditions = new ArrayList<>();
+        KitGrouped<TwinClassFieldConditionEntity, UUID, UUID> conditions = new KitGrouped<>(twinClassFieldConditionRepository.findByTwinClassFieldRuleIdIn(needLoad.getIdSet()), TwinClassFieldConditionEntity::getId, TwinClassFieldConditionEntity::getTwinClassFieldRuleId);
+        for (TwinClassFieldRuleEntity ruleEntity : needLoad) {
             if (conditions.containsGroupedKey(ruleEntity.getId()))
-                ruleConditions.addAll(conditions.getGrouped(ruleEntity.getId()));
-            ruleEntity.setConditionKit(new Kit<>(conditions, TwinClassFieldConditionEntity::getId));
+                ruleEntity.setConditionKit(new Kit<>(conditions.getGrouped(ruleEntity.getId()), TwinClassFieldConditionEntity::getId));
+            else
+                ruleEntity.setConditionKit(Kit.EMPTY);
         }
     }
 
@@ -68,7 +70,7 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
         return result;
     }
 
-    public void deleteConditions(UUID twinClassId) throws ServiceException{
+    public void deleteConditions(UUID twinClassId) throws ServiceException {
         if (twinClassId == null)
             return;
         twinClassService.findEntitySafe(twinClassId);
@@ -93,11 +95,11 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
 
     @Override
     public boolean validateEntity(TwinClassFieldConditionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-         if (null == entity.getBaseTwinClassFieldId())
+        if (null == entity.getBaseTwinClassFieldId())
             return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_CONDITION_BASE_FIELD_NOT_SPECIFIED.getMessage());
         if (null == entity.getConditionEvaluatorFeaturerId())
             return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_CONDITION_FEATURER_NOT_SPECIFIED.getMessage());
-         switch (entityValidateMode) {
+        switch (entityValidateMode) {
             case beforeSave:
                 if (entity.getBaseTwinClassField() == null || !entity.getBaseTwinClassField().getId().equals(entity.getBaseTwinClassFieldId()))
                     entity.setBaseTwinClassField(twinClassFieldService.findEntitySafe(entity.getBaseTwinClassFieldId()));

@@ -58,7 +58,7 @@ public class TwinClassFieldRuleRestDTOMapper extends RestSimpleDTOMapper<TwinCla
     @Override
     public void beforeCollectionConversion(Collection<TwinClassFieldRuleEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (mapperContext.hasModeButNot(TwinClassFieldConditionMode.HIDE))
+        if (mapperContext.hasModeButNot(TwinClassFieldConditionMode.TwinRule2TwinClassFieldConditionMode.HIDE))
             twinClassFieldConditionService.loadConditions(srcCollection);
     }
 
