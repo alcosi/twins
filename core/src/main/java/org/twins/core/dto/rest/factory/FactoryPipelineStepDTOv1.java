@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twin.TwinDTOv2;
 
 import java.util.Map;
 import java.util.UUID;
@@ -25,7 +25,7 @@ public class FactoryPipelineStepDTOv1 {
     public Integer order;
 
     @Schema(description = "factory condition set id", example = DTOExamples.FACTORY_CONDITION_SET_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "factoryConditionSet")
+    @RelatedObject(type = FactoryConditionSetDTOv1.class, name = "factoryConditionSet")
     public UUID factoryConditionSetId;
 
     @Schema(description = "factory condition invert", example = DTOExamples.BOOLEAN_TRUE)
@@ -38,6 +38,7 @@ public class FactoryPipelineStepDTOv1 {
     public Boolean optional;
 
     @Schema(description = "filler featurer id", example = "22")
+    @RelatedObject(type = FeaturerDTOv1.class, name = "fillerFeaturer")
     public Integer fillerFeaturerId;
 
     @Schema(description = "filler params", example = DTOExamples.FACTORY_PARAMS_MAP)

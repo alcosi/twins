@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Schema(name = "FactoryMultiplierFilterViewRsV1")
 public class FactoryMultiplierFilterViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "result - multiplierFilter")
-    public FactoryMultiplierFilterDTOv2 multiplierFilter;
+    public FactoryMultiplierFilterDTOv1 multiplierFilter;
 }

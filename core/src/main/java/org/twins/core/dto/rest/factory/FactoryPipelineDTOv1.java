@@ -5,7 +5,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twin.TwinDTOv2;
+import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
+import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 
 import java.util.UUID;
 
@@ -21,11 +22,11 @@ public class FactoryPipelineDTOv1 {
     public UUID factoryId;
 
     @Schema(description = "input twin class id", example = DTOExamples.TWIN_CLASS_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "inputTwinClass")
+    @RelatedObject(type = TwinClassDTOv1.class, name = "inputTwinClass")
     public UUID inputTwinClassId;
 
     @Schema(description = "factory id", example = DTOExamples.FACTORY_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "factoryConditionSet")
+    @RelatedObject(type = FactoryConditionSetDTOv1.class, name = "factoryConditionSet")
     public UUID factoryConditionSetId;
 
     @Schema(description = "factory condition set invert", example = DTOExamples.BOOLEAN_TRUE)
@@ -35,11 +36,11 @@ public class FactoryPipelineDTOv1 {
     public Boolean active;
 
     @Schema(description = "output twin status id", example = DTOExamples.TWIN_STATUS_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "outputTwinStatus")
+    @RelatedObject(type = TwinStatusDTOv1.class, name = "outputTwinStatus")
     public UUID outputTwinStatusId;
 
     @Schema(description = "next factory id", example = DTOExamples.FACTORY_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "nextFactory")
+    @RelatedObject(type = FactoryDTOv1.class, name = "nextFactory")
     public UUID nextFactoryId;
 
     @Schema(description = "next factory limit scope", example = DTOExamples.BOOLEAN_TRUE)

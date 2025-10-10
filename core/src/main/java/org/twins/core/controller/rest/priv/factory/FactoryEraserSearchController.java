@@ -25,7 +25,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryEraserSearchRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryEraserSearchRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryEraserViewRsDTOv1;
-import org.twins.core.mappers.rest.factory.FactoryEraserRestDTOMapperV2;
+import org.twins.core.mappers.rest.factory.FactoryEraserRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryEraserSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
@@ -43,12 +43,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.ERASER_MANAGE, Permissions.ERASER_VIEW})
 public class FactoryEraserSearchController extends ApiController {
-
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final FactoryEraserSearchDTOReverseMapper factoryEraserSearchDTOReverseMapper;
     private final FactoryEraserSearchService factoryEraserSearchService;
-    private final FactoryEraserRestDTOMapperV2 factoryEraserRestDTOMapperV2;
+    private final FactoryEraserRestDTOMapper factoryEraserRestDTOMapper;
     private final FactoryEraserService factoryEraserService;
 
     @ParametersApiUserHeaders
@@ -60,7 +59,7 @@ public class FactoryEraserSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory_eraser/search/v1")
     public ResponseEntity<?> factoryEraserSearchV1(
-            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryEraserRestDTOMapper.class, response = FactoryEraserSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody FactoryEraserSearchRqDTOv1 request) {
         FactoryEraserSearchRsDTOv1 rs = new FactoryEraserSearchRsDTOv1();
@@ -68,7 +67,7 @@ public class FactoryEraserSearchController extends ApiController {
             PaginationResult<TwinFactoryEraserEntity> eraserList = factoryEraserSearchService
                     .findFactoryEraser(factoryEraserSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setErasers(factoryEraserRestDTOMapperV2.convertCollection(eraserList.getList(), mapperContext))
+                    .setErasers(factoryEraserRestDTOMapper.convertCollection(eraserList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(eraserList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -89,14 +88,14 @@ public class FactoryEraserSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/factory_eraser/{eraserId}/v1")
     public ResponseEntity<?> factoryEraserViewV1(
-            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryEraserRestDTOMapper.class, response = FactoryEraserViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @Parameter(example = DTOExamples.FACTORY_ERASER_ID) @PathVariable("eraserId") UUID eraserId) {
         FactoryEraserViewRsDTOv1 rs = new FactoryEraserViewRsDTOv1();
         try {
             TwinFactoryEraserEntity eraser = factoryEraserService.findEntitySafe(eraserId);
             rs
-                    .setEraser(factoryEraserRestDTOMapperV2.convert(eraser, mapperContext))
+                    .setEraser(factoryEraserRestDTOMapper.convert(eraser, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

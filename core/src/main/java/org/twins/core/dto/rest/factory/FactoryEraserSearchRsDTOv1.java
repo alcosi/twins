@@ -18,5 +18,5 @@ public class FactoryEraserSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - eraser list")
-    public List<FactoryEraserDTOv2> erasers;
+    public List<FactoryEraserDTOv1> erasers;
 }

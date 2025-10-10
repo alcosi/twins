@@ -22,7 +22,7 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.permission.PermissionGrantUserEntity;
 import org.twins.core.dto.rest.permission.PermissionGrantUserCreateRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGrantUserSaveRsDTOV1;
-import org.twins.core.mappers.rest.factory.FactoryEraserRestDTOMapperV2;
+import org.twins.core.mappers.rest.factory.FactoryEraserRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionGrantUserCreateDTOReverseMapper;
 import org.twins.core.mappers.rest.permission.PermissionGrantUserRestDTOMapperV2;
@@ -50,7 +50,7 @@ public class PermissionGrantUserCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/user/v1")
     public ResponseEntity<?> permissionGrantUserCreateV1(
-            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = PermissionGrantUserSaveRsDTOV1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryEraserRestDTOMapper.class, response = PermissionGrantUserSaveRsDTOV1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody PermissionGrantUserCreateRqDTOv1 request) {
         PermissionGrantUserSaveRsDTOV1 rs = new PermissionGrantUserSaveRsDTOV1();
         try {

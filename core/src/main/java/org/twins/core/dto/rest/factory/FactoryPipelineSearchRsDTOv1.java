@@ -6,7 +6,6 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 import org.twins.core.dto.rest.pagination.PaginationDTOv1;
-import org.twins.core.dto.rest.permission.PermissionGrantAssigneePropagationDTOv2;
 
 import java.util.List;
 
@@ -19,5 +18,5 @@ public class FactoryPipelineSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - factory pipeline list")
-    public List<FactoryPipelineDTOv2> pipelines;
+    public List<FactoryPipelineDTOv1> pipelines;
 }

@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twin.TwinDTOv2;
+import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.enums.factory.FactoryEraserAction;
 
 import java.util.UUID;
@@ -22,11 +22,11 @@ public class FactoryEraserDTOv1 {
     public UUID factoryId;
 
     @Schema(description = "input twin class id", example = DTOExamples.TWIN_CLASS_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "inputTwinClass")
+    @RelatedObject(type = TwinClassDTOv1.class, name = "inputTwinClass")
     public UUID inputTwinClassId;
 
     @Schema(description = "factory condition set id", example = DTOExamples.FACTORY_CONDITION_SET_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "factoryConditionSet")
+    @RelatedObject(type = FactoryConditionSetDTOv1.class, name = "factoryConditionSet")
     public UUID factoryConditionSetId;
 
     @Schema(description = "factory condition set invert", example = DTOExamples.BOOLEAN_TRUE)

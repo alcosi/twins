@@ -73,7 +73,11 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
         }
         if (mapperContext.hasModeButNot(UserMode.Factory2UserMode.HIDE)) {
             dst.setCreatedByUserId(src.getCreatedByUserId());
-            userRestDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.Factory2UserMode.SHORT));
+            userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.Factory2UserMode.SHORT));
+        }
+        if (mapperContext.hasModeButNot(UserMode.Factory2UserMode.HIDE)) {
+            dst.setCreatedByUserId(src.getCreatedByUserId());
+            userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.Factory2UserMode.SHORT));
         }
     }
 

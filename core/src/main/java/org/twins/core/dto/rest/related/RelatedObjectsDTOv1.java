@@ -11,6 +11,7 @@ import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.face.FaceDTOv1;
 import org.twins.core.dto.rest.factory.FactoryConditionSetDTOv1;
 import org.twins.core.dto.rest.factory.FactoryDTOv1;
+import org.twins.core.dto.rest.factory.FactoryMultiplierDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.i18n.I18nDTOv1;
@@ -20,11 +21,7 @@ import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.tier.TierDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
-import org.twins.core.dto.rest.twinclass.TwinClassFreezeDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
+import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
@@ -85,6 +82,9 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related factory pipeline map", example = "{factory pipeline map}")
     public Map<UUID, FactoryPipelineDTOv1> factoryPipelineMap;
+
+    @Schema(description = "related factory multiplier map", example = "{factory multiplier map}")
+    public Map<UUID, FactoryMultiplierDTOv1> factoryMultiplierMap;
 
     @Schema(description = "related factory conditionSet map", example = "{factory conditionSet map}")
     public Map<UUID, FactoryConditionSetDTOv1> factoryConditionSetMap;
@@ -151,6 +151,10 @@ public class RelatedObjectsDTOv1 {
             return (T) factoryMap.get(id);
         } else if (relatedObjectClass == FactoryPipelineDTOv1.class) {
             return (T) factoryPipelineMap.get(id);
+        } else if (relatedObjectClass == FactoryConditionSetDTOv1.class) {
+            return (T) factoryConditionSetMap.get(id);
+        } else if (relatedObjectClass == FactoryMultiplierDTOv1.class) {
+            return (T) factoryMultiplierMap.get(id);
         } else if (relatedObjectClass == TwinClassSchemaDTOv1.class) {
             return (T) twinClassSchemaMap.get(id);
         } else if (relatedObjectClass == CommentDTOv1.class) {

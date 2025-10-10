@@ -24,7 +24,7 @@ import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dto.rest.factory.FactoryCreateRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryRsDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryCreateDTOReverseMapper;
-import org.twins.core.mappers.rest.factory.FactoryRestDTOMapperV2;
+import org.twins.core.mappers.rest.factory.FactoryRestDTOMapper;
 import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -40,7 +40,7 @@ public class FactoryCreateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final FactoryCreateDTOReverseMapper factoryCreateDTOReverseMapper;
     private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
-    private final FactoryRestDTOMapperV2 factoryRestDTOMapperV2;
+    private final FactoryRestDTOMapper factoryRestDTOMapper;
     private final TwinFactoryService twinFactoryService;
 
     @ParametersApiUserHeaders
@@ -52,7 +52,7 @@ public class FactoryCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory/v1")
     public ResponseEntity<?> factoryCreateV1(
-            @MapperContextBinding(roots = FactoryRestDTOMapperV2.class, response = FactoryRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryRestDTOMapper.class, response = FactoryRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody FactoryCreateRqDTOv1 request) {
         FactoryRsDTOv1 rs = new FactoryRsDTOv1();
         try {
@@ -60,7 +60,7 @@ public class FactoryCreateController extends ApiController {
             I18nEntity descriptionI18n = i18NSaveRestDTOReverseMapper.convert(request.getDescriptionI18n(), mapperContext);
             TwinFactoryEntity factoryEntity = twinFactoryService.createFactory(factoryCreateDTOReverseMapper.convert(request), nameI18n, descriptionI18n);
             rs
-                    .setFactory(factoryRestDTOMapperV2.convert(factoryEntity, mapperContext))
+                    .setFactory(factoryRestDTOMapper.convert(factoryEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
