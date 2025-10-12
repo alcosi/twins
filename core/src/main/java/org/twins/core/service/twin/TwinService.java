@@ -905,7 +905,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (KitUtils.isEmpty(needLoad))
             return;
         Kit<TwinEntity, UUID> heads = findEntitiesSafe(needLoad.getGroupedKeySet());
-        for (var twin : heads) {
+        for (var twin : needLoad) {
             twin.setHeadTwin(heads.get(twin.getHeadTwinId()));
         }
     }
