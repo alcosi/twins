@@ -8,7 +8,7 @@ import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.face.FaceDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
-import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
+import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.tier.TierDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
@@ -42,7 +42,7 @@ public class DomainViewDTOv1 extends DomainViewPublicDTOv1 {
     public HashMap<String, String> userGroupManagerParams;
 
     @Schema(description = "permission schema id", example = DTOExamples.PERMISSION_SCHEMA_ID)
-    @RelatedObject(type = PermissionSchemaDTOv2.class, name = "permissionSchema")
+    @RelatedObject(type = PermissionSchemaDTOv1.class, name = "permissionSchema")
     public UUID permissionSchemaId;
 
     @Schema(description = "twinflow schema id", example = DTOExamples.TWINFLOW_SCHEMA_ID)

@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
-import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
+import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
@@ -24,7 +24,7 @@ public class TierDTOv1 {
     public UUID id;
 
     @Schema(description = "permission schema id")
-    @RelatedObject(type = PermissionSchemaDTOv2.class, name = "permissionSchema")
+    @RelatedObject(type = PermissionSchemaDTOv1.class, name = "permissionSchema")
     public UUID permissionSchemaId;
 
     @Schema(description = "twinflow schema id")

@@ -15,7 +15,7 @@ import java.util.UUID;
 @Schema(name = "PermissionGrantUserSaveV1")
 public class PermissionGrantUserSaveDTOv1 {
     @Schema(description = "permission schema id", example = DTOExamples.PERMISSION_SCHEMA_ID)
-    @RelatedObject(type = PermissionSchemaDTOv2.class, name = "permissionSchema")
+    @RelatedObject(type = PermissionSchemaDTOv1.class, name = "permissionSchema")
     public UUID permissionSchemaId;
     @Schema(description = "permission id", example = DTOExamples.PERMISSION_ID)
     @RelatedObject(type = PermissionDTOv1.class, name = "permission")

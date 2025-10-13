@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
+import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
@@ -23,7 +23,7 @@ public class TierSaveDTOv1 {
     public Boolean custom;
 
     @Schema(description = "permission schema id", example = DTOExamples.PERMISSION_SCHEMA_ID)
-    @RelatedObject(type = PermissionSchemaDTOv2.class, name = "permissionSchema")
+    @RelatedObject(type = PermissionSchemaDTOv1.class, name = "permissionSchema")
     public UUID permissionSchemaId;
 
     @Schema(description = "twinflow schema id", example = DTOExamples.TWINFLOW_SCHEMA_ID)

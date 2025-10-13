@@ -17,7 +17,7 @@ import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.i18n.I18nDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
-import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
+import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.tier.TierDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
@@ -72,7 +72,7 @@ public class RelatedObjectsDTOv1 {
     public Map<UUID, PermissionDTOv1> permissionMap;
 
     @Schema(description = "related permission schema map", example = "{permission schema map}")
-    public Map<UUID, PermissionSchemaDTOv2> permissionSchemaMap;
+    public Map<UUID, PermissionSchemaDTOv1> permissionSchemaMap;
 
     @Schema(description = "related twinflow map", example = "{twinflow map}")
     public Map<UUID, TwinflowBaseDTOv1> twinflowMap;
@@ -143,7 +143,7 @@ public class RelatedObjectsDTOv1 {
             return (T) permissionGroupMap.get(id);
         } else if (relatedObjectClass == PermissionDTOv1.class) {
             return (T) permissionMap.get(id);
-        } else if (relatedObjectClass == PermissionSchemaDTOv2.class) {
+        } else if (relatedObjectClass == PermissionSchemaDTOv1.class) {
             return (T) permissionSchemaMap.get(id);
         } else if (relatedObjectClass == TwinflowBaseDTOv1.class) {
             return (T) twinflowMap.get(id);

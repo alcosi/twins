@@ -20,7 +20,7 @@ public class PermissionGrantUserDTOv1 {
     public UUID id;
 
     @Schema(description = "permission schema id", example = DTOExamples.PERMISSION_SCHEMA_ID)
-    @RelatedObject(type = PermissionSchemaDTOv2.class, name = "permissionSchema")
+    @RelatedObject(type = PermissionSchemaDTOv1.class, name = "permissionSchema")
     public UUID permissionSchemaId;
 
     @Schema(description = "permission id", example = DTOExamples.PERMISSION_ID)

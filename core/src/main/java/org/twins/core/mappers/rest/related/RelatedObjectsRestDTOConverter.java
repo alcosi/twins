@@ -43,7 +43,7 @@ import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.i18n.I18nDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
-import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
+import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
 import org.twins.core.dto.rest.related.RelatedObjectsDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.tier.TierDTOv1;
@@ -74,7 +74,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.RelatedObject;
 import org.twins.core.mappers.rest.permission.PermissionGroupRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
-import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapperV2;
+import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapper;
 import org.twins.core.mappers.rest.space.SpaceRoleDTOMapper;
 import org.twins.core.mappers.rest.tier.TierRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
@@ -111,7 +111,7 @@ public class RelatedObjectsRestDTOConverter {
     private final BusinessAccountDTOMapper businessAccountDTOMapper;
     private final PermissionGroupRestDTOMapper permissionGroupRestDTOMapper;
     private final PermissionRestDTOMapper permissionRestDTOMapper;
-    private final PermissionSchemaRestDTOMapperV2 permissionSchemaRestDTOMapperV2;
+    private final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
     private final TwinflowBaseV1RestDTOMapper twinflowBaseV1RestDTOMapper;
     private final TwinClassSchemaDTOMapper twinClassSchemaDTOMapper;
     private final FactoryRestDTOMapper factoryRestDTOMapper;
@@ -143,7 +143,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, BusinessAccountDTOv1> businessAccountMap = new HashMap<>();
         Map<UUID, PermissionGroupDTOv1> permissionGroupMap = new HashMap<>();
         Map<UUID, PermissionDTOv1> permissionMap = new HashMap<>();
-        Map<UUID, PermissionSchemaDTOv2> permissionSchemaMap = new HashMap<>();
+        Map<UUID, PermissionSchemaDTOv1> permissionSchemaMap = new HashMap<>();
         Map<UUID, TwinflowBaseDTOv1> twinflowMap = new HashMap<>();
         Map<UUID, FactoryDTOv1> factoryMap = new HashMap<>();
         Map<UUID, FactoryPipelineDTOv1> factoryPipelineMap = new HashMap<>();
@@ -185,7 +185,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContext.getRelatedPermissionMap().isEmpty())
             convertAndPut(mapperContext.getRelatedPermissionMap(), permissionRestDTOMapper, mapperContextLevel2, permissionMap, PermissionEntity::getId);
         if (!mapperContext.getRelatedPermissionSchemaMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedPermissionSchemaMap(), permissionSchemaRestDTOMapperV2, mapperContextLevel2, permissionSchemaMap, PermissionSchemaEntity::getId);
+            convertAndPut(mapperContext.getRelatedPermissionSchemaMap(), permissionSchemaRestDTOMapper, mapperContextLevel2, permissionSchemaMap, PermissionSchemaEntity::getId);
         if (!mapperContext.getRelatedTwinflowMap().isEmpty())
             convertAndPut(mapperContext.getRelatedTwinflowMap(), twinflowBaseV1RestDTOMapper, mapperContextLevel2, twinflowMap, TwinflowEntity::getId);
         if (!mapperContext.getRelatedFactoryMap().isEmpty())
@@ -242,7 +242,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContextLevel2.getRelatedPermissionMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedPermissionMap(), permissionRestDTOMapper, mapperContextLevel3, permissionMap, PermissionEntity::getId);
         if (!mapperContextLevel2.getRelatedPermissionSchemaMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedPermissionSchemaMap(), permissionSchemaRestDTOMapperV2, mapperContextLevel3, permissionSchemaMap, PermissionSchemaEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedPermissionSchemaMap(), permissionSchemaRestDTOMapper, mapperContextLevel3, permissionSchemaMap, PermissionSchemaEntity::getId);
         if (!mapperContextLevel2.getRelatedPermissionSchemaMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedTwinflowMap(), twinflowBaseV1RestDTOMapper, mapperContextLevel3, twinflowMap, TwinflowEntity::getId);
         if (!mapperContextLevel2.getRelatedFactoryMap().isEmpty())
@@ -300,7 +300,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContextLevel3.getRelatedPermissionMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedPermissionMap(), permissionRestDTOMapper, mapperContextLevel3, permissionMap, PermissionEntity::getId);
         if (!mapperContextLevel3.getRelatedPermissionSchemaMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedPermissionSchemaMap(), permissionSchemaRestDTOMapperV2, mapperContextLevel3, permissionSchemaMap, PermissionSchemaEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedPermissionSchemaMap(), permissionSchemaRestDTOMapper, mapperContextLevel3, permissionSchemaMap, PermissionSchemaEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinflowMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedTwinflowMap(), twinflowBaseV1RestDTOMapper, mapperContextLevel3, twinflowMap, TwinflowEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryMap().isEmpty())

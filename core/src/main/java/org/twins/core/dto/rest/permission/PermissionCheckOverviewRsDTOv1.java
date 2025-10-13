@@ -39,7 +39,7 @@ public class PermissionCheckOverviewRsDTOv1 extends Response {
     public PermissionGroupDTOv1 permissionGroup;
 
     @Schema(description = "permissionSchemaId")
-    @RelatedObject(type = PermissionSchemaDTOv2.class, name = "permissionSchema")
+    @RelatedObject(type = PermissionSchemaDTOv1.class, name = "permissionSchema")
     public UUID permissionSchemaId;
 
     @Schema(description = "permissionSchema")
