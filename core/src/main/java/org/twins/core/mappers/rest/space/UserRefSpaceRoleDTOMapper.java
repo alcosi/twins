@@ -21,7 +21,7 @@ public class UserRefSpaceRoleDTOMapper extends RestSimpleDTOMapper<UserRefSpaceR
     @MapperModePointerBinding(modes = UserMode.Space2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
 
-    private final SpaceRoleDTOMapperV2 spaceRoleDTOMapperV2;
+    private final SpaceRoleDTOMapper spaceRoleDTOMapper;
 
     @Override
     public void map(UserRefSpaceRole src, UserWithinSpaceRolesRsDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -32,7 +32,7 @@ public class UserRefSpaceRoleDTOMapper extends RestSimpleDTOMapper<UserRefSpaceR
 
         if (mapperContext.hasModeButNot(SpaceRoleMode.HIDE))
             convertOrPostpone(new Kit<>(src.getRoles().stream().map(SpaceRoleUserEntity::getSpaceRole).toList(), SpaceRoleEntity::getId),
-                    dst, spaceRoleDTOMapperV2,
+                    dst, spaceRoleDTOMapper,
                     mapperContext.fork(),
                     UserWithinSpaceRolesRsDTOv1::setSpaceRoleList,
                     UserWithinSpaceRolesRsDTOv1::setSpaceRoleIdsList

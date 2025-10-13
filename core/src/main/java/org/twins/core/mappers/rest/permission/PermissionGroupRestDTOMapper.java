@@ -37,11 +37,10 @@ public class PermissionGroupRestDTOMapper extends RestSimpleDTOMapper<Permission
                         .setKey(src.getKey());
                 break;
         }
-        if (mapperContext.hasModeButNot(TwinClassMode.PermissionGroup2TwinClassMode.HIDE))
-            dst
-                    .setTwinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.PermissionGroup2TwinClassMode.SHORT)))
-                    .setTwinClassId(src.getTwinClassId());
-
+        if (mapperContext.hasModeButNot(TwinClassMode.PermissionGroup2TwinClassMode.HIDE)) {
+            dst.setTwinClassId(src.getTwinClassId());
+            twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.PermissionGroup2TwinClassMode.SHORT));
+        }
     }
 
     @Override

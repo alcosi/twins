@@ -38,7 +38,7 @@ public class SpaceRoleUserGroupDTOv1 extends Request {
     public UUID createdByUserId;
 
     @Schema(description = "")
-    public SpaceRoleDTOv2 spaceRole;
+    public SpaceRoleDTOv1 spaceRole;
 }
 
 

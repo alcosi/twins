@@ -18,5 +18,5 @@ public class PermissionGrantUserGroupSearchRsDTOv1 extends ResponseRelatedObject
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - permission grant user-group list")
-    public List<PermissionGrantUserGroupDTOv2> permissionGrantUserGroups;
+    public List<PermissionGrantUserGroupDTOv1> permissionGrantUserGroups;
 }

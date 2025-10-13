@@ -25,7 +25,7 @@ public class UserWithinSpaceRolesRsDTOv1 {
     public UserDTOv1 user;
 
     @Schema(description = "space role list")
-    public List<SpaceRoleDTOv2> spaceRoleList;
+    public List<SpaceRoleDTOv1> spaceRoleList;
 
     @Schema(description = "spaceRoleIds list." + DTOExamples.LAZY_RELATION_MODE_OFF)
     public Set<UUID> spaceRoleIdsList;
