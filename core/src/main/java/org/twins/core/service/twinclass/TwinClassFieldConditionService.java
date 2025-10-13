@@ -16,10 +16,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -65,15 +62,17 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
     }
 
     public void loadBaseTwinClassFields(Collection<TwinClassFieldConditionEntity> entities) throws ServiceException {
-        Kit<TwinClassFieldConditionEntity, UUID> needLoad = new Kit<>(TwinClassFieldConditionEntity::getId);
+        Kit<TwinClassFieldConditionEntity, UUID> needLoad = new Kit<>(TwinClassFieldConditionEntity::getBaseTwinClassFieldId);
+        Set<UUID> forFields = new HashSet<>();
         for (var entity : entities) {
             if (entity.getBaseTwinClassField() == null) {
                 needLoad.add(entity);
+                forFields.add(entity.getBaseTwinClassFieldId());
             }
         }
         if (needLoad.isEmpty())
             return;
-        Kit<TwinClassFieldEntity, UUID> loaded = twinClassFieldService.findEntitiesSafe(needLoad.getIdSet());
+        Kit<TwinClassFieldEntity, UUID> loaded = twinClassFieldService.findEntitiesSafe(forFields);
         for (var entity : needLoad) {
             entity.setBaseTwinClassField(loaded.get(entity.getBaseTwinClassFieldId()));
         }
