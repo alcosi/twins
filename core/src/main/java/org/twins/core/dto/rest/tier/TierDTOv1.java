@@ -8,8 +8,8 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
+import org.twins.core.dto.rest.twinflow.TwinflowSchemaDTOv1;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -28,7 +28,7 @@ public class TierDTOv1 {
     public UUID permissionSchemaId;
 
     @Schema(description = "twinflow schema id")
-    @RelatedObject(type = TwinDTOv2.class, name = "twinflowSchema")
+    @RelatedObject(type = TwinflowSchemaDTOv1.class, name = "twinflowSchema")
     public UUID twinflowSchemaId;
 
     @Schema(description = "twinclass schema id")
