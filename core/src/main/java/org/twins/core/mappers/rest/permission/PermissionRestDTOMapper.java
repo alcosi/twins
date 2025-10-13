@@ -39,6 +39,7 @@ public class PermissionRestDTOMapper extends RestSimpleDTOMapper<PermissionEntit
                 break;
         }
         if (showPermissionGroup(mapperContext) && src.getPermissionGroup() != null) {
+            dst.setGroupId(src.getPermissionGroupId());
             permissionGroupRestDTOMapper.postpone(src.getPermissionGroup(), mapperContext.forkOnPoint(PermissionGroupMode.Permission2PermissionGroupMode.SHORT));
         }
     }

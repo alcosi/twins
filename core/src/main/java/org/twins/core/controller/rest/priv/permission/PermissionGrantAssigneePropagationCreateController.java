@@ -24,7 +24,7 @@ import org.twins.core.dto.rest.permission.PermissionGrantAssigneePropagationCrea
 import org.twins.core.dto.rest.permission.PermissionGrantAssigneePropagationRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionGrantAssigneePropagationCreateDTOReverseMapper;
-import org.twins.core.mappers.rest.permission.PermissionGrantAssigneePropagationRestDTOMapperV2;
+import org.twins.core.mappers.rest.permission.PermissionGrantAssigneePropagationRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantAssigneePropagationService;
 import org.twins.core.service.permission.Permissions;
@@ -36,7 +36,7 @@ import org.twins.core.service.permission.Permissions;
 @ProtectedBy({Permissions.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_MANAGE, Permissions.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_CREATE})
 public class PermissionGrantAssigneePropagationCreateController extends ApiController {
     private final PermissionGrantAssigneePropagationService permissionGrantAssigneePropagationService;
-    private final PermissionGrantAssigneePropagationRestDTOMapperV2 permissionGrantAssigneePropagationRestDTOMapperV2;
+    private final PermissionGrantAssigneePropagationRestDTOMapper permissionGrantAssigneePropagationRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PermissionGrantAssigneePropagationCreateDTOReverseMapper permissionGrantAssigneePropagationCreateDTOReverseMapper;
 
@@ -49,14 +49,14 @@ public class PermissionGrantAssigneePropagationCreateController extends ApiContr
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/assignee_propagation/v1")
     public ResponseEntity<?> permissionGrantAssigneePropagationCreateV1(
-            @MapperContextBinding(roots = PermissionGrantAssigneePropagationRestDTOMapperV2.class, response = PermissionGrantAssigneePropagationRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantAssigneePropagationRestDTOMapper.class, response = PermissionGrantAssigneePropagationRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody PermissionGrantAssigneePropagationCreateRqDTOv1 request) {
         PermissionGrantAssigneePropagationRsDTOv1 rs = new PermissionGrantAssigneePropagationRsDTOv1();
         try {
             PermissionGrantAssigneePropagationEntity permissionGrantAssigneePropagation = permissionGrantAssigneePropagationService.createPermissionGrantAssigneePropagationEntity
                     (permissionGrantAssigneePropagationCreateDTOReverseMapper.convert(request.getPermissionGrantAssigneePropagation()));
             rs
-                    .setPermissionGrantAssigneePropagation(permissionGrantAssigneePropagationRestDTOMapperV2.convert(permissionGrantAssigneePropagation, mapperContext))
+                    .setPermissionGrantAssigneePropagation(permissionGrantAssigneePropagationRestDTOMapper.convert(permissionGrantAssigneePropagation, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
