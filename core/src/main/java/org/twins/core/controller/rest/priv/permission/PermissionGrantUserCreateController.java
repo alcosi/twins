@@ -25,7 +25,7 @@ import org.twins.core.dto.rest.permission.PermissionGrantUserSaveRsDTOV1;
 import org.twins.core.mappers.rest.factory.FactoryEraserRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionGrantUserCreateDTOReverseMapper;
-import org.twins.core.mappers.rest.permission.PermissionGrantUserRestDTOMapperV2;
+import org.twins.core.mappers.rest.permission.PermissionGrantUserRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantUserService;
 import org.twins.core.service.permission.Permissions;
@@ -37,7 +37,7 @@ import org.twins.core.service.permission.Permissions;
 @ProtectedBy({Permissions.PERMISSION_GRANT_USER_MANAGE, Permissions.PERMISSION_GRANT_USER_CREATE})
 public class PermissionGrantUserCreateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
-    private final PermissionGrantUserRestDTOMapperV2 permissionGrantUserRestDTOMapperV2;
+    private final PermissionGrantUserRestDTOMapper permissionGrantUserRestDTOMapper;
     private final PermissionGrantUserCreateDTOReverseMapper permissionGrantUserCreateDTOReverseMapper;
     private final PermissionGrantUserService permissionGrantUserService;
 
@@ -57,7 +57,7 @@ public class PermissionGrantUserCreateController extends ApiController {
             PermissionGrantUserEntity entity = permissionGrantUserCreateDTOReverseMapper.convert(request.getPermissionGrantUser(), mapperContext);
             entity = permissionGrantUserService.createPermissionGrantUser(entity);
             rs
-                    .setPermissionGrantUser(permissionGrantUserRestDTOMapperV2.convert(entity, mapperContext))
+                    .setPermissionGrantUser(permissionGrantUserRestDTOMapper.convert(entity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

@@ -7,8 +7,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twin.TwinDTOv2;
-import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
+import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -29,11 +28,11 @@ public class PermissionGrantUserDTOv1 {
     public UUID permissionId;
 
     @Schema(description = "user id", example = DTOExamples.USER_ID)
-    @RelatedObject(type = UserGroupDTOv1.class, name = "user")
+    @RelatedObject(type = UserDTOv1.class, name = "user")
     public UUID userId;
 
     @Schema(description = "granted by user id", example = DTOExamples.USER_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "grantedByUser")
+    @RelatedObject(type = UserDTOv1.class, name = "grantedByUser")
     public UUID grantedByUserId;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)

@@ -24,7 +24,7 @@ import org.twins.core.dto.rest.permission.PermissionGrantUserSaveRsDTOV1;
 import org.twins.core.dto.rest.permission.PermissionGrantUserUpdateRqDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryEraserRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.permission.PermissionGrantUserRestDTOMapperV2;
+import org.twins.core.mappers.rest.permission.PermissionGrantUserRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionGrantUserUpdateDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantUserService;
@@ -40,7 +40,7 @@ import java.util.UUID;
 public class PermissionGrantUserUpdateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final PermissionGrantUserUpdateDTOReverseMapper permissionGrantUserUpdateDTOReverseMapper;
-    private final PermissionGrantUserRestDTOMapperV2 permissionGrantUserRestDTOMapperV2;
+    private final PermissionGrantUserRestDTOMapper permissionGrantUserRestDTOMapper;
     private final PermissionGrantUserService permissionGrantUserService;
 
     @ParametersApiUserHeaders
@@ -60,7 +60,7 @@ public class PermissionGrantUserUpdateController extends ApiController {
             PermissionGrantUserEntity entity = permissionGrantUserUpdateDTOReverseMapper.convert(request.getPermissionGrantUser());
             entity = permissionGrantUserService.updatePermissionGrantUser(entity.setId(permissionGrantUserId));
             rs
-                    .setPermissionGrantUser(permissionGrantUserRestDTOMapperV2.convert(entity, mapperContext))
+                    .setPermissionGrantUser(permissionGrantUserRestDTOMapper.convert(entity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
