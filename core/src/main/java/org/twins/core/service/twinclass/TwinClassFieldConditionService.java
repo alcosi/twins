@@ -65,7 +65,7 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
     }
 
     public void loadBaseTwinClassFields(Collection<TwinClassFieldConditionEntity> entities) throws ServiceException {
-        Kit<TwinClassFieldConditionEntity, UUID> needLoad = new Kit<>(TwinClassFieldConditionEntity::getId);
+        KitGrouped<TwinClassFieldConditionEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassFieldConditionEntity::getId, TwinClassFieldConditionEntity::getBaseTwinClassFieldId);
         for (var entity : entities) {
             if (entity.getBaseTwinClassField() == null) {
                 needLoad.add(entity);
@@ -73,7 +73,7 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
         }
         if (needLoad.isEmpty())
             return;
-        Kit<TwinClassFieldEntity, UUID> loaded = twinClassFieldService.findEntitiesSafe(needLoad.getIdSet());
+        Kit<TwinClassFieldEntity, UUID> loaded = twinClassFieldService.findEntitiesSafe(needLoad.getGroupedKeySet());
         for (var entity : needLoad) {
             entity.setBaseTwinClassField(loaded.get(entity.getBaseTwinClassFieldId()));
         }

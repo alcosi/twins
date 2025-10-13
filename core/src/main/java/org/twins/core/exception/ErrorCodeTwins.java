@@ -71,6 +71,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_CLASS_FIELD_RULE_FEATURER_NOT_SPECIFIED(10430, "Twin class field rule featurer is not specified"),
     TWIN_CLASS_FIELD_CONDITION_BASE_FIELD_NOT_SPECIFIED(10431, "Twin class field condition base field is not specified"),
     TWIN_CLASS_FIELD_CONDITION_FEATURER_NOT_SPECIFIED(10432, "Twin class field condition featurer is not specified"),
+    TWIN_CLASS_FIELD_RULE_OVERWRITTEN_VALUE_NOT_SPECIFIED(10433, "Twin class field rule overwitten value is not specified"),
     TWINFLOW_SCHEMA_NOT_ALLOWED(10501, "twinflow schema is not allowed"),
     TWINFLOW_SCHEMA_NOT_CONFIGURED(10502, "twinflow schema is not configured"),
     TWINFLOW_TRANSACTION_INCORRECT(10503, "twinflow transition can not be performed"),

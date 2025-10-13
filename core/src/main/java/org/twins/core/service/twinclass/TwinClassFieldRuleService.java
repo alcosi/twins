@@ -19,7 +19,6 @@ import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleRepository;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -61,6 +60,13 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
             return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_RULE_TWIN_CLASS_FIELD_NOT_SPECIFIED.getMessage());
         if (null == entity.getFieldOverwriterFeaturerId())
             return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_RULE_FEATURER_NOT_SPECIFIED.getMessage());
+        if(null == entity.getOverwrittenValue()
+                && null == entity.getOverwrittenRequired()
+                && entity.getFieldOverwriterFeaturerId() == FIELD_OVERWRITER_STUB_ID)
+            return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_RULE_OVERWRITTEN_VALUE_NOT_SPECIFIED.getMessage());
+        /*
+        check overwriter params
+         */
         switch (entityValidateMode) {
             case beforeSave:
                 if (entity.getTwinClassField() == null || !entity.getTwinClassField().getId().equals(entity.getTwinClassFieldId()))
