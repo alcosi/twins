@@ -16,7 +16,7 @@ public class PermissionGrantUserGroupDTOv2 extends PermissionGrantUserGroupDTOv1
     public PermissionSchemaDTOv1 permissionSchema;
 
     @Schema(description = "permission")
-    public PermissionDTOv2 permission;
+    public PermissionDTOv1 permission;
 
     @Schema(description = "user group")
     public UserGroupDTOv1 userGroup;

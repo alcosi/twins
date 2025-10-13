@@ -6,7 +6,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.permission.PermissionRestDTOMapperV2;
+import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.resource.ResourceService;
 import org.twins.face.dao.navbar.nb001.FaceNB001MenuItemEntity;
@@ -27,7 +27,7 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
     protected final FaceRestDTOMapper faceRestDTOMapper;
 
     @MapperModePointerBinding(modes = FaceNB001Modes.FaceNB001MenuItem2PermissionMode.class)
-    private final PermissionRestDTOMapperV2 permissionRestDTOMapper;
+    private final PermissionRestDTOMapper permissionRestDTOMapper;
 
     @Override
     public void map(FaceNB001MenuItemEntity src, FaceNB001MenuItemDTOv1 dst, MapperContext mapperContext) throws Exception {

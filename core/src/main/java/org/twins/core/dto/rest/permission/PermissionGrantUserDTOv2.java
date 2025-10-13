@@ -13,7 +13,7 @@ import org.twins.core.dto.rest.user.UserDTOv1;
 public class PermissionGrantUserDTOv2 extends PermissionGrantUserDTOv1 {
 
     @Schema(description = "permission")
-    public PermissionDTOv2 permission;
+    public PermissionDTOv1 permission;
 
     @Schema(description = "permission schema")
     public PermissionSchemaDTOv1 permissionSchema;

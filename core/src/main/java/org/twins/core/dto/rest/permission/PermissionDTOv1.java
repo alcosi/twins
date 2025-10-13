@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
 
 import java.util.UUID;
 
@@ -26,8 +25,6 @@ public class PermissionDTOv1 {
     public String description;
 
     @Schema(description = "group id", example = DTOExamples.PERMISSION_GROUP_ID)
-    @RelatedObject(type = UserGroupDTOv1.class, name = "group")
+    @RelatedObject(type = PermissionGroupDTOv1.class, name = "group")
     public UUID groupId;
 }
-
-

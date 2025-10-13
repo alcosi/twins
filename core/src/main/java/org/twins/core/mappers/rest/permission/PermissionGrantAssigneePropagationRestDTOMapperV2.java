@@ -22,7 +22,7 @@ public class PermissionGrantAssigneePropagationRestDTOMapperV2 extends RestSimpl
     private final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
 
     @MapperModePointerBinding(modes = PermissionMode.PermissionGrantAssigneePropagation2PermissionMode.class)
-    private final PermissionRestDTOMapperV2 permissionRestDTOMapperV2;
+    private final PermissionRestDTOMapper permissionRestDTOMapper;
 
     @MapperModePointerBinding(modes = TwinClassMode.PermissionGrantAssigneePropagation2TwinClassMode.class)
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
@@ -42,7 +42,7 @@ public class PermissionGrantAssigneePropagationRestDTOMapperV2 extends RestSimpl
                     .setPermissionSchemaId(src.getPermissionSchemaId());
         if (mapperContext.hasModeButNot(PermissionMode.PermissionGrantAssigneePropagation2PermissionMode.HIDE))
             dst
-                    .setPermission(permissionRestDTOMapperV2.convertOrPostpone(src.getPermission(), mapperContext.forkOnPoint(PermissionMode.PermissionGrantAssigneePropagation2PermissionMode.SHORT)))
+                    .setPermission(permissionRestDTOMapper.convertOrPostpone(src.getPermission(), mapperContext.forkOnPoint(PermissionMode.PermissionGrantAssigneePropagation2PermissionMode.SHORT)))
                     .setPermissionId(src.getPermissionId());
         if (mapperContext.hasModeButNot(TwinClassMode.PermissionGrantAssigneePropagation2TwinClassMode.HIDE))
             dst

@@ -8,9 +8,9 @@ import org.twins.core.dao.permission.PermissionGrantUserEntity;
 import org.twins.core.dto.rest.permission.PermissionGrantUserDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.PermissionGrantUserMode;
 import org.twins.core.mappers.rest.mappercontext.modes.PermissionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.PermissionSchemaMode;
-import org.twins.core.mappers.rest.mappercontext.modes.PermissionGrantUserMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
@@ -24,7 +24,7 @@ public class PermissionGrantUserRestDTOMapperV2 extends RestSimpleDTOMapper<Perm
     private final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
 
     @MapperModePointerBinding(modes = PermissionMode.PermissionGrantUser2PermissionMode.class)
-    private final PermissionRestDTOMapperV2 permissionRestDTOMapperV2;
+    private final PermissionRestDTOMapper permissionRestDTOMapper;
 
     @MapperModePointerBinding(modes = UserMode.PermissionGrantUser2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
@@ -38,7 +38,7 @@ public class PermissionGrantUserRestDTOMapperV2 extends RestSimpleDTOMapper<Perm
                     .setPermissionSchemaId(src.getPermissionSchemaId());
         if (mapperContext.hasModeButNot(PermissionMode.PermissionGrantUser2PermissionMode.HIDE))
             dst
-                    .setPermission(permissionRestDTOMapperV2.convertOrPostpone(src.getPermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.PermissionGrantUser2PermissionMode.SHORT))))
+                    .setPermission(permissionRestDTOMapper.convertOrPostpone(src.getPermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.PermissionGrantUser2PermissionMode.SHORT))))
                     .setPermissionId(src.getPermissionId());
         if (mapperContext.hasModeButNot(UserMode.PermissionGrantUser2UserMode.HIDE))
             dst

@@ -24,7 +24,7 @@ public class PermissionGrantSpaceRoleRestDTOMapperV2 extends RestSimpleDTOMapper
     private final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
 
     @MapperModePointerBinding(modes = PermissionMode.PermissionGrantUserGroup2PermissionMode.class)
-    private final PermissionRestDTOMapperV2 permissionRestDTOMapperV2;
+    private final PermissionRestDTOMapper permissionRestDTOMapper;
 
     @MapperModePointerBinding(modes = SpaceRoleMode.PermissionGrantSpaceRole2SpaceRoleMode.class)
     private final SpaceRoleDTOMapperV2 spaceRoleDTOMapperV2;
@@ -41,7 +41,7 @@ public class PermissionGrantSpaceRoleRestDTOMapperV2 extends RestSimpleDTOMapper
                     .setPermissionSchemaId(src.getPermissionSchemaId());
         if (mapperContext.hasModeButNot(PermissionMode.PermissionGrantSpaceRole2PermissionMode.HIDE))
             dst
-                    .setPermission(permissionRestDTOMapperV2.convertOrPostpone(src.getPermission(), mapperContext.forkOnPoint(PermissionMode.PermissionGrantSpaceRole2PermissionMode.SHORT)))
+                    .setPermission(permissionRestDTOMapper.convertOrPostpone(src.getPermission(), mapperContext.forkOnPoint(PermissionMode.PermissionGrantSpaceRole2PermissionMode.SHORT)))
                     .setPermissionId(src.getPermissionId());
         if (mapperContext.hasModeButNot(SpaceRoleMode.PermissionGrantSpaceRole2SpaceRoleMode.HIDE))
             dst

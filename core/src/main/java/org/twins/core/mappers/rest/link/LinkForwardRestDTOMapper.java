@@ -2,7 +2,6 @@ package org.twins.core.mappers.rest.link;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.twins.core.service.i18n.I18nService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -16,6 +15,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 
@@ -52,11 +52,10 @@ public class LinkForwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, Li
                         .setId(src.getId())
                         .setName(i18nService.translateToLocale(src.getForwardNameI18NId()));
         }
-        if (mapperContext.hasModeButNot(TwinClassMode.LinkDst2TwinClassMode.HIDE))
-            dst
-                    .setDstTwinClassId(src.getDstTwinClassId())
-                    .setDstTwinClass(twinClassRestDTOMapper.convertOrPostpone(src.getDstTwinClass(), mapperContext
-                            .forkOnPoint(TwinClassMode.LinkDst2TwinClassMode.SHORT)));
+        if (mapperContext.hasModeButNot(TwinClassMode.LinkDst2TwinClassMode.HIDE)) {
+            dst.setDstTwinClassId(src.getDstTwinClassId());
+            twinClassRestDTOMapper.convertOrPostpone(src.getDstTwinClass(), mapperContext.forkOnPoint(TwinClassMode.LinkDst2TwinClassMode.SHORT));
+        }
     }
 
     @Override
