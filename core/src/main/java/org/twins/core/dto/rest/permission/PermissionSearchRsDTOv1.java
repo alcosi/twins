@@ -10,13 +10,13 @@ import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = false)
-@Schema(name = "PermissionGrantSpaceRoleSearchRsV1")
-public class PermissionGrantSpaceRoleSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+@Schema(name =  "PermissionSearchRsV1")
+public class PermissionSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 
-    @Schema(description = "results - permission grant space role list")
-    public List<PermissionGrantSpaceRoleDTOv1> permissionGrantSpaceRoles;
+    @Schema(description = "permission list")
+    public List<PermissionDTOv1> permissions;
 }

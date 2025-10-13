@@ -54,27 +54,27 @@ public class PermissionGrantAssigneePropagationRestDTOMapper extends RestSimpleD
                 break;
         }
 
-        if (mapperContext.hasModeButNot(PermissionSchemaMode.PermissionGrantAssigneePropagation2PermissionSchemaMode.HIDE) && src.getPermissionSchema() != null) {
+        if (mapperContext.hasModeButNot(PermissionSchemaMode.PermissionGrantAssigneePropagation2PermissionSchemaMode.HIDE)) {
             dst.setPermissionSchemaId(src.getPermissionSchemaId());
             permissionSchemaRestDTOMapper.postpone(src.getPermissionSchema(), mapperContext.forkOnPoint(PermissionSchemaMode.PermissionGrantAssigneePropagation2PermissionSchemaMode.SHORT));
         }
 
-        if (mapperContext.hasModeButNot(PermissionMode.PermissionGrantAssigneePropagation2PermissionMode.HIDE) && src.getPermission() != null) {
+        if (mapperContext.hasModeButNot(PermissionMode.PermissionGrantAssigneePropagation2PermissionMode.HIDE)) {
             dst.setPermissionSchemaId(src.getPermissionId());
             permissionRestDTOMapper.postpone(src.getPermission(), mapperContext.forkOnPoint(PermissionMode.PermissionGrantAssigneePropagation2PermissionMode.SHORT));
         }
 
-        if (mapperContext.hasModeButNot(TwinClassMode.PermissionGrantAssigneePropagation2TwinClassMode.HIDE) && src.getTwinClass() != null) {
+        if (mapperContext.hasModeButNot(TwinClassMode.PermissionGrantAssigneePropagation2TwinClassMode.HIDE)) {
             dst.setPropagationTwinClassId(src.getPropagationByTwinClassId());
             twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.PermissionGrantAssigneePropagation2TwinClassMode.SHORT));
         }
 
-        if (mapperContext.hasModeButNot(StatusMode.PropagationTwinStatus2StatusMode.HIDE) && src.getTwinStatus() != null) {
+        if (mapperContext.hasModeButNot(StatusMode.PropagationTwinStatus2StatusMode.HIDE)) {
             dst.setPropagationTwinStatusId(src.getPropagationByTwinStatusId());
             twinStatusRestDTOMapper.postpone(src.getTwinStatus(), mapperContext.forkOnPoint(StatusMode.PropagationTwinStatus2StatusMode.SHORT));
         }
 
-        if (mapperContext.hasModeButNot(UserMode.PermissionGrantAssigneePropagation2UserMode.HIDE) && src.getGrantedByUser() != null) {
+        if (mapperContext.hasModeButNot(UserMode.PermissionGrantAssigneePropagation2UserMode.HIDE)) {
             dst.setGrantedByUserId(src.getGrantedByUserId());
             userRestDTOMapper.postpone(src.getGrantedByUser(), mapperContext.forkOnPoint(UserMode.PermissionGrantAssigneePropagation2UserMode.SHORT));
         }
