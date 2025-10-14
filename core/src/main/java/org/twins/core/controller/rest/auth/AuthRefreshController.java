@@ -17,12 +17,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.annotation.ParameterDomainHeader;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.auth.AuthRefreshRqDTOv1;
 import org.twins.core.dto.rest.auth.AuthRefreshRqDTOv2;
 import org.twins.core.dto.rest.auth.AuthRefreshRsDTOv1;
 import org.twins.core.featurer.identityprovider.ClientSideAuthData;
 import org.twins.core.mappers.rest.auth.ClientSideAuthDataRestDTOMapper;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.auth.IdentityProviderService;
 
 @Tag(description = "Auth login controller", name = ApiTag.AUTH)
@@ -30,10 +32,11 @@ import org.twins.core.service.auth.IdentityProviderService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class AuthRefreshController extends ApiController {
+    private final AuthService authService;
     private final IdentityProviderService identityProviderService;
     private final ClientSideAuthDataRestDTOMapper clientSideAuthDataRestDTOMapper;
 
-    @ParametersApiUserHeaders
+    @ParameterDomainHeader
     @Operation(operationId = "authRefreshV1", summary = "Refresh auth_token by refresh_token")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Login to ", content = {
@@ -44,6 +47,7 @@ public class AuthRefreshController extends ApiController {
     public ResponseEntity<?> authRefreshV1(@RequestBody AuthRefreshRqDTOv1 request, HttpServletResponse servletResponse) {
         AuthRefreshRsDTOv1 rs = new AuthRefreshRsDTOv1();
         try {
+            authService.getApiUser().setAnonymousWithDefaultLocale();
             ClientSideAuthData clientSideAuthData = identityProviderService.refresh(request.getRefreshToken());
             rs.setAuthData(clientSideAuthDataRestDTOMapper.convert(clientSideAuthData));
             clientSideAuthData.addCookiesToResponse(servletResponse);
@@ -56,7 +60,7 @@ public class AuthRefreshController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
-    @ParametersApiUserHeaders
+    @ParameterDomainHeader
     @Operation(operationId = "authRefreshV2", summary = "Refresh auth_token by refresh_token and fingerprint")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Login to ", content = {
@@ -67,6 +71,7 @@ public class AuthRefreshController extends ApiController {
     public ResponseEntity<?> authRefreshV2(@RequestBody AuthRefreshRqDTOv2 request, HttpServletResponse servletResponse) {
         AuthRefreshRsDTOv1 rs = new AuthRefreshRsDTOv1();
         try {
+            authService.getApiUser().setAnonymousWithDefaultLocale();
             ClientSideAuthData clientSideAuthData = identityProviderService.refresh(request.getRefreshToken(), request.getFingerprint());
             rs.setAuthData(clientSideAuthDataRestDTOMapper.convert(clientSideAuthData));
             clientSideAuthData.addCookiesToResponse(servletResponse);

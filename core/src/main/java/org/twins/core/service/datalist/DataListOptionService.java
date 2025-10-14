@@ -21,9 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
+import org.twins.core.enums.datalist.DataListStatus;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListOptionCreate;
 import org.twins.core.domain.datalist.DataListOptionUpdate;
@@ -107,7 +108,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                     .setOptionI18NId(dataListOptionCreate.getNameI18n().getId())
                     .setDataListId(dataListOptionCreate.getDataListId())
                     .setIcon(dataListOptionCreate.getIcon())
-                    .setStatus(DataListOptionEntity.Status.active)
+                    .setStatus(DataListStatus.active)
                     .setBackgroundColor(dataListOptionCreate.getBackgroundColor())
                     .setFontColor(dataListOptionCreate.getFontColor())
                     .setExternalId(dataListOptionCreate.getExternalId());
@@ -133,7 +134,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         if (StringUtils.isEmpty(attributeKey))
             return null; //no attribute configured
         if (MapUtils.isEmpty(optionAttributes) || !optionAttributes.containsKey(attributeKey))
-            throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_INVALID_ATTRIBUTE, "Incorrect data list option attribute[" + attributeKey + "]");
+            throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_INVALID_ATTRIBUTE, "Incorrect data list option attribute, expected [" + attributeKey + "] not found");
         return optionAttributes.get(attributeKey);
     }
 

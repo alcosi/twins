@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.twins.core.enums.history.HistoryType;
 
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -78,7 +79,9 @@ public interface HistoryRepository extends CrudRepository<HistoryEntity, UUID>, 
             JOIN twin t ON t.id = m.twin_id
             GROUP BY m.twin_id, t.domain_id
             """, nativeQuery = true)
-    List<PickedBatch> pickBatch(@Param("before") Timestamp before, @Param("limit") int limit, List<HistoryType> historyTypes);
+    default List<PickedBatch> pickBatch(@Param("before") Timestamp before, @Param("limit") int limit, List<HistoryType> historyTypes) {
+        return null;
+    }
 
     interface PickedBatch {
         UUID getTwinId();

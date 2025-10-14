@@ -18,12 +18,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.action.TwinAction;
+import org.twins.core.enums.action.TwinAction;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.SubscriptionEventType;
 import org.twins.core.dao.history.*;
+import org.twins.core.dao.history.HistoryEntity;
+import org.twins.core.dao.history.HistoryRepository;
+import org.twins.core.enums.history.HistoryType;
+import org.twins.core.dao.history.HistoryTypeDomainTemplateRepository;
 import org.twins.core.dao.history.context.*;
 import org.twins.core.dao.history.context.snapshot.FieldSnapshot;
 import org.twins.core.dao.link.LinkEntity;
@@ -451,6 +455,4 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         }
         return ret;
     }
-
-
 }

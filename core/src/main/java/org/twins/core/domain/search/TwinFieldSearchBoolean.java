@@ -10,9 +10,8 @@ import lombok.experimental.Accessors;
 public class TwinFieldSearchBoolean extends TwinFieldSearch {
 
     private Boolean value;
-    private Boolean searchByNullValue;
 
     public boolean isEmptySearch() {
-        return value == null && searchByNullValue == null;
+        return value == null;
     }
 }

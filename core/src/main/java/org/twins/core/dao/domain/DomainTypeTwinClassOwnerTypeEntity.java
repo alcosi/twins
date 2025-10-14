@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.twins.core.dao.twinclass.TwinClassOwnerTypeEntity;
+import org.twins.core.enums.domain.DomainType;
 
 import java.io.Serializable;
 

@@ -11,9 +11,6 @@ import org.twins.core.dto.rest.Response;
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "CacheRsV1")
 public class CacheRsDTOv1 extends Response {
-    @Schema(description = "size in mb")
-    public Double sizeInMb;
-
-    @Schema(description = "items count")
-    public Long itemsCount;
+    @Schema(description = "Cache info")
+    public CacheInfoDTO cacheInfo;
 }

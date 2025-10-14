@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.attachment.AttachmentDTOv1;
 import org.twins.core.dto.rest.attachment.AttachmentsCountDTOv1;
@@ -12,6 +11,7 @@ import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkListDTOv1;
 import org.twins.core.dto.rest.transition.TwinTransitionViewDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
+import org.twins.core.enums.action.TwinAction;
 
 import java.util.List;
 import java.util.Set;
@@ -57,4 +57,7 @@ public class TwinBaseDTOv3 extends TwinBaseDTOv2 {
 
     @Schema(description = "Twins of which classes are possible to create as children for given twin")
     public List<TwinClassDTOv1> creatableChildTwinClasses;
+
+    @Schema(description = "List of twin segments")
+    public Set<UUID> segmentTwinIdList;
 }

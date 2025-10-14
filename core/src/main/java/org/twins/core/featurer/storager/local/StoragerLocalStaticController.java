@@ -66,7 +66,7 @@ public class StoragerLocalStaticController extends StoragerAbstractChecked {
     }
 
     @Override
-    protected void addFileInternal(String fileKey, InputStream fileStream, HashMap<String, String> params) throws ServiceException {
+    protected void addFileInternal(String fileKey, InputStream fileStream, String mimeType, HashMap<String, String> params) throws ServiceException {
         String filePath = fileKey;
         try {
             Path path = Paths.get(filePath);
@@ -122,12 +122,8 @@ public class StoragerLocalStaticController extends StoragerAbstractChecked {
         String domainId = addSlashAtTheEndIfNeeded(getDomainId().map(UUID::toString).orElse("defaultDomain"));
         String businessAccount = addSlashAtTheEndIfNeeded(getBusinessAccountId().map(UUID::toString).orElse("defaultBusinessAccount"));
         String baseLocalPathString = addSlashAtTheEndIfNeeded(baseLocalPath.extract(properties));
-        String key = baseLocalPathString.replace("{domainId}", domainId).replace("{businessAccountId}", businessAccount) + addSlashAtTheEndIfNeeded(fileId.toString());
+        String key = baseLocalPathString.replace("{domainId}", domainId).replace("{businessAccountId}", businessAccount) + fileId.toString();
         String removedDoubleSlashes = removeDoubleSlashes(key);
-        if (removedDoubleSlashes.startsWith("/")) {
-            return removedDoubleSlashes.substring(1);
-        } else {
-            return removedDoubleSlashes;
-        }
+        return removedDoubleSlashes;
     }
 }

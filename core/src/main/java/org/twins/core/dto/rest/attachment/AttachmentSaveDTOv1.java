@@ -4,9 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.domain.file.DomainFile;
+import org.cambium.common.file.FileData;
 import org.twins.core.dto.rest.DTOExamples;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -41,9 +42,15 @@ public class AttachmentSaveDTOv1 {
 
     @Schema(hidden = true)
     @JsonIgnore
-    public DomainFile domainFile;
+    public FileData domainFile;
 
     @Schema(hidden = true)
     @JsonIgnore
     public boolean fileChanged = false;
+
+    public AttachmentSaveDTOv1 putModificationsItem(String key, String item) {
+        if (this.modifications == null) this.modifications = new HashMap<>();
+        this.modifications.put(key, item);
+        return this;
+    }
 }

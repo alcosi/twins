@@ -1,7 +1,7 @@
 package org.twins.core.mappers;
 
 import org.twins.core.dao.domain.SubscriptionEventType;
-import org.twins.core.dao.history.HistoryType;
+import org.twins.core.enums.history.HistoryType;
 
 import java.util.ArrayList;
 import java.util.Arrays;

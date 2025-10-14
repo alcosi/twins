@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.enums.draft.DraftStatus;
 
 import java.util.Collection;
 import java.util.List;
@@ -17,7 +18,7 @@ public interface DraftRepository extends JpaRepository<DraftEntity, UUID>, JpaSp
     @Query(value = "select d from DraftEntity d where d.status in (:statusIds)")
     List<DraftEntity> findByStatusIdIn(@Param("statusIds") Collection<DraftStatus> statusIds);
 
-    @Query(value = "select d from DraftEntity d where d.status = org.twins.core.dao.draft.DraftStatus.UNCOMMITED and d.autoCommit = true")
+    @Query(value = "select d from DraftEntity d where d.status = org.twins.core.enums.draft.DraftStatus.UNCOMMITED and d.autoCommit = true")
     List<DraftEntity> findDraftsForCommit();
 
     @Transactional

@@ -53,10 +53,10 @@ create index if not exists domain_subscription_event_dispatcher_featurer_id_idx
     on domain_subscription_event(dispatcher_featurer_id);
 
 insert into featurer_type
-values (44, 'Dispatcher', 'Dispatches messages about various events')
+values (47, 'Dispatcher', 'Dispatches messages about various events')
 on conflict do nothing;
 
 insert into featurer (id, featurer_type_id, class, name, description, deprecated)
-values (4401, 44, 'org.twins.core.featurer.dispatcher.TwinEventDispatcher', 'twin events dispatcher', '',false)
+values (4701, 47, 'org.twins.core.featurer.dispatcher.TwinEventDispatcher', 'twin events dispatcher', '',false)
 on conflict (id) do nothing;
 
