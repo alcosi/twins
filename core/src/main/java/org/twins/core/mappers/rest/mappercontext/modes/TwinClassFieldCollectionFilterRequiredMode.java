@@ -9,9 +9,9 @@ import org.twins.core.mappers.rest.mappercontext.MapperMode;
 @AllArgsConstructor
 @FieldNameConstants(onlyExplicitlyIncluded = true)
 public enum TwinClassFieldCollectionFilterRequiredMode implements MapperMode {
-    @FieldNameConstants.Include ONLY_NOT(0),
-    @FieldNameConstants.Include ONLY(0),
-    @FieldNameConstants.Include ANY(1);
+    @FieldNameConstants.Include ANY(0),
+    @FieldNameConstants.Include ONLY_NOT(1),
+    @FieldNameConstants.Include ONLY(1);
 
     final int priority;
 }
