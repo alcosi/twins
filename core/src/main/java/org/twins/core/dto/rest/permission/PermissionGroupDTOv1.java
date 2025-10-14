@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,7 +27,7 @@ public class PermissionGroupDTOv1 {
     public String description;
 
     @Schema(description = "twin class id", example = DTOExamples.TWIN_CLASS_ID)
-    @RelatedObject(type = TwinClassBaseDTOv1.class, name = "twinClass")
+    @RelatedObject(type = TwinClassDTOv1.class, name = "twinClass")
     public UUID twinClassId;
 
     @Schema(description = "permission list", example = DTOExamples.NAME)

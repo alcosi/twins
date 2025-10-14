@@ -12,7 +12,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.FactoryConditionSetMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryMultiplierFilterMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryMultiplierMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
-import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
@@ -25,7 +25,7 @@ public class FactoryMultiplierFilterRestDTOMapper extends RestSimpleDTOMapper<Tw
     private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
 
     @MapperModePointerBinding(modes = TwinClassMode.FactoryMultiplierFilter2TwinClassMode.class)
-    private final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
+    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @Override
     public void map(TwinFactoryMultiplierFilterEntity src, FactoryMultiplierFilterDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -56,7 +56,7 @@ public class FactoryMultiplierFilterRestDTOMapper extends RestSimpleDTOMapper<Tw
         }
         if (mapperContext.hasModeButNot(TwinClassMode.FactoryMultiplier2TwinClassMode.HIDE)) {
             dst.setInputTwinClassId(src.getInputTwinClassId());
-            twinClassBaseRestDTOMapper.postpone(src.getInputTwinClass(), mapperContext.forkOnPoint(TwinClassMode.FactoryMultiplierFilter2TwinClassMode.SHORT));
+            twinClassRestDTOMapper.postpone(src.getInputTwinClass(), mapperContext.forkOnPoint(TwinClassMode.FactoryMultiplierFilter2TwinClassMode.SHORT));
         }
     }
 }

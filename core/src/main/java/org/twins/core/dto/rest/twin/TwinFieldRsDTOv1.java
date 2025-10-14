@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 
 import java.util.UUID;
 
@@ -17,7 +17,7 @@ import java.util.UUID;
 @Schema(name =  "TwinFieldRsV1")
 public class TwinFieldRsDTOv1 extends Response {
     @Schema(description = "twinId", example = DTOExamples.TWIN_ID)
-    @RelatedObject(type = TwinClassBaseDTOv1.class, name = "twin")
+    @RelatedObject(type = TwinClassDTOv1.class, name = "twin")
     public UUID twinId;
 
     @Schema(description = "field data")

@@ -9,8 +9,6 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.attachment.AttachmentCreateDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkAddDTOv1;
-import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,18 +21,15 @@ import java.util.UUID;
 @Schema(name = "TwinDraftV1")
 public class TwinDraftDTOv1 extends Request {
     @Schema(description = "Class Id", example = DTOExamples.TWIN_CLASS_ID)
-    @RelatedObject(type = TwinClassBaseDTOv1.class, name = "class")
     public UUID classId;
 
     @Schema(description = "Head twin id, if selected class had to be linked to some head twin", example = DTOExamples.HEAD_TWIN_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "headTwin")
     public UUID headTwinId;
 
     @Schema(description = "name", example = "Oak")
     public String name;
 
     @Schema(description = "assigner user id", example = DTOExamples.USER_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "assignerUser")
     public UUID assignerUserId;
 
     @Schema(description = "description", example = "The biggest tree")

@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.enums.twin.Touch;
 
 import java.time.LocalDateTime;
@@ -21,7 +21,7 @@ public class TwinTouchDTOv1 {
     public UUID id;
 
     @Schema(description = "twinId", example = DTOExamples.TWIN_ID)
-    @RelatedObject(type = TwinClassBaseDTOv1.class, name = "twin")
+    @RelatedObject(type = TwinClassDTOv1.class, name = "twin")
     public UUID twinId;
 
     @Schema(description = "touchId", example = DTOExamples.TWIN_TOUCH)

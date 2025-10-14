@@ -21,7 +21,10 @@ import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.tier.TierDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
-import org.twins.core.dto.rest.twinclass.*;
+import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassFreezeDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
@@ -117,9 +120,7 @@ public class RelatedObjectsDTOv1 {
     public Map<UUID, TwinClassFreezeDTOv1> twinClassFreezeMap;
 
     public <T> T get(Class<T> relatedObjectClass, UUID id) {
-        if (relatedObjectClass == TwinClassBaseDTOv1.class) {
-            return (T) twinClassMap.get(id);
-        } else if (relatedObjectClass == TwinDTOv2.class) {
+        if (relatedObjectClass == TwinDTOv2.class) {
             return (T) twinMap.get(id);
         } else if (relatedObjectClass == TwinStatusDTOv1.class) {
             return (T) statusMap.get(id);

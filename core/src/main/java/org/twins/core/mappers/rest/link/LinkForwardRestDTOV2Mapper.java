@@ -12,7 +12,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
-import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
@@ -26,7 +26,7 @@ public class LinkForwardRestDTOV2Mapper extends RestSimpleDTOMapper<LinkEntity, 
     private final PermissionService permissionService;
     
     @MapperModePointerBinding(modes = TwinClassMode.LinkSrc2TwinClassMode.class)
-    private final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
+    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @MapperModePointerBinding(modes = {UserMode.Link2UserMode.class})
     private final UserRestDTOMapper userDTOMapper;
@@ -44,7 +44,7 @@ public class LinkForwardRestDTOV2Mapper extends RestSimpleDTOMapper<LinkEntity, 
                     .setCreatedAt(src.getCreatedAt().toLocalDateTime());
             if (mapperContext.hasModeButNot(TwinClassMode.LinkSrc2TwinClassMode.HIDE) && src.getSrcTwinClassId() != null) {
                 dst.setSrcTwinClassId(src.getSrcTwinClassId());
-                twinClassBaseRestDTOMapper.postpone(src.getSrcTwinClass(), mapperContext.forkOnPoint(TwinClassMode.LinkSrc2TwinClassMode.SHORT));
+                twinClassRestDTOMapper.postpone(src.getSrcTwinClass(), mapperContext.forkOnPoint(TwinClassMode.LinkSrc2TwinClassMode.SHORT));
             }
             if (mapperContext.hasModeButNot(UserMode.Link2UserMode.HIDE) && src.getCreatedByUserId() != null) {
                 dst.setCreatedByUserId(src.getCreatedByUserId());

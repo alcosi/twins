@@ -12,7 +12,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.FactoryConditionSetMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryEraserMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
-import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
@@ -26,7 +26,7 @@ public class FactoryEraserRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryE
     private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
 
     @MapperModePointerBinding(modes = TwinClassMode.FactoryEraser2TwinClassMode.class)
-    private final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
+    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @Override
     public void map(TwinFactoryEraserEntity src, FactoryEraserDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -57,7 +57,7 @@ public class FactoryEraserRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryE
         }
         if (mapperContext.hasModeButNot(TwinClassMode.FactoryEraser2TwinClassMode.HIDE)) {
             dst.setInputTwinClassId(src.getInputTwinClassId());
-            twinClassBaseRestDTOMapper.postpone(src.getInputTwinClass(), mapperContext.forkOnPoint(TwinClassMode.FactoryEraser2TwinClassMode.SHORT));
+            twinClassRestDTOMapper.postpone(src.getInputTwinClass(), mapperContext.forkOnPoint(TwinClassMode.FactoryEraser2TwinClassMode.SHORT));
         }
     }
 }

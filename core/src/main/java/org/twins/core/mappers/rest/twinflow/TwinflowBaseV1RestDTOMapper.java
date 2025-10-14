@@ -12,7 +12,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinflowMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
-import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.i18n.I18nService;
@@ -28,7 +28,7 @@ public class TwinflowBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
 
     @MapperModePointerBinding(modes = TwinClassMode.Twinflow2TwinClassMode.class)
-    private final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
+    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @MapperModePointerBinding(modes = UserMode.Twinflow2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
@@ -53,7 +53,7 @@ public class TwinflowBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
         }
         if (mapperContext.hasModeButNot(TwinClassMode.Twinflow2TwinClassMode.HIDE)) {
             dst.setTwinClassId(src.getTwinClassId());
-            twinClassBaseRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.Twinflow2TwinClassMode.SHORT)));
+            twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.Twinflow2TwinClassMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(UserMode.Twinflow2UserMode.HIDE) && src.getCreatedByUserId() != null) {
             dst.setCreatedByUserId(src.getCreatedByUserId());

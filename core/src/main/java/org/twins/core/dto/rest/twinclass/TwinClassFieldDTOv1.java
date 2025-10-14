@@ -34,7 +34,7 @@ public class TwinClassFieldDTOv1 {
     public TwinClassFieldDescriptorDTO descriptor;
 
     @Schema(description = "twin class id", example = "")
-    @RelatedObject(type = TwinClassBaseDTOv1.class, name = "twinClass")
+    @RelatedObject(type = TwinClassDTOv1.class, name = "twinClass")
     public UUID twinClassId;
 
     @Schema(description = "name i18n id", example = "")

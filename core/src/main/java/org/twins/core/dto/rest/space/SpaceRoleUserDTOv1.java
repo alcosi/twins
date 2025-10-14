@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
-import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
+import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
 
 import java.util.UUID;
@@ -19,7 +19,7 @@ public class SpaceRoleUserDTOv1 {
     public UUID id;
 
     @Schema(description = "twin id", example = DTOExamples.TWIN_ID)
-    @RelatedObject(type = TwinClassBaseDTOv1.class, name = "twin")
+    @RelatedObject(type = TwinDTOv2.class, name = "twin")
     public UUID twinId;
 
     @Schema(description = "space role id", example = DTOExamples.SPACE_ROLE)
@@ -31,12 +31,8 @@ public class SpaceRoleUserDTOv1 {
     public UUID userId;
 
     @Schema(description = "created by user id", example = DTOExamples.USER_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "createdByUser")
+    @RelatedObject(type = UserDTOv1.class, name = "createdByUser")
     public UUID createdByUserId;
-
-    @Schema(description = "space role")
-    public SpaceRoleDTOv1 spaceRole;
-
 }
 
 

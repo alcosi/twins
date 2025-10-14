@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
-import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.service.factory.TwinFactoryService;
 
@@ -28,7 +28,7 @@ public class FactoryPipelineRestDTOMapper extends RestSimpleDTOMapper<TwinFactor
     private final FactoryRestDTOMapper factoryRestDTOMapper;
 
     @MapperModePointerBinding(modes = TwinClassMode.FactoryPipeline2TwinClassMode.class)
-    private final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
+    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @MapperModePointerBinding(modes = FactoryConditionSetMode.FactoryPipeline2FactoryConditionSetMode.class)
     private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
@@ -67,7 +67,7 @@ public class FactoryPipelineRestDTOMapper extends RestSimpleDTOMapper<TwinFactor
         }
         if (mapperContext.hasModeButNot(TwinClassMode.FactoryPipeline2TwinClassMode.HIDE)) {
             dst.setInputTwinClassId(src.getInputTwinClassId());
-            twinClassBaseRestDTOMapper.postpone(src.getInputTwinClass(), mapperContext.forkOnPoint(TwinClassMode.FactoryPipeline2TwinClassMode.SHORT));
+            twinClassRestDTOMapper.postpone(src.getInputTwinClass(), mapperContext.forkOnPoint(TwinClassMode.FactoryPipeline2TwinClassMode.SHORT));
         }
         if (mapperContext.hasModeButNot(FactoryConditionSetMode.FactoryPipeline2FactoryConditionSetMode.HIDE)) {
             dst.setFactoryConditionSetId(src.getTwinFactoryConditionSetId());

@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,7 +17,7 @@ import java.util.UUID;
 @Schema(name =  "TwinUpdateRsV1")
 public class TwinUpdateRsDTOv1 extends Response {
     @Schema(description = "new twin id")
-    @RelatedObject(type = TwinClassBaseDTOv1.class, name = "twin")
+    @RelatedObject(type = TwinClassDTOv1.class, name = "twin")
     public UUID twinId;
 
     @Schema(description = "twin alias list. Alias is unique in business account scope")
