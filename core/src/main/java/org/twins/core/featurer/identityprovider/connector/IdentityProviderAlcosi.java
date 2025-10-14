@@ -129,7 +129,11 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
             throw new ServiceException(IDP_PROVIDED_TOKEN_IS_NOT_ACTIVE);
         }
 
-        UUID userId = UUID.fromString(claims.get("sub").asText());
+        JsonNode sub = claims.get("sub");
+        JsonNode clientId = claims.get("client_id");
+
+        UUID userId = sub != null ? UUID.fromString(sub.asText()) : UUID.fromString(clientId.asText());
+
         JsonNode claim = claims.get(activeBusinessAccountClaimName.extract(properties));
         UUID businessAccountId = null;
         if (claim != null) {
