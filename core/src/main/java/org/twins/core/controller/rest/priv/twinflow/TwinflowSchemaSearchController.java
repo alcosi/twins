@@ -28,7 +28,7 @@ import org.twins.core.dto.rest.twinflow.TwinflowSchemaSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twinflow.TwinflowSchemaRestDTOMapperV2;
+import org.twins.core.mappers.rest.twinflow.TwinflowSchemaRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowSchemaSearchRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowSchemaSearchService;
@@ -43,7 +43,7 @@ public class TwinflowSchemaSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;
     private final TwinflowSchemaSearchService twinflowSchemaSearchService;
-    private final TwinflowSchemaRestDTOMapperV2 twinflowSchemaRestDTOMapperV2;
+    private final TwinflowSchemaRestDTOMapper twinflowSchemaRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinflowSchemaSearchV1", summary = "Returns twinflow schema search result")
@@ -54,7 +54,7 @@ public class TwinflowSchemaSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twinflow_schema/search/v1")
     public ResponseEntity<?> twinflowSchemaSearchV1(
-            @MapperContextBinding(roots = TwinflowSchemaRestDTOMapperV2.class, response = TwinflowSchemaSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinflowSchemaRestDTOMapper.class, response = TwinflowSchemaSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody TwinflowSchemaSearchRqDTOv1 request) {
         TwinflowSchemaSearchRsDTOv1 rs = new TwinflowSchemaSearchRsDTOv1();
@@ -62,7 +62,7 @@ public class TwinflowSchemaSearchController extends ApiController {
             PaginationResult<TwinflowSchemaEntity> twinflowSchemaList = twinflowSchemaSearchService
                     .findTwinflowSchemaForDomain(twinflowSchemaSearchRestDTOReverseMapper.convert(request), pagination);
             rs
-                    .setTwinflowSchemas(twinflowSchemaRestDTOMapperV2.convertCollection(twinflowSchemaList.getList(), mapperContext))
+                    .setTwinflowSchemas(twinflowSchemaRestDTOMapper.convertCollection(twinflowSchemaList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinflowSchemaList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {

@@ -8,7 +8,7 @@ import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
-import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -21,7 +21,7 @@ public class TwinflowBaseDTOv1 {
     public UUID id;
 
     @Schema(example = DTOExamples.TWIN_CLASS_ID)
-    @RelatedObject(type = TwinClassBaseDTOv1.class, name = "twinClass")
+    @RelatedObject(type = TwinClassDTOv1.class, name = "twinClass")
     public UUID twinClassId;
 
     @Schema(description = "name", example = "Project")
@@ -41,10 +41,6 @@ public class TwinflowBaseDTOv1 {
     @Schema(description = "initialStatusId")
     @RelatedObject(type = TwinDTOv2.class, name = "initialStatus")
     public UUID initialStatusId;
-
-    @Schema(description = "twin class")
-    public TwinClassBaseDTOv1 twinClass;
-
 }
 
 
