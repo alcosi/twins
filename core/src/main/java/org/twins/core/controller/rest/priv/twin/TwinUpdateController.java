@@ -12,6 +12,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.exception.TwinFieldValidationException;
+import org.cambium.common.kit.Kit;
 import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -29,8 +30,7 @@ import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.twin.TwinRsDTOv2;
-import org.twins.core.dto.rest.twin.TwinUpdateRqDTOv1;
+import org.twins.core.dto.rest.twin.*;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -39,10 +39,7 @@ import org.twins.core.mappers.rest.twin.TwinUpdateRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Tag(description = "", name = ApiTag.TWIN)
 @RestController
@@ -129,4 +126,69 @@ public class TwinUpdateController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "twinUpdateV2", summary = "Update twin batch")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Twin data", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PutMapping(value = "/private/twin/batch/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> twinUpdateBatchV1(
+            @RequestBody TwinBatchUpdateRqDTOv1 request) {
+        return updateTwinBatch(request, new HashMap<>());
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "twinUpdateV2", summary = "Update twin batch")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Twin data", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PutMapping(value = "/private/twin/batch/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> twinUpdateBatchV1Multipart(
+            @Schema(hidden = true) MultipartHttpServletRequest request,
+            @Schema(implementation = TwinBatchUpdateRqDTOv1.class) @RequestPart("request") byte[] requestBytes) {
+        Map<String, MultipartFile> filesMap = new HashMap<>();
+        request.getFileNames().forEachRemaining(fileName -> {
+            List<MultipartFile> files = request.getFiles(fileName);
+            files.forEach(file -> {
+                filesMap.put(fileName, file);
+            });
+        });
+        return updateTwinBatch(mapRequest(requestBytes, TwinBatchUpdateRqDTOv1.class), filesMap);
+    }
+
+    protected ResponseEntity<? extends Response> updateTwinBatch(TwinBatchUpdateRqDTOv1 request, Map<String, MultipartFile> filesMap) {
+        Response rs = new Response();
+        try {
+            List<UUID> twinIds = new ArrayList<>();
+            for (TwinUpdateDTOv1 twinUpdateRqDTOv1 : request.getTwins()) {
+                twinIds.add(twinUpdateRqDTOv1.getTwinId());
+                twinAttachmentCUDRestDTOReverseMapper.preProcessAttachments(twinUpdateRqDTOv1.attachments, filesMap);
+            }
+
+            Kit<TwinEntity, UUID> dbTwinEntities = twinService.findEntities(twinIds, EntitySmartService.ListFindMode.ifMissedThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.none);
+
+            for (TwinUpdateRqDTOv1 twinUpdateRqDTOv1 : request.getTwins()) {
+                TwinEntity dbTwinEntity = dbTwinEntities.get(twinUpdateRqDTOv1.getTwinId());
+
+                TwinUpdate twinUpdate = twinUpdateRestDTOReverseMapper.convert(Pair.of(twinUpdateRqDTOv1, dbTwinEntity));
+                twinUpdate
+                        .setCheckEditPermission(true)
+                        .setLauncher(TwinOperation.Launcher.direct);
+                twinService.updateTwin(twinUpdate);
+            }
+
+        } catch (TwinFieldValidationException ve) {
+            return createErrorRs(ve, rs);
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
 }
