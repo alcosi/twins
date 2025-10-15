@@ -145,14 +145,14 @@ public class TwinUpdateController extends ApiController {
         return updateTwinBatch(mapperContext, request, new HashMap<>());
     }
 
-    @ParametersApiUserHeaders
+    @SneakyThrows
     @Operation(operationId = "twinUpdateV2", summary = "Update twin batch")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PutMapping(value = "/private/twin/batch/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/private/twin/batch/v1", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinUpdateBatchV1Multipart(
             @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinBatchSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Schema(hidden = true) MultipartHttpServletRequest request,
