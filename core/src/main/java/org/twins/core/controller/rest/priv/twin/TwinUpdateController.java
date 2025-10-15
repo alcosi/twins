@@ -31,6 +31,7 @@ import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.twin.*;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -101,6 +102,9 @@ public class TwinUpdateController extends ApiController {
     protected ResponseEntity<? extends Response> updateTwin(MapperContext mapperContext, UUID twinId, TwinUpdateRqDTOv1 request, Map<String, MultipartFile> filesMap) {
         TwinRsDTOv2 rs = new TwinRsDTOv2();
         try {
+            if (request.getTwinId() != null && twinId != request.getTwinId()) {
+                throw new ServiceException(ErrorCodeTwins.UUID_MISMATCH, " twin id in header and request body are different");
+            }
             // update twin
             TwinEntity dbTwinEntity = twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
             twinAttachmentCUDRestDTOReverseMapper.preProcessAttachments(request.attachments, filesMap);
