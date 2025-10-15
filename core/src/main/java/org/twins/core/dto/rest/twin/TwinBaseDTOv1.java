@@ -24,7 +24,7 @@ public class TwinBaseDTOv1 {
     @Schema(description = "externalId", example = "934599502DFFAE")
     public String externalId;
 
-    @RelatedObject(type = TwinBaseDTOv1.class, name = "headTwin")
+    @RelatedObject(type = TwinDTOv2.class, name = "headTwin")
     @Schema(description = "headTwinId", example = DTOExamples.HEAD_TWIN_ID)
     public UUID headTwinId;
 

@@ -8,7 +8,7 @@ import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
+import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -21,7 +21,7 @@ public class BusinessAccountUserDTOv1 {
     public UUID id;
 
     @Schema(description = "user id", example = DTOExamples.USER_ID)
-    @RelatedObject(type = UserGroupDTOv1.class, name = "user")
+    @RelatedObject(type = UserDTOv1.class, name = "user")
     public UUID userId;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)

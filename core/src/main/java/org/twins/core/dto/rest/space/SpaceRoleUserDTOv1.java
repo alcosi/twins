@@ -7,7 +7,6 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.user.UserDTOv1;
-import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
 
 import java.util.UUID;
 
@@ -27,7 +26,7 @@ public class SpaceRoleUserDTOv1 {
     public UUID spaceRoleId;
 
     @Schema(description = "user id", example = DTOExamples.USER_ID)
-    @RelatedObject(type = UserGroupDTOv1.class, name = "user")
+    @RelatedObject(type = UserDTOv1.class, name = "user")
     public UUID userId;
 
     @Schema(description = "created by user id", example = DTOExamples.USER_ID)

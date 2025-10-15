@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.enums.draft.DraftStatus;
 
 import java.time.LocalDateTime;
@@ -25,7 +23,6 @@ public class DraftDTOv1 {
     public LocalDateTime createdAt;
 
     @Schema(description = "created by user")
-    @RelatedObject(type = TwinDTOv2.class, name = "createdByrUser")
     public UUID createdByrUserId;
 
     @Schema(description = "count of new twins")

@@ -8,7 +8,6 @@ import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.LocalDateTime;
@@ -22,7 +21,6 @@ public class PermissionSchemaDTOv1 {
     public UUID id;
 
     @Schema(description = "domainId")
-    @RelatedObject(type = TwinDTOv2.class, name = "domain")
     public UUID domainId;
 
     @Schema(description = "businessAccountId")

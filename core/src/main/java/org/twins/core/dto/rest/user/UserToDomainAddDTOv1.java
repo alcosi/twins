@@ -7,7 +7,6 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twin.TwinDTOv2;
 
 import java.util.UUID;
 
@@ -24,7 +23,6 @@ public class UserToDomainAddDTOv1 extends UserSaveDTOv1 {
     public UUID businessAccountId;
 
     @Schema(description = "domainId", example = DTOExamples.DOMAIN_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "domain")
     public UUID domainId;
 
     @Schema(description = "locale [optional]", example = DTOExamples.LOCALE)

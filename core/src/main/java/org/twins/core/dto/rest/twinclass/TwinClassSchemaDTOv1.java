@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twin.TwinDTOv2;
+import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.util.UUID;
 
@@ -16,7 +16,6 @@ public class TwinClassSchemaDTOv1 {
     public UUID id;
 
     @Schema(description = "domainId")
-    @RelatedObject(type = TwinDTOv2.class, name = "domain")
     public UUID domainId;
 
     @Schema(description = "name")
@@ -26,7 +25,7 @@ public class TwinClassSchemaDTOv1 {
     public String description;
 
     @Schema(description = "createdByUserId")
-    @RelatedObject(type = TwinDTOv2.class, name = "createdByUser")
+    @RelatedObject(type = UserDTOv1.class, name = "createdByUser")
     public UUID createdByUserId;
 }
 

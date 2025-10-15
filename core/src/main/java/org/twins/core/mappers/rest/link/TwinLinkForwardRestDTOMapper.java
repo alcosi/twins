@@ -5,9 +5,9 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dto.rest.link.TwinLinkViewDTOv1;
-import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
 import org.twins.core.mappers.rest.mappercontext.modes.RelationTwinMode;
 import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
 
@@ -28,13 +28,12 @@ public class TwinLinkForwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEn
         twinLinkRestDTOMapper.map(src, dst, mapperContext);
         dst
                 .setDstTwinId(src.getDstTwinId());
-        if (mapperContext.hasModeButNot(RelationTwinMode.TwinByLinkMode.WHITE))
-            dst
-                    .setDstTwin(twinBaseV2RestDTOMapper.convertOrPostpone(src.getDstTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByLinkMode.GREEN)));
-        if (mapperContext.hasModeButNot(LinkMode.TwinLink2LinkMode.HIDE))
-            dst
-                    .setLink(linkForwardRestDTOMapper.convertOrPostpone(src.getLink(), mapperContext
-                            .forkOnPoint(LinkMode.TwinLink2LinkMode.SHORT)));
+        if (mapperContext.hasModeButNot(RelationTwinMode.TwinByLinkMode.WHITE)) {
+            twinBaseV2RestDTOMapper.postpone(src.getDstTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByLinkMode.GREEN));
+        }
+        if (mapperContext.hasModeButNot(LinkMode.TwinLink2LinkMode.HIDE)) {
+            linkForwardRestDTOMapper.postpone(src.getLink(), mapperContext.forkOnPoint(LinkMode.TwinLink2LinkMode.SHORT));
+        }
     }
 
     @Override

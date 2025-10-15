@@ -3,7 +3,6 @@ package org.twins.core.dto.rest.twin;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.related.RelatedObject;
 
 import java.util.List;
 import java.util.UUID;
@@ -13,7 +12,6 @@ import java.util.UUID;
 @Schema(name =  "public class TwinSearchIncludeByLinkV1")
 public class TwinSearchIncludeByLinkDTOv1 {
     @Schema(description = "Twin class id list")
-    @RelatedObject(type = TwinDTOv2.class, name = "link")
     public UUID linkId;
 
     @Schema(description = "Head twin id list")

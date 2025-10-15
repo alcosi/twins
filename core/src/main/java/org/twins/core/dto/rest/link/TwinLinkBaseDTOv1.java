@@ -17,7 +17,7 @@ import java.util.UUID;
 @Schema(name =  "TwinLinkBaseV1")
 public class TwinLinkBaseDTOv1 extends Request {
     @Schema(description = "Link id", example = DTOExamples.LINK_ID)
-    @RelatedObject(type = TwinDTOv2.class, name = "link")
+    @RelatedObject(type = LinkDTOv1.class, name = "link")
     public UUID linkId;
 
     @Schema(description = "Destination twin id", example = DTOExamples.TWIN_ID)

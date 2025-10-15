@@ -54,7 +54,7 @@ public class TwinBaseDTOv3 extends TwinBaseDTOv2 {
     public Set<TwinAction> actions;
 
     @Schema(description = "Twins of which classes are possible to create as children for given twin")
-    @RelatedObject(type = TwinDTOv2.class, name = "creatableChildTwinClassList")
+    @RelatedObject(type = TwinClassDTOv1.class, name = "creatableChildTwinClassList")
     public Set<UUID> creatableChildTwinClassIds;
 
     @Schema(description = "Twins of which classes are possible to create as children for given twin")

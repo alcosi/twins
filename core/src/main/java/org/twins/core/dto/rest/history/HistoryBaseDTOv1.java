@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
+import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.enums.history.HistoryType;
 
@@ -22,7 +22,7 @@ public class HistoryBaseDTOv1 {
     public UUID id;
 
     @Schema(description = "twinId", example = DTOExamples.TWIN_ID)
-    @RelatedObject(type = TwinClassDTOv1.class, name = "twin")
+    @RelatedObject(type = TwinDTOv2.class, name = "twin")
     public UUID twinId;
 
     @Schema(description = "changes batch id")

@@ -7,8 +7,9 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
+import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
+import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Schema(name = "TwinflowBaseV1")
-public class TwinflowBaseDTOv1 {
+public class TwinflowBaseDTOv1 { //todo rename me
     @Schema(example = DTOExamples.TWINFLOW_ID)
     public UUID id;
 
@@ -35,11 +36,11 @@ public class TwinflowBaseDTOv1 {
     public LocalDateTime createdAt;
 
     @Schema(description = "createdByUserId")
-    @RelatedObject(type = TwinDTOv2.class, name = "createdByUser")
+    @RelatedObject(type = UserDTOv1.class, name = "createdByUser")
     public UUID createdByUserId;
 
     @Schema(description = "initialStatusId")
-    @RelatedObject(type = TwinDTOv2.class, name = "initialStatus")
+    @RelatedObject(type = TwinStatusDTOv1.class, name = "initialStatus")
     public UUID initialStatusId;
 }
 

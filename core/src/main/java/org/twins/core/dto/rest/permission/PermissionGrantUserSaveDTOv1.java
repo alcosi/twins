@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
-import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
+import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.util.UUID;
 
@@ -17,14 +17,17 @@ public class PermissionGrantUserSaveDTOv1 {
     @Schema(description = "permission schema id", example = DTOExamples.PERMISSION_SCHEMA_ID)
     @RelatedObject(type = PermissionSchemaDTOv1.class, name = "permissionSchema")
     public UUID permissionSchemaId;
+
     @Schema(description = "permission id", example = DTOExamples.PERMISSION_ID)
     @RelatedObject(type = PermissionDTOv1.class, name = "permission")
     public UUID permissionId;
+
     @Schema(description = "business account id", example = DTOExamples.USER_ID)
     @RelatedObject(type = BusinessAccountDTOv1.class, name = "businessAccount")
     public UUID businessAccountId;
+
     @Schema(description = "user id", example = DTOExamples.USER_ID)
-    @RelatedObject(type = UserGroupDTOv1.class, name = "user")
+    @RelatedObject(type = UserDTOv1.class, name = "user")
     public UUID userId;
 }
 

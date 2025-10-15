@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode()
 @Accessors(chain = true)
 @Schema(name =  "TwinClassV1")
 public class TwinClassDTOv1 {
