@@ -136,8 +136,9 @@ public class TwinUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin/batch/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinUpdateBatchV1(
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinBatchSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody TwinBatchUpdateRqDTOv1 request) {
-        return updateTwinBatch(request, new HashMap<>());
+        return updateTwinBatch(mapperContext, request, new HashMap<>());
     }
 
     @ParametersApiUserHeaders
@@ -149,6 +150,7 @@ public class TwinUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin/batch/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinUpdateBatchV1Multipart(
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinBatchSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Schema(hidden = true) MultipartHttpServletRequest request,
             @Schema(implementation = TwinBatchUpdateRqDTOv1.class) @RequestPart("request") byte[] requestBytes) {
         Map<String, MultipartFile> filesMap = new HashMap<>();
@@ -158,11 +160,11 @@ public class TwinUpdateController extends ApiController {
                 filesMap.put(fileName, file);
             });
         });
-        return updateTwinBatch(mapRequest(requestBytes, TwinBatchUpdateRqDTOv1.class), filesMap);
+        return updateTwinBatch(mapperContext, mapRequest(requestBytes, TwinBatchUpdateRqDTOv1.class), filesMap);
     }
 
-    protected ResponseEntity<? extends Response> updateTwinBatch(TwinBatchUpdateRqDTOv1 request, Map<String, MultipartFile> filesMap) {
-        Response rs = new Response();
+    protected ResponseEntity<? extends Response> updateTwinBatch(MapperContext mapperContext, TwinBatchUpdateRqDTOv1 request, Map<String, MultipartFile> filesMap) {
+        TwinBatchSaveRsDTOv1 rs = new TwinBatchSaveRsDTOv1();
         try {
             List<UUID> twinIds = new ArrayList<>();
             for (TwinUpdateDTOv1 twinUpdateRqDTOv1 : request.getTwins()) {
@@ -172,6 +174,7 @@ public class TwinUpdateController extends ApiController {
 
             Kit<TwinEntity, UUID> dbTwinEntities = twinService.findEntities(twinIds, EntitySmartService.ListFindMode.ifMissedThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.none);
 
+            List<TwinUpdate> twinUpdates = new ArrayList<>();
             for (TwinUpdateRqDTOv1 twinUpdateRqDTOv1 : request.getTwins()) {
                 TwinEntity dbTwinEntity = dbTwinEntities.get(twinUpdateRqDTOv1.getTwinId());
 
@@ -179,8 +182,15 @@ public class TwinUpdateController extends ApiController {
                 twinUpdate
                         .setCheckEditPermission(true)
                         .setLauncher(TwinOperation.Launcher.direct);
-                twinService.updateTwin(twinUpdate);
+
+                twinUpdates.add(twinUpdate);
             }
+
+            List<TwinEntity> twinEntities = twinService.updateTwin(twinUpdates);
+
+            rs
+                    .setTwinList(twinRestDTOMapperV2.convertCollection(twinEntities, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
 
         } catch (TwinFieldValidationException ve) {
             return createErrorRs(ve, rs);
