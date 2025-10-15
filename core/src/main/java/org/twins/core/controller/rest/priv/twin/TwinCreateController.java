@@ -178,11 +178,11 @@ public class TwinCreateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Import was completed successfully", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinBatchRsDTOv1.class))}),
+                    @Schema(implementation = TwinBatchCreateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/batch/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinBatchCreateV1(
-            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinBatchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinBatchCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody TwinBatchCreateRqDTOv1 request) {
         return processBatch(request, Collections.emptyMap(), mapperContext);
     }
@@ -192,11 +192,11 @@ public class TwinCreateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Import was completed successfully", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinBatchRsDTOv1.class))}),
+                    @Schema(implementation = TwinBatchCreateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/batch/v1", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinBatchCreateV1Multipart(
-            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinBatchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinBatchCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Schema(hidden = true) MultipartHttpServletRequest request,
             @Schema(implementation = TwinBatchCreateRqDTOv1.class) @RequestPart("request") byte[] requestBytes
     ) {
@@ -211,7 +211,7 @@ public class TwinCreateController extends ApiController {
     }
 
     protected ResponseEntity<Response> processBatch(TwinBatchCreateRqDTOv1 request, Map<String, MultipartFile> filesMap, MapperContext mapperContext) {
-        TwinBatchRsDTOv1 rs = new TwinBatchRsDTOv1();
+        TwinBatchCreateRsDTOv1 rs = new TwinBatchCreateRsDTOv1();
         try {
             request.getTwins().forEach(twinCreateRqDTOv1 -> {
                 attachmentCreateRestDTOReverseMapper.preProcessAttachments(twinCreateRqDTOv1.attachments, filesMap);

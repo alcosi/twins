@@ -12,7 +12,7 @@ import java.util.List;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name =  "TwinBatchRsV1")
-public class TwinBatchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+public class TwinBatchCreateRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "twin list")
     public List<TwinDTOv2> twinList;
 }
