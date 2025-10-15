@@ -102,7 +102,7 @@ public class TwinUpdateController extends ApiController {
     protected ResponseEntity<? extends Response> updateTwin(MapperContext mapperContext, UUID twinId, TwinUpdateRqDTOv1 request, Map<String, MultipartFile> filesMap) {
         TwinRsDTOv2 rs = new TwinRsDTOv2();
         try {
-            if (request.getTwinId() != null && twinId != request.getTwinId()) {
+            if (request.getTwinId() != null && !twinId.equals(request.getTwinId())) {
                 throw new ServiceException(ErrorCodeTwins.UUID_MISMATCH, " twin id in header and request body are different");
             }
             // update twin
