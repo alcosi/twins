@@ -52,7 +52,7 @@ public class TwinUpdateDTOv1 extends Request {
     @Schema(description = "TwinTags for updating")
     public TwinTagManageDTOv1 tagsUpdate;
 
-    @JsonIgnore
+    @Schema(description = "twin id")
     public UUID twinId;
 
     public TwinUpdateDTOv1 putFieldsItem(String key, String item) {

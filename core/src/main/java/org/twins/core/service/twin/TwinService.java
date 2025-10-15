@@ -625,16 +625,26 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void updateTwin(TwinUpdate twinUpdate) throws ServiceException {
-        if (!twinUpdate.isChanged())
-            return;
+        updateTwin(List.of(twinUpdate));
+    }
+
+    public List<TwinEntity> updateTwin(List<TwinUpdate> twinUpdates) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-        ChangesRecorder<TwinEntity, TwinEntity> changesRecorder = new ChangesRecorder<>(
-                twinUpdate.getDbTwinEntity(),
-                twinUpdate.getTwinEntity(),
-                twinUpdate.getDbTwinEntity(),
-                twinChangesCollector.getHistoryCollector(twinUpdate.getDbTwinEntity()));
-        updateTwin(twinUpdate, twinChangesCollector, changesRecorder);
+
+        for (TwinUpdate twinUpdate : twinUpdates) {
+            if (!twinUpdate.isChanged()) continue;
+
+            ChangesRecorder<TwinEntity, TwinEntity> changesRecorder = new ChangesRecorder<>(
+                    twinUpdate.getDbTwinEntity(),
+                    twinUpdate.getTwinEntity(),
+                    twinUpdate.getDbTwinEntity(),
+                    twinChangesCollector.getHistoryCollector(twinUpdate.getDbTwinEntity()));
+
+            updateTwin(twinUpdate, twinChangesCollector, changesRecorder);
+        }
         twinChangesService.applyChanges(twinChangesCollector);
+
+        return twinUpdates.stream().map(TwinUpdate::getDbTwinEntity).toList();
     }
 
     public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector, ChangesRecorder<TwinEntity, ?> twinChangesRecorder) throws ServiceException {
