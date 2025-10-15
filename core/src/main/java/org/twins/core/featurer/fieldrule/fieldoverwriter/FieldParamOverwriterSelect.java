@@ -6,6 +6,7 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamUUID;
+import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -13,10 +14,13 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorList;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetDatalistOptionId;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetDatalistSubsetId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsDataListId;
 import org.twins.core.service.datalist.DataListService;
 
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -36,6 +40,18 @@ public class FieldParamOverwriterSelect extends FieldParamOverwriter<FieldDescri
     @FeaturerParam(name = "Datalist", description = "", order = 1)
     public static final FeaturerParamUUID listUUID = new FeaturerParamUUIDTwinsDataListId("listUUID");
 
+    @FeaturerParam(name = "datalist option ids", description = "", order = 6, optional = true)
+    public static final FeaturerParamUUIDSet dataListOptionIds = new FeaturerParamUUIDSetDatalistOptionId("dataListOptionIds");
+
+    @FeaturerParam(name = "datalist option exclude ids", description = "", order = 7, optional = true)
+    public static final FeaturerParamUUIDSet dataListOptionExcludeIds = new FeaturerParamUUIDSetDatalistOptionId("dataListOptionExcludeIds");
+
+    @FeaturerParam(name = "datalist subset ids", description = "", order = 8, optional = true)
+    public static final FeaturerParamUUIDSet dataListSubsetIds = new FeaturerParamUUIDSetDatalistSubsetId("dataListSubsetIds");
+
+    @FeaturerParam(name = "datalist subset exclude ids", description = "", order = 9, optional = true)
+    public static final FeaturerParamUUIDSet dataListSubsetIdExcludeIds = new FeaturerParamUUIDSetDatalistSubsetId("dataListSubsetIdExcludeIds");
+
     @Autowired
     @Lazy
     DataListService dataListService;
@@ -53,6 +69,17 @@ public class FieldParamOverwriterSelect extends FieldParamOverwriter<FieldDescri
         else {
             fieldOverwriterDescriptorSelect.options(dataListService.findByDataListId(listId));
         }
+
+        applyUUIDSetIfNotEmpty(dataListOptionIds.extract(properties), fieldOverwriterDescriptorSelect::dataListOptionIdList);
+        applyUUIDSetIfNotEmpty(dataListOptionExcludeIds.extract(properties), fieldOverwriterDescriptorSelect::dataListOptionIdExcludeList);
+        applyUUIDSetIfNotEmpty(dataListSubsetIds.extract(properties), fieldOverwriterDescriptorSelect::dataListSubsetIdList);
+        applyUUIDSetIfNotEmpty(dataListSubsetIdExcludeIds.extract(properties), fieldOverwriterDescriptorSelect::dataListSubsetIdExcludeList);
+
         return fieldOverwriterDescriptorSelect;
+    }
+
+    private void applyUUIDSetIfNotEmpty(Set<UUID> source, java.util.function.Consumer<Set<UUID>> consumer) {
+        if (source != null && !source.isEmpty())
+            consumer.accept(source);
     }
 }

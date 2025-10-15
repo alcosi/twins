@@ -26,10 +26,7 @@ import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.history.HistoryItem;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -45,6 +42,12 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
 
     @FeaturerParam(name = "Datalist", description = "", order = 1)
     public static final FeaturerParamUUID listUUID = new FeaturerParamUUIDTwinsDataListId("listUUID");
+
+    private Set<UUID> dataListOptionIdList;
+    private Set<UUID> dataListOptionIdExcludeList;
+    private Set<UUID> dataListSubsetIdList;
+    private Set<UUID> dataListSubsetIdExcludeList;
+
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueSelect value, TwinChangesCollector twinChangesCollector) throws ServiceException {
