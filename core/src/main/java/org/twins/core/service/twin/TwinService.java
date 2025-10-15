@@ -337,9 +337,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return result;
     }
 
-    public void createTwinsAsyncBatch(List<TwinCreate> twinCreates) throws ServiceException {
+    public List<TwinEntity> createTwinsAsyncBatch(List<TwinCreate> twinCreates) throws ServiceException {
         List<TwinEntity> twins = self.createTwinsAsync(twinCreates);
         generateTwinAliasesAndMakeCreationResult(twins);
+        return twins;
     }
 
     @Transactional(rollbackFor = Throwable.class)
