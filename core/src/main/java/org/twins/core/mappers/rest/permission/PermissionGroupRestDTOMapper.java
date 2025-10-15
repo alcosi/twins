@@ -1,6 +1,7 @@
 package org.twins.core.mappers.rest.permission;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
@@ -17,6 +18,7 @@ import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 @MapperModeBinding(modes = PermissionGroupMode.class)
 public class PermissionGroupRestDTOMapper extends RestSimpleDTOMapper<PermissionGroupEntity, PermissionGroupDTOv1> {
 
+    @Lazy
     @MapperModePointerBinding(modes = TwinClassMode.PermissionGroup2TwinClassMode.class)
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 

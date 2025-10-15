@@ -2,6 +2,7 @@ package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListEntity;
@@ -41,6 +42,7 @@ import static java.util.function.Predicate.not;
 @Slf4j
 public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity, TwinClassDTOv1> {
 
+    @Lazy
     @MapperModePointerBinding(modes = {
             TwinClassMode.class,
             TwinClassMode.TwinClassHead2TwinClassMode.class,
