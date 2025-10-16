@@ -37,6 +37,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.factory.FactoryLauncher;
+import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.domain.twinoperation.TwinOperation;
@@ -130,6 +131,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final FaceTwinPointerService faceTwinPointerService;
     @Autowired
     private I18nService i18nService;
+    @Autowired
+    private TwinSearchService twinSearchService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
@@ -417,9 +420,22 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
         }
         TwinEntity headTwin = twinHeadService.checkValidHeadForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass());
+        checkSegmentUniq(twinEntity, headTwin);
         twinEntity
                 .setHeadTwinId(headTwin.getId())
                 .setPermissionSchemaSpaceId(getPermissionSchemaSpaceId(headTwin));
+    }
+
+    private void checkSegmentUniq(TwinEntity twinEntity, TwinEntity headTwin) throws ServiceException {
+        if (Boolean.FALSE.equals(twinEntity.getTwinClass().getSegment()))
+            return;//segments are one-to-one only
+        var segmentsSearch = new BasicSearch();
+        segmentsSearch
+                .addTwinClassId(twinEntity.getTwinClassId(), false)
+                .addHeadTwinId(headTwin.getId());
+        if (twinSearchService.exists(segmentsSearch)) {
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_SEGMENT_NOT_UNIQ, "segment of {} is already exists for head {} ", twinEntity.getTwinClass().logShort(), headTwin.logShort());
+        }
     }
 
 
