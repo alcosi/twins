@@ -55,6 +55,7 @@ public class TwinHeadService {
             HeadHunter headHunter = featurerService.getFeaturer(twinClassEntity.getHeadHunterFeaturer(), HeadHunter.class);
             headHunter.expandValidHeadSearch(twinClassEntity.getHeadHunterParams(), twinClassEntity, basicSearch);
         }
+        //todo add checkSegmentUniq logic, to exclude heads with segments
         return twinSearchService.findTwins(basicSearch, pagination);
     }
 
