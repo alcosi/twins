@@ -6,7 +6,6 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamDouble;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
-import org.cambium.featurer.params.FeaturerParamStringSet;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.featurer.FeaturerTwins;
@@ -26,9 +25,9 @@ public class FieldParamOverwriterNumeric extends FieldParamOverwriter<FieldDescr
     @FeaturerParam(name = "Step", description = "Step of value change", order = 3, optional = true)
     public static final FeaturerParamDouble step = new FeaturerParamDouble("step");
     @FeaturerParam(name = "Thousand separator", description = "Thousand separator. Must not be equal to decimal separator.", order = 4, optional = true)
-    public static final FeaturerParamStringSet thousandSeparator = new FeaturerParamStringSet("thousandSeparator");
+    public static final FeaturerParamString thousandSeparator = new FeaturerParamString("thousandSeparator");
     @FeaturerParam(name = "Decimal separator", description = "Decimal separator. Must not be equal to thousand separator.", order = 5, optional = true)
-    public static final FeaturerParamStringSet decimalSeparator = new FeaturerParamStringSet("decimalSeparator");
+    public static final FeaturerParamString decimalSeparator = new FeaturerParamString("decimalSeparator");
     @FeaturerParam(name = "Decimal places", description = "Number of decimal places.", order = 6, optional = true)
     public static final FeaturerParamInt decimalPlaces = new FeaturerParamInt("decimalPlaces");
 

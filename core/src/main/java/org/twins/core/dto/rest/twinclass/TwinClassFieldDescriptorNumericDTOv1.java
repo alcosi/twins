@@ -4,8 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.util.Set;
-
 @Data
 @Accessors(fluent = true)
 @Schema(name =  "TwinClassFieldDescriptorNumericV1")
@@ -26,10 +24,10 @@ public class TwinClassFieldDescriptorNumericDTOv1 implements TwinClassFieldDescr
     public Double step;
 
     @Schema(description = "Thousand separator. Must not be equal to decimal separator.", example = ",")
-    public Set<String> thousandSeparator;
+    public String thousandSeparator;
 
     @Schema(description = "Decimal separator. Must not be equal to thousand separator.", example = ".")
-    public Set<String> decimalSeparator;
+    public String decimalSeparator;
 
     @Schema(description = "Number of decimal places.", example = "0")
     public Integer decimalPlaces;
