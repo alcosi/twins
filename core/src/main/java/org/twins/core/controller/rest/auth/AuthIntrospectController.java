@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.auth.AuthIntrospectRsDTOv1;
 import org.twins.core.featurer.identityprovider.TokenMetaData;
 import org.twins.core.service.HttpRequestService;
@@ -31,6 +32,7 @@ public class AuthIntrospectController extends ApiController {
     private final IdentityProviderService identityProviderService;
     private final HttpRequestService httpRequestService;
 
+    @ParametersApiUserHeaders
     @Operation(operationId = "authIntrospectV1", summary = "Return auth token metadata")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "metadata returned",

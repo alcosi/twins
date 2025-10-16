@@ -36,9 +36,6 @@ public class DomainUserSubscriptionStatusUpdateController extends ApiController 
     private final AuthService authService;
     private final DomainUserService domainUserService;
 
-    @Value("${api.unsecured.enable}")
-    private boolean apiUnsecuredEnabled;
-
     public enum SubscriptionAction {init, stop}
 
     /*

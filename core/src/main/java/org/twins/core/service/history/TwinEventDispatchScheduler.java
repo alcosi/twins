@@ -48,7 +48,7 @@ public class TwinEventDispatchScheduler {
                 2. collectIntervalMilliseconds should be configurable per domain
              */
             Timestamp before = new Timestamp(System.currentTimeMillis() - collectIntervalMilliseconds);
-            List<HistoryRepository.TwinUsersProjection> twinsForNotification = historyService.getHistoryItemsForDispatching(before, collectBatchSize, TWIN_UPDATED);
+            List<TwinUsersForDispatch> twinsForNotification = historyService.getHistoryItemsForDispatching(before, collectBatchSize, TWIN_UPDATED);
 
             //todo paging???
             if (twinsForNotification.isEmpty()) {
@@ -70,7 +70,7 @@ public class TwinEventDispatchScheduler {
 
             twinsForNotification = twinsForNotification.stream().filter(i -> dseMap.containsKey(i.getDomainId())).toList();
 
-            for (HistoryRepository.TwinUsersProjection twin : twinsForNotification) {
+            for (TwinUsersForDispatch twin : twinsForNotification) {
                 DomainSubscriptionEventEntity dse = dseMap.get(twin.getDomainId());
 
                 TwinEventDispatchTask dispatchTask = applicationContext.getBean(TwinEventDispatchTask.class, dse.getDispatcherFeaturer(), dse.getDispatcherFeaturerParams(), twin);

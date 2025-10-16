@@ -368,21 +368,28 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return historyRepository.findRecentHistoryItems(before);
     }
 
-    public List<HistoryRepository.TwinUsersProjection> getHistoryItemsForDispatching(Timestamp before, int batchSize, SubscriptionEventType type) {
-        List<HistoryRepository.PickedBatch> picked = historyRepository.pickBatch(before, batchSize, SubscriptionEventTypeToHistoryTypeMapper.map(type));
-        Map<UUID, UUID[]> idsPerTwin =
-                picked.stream()
-                        .collect(Collectors.toMap(
-                                HistoryRepository.PickedBatch::getTwinId,
-                                HistoryRepository.PickedBatch::getHistoryIds));
-        List<HistoryRepository.TwinUsersProjection> twinUsersProjections =
-                historyRepository.findUsersForTwins(idsPerTwin.keySet());
+    public List<TwinUsersForDispatch> getHistoryItemsForDispatching(Timestamp before, int batchSize, SubscriptionEventType type) {
+        List<HistoryRepository.PickedBatch> picked = historyRepository.pickBatch(
+                before,
+                batchSize,
+                SubscriptionEventTypeToHistoryTypeMapper.map(type).stream().map(HistoryType::getId).toList());
 
-        for (HistoryRepository.TwinUsersProjection p : twinUsersProjections) {
-            ((Map<String, Object>) p).put("historyIds", idsPerTwin.get(p.getTwinId()));
-        }
-        //todo - any other way of mapping?
-        return twinUsersProjections;
+        // Map of twin -> historyIds (created above when rows were moved to IN_PROGRESS)
+        Map<UUID, UUID[]> idsPerTwin = picked.stream()
+                .collect(Collectors.toMap(HistoryRepository.PickedBatch::getTwinId, HistoryRepository.PickedBatch::getHistoryIds));
+
+        // users for twins (historyIds will be filled from the map)
+        List<HistoryRepository.TwinUsersProjection> twinUsers = historyRepository.findUsersForTwins(idsPerTwin.keySet());
+
+        // create immutable DTOs combining both sources
+        return twinUsers.stream()
+                .map(p -> new TwinUsersForDispatch(
+                        p.getTwinId(),
+                        p.getDomainId(),
+                        p.getUserIds(),
+                        idsPerTwin.getOrDefault(p.getTwinId(), new UUID[0])
+                ))
+                .toList();
     }
 
     /**

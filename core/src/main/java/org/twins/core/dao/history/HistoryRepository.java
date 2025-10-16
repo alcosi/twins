@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.enums.history.HistoryType;
 
 import java.sql.Timestamp;
@@ -35,15 +36,15 @@ public interface HistoryRepository extends CrudRepository<HistoryEntity, UUID>, 
     @Query(value = "WITH recent AS ( " +
             "SELECT id, twin_id " +
             "FROM history " +
-            "WHERE created_at >= :before ) " +
-            "SELECT r.twin_id AS twinId, t.domain_id as domainId, " +
+            "WHERE created_at <= :before ) " +
+            "SELECT r.twin_id AS twinId, du.domain_id as domainId, " +
             "array_agg(DISTINCT du.user_id) AS userIds, " +
             "array_agg(r.id) AS historyIds " +
             "FROM recent r " +
             "JOIN twin t ON t.id = r.twin_id " +
             "JOIN domain_user du ON du.subscription_enabled = TRUE " +
             "AND du.user_id = ANY (ARRAY[t.created_by_user_id, t.assigner_user_id, t.owner_user_id]) " +
-            "GROUP BY r.twin_id, t.domain_id",
+            "GROUP BY r.twin_id, du.domain_id",
             nativeQuery = true)
     List<TwinUsersProjection> findRecentHistoryItems(@Param("before") Timestamp before);
 
@@ -59,29 +60,37 @@ public interface HistoryRepository extends CrudRepository<HistoryEntity, UUID>, 
 
     /**
      * Picks a batch of NEW history rows, marks them IN_PROGRESS and returns per-twin aggregated ids.
+     todo - add limit to the update and select
      */
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Transactional
     @Query(value = """
-            WITH moved AS (
-                UPDATE history
+            WITH candidates AS (
+                SELECT id
+                FROM history
+                WHERE dispatch_status = 'NEW'
+                  AND created_at <= :before
+                  AND history_type_id IN (:historyTypes)
+                LIMIT :limit
+                FOR UPDATE SKIP LOCKED
+            ), moved AS (
+                UPDATE history h
                    SET dispatch_status = 'IN_PROGRESS'
-                 WHERE dispatch_status = 'NEW'
-                   AND created_at >= :before
-                   AND history_type_id = ANY(:historyTypes)
-                 ORDER BY created_at
-                 LIMIT :limit
-                 RETURNING id, twin_id
+                 FROM candidates c
+                 WHERE h.id = c.id
+                 RETURNING h.id, h.twin_id
             )
             SELECT  m.twin_id            AS twinId,
-                    t.domain_id          AS domainId,
+                    c.domain_id          AS domainId,
                     array_agg(m.id)      AS historyIds
             FROM moved m
             JOIN twin t ON t.id = m.twin_id
-            GROUP BY m.twin_id, t.domain_id
+            JOIN twin_class c ON t.twin_class_id = c.id
+            GROUP BY m.twin_id, c.domain_id
             """, nativeQuery = true)
-    default List<PickedBatch> pickBatch(@Param("before") Timestamp before, @Param("limit") int limit, List<HistoryType> historyTypes) {
-        return null;
-    }
+    List<PickedBatch> pickBatch(@Param("before") Timestamp before,
+                                @Param("limit") int limit,
+                                @Param("historyTypes") List<String> historyTypes);
 
     interface PickedBatch {
         UUID getTwinId();
@@ -95,14 +104,14 @@ public interface HistoryRepository extends CrudRepository<HistoryEntity, UUID>, 
      */
     @Query(value = """
             SELECT t.id AS twinId,
-                   t.domain_id AS domainId,
+                   du.domain_id AS domainId,
                    array_agg(DISTINCT du.user_id) AS userIds,
                    array[]::uuid[]                AS historyIds
             FROM twin t
             JOIN domain_user du ON du.subscription_enabled = TRUE
                  AND du.user_id = ANY (ARRAY[t.created_by_user_id, t.assigner_user_id, t.owner_user_id])
             WHERE t.id IN (:twinIds)
-            GROUP BY t.id, t.domain_id
+            GROUP BY t.id, du.domain_id
             """, nativeQuery = true)
     List<TwinUsersProjection> findUsersForTwins(@Param("twinIds") Collection<UUID> twinIds);
 

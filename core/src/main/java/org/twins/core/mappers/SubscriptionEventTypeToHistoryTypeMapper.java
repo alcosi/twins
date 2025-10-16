@@ -14,7 +14,7 @@ public class SubscriptionEventTypeToHistoryTypeMapper {
 
     public static List<HistoryType> map(SubscriptionEventType type) {
         List<HistoryType> historyTypes = null;
-
+        //todo - check if this is correct
         switch (type) {
             case TWIN_CREATED -> historyTypes = Collections.singletonList(HistoryType.twinCreated);
             case TWIN_DELETED -> historyTypes = Collections.singletonList(HistoryType.twinDeleted);
