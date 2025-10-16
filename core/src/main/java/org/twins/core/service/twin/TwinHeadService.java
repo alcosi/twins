@@ -78,7 +78,22 @@ public class TwinHeadService {
         PaginationResult<TwinEntity> validHead = findValidHeads(subClass, basicSearch, SimplePagination.SINGLE);
         if (validHead.getTotal() == 0)
             throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, "twin[" + headTwinId + "] is not allowed for twinClass[" + subClass.getId() + "]");
-        return validHead.getList().getFirst();
+        var head = validHead.getList().getFirst();
+        checkSegmentUniq(head, subClass);
+        return head;
+    }
+
+    private void checkSegmentUniq(TwinEntity headTwin, TwinClassEntity subClass) throws ServiceException {
+        if (Boolean.FALSE.equals(subClass.getSegment()))
+            return;
+        //segments are one-to-one only
+        var segmentsSearch = new BasicSearch();
+        segmentsSearch
+                .addTwinClassId(subClass.getId(), false)
+                .addHeadTwinId(headTwin.getId());
+        if (twinSearchService.exists(segmentsSearch)) {
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_SEGMENT_NOT_UNIQ, "segment of {} is already exists for head {} ", subClass.logShort(), headTwin.logShort());
+        }
     }
 
     public void loadCreatableChildTwinClasses(TwinEntity twinEntity) throws ServiceException {
