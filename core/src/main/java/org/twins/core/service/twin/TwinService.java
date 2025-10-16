@@ -130,6 +130,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final FaceTwinPointerService faceTwinPointerService;
     @Autowired
     private I18nService i18nService;
+    @Autowired
+    private TwinSearchService twinSearchService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
