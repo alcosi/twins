@@ -22,6 +22,8 @@ import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassFieldRuleService;
 
+import java.util.Collection;
+
 
 @Component
 @RequiredArgsConstructor
@@ -40,7 +42,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     @MapperModePointerBinding(modes = FeaturerMode.TwinClassField2FeaturerMode.class)
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
 
-    @MapperModePointerBinding(modes = TwinClassFieldRuleMode.TwinField2TwinClassFieldRuleMode.class)
+    @MapperModePointerBinding(modes = TwinClassFieldRuleMode.TwinClassField2TwinClassFieldRuleMode.class)
     private final
     TwinClassFieldRuleRestDTOMapper twinClassFieldRuleRestDTOMapper;
 
@@ -49,8 +51,6 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     private final PermissionService permissionService;
     private final TwinClassFieldRuleService twinClassFieldRuleService;
 
-
-    //todo - map rules
 
     @Override
     public void map(TwinClassFieldEntity src, TwinClassFieldDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -83,6 +83,8 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setBeValidationError(src.getBeValidationErrorI18nId() != null ? i18nService.translateToLocale(src.getBeValidationErrorI18nId()) : "")
                         .setExternalId(src.getExternalId())
                         .setSystem(src.getSystem())
+                        .setDependent(src.getDependentField())
+                        .setHasDependentFields(src.getHasDependentFields())
                         .setExternalProperties(src.getExternalProperties());
                 if (mapperContext.hasModeButNot(FeaturerMode.TwinClassField2FeaturerMode.HIDE)) {
                     dst.setFieldTyperFeaturerId(src.getFieldTyperFeaturerId());
@@ -109,6 +111,8 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setFeValidationError(src.getFeValidationErrorI18nId() != null ? i18nService.translateToLocale(src.getFeValidationErrorI18nId()) : "")
                         .setExternalId(src.getExternalId())
                         .setSystem(src.getSystem())
+                        .setDependent(src.getDependentField())
+                        .setHasDependentFields(src.getHasDependentFields())
                         .setExternalProperties(src.getExternalProperties());
                 break;
             case SHORT:
@@ -121,9 +125,19 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
             dst.setTwinClassId(src.getTwinClassId());
             twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinClassField2TwinClassMode.SHORT));
         }
-        if (mapperContext.hasModeButNot(TwinClassFieldRuleMode.TwinField2TwinClassFieldRuleMode.HIDE)) {
-            dst.setFieldRules(twinClassFieldRuleRestDTOMapper.convertCollection(twinClassFieldRuleService.loadRulesByTwinClassField(src.getId())));
-        //todo - do I need to add postpone here?
+        if (mapperContext.hasModeButNot(TwinClassFieldRuleMode.TwinClassField2TwinClassFieldRuleMode.HIDE)) {
+            twinClassFieldRuleService.loadRules(src);
+            dst.setRuleIds(src.getRuleKit().getIdSet());
+            twinClassFieldRuleRestDTOMapper.postpone(src.getRuleKit(), mapperContext.forkOnPoint(TwinClassFieldRuleMode.TwinClassField2TwinClassFieldRuleMode.SHORT));
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<TwinClassFieldEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(TwinClassFieldRuleMode.TwinClassField2TwinClassFieldRuleMode.HIDE)) {
+            //preload rules for all fields in srcCollection to avoid n+1 problem
+            twinClassFieldRuleService.loadRules(srcCollection);
         }
     }
 

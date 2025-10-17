@@ -19,7 +19,7 @@ public enum TwinClassFieldRuleMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinField2TwinClassFieldRuleMode implements MapperModePointer<TwinClassFieldRuleMode> {
+    public enum TwinClassField2TwinClassFieldRuleMode implements MapperModePointer<TwinClassFieldRuleMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

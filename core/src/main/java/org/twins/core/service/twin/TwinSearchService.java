@@ -205,6 +205,14 @@ public class TwinSearchService {
         return count(spec);
     }
 
+    public boolean exists(Specification<TwinEntity> spec) throws ServiceException {
+        return twinRepository.exists(spec);
+    }
+
+    public boolean exists(BasicSearch basicSearch) throws ServiceException {
+        return exists(createTwinEntitySearchSpecification(basicSearch));
+    }
+
     public Map<String, Long> countTwinsBySearchAliasInBatch(Map<String, SearchByAlias> searchMap) throws ServiceException {
         Map<String, Long> result = new HashMap<>();
         for (Map.Entry<String, SearchByAlias> entry : searchMap.entrySet()) {

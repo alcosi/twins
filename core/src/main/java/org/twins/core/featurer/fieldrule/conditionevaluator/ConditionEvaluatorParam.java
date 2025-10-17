@@ -18,7 +18,6 @@ import java.util.Properties;
 public class ConditionEvaluatorParam extends ConditionEvaluator<ConditionDescriptorParam> {
     @FeaturerParam(name = "EvaluatedParamKey", description = "", order = 3)
     public static final FeaturerParamString evaluatedParamKey = new FeaturerParamString("evaluatedParamKey");
-    ; //eval_param_key VARCHAR NULL,
 
     @Override
     protected ConditionDescriptorParam getConditionDescriptor(TwinClassFieldConditionEntity twinClassFieldConditionEntity, Properties properties) throws ServiceException {

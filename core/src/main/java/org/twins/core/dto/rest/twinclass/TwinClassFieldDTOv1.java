@@ -7,8 +7,8 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -66,8 +66,14 @@ public class TwinClassFieldDTOv1 {
     @Schema(description = "external id", example = "")
     public String externalId;
 
-    @Schema(description = "external id", example = "")
+    @Schema(description = "is system field", example = "")
     public Boolean system;
+
+    @Schema(description = "is dependent field", example = "")
+    public Boolean dependent;
+
+    @Schema(description = " has dependent fields", example = "")
+    public Boolean hasDependentFields;
 
     @Schema(description = "external properties")
     public Map<String, String> externalProperties;
@@ -84,8 +90,9 @@ public class TwinClassFieldDTOv1 {
     @Schema(description = "backend validation error i18n id", example = "")
     public UUID beValidationErrorI18nId;
 
-    @Schema(description = "rules bundles associated with this field")
-    public List<TwinClassFieldRuleDTOv1> fieldRules;
+    @Schema(description = "field rule ids", example = "")
+    public Set<UUID> ruleIds;
+
 
 }
 

@@ -130,6 +130,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final FaceTwinPointerService faceTwinPointerService;
     @Autowired
     private I18nService i18nService;
+    @Autowired
+    private TwinSearchService twinSearchService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
@@ -337,9 +339,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return result;
     }
 
-    public void createTwinsAsyncBatch(List<TwinCreate> twinCreates) throws ServiceException {
+    public List<TwinEntity> createTwinsAsyncBatch(List<TwinCreate> twinCreates) throws ServiceException {
         List<TwinEntity> twins = self.createTwinsAsync(twinCreates);
         generateTwinAliasesAndMakeCreationResult(twins);
+        return twins;
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -624,16 +627,26 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void updateTwin(TwinUpdate twinUpdate) throws ServiceException {
-        if (!twinUpdate.isChanged())
-            return;
+        updateTwin(List.of(twinUpdate));
+    }
+
+    public List<TwinEntity> updateTwin(List<TwinUpdate> twinUpdates) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-        ChangesRecorder<TwinEntity, TwinEntity> changesRecorder = new ChangesRecorder<>(
-                twinUpdate.getDbTwinEntity(),
-                twinUpdate.getTwinEntity(),
-                twinUpdate.getDbTwinEntity(),
-                twinChangesCollector.getHistoryCollector(twinUpdate.getDbTwinEntity()));
-        updateTwin(twinUpdate, twinChangesCollector, changesRecorder);
+
+        for (TwinUpdate twinUpdate : twinUpdates) {
+            if (!twinUpdate.isChanged()) continue;
+
+            ChangesRecorder<TwinEntity, TwinEntity> changesRecorder = new ChangesRecorder<>(
+                    twinUpdate.getDbTwinEntity(),
+                    twinUpdate.getTwinEntity(),
+                    twinUpdate.getDbTwinEntity(),
+                    twinChangesCollector.getHistoryCollector(twinUpdate.getDbTwinEntity()));
+
+            updateTwin(twinUpdate, twinChangesCollector, changesRecorder);
+        }
         twinChangesService.applyChanges(twinChangesCollector);
+
+        return twinUpdates.stream().map(TwinUpdate::getDbTwinEntity).toList();
     }
 
     public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector, ChangesRecorder<TwinEntity, ?> twinChangesRecorder) throws ServiceException {
@@ -905,7 +918,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (KitUtils.isEmpty(needLoad))
             return;
         Kit<TwinEntity, UUID> heads = findEntitiesSafe(needLoad.getGroupedKeySet());
-        for (var twin : heads) {
+        for (var twin : needLoad) {
             twin.setHeadTwin(heads.get(twin.getHeadTwinId()));
         }
     }

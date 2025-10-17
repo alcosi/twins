@@ -112,8 +112,9 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
         ValidationResult result = new ValidationResult(true);
         try {
             String dateValue = value.getDateStr();
-            boolean clearedValue = !value.getTwinClassField().getRequired() && StringUtils.isEmpty(dateValue);
-            if (!GenericValidator.isDate(dateValue, datePattern, false) && !clearedValue)
+            if (StringUtils.isEmpty(dateValue) && !value.getTwinClassField().getRequired())
+                return result;
+            if (!GenericValidator.isDate(dateValue, datePattern, false))
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " date[" + value + "] does not match pattern[" + datePattern + "]");
             LocalDateTime localDateTime = parseDateTime(dateValue, properties);
             LocalDateTime now = LocalDateTime.now();
