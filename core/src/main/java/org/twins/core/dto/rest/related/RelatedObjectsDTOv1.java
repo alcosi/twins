@@ -21,11 +21,7 @@ import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.tier.TierDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
-import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldRuleDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassFreezeDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
+import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
@@ -123,7 +119,7 @@ public class RelatedObjectsDTOv1 {
     @Schema(description = "related field rules")
     public Map<UUID, TwinClassFieldRuleDTOv1> fieldRuleMap;
 
-    public <T> T get(Class<T> relatedObjectClass, UUID id) {
+    public <T> T get(Class<T> relatedObjectClass, Object id) {
         if (relatedObjectClass == TwinDTOv2.class) {
             return (T) twinMap.get(id);
         } else if (relatedObjectClass == TwinStatusDTOv1.class) {
@@ -174,6 +170,8 @@ public class RelatedObjectsDTOv1 {
             return (T) attachmentRestrictionMap.get(id);
         } else if (relatedObjectClass == TierDTOv1.class) {
             return (T) tierMap.get(id);
+        } else if (relatedObjectClass == FeaturerDTOv1.class) {
+            return (T) featurerMap.get(id);
         }
         return null;
     }

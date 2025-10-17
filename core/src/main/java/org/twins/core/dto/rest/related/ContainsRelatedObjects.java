@@ -5,14 +5,14 @@ import org.cambium.common.util.CollectionUtils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 public interface ContainsRelatedObjects {
+
     void setRelatedObjects(RelatedObjectsDTOv1 relatedObjects);
 
     RelatedObjectsDTOv1 getRelatedObjects();
 
-    default <T> T getRelatedObject(Class<T> relatedObjectClass, UUID relatedObjectId) {
+    default <T> T getRelatedObject(Class<T> relatedObjectClass, Object relatedObjectId) {
         if (getRelatedObjects() != null && relatedObjectId != null) {
             var relatedObject = getRelatedObjects().get(relatedObjectClass, relatedObjectId);
             if (relatedObject instanceof ContainsRelatedObjects containsRelatedObjects) {
@@ -24,7 +24,7 @@ public interface ContainsRelatedObjects {
         }
     }
 
-    default <T> List<T> getRelatedObjectList(Class<T> relatedObjectClass, Collection<UUID> relatedObjectIdList) {
+    default <T> List<T> getRelatedObjectList(Class<T> relatedObjectClass, Collection<?> relatedObjectIdList) {
         if (getRelatedObjects() != null && CollectionUtils.isNotEmpty(relatedObjectIdList)) {
             List<T> ret = new ArrayList<>();
             for (var relatedObjectId : relatedObjectIdList) {
@@ -35,14 +35,6 @@ public interface ContainsRelatedObjects {
                 ret.add(relatedObject);
             }
             return ret;
-        } else {
-            return null;
-        }
-    }
-
-    default Object getRelatedObject(Class<?> relatedObjectClass, int featurerId) {
-        if (getRelatedObjects() != null) {
-            return getRelatedObjects().getFeaturerMap().get(featurerId);
         } else {
             return null;
         }
