@@ -1,7 +1,10 @@
 package org.twins.core.dto.rest.related;
 
-import org.twins.core.dto.rest.permission.PermissionDTOv1;
+import org.cambium.common.util.CollectionUtils;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 public interface ContainsRelatedObjects {
@@ -9,13 +12,29 @@ public interface ContainsRelatedObjects {
 
     RelatedObjectsDTOv1 getRelatedObjects();
 
-    default Object getRelatedObject(Class<?> relatedObjectClass, UUID relatedObjectId) {
-        if (getRelatedObjects() != null) {
-            var relatedObject = getRelatedObjects().get(PermissionDTOv1.class, relatedObjectId);
+    default <T> T getRelatedObject(Class<T> relatedObjectClass, UUID relatedObjectId) {
+        if (getRelatedObjects() != null && relatedObjectId != null) {
+            var relatedObject = getRelatedObjects().get(relatedObjectClass, relatedObjectId);
             if (relatedObject instanceof ContainsRelatedObjects containsRelatedObjects) {
                 containsRelatedObjects.setRelatedObjects(getRelatedObjects());
             }
             return relatedObject;
+        } else {
+            return null;
+        }
+    }
+
+    default <T> List<T> getRelatedObjectList(Class<T> relatedObjectClass, Collection<UUID> relatedObjectIdList) {
+        if (getRelatedObjects() != null && CollectionUtils.isNotEmpty(relatedObjectIdList)) {
+            List<T> ret = new ArrayList<>();
+            for (var relatedObjectId : relatedObjectIdList) {
+                var relatedObject = getRelatedObjects().get(relatedObjectClass, relatedObjectId);
+                if (relatedObject instanceof ContainsRelatedObjects containsRelatedObjects) {
+                    containsRelatedObjects.setRelatedObjects(getRelatedObjects());
+                }
+                ret.add(relatedObject);
+            }
+            return ret;
         } else {
             return null;
         }

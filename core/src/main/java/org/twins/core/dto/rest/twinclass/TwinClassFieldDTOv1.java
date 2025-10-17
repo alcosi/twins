@@ -45,7 +45,7 @@ public class TwinClassFieldDTOv1 {
     public UUID descriptionI18nId;
 
     @Schema(description = "field typer featurer id", example = "")
-    @RelatedObject(type = FeaturerDTOv1.class, name = "twinClass")
+    @RelatedObject(type = FeaturerDTOv1.class, name = "fieldTyperFeaturer")
     public Integer fieldTyperFeaturerId;
 
     @Schema(description = "field typer params", example = "")
