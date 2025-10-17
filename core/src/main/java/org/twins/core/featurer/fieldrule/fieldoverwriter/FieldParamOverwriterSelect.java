@@ -70,16 +70,13 @@ public class FieldParamOverwriterSelect extends FieldParamOverwriter<FieldDescri
             fieldOverwriterDescriptorSelect.options(dataListService.findByDataListId(listId));
         }
 
-        applyUUIDSetIfNotEmpty(dataListOptionIds.extract(properties), fieldOverwriterDescriptorSelect::dataListOptionIdList);
-        applyUUIDSetIfNotEmpty(dataListOptionExcludeIds.extract(properties), fieldOverwriterDescriptorSelect::dataListOptionIdExcludeList);
-        applyUUIDSetIfNotEmpty(dataListSubsetIds.extract(properties), fieldOverwriterDescriptorSelect::dataListSubsetIdList);
-        applyUUIDSetIfNotEmpty(dataListSubsetIdExcludeIds.extract(properties), fieldOverwriterDescriptorSelect::dataListSubsetIdExcludeList);
+        fieldOverwriterDescriptorSelect.applyUUIDSetIfNotEmpty(dataListOptionIds.extract(properties), fieldOverwriterDescriptorSelect::dataListOptionIdList);
+        fieldOverwriterDescriptorSelect.applyUUIDSetIfNotEmpty(dataListOptionExcludeIds.extract(properties), fieldOverwriterDescriptorSelect::dataListOptionIdExcludeList);
+        fieldOverwriterDescriptorSelect.applyUUIDSetIfNotEmpty(dataListSubsetIds.extract(properties), fieldOverwriterDescriptorSelect::dataListSubsetIdList);
+        fieldOverwriterDescriptorSelect.applyUUIDSetIfNotEmpty(dataListSubsetIdExcludeIds.extract(properties), fieldOverwriterDescriptorSelect::dataListSubsetIdExcludeList);
 
         return fieldOverwriterDescriptorSelect;
     }
 
-    private void applyUUIDSetIfNotEmpty(Set<UUID> source, java.util.function.Consumer<Set<UUID>> consumer) {
-        if (source != null && !source.isEmpty())
-            consumer.accept(source);
-    }
+
 }

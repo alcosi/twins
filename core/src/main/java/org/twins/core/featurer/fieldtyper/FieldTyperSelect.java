@@ -54,7 +54,8 @@ public class FieldTyperSelect extends FieldTyperList {
         UUID listId = listUUID.extract(properties);
         dataListService.checkId(listId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS);
         int listSize = dataListService.countByDataListId(listId);
-        FieldDescriptorList fieldDescriptorList = new FieldDescriptorList()
+        FieldDescriptorList fieldDescriptorList =  (FieldDescriptorList) super.getFieldDescriptor(twinClassFieldEntity, properties);
+        fieldDescriptorList
                 .supportCustom(supportCustom.extract(properties))
                 .multiple(multiple.extract(properties));
         if (listSize > longListThreshold.extract(properties))

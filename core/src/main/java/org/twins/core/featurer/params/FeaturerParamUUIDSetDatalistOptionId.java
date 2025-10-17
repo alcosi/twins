@@ -4,7 +4,7 @@ import org.cambium.featurer.annotations.FeaturerParamType;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
 
 @FeaturerParamType(
-        id = "UUID_SET:DATALIST:OPTION_ID",
+        id = "UUID_SET:TWINS:DATALIST_OPTION_ID",
         description = "",
         regexp = FeaturerParamUUIDSet.UUID_SET_REGEXP,
         example = FeaturerParamUUIDSet.UUID_SET_EXAMPLE)

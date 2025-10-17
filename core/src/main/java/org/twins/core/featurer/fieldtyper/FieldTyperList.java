@@ -5,6 +5,8 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
+import org.cambium.featurer.params.FeaturerParamUUIDSet;
+import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.Specification;
@@ -19,8 +21,11 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchList;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
+import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorList;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetDatalistOptionId;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetDatalistSubsetId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsDataListId;
 import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.datalist.DataListService;
@@ -43,14 +48,35 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     @FeaturerParam(name = "Datalist", description = "", order = 1)
     public static final FeaturerParamUUID listUUID = new FeaturerParamUUIDTwinsDataListId("listUUID");
 
-    private Set<UUID> dataListOptionIdList;
-    private Set<UUID> dataListOptionIdExcludeList;
-    private Set<UUID> dataListSubsetIdList;
-    private Set<UUID> dataListSubsetIdExcludeList;
+    @FeaturerParam(name = "datalist option ids", description = "", order = 6, optional = true)
+    public static final FeaturerParamUUIDSet dataListOptionIds = new FeaturerParamUUIDSetDatalistOptionId("dataListOptionIds");
 
+    @FeaturerParam(name = "datalist option exclude ids", description = "", order = 7, optional = true)
+    public static final FeaturerParamUUIDSet dataListOptionExcludeIds = new FeaturerParamUUIDSetDatalistOptionId("dataListOptionExcludeIds");
+
+    @FeaturerParam(name = "datalist subset ids", description = "", order = 8, optional = true)
+    public static final FeaturerParamUUIDSet dataListSubsetIds = new FeaturerParamUUIDSetDatalistSubsetId("dataListSubsetIds");
+
+    @FeaturerParam(name = "datalist subset exclude ids", description = "", order = 9, optional = true)
+    public static final FeaturerParamUUIDSet dataListSubsetIdExcludeIds = new FeaturerParamUUIDSetDatalistSubsetId("dataListSubsetIdExcludeIds");
+
+    @Override
+    protected FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
+        FieldDescriptorList fieldDescriptorList = new FieldDescriptorList();
+        UUID listId = listUUID.extract(properties);
+        dataListService.checkId(listId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS);
+        fieldDescriptorList.options(dataListService.findByDataListId(listId));
+        fieldDescriptorList.applyUUIDSetIfNotEmpty(dataListOptionIds.extract(properties), fieldDescriptorList::dataListOptionIdList);
+        fieldDescriptorList.applyUUIDSetIfNotEmpty(dataListOptionExcludeIds.extract(properties), fieldDescriptorList::dataListOptionIdExcludeList);
+        fieldDescriptorList.applyUUIDSetIfNotEmpty(dataListSubsetIds.extract(properties), fieldDescriptorList::dataListSubsetIdList);
+        fieldDescriptorList.applyUUIDSetIfNotEmpty(dataListSubsetIdExcludeIds.extract(properties), fieldDescriptorList::dataListSubsetIdExcludeList);
+        return fieldDescriptorList;
+
+    }
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueSelect value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        //todo - check that additional option conditions are met
         if (value.getOptions() != null && value.getOptions().size() > 1 && !allowMultiply(properties))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply options are not allowed");
         UUID fieldListId = listUUID.extract(properties);

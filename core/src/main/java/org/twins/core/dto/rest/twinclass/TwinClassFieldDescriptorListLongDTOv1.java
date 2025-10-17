@@ -28,10 +28,13 @@ public class TwinClassFieldDescriptorListLongDTOv1 implements TwinClassFieldDesc
 
     @Schema(description = "Valid option id list", example = "")
     private Set<UUID> dataListOptionIdList;
+
     @Schema(description = "Excluded option id list", example = "")
     private Set<UUID> dataListOptionIdExcludeList;
+
     @Schema(description = "Valid subset id list", example = "")
     private Set<UUID> dataListSubsetIdList;
+
     @Schema(description = "Excluded subset id list", example = "")
     private Set<UUID> dataListSubsetIdExcludeList;
 
