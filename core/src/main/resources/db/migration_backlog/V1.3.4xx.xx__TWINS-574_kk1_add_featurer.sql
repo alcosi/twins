@@ -1,0 +1,1 @@
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1336::integer, 13::integer, 'org.twins.core.featurer.fieldtyper.FieldTyperSimpleNonIndexedV1'::varchar, 'Simple non indexed field'::varchar, 'Simple non indexed field'::varchar(255), false::boolean) on conflict do nothing;
