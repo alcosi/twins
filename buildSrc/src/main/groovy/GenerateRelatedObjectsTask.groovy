@@ -136,7 +136,7 @@ abstract class GenerateRelatedObjectsTask extends DefaultTask {
                             getter.setType(field.type)
                             getter.setBody(StaticJavaParser.parseBlock("""
                             {
-                                return (${field.type}) getRelatedObject(${field.fieldName});
+                                return (${field.type}) getRelatedObject(${field.type}.class, ${field.fieldName});
                             }
                             """))
                         }

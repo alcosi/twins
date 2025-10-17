@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 
@@ -44,6 +45,7 @@ public class TwinClassFieldDTOv1 {
     public UUID descriptionI18nId;
 
     @Schema(description = "field typer featurer id", example = "")
+    @RelatedObject(type = FeaturerDTOv1.class, name = "twinClass")
     public Integer fieldTyperFeaturerId;
 
     @Schema(description = "field typer params", example = "")
