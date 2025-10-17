@@ -59,10 +59,19 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                     .afterDate(dateDescriptor.afterDate());
         else if (fieldDescriptor instanceof FieldDescriptorList listDescriptor)
             if (listDescriptor.dataListId() != null) {
-                return new TwinClassFieldDescriptorListLongDTOv1()
+                TwinClassFieldDescriptorListLongDTOv1 listLongFieldDescriptor = new TwinClassFieldDescriptorListLongDTOv1()
                         .supportCustom(listDescriptor.supportCustom())
                         .multiple(listDescriptor.multiple())
                         .dataListId(listDescriptor.dataListId());
+                if (CollectionUtils.isNotEmpty(listDescriptor.dataListOptionIdList()))
+                    listLongFieldDescriptor.dataListOptionIdList(listDescriptor.dataListOptionIdList());
+                if (CollectionUtils.isNotEmpty(listDescriptor.dataListOptionIdExcludeList()))
+                    listLongFieldDescriptor.dataListOptionIdExcludeList(listDescriptor.dataListOptionIdExcludeList());
+                if (CollectionUtils.isNotEmpty(listDescriptor.dataListSubsetIdList()))
+                    listLongFieldDescriptor.dataListSubsetIdList(listDescriptor.dataListSubsetIdList());
+                if (CollectionUtils.isNotEmpty(listDescriptor.dataListSubsetIdExcludeList()))
+                    listLongFieldDescriptor.dataListSubsetIdExcludeList(listDescriptor.dataListSubsetIdExcludeList());
+                return listLongFieldDescriptor;
             } else {
                 TwinClassFieldDescriptorListDTOv1 listFieldDescriptor = new TwinClassFieldDescriptorListDTOv1()
                         .supportCustom(listDescriptor.supportCustom())

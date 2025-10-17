@@ -7,6 +7,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -16,10 +17,19 @@ public class FieldDescriptorList extends FieldDescriptor {
     private boolean supportCustom;
     private boolean multiple;
     private UUID dataListId;
+    private Set<UUID> dataListOptionIdList;
+    private Set<UUID> dataListOptionIdExcludeList;
+    private Set<UUID> dataListSubsetIdList;
+    private Set<UUID> dataListSubsetIdExcludeList;
     private List<DataListOptionEntity> options = new ArrayList<>();
 
     public FieldDescriptorList add(DataListOptionEntity option) {
         options.add(option);
         return this;
+    }
+
+    public void applyUUIDSetIfNotEmpty(Set<UUID> source, java.util.function.Consumer<Set<UUID>> consumer) {
+        if (source != null && !source.isEmpty())
+            consumer.accept(source);
     }
 }
