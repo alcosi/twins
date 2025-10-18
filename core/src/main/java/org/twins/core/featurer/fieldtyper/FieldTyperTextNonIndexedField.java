@@ -37,7 +37,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1336,
         name = "Text non indexed field",
         description = "")
-public class FieldTyperTextNonIndexedField extends FieldTyperSimpleNonIndexed<FieldDescriptorText, FieldValueText, TwinFieldSearchText> {
+public class FieldTyperTextNonIndexedField extends FieldTyperSimpleNonIndexed<FieldDescriptorText, FieldValueText, TwinFieldSearchNotImplemented> {
     @FeaturerParam(name = "Regexp", description = "", optional = true, defaultValue = "(?s).*", order = 1)
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
     @FeaturerParam(name = "EditorType", description = "", order = 2, optional = true, defaultValue = "PLAIN")
@@ -61,10 +61,5 @@ public class FieldTyperTextNonIndexedField extends FieldTyperSimpleNonIndexed<Fi
         return new FieldValueText(twinField.getTwinClassField())
                 .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ?
                         twinFieldEntity.getValue() : null);
-    }
-
-    @Override
-    public Specification<TwinEntity> searchBy(TwinFieldSearchText search) {
-        return Specification.where(TwinSpecification.checkFieldText(search, TwinEntity.Fields.fieldsSimple, TwinFieldSimpleNonIndexedEntity.Fields.value));
     }
 }
