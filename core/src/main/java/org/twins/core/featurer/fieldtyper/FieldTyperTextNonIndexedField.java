@@ -65,6 +65,6 @@ public class FieldTyperTextNonIndexedField extends FieldTyperSimpleNonIndexed<Fi
 
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldSearchText search) {
-        return Specification.where(TwinSpecification.checkFieldText(search, TwinEntity.Fields.fieldsSimple, TwinFieldSimpleEntity.Fields.value));
+        return Specification.where(TwinSpecification.checkFieldText(search, TwinEntity.Fields.fieldsSimple, TwinFieldSimpleNonIndexedEntity.Fields.value));
     }
 }
