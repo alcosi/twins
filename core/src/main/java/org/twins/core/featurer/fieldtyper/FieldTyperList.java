@@ -2,6 +2,7 @@ package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
@@ -76,16 +77,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueSelect value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        //todo - check that additional option conditions are met
-        if (value.getOptions() != null && value.getOptions().size() > 1 && !allowMultiply(properties))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply options are not allowed");
-        UUID fieldListId = listUUID.extract(properties);
-
         List<DataListOptionEntity> dataListOptionEntityList = dataListOptionService.reloadOptionsOnDataListAbsent(value.getOptions());
-        for (var option : value.getOptions()) {
-            if (!option.getDataListId().equals(fieldListId))
-                throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " optionId[" + option.getId() + "] is not valid for list[" + fieldListId + "]");
-        }
         Map<UUID, TwinFieldDataListEntity> storedOptions = null;
         twinService.loadTwinFields(twin);
         if (twin.getTwinFieldDatalistKit().containsGroupedKey(value.getTwinClassField().getId()))
@@ -170,6 +162,37 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldSearchList search) throws ServiceException {
         return Specification.where(TwinSpecification.checkFieldList(search));
+    }
+
+    @Override
+    protected ValidationResult validate(Properties properties, TwinEntity twin, FieldValueSelect fieldValue) throws ServiceException {
+        try {
+            if (fieldValue.getOptions() != null && fieldValue.getOptions().size() > 1 && !allowMultiply(properties))
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, fieldValue.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply options are not allowed");
+            UUID fieldListId = listUUID.extract(properties);
+            Set<UUID> allowedDatalistOptionIds = dataListOptionIds.extract(properties);
+            Set<UUID> excludedDatalistOptionIds = dataListOptionExcludeIds.extract(properties);
+            for (var option : fieldValue.getOptions()) {
+                if (!option.getDataListId().equals(fieldListId) ||
+                        (allowedDatalistOptionIds != null && !allowedDatalistOptionIds.isEmpty() && !allowedDatalistOptionIds.contains(option.getId()))
+                        || (excludedDatalistOptionIds != null && excludedDatalistOptionIds.contains(option.getId())))
+                    throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, fieldValue.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " optionId[" + option.getId() + "] is not valid for list[" + fieldListId + "]");
+            }
+            Set<UUID> subsetIds = dataListSubsetIds.extract(properties);
+            Set<UUID> subsetExcludeIds = dataListSubsetIdExcludeIds.extract(properties);
+            if ((subsetIds != null && !subsetIds.isEmpty()) || (subsetExcludeIds != null && !subsetExcludeIds.isEmpty())) {
+                Set<UUID> allowedSubsetsOptionIds = dataListService.findOptionIdsBySubsetIds(subsetIds);
+                Set<UUID> excludedSubsetsOptionIds = dataListService.findOptionIdsBySubsetIds(subsetExcludeIds);
+                for (var option : fieldValue.getOptions()) {
+                    if (allowedSubsetsOptionIds != null && !allowedSubsetsOptionIds.isEmpty() && !allowedSubsetsOptionIds.contains(option.getId())
+                            || (excludedSubsetsOptionIds != null && excludedSubsetsOptionIds.contains(option.getId())))
+                        throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST_SUBSET, fieldValue.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " optionId[" + option.getId() + "] is not valid for list[" + fieldListId + "] and given subset criteria");
+                }
+            }
+        } catch (ServiceException e) {
+            return new ValidationResult(false, i18nService.translateToLocale(fieldValue.getTwinClassField().getBeValidationErrorI18nId()));
+        }
+        return new ValidationResult(true);
     }
 
 }
