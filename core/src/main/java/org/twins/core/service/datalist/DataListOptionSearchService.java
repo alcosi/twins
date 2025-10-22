@@ -7,7 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.PaginationUtils;
+import org.cambium.featurer.FeaturerService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -16,9 +19,15 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.DataListOptionSearch;
+import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.featurer.fieldtyper.FieldTyperList;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.List;
+import java.util.Properties;
 
 import static org.cambium.common.util.EnumUtils.convertOrEmpty;
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
@@ -32,6 +41,10 @@ import static org.twins.core.dao.specifications.datalist.DataListOptionSpecifica
 public class DataListOptionSearchService {
     private final AuthService authService;
     private final DataListOptionRepository dataListOptionRepository;
+    @Lazy
+    private final TwinClassFieldService twinClassFieldService;
+    @Lazy
+    private final FeaturerService featurerService;
 
     public List<DataListOptionEntity> findDataListOptions(DataListOptionSearch search) throws ServiceException {
         Specification<DataListOptionEntity> spec = createDataListOptionSearchSpecification(search);
@@ -46,8 +59,9 @@ public class DataListOptionSearchService {
 
     private Specification<DataListOptionEntity> createDataListOptionSearchSpecification(DataListOptionSearch search) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
+        limitSearchByValidForTwinClassFieldIdList(search);
         return Specification.allOf(
-                checkFieldUuid(apiUser.getDomainId(),DataListOptionEntity.Fields.dataList,DataListEntity.Fields.domainId),
+                checkFieldUuid(apiUser.getDomainId(), DataListOptionEntity.Fields.dataList, DataListEntity.Fields.domainId),
                 createBusinessAccountSpecification(apiUser, search),
                 checkUuidIn(search.getIdList(), false, false, DataListOptionEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, DataListOptionEntity.Fields.id),
@@ -77,6 +91,28 @@ public class DataListOptionSearchService {
             );
         } else {
             return Specification.where((root, query, cb) -> root.get(DataListOptionEntity.Fields.businessAccountId).isNull());
+        }
+    }
+
+    public void limitSearchByValidForTwinClassFieldIdList(DataListOptionSearch search) throws ServiceException {
+        if (CollectionUtils.isEmpty(search.getValidForTwinClassFieldIdList())) {
+            return;
+        }
+        var twinClassFieldKit = twinClassFieldService.findEntitiesSafe(search.getValidForTwinClassFieldIdList());
+        for (var fieldEntity : twinClassFieldKit.getCollection()) {
+            FieldTyper<?, ?, ?, ?> fieldTyper = featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
+
+            if (fieldTyper.getStorageType() != TwinFieldStorageDatalist.class) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, "Wrong fieldTyper for [" + fieldEntity.getId() + "]");
+            }
+            FieldTyperList fieldTyperList = (FieldTyperList) fieldTyper;
+            Properties properties = fieldTyper.extractProperties(fieldEntity.getFieldTyperParams());
+            search
+                    .addDataListId(fieldTyperList.getDataListId(properties), false)
+                    .setIdList(CollectionUtils.safeAdd(search.getIdList(), fieldTyperList.getDataListOptionIds(properties)))
+                    .setIdExcludeList(CollectionUtils.safeAdd(search.getIdExcludeList(), fieldTyperList.getDataListOptionExcludeIds(properties)))
+                    .setDataListSubsetIdList(CollectionUtils.safeAdd(search.getDataListSubsetIdList(), fieldTyperList.getDataListSubsetIds(properties)))
+                    .setDataListSubsetIdExcludeList(CollectionUtils.safeAdd(search.getDataListSubsetIdExcludeList(), fieldTyperList.getDataListSubsetExcludeIds(properties)));
         }
     }
 }

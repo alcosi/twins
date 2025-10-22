@@ -76,6 +76,9 @@ public class DataListOptionSearchDTOv1 extends Request {
     @Schema(description = "external id not like list")
     public Set<String> externalIdNotLikeList;
 
+    @Schema(description = "datalist linked to given twin class fields list")
+    public Set<UUID> validForTwinClassFieldIdList;
+
     public DataListOptionSearchDTOv1 addIdListItem(UUID item) {
         this.idList = CollectionUtils.safeAdd(this.idList, item);
         return this;
@@ -177,4 +180,8 @@ public class DataListOptionSearchDTOv1 extends Request {
         return this;
     }
 
+    public DataListOptionSearchDTOv1 addLinkedToTwinClassFieldIdList(UUID item) {
+        this.validForTwinClassFieldIdList = CollectionUtils.safeAdd(this.validForTwinClassFieldIdList, item);
+        return this;
+    }
 }

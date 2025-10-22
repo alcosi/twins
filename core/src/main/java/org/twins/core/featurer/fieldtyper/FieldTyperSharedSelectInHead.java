@@ -28,7 +28,7 @@ import java.util.UUID;
 public class FieldTyperSharedSelectInHead extends FieldTyperList {
     @Override
     public FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
-        UUID listId = listUUID.extract(properties);
+        UUID listId = dataListId.extract(properties);
         dataListService.findEntitySafe(listId);
         return new FieldDescriptorListShared()
                 .setMultiple(false); //todo get from properties
@@ -49,7 +49,7 @@ public class FieldTyperSharedSelectInHead extends FieldTyperList {
 
     public DataListEntity getDataListWithValidOption(TwinClassFieldEntity twinClassFieldEntity, UUID headTwinId) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams(), new HashMap<>());
-        UUID listId = listUUID.extract(properties);
+        UUID listId = dataListId.extract(properties);
         DataListEntity dataListEntity = dataListService.findEntitySafe(listId);
         List<DataListOptionEntity> options = dataListService.findByDataListIdAndNotUsedInHead(listId, twinClassFieldEntity.getId(), headTwinId);
         return dataListEntity.setOptions(new Kit<>(options, DataListOptionEntity::getId));
