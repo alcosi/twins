@@ -6,5 +6,6 @@ import lombok.Getter;
 public enum TwinflowTransitionType {
     STATUS_CHANGE,
     OPERATION,
-    MARKETING
+    MARKETING,
+    STATUS_CHANGE_MARKETING
 }
