@@ -33,6 +33,7 @@ public class DataListOptionSearch {
     private Set<String> dataListSubsetKeyExcludeList;
     private Set<DataListStatus> statusIdList;
     private Set<DataListStatus> statusIdExcludeList;
+    private Set<UUID> validForTwinClassFieldIdList;
 
     public DataListOptionSearch addDataListId(UUID datalistId, boolean exclude) {
         if (exclude)

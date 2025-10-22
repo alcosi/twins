@@ -46,7 +46,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     DataListOptionService dataListOptionService;
 
     @FeaturerParam(name = "Datalist", description = "", order = 1)
-    public static final FeaturerParamUUID listUUID = new FeaturerParamUUIDTwinsDataListId("listUUID");
+    public static final FeaturerParamUUID dataListId = new FeaturerParamUUIDTwinsDataListId("listUUID");
 
     @FeaturerParam(name = "datalist option ids", description = "", order = 6, optional = true)
     public static final FeaturerParamUUIDSet dataListOptionIds = new FeaturerParamUUIDSetDatalistOptionId("dataListOptionIds");
@@ -63,13 +63,14 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     @Override
     protected FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         FieldDescriptorList fieldDescriptorList = new FieldDescriptorList();
-        UUID listId = listUUID.extract(properties);
-        dataListService.checkId(listId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS);
-        fieldDescriptorList.options(dataListService.findByDataListId(listId));
-        fieldDescriptorList.applyUUIDSetIfNotEmpty(dataListOptionIds.extract(properties), fieldDescriptorList::dataListOptionIdList);
-        fieldDescriptorList.applyUUIDSetIfNotEmpty(dataListOptionExcludeIds.extract(properties), fieldDescriptorList::dataListOptionIdExcludeList);
-        fieldDescriptorList.applyUUIDSetIfNotEmpty(dataListSubsetIds.extract(properties), fieldDescriptorList::dataListSubsetIdList);
-        fieldDescriptorList.applyUUIDSetIfNotEmpty(dataListSubsetIdExcludeIds.extract(properties), fieldDescriptorList::dataListSubsetIdExcludeList);
+        UUID listId = dataListId.extract(properties);
+        dataListService.checkId(listId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS); //todo check on save, to reduce db load
+        fieldDescriptorList
+                .dataListId(listId)
+                .dataListOptionIdList(dataListOptionIds.extract(properties))
+                .dataListOptionIdExcludeList(dataListOptionExcludeIds.extract(properties))
+                .dataListSubsetIdList(dataListSubsetIds.extract(properties))
+                .dataListSubsetIdExcludeList(dataListSubsetIdExcludeIds.extract(properties));
         return fieldDescriptorList;
 
     }
@@ -79,7 +80,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
         //todo - check that additional option conditions are met
         if (value.getOptions() != null && value.getOptions().size() > 1 && !allowMultiply(properties))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply options are not allowed");
-        UUID fieldListId = listUUID.extract(properties);
+        UUID fieldListId = dataListId.extract(properties);
 
         List<DataListOptionEntity> dataListOptionEntityList = dataListOptionService.reloadOptionsOnDataListAbsent(value.getOptions());
         for (var option : value.getOptions()) {
@@ -172,4 +173,23 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
         return Specification.where(TwinSpecification.checkFieldList(search));
     }
 
+    public UUID getDataListId(Properties properties) throws ServiceException {
+        return dataListId.extract(properties);
+    }
+
+    public Set<UUID> getDataListOptionIds(Properties properties) {
+        return dataListOptionIds.extract(properties);
+    }
+
+    public Set<UUID> getDataListOptionExcludeIds(Properties properties) {
+        return dataListOptionExcludeIds.extract(properties);
+    }
+
+    public Set<UUID> getDataListSubsetIds(Properties properties) {
+        return dataListSubsetIds.extract(properties);
+    }
+
+    public Set<UUID> getDataListSubsetExcludeIds(Properties properties) {
+        return dataListSubsetIdExcludeIds.extract(properties);
+    }
 }
