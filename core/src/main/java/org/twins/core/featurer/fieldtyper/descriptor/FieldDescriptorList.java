@@ -21,9 +21,12 @@ public class FieldDescriptorList extends FieldDescriptor {
     private Set<UUID> dataListOptionIdExcludeList;
     private Set<UUID> dataListSubsetIdList;
     private Set<UUID> dataListSubsetIdExcludeList;
-    private List<DataListOptionEntity> options = new ArrayList<>();
+    private List<DataListOptionEntity> options; // be careful, null is a flag that this is a long list
 
     public FieldDescriptorList add(DataListOptionEntity option) {
+        if (options == null) {
+            options = new ArrayList<>();
+        }
         options.add(option);
         return this;
     }

@@ -73,7 +73,7 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                         .supportCustom(listDescriptor.supportCustom())
                         .multiple(listDescriptor.multiple())
                         .options(dataListOptionRestDTOMapper.convertCollectionPostpone(listDescriptor.options(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListOptionMode.TwinClassFieldDescriptor2DataListOptionMode.SHORT))));
-                if (listFieldDescriptor.options == null && CollectionUtils.isNotEmpty(listDescriptor.options()))
+                if (CollectionUtils.isNotEmpty(listDescriptor.options()))
                     listFieldDescriptor.optionIdList(listDescriptor.options().stream().map(DataListOptionEntity::getId).collect(Collectors.toSet()));
                 return listFieldDescriptor;
             }
