@@ -190,9 +190,6 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "external_json", columnDefinition = "jsonb")
     private Map<String, Object> externalJson;
 
-    @Column(name = "init_sketch_twin_status_id")
-    private UUID initSketchTwinStatusId;
-
 //    @ManyToOne
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
 //    private DomainEntity domain;
@@ -367,10 +364,6 @@ public class TwinClassEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinClassEntity, UUID> segmentTwinsClassKit;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    private TwinStatusEntity initSketchTwinStatus;
 
 
     public Set<UUID> getExtendedClassIdSet() {

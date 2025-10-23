@@ -162,10 +162,7 @@ public class TwinUpdateClassService {
             if (twinChangeClass.getBehavior() != null && twinChangeClass.getBehavior().contains(TwinChangeClassStrategy.throwOnFieldRequiredNotFilled))
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, "Twin's doesn't has all required fields of the new class.");
             // If not all required fields are filled, set the status to SKETCH
-            var sketchStatus = twinClassService.getInitSketchStatusSafe(newTwinClass);
-            dbTwinEntity
-                    .setTwinStatus(sketchStatus)
-                    .setTwinStatusId(sketchStatus.getId());
+            twinService.setInitSketchStatus(dbTwinEntity);
         } else {
             // Try to keep the current status if it's valid for the new class
             UUID currentStatusId = dbTwinEntity.getTwinStatusId();

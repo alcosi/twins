@@ -33,6 +33,7 @@ import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.status.StatusType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 import org.twins.core.service.SystemEntityService;
@@ -307,6 +308,17 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         if (!twinClassService.isStatusAllowedForTwinClass(dbTwinflowEntity.getTwinClass(), initStatusId))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_INIT_STATUS_INCORRECT, "status[" + initStatusId + "] is not allowed for twinClass[" + dbTwinflowEntity.getTwinClassId() + "]");
         dbTwinflowEntity.setInitialTwinStatusId(initStatusId);
+    }
+
+    public TwinStatusEntity getInitSketchStatusSafe(TwinflowEntity twinflow) throws ServiceException {
+        var sketchStatus = twinflow.getInitialSketchTwinStatusId(); //hope that getTwinClass is not null
+        if (sketchStatus == null) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_STATUS_SKETCH_FORBIDDEN);
+        }
+        if (twinflow.getInitialSketchTwinStatus().getType().equals(StatusType.SKETCH)) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_STATUS_INCORRECT, "configured status[{}] is not a sketch status", sketchStatus);
+        }
+        return twinflow.getInitialSketchTwinStatus();
     }
 
 }

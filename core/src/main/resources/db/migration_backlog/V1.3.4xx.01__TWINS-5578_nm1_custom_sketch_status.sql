@@ -17,7 +17,7 @@ alter table twin_status
 
 update twin_status set twin_status_type = 'SKETCH' where id = '00000001-0000-0000-0000-000000000001';
 
-alter table twin_class
-    add init_sketch_twin_status_id uuid default '00000001-0000-0000-0000-000000000001';
+alter table twinflow
+    add if not exists initial_sketch_twin_status_id uuid default '00000001-0000-0000-0000-000000000001';
 
 

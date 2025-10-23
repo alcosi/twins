@@ -450,6 +450,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 .setTwinStatus(twinflowEntity.getInitialTwinStatus());
     }
 
+    public void setInitSketchStatus(TwinEntity twinEntity) throws ServiceException {
+        TwinflowEntity twinflowEntity = twinflowService.loadTwinflow(twinEntity);
+        var sketchStatus = twinflowService.getInitSketchStatusSafe(twinflowEntity);
+        twinEntity
+                .setTwinStatus(sketchStatus)
+                .setTwinStatusId(sketchStatus.getId());
+    }
+
     public UUID detectDeletePermissionId(TwinEntity twinEntity) throws ServiceException {
         if (null == twinEntity.getTwinClass())
             twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
@@ -1579,11 +1587,4 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
-    public void setInitSketchStatus(TwinEntity twinEntity) throws ServiceException {
-        loadClass(twinEntity);
-        var sketchStatus = twinClassService.getInitSketchStatusSafe(twinEntity.getTwinClass());
-        twinEntity
-                .setTwinStatus(sketchStatus)
-                .setTwinStatusId(sketchStatus.getId());
-    }
 }
