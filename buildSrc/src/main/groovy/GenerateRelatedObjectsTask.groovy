@@ -7,6 +7,10 @@ import com.github.javaparser.ast.expr.AnnotationExpr
 import com.github.javaparser.ast.expr.MemberValuePair
 import com.github.javaparser.ast.expr.NormalAnnotationExpr
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter
+import com.github.javaparser.symbolsolver.JavaSymbolSolver
+import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver
+import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeSolver
+import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
@@ -17,12 +21,23 @@ abstract class GenerateRelatedObjectsTask extends DefaultTask {
 
     @TaskAction
     void generate() {
-        def parserConfig = new ParserConfiguration()
-        parserConfig.setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_21)
-        StaticJavaParser.setConfiguration(parserConfig)
-
         def sourceDir = project.file('src/main/java/org/twins/core/dto/rest')
         def outputDir = project.file('build/generated/sources/dto/java/main/org/twins/core/dto/rest')
+        try {
+            // Configure JavaParser with SymbolSolver
+            CombinedTypeSolver typeSolver = new CombinedTypeSolver();
+            typeSolver.add(new ReflectionTypeSolver());
+            typeSolver.add(new JavaParserTypeSolver(sourceDir));
+            typeSolver.add(new JavaParserTypeSolver(project.file('src/main/java')))
+            ParserConfiguration parserConfig = new ParserConfiguration();
+            parserConfig.setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_21);
+            parserConfig.setSymbolResolver(new JavaSymbolSolver(typeSolver));
+            StaticJavaParser.setConfiguration(parserConfig);
+            System.out.println("ParserConfiguration with SymbolSolver loaded: " + ParserConfiguration.class);
+        } catch (Exception e) {
+            System.err.println("Failed to configure JavaParser: " + e.getMessage());
+            throw e;
+        }
 
         if (outputDir.exists()) {
             outputDir.deleteDir()
@@ -84,30 +99,33 @@ abstract class GenerateRelatedObjectsTask extends DefaultTask {
                         @Override
                         void visit(ClassOrInterfaceDeclaration n, Void arg) {
                             super.visit(n, arg);
-                            if (n.isClassOrInterfaceDeclaration() && n.getExtendedTypes().stream().anyMatch(t -> t.getNameAsString().equals("ResponseRelatedObjectsDTOv1"))) {
-                                isResponseRelatedObjects = true;
+                            if (n.isClassOrInterfaceDeclaration() ) {
+                                logger.lifecycle("Checking inheritance for class: ${n.nameAsString}")
+                                isResponseRelatedObjects = isExtendingResponseRelatedObjects(n)
+                                logger.lifecycle("Class ${n.nameAsString} extends ResponseRelatedObjectsDTOv1: ${isResponseRelatedObjects}")
                             }
                         }
                     }, null)
 
-                    if (!hasRelatedObjects) {
+                    if (!hasRelatedObjects && !isResponseRelatedObjects) {
+                        logger.lifecycle("Skipping file: ${sourcePath}")
                         outputFile.text = sourceFile.text
                         return
                     }
 
-                    // --- Remove @RelatedObject annotations ---
-                    cu.accept(new VoidVisitorAdapter<Void>() {
-                        @Override
-                        public void visit(FieldDeclaration n, Void arg) {
-                            super.visit(n, arg)
-                            n.getAnnotations().removeIf(ann -> ann.getNameAsString().equals("RelatedObject"))
-                        }
-                    }, null)
+                    if (hasRelatedObjects) {
+                        // --- Remove @RelatedObject annotations ---
+                        cu.accept(new VoidVisitorAdapter<Void>() {
+                            @Override
+                            void visit(FieldDeclaration n, Void arg) {
+                                super.visit(n, arg)
+                                n.getAnnotations().removeIf(ann -> ann.getNameAsString().equals("RelatedObject"))
+                            }
+                        }, null)
+                    }
 
                     // --- Work with class declaration ---
                     def classDecl = cu.findFirst(ClassOrInterfaceDeclaration).get()
-
-
 
                     // Add required imports
                     if (!cu.getImports().any { it.nameAsString == 'org.twins.core.dto.rest.related.ContainsRelatedObjects' })
@@ -121,6 +139,7 @@ abstract class GenerateRelatedObjectsTask extends DefaultTask {
 
                     // Add private field "relatedObjects"
                     if (!isResponseRelatedObjects) {
+                        logger.lifecycle("Generting RelatedObjectsDTOv1 field for ${sourcePath}")
                         // Add interface implementation if missing
                         if (!classDecl.implementedTypes.any { it.nameAsString == 'ContainsRelatedObjects' }) {
                             classDecl.addImplementedType('ContainsRelatedObjects')
@@ -181,5 +200,19 @@ abstract class GenerateRelatedObjectsTask extends DefaultTask {
                     // --- Write generated class to output directory ---
                     outputFile.text = cu.toString()
                 }
+    }
+
+    private boolean isExtendingResponseRelatedObjects(ClassOrInterfaceDeclaration classDecl) {
+        try {
+            def resolvedDecl = classDecl.resolve()
+            def ancestors = resolvedDecl.getAllAncestors()
+            logger.lifecycle("Ancestors for ${classDecl.nameAsString}: ${ancestors}")
+            return ancestors.any { ancestor ->
+                ancestor.qualifiedName == 'org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1'
+            }
+        } catch (Exception e) {
+            logger.error("Error resolving inheritance for ${classDecl.nameAsString}: ${e.message}")
+            return false
+        }
     }
 }
