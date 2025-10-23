@@ -22,8 +22,8 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
-import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
+import org.twins.core.dto.rest.datalist.DataListRsDTOv2;
+import org.twins.core.mappers.rest.datalist.DataListRsRestDTOMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
@@ -36,27 +36,27 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.DATA_LIST_MANAGE, Permissions.DATA_LIST_VIEW})
-public class DataListController extends ApiController {
+public class DataListViewController extends ApiController {
     private final AuthService authService;
     private final DataListService dataListService;
-    private final DataListRestDTOMapper dataListRestDTOMapper;
+    private final DataListRsRestDTOMapperV2 dataListRsRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListViewV1", summary = "Returns list data")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "List details prepared", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = DataListRsDTOv1.class))}),
+                    @Schema(implementation = DataListRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/data_list/{dataListId}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListViewV1(
-            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRsRestDTOMapperV2.class, response = DataListRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId) {
-        DataListRsDTOv1 rs = new DataListRsDTOv1();
+        DataListRsDTOv2 rs = new DataListRsDTOv2();
         try {
-            rs.setDataList(dataListRestDTOMapper.convert(
-                    dataListService.findEntitySafe(dataListId), mapperContext));
+            dataListRsRestDTOMapper.map(
+                    dataListService.findEntitySafe(dataListId), rs, mapperContext);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -70,17 +70,17 @@ public class DataListController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "List details prepared", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = DataListRsDTOv1.class))}),
+                    @Schema(implementation = DataListRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/data_list_by_key/{dataListKey}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListByKeyViewV1(
-            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRsRestDTOMapperV2.class, response = DataListRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_KEY) @PathVariable String dataListKey) {
-        DataListRsDTOv1 rs = new DataListRsDTOv1();
+        DataListRsDTOv2 rs = new DataListRsDTOv2();
         try {
-            rs.setDataList(dataListRestDTOMapper.convert(
-                    dataListService.findEntitySafe(dataListKey), mapperContext));
+            dataListRsRestDTOMapper.map(
+                    dataListService.findEntitySafe(dataListKey), rs, mapperContext);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
