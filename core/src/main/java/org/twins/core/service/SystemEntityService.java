@@ -15,10 +15,14 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
-import org.twins.core.dao.twinclass.*;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldRepository;
+import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
 import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.status.StatusType;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.featurer.FeaturerTwins;
 
@@ -129,7 +133,7 @@ public class SystemEntityService {
                 new SystemClass(
                         TWIN_CLASS_USER,
                         "USER",
-                        List.of(new SystemStatus(TWIN_STATUS_USER, TWIN_CLASS_USER, new I18n(I18N_4CLASS_USER_STATUS_NAME, "Active"), new I18n(I18N_4CLASS_USER_STATUS_DESCRIPTION, "User is active"))),
+                        List.of(new SystemStatus(TWIN_STATUS_USER, TWIN_CLASS_USER, new I18n(I18N_4CLASS_USER_STATUS_NAME, "Active"), new I18n(I18N_4CLASS_USER_STATUS_DESCRIPTION, "User is active"), StatusType.BASIC)),
                         List.of(
                                 new SystemField(TWIN_CLASS_FIELD_USER_EMAIL, TWIN_CLASS_USER, 1318, new I18n(I18N_4CLASS_USER_FIELD_EMAIL_NAME, "Email"), new I18n(I18N_4CLASS_USER_FIELD_EMAIL_DESCRIPTION, "User email address"), "email", false, true),
                                 new SystemField(TWIN_CLASS_FIELD_USER_AVATAR, TWIN_CLASS_USER, 1319, new I18n(I18N_4CLASS_USER_FIELD_AVATAR_NAME, "Avatar"), new I18n(I18N_4CLASS_USER_FIELD_AVATAR_DESCRIPTION, "User avatar image"), "avatar", false, true)
@@ -140,7 +144,7 @@ public class SystemEntityService {
                 new SystemClass(
                         TWIN_CLASS_BUSINESS_ACCOUNT,
                         "BUSINESS_ACCOUNT",
-                        List.of(new SystemStatus(TWIN_STATUS_BUSINESS_ACCOUNT, TWIN_CLASS_BUSINESS_ACCOUNT, new I18n(I18N_4CLASS_BUSINESS_ACCOUNT_STATUS_NAME, "Business Account"), new I18n(I18N_4CLASS_BUSINESS_ACCOUNT_STATUS_DESCRIPTION, "Business Account status"))),
+                        List.of(new SystemStatus(TWIN_STATUS_BUSINESS_ACCOUNT, TWIN_CLASS_BUSINESS_ACCOUNT, new I18n(I18N_4CLASS_BUSINESS_ACCOUNT_STATUS_NAME, "Business Account"), new I18n(I18N_4CLASS_BUSINESS_ACCOUNT_STATUS_DESCRIPTION, "Business Account status"), StatusType.BASIC)),
                         List.of(),
                         false,
                         false
@@ -171,7 +175,7 @@ public class SystemEntityService {
                 new SystemClass(
                         TWIN_CLASS_FACE_PAGE,
                         "FACE_PAGE",
-                        List.of(new SystemStatus(TWIN_STATUS_FACE_PAGE, TWIN_CLASS_FACE_PAGE, new I18n(I18N_4CLASS_FACE_PAGE_STATUS_NAME, "Published"), new I18n(I18N_4CLASS_FACE_PAGE_STATUS_DESCRIPTION, "Face page published"))),
+                        List.of(new SystemStatus(TWIN_STATUS_FACE_PAGE, TWIN_CLASS_FACE_PAGE, new I18n(I18N_4CLASS_FACE_PAGE_STATUS_NAME, "Published"), new I18n(I18N_4CLASS_FACE_PAGE_STATUS_DESCRIPTION, "Face page published"), StatusType.BASIC)),
                         List.of(),
                         false,
                         true
@@ -225,7 +229,8 @@ public class SystemEntityService {
                         .setId(status.id())
                         .setNameI18nId(status.name().i18nId())
                         .setDescriptionI18nId(status.description().i18nId())
-                        .setTwinClassId(status.twinClassId()));
+                        .setTwinClassId(status.twinClassId())
+                        .setType(status.type()));
             }
 
             for (SystemField field : systemClass.fields()) {
@@ -337,7 +342,7 @@ public class SystemEntityService {
 
     public record SystemClass(UUID id, String key, List<SystemStatus> statuses, List<SystemField> fields, boolean abstractt, boolean assigneeRequired) {}
 
-    public record SystemStatus(UUID id, UUID twinClassId, I18n name, I18n description) {}
+    public record SystemStatus(UUID id, UUID twinClassId, I18n name, I18n description, StatusType type) {}
 
     public record SystemField(UUID id, UUID twinClassId, Integer fieldTyperId, I18n name, I18n description, String fieldKey, Boolean required, Boolean system) { }
 

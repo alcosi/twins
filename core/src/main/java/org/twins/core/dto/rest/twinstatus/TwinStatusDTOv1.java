@@ -3,6 +3,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.enums.status.StatusType;
 
 import java.util.UUID;
 
@@ -36,4 +37,7 @@ public class TwinStatusDTOv1 {
 
     @Schema(description = "twin class", example = DTOExamples.TWIN_CLASS_ID)
     public UUID twinClassId;
+
+    @Schema(description = "type")
+    public StatusType type;
 }

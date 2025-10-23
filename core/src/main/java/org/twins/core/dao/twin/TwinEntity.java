@@ -24,6 +24,7 @@ import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.enums.action.TwinAction;
+import org.twins.core.enums.status.StatusType;
 import org.twins.core.enums.twin.TwinAliasType;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.SystemEntityService;
@@ -368,7 +369,7 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     private Kit<TwinClassEntity, UUID> creatableChildTwinClasses;
 
     public boolean isSketch() {
-        return SystemEntityService.TWIN_STATUS_SKETCH.equals(twinStatusId);
+        return SystemEntityService.TWIN_STATUS_SKETCH.equals(twinStatusId) || twinStatus.getType().equals(StatusType.SKETCH);
     }
 
     @Override
