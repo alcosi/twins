@@ -674,7 +674,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinChangesRecorder.hasChanges())
             twinChangesCollector.add(twinChangesRecorder.getRecorder());
         if (MapUtils.isNotEmpty(twinUpdate.getFields())) {
-            validateFields(twinUpdate.getTwinEntity(), twinUpdate.getFields());
+            validateFields(twinUpdate.getDbTwinEntity(), twinUpdate.getFields());
             updateTwinFields(twinChangesRecorder.getDbEntity(), twinUpdate.getFields().values().stream().toList(), twinChangesCollector);
         }
         attachmentService.cudAttachments(twinUpdate.getDbTwinEntity(), twinUpdate.getAttachmentCUD(), twinChangesCollector);
