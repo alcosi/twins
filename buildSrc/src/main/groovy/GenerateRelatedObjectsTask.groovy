@@ -126,6 +126,10 @@ abstract class GenerateRelatedObjectsTask extends DefaultTask {
                                 n.getAnnotations().removeIf(ann -> ann.getNameAsString().equals("RelatedObject"))
                             }
                         }, null)
+
+                        cu.getImports().removeIf { imp ->
+                            imp.getNameAsString().endsWith("RelatedObject")
+                        }
                     }
 
                     // --- Work with class declaration ---
