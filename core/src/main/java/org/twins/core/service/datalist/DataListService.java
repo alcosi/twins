@@ -10,6 +10,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
+import org.twins.core.dao.specifications.datalist.DataListOptionSpecification;
 import org.cambium.common.util.KeyUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
@@ -362,6 +363,22 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         }
     }
 
+    /**
+     * Returns a set of option IDs that belong to the provided subset IDs.
+     * The result is filtered according to business account restrictions of the current API user.
+     *
+     * @param subsetIds set of subset identifiers
+     * @return set with distinct option identifiers; empty set when {@code subsetIds} is empty
+     */
+    public Set<UUID> findOptionIdsBySubsetIds(Set<UUID> subsetIds) {
+        if (CollectionUtils.isEmpty(subsetIds))
+            return Collections.emptySet();
+        return dataListOptionRepository
+                .findAll(DataListOptionSpecification.checkDataListSubset(subsetIds, false))
+                .stream()
+                .map(DataListOptionEntity::getId)
+                .collect(Collectors.toSet());
+    }
 
 }
 

@@ -31,9 +31,4 @@ public class FieldDescriptorList extends FieldDescriptor {
         return this;
     }
 
-    public FieldDescriptorList applyUUIDSetIfNotEmpty(Set<UUID> source, java.util.function.Consumer<Set<UUID>> consumer) {
-        if (source != null && !source.isEmpty())
-            consumer.accept(source);
-        return this;
-    }
 }
