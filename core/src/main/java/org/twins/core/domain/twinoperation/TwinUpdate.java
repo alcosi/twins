@@ -7,7 +7,6 @@ import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.EntityCUD;
-import org.twins.core.service.SystemEntityService;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -30,7 +29,7 @@ public class TwinUpdate extends TwinSave {
 
     public TwinUpdate setDbTwinEntity(TwinEntity dbTwinEntity) {
         this.dbTwinEntity = dbTwinEntity;
-        if (SystemEntityService.TWIN_STATUS_SKETCH.equals(dbTwinEntity.getTwinStatusId()))
+        if (dbTwinEntity.isSketch())
             mode = Mode.sketchUpdate;
         return this;
     }

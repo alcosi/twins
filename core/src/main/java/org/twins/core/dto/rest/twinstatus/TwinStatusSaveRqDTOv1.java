@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
+import org.twins.core.enums.status.StatusType;
 
 import java.util.UUID;
 
@@ -30,6 +31,9 @@ public class TwinStatusSaveRqDTOv1 extends Request {
 
     @Schema(description = "[optional] font color hex", example = DTOExamples.COLOR_HEX)
     public String fontColor;
+
+    @Schema(description = "[optional] type")
+    public StatusType type;
 
     @JsonIgnore
     public UUID twinClassId;

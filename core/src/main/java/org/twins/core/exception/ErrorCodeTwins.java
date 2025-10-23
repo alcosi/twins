@@ -106,6 +106,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_STATUS_INCORRECT(11101, "twin status is incorrect"),
     TWIN_STATUS_TWIN_CLASS_NOT_SPECIFIED(11102, "twin status class is not specified"),
     TWIN_STATUS_KEY_INCORRECT(11103, "twin status key incorrect"),
+    TWIN_STATUS_SKETCH_FORBIDDEN(11104, "sketch is not allowed for given twin class"),
     PAGINATION_ERROR(11201, "pagination offset must be a multiple of the size"),
     PAGINATION_LIMIT_ERROR(11202, "pagination value limit cannot be less than 1"),
     TWIN_COMMENT_FIELD_TEXT_IS_NULL(11301, "twin comment field is null"),

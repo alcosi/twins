@@ -10,6 +10,7 @@ import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.enums.status.StatusType;
 
 import java.util.UUID;
 
@@ -52,6 +53,10 @@ public class TwinStatusEntity implements EasyLoggable {
 
     @Column(name = "font_color")
     private String fontColor;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "twin_status_type")
+    private StatusType type;
 
     @EqualsAndHashCode.Exclude
     @ManyToOne

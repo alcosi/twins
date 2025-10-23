@@ -37,6 +37,7 @@ public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntit
                         .setName(i18nService.translateToLocale(src.getNameI18nId()))
                         .setKey(src.getKey())
                         .setTwinClassId(src.getTwinClassId())
+                        .setType(src.getType())
                         .setDescription(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
                         .setIconDark(resourceService.getResourceUri(src.getIconDarkResource()))
                         .setIconLight(resourceService.getResourceUri(src.getIconLightResource()))

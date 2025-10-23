@@ -9,10 +9,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CacheUtils;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KeyUtils;
-import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.resource.ResourceEntity;
-import org.twins.core.enums.i18n.I18nType;
-import org.twins.core.service.i18n.I18nService;
 import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -22,12 +18,18 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
+import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.status.StatusType;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.SystemEntityService;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.resource.ResourceService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -70,6 +72,9 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
             return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_STATUS_TWIN_CLASS_NOT_SPECIFIED.getMessage());
         switch (entityValidateMode) {
             case beforeSave:
+                if (entity.getType() == null) {
+                    entity.setType(StatusType.BASIC);
+                }
                 //todo validate that status is uniq in class
                 if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getTwinClassId()))
                     entity.setTwinClass(twinClassService.findEntitySafe(entity.getTwinClassId()));
@@ -244,5 +249,9 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         } else {
             return null;
         }
+    }
+
+    public boolean isSketch(UUID twinStatusId) {
+        return SystemEntityService.TWIN_STATUS_SKETCH.equals(twinStatusId) || twinStatusRepository.existsByIdAndType(twinStatusId, StatusType.SKETCH);
     }
 }

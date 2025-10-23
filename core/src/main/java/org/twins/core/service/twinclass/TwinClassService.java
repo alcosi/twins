@@ -37,6 +37,7 @@ import org.twins.core.domain.twinclass.TwinClassUpdate;
 import org.twins.core.enums.EntityRelinkOperationStrategy;
 import org.twins.core.enums.domain.DomainType;
 import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.status.StatusType;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.headhunter.HeadHunter;
@@ -914,6 +915,26 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
     }
 
+    public void loadInitSketchStatus(TwinClassEntity src) throws ServiceException {
+        loadFreeze(Collections.singletonList(src));
+    }
+
+    public void loadInitSketchStatus(Collection<TwinClassEntity> twinClassCollection) throws ServiceException {
+        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getInitSketchTwinStatusId);
+        for (TwinClassEntity twinClass : twinClassCollection) {
+            if (twinClass.getInitSketchTwinStatusId() != null && twinClass.getInitSketchTwinStatus() == null)
+                needLoad.add(twinClass);
+        }
+        if (KitUtils.isEmpty(needLoad)) {
+            return;
+        }
+        Kit<TwinStatusEntity, UUID> items = twinStatusService.findEntitiesSafe(needLoad.getGroupedKeySet());
+        //todo check type is SKETCH
+        for (var twinClass : needLoad) {
+            twinClass.setInitSketchTwinStatus(items.get(twinClass.getTwinClassFreezeId()));
+        }
+    }
+
     //todo replace immutable stored procedure
     public Set<UUID> loadExtendsHierarchyClasses(Map<UUID, Boolean> twinClassIdMap) throws ServiceException {
         if (MapUtils.isEmpty(twinClassIdMap))
@@ -961,5 +982,17 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         } else {
             return null;
         }
+    }
+
+    public TwinStatusEntity getInitSketchStatusSafe(TwinClassEntity twinClassEntity) throws ServiceException {
+        var sketchStatus = twinClassEntity.getInitSketchTwinStatusId(); //hope that getTwinClass is not null
+        if (sketchStatus == null) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_STATUS_SKETCH_FORBIDDEN);
+        }
+        loadInitSketchStatus(twinClassEntity);
+        if (twinClassEntity.getInitSketchTwinStatus().getType().equals(StatusType.SKETCH)) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_STATUS_INCORRECT, "configured status[{}] is not a sketch status", sketchStatus);
+        }
+        return twinClassEntity.getInitSketchTwinStatus();
     }
 }
