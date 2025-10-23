@@ -315,7 +315,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         if (sketchStatus == null) {
             throw new ServiceException(ErrorCodeTwins.TWIN_STATUS_SKETCH_FORBIDDEN);
         }
-        if (twinflow.getInitialSketchTwinStatus().getType().equals(StatusType.SKETCH)) {
+        if (!twinflow.getInitialSketchTwinStatus().getType().equals(StatusType.SKETCH)) {
             throw new ServiceException(ErrorCodeTwins.TWIN_STATUS_INCORRECT, "configured status[{}] is not a sketch status", sketchStatus);
         }
         return twinflow.getInitialSketchTwinStatus();
