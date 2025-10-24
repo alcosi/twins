@@ -111,7 +111,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
 
     public String getValidationErrorMessage(T entity) throws ServiceException {
         if (entity instanceof EasyLoggable easyLoggable)
-            return easyLoggable.easyLog(EasyLoggable.Level.NORMAL) + " is invalid. Please check log for details";
+            return easyLoggable.logNormal() + " is invalid. Please check log for details";
         else
             return "entity of class[" + entity.getClass().getSimpleName() + "] is invalid";
     }
@@ -241,6 +241,11 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         return true;
     }
 
+    @Override
+    public void beforeValidateEntities(Collection<T> entities, EntitySmartService.EntityValidateMode entityValidateMode) {
+
+    }
+
     public T saveSafe(T entity) throws ServiceException {
         validateEntityAndThrow(entity, EntitySmartService.EntityValidateMode.beforeSave);
         return entityRepository().save(entity);
@@ -283,9 +288,6 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         }
         return entity;
     }
-
-    @Override
-    public abstract boolean validateEntity(T entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException;
 
     public boolean logErrorAndReturnFalse(String message) {
         log.error(message);
