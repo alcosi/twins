@@ -50,6 +50,9 @@ public class TwinflowEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @Column(name = "initial_sketch_twin_status_id")
+    private UUID initialSketchTwinStatusId;
+
     @ManyToOne
     @EqualsAndHashCode.Exclude
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
@@ -78,6 +81,11 @@ public class TwinflowEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @JoinColumn(name = "initial_twin_status_id", insertable = false, updatable = false, nullable = false)
     private TwinStatusEntity initialTwinStatus;
+
+    @ManyToOne
+    @EqualsAndHashCode.Exclude
+    @JoinColumn(name = "initial_sketch_twin_status_id", insertable = false, updatable = false, nullable = false)
+    private TwinStatusEntity initialSketchTwinStatus;
 
     //    needed for specification
     @Deprecated

@@ -435,7 +435,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinEntity.getId() == null)
             twinEntity.setId(UUID.randomUUID()); // this id is necessary for fields and links. Because entity is not stored currently
         if (twinCreate.isSketchMode()) {
-            twinEntity.setTwinStatusId(SystemEntityService.TWIN_STATUS_SKETCH);
+            setInitSketchStatus(twinEntity);
         } else if (twinEntity.getTwinStatusId() == null) {
             setInitStatus(twinEntity);
         }
@@ -448,6 +448,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinEntity
                 .setTwinStatusId(twinflowEntity.getInitialTwinStatusId())
                 .setTwinStatus(twinflowEntity.getInitialTwinStatus());
+    }
+
+    public void setInitSketchStatus(TwinEntity twinEntity) throws ServiceException {
+        TwinflowEntity twinflowEntity = twinflowService.loadTwinflow(twinEntity);
+        var sketchStatus = twinflowService.getInitSketchStatusSafe(twinflowEntity);
+        twinEntity
+                .setTwinStatus(sketchStatus)
+                .setTwinStatusId(sketchStatus.getId());
     }
 
     public UUID detectDeletePermissionId(TwinEntity twinEntity) throws ServiceException {
@@ -666,7 +674,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinChangesRecorder.hasChanges())
             twinChangesCollector.add(twinChangesRecorder.getRecorder());
         if (MapUtils.isNotEmpty(twinUpdate.getFields())) {
-            validateFields(twinUpdate.getTwinEntity(), twinUpdate.getFields());
+            validateFields(twinUpdate.getDbTwinEntity(), twinUpdate.getFields());
             updateTwinFields(twinChangesRecorder.getDbEntity(), twinUpdate.getFields().values().stream().toList(), twinChangesCollector);
         }
         attachmentService.cudAttachments(twinUpdate.getDbTwinEntity(), twinUpdate.getAttachmentCUD(), twinChangesCollector);
@@ -681,14 +689,16 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (!twinUpdate.getMode().equals(TwinUpdate.Mode.sketchUpdate)) {
             return;
         }
+        UUID twinUpdateStatus = twinUpdate.getTwinEntity().getTwinStatusId();
         //perhaps we can finalize the sketch
         if (isAllRequiredFieldsFilled(twinUpdate)) {
             log.info("All required fields for sketch {} is filled", twinUpdate.getDbTwinEntity().logNormal());
-            UUID twinUpdateStatus = twinUpdate.getTwinEntity().getTwinStatusId();
-            if (twinUpdateStatus == null || twinUpdateStatus.equals(SystemEntityService.TWIN_STATUS_SKETCH))
+            if (twinUpdateStatus == null || twinStatusService.isSketch(twinUpdateStatus)) //perhaps we need to check only if this is initSketchStatus
                 setInitStatus(twinUpdate.getTwinEntity());
             twinUpdate.setMode(TwinUpdate.Mode.sketchFinalize);
-        } else if (twinUpdate.getTwinEntity().getTwinStatusId() != null && !twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinStatusId())) {
+        } else if (twinUpdate.getTwinEntity().getTwinStatusId() != null
+                && !twinStatusService.isSketch(twinUpdateStatus)
+                && !twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinStatusId())) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, "{} can not change status to {}, because not all of required fields are filled", twinUpdate.getDbTwinEntity().logDetailed(), twinUpdate.getTwinEntity().getTwinStatusId());
         }
     }
@@ -744,7 +754,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
         twinflowFactoryService.runFactoryOn(twinUpdate, factoryLauncher);
         if (factoryLauncher.equals(FactoryLauncher.onSketchFinalize)
-                && SystemEntityService.TWIN_STATUS_SKETCH.equals(twinUpdate.getTwinEntity().getTwinStatusId())) {
+                && twinUpdate.getTwinEntity().isSketch()) {
             twinUpdate.setMode(TwinUpdate.Mode.sketchFinalizeRestricted);
         }
     }
@@ -1521,7 +1531,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public void validateFields(TwinCreate twinCreate) throws ServiceException {
         if (twinCreate.isSketchMode()) {
-            twinCreate.getTwinEntity().setTwinStatusId(SystemEntityService.TWIN_STATUS_SKETCH);
+            setInitSketchStatus(twinCreate.getTwinEntity());
         }
         validateFields(twinCreate.getTwinEntity(), twinCreate.getFields());
     }
@@ -1558,4 +1568,23 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         return Optional.of(fieldValue);
     }
+
+    public void loadClass(TwinEntity src) throws ServiceException {
+        loadClass(Collections.singletonList(src));
+    }
+
+    public void loadClass(Collection<TwinEntity> collection) throws ServiceException {
+        KitGrouped<TwinEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinEntity::getId, TwinEntity::getTwinClassId);
+        for (var entry : collection) {
+            if (entry.getTwinClass() == null)
+                needLoad.add(entry);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        Kit<TwinClassEntity, UUID> items = twinClassService.findEntitiesSafe(needLoad.getGroupedKeySet());
+        for (var twin : needLoad) {
+            twin.setTwinClass(items.get(twin.getTwinClassId()));
+        }
+    }
+
 }

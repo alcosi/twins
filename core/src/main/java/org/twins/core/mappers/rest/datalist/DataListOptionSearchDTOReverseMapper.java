@@ -1,16 +1,10 @@
 package org.twins.core.mappers.rest.datalist;
 
-import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.dto.rest.datalist.DataListOptionSearchDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Component
 public class DataListOptionSearchDTOReverseMapper extends RestSimpleDTOMapper<DataListOptionSearchDTOv1, DataListOptionSearch> {
@@ -38,6 +32,7 @@ public class DataListOptionSearchDTOReverseMapper extends RestSimpleDTOMapper<Da
                 .setStatusIdExcludeList(src.getStatusIdExcludeList())
                 .setExternalIdLikeList(src.getExternalIdLikeList())
                 .setExternalIdNotLikeList(src.getExternalIdNotLikeList())
+                .setValidForTwinClassFieldIdList(src.getValidForTwinClassFieldIdList())
         ;
     }
 }

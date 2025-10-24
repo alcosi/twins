@@ -42,6 +42,11 @@ public class TwinflowBaseDTOv1 { //todo rename me
     @Schema(description = "initialStatusId")
     @RelatedObject(type = TwinStatusDTOv1.class, name = "initialStatus")
     public UUID initialStatusId;
+
+    @Schema(description = "initialSketchStatusId")
+    public UUID initialSketchStatusId;
+
+    @Schema(description = "twin class")
+    public TwinClassBaseDTOv1 twinClass;
+
 }
-
-

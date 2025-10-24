@@ -121,7 +121,7 @@ public class TwinCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")
     })
     @PostMapping(value = "/private/twin/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> twinCreateFromJson(@RequestBody TwinCreateRqDTOv2 request) {
+    public ResponseEntity<?> twinCreateV2(@RequestBody TwinCreateRqDTOv2 request) {
         return createTwinV2(request, Collections.emptyMap());
     }
 
@@ -139,7 +139,7 @@ public class TwinCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")
     })
     @PostMapping(value = "/private/twin/v2", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> twinCreateFromMultipart(
+    public ResponseEntity<?> twinCreateV2Multipart(
             @Schema(hidden = true) MultipartHttpServletRequest request,
             @Schema(implementation = TwinCreateRqDTOv2.class) @RequestPart("request") byte[] requestBytes) {
         Map<String, MultipartFile> filesMap = new HashMap<>();

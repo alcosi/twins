@@ -18,7 +18,6 @@ import org.twins.core.dto.rest.twin.TwinChangeClassStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
-import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
@@ -163,7 +162,7 @@ public class TwinUpdateClassService {
             if (twinChangeClass.getBehavior() != null && twinChangeClass.getBehavior().contains(TwinChangeClassStrategy.throwOnFieldRequiredNotFilled))
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, "Twin's doesn't has all required fields of the new class.");
             // If not all required fields are filled, set the status to SKETCH
-            dbTwinEntity.setTwinStatusId(SystemEntityService.TWIN_STATUS_SKETCH);
+            twinService.setInitSketchStatus(dbTwinEntity);
         } else {
             // Try to keep the current status if it's valid for the new class
             UUID currentStatusId = dbTwinEntity.getTwinStatusId();

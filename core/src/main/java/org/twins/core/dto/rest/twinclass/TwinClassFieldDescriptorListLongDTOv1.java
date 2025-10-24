@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -27,6 +28,19 @@ public class TwinClassFieldDescriptorListLongDTOv1 implements TwinClassFieldDesc
     @Schema(description = "Data list id for grabbing valid options", example = "")
     @RelatedObject(type = DataListDTOv1.class, name = "dataList")
     public UUID dataListId;
+
+    @Schema(description = "Valid option id list", example = "")
+    private Set<UUID> dataListOptionIdList;
+
+    @Schema(description = "Excluded option id list", example = "")
+    private Set<UUID> dataListOptionIdExcludeList;
+
+    @Schema(description = "Valid subset id list", example = "")
+    private Set<UUID> dataListSubsetIdList;
+
+    @Schema(description = "Excluded subset id list", example = "")
+    private Set<UUID> dataListSubsetIdExcludeList;
+
 }
 
 
