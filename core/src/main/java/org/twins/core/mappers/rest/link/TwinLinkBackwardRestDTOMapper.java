@@ -9,7 +9,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
 import org.twins.core.mappers.rest.mappercontext.modes.RelationTwinMode;
-import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
@@ -18,7 +18,7 @@ public class TwinLinkBackwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkE
     private final TwinLinkRestDTOMapper twinLinkRestDTOMapper;
 
     @MapperModePointerBinding(modes = RelationTwinMode.TwinByLinkMode.class)
-    private final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
+    private final TwinBaseRestDTOMapper twinBaseV2RestDTOMapper;
 
     @MapperModePointerBinding(modes = LinkMode.TwinLink2LinkMode.class)
     private final LinkBackwardRestDTOMapper linkBackwardRestDTOMapper;

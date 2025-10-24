@@ -12,6 +12,7 @@ import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -68,4 +69,7 @@ public class TwinBaseDTOv1 {
 
     @Schema(description = "freeze")
     public Boolean freeze;
+
+    @Schema(description = "aliases")
+    public Set<String> aliases;
 }

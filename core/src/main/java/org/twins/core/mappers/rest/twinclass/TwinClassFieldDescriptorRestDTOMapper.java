@@ -17,7 +17,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
-import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
 import java.util.stream.Collectors;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<FieldDescriptor, TwinClassFieldDescriptorDTO> {
 
     @MapperModePointerBinding(modes = TwinMode.TwinClassFieldDescriptor2TwinMode.class)
-    private final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
+    private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
 
     @MapperModePointerBinding(modes = DataListOptionMode.TwinClassFieldDescriptor2DataListOptionMode.class)
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
@@ -122,7 +122,7 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
             } else {
                 return new TwinClassFieldDescriptorLinkDTOv1()
                         .multiple(linkDescriptor.multiple())
-                        .dstTwins(twinBaseV2RestDTOMapper.convertCollection(linkDescriptor.dstTwins(),
+                        .dstTwins(twinBaseRestDTOMapper.convertCollection(linkDescriptor.dstTwins(),
                                 mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinMode.TwinClassFieldDescriptor2TwinMode.SHORT))
                         ));
             }

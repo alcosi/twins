@@ -9,7 +9,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
 import org.twins.core.mappers.rest.mappercontext.modes.RelationTwinMode;
-import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
@@ -18,7 +18,7 @@ public class TwinLinkForwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEn
     private final TwinLinkRestDTOMapper twinLinkRestDTOMapper;
 
     @MapperModePointerBinding(modes = RelationTwinMode.TwinByLinkMode.class)
-    private final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
+    private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
 
     @MapperModePointerBinding(modes = LinkMode.TwinLink2LinkMode.class)
     private final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
@@ -29,7 +29,7 @@ public class TwinLinkForwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEn
         dst
                 .setDstTwinId(src.getDstTwinId());
         if (mapperContext.hasModeButNot(RelationTwinMode.TwinByLinkMode.WHITE)) {
-            twinBaseV2RestDTOMapper.postpone(src.getDstTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByLinkMode.GREEN));
+            twinBaseRestDTOMapper.postpone(src.getDstTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByLinkMode.GREEN));
         }
         if (mapperContext.hasModeButNot(LinkMode.TwinLink2LinkMode.HIDE)) {
             linkForwardRestDTOMapper.postpone(src.getLink(), mapperContext.forkOnPoint(LinkMode.TwinLink2LinkMode.SHORT));
