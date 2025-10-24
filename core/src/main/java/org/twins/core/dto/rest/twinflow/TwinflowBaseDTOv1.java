@@ -37,6 +37,9 @@ public class TwinflowBaseDTOv1 {
     @Schema(description = "initialStatusId")
     public UUID initialStatusId;
 
+    @Schema(description = "initialSketchStatusId")
+    public UUID initialSketchStatusId;
+
     @Schema(description = "twin class")
     public TwinClassBaseDTOv1 twinClass;
 
