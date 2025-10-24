@@ -17,6 +17,7 @@ public class FieldDescriptorList extends FieldDescriptor {
     private boolean supportCustom;
     private boolean multiple;
     private UUID dataListId;
+    private UUID defaultDataListOptionId;
     private Set<UUID> dataListOptionIdList;
     private Set<UUID> dataListOptionIdExcludeList;
     private Set<UUID> dataListSubsetIdList;
