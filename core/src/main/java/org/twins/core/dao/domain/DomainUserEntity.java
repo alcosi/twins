@@ -13,7 +13,6 @@ import org.twins.core.dao.i18n.LocaleConverter;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
-import java.util.Collection;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
@@ -44,6 +43,9 @@ public class DomainUserEntity implements EasyLoggable {
 
     @Column(name = "last_active_business_account_id")
     private UUID lastActiveBusinessAccountId;
+
+    @Column(name = "subscription_enabled")
+    private boolean subscriptionEnabled;
 
     @ManyToOne
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)

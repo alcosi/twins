@@ -22,6 +22,8 @@ import org.twins.core.enums.action.TwinAction;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.domain.SubscriptionEventType;
+import org.twins.core.dao.history.*;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.history.HistoryRepository;
 import org.twins.core.enums.history.HistoryType;
@@ -36,6 +38,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.mappers.SubscriptionEventTypeToHistoryTypeMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinActionService;
@@ -45,6 +48,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -358,6 +362,41 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .shotFromTwin(fromTwinEntity)
                 .shotToTwin(toTwinEntity);
         return new HistoryItem<>(HistoryType.linkUpdated, context);
+    }
+
+    public List<HistoryRepository.TwinUsersProjection> findRecentHistoryItems(Timestamp before) {
+        return historyRepository.findRecentHistoryItems(before);
+    }
+
+    public List<TwinUsersForDispatch> getHistoryItemsForDispatching(Timestamp before, int batchSize, SubscriptionEventType type) {
+        List<HistoryRepository.PickedBatch> picked = historyRepository.pickBatch(
+                before,
+                batchSize,
+                SubscriptionEventTypeToHistoryTypeMapper.map(type).stream().map(HistoryType::getId).toList());
+
+        // Map of twin -> historyIds (created above when rows were moved to IN_PROGRESS)
+        Map<UUID, UUID[]> idsPerTwin = picked.stream()
+                .collect(Collectors.toMap(HistoryRepository.PickedBatch::getTwinId, HistoryRepository.PickedBatch::getHistoryIds));
+
+        // users for twins (historyIds will be filled from the map)
+        List<HistoryRepository.TwinUsersProjection> twinUsers = historyRepository.findUsersForTwins(idsPerTwin.keySet());
+
+        // create immutable DTOs combining both sources
+        return twinUsers.stream()
+                .map(p -> new TwinUsersForDispatch(
+                        p.getTwinId(),
+                        p.getDomainId(),
+                        p.getUserIds(),
+                        idsPerTwin.getOrDefault(p.getTwinId(), new UUID[0])
+                ))
+                .toList();
+    }
+
+    /**
+     * Must be executed within a transaction as it is modifying.
+     */
+    public int updateAllNotified(Collection<UUID> ids, HistoryDispatchStatus dispatchStatus) {
+        return historyRepository.updateAllNotified(ids, dispatchStatus);
     }
 
     /**

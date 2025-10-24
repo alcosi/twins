@@ -29,4 +29,10 @@ public interface DomainUserRepository extends CrudRepository<DomainUserEntity, U
     @Modifying
     @Query("UPDATE DomainUserEntity e SET e.i18nLocaleId = :locale WHERE e.domainId = :domainId AND e.userId = :userId")
     void updateLocale(@Param("domainId") UUID domainId, @Param("userId") UUID userId, @Param("locale") Locale locale);
+
+    @Modifying
+    @Query("UPDATE DomainUserEntity e SET e.subscriptionEnabled = :subscriptionEnabled WHERE e.domainId = :domainId AND e.userId = :userId")
+    void updateDomainUserSubscriptionStatus(@Param("domainId") UUID domainId,
+                                            @Param("userId") UUID userId,
+                                            @Param("subscriptionEnabled") boolean subscriptionEnabled);
 }
