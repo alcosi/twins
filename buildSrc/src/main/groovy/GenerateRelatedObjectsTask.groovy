@@ -6,6 +6,7 @@ import com.github.javaparser.ast.body.MethodDeclaration
 import com.github.javaparser.ast.expr.AnnotationExpr
 import com.github.javaparser.ast.expr.MemberValuePair
 import com.github.javaparser.ast.expr.NormalAnnotationExpr
+import com.github.javaparser.ast.type.ClassOrInterfaceType
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter
 import com.github.javaparser.symbolsolver.JavaSymbolSolver
 import com.github.javaparser.symbolsolver.resolution.typesolvers.CombinedTypeSolver
@@ -23,20 +24,25 @@ abstract class GenerateRelatedObjectsTask extends DefaultTask {
     void generate() {
         def sourceDir = project.file('src/main/java/org/twins/core/dto/rest')
         def outputDir = project.file('build/generated/sources/dto/java/main/org/twins/core/dto/rest')
+        def supportedDtoTypes = []
+
         try {
             // Configure JavaParser with SymbolSolver
-            CombinedTypeSolver typeSolver = new CombinedTypeSolver();
-            typeSolver.add(new ReflectionTypeSolver());
-            typeSolver.add(new JavaParserTypeSolver(sourceDir));
+            CombinedTypeSolver typeSolver = new CombinedTypeSolver()
+            typeSolver.add(new ReflectionTypeSolver())
+            typeSolver.add(new JavaParserTypeSolver(sourceDir))
             typeSolver.add(new JavaParserTypeSolver(project.file('src/main/java')))
-            ParserConfiguration parserConfig = new ParserConfiguration();
-            parserConfig.setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_21);
-            parserConfig.setSymbolResolver(new JavaSymbolSolver(typeSolver));
-            StaticJavaParser.setConfiguration(parserConfig);
-            System.out.println("ParserConfiguration with SymbolSolver loaded: " + ParserConfiguration.class);
+            ParserConfiguration parserConfig = new ParserConfiguration()
+            parserConfig.setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_21)
+            parserConfig.setSymbolResolver(new JavaSymbolSolver(typeSolver))
+            StaticJavaParser.setConfiguration(parserConfig)
+            System.out.println("ParserConfiguration with SymbolSolver loaded: " + ParserConfiguration.class)
+            supportedDtoTypes = collectSupportedRelatedObjects()
+            // Parse RelatedObjectsDTOv1 to extract supported DTO types from Map fields
+
         } catch (Exception e) {
-            System.err.println("Failed to configure JavaParser: " + e.getMessage());
-            throw e;
+            System.err.println("Failed to configure JavaParser or parse RelatedObjectsDTOv1: " + e.getMessage())
+            throw e
         }
 
         if (outputDir.exists()) {
@@ -81,6 +87,12 @@ abstract class GenerateRelatedObjectsTask extends DefaultTask {
                                         }
                                     }
 
+                                    // Validate type against supportedDtoTypes
+                                    if (!supportedDtoTypes.contains(type)) {
+                                        logger.error("Invalid RelatedObject type '${type}' in ${sourcePath}. Supported types: ${supportedDtoTypes}")
+                                        throw new IllegalStateException("Invalid RelatedObject type '${type}' in ${sourcePath}. Supported types: ${supportedDtoTypes}")
+                                    }
+
                                     def fieldName = n.variables.first().nameAsString
                                     def elementType = n.elementType.toString()
                                     def isCollection = elementType.startsWith("List") ||
@@ -102,8 +114,8 @@ abstract class GenerateRelatedObjectsTask extends DefaultTask {
                         }
                         @Override
                         void visit(ClassOrInterfaceDeclaration n, Void arg) {
-                            super.visit(n, arg);
-                            if (n.isClassOrInterfaceDeclaration() ) {
+                            super.visit(n, arg)
+                            if (n.isClassOrInterfaceDeclaration()) {
                                 logger.lifecycle("Checking inheritance for class: ${n.nameAsString}")
                                 isResponseRelatedObjects = isExtendingResponseRelatedObjects(n)
                                 logger.lifecycle("Class ${n.nameAsString} extends ResponseRelatedObjectsDTOv1: ${isResponseRelatedObjects}")
@@ -134,8 +146,6 @@ abstract class GenerateRelatedObjectsTask extends DefaultTask {
 
                     // --- Work with class declaration ---
                     def classDecl = cu.findFirst(ClassOrInterfaceDeclaration).get()
-
-
 
                     // Add private field "relatedObjects"
                     if (!isResponseRelatedObjects) {
@@ -209,10 +219,38 @@ abstract class GenerateRelatedObjectsTask extends DefaultTask {
                     if (!cu.getImports().any { it.nameAsString == 'com.fasterxml.jackson.annotation.JsonIgnore' } && importJsonIgnore)
                         cu.addImport('com.fasterxml.jackson.annotation.JsonIgnore')
 
-
                     // --- Write generated class to output directory ---
                     outputFile.text = cu.toString()
                 }
+    }
+
+    private String[] collectSupportedRelatedObjects() {
+        def supportedDtoTypes = []
+        def relatedObjectsFile = project.file('src/main/java/org/twins/core/dto/rest/related/RelatedObjectsDTOv1.java')
+        if (relatedObjectsFile.exists()) {
+            def cu = StaticJavaParser.parse(relatedObjectsFile)
+            cu.accept(new VoidVisitorAdapter<Void>() {
+                @Override
+                void visit(FieldDeclaration n, Void arg) {
+                    super.visit(n, arg)
+                    n.variables.each { variable ->
+                        def type = variable.type
+                        if (type instanceof ClassOrInterfaceType && type.nameAsString == 'Map') {
+                            def typeArguments = type.asClassOrInterfaceType().typeArguments.orElse([])
+                            if (typeArguments.size() == 2) {
+                                def valueType = typeArguments[1].toString()
+                                supportedDtoTypes << valueType
+                            }
+                        }
+                    }
+                }
+            }, null)
+            logger.lifecycle("Supported DTO types from RelatedObjectsDTOv1 Map fields: ${supportedDtoTypes}")
+        } else {
+            logger.error("RelatedObjectsDTOv1.java not found")
+            throw new IllegalStateException("RelatedObjectsDTOv1.java not found")
+        }
+        return supportedDtoTypes
     }
 
     private boolean isExtendingResponseRelatedObjects(ClassOrInterfaceDeclaration classDecl) {

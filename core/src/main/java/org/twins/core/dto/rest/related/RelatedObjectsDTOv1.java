@@ -15,6 +15,7 @@ import org.twins.core.dto.rest.factory.FactoryMultiplierDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.i18n.I18nDTOv1;
+import org.twins.core.dto.rest.link.LinkDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
@@ -23,6 +24,7 @@ import org.twins.core.dto.rest.tier.TierDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
+import org.twins.core.dto.rest.twinflow.TwinflowSchemaDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
@@ -76,6 +78,12 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related twinflow map", example = "{twinflow map}")
     public Map<UUID, TwinflowBaseDTOv1> twinflowMap;
+
+    @Schema(description = "related twinflow schema map", example = "{twinflow schema map}")
+    public Map<UUID, TwinflowSchemaDTOv1> twinflowSchemaMap;
+
+    @Schema(description = "related link map", example = "{link map}")
+    public Map<UUID, LinkDTOv1> linkMap;
 
     @Schema(description = "related factory map", example = "{factory map}")
     public Map<UUID, FactoryDTOv1> factoryMap;
@@ -150,6 +158,8 @@ public class RelatedObjectsDTOv1 {
             return (T) twinflowMap.get(id);
         } else if (relatedObjectClass == FactoryDTOv1.class) {
             return (T) factoryMap.get(id);
+        } else if (relatedObjectClass == LinkDTOv1.class) {
+            return (T) linkMap.get(id);
         } else if (relatedObjectClass == FactoryPipelineDTOv1.class) {
             return (T) factoryPipelineMap.get(id);
         } else if (relatedObjectClass == FactoryConditionSetDTOv1.class) {
@@ -172,6 +182,8 @@ public class RelatedObjectsDTOv1 {
             return (T) tierMap.get(id);
         } else if (relatedObjectClass == FeaturerDTOv1.class) {
             return (T) featurerMap.get(id);
+        } else if (relatedObjectClass == TwinflowSchemaDTOv1.class) {
+            return (T) twinflowSchemaMap.get(id);
         }
         return null;
     }
