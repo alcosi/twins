@@ -21,6 +21,7 @@ import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinClassFieldSearch;
+import org.twins.core.enums.twinclass.TwinClassFieldVisibility;
 import org.twins.core.featurer.classfield.finder.FieldFinder;
 import org.twins.core.featurer.classfield.sorter.FieldSorter;
 import org.twins.core.service.SystemEntityService;
@@ -29,6 +30,7 @@ import org.twins.core.service.auth.AuthService;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.cambium.common.util.SetUtils.narrowSet;
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
@@ -103,7 +105,10 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
                 checkUuidIn(search.getViewPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.editPermissionId),
                 checkTernary(search.getRequired(), TwinClassFieldEntity.Fields.required),
                 checkFieldLikeIn(search.getExternalIdLikeList(), false, true, TwinClassFieldEntity.Fields.externalId),
-                checkFieldLikeIn(search.getExternalIdNotLikeList(), true, true, TwinClassFieldEntity.Fields.externalId));
+                checkFieldLikeIn(search.getExternalIdNotLikeList(), true, true, TwinClassFieldEntity.Fields.externalId),
+                checkFieldLikeIn(safeConvertVisibility(search.getFieldVisibilityList()), false, true, TwinClassFieldEntity.Fields.twinClassFieldVisibilityId),
+                checkFieldLikeIn(safeConvertVisibility(search.getFieldVisibilityExcludeList()), true, true, TwinClassFieldEntity.Fields.twinClassFieldVisibilityId)
+        );
     }
 
     private Specification<TwinClassFieldEntity> addSorting(TwinClassFieldSearch search, SimplePagination pagination, Specification<TwinClassFieldEntity> specification) throws ServiceException {
@@ -164,5 +169,9 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
         mainSearch.setTwinClassIdMap(MapUtils.narrowMapOfBooleans(mainSearch.getTwinClassIdMap(), narrowSearch.getTwinClassIdMap(), Boolean.TRUE));
         mainSearch.setTwinClassIdExcludeMap(MapUtils.narrowMapOfBooleans(mainSearch.getTwinClassIdExcludeMap(), narrowSearch.getTwinClassIdExcludeMap(), Boolean.TRUE));
 
+    }
+
+    private Set<String> safeConvertVisibility(Set<TwinClassFieldVisibility> set) {
+        return set == null ? Collections.emptySet() : set.stream().map(TwinClassFieldVisibility::name).collect(Collectors.toSet());
     }
 }

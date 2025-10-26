@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.enums.twinclass.TwinClassFieldVisibility;
 
 import java.util.Map;
 import java.util.Set;
@@ -84,4 +85,10 @@ public class TwinClassFieldSearchDTOv1 {
 
     @Schema(description = "backend validation error i18n not like list")
     public Set<String> beValidationErrorI18nNotLikeList;
+
+    @Schema(description = "field visibility id list")
+    public Set<TwinClassFieldVisibility> twinClassFieldVisibilityList;
+
+    @Schema(description = "field visibility id exclude list")
+    public Set<TwinClassFieldVisibility> twinClassFieldVisibilityExcludeList;
 }

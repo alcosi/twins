@@ -8,6 +8,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dao.twinclass.TwinClassFieldSearchEntity;
+import org.twins.core.enums.twinclass.TwinClassFieldVisibility;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -18,6 +19,7 @@ import java.util.function.Function;
 @Accessors(chain = true)
 @FieldNameConstants
 public class TwinClassFieldSearch {
+
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
     private Map<UUID, Boolean> twinClassIdMap;
@@ -36,6 +38,8 @@ public class TwinClassFieldSearch {
     private Set<UUID> viewPermissionIdExcludeList;
     private Set<UUID> editPermissionIdList;
     private Set<UUID> editPermissionIdExcludeList;
+    private Set<TwinClassFieldVisibility> fieldVisibilityList;
+    private Set<TwinClassFieldVisibility> fieldVisibilityExcludeList;
     private Ternary required;
     private boolean excludeSystemFields = true;
     private boolean inactiveSearch = false;

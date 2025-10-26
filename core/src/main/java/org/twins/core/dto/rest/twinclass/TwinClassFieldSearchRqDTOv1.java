@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
+import org.twins.core.enums.twinclass.TwinClassFieldVisibility;
 
 import java.util.Map;
 import java.util.Set;
@@ -71,6 +72,12 @@ public class TwinClassFieldSearchRqDTOv1 extends Request {
 
     @Schema(description = "edit permission id exclude list")
     public Set<UUID> editPermissionIdExcludeList;
+
+    @Schema(description = "field visibility id list")
+    public Set<TwinClassFieldVisibility> twinClassFieldVisibilityList;
+
+    @Schema(description = "field visibility id exclude list")
+    public Set<TwinClassFieldVisibility> twinClassFieldVisibilityExcludeList;
 
     @Schema(description = "required", example = DTOExamples.TERNARY)
     public Ternary required;
