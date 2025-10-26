@@ -147,6 +147,10 @@ public class TwinClassFieldPlugService extends EntitySecureFindServiceImpl<TwinC
         entitySmartService.deleteAllEntitiesAndLog(entitiesToDelete, entityRepository());
     }
 
+    public void loadClasses(TwinClassFieldPlugEntity plugEntity) {
+        loadClasses(List.of(plugEntity));
+    }
+
     public void loadClasses(Collection<TwinClassFieldPlugEntity> entities) {
         if (CollectionUtils.isEmpty(entities)) {
             return;
@@ -171,6 +175,10 @@ public class TwinClassFieldPlugService extends EntitySecureFindServiceImpl<TwinC
                 entity.setTwinClass(entry.getValue());
             }
         }
+    }
+
+    public void loadFields(TwinClassFieldPlugEntity plugEntity) {
+        loadFields(List.of(plugEntity));
     }
 
     public void loadFields(Collection<TwinClassFieldPlugEntity> entities) {

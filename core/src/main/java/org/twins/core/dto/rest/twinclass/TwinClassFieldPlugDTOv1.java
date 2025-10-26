@@ -2,19 +2,19 @@ package org.twins.core.dto.rest.twinclass;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.DTOExamples;
 
+import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
-@Schema(name = "TwinClassFieldPlugV1")
-public class TwinClassFieldPlugDTOv1 extends TwinClassFieldPlugBaseDTOv1 {
+@Schema(name = "TwinClassFieldPlugBaseV1")
+public class TwinClassFieldPlugDTOv1 {
 
-    @Schema(description = "twin class dto")
-    private TwinClassDTOv1 twinClass;
+    @Schema(example = DTOExamples.TWIN_CLASS_ID)
+    private UUID twinClassId;
 
-    @Schema(description = "twin class field dto")
-    private TwinClassFieldDTOv1 twinClassField;
+    @Schema(example = DTOExamples.TWIN_CLASS_FIELD_ID)
+    private UUID twinClassFieldId;
 }

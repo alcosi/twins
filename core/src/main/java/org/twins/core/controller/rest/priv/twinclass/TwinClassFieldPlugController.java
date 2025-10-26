@@ -18,7 +18,6 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twinclass.TwinClassFieldPlugEntity;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldPlugRqDTOv1;
@@ -28,7 +27,6 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldPlugRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldPlugRestDTOReverseMapper;
-import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassFieldPlugService;
 
 import java.util.List;
@@ -37,7 +35,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.TWIN_CLASS_FIELD_PLUG_MANAGE)
+//@ProtectedBy(Permissions.TWIN_CLASS_FIELD_PLUG_MANAGE)
 public class TwinClassFieldPlugController extends ApiController {
 
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;

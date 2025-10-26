@@ -15,5 +15,5 @@ import java.util.List;
 public class TwinClassFieldPlugRqDTOv1 extends Request {
 
     @Schema(description = "fields to plug")
-    private List<TwinClassFieldPlugBaseDTOv1> fieldsToPlug;
+    private List<TwinClassFieldPlugDTOv1> fieldsToPlug;
 }
