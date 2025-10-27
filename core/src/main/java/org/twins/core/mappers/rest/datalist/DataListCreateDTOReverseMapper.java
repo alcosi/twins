@@ -18,6 +18,6 @@ public class DataListCreateDTOReverseMapper extends RestSimpleDTOMapper<DataList
     @Override
     public void map(DataListCreateRqDTOv1 src, DataListCreate dst, MapperContext mapperContext) throws Exception {
         dataListSaveDTOReverseMapper.map(src, dst, mapperContext);
-        dataListOptionSaveDTOReverseMapper.map(src.getDefaultOption(), dst.getDefaultOption(), mapperContext);
+        dataListOptionSaveDTOReverseMapper.convert(src.getDefaultOption(), mapperContext);
     }
 }
