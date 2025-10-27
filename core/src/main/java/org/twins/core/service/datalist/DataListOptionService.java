@@ -5,7 +5,6 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
@@ -305,8 +304,6 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         }
 
         options.addAll(externalOptions.getCollection());
-        options = processFinalOptions(dataListId, options, businessAccountId, supportCustomValue);
-
         return options;
     }
 
@@ -318,20 +315,5 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 .setDataListId(dataListId)
                 .setExternalId(externalId);
     }
-
-    private List<DataListOptionEntity> processFinalOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId, boolean supportCustomValue) {
-        List<DataListOptionEntity> ret;
-
-        if (supportCustomValue) {
-            ret = dataListService.processNewOptions(dataListId, options, businessAccountId);
-        } else {
-            ret = options.stream()
-                    .filter(o -> ObjectUtils.isNotEmpty(o.getId()))
-                    .collect(Collectors.toList());
-        }
-
-        return ret;
-    }
-
     //todo move *options methods from  DataListService
 }
