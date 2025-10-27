@@ -45,6 +45,7 @@ public class FieldTyperSelect extends FieldTyperList {
             value.setOptions(dataListService.processNewOptions(datalistId, value.getOptions(), twin.getOwnerBusinessAccountId()));
         else
             value.getOptions().removeIf(o -> ObjectUtils.isEmpty(o.getId()));
+
         super.serializeValue(properties, twin, value, twinChangesCollector);
     }
 
