@@ -35,7 +35,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-//@ProtectedBy(Permissions.TWIN_CLASS_FIELD_PLUG_MANAGE)
+@ProtectedBy(Permissions.TWIN_CLASS_FIELD_PLUG_MANAGE)
 public class TwinClassFieldPlugController extends ApiController {
 
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
