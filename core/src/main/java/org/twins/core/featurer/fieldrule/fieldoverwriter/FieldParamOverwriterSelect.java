@@ -69,12 +69,10 @@ public class FieldParamOverwriterSelect extends FieldParamOverwriter<FieldDescri
         else {
             fieldOverwriterDescriptorSelect.options(dataListService.findByDataListId(listId));
         }
-
-        fieldOverwriterDescriptorSelect.applyUUIDSetIfNotEmpty(dataListOptionIds.extract(properties), fieldOverwriterDescriptorSelect::dataListOptionIdList);
-        fieldOverwriterDescriptorSelect.applyUUIDSetIfNotEmpty(dataListOptionExcludeIds.extract(properties), fieldOverwriterDescriptorSelect::dataListOptionIdExcludeList);
-        fieldOverwriterDescriptorSelect.applyUUIDSetIfNotEmpty(dataListSubsetIds.extract(properties), fieldOverwriterDescriptorSelect::dataListSubsetIdList);
-        fieldOverwriterDescriptorSelect.applyUUIDSetIfNotEmpty(dataListSubsetIdExcludeIds.extract(properties), fieldOverwriterDescriptorSelect::dataListSubsetIdExcludeList);
-
+        fieldOverwriterDescriptorSelect.dataListOptionIdList(dataListOptionIds.extract(properties))
+                .dataListOptionIdExcludeList(dataListOptionExcludeIds.extract(properties))
+                .dataListSubsetIdList(dataListSubsetIds.extract(properties))
+                .dataListSubsetIdExcludeList(dataListSubsetIdExcludeIds.extract(properties));
         return fieldOverwriterDescriptorSelect;
     }
 
