@@ -19,6 +19,7 @@ import org.twins.core.dao.twin.TwinFieldDataListEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.domain.search.TwinFieldSearchList;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
@@ -28,6 +29,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetDatalistOptionId;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetDatalistSubsetId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsDataListId;
+import org.twins.core.service.datalist.DataListOptionSearchService;
 import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.history.HistoryItem;
@@ -45,6 +47,9 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
 
     @Autowired
     DataListOptionService dataListOptionService;
+
+    @Autowired
+    DataListOptionSearchService dataListOptionSearchService;
 
     @FeaturerParam(name = "Datalist", description = "", order = 1)
     public static final FeaturerParamUUID dataListId = new FeaturerParamUUIDTwinsDataListId("listUUID");
@@ -173,22 +178,19 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
             UUID fieldListId = dataListId.extract(properties);
             Set<UUID> allowedDatalistOptionIds = dataListOptionIds.extract(properties);
             Set<UUID> excludedDatalistOptionIds = dataListOptionExcludeIds.extract(properties);
-            for (var option : fieldValue.getOptions()) {
-                if (!option.getDataListId().equals(fieldListId) ||
-                        (allowedDatalistOptionIds != null && !allowedDatalistOptionIds.isEmpty() && !allowedDatalistOptionIds.contains(option.getId()))
-                        || (excludedDatalistOptionIds != null && excludedDatalistOptionIds.contains(option.getId())))
-                    throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, fieldValue.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " optionId[" + option.getId() + "] is not valid for list[" + fieldListId + "]");
-            }
             Set<UUID> subsetIds = dataListSubsetIds.extract(properties);
             Set<UUID> subsetExcludeIds = dataListSubsetIdExcludeIds.extract(properties);
-            if ((subsetIds != null && !subsetIds.isEmpty()) || (subsetExcludeIds != null && !subsetExcludeIds.isEmpty())) {
-                Set<UUID> allowedSubsetsOptionIds = dataListService.findOptionIdsBySubsetIds(subsetIds);
-                Set<UUID> excludedSubsetsOptionIds = dataListService.findOptionIdsBySubsetIds(subsetExcludeIds);
-                for (var option : fieldValue.getOptions()) {
-                    if (allowedSubsetsOptionIds != null && !allowedSubsetsOptionIds.isEmpty() && !allowedSubsetsOptionIds.contains(option.getId())
-                            || (excludedSubsetsOptionIds != null && excludedSubsetsOptionIds.contains(option.getId())))
-                        throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST_SUBSET, fieldValue.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " optionId[" + option.getId() + "] is not valid for list[" + fieldListId + "] and given subset criteria");
-                }
+            DataListOptionSearch dataListOptionSearch = new DataListOptionSearch()
+                    .setIdList(allowedDatalistOptionIds)
+                    .setIdExcludeList(excludedDatalistOptionIds)
+                    .setDataListSubsetIdList(subsetIds)
+                    .setDataListSubsetIdExcludeList(subsetExcludeIds);
+            Set<UUID> allowedOptions = dataListOptionSearchService.findDataListOptions(dataListOptionSearch).stream()
+                    .map(DataListOptionEntity::getId).collect(Collectors.toSet());
+            for (var option : fieldValue.getOptions()) {
+                if (!option.getDataListId().equals(fieldListId) ||
+                        (!allowedOptions.isEmpty() && !allowedOptions.contains(option.getId())))
+                    throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, fieldValue.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " optionId[" + option.getId() + "] is not valid for list[" + fieldListId + "]");
             }
         } catch (ServiceException e) {
             return new ValidationResult(false, i18nService.translateToLocale(fieldValue.getTwinClassField().getBeValidationErrorI18nId()));
