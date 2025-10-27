@@ -45,8 +45,4 @@ public class TwinflowBaseDTOv1 { //todo rename me
 
     @Schema(description = "initialSketchStatusId")
     public UUID initialSketchStatusId;
-
-    @Schema(description = "twin class")
-    public TwinClassBaseDTOv1 twinClass;
-
 }
