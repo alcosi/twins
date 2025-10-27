@@ -93,6 +93,10 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Column(name = "has_dependent_fields")
     private Boolean hasDependentFields;
 
+    @Column(name = "`order`")
+    @Basic
+    private Integer order;
+
     @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;

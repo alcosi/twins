@@ -1,7 +1,10 @@
 package org.twins.core.dao.datalist;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -24,4 +27,8 @@ public interface DataListRepository extends CrudRepository<DataListEntity, UUID>
     List<DataListEntity> findByDomainIdAndIdIn(UUID domainId, Collection<UUID> ids);
 
     boolean existsByIdAndDomainIdOrIdAndDomainIdIsNull(UUID dataListId, UUID domainId, UUID dataListIdSame);
+
+    @Modifying
+    @Query("UPDATE DataListEntity d SET d.defaultDataListOptionId = ?2 WHERE d.id = ?1")
+    void updateDefaultOptionId(UUID dataListId, UUID optionId);
 }

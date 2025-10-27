@@ -55,4 +55,7 @@ public abstract class TwinClassFieldSaveDTOv1{
 
     @Schema(description = "I18n backend validation error", example = "")
     public I18nSaveDTOv1 beValidationErrorI18n;
+
+    @Schema(description = "order", example = "1")
+    public Integer order;
 }

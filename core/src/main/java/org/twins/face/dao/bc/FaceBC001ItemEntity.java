@@ -22,7 +22,8 @@ public class FaceBC001ItemEntity {
     @Column(name = "id")
     private UUID id;
 
-    @Column(name = "order")
+    @Column(name = "`order`")
+    @Basic
     private int order;
 
     @Column(name = "twin_pointer_id")
