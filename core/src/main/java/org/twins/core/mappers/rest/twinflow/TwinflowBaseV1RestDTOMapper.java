@@ -44,7 +44,8 @@ public class TwinflowBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
                         .setTwinClassId(src.getTwinClassId())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setCreatedByUserId(src.getCreatedByUserId())
-                        .setInitialStatusId(src.getInitialTwinStatusId());
+                        .setInitialStatusId(src.getInitialTwinStatusId())
+                        .setInitialSketchStatusId(src.getInitialSketchTwinStatusId());
                 break;
             case SHORT:
                 dst
@@ -61,7 +62,9 @@ public class TwinflowBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
         }
         if (mapperContext.hasModeButNot(StatusMode.TwinflowInitStatus2StatusMode.HIDE) && src.getCreatedByUserId() != null) {
             dst.setInitialStatusId(src.getInitialTwinStatusId());
+            dst.setInitialSketchStatusId(src.getInitialSketchTwinStatusId());
             twinStatusRestDTOMapper.postpone(src.getInitialTwinStatus(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(StatusMode.TwinflowInitStatus2StatusMode.SHORT)));
+            twinStatusRestDTOMapper.postpone(src.getInitialSketchTwinStatus(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(StatusMode.TwinflowInitStatus2StatusMode.SHORT)));
         }
     }
 

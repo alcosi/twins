@@ -42,6 +42,7 @@ public class LoggerUtils {
         MDC.remove(LOD_PREFIX);
         MDC.remove(CONTROLLER);
         MDC.remove(SESSION);
+        MDC.remove(TRACE_TREE);
     }
 
     public static String getShortTrace(Throwable th, int depth) {
@@ -79,7 +80,7 @@ public class LoggerUtils {
 
     public static void traceTreeLevelUp() {
         String currentLeaf = MDC.get(TRACE_TREE);
-        currentLeaf = (currentLeaf == null || currentLeaf.length() < 4) ? TRACE_TREE_LEAF : currentLeaf.substring(2);
+        currentLeaf = (currentLeaf == null || currentLeaf.length() < 4) ? "" : currentLeaf.substring(2);
         MDC.put(TRACE_TREE, currentLeaf);
     }
 
