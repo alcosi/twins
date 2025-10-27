@@ -15,4 +15,5 @@ public class DataListOptionSave {
     private String backgroundColor;
     private String fontColor;
     private Map<String, String> attributes;
+    private Boolean custom;
 }

@@ -313,7 +313,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 .setBusinessAccountId(businessAccountId)
                 .setStatus(DataListStatus.active)
                 .setDataListId(dataListId)
-                .setExternalId(externalId);
+                .setExternalId(externalId)
+                .setCustom(true);
     }
     //todo move *options methods from  DataListService
 }

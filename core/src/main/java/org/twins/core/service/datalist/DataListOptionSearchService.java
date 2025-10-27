@@ -80,7 +80,8 @@ public class DataListOptionSearchService {
                 checkDataListSubsetKey(search.getDataListSubsetKeyList(), false, true),
                 checkDataListSubsetKey(search.getDataListSubsetKeyExcludeList(), true, true),
                 checkFieldLikeIn(search.getExternalIdLikeList(), false, true, DataListOptionEntity.Fields.externalId),
-                checkFieldLikeIn(search.getExternalIdNotLikeList(), true, true, DataListOptionEntity.Fields.externalId));
+                checkFieldLikeIn(search.getExternalIdNotLikeList(), true, true, DataListOptionEntity.Fields.externalId),
+                checkTernary(search.getCustom(), DataListOptionEntity.Fields.custom));
     }
 
     private Specification<DataListOptionEntity> createBusinessAccountSpecification(ApiUser apiUser, DataListOptionSearch search) {

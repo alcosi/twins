@@ -33,6 +33,7 @@ public class DataListOptionSearchDTOReverseMapper extends RestSimpleDTOMapper<Da
                 .setExternalIdLikeList(src.getExternalIdLikeList())
                 .setExternalIdNotLikeList(src.getExternalIdNotLikeList())
                 .setValidForTwinClassFieldIdList(src.getValidForTwinClassFieldIdList())
+                .setCustom(src.getCustom())
         ;
     }
 }

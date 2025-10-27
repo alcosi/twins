@@ -19,6 +19,7 @@ public class DataListOptionSaveDTOReverseMapperV2 extends RestSimpleDTOMapper<Da
                 .setIcon(src.getIcon())
                 .setNameI18n(i18NSaveRestDTOReverseMapper.convert(src.getOptionI18n(), mapperContext))
                 .setAttributes(src.getAttributesMap())
-                .setExternalId(src.getExternalId());
+                .setExternalId(src.getExternalId())
+                .setCustom(src.getCustom());
     }
 }
