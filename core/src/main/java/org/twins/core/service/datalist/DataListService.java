@@ -25,6 +25,7 @@ import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.datalist.*;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.domain.datalist.DataListCreate;
 import org.twins.core.enums.datalist.DataListStatus;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -61,6 +62,7 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
     final TwinClassFieldService twinClassFieldService;
     final FeaturerService featurerService;
     final CacheManager cacheManager;
+    final DataListOptionService dataListOptionService;
 
     @Lazy
     final AuthService authService;
@@ -109,16 +111,29 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public DataListEntity createDataList(DataListSave dataListSave) throws ServiceException {
+    public DataListEntity createDataList(DataListCreate dataListCreate) throws ServiceException {
         DataListEntity dataListEntity = new DataListEntity()
-                .setKey(KeyUtils.lowerCaseNullSafe(dataListSave.getKey(), ErrorCodeTwins.DATALIST_KEY_INCORRECT))
+                .setKey(KeyUtils.lowerCaseNullSafe(dataListCreate.getKey(), ErrorCodeTwins.DATALIST_KEY_INCORRECT))
                 .setDomainId(authService.getApiUser().getDomainId())
-                .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_NAME, dataListSave.getNameI18n()).getId())
-                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_DESCRIPTION, dataListSave.getDescriptionI18n()).getId())
-                .setExternalId(dataListSave.getExternalId())
+                .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_NAME, dataListCreate.getNameI18n()).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_DESCRIPTION, dataListCreate.getDescriptionI18n()).getId())
+                .setExternalId(dataListCreate.getExternalId())
                 .setCreatedAt(Timestamp.from(Instant.now()));
-        setAttributes(dataListEntity, dataListSave);
-        return saveSafe(dataListEntity);
+        setAttributes(dataListEntity, dataListCreate);
+
+        saveSafe(dataListEntity);
+
+        if (dataListCreate.getDefaultOption() != null) {
+            DataListOptionEntity optionEntity = dataListOptionService.createDataListOptions(
+                    dataListCreate.getDefaultOption().setDataListId(dataListEntity.getId())
+            );
+
+            dataListRepository.updateDefaultOptionId(dataListEntity.getId(), optionEntity.getId());
+            dataListEntity
+                    .setDefaultDataListOptionId(optionEntity.getId())
+                    .setOptions(new Kit<>(List.of(optionEntity), DataListOptionEntity::getId));
+        }
+        return dataListEntity;
     }
 
     private void setAttributes(DataListEntity dataList, DataListSave dataListSave) throws ServiceException {
@@ -148,6 +163,7 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         updateDataListAttributeKey(dataListUpdate.getAttribute4(), DataListEntity.Fields.attribute4key, dbDataListEntity, DataListEntity::getAttribute4key, DataListEntity::setAttribute4key, changesHelper);
         updateDataListAttributeI18n(dataListUpdate.getAttribute4(), DataListEntity.Fields.attribute4nameI18nId, dbDataListEntity, DataListEntity::getAttribute4nameI18nId, DataListEntity::setAttribute4nameI18nId, changesHelper);
         updateExternalId(dbDataListEntity, dataListUpdate.getExternalId(), changesHelper);
+        updateEntityFieldByValue(dataListUpdate.getDefaultOptionId(), dbDataListEntity, DataListEntity::getDefaultDataListOptionId, DataListEntity::setDefaultDataListOptionId, DataListEntity.Fields.defaultDataListOptionId, changesHelper);
         dbDataListEntity.setUpdatedAt(Timestamp.from(Instant.now()));
         return updateSafe(dbDataListEntity, changesHelper);
     }

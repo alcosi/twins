@@ -40,12 +40,6 @@ public class FieldTyperSelect extends FieldTyperList {
     @FeaturerParam(name = "Long list threshold", description = "If options count is bigger then given threshold longList type will be used", order = 4)
     public static final FeaturerParamInt longListThreshold = new FeaturerParamInt("longListThreshold");
 
-    @FeaturerParam(name = "Default option id", description = "If has id, will fill the field if nothing else were set", optional = true, order = 5)
-    public static final FeaturerParamUUID defaultOptionId = new FeaturerParamUUID("defaultOptionId");
-
-    @Lazy
-    private final DataListOptionService dataListOptionService;
-
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueSelect value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         // TODO add transactional support
@@ -58,13 +52,6 @@ public class FieldTyperSelect extends FieldTyperList {
         else
             value.getOptions().removeIf(o -> ObjectUtils.isEmpty(o.getId()));
 
-
-        UUID defaultOption = defaultOptionId.extract(properties);
-
-        if (!value.isFilled() && defaultOption != null) {
-            value.getOptions().add(dataListOptionService.findEntitySafe(defaultOption));
-        }
-
         super.serializeValue(properties, twin, value, twinChangesCollector);
     }
 
@@ -73,8 +60,7 @@ public class FieldTyperSelect extends FieldTyperList {
         FieldDescriptorList fieldDescriptorList = (FieldDescriptorList) super.getFieldDescriptor(twinClassFieldEntity, properties);
         fieldDescriptorList
                 .supportCustom(supportCustom.extract(properties))
-                .multiple(multiple.extract(properties))
-                .defaultDataListOptionId(defaultOptionId.extract(properties));
+                .multiple(multiple.extract(properties));
         UUID listId = dataListId.extract(properties);
         int listSize = dataListService.countByDataListId(listId);
         if (listSize < longListThreshold.extract(properties)) {

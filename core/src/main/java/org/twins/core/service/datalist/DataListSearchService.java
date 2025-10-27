@@ -67,7 +67,9 @@ public class DataListSearchService {
                 checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch() != null ? search.getOptionSearch().getBusinessAccountIdList() : null, false, false),
                 checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch() != null ? search.getOptionSearch().getBusinessAccountIdExcludeList() : null, true, true),
                 checkFieldLikeIn(search.getExternalIdLikeList(), false, false, DataListEntity.Fields.externalId),
-                checkFieldLikeIn(search.getExternalIdNotLikeList(), true, false, DataListEntity.Fields.externalId));
+                checkFieldLikeIn(search.getExternalIdNotLikeList(), true, false, DataListEntity.Fields.externalId),
+                checkUuidIn(search.getDefaultOptionIdList(), false, false, DataListEntity.Fields.defaultDataListOptionId),
+                checkUuidIn(search.getDefaultOptionIdExcludeList(), true, false, DataListEntity.Fields.defaultDataListOptionId));
     }
 
     private Set<String> safeConvert(Set<DataListStatus> collection) {
