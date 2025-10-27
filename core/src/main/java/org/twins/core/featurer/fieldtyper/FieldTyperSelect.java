@@ -7,7 +7,6 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
@@ -39,12 +38,8 @@ public class FieldTyperSelect extends FieldTyperList {
         // TODO add transactional support
         // TODO maybe need to get BAiD at apiUser
         UUID datalistId = dataListId.extract(properties);
-        dataListOptionService.processExternalOptions(datalistId, value.getOptions(), twin.getOwnerBusinessAccountId());
         boolean supportCustomValue = supportCustom.extract(properties);
-        if (supportCustomValue)
-            value.setOptions(dataListService.processNewOptions(datalistId, value.getOptions(), twin.getOwnerBusinessAccountId()));
-        else
-            value.getOptions().removeIf(o -> ObjectUtils.isEmpty(o.getId()));
+        dataListOptionService.processOptions(datalistId, value.getOptions(), twin.getOwnerBusinessAccountId(), supportCustomValue);
         super.serializeValue(properties, twin, value, twinChangesCollector);
     }
 
