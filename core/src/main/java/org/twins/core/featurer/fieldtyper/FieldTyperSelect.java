@@ -1,15 +1,11 @@
 package org.twins.core.featurer.fieldtyper;
 
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamInt;
-import org.cambium.featurer.params.FeaturerParamUUID;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.twin.TwinEntity;
@@ -19,13 +15,11 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorList;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
-import org.twins.core.service.datalist.DataListOptionService;
 
 import java.util.Properties;
 import java.util.UUID;
 
 @Component
-@RequiredArgsConstructor
 @Featurer(id = FeaturerTwins.ID_1305,
         name = "Select",
         description = "")
