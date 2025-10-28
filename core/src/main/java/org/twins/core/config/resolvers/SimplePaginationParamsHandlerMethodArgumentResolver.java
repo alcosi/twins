@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
+import org.cambium.common.util.StringUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -31,12 +32,11 @@ public class SimplePaginationParamsHandlerMethodArgumentResolver implements Hand
         int limit = parseParameter(webRequest, SimplePagination.Fields.limit, paginationParams.limit());
         boolean sortAsc = parseParameter(webRequest, "sortAsc", paginationParams.sortAsc());
         String sortField = webRequest.getParameter("sortField");
-        if (sortField == null || sortField.isEmpty())
-            sortField = paginationParams.sortField();
+
         return new SimplePagination()
                 .setOffset(offset)
                 .setLimit(limit)
-                .setSort(PaginationUtils.sortType(sortAsc, sortField));
+                .setSort(PaginationUtils.sortType(sortAsc,  StringUtils.isNotEmpty(sortField) ? new String []{sortField} : paginationParams.sortField()));
     }
 
     private int parseParameter(NativeWebRequest webRequest, String paramName, int defaultValue) {
