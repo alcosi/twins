@@ -297,7 +297,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         options.addAll(existedOptions.getCollection());
 
         List<String> missedList = incompleteOptionKit.getIdSet().stream()
-                .filter(externalId -> !existedOptions.containsKey(externalId))
+                .filter(incomplete -> !existedOptions.containsKey(incomplete))
                 .collect(Collectors.toList());
 
         if (!missedList.isEmpty()) {
@@ -346,7 +346,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         options.addAll(existedOptions.getCollection());
 
         List<String> missedList = incompleteOptionKit.getIdSet().stream()
-                .filter(externalId -> !existedOptions.containsKey(externalId))
+                .filter(incomplete -> !existedOptions.containsKey(incomplete))
                 .collect(Collectors.toList());
 
         if (!missedList.isEmpty()) {
