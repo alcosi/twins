@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.Ternary;
 import org.twins.core.enums.datalist.DataListStatus;
 
 import java.util.Set;
@@ -34,6 +35,7 @@ public class DataListOptionSearch {
     private Set<DataListStatus> statusIdList;
     private Set<DataListStatus> statusIdExcludeList;
     private Set<UUID> validForTwinClassFieldIdList;
+    private Ternary custom;
 
     public DataListOptionSearch addDataListId(UUID datalistId, boolean exclude) {
         if (exclude)
@@ -56,6 +58,14 @@ public class DataListOptionSearch {
             externalIdNotLikeList = CollectionUtils.safeAdd(externalIdNotLikeList, externalId);
         else
             externalIdLikeList = CollectionUtils.safeAdd(externalIdLikeList, externalId);
+        return this;
+    }
+
+    public DataListOptionSearch addOptionKeyLike(String optionKey, boolean exclude) {
+        if (exclude)
+            optionNotLikeList = CollectionUtils.safeAdd(optionNotLikeList, optionKey);
+        else
+            optionLikeList = CollectionUtils.safeAdd(optionLikeList, optionKey);
         return this;
     }
 }

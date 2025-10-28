@@ -75,6 +75,9 @@ public class DataListOptionEntity implements EasyLoggable {
     @Column(name = "font_color")
     private String fontColor;
 
+    @Column(name = "custom")
+    private boolean custom;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "data_list_id", insertable = false, updatable = false)
     private DataListEntity dataList;

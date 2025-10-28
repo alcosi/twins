@@ -4,7 +4,6 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
@@ -14,25 +13,23 @@ import org.cambium.common.util.KeyUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySmartService;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
-import org.twins.core.dao.datalist.*;
+import org.twins.core.dao.datalist.DataListEntity;
+import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.datalist.DataListOptionRepository;
+import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.domain.datalist.DataListCreate;
-import org.twins.core.enums.datalist.DataListStatus;
-import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListAttribute;
+import org.twins.core.domain.datalist.DataListCreate;
 import org.twins.core.domain.datalist.DataListSave;
 import org.twins.core.domain.datalist.DataListUpdate;
+import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperSharedSelectInHead;
@@ -47,7 +44,6 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 
 //Log calls that took more then 2 seconds
@@ -61,7 +57,6 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
     final EntitySmartService entitySmartService;
     final TwinClassFieldService twinClassFieldService;
     final FeaturerService featurerService;
-    final CacheManager cacheManager;
     final DataListOptionService dataListOptionService;
 
     @Lazy
@@ -286,11 +281,6 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         entitySmartService.deleteAllAndLog(optionsToDelete, dataListOptionRepository);
     }
 
-
-    public Iterable<DataListOptionEntity> saveOptions(List<DataListOptionEntity> newOptions) {
-        return entitySmartService.saveAllAndLog(newOptions, dataListOptionRepository);
-    }
-
     public int countByDataListId(UUID listId) {
         return dataListOptionRepository.countByDataListId(listId);
     }
@@ -310,74 +300,6 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
     public List<DataListOptionEntity> findByDataListIdAndNotUsedInHead(UUID listId, UUID twinClassFieldId, UUID headTwinId) {
         return dataListOptionRepository.findByDataListIdAndNotUsedInHead(listId, twinClassFieldId, headTwinId);
     }
-
-    //Method for reloading options if dataList is not present in entity;
-    public List<DataListOptionEntity> reloadOptionsOnDataListAbsent(List<DataListOptionEntity> options) {
-        List<UUID> idsForReload = new ArrayList<>();
-        for (var option : options)
-            if (null == option.getDataList() || null == option.getDataListId()) idsForReload.add(option.getId());
-        if (!idsForReload.isEmpty()) {
-            options.removeIf(o -> idsForReload.contains(o.getId()));
-            options.addAll(dataListOptionRepository.findByIdIn(idsForReload));
-        }
-        return options;
-    }
-
-
-    public DataListOptionEntity checkOptionsExists(UUID dataListId, String optionName, UUID businessAccountId) {
-        List<DataListOptionEntity> foundOptions;
-        if (businessAccountId != null)
-            foundOptions = dataListOptionRepository.findOptionForBusinessAccount(dataListId, businessAccountId, optionName.trim(), PageRequest.of(0, 1));
-        else
-            foundOptions = dataListOptionRepository.findOptionOutOfBusinessAccount(dataListId, optionName.trim(), PageRequest.of(0, 1));
-
-        if (CollectionUtils.isNotEmpty(foundOptions))
-            return foundOptions.get(0);
-
-        return null;
-    }
-
-    public List<DataListOptionEntity> processNewOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId) {
-        Set<String> optionsForProcessing = options.stream().filter(option -> ObjectUtils.isEmpty(option.getId()) && ObjectUtils.isEmpty(option.getExternalId())).map(DataListOptionEntity::getOption).collect(Collectors.toSet());
-        options.removeIf(o -> optionsForProcessing.contains(o.getOption()));
-        List<DataListOptionEntity> processedOptions = processNewOptions(dataListId, optionsForProcessing, businessAccountId);
-        options.addAll(processedOptions);
-        return options;
-    }
-
-    public List<DataListOptionEntity> processNewOptions(UUID dataListId, Set<String> newOptions, UUID businessAccountId) {
-        List<DataListOptionEntity> optionsExists = new ArrayList<>();
-        List<DataListOptionEntity> optionsForSave = new ArrayList<>();
-        for (String optionName : newOptions) {
-            DataListOptionEntity foundedOption = checkOptionsExists(dataListId, optionName, businessAccountId);
-            if (null != foundedOption) optionsExists.add(foundedOption);
-            else {
-                DataListOptionEntity newOption = new DataListOptionEntity();
-                newOption.setOption(optionName);
-                newOption.setBusinessAccountId(businessAccountId);
-                newOption.setStatus(DataListStatus.active);
-                newOption.setDataListId(dataListId);
-                optionsForSave.add(newOption);
-            }
-        }
-        Iterable<DataListOptionEntity> savedOptions = saveOptions(optionsForSave);
-        savedOptions.forEach(optionsExists::add);
-        if (CollectionUtils.isNotEmpty(optionsForSave))
-            evictOptionsCloudCache(dataListId, businessAccountId);
-        return optionsExists;
-    }
-
-    private void evictOptionsCloudCache(UUID dataListId, UUID businessAccountId) {
-        Cache cache = cacheManager.getCache(DataListOptionRepository.CACHE_DATA_LIST_OPTIONS);
-        if (cache != null)
-            cache.evictIfPresent(dataListId);
-        if (businessAccountId != null) {
-            cache = cacheManager.getCache(DataListOptionRepository.CACHE_DATA_LIST_OPTIONS_WITH_BUSINESS_ACCOUNT);
-            if (cache != null)
-                cache.evictIfPresent(dataListId + "" + businessAccountId);
-        }
-    }
-
 
 }
 

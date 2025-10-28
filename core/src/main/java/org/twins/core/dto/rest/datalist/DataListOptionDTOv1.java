@@ -42,4 +42,7 @@ public class DataListOptionDTOv1 {
 
     @Schema(description = "business account id", example = DTOExamples.BUSINESS_ACCOUNT_ID)
     public UUID businessAccountId;
+
+    @Schema(description = "flag for custom field", example = DTOExamples.BOOLEAN_TRUE)
+    public Boolean custom;
 }

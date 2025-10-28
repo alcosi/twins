@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.Request;
 import org.twins.core.enums.datalist.DataListStatus;
 
@@ -78,6 +79,9 @@ public class DataListOptionSearchDTOv1 extends Request {
 
     @Schema(description = "datalist linked to given twin class fields list")
     public Set<UUID> validForTwinClassFieldIdList;
+
+    @Schema(description = "datalist linked to given twin class fields list")
+    public Ternary custom;
 
     public DataListOptionSearchDTOv1 addIdListItem(UUID item) {
         this.idList = CollectionUtils.safeAdd(this.idList, item);
