@@ -55,7 +55,7 @@ public class DataListOptionSearchPublicController extends ApiController {
     public ResponseEntity<?> dataListOptionSearchPublicListV1(
             @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, response = DataListOptionSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody DataListOptionSearchRqDTOv1 request,
-            @SimplePaginationParams(sortField = DataListOptionEntity.Fields.option) SimplePagination pagination) {
+            @SimplePaginationParams(sortField = {DataListOptionEntity.Fields.option, DataListOptionEntity.Fields.externalId}) SimplePagination pagination) {
         DataListOptionSearchRsDTOv1 rs = new DataListOptionSearchRsDTOv1();
         try {
             authService.getApiUser().setAnonymous();
