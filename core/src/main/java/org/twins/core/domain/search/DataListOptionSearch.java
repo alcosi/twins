@@ -60,4 +60,12 @@ public class DataListOptionSearch {
             externalIdLikeList = CollectionUtils.safeAdd(externalIdLikeList, externalId);
         return this;
     }
+
+    public DataListOptionSearch addOptionKeyLike(String optionKey, boolean exclude) {
+        if (exclude)
+            optionNotLikeList = CollectionUtils.safeAdd(optionNotLikeList, optionKey);
+        else
+            optionLikeList = CollectionUtils.safeAdd(optionLikeList, optionKey);
+        return this;
+    }
 }
