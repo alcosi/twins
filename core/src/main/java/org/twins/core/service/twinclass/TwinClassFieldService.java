@@ -45,7 +45,6 @@ import org.twins.core.service.twin.TwinService;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 
 @Slf4j
@@ -397,9 +396,11 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 twinClassFieldRepository
         );
 
-        List<TwinClassFieldEntity> result = StreamSupport.stream(savedEntities.spliterator(), false)
-                .collect(Collectors.toList());
-
+        List<TwinClassFieldEntity> result = new ArrayList<>();
+        for (var savedEntity : savedEntities) {
+            savedEntity.getTwinClass().setTwinClassFieldKit(null); //invalidating cached it hibernate
+            result.add(savedEntity);
+        }
         CacheUtils.evictCache(cacheManager, cacheEvictCollector);
 
         return result;
