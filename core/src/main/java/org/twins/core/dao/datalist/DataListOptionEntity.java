@@ -28,7 +28,7 @@ public class DataListOptionEntity implements EasyLoggable {
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            this.id = UUID.nameUUIDFromBytes((dataListId + option + optionI18NId).getBytes());
+            this.id = UUID.nameUUIDFromBytes((dataListId + option + optionI18NId + businessAccountId + externalId).getBytes());
         }
     }
 
