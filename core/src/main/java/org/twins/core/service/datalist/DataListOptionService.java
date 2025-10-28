@@ -276,7 +276,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     }
 
     public void processIncompleteByExternalIdOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId, boolean supportCustomValue) throws ServiceException {
-        Kit<DataListOptionEntity, String> incompleteOptionKit = new Kit<>(options, DataListOptionEntity::getExternalId);
+        Kit<DataListOptionEntity, String> incompleteOptionKit = new Kit<>(DataListOptionEntity::getExternalId);
         Iterator<DataListOptionEntity> iterator = options.iterator();
         while (iterator.hasNext()) {
             DataListOptionEntity option = iterator.next();
@@ -312,7 +312,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                                     .setDataListId(dataListId)
                                     .setCustom(true)
                                     .setOption(missed)
-                                    .setExternalId(missed));
+                                    .setExternalId(missed)
+                                    .setStatus(DataListStatus.active));
                 }
                 log.info("Creating {} new datalist options with externalIds: {}", optionsForSave.size(), missedList);
                 saveOptions(optionsForSave);
@@ -326,7 +327,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     }
 
     public void processIncompleteByKeyOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId, boolean supportCustomValue) throws ServiceException {
-        Kit<DataListOptionEntity, String> incompleteOptionKit = new Kit<>(options, DataListOptionEntity::getOption);
+        Kit<DataListOptionEntity, String> incompleteOptionKit = new Kit<>(DataListOptionEntity::getOption);
         Iterator<DataListOptionEntity> iterator = options.iterator();
         while (iterator.hasNext()) {
             DataListOptionEntity option = iterator.next();
@@ -361,7 +362,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                                     .setBusinessAccountId(businessAccountId)
                                     .setDataListId(dataListId)
                                     .setCustom(true)
-                                    .setOption(missed));
+                                    .setOption(missed)
+                                    .setStatus(DataListStatus.active));
                 }
 
                 log.info("Creating {} new datalist options with optionKey: {}", optionsForSave.size(), missedList);
