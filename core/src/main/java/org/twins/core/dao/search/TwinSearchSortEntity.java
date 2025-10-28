@@ -19,7 +19,8 @@ public class TwinSearchSortEntity implements EasyLoggable {
     @Column(name = "twin_search_id")
     private UUID twinSearchId;
 
-    @Column(name = "order")
+    @Column(name = "`order`")
+    @Basic
     private Integer order; // use wrapper to avoid primitive default
 
     @Column(name = "twin_class_field_id")

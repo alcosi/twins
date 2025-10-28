@@ -29,7 +29,8 @@ public class FaceWT001ColumnEntity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "twin_class_field_id")
     private UUID twinClassFieldId;
 
-    @Column(name = "order")
+    @Column(name = "`order`")
+    @Basic
     private Integer order;
 
     @Column(name = "label_i18n_id")
