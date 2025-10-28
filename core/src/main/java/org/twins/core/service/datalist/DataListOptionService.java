@@ -281,11 +281,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         while (iterator.hasNext()) {
             DataListOptionEntity option = iterator.next();
             if (option.getId() == null && StringUtils.isNotEmpty(option.getExternalId())) {
-                if (incompleteOptionKit.containsKey(option.getExternalId())) {
-                    iterator.remove(); // duplicate
-                } else {
-                    incompleteOptionKit.add(option);
-                }
+                iterator.remove();
+                incompleteOptionKit.add(option);
             }
         }
         if (KitUtils.isEmpty(incompleteOptionKit)) {
@@ -297,6 +294,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         if (businessAccountId != null)
             dataListOptionSearch.addBusinessAccountId(businessAccountId, false);
         Kit<DataListOptionEntity, String> existedOptions = new Kit<>(dataListOptionSearchService.findDataListOptions(dataListOptionSearch), DataListOptionEntity::getExternalId);
+        options.addAll(existedOptions.getCollection());
 
         List<String> missedList = incompleteOptionKit.getIdSet().stream()
                 .filter(externalId -> !existedOptions.containsKey(externalId))
@@ -316,14 +314,14 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                                     .setStatus(DataListStatus.active));
                 }
                 log.info("Creating {} new datalist options with externalIds: {}", optionsForSave.size(), missedList);
-                saveOptions(optionsForSave);
+                Iterable<DataListOptionEntity> savedOptions = saveOptions(optionsForSave);
+                savedOptions.forEach(options::add);
                 evictOptionsCloudCache(dataListId, businessAccountId);
             } else {
                 String formattedIds = missedList.stream().collect(Collectors.joining(",", "[", "]"));
                 throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, "unknown external ids" + formattedIds);
             }
         }
-        options.addAll(existedOptions.getCollection());
     }
 
     public void processIncompleteByKeyOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId, boolean supportCustomValue) throws ServiceException {
@@ -332,11 +330,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         while (iterator.hasNext()) {
             DataListOptionEntity option = iterator.next();
             if (option.getId() == null && option.getExternalId() == null && StringUtils.isNotEmpty(option.getOption())) {
-                if (incompleteOptionKit.containsKey(option.getOption())) {
-                    iterator.remove(); // duplicate
-                } else {
-                    incompleteOptionKit.add(option);
-                }
+                iterator.remove();
+                incompleteOptionKit.add(option);
             }
         }
         if (KitUtils.isEmpty(incompleteOptionKit)) {
@@ -348,6 +343,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         if (businessAccountId != null)
             dataListOptionSearch.addBusinessAccountId(businessAccountId, false);
         Kit<DataListOptionEntity, String> existedOptions = new Kit<>(dataListOptionSearchService.findDataListOptions(dataListOptionSearch), DataListOptionEntity::getExternalId);
+        options.addAll(existedOptions.getCollection());
 
         List<String> missedList = incompleteOptionKit.getIdSet().stream()
                 .filter(externalId -> !existedOptions.containsKey(externalId))
@@ -367,7 +363,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 }
 
                 log.info("Creating {} new datalist options with optionKey: {}", optionsForSave.size(), missedList);
-                saveOptions(optionsForSave);
+                Iterable<DataListOptionEntity> savedOptions = saveOptions(optionsForSave);
+                savedOptions.forEach(options::add);
                 evictOptionsCloudCache(dataListId, businessAccountId);
             } else {
                 String formattedIds = missedList.stream().collect(Collectors.joining(",", "[", "]"));
