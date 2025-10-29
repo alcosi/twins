@@ -37,14 +37,16 @@ public class TwinflowFactoryBaseRestDTOMapperV1 extends RestSimpleDTOMapper<Twin
 
         if (mapperContext.hasModeButNot(TwinflowMode.TwinflowFactory2TwinflowMode.HIDE)) {
             dst
-                    .setTwinflowId(src.getTwinflowId())
-                    .setTwinflow(twinflowBaseV1RestDTOMapper.convertOrPostpone(src.getTwinflow(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinflowMode.TwinflowFactory2TwinflowMode.SHORT))));
+                    .setTwinflowId(src.getTwinflowId());
+
+            twinflowBaseV1RestDTOMapper.postpone(src.getTwinflow(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinflowMode.TwinflowFactory2TwinflowMode.SHORT)));
         }
 
         if (mapperContext.hasModeButNot(FactoryMode.TwinflowFactory2FactoryMode.HIDE)) {
             dst
-                    .setTwinFactoryId(src.getTwinFactoryId())
-                    .setTwinFactory(factoryRestDTOMapperV2.convertOrPostpone(src.getTwinFactory(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FactoryMode.TwinflowFactory2FactoryMode.SHORT))));
+                    .setTwinFactoryId(src.getTwinFactoryId());
+
+            factoryRestDTOMapperV2.postpone(src.getTwinFactory(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FactoryMode.TwinflowFactory2FactoryMode.SHORT)));
         }
     }
 }

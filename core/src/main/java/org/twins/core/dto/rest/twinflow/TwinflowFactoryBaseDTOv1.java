@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.domain.factory.FactoryLauncher;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.factory.FactoryDTOv2;
 
 import java.util.UUID;
 
@@ -25,10 +24,4 @@ public class TwinflowFactoryBaseDTOv1 {
 
     @Schema(example = DTOExamples.FACTORY_ID)
     public UUID twinFactoryId;
-
-    @Schema(name = "twinflow")
-    public TwinflowBaseDTOv1 twinflow;
-
-    @Schema(name = "twin factory")
-    public FactoryDTOv2 twinFactory;
 }
