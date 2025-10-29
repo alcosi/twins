@@ -26,6 +26,7 @@ abstract class GenerateRelatedObjectsTask extends DefaultTask {
         def sourceDir = project.file('src/main/java/org/twins/core/dto/rest')
         def outputDir = project.file('build/generated/sources/dto/java/main/org/twins/core/dto/rest')
         Map<String, String> supportedDtoTypes = [:]
+        Set<String> classesWithRelatedAnnotation = [] as Set
 
         try {
             // Configure JavaParser with SymbolSolver
@@ -40,6 +41,18 @@ abstract class GenerateRelatedObjectsTask extends DefaultTask {
             System.out.println("ParserConfiguration with SymbolSolver loaded: " + ParserConfiguration.class)
             supportedDtoTypes = collectSupportedRelatedObjects()
             // Parse RelatedObjectsDTOv1 to extract supported DTO types from Map fields
+            // --- collect names of classes that have @RelatedObject ---
+            Files.walk(sourceDir.toPath())
+                    .filter { it.toString().endsWith('.java') }
+                    .forEach { Path p ->
+                        def cuTmp = StaticJavaParser.parse(p.toFile())
+                        cuTmp.findAll(ClassOrInterfaceDeclaration).each { c ->
+                            def hasAnn = c.getFields().any { f ->
+                                f.getAnnotations().any { a -> a.nameAsString == 'RelatedObject' }
+                            }
+                            if (hasAnn) classesWithRelatedAnnotation << c.nameAsString
+                        }
+                    }
 
         } catch (Exception e) {
             System.err.println("Failed to configure JavaParser or parse RelatedObjectsDTOv1: " + e.getMessage())
@@ -189,8 +202,26 @@ abstract class GenerateRelatedObjectsTask extends DefaultTask {
                     // --- Work with class declaration ---
                     def classDecl = cu.findFirst(ClassOrInterfaceDeclaration).get()
 
-                    // Add private field "relatedObjects"
-                    if (!isResponseRelatedObjects) {
+                    // --- check if any ancestor class name is in classesWithRelatedAnnotation ---
+                    boolean parentHasRelatedObjects = false
+                    try {
+                        def resolvedDecl = classDecl.resolve()
+                        def ancestors = resolvedDecl.getAllAncestors()
+                        parentHasRelatedObjects = ancestors.any { anc ->
+                            try {
+                                def qn = anc.qualifiedName
+                                def simpleName = qn?.substring(qn.lastIndexOf('.') + 1)
+                                return classesWithRelatedAnnotation.contains(qn) || classesWithRelatedAnnotation.contains(simpleName)
+                            } catch (Exception ignored) {
+                                return false
+                            }
+                        }
+                    } catch (Exception e) {
+                        logger.warn("Cannot resolve ancestors for ${classDecl.nameAsString}: ${e.message}")
+                    }
+
+                    // Add private field "relatedObjects" only if parent doesn't have it
+                    if (!isResponseRelatedObjects && !parentHasRelatedObjects) {
                         // Add interface implementation if missing
                         if (!classDecl.implementedTypes.any { it.nameAsString == 'ContainsRelatedObjects' }) {
                             classDecl.addImplementedType('ContainsRelatedObjects')
