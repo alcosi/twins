@@ -98,7 +98,7 @@ public class DataListOptionEntity implements EasyLoggable {
 
     @Deprecated //for specification only
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "dataListOption")
+    @OneToMany(mappedBy = "dataListOption", fetch = FetchType.LAZY)
     private Set<DataListSubsetOptionEntity> subsetOptions;
 
 //    @ManyToOne(fetch = FetchType.EAGER)

@@ -162,28 +162,28 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 
     //needed for specification
     @Deprecated
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     private Collection<TwinTagEntity> tags;
 
     //needed for specification
     @Deprecated
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     private Collection<TwinMarkerEntity> markers;
 
     //needed for specification
     @Deprecated
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_twin_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     private Collection<TwinLinkEntity> linksBySrcTwinId;
 
     //needed for specification
     @Deprecated
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "dst_twin_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     private Collection<TwinLinkEntity> linksByDstTwinId;
@@ -232,7 +232,7 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 
     //needed for specification
     @Deprecated
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinTouchEntity> touches;
 
