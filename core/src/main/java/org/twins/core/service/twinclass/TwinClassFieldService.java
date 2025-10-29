@@ -386,9 +386,11 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             validateEntityAndThrow(field, EntitySmartService.EntityValidateMode.beforeSave);
             fieldsToCreate.add(field);
 
-            cacheEvictCollector.add(field.getTwinClassId(),
-                    TwinClassRepository.CACHE_TWIN_CLASS_BY_ID,
-                    TwinClassEntity.class.getSimpleName());
+            cacheEvictCollector
+                    .add(field.getTwinClassId(),
+                            TwinClassRepository.CACHE_TWIN_CLASS_BY_ID,
+                            TwinClassEntity.class.getSimpleName())
+                    .add(TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN);
         }
 
         Iterable<TwinClassFieldEntity> savedEntities = entitySmartService.saveAllAndLog(
@@ -398,7 +400,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
         List<TwinClassFieldEntity> result = new ArrayList<>();
         for (var savedEntity : savedEntities) {
-            savedEntity.getTwinClass().setTwinClassFieldKit(null); //invalidating cached it hibernate
+            if (savedEntity.getTwinClass() != null)
+                savedEntity.getTwinClass().setTwinClassFieldKit(null); //invalidating kit cache
             result.add(savedEntity);
         }
         CacheUtils.evictCache(cacheManager, cacheEvictCollector);
@@ -431,7 +434,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             return Collections.emptyList();
         }
 
-        Kit<TwinClassFieldEntity, UUID> dbFieldsKit =findEntitiesSafe(
+        Kit<TwinClassFieldEntity, UUID> dbFieldsKit = findEntitiesSafe(
                 twinClassFieldSaves.stream()
                         .map(s -> s.getField().getId())
                         .collect(Collectors.toList())
@@ -587,7 +590,6 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         if (changesHelper.isChanged(TwinClassFieldEntity.Fields.beValidationErrorI18nId, dbTwinClassFieldEntity.getBeValidationErrorI18nId(), beValidationErrorI18n.getId()))
             dbTwinClassFieldEntity.setBeValidationErrorI18nId(beValidationErrorI18n.getId());
     }
-
 
 
     public void updateTwinClassFieldViewPermission(TwinClassFieldEntity dbTwinClassFieldEntity, UUID newViewPermissionId, ChangesHelper changesHelper) {
