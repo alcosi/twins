@@ -446,7 +446,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                 return cb.conjunction();
 
             List<Predicate> predicates = search.stream().map(name -> {
-                Predicate predicate = cb.equal(cb.lower(getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, fieldPath)), name.toLowerCase());
+                Predicate predicate = cb.equal(getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, fieldPath), name);
                 if (not) predicate = cb.not(predicate);
                 return predicate;
             }).toList();
