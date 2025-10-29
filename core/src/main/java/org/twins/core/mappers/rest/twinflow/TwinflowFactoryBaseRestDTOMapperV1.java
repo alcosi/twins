@@ -19,7 +19,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.TwinflowMode;
 public class TwinflowFactoryBaseRestDTOMapperV1 extends RestSimpleDTOMapper<TwinflowFactoryEntity, TwinflowFactoryBaseDTOv1> {
 
     @MapperModePointerBinding(modes = TwinflowMode.TwinflowFactory2TwinflowMode.class)
-    private final TwinflowBaseV3RestDTOMapper twinflowBaseV3RestDTOMapper;
+    private final TwinflowBaseV1RestDTOMapper twinflowBaseV1RestDTOMapper;
 
     @MapperModePointerBinding(modes = FactoryMode.TwinflowFactory2FactoryMode.class)
     private final FactoryRestDTOMapperV2 factoryRestDTOMapperV2;
@@ -38,7 +38,7 @@ public class TwinflowFactoryBaseRestDTOMapperV1 extends RestSimpleDTOMapper<Twin
         if (mapperContext.hasModeButNot(TwinflowMode.TwinflowFactory2TwinflowMode.HIDE)) {
             dst
                     .setTwinflowId(src.getTwinflowId())
-                    .setTwinflow(twinflowBaseV3RestDTOMapper.convertOrPostpone(src.getTwinflow(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinflowMode.TwinflowFactory2TwinflowMode.SHORT))));
+                    .setTwinflow(twinflowBaseV1RestDTOMapper.convertOrPostpone(src.getTwinflow(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinflowMode.TwinflowFactory2TwinflowMode.SHORT))));
         }
 
         if (mapperContext.hasModeButNot(FactoryMode.TwinflowFactory2FactoryMode.HIDE)) {

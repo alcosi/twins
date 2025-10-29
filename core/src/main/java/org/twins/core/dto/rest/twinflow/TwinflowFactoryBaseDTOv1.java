@@ -27,7 +27,7 @@ public class TwinflowFactoryBaseDTOv1 {
     public UUID twinFactoryId;
 
     @Schema(name = "twinflow")
-    public TwinflowBaseDTOv3 twinflow;
+    public TwinflowBaseDTOv1 twinflow;
 
     @Schema(name = "twin factory")
     public FactoryDTOv2 twinFactory;

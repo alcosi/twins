@@ -20,7 +20,6 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.twinflow.TwinflowFactoryEntity;
 import org.twins.core.dto.rest.twinflow.TwinflowFactorySearchRqDTOv1;
@@ -30,14 +29,13 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinflow.TwinflowFactoryBaseRestDTOMapperV1;
 import org.twins.core.mappers.rest.twinflow.TwinflowFactorySearchRestDTOReverseMapper;
-import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowFactorySearchService;
 
 @Tag(name = ApiTag.TWINFLOW)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWINFLOW_FACTORY_MANAGE, Permissions.TWINFLOW_FACTORY_VIEW})
+//@ProtectedBy({Permissions.TWINFLOW_FACTORY_MANAGE, Permissions.TWINFLOW_FACTORY_VIEW})
 public class TwinflowFactorySearchController extends ApiController {
 
     private final TwinflowFactorySearchRestDTOReverseMapper twinflowFactorySearchRestDTOReverseMapper;
