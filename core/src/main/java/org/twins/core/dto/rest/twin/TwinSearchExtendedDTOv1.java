@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.util.List;
+
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
@@ -16,4 +18,6 @@ public class TwinSearchExtendedDTOv1 extends TwinSearchDTOv1 {
     @Schema(description = "Children twin sub-search")
     public TwinSearchDTOv1 childrenSearch;
 
+    @Schema(description = "Explicit sorting rules for the search")
+    public List<TwinSortDTOv1> sorts;
 }

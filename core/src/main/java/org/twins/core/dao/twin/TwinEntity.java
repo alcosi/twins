@@ -11,7 +11,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
-import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -24,6 +23,9 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinAttachmentsCount;
+import org.twins.core.enums.action.TwinAction;
+import org.twins.core.enums.status.StatusType;
+import org.twins.core.enums.twin.TwinAliasType;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.link.TwinLinkService;
@@ -346,6 +348,10 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    private Kit<TwinEntity, UUID> segments;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
     // we use kitGrouped, because during moving twin to other space or even during class change a new alias will be created,
     // but old aliases also should be accessible for correct url processing
     private KitGrouped<TwinAliasEntity, UUID, TwinAliasType> twinAliasesArchive;
@@ -363,7 +369,7 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     private Kit<TwinClassEntity, UUID> creatableChildTwinClasses;
 
     public boolean isSketch() {
-        return SystemEntityService.TWIN_STATUS_SKETCH.equals(twinStatusId);
+        return SystemEntityService.TWIN_STATUS_SKETCH.equals(twinStatusId) || twinStatus.getType().equals(StatusType.SKETCH);
     }
 
     @Override

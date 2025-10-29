@@ -4,11 +4,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.attachment.AttachmentCreateDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkAddDTOv1;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -16,7 +18,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinDraftV1")
+@Schema(name = "TwinDraftV1")
 public class TwinDraftDTOv1 extends Request {
     @Schema(description = "Class Id", example = DTOExamples.TWIN_CLASS_ID)
     public UUID classId;
@@ -50,4 +52,21 @@ public class TwinDraftDTOv1 extends Request {
 
     @Schema(description = "is sketch being created")
     public Boolean isSketch;
+
+    public TwinDraftDTOv1 putFieldsItem(String key, String item) {
+        if (this.fields == null) this.fields = new HashMap<>();
+        this.fields.put(key, item);
+        return this;
+    }
+
+    public TwinDraftDTOv1 addAttachmentsItem(AttachmentCreateDTOv1 item) {
+        this.attachments = CollectionUtils.safeAdd(this.attachments, item);
+        return this;
+    }
+
+    public TwinDraftDTOv1 addLinksItem(TwinLinkAddDTOv1 item) {
+        this.links = CollectionUtils.safeAdd(this.links, item);
+        return this;
+    }
+
 }

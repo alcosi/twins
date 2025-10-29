@@ -15,6 +15,9 @@ public class TwinFieldSearchBooleanDTOv1 implements TwinFieldSearchDTOv1 {
         return KEY;
     }
 
-    @Schema(description = "include entities with empty or null values to result")
+    @Schema(description = "boolean value to search by (true/false)")
     public Boolean value;
+
+    @Schema(description = "flag to search only null values")
+    public Boolean searchByNullValue;
 }

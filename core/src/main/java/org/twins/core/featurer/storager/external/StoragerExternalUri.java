@@ -95,7 +95,7 @@ public class StoragerExternalUri extends StoragerAbstractChecked {
 
     @Override
     @SneakyThrows
-    protected void addFileInternal(String fileKey, InputStream fileStream, HashMap<String, String> params) throws ServiceException {
+    protected void addFileInternal(String fileKey, InputStream fileStream, String mimeType, HashMap<String, String> params) throws ServiceException {
         throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "External URI service is not configured to store file bytes!");
     }
 
@@ -116,7 +116,7 @@ public class StoragerExternalUri extends StoragerAbstractChecked {
                 fileStream.close();
                 throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "File size limit " + fileSizeLimit + " exceeded (" + contentLengthHeader + ")");
             }
-            try (InputStream is = checkMimeTypeAndCacheStream(fileStream, params)) {
+            try (InputStream is = checkMimeTypeAndCacheStream(fileStream, params).fileStream()) {
                 if (contentLengthHeader > -1) {
                     return new AddedFileKey(externalUri, contentLengthHeader);
                 }

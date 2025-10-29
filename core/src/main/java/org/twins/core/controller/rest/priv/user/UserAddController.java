@@ -20,10 +20,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
-import org.twins.core.dao.domain.DomainType;
+import org.twins.core.dto.rest.user.UserAddRqDTOv2;
+import org.twins.core.enums.domain.DomainType;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dao.user.UserStatus;
+import org.twins.core.enums.user.UserStatus;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
@@ -112,4 +114,65 @@ public class UserAddController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
+
+    @ProtectedBy({Permissions.USER_MANAGE, Permissions.USER_CREATE})
+    @ParametersApiUserHeaders
+    @Operation(operationId = "userAddV2", summary = "User add protected API for clients with M2M tokens")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User was added", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/private/user/v2")
+    public ResponseEntity<?> userAddV2(
+            @RequestBody UserAddRqDTOv2 request) {
+        Response rs = new Response();
+        try {
+            ApiUser apiUser = authService.getApiUser();
+
+            UUID businessAccountId = request.getUser().getBusinessAccountId();
+            UUID domainId = request.getUser().getDomainId();
+
+            if (domainId != null) {
+                domainService.checkId(domainId, EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS);
+            }
+
+            apiUser
+                    .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId))
+                    .setUserResolver(new UserResolverGivenId(request.getUser().getId()))
+                    .setDomainResolver(new DomainResolverGivenId(domainId))
+                    .setLocaleResolver(new LocaleResolverGivenOrSystemDefault(request.getUser().getLocale()))
+                    .setCheckMembershipMode(false);
+
+            UserEntity userEntity = userService.addUser(new UserEntity()
+                            .setId(request.getUser().getId())
+                            .setName(request.getUser().getFullName())
+                            .setEmail(request.getUser().getEmail())
+                            .setAvatar(request.getUser().getAvatar())
+                            .setUserStatusId(UserStatus.ACTIVE),
+                    EntitySmartService.SaveMode.ifPresentThrowsElseCreate
+            );
+
+            if (businessAccountId == null && domainId == null)
+                return new ResponseEntity<>(rs, HttpStatus.OK);
+
+            if (businessAccountId != null) {
+                businessAccountUserService.addUserSmart(businessAccountId, request.getUser().getId(), EntitySmartService.SaveMode.ifNotPresentCreate, EntitySmartService.SaveMode.none, true);
+            }
+
+            if (domainId != null) {
+                domainUserService.addUser(userEntity, true);
+            }
+
+            if (domainId != null && businessAccountId != null && apiUser.getDomain() != null && apiUser.getDomain().getDomainType() == DomainType.b2b) {
+                domainBusinessAccountService.addBusinessAccountSmart(businessAccountId, null, null, EntitySmartService.SaveMode.none, true);
+            }
+
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
 }

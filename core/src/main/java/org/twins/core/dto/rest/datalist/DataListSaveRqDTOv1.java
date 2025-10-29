@@ -16,10 +16,10 @@ public class DataListSaveRqDTOv1 extends Request {
     @Schema(description = "key", example = DTOExamples.DATA_LIST_KEY)
     public String key;
 
-    @Schema(description = "name", example = DTOExamples.NAME)
+    @Schema(description = "name")
     public I18nSaveDTOv1 nameI18n;
 
-    @Schema(description = "description", example = DTOExamples.DESCRIPTION)
+    @Schema(description = "description")
     public I18nSaveDTOv1 descriptionI18n;
 
     @Schema(description = "attribute1")

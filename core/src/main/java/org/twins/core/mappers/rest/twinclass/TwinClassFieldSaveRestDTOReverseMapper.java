@@ -3,7 +3,7 @@ package org.twins.core.mappers.rest.twinclass;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldSave;
+import org.twins.core.domain.twinclass.TwinClassFieldSave;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldSaveRqDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
@@ -25,9 +25,13 @@ public class TwinClassFieldSaveRestDTOReverseMapper extends RestSimpleDTOMapper<
                         .setViewPermissionId(src.getViewPermissionId())
                         .setEditPermissionId(src.getEditPermissionId())
                         .setRequired(src.getRequired())
+                        .setSystem(src.getSystem())
                         .setFieldTyperFeaturerId(src.getFieldTyperFeaturerId())
                         .setFieldTyperParams(src.getFieldTyperParams())
-                        .setExternalId(src.getExternalId()));
-
+                        .setTwinSorterFeaturerId(src.getTwinSorterFeaturerId())
+                        .setTwinSorterParams(src.getTwinSorterParams())
+                        .setExternalId(src.getExternalId())
+                        .setExternalProperties(src.getExternalProperties())
+                        .setOrder(src.getOrder()));
     }
 }

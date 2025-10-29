@@ -3,6 +3,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.enums.status.StatusType;
 
 import java.util.UUID;
 
@@ -22,8 +23,11 @@ public class TwinStatusDTOv1 {
     @Schema(description = "description")
     public String description;
 
-    @Schema(description = "url for status UI logo", example = "https://twins.org/img/twin_status_default.png")
-    public String logo;
+    @Schema(description = "Icon dark uri")
+    public String iconDark;
+
+    @Schema(description = "Icon light uri")
+    public String iconLight;
 
     @Schema(description = "background color hex", example = DTOExamples.COLOR_HEX)
     public String backgroundColor;
@@ -33,4 +37,7 @@ public class TwinStatusDTOv1 {
 
     @Schema(description = "twin class", example = DTOExamples.TWIN_CLASS_ID)
     public UUID twinClassId;
+
+    @Schema(description = "type")
+    public StatusType type;
 }

@@ -16,6 +16,7 @@ public class TwinflowSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Twinfl
     public void map(TwinflowSaveRqDTOv1 src, TwinflowEntity dst, MapperContext mapperContext) throws Exception {
         dst
                 .setInitialTwinStatusId(src.getInitialStatusId())
+                .setInitialSketchTwinStatusId(src.getInitialSketchStatusId())
         ;
     }
 }

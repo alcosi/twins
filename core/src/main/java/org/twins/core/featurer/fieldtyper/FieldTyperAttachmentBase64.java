@@ -16,7 +16,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.file.DomainFile;
+import org.cambium.common.file.FileData;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorAttachment;
@@ -66,7 +66,7 @@ public class FieldTyperAttachmentBase64 extends FieldTyperAttachment<FieldValueA
         var base64 = content.contains(",") ? content.split(",")[1].replaceAll(" ", "") : content;
         byte[] bytes = Base64.decodeBase64(base64);
         StorageEntity storage = getStorage(properties);
-        DomainFile domainFile = new DomainFile(new ByteArrayInputStream(bytes), value.getName(), (long) bytes.length);
+        FileData domainFile = new FileData(new ByteArrayInputStream(bytes), value.getName(), (long) bytes.length);
         var apiUser = authService.getApiUser();
         attachment
                 .setStorage(storage)

@@ -15,6 +15,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     UUID_NOT_BE_NULLIFY_MARKER(10004, "uuid not be ffffffff-ffff-ffff-ffff-ffffffffffff"),
     UUID_IS_NULL(10005, "uuid is null"),
     CONFIGURATION_IS_INVALID(10006, "some part of domain config is invalid"),
+    UUID_MISMATCH(10007, "uuid is mismatch"),
     USER_UNKNOWN(10101, "unknown user"),
     USER_LOCALE_UNKNOWN(10102, "unknown locale"),
     DOMAIN_UNKNOWN(10201, "unknown domain"),
@@ -65,6 +66,13 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE(10424, "twin class field value is not unique"),
     FIELD_TYPER_STORAGE_NOT_INIT(10425, "Field typer getStorage should be implemented"),
     TWIN_CLASS_LIST_CYCLE(10426, "Twin class list id can't be equals id of class."),
+    TWIN_CLASS_FIELD_SORTER_IS_INCOMPATIBLE(10427, "twin class field sorter is incompatible with field typer"),
+    TWIN_CLASS_FREEZE_UNKNOWN(10428, "twin class freeze not found"),
+    TWIN_CLASS_FIELD_RULE_TWIN_CLASS_FIELD_NOT_SPECIFIED(10429, "Twin class field rule twin class field is not specified"),
+    TWIN_CLASS_FIELD_RULE_FEATURER_NOT_SPECIFIED(10430, "Twin class field rule featurer is not specified"),
+    TWIN_CLASS_FIELD_CONDITION_BASE_FIELD_NOT_SPECIFIED(10431, "Twin class field condition base field is not specified"),
+    TWIN_CLASS_FIELD_CONDITION_FEATURER_NOT_SPECIFIED(10432, "Twin class field condition featurer is not specified"),
+    TWIN_CLASS_FIELD_RULE_OVERWRITTEN_VALUE_NOT_SPECIFIED(10433, "Twin class field rule overwitten value is not specified"),
     TWINFLOW_SCHEMA_NOT_ALLOWED(10501, "twinflow schema is not allowed"),
     TWINFLOW_SCHEMA_NOT_CONFIGURED(10502, "twinflow schema is not configured"),
     TWINFLOW_TRANSACTION_INCORRECT(10503, "twinflow transition can not be performed"),
@@ -80,7 +88,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     DATALIST_KEY_INCORRECT(10606, "invalid datalist key"),
     SPACE_TWIN_ID_INCORRECT(10701, "given twin id is not a space twin"),
     HEAD_TWIN_ID_NOT_ALLOWED(10702, "given twin is not allowed for given class"),
-    HEAD_TWIN_NOT_SPECIFIED(10703, "space twin must be specified"),
+    HEAD_TWIN_NOT_SPECIFIED(10703, "head twin must be specified"),
+    HEAD_TWIN_SEGMENT_NOT_UNIQ(10704, "head is already linked to other segment"),
     TWIN_ALIAS_UNKNOWN(10801, "alias is unknown"),
     UNSUPPORTED_ALIAS_TYPE(10802, "unsupported alias type"),
     ERROR_TWIN_ALIASES_CREATION(10803, "Aliases creation error for twins."),
@@ -97,6 +106,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_STATUS_INCORRECT(11101, "twin status is incorrect"),
     TWIN_STATUS_TWIN_CLASS_NOT_SPECIFIED(11102, "twin status class is not specified"),
     TWIN_STATUS_KEY_INCORRECT(11103, "twin status key incorrect"),
+    TWIN_STATUS_SKETCH_FORBIDDEN(11104, "sketch is not allowed for given twin class"),
     PAGINATION_ERROR(11201, "pagination offset must be a multiple of the size"),
     PAGINATION_LIMIT_ERROR(11202, "pagination value limit cannot be less than 1"),
     TWIN_COMMENT_FIELD_TEXT_IS_NULL(11301, "twin comment field is null"),
@@ -169,7 +179,9 @@ public enum ErrorCodeTwins implements ErrorCode {
     ACT_AS_USER_NONCE_IS_NOT_UNIQ(12801, "act as user authentication error", HttpStatus.UNAUTHORIZED),
     NOTIFICATION_CONFIGURATION_ERROR(12901, "something wrong with notification configuration"),
     FACE_CONFIG_IS_NOT_UNIQ(13001, "face has few config variants"),
-    FACE_NO_CONFIG_IS_SUITABLE(13002, "no suitable face config found"),;
+    FACE_NO_CONFIG_IS_SUITABLE(13002, "no suitable face config found"),
+    TWIN_VALIDATOR_INCORRECT(13101, "incorrect twin validator for this case"),
+    USER_SEARCH_CONFIG_INCORRECT(14001, "user search config incorrect");
 
     private final int code;
     private final String message;

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -13,6 +14,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorEntity;
@@ -79,24 +81,24 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
             validatorRule.setTwinValidatorSet(twinValidatorSetEntitiesKit.get(validatorRule.getTwinValidatorSetId()));
     }
 
-    public boolean isValid(TwinEntity twinEntity, EasyLoggable validationForEntity, Set<TwinValidatorEntity> validatorsSet) throws ServiceException {
-        List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validatorsSet);
+    public boolean isValid(TwinEntity twinEntity, ContainsTwinValidatorSet validatorContainer) throws ServiceException {
+        List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validatorContainer.getTwinValidatorKit().getList());
         sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
         boolean validationResultOfSet = true;
         for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
             if (!twinValidatorEntity.isActive()) {
-                log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.logNormal(), validationForEntity.logNormal());
+                log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.logNormal(), validatorContainer.logNormal());
                 continue;
             }
 
             TwinValidator transitionValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
-            TwinValidator.ValidationResult validationResult = transitionValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
+            ValidationResult validationResult = transitionValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
             validationResultOfSet = validationResult.isValid();
             if (!validationResultOfSet) {
-                log.info("{} from {} is not valid. {}", twinValidatorEntity.logNormal(), validationForEntity.logNormal(), validationResult.getMessage());
+                log.info("{} from {} is not valid. {}", twinValidatorEntity.logNormal(), validatorContainer.logNormal(), validationResult.getMessage());
                 break;
             }
         }
-        return validationResultOfSet;
+        return validatorContainer.getTwinValidatorSet().isInvert() != validationResultOfSet;
     }
 }

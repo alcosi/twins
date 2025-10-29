@@ -1,6 +1,7 @@
 package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -12,8 +13,10 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinClassFieldId;
+import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.twin.TwinService;
 
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
@@ -23,7 +26,7 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_1614,
         name = "Twin fields value is not null",
         description = "")
-public class TwinValidatorTwinFieldNotNull extends TwinValidator{
+public class TwinValidatorTwinFieldNotNull extends TwinValidator {
 
     @FeaturerParam(name = "Twin class field ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet twinClassFieldIds = new FeaturerParamUUIDSetTwinsTwinClassFieldId("twinClassFieldIds");
@@ -34,17 +37,39 @@ public class TwinValidatorTwinFieldNotNull extends TwinValidator{
 
     @Override
     protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
-        twinService.loadFieldsValues(twinEntity);
         Set<UUID> fieldClassIds = twinClassFieldIds.extract(properties);
 
-        UUID nullFieldId = null;
+        Set<UUID> systemFieldIds = new HashSet<>();
+        Set<UUID> dynamicFieldIds = new HashSet<>();
+
         for (UUID fieldClassId : fieldClassIds) {
-            FieldValue fieldValue = twinEntity.getFieldValuesKit().get(fieldClassId);
-            if (fieldValue == null || fieldValue.isEmpty()) {
+            if (SystemEntityService.isSystemField(fieldClassId)) {
+                systemFieldIds.add(fieldClassId);
+            } else {
+                dynamicFieldIds.add(fieldClassId);
+            }
+        }
+
+        UUID nullFieldId = null;
+        for (UUID fieldClassId : systemFieldIds) {
+            Object value = SystemEntityService.getSystemFieldValue(twinEntity, fieldClassId);
+            if (value == null) {
                 nullFieldId = fieldClassId;
                 break;
             }
         }
+
+        if (nullFieldId == null && !dynamicFieldIds.isEmpty()) {
+            twinService.loadFieldsValues(twinEntity);
+            for (UUID fieldClassId : dynamicFieldIds) {
+                FieldValue fieldValue = twinEntity.getFieldValuesKit().get(fieldClassId);
+                if (fieldValue == null || fieldValue.isEmpty()) {
+                    nullFieldId = fieldClassId;
+                    break;
+                }
+            }
+        }
+
 
         boolean isValid = (nullFieldId == null);
         return buildResult(

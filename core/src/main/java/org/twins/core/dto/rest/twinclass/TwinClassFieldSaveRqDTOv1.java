@@ -9,6 +9,7 @@ import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Deprecated
@@ -36,12 +37,27 @@ public abstract class TwinClassFieldSaveRqDTOv1 extends Request {
     @Schema(description = "Required field", example = "true")
     public Boolean required;
 
+    @Schema(description = "System field", example = "true")
+    public Boolean system;
+
     @Schema(description = "external id", example = "")
     public String externalId;
+
+    @Schema(description = "external properties")
+    public Map<String, String> externalProperties;
 
     @Schema(description = "Field typer featurer ID", example = "1")
     public Integer fieldTyperFeaturerId;
 
     @Schema(description = "Field typer parameters", example = "{}")
     public HashMap<String, String> fieldTyperParams;
+
+    @Schema(description = "Twin sorter featurer ID", example = "1")
+    public Integer twinSorterFeaturerId;
+
+    @Schema(description = "Twin Sorter parameters", example = "{}")
+    public HashMap<String, String> twinSorterParams;
+
+    @Schema(description = "order", example = "1")
+    public Integer order;
 }

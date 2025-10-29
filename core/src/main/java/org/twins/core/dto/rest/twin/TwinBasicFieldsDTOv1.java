@@ -1,7 +1,6 @@
 package org.twins.core.dto.rest.twin;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Column;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
@@ -19,10 +18,10 @@ public class TwinBasicFieldsDTOv1 {
     @Schema(description = "created by user_id", example = DTOExamples.USER_ID)
     public UUID createdByUserId;
 
-    @Column(name = "name")
+    @Schema(name = "name")
     public String name;
 
-    @Column(name = "description")
+    @Schema(name = "description")
     public String description;
 
 }

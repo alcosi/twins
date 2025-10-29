@@ -102,14 +102,18 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
                 checkUuidIn(search.getViewPermissionIdList(), false, false, TwinClassFieldEntity.Fields.editPermissionId),
                 checkUuidIn(search.getViewPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.editPermissionId),
                 checkTernary(search.getRequired(), TwinClassFieldEntity.Fields.required),
+                checkTernary(search.getSystem(), TwinClassFieldEntity.Fields.system),
+                checkTernary(search.getDependentField(), TwinClassFieldEntity.Fields.dependentField),
+                checkTernary(search.getHasDependentFields(), TwinClassFieldEntity.Fields.hasDependentFields),
                 checkFieldLikeIn(search.getExternalIdLikeList(), false, true, TwinClassFieldEntity.Fields.externalId),
-                checkFieldLikeIn(search.getExternalIdNotLikeList(), true, true, TwinClassFieldEntity.Fields.externalId));
+                checkFieldLikeIn(search.getExternalIdNotLikeList(), true, true, TwinClassFieldEntity.Fields.externalId),
+                checkFieldLongRange(search.getOrderRange(), TwinClassFieldEntity.Fields.order));
     }
 
     private Specification<TwinClassFieldEntity> addSorting(TwinClassFieldSearch search, SimplePagination pagination, Specification<TwinClassFieldEntity> specification) throws ServiceException {
         TwinClassFieldSearchEntity searchEntity = search.getConfiguredSearch();
         if (searchEntity != null &&
-                (searchEntity.isForceSorting() || pagination == null || pagination.getSort() == null || pagination.getSort().isUnsorted())) {
+                (searchEntity.isForceSorting() || pagination == null || pagination.getSort() == null)) {
             FieldSorter fieldSorter = featurerService.getFeaturer(searchEntity.getFieldSorterFeaturerId(), FieldSorter.class);
             var sortFunction = fieldSorter.createSort(searchEntity.getFieldSorterParams());
             if (sortFunction != null) {
@@ -149,10 +153,11 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
     protected void narrowSearch(TwinClassFieldSearch mainSearch, TwinClassFieldSearch narrowSearch) {
         if (narrowSearch == null)
             return;
-        for (Pair<Function<TwinClassFieldSearch, Set>, BiConsumer<TwinClassFieldSearch, Set>> functioPair : TwinClassFieldSearch.SET_FIELDS) {
-            Set mainSet = functioPair.getKey().apply(mainSearch);
-            Set narrowSet = functioPair.getKey().apply(narrowSearch);
-            functioPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
+
+        for (Pair<Function<TwinClassFieldSearch, Set>, BiConsumer<TwinClassFieldSearch, Set>> functionPair : TwinClassFieldSearch.SET_FIELDS) {
+            Set mainSet = functionPair.getKey().apply(mainSearch);
+            Set narrowSet = functionPair.getKey().apply(narrowSearch);
+            functionPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
         }
         for (Pair<Function<TwinClassFieldSearch, Ternary>, BiConsumer<TwinClassFieldSearch, Ternary>> functionPair : TwinClassFieldSearch.TERNARY_FIELD) {
             Ternary mainSet = functionPair.getKey().apply(mainSearch);

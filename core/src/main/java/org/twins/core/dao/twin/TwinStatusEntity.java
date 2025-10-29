@@ -8,7 +8,9 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.enums.status.StatusType;
 
 import java.util.UUID;
 
@@ -40,8 +42,11 @@ public class TwinStatusEntity implements EasyLoggable {
     @Column(name = "description_i18n_id")
     private UUID descriptionI18nId;
 
-    @Column(name = "logo")
-    private String logo;
+    @Column(name = "icon_light_resource_id")
+    private UUID iconLightResourceId;
+
+    @Column(name = "icon_dark_resource_id")
+    private UUID iconDarkResourceId;
 
     @Column(name = "background_color")
     private String backgroundColor;
@@ -49,10 +54,26 @@ public class TwinStatusEntity implements EasyLoggable {
     @Column(name = "font_color")
     private String fontColor;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "twin_status_type")
+    private StatusType type;
+
     @EqualsAndHashCode.Exclude
     @ManyToOne
     @JoinColumn(name = "twins_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "icon_light_resource_id", insertable = false, updatable = false)
+    private ResourceEntity iconLightResource;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "icon_dark_resource_id", insertable = false, updatable = false)
+    private ResourceEntity iconDarkResource;
 
     @Deprecated //for specification only
     @EqualsAndHashCode.Exclude

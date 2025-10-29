@@ -3,8 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
-import org.twins.core.dao.twinflow.TwinflowTransitionType;
+import org.twins.core.enums.twinflow.TwinflowTransitionType;
 
 import java.util.Map;
 import java.util.Set;

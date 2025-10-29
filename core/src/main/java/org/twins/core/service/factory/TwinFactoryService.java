@@ -18,17 +18,19 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.factory.*;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
 import org.twins.core.dao.twin.TwinChangeTaskStatus;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinflow.TwinflowFactoryRepository;
 import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.enums.factory.FactoryEraserAction;
+import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.conditioner.Conditioner;
 import org.twins.core.featurer.factory.filler.Filler;
@@ -76,6 +78,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     final TwinChangeTaskService twinChangeTaskService;
     private final TwinflowTransitionRepository twinflowTransitionRepository;
     private final I18nService i18nService;
+    private final TwinflowFactoryRepository twinflowFactoryRepository;
 
     @Override
     public CrudRepository<TwinFactoryEntity, UUID> entityRepository() {
@@ -200,6 +203,9 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     private void runMultipliers(TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {
         List<TwinFactoryMultiplierEntity> factoryMultiplierEntityList = twinFactoryMultiplierRepository.findByTwinFactoryId(factoryEntity.getId()); //few multipliers can be attached to one factory, because one can be used to create on grouped twin, other for create isolated new twin and so on
         log.info("Loaded " + factoryMultiplierEntityList.size() + " multipliers");
+        if (CollectionUtils.isEmpty(factoryMultiplierEntityList)) {
+            return;
+        }
         Map<UUID, List<FactoryItem>> factoryInputTwins = groupItemsByClass(factoryContext);
         LoggerUtils.traceTreeLevelDown();
         for (TwinFactoryMultiplierEntity factoryMultiplierEntity : factoryMultiplierEntityList) {
@@ -337,6 +343,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                         log.warn("Step is optional and unsuccessful: " + (ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage()) + ". Pipeline will not be aborted");
                     } else {
                         log.error("Step[{}] is mandatory. Factory process will be aborted", pipelineStepEntity.getId());
+                        LoggerUtils.traceTreeEnd();
                         throw ex;
                     }
                 }
@@ -363,11 +370,11 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 log.info("Skipping {} because of empty input", eraserEntity.logShort());
                 continue;
             }
-            TwinFactoryEraserEntity.Action action;
+            FactoryEraserAction action;
             for (FactoryItem eraserInput : eraserInputList) {
                 //if we are in erase mode then input twin can not be marked as candidate, it's already candidate for deletion, so me will replace action to ERASE_IRREVOCABLE
-                if (factoryContext.getFactoryLauncher().isDeletion() && eraserInput.isFactoryInputItem() && eraserEntity.getEraserAction() == TwinFactoryEraserEntity.Action.ERASE_CANDIDATE)
-                    action = TwinFactoryEraserEntity.Action.ERASE_IRREVOCABLE;
+                if (factoryContext.getFactoryLauncher().isDeletion() && eraserInput.isFactoryInputItem() && eraserEntity.getEraserAction() == FactoryEraserAction.ERASE_CANDIDATE)
+                    action = FactoryEraserAction.ERASE_IRREVOCABLE;
                 else
                     action = eraserEntity.getEraserAction();
                 log.info("Eraser action {} was detected for {}", action, eraserInput.logDetailed());
@@ -494,14 +501,16 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             return;
 
         Map<UUID, Integer> twinflowTransitionCounts = mapUuidInt(twinflowTransitionRepository.countByInbuiltTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> twinflowFactoryCounts = mapUuidInt(twinflowFactoryRepository.countByAfterTransitionPerformFactoryIds(needLoad.getIdSet()));
         Map<UUID, Integer> twinFactoryBranchCounts = mapUuidInt(twinFactoryBranchRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
-        Map<UUID, Integer> twinFactoryPipelineCounts = mapUuidInt(twinFactoryPipelineRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> pipelineNextTwinFactoryCounts = mapUuidInt(twinFactoryPipelineRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> pipelineAfterCommitTwinFactoryCounts = mapUuidInt(twinFactoryPipelineRepository.countByAfterCommitTwinFactoryIds(needLoad.getIdSet()));
 
         needLoad.getCollection().forEach(twinFactory -> {
-            int twinflowTransitionCount = twinflowTransitionCounts.getOrDefault(twinFactory.getId(), 0);
+            int twinflowCount = twinflowTransitionCounts.getOrDefault(twinFactory.getId(), 0) + twinflowFactoryCounts.getOrDefault(twinFactory.getId(), 0);
             int twinFactoryBranchCount = twinFactoryBranchCounts.getOrDefault(twinFactory.getId(), 0);
-            int twinFactoryPipelineCount = twinFactoryPipelineCounts.getOrDefault(twinFactory.getId(), 0);
-            twinFactory.setFactoryUsagesCount(twinflowTransitionCount + twinFactoryBranchCount + twinFactoryPipelineCount);
+            int twinFactoryPipelineCount = pipelineNextTwinFactoryCounts.getOrDefault(twinFactory.getId(), 0) + pipelineAfterCommitTwinFactoryCounts.getOrDefault(twinFactory.getId(), 0);
+            twinFactory.setFactoryUsagesCount(twinflowCount + twinFactoryBranchCount + twinFactoryPipelineCount);
         });
     }
 

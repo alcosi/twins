@@ -3,6 +3,7 @@ package org.twins.core.featurer.twin.validator;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.twins.core.dao.twin.TwinEntity;
@@ -55,12 +56,6 @@ public abstract class TwinValidator extends FeaturerTwins {
         return collectionValidationResult;
     }
 
-    @Data
-    @Accessors(chain = true)
-    public static class ValidationResult {
-        boolean valid = false;
-        String message;
-    }
 
     @Data
     @Accessors(chain = true)

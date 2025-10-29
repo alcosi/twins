@@ -18,8 +18,8 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
+import org.twins.core.mappers.rest.mappercontext.modes.RelationTwinMode;
 import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
@@ -41,7 +41,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
     @MapperModePointerBinding(modes = StatusMode.TwinField2StatusMode.class)
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
 
-    @MapperModePointerBinding(modes = TwinMode.TwinField2TwinMode.class)
+    @MapperModePointerBinding(modes = RelationTwinMode.TwinByFieldMode.class)
     private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
 
     @Override
@@ -54,7 +54,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
         } else if (src instanceof FieldValueColorHEX color) {
             dst.setValue(color.getHex());
         } else if (src instanceof FieldValueDate date) {
-            dst.setValue(date.getDate());
+            dst.setValue(date.getDateStr());
         } else if (src instanceof FieldValueInvisible) {
             dst.setValue("");
         } else if (src instanceof FieldValueAttachment fieldValueAttachment) {
@@ -106,14 +106,14 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
                 else
                     linkedTwin = twinLinkEntity.getSrcTwin();
                 stringJoiner.add(linkedTwin.getId().toString());
-                if (mapperContext.hasModeButNot(TwinMode.TwinField2TwinMode.HIDE)) {
-                    twinBaseRestDTOMapper.postpone(linkedTwin, mapperContext.forkOnPoint(UserMode.TwinField2UserMode.HIDE));
+                if (mapperContext.hasModeButNot(RelationTwinMode.TwinByFieldMode.WHITE)) {
+                    twinBaseRestDTOMapper.postpone(linkedTwin, mapperContext.forkOnPoint(RelationTwinMode.TwinByFieldMode.GREEN));
                 }
             }
             dst.setValue(stringJoiner.toString());
         } else if (src instanceof FieldValueLinkSingle link) {
-            if (mapperContext.hasModeButNot(TwinMode.TwinField2TwinMode.HIDE)) {
-                twinBaseRestDTOMapper.postpone(link.getDstTwin(), mapperContext.forkOnPoint(UserMode.TwinField2UserMode.HIDE));
+            if (mapperContext.hasModeButNot(RelationTwinMode.TwinByFieldMode.WHITE)) {
+                twinBaseRestDTOMapper.postpone(link.getDstTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByFieldMode.GREEN));
             }
             dst.setValue(link.getDstTwin().getId().toString());
         } else if (src instanceof FieldValueI18n i18nField) {

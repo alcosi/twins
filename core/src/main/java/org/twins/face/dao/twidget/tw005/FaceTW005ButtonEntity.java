@@ -30,7 +30,8 @@ public class FaceTW005ButtonEntity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "twinflow_transition_id")
     private UUID transitionId;
 
-    @Column(name = "order")
+    @Column(name = "`order`")
+    @Basic
     private Integer order;
 
     @Column(name = "label_i18n_id")
