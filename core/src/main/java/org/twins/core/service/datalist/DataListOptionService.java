@@ -290,7 +290,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         }
         DataListOptionSearch dataListOptionSearch = new DataListOptionSearch()
                 .addDataListId(dataListId, false)
-                .setExternalIdLikeList(incompleteOptionKit.getIdSet());
+                .setExternalIdList(incompleteOptionKit.getIdSet());
         if (businessAccountId != null)
             dataListOptionSearch.addBusinessAccountId(businessAccountId, false);
         Kit<DataListOptionEntity, String> existedOptions = new Kit<>(dataListOptionSearchService.findDataListOptions(dataListOptionSearch), DataListOptionEntity::getExternalId);
