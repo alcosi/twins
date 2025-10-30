@@ -32,6 +32,7 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
+import org.twins.core.config.filter.I18nCacheCleanupFilter;
 import org.twins.core.config.filter.LoggingFilter;
 import org.twins.core.config.filter.UncaughtExceptionFilter;
 
@@ -87,6 +88,12 @@ public class ApplicationConfig {
     @Bean(name = "uncaughtExceptionFilter", value = "uncaughtExceptionFilter")
     public UncaughtExceptionFilter uncaughtExceptionFilter(UncaughtExceptionFilter.LoggingController controller, ObjectMapper objectMapper) {
         return new UncaughtExceptionFilter(controller, objectMapper);
+    }
+
+    @Order(3)
+    @Bean(name = "i18nCacheCleanupFilter", value = "i18nCacheCleanupFilter")
+    public I18nCacheCleanupFilter i18nCacheCleanupFilter() {
+        return new I18nCacheCleanupFilter();
     }
     /**
      * Configures a MeterRegistry with common tags applied to all metrics.
