@@ -224,6 +224,23 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
         return translateToLocale(i18nId, resolveCurrentUserLocale(), null);
     }
 
+    public Map<UUID, String> translateToLocale(Set<UUID> idsToLoad) {
+        if (CollectionUtils.isEmpty(idsToLoad)) {
+            return Collections.emptyMap();
+        } else if (idsToLoad.size() == 1) {
+            UUID id = idsToLoad.iterator().next();
+            return Map.of(id, translateToLocale(id));
+        } else {
+            Map<UUID, String> result = new HashMap<>();
+            Locale locale = resolveCurrentUserLocale();
+            i18nTranslationRepository.findByI18nIdInAndLocale(idsToLoad, locale).forEach(t -> result.put(t.getI18nId(), t.getTranslation()));
+            if (idsToLoad.size() != result.size()) {
+                idsToLoad.stream().filter(id -> !result.containsKey(id)).forEach(id -> result.put(id, ""));
+            }
+            return result;
+        }
+    }
+
     @Transactional
     public I18nEntity duplicateI18n(UUID srcI18nId) {
         return duplicateI18n(i18nRepository.findById(srcI18nId).get());
@@ -381,6 +398,4 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
 
         return i18nEntity;
     }
-
-
 }
