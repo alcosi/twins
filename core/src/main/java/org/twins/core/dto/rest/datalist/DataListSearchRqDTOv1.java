@@ -46,4 +46,10 @@ public class DataListSearchRqDTOv1 extends Request {
 
     @Schema(description = "external id not like list")
     public Set<String> externalIdNotLikeList;
+
+    @Schema(description = "default option id list")
+    public Set<UUID> defaultOptionIdList;
+
+    @Schema(description = "default option id exclude list")
+    public Set<UUID> defaultOptionIdExcludeList;
 }

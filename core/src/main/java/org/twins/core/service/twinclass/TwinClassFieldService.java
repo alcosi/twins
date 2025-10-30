@@ -45,7 +45,6 @@ import org.twins.core.service.twin.TwinService;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 
 @Slf4j
@@ -387,9 +386,11 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             validateEntityAndThrow(field, EntitySmartService.EntityValidateMode.beforeSave);
             fieldsToCreate.add(field);
 
-            cacheEvictCollector.add(field.getTwinClassId(),
-                    TwinClassRepository.CACHE_TWIN_CLASS_BY_ID,
-                    TwinClassEntity.class.getSimpleName());
+            cacheEvictCollector
+                    .add(field.getTwinClassId(),
+                            TwinClassRepository.CACHE_TWIN_CLASS_BY_ID,
+                            TwinClassEntity.class.getSimpleName())
+                    .add(TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN);
         }
 
         Iterable<TwinClassFieldEntity> savedEntities = entitySmartService.saveAllAndLog(
@@ -397,9 +398,12 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 twinClassFieldRepository
         );
 
-        List<TwinClassFieldEntity> result = StreamSupport.stream(savedEntities.spliterator(), false)
-                .collect(Collectors.toList());
-
+        List<TwinClassFieldEntity> result = new ArrayList<>();
+        for (var savedEntity : savedEntities) {
+            if (savedEntity.getTwinClass() != null)
+                savedEntity.getTwinClass().setTwinClassFieldKit(null); //invalidating kit cache
+            result.add(savedEntity);
+        }
         CacheUtils.evictCache(cacheManager, cacheEvictCollector);
 
         return result;
@@ -430,7 +434,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             return Collections.emptyList();
         }
 
-        Kit<TwinClassFieldEntity, UUID> dbFieldsKit =findEntitiesSafe(
+        Kit<TwinClassFieldEntity, UUID> dbFieldsKit = findEntitiesSafe(
                 twinClassFieldSaves.stream()
                         .map(s -> s.getField().getId())
                         .collect(Collectors.toList())
@@ -465,6 +469,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             updateEntityFieldByEntity(save.getField(), dbField, TwinClassFieldEntity::getSystem, TwinClassFieldEntity::setSystem, TwinClassFieldEntity.Fields.system, changesHelper);
             updateEntityFieldByEntity(save.getField(), dbField, TwinClassFieldEntity::getExternalId, TwinClassFieldEntity::setExternalId, TwinClassFieldEntity.Fields.externalId, changesHelper);
             updateEntityFieldByEntity(save.getField(), dbField, TwinClassFieldEntity::getExternalProperties, TwinClassFieldEntity::setExternalProperties, TwinClassFieldEntity.Fields.externalProperties, changesHelper);
+            updateEntityFieldByEntity(save.getField(), dbField, TwinClassFieldEntity::getOrder, TwinClassFieldEntity::setOrder, TwinClassFieldEntity.Fields.order, changesHelper);
 
             if (changesHelper.hasChanges()) {
                 changes.add(dbField, changesHelper);
@@ -585,7 +590,6 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         if (changesHelper.isChanged(TwinClassFieldEntity.Fields.beValidationErrorI18nId, dbTwinClassFieldEntity.getBeValidationErrorI18nId(), beValidationErrorI18n.getId()))
             dbTwinClassFieldEntity.setBeValidationErrorI18nId(beValidationErrorI18n.getId());
     }
-
 
 
     public void updateTwinClassFieldViewPermission(TwinClassFieldEntity dbTwinClassFieldEntity, UUID newViewPermissionId, ChangesHelper changesHelper) {

@@ -10,6 +10,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.Specification;
+import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.history.context.HistoryContextDatalistMultiChange;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
@@ -60,6 +61,9 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     @FeaturerParam(name = "datalist subset exclude ids", description = "", order = 9, optional = true)
     public static final FeaturerParamUUIDSet dataListSubsetIdExcludeIds = new FeaturerParamUUIDSetDatalistSubsetId("dataListSubsetIdExcludeIds");
 
+    @FeaturerParam(name = "default option id", description = "", order = 10, optional = true)
+    public static final FeaturerParamUUID defaultOptionId = new FeaturerParamUUID("defaultOptionId");
+
     @Override
     protected FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         FieldDescriptorList fieldDescriptorList = new FieldDescriptorList();
@@ -70,13 +74,26 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
                 .dataListOptionIdList(dataListOptionIds.extract(properties))
                 .dataListOptionIdExcludeList(dataListOptionExcludeIds.extract(properties))
                 .dataListSubsetIdList(dataListSubsetIds.extract(properties))
-                .dataListSubsetIdExcludeList(dataListSubsetIdExcludeIds.extract(properties));
+                .dataListSubsetIdExcludeList(dataListSubsetIdExcludeIds.extract(properties))
+                .defaultDataListOptionId(defaultOptionId.extract(properties));
         return fieldDescriptorList;
 
     }
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueSelect value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (!value.isFilled()) {
+            UUID defaultOptionIdValue = defaultOptionId.extract(properties);
+            if (defaultOptionIdValue == null) {
+                DataListEntity dataListEntity = dataListService.findEntitySafe(dataListId.extract(properties));
+                defaultOptionIdValue = dataListEntity.getDefaultDataListOptionId();
+            }
+            if (defaultOptionIdValue != null) {
+                DataListOptionEntity defaultOption = dataListOptionService.findEntitySafe(defaultOptionIdValue);
+                value.add(defaultOption);
+            }
+        }
+
         //todo - check that additional option conditions are met
         if (value.getOptions() != null && value.getOptions().size() > 1 && !allowMultiply(properties))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply options are not allowed");

@@ -46,4 +46,7 @@ public class DataListOptionDTOv1 {
     @Schema(description = "business account id", example = DTOExamples.BUSINESS_ACCOUNT_ID)
     @RelatedObject(type = BusinessAccountDTOv1.class, name = "businessAccount")
     public UUID businessAccountId;
+
+    @Schema(description = "flag for custom field", example = DTOExamples.BOOLEAN_TRUE)
+    public Boolean custom;
 }

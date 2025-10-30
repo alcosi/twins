@@ -41,7 +41,8 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
                         .setExternalId(src.getExternalId())
                         .setFontColor(src.getFontColor())
                         .setDataListId(src.getDataListId())
-                        .setBusinessAccountId(src.getBusinessAccountId());
+                        .setBusinessAccountId(src.getBusinessAccountId())
+                        .setCustom(src.isCustom());
             case SHORT ->
                 dst
                         .setId(src.getId())

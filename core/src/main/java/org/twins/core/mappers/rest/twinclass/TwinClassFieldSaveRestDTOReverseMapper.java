@@ -31,7 +31,7 @@ public class TwinClassFieldSaveRestDTOReverseMapper extends RestSimpleDTOMapper<
                         .setTwinSorterFeaturerId(src.getTwinSorterFeaturerId())
                         .setTwinSorterParams(src.getTwinSorterParams())
                         .setExternalId(src.getExternalId())
-                        .setExternalProperties(src.getExternalProperties()));
-
+                        .setExternalProperties(src.getExternalProperties())
+                        .setOrder(src.getOrder()));
     }
 }

@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
+import org.cambium.common.math.LongRange;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dao.twinclass.TwinClassFieldSearchEntity;
@@ -32,6 +33,7 @@ public class TwinClassFieldSearch {
     private Set<String> externalIdNotLikeList;
     private Set<Integer> fieldTyperIdList;
     private Set<Integer> fieldTyperIdExcludeList;
+    private LongRange orderRange;
     private Set<UUID> viewPermissionIdList;
     private Set<UUID> viewPermissionIdExcludeList;
     private Set<UUID> editPermissionIdList;
