@@ -1,14 +1,15 @@
 package org.twins.core.mappers.rest.space;
 
 import lombok.RequiredArgsConstructor;
-import org.twins.core.service.i18n.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.SpaceRoleMode;
+import org.twins.core.service.i18n.I18nService;
 
 
 @Component
@@ -25,8 +26,8 @@ public class SpaceRoleDTOMapper extends RestSimpleDTOMapper<SpaceRoleEntity, Spa
                 dst
                         .setId(src.getId())
                         .setKey(src.getKey())
-                        .setName(src.getNameI18NId() != null ? i18nService.translateToLocale(src.getNameI18NId()) : "")
-                        .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
+                        .setName(I18nCacheHolder.addId(src.getNameI18NId()))
+                        .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
                         .setTwinClassId(src.getTwinClassId())
                         .setBusinessAccountId(src.getBusinessAccountId());
             case SHORT ->

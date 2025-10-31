@@ -8,6 +8,7 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
@@ -34,11 +35,11 @@ public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntit
             case DETAILED:
                 dst
                         .setId(src.getId())
-                        .setName(i18nService.translateToLocale(src.getNameI18nId()))
+                        .setName(I18nCacheHolder.addId(src.getNameI18nId()))
                         .setKey(src.getKey())
                         .setTwinClassId(src.getTwinClassId())
                         .setType(src.getType())
-                        .setDescription(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
+                        .setDescription(I18nCacheHolder.addId(src.getDescriptionI18nId()))
                         .setIconDark(resourceService.getResourceUri(src.getIconDarkResource()))
                         .setIconLight(resourceService.getResourceUri(src.getIconLightResource()))
                         .setBackgroundColor(src.getBackgroundColor())
@@ -47,7 +48,7 @@ public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntit
             case SHORT:
                 dst
                         .setId(src.getId())
-                        .setName(i18nService.translateToLocale(src.getNameI18nId()));
+                        .setName(I18nCacheHolder.addId(src.getNameI18nId()));
                 break;
         }
         if (mapperContext.hasModeButNot(TwinClassMode.TwinStatus2TwinClassMode.HIDE)) {
