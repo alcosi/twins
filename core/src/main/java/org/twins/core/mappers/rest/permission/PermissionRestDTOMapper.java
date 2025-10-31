@@ -6,6 +6,7 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.PermissionGroupMode;
@@ -28,8 +29,8 @@ public class PermissionRestDTOMapper extends RestSimpleDTOMapper<PermissionEntit
                 dst
                         .setId(src.getId())
                         .setKey(src.getKey())
-                        .setName(i18nService.translateToLocale(src.getNameI18NId()))
-                        .setDescription(i18nService.translateToLocale(src.getDescriptionI18NId()))
+                        .setName(I18nCacheHolder.addId(src.getNameI18NId()))
+                        .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
                         .setGroupId(src.getPermissionGroupId());
                 break;
             case SHORT:

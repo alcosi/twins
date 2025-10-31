@@ -6,6 +6,7 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.businessaccount.BusinessAccountDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -33,7 +34,7 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
             case DETAILED ->
                 dst
                         .setId(src.getId())
-                        .setName(src.getOptionI18NId() != null ? i18nService.translateToLocale(src.getOptionI18NId()) : src.getOption())
+                        .setName(I18nCacheHolder.addId(src.getOptionI18NId()))
                         .setIcon(src.getIcon())
                         .setAttributes(getAttributes(src))
                         .setStatus(src.getStatus())
@@ -46,7 +47,7 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
             case SHORT ->
                 dst
                         .setId(src.getId())
-                        .setName(src.getOptionI18NId() != null ? i18nService.translateToLocale(src.getOptionI18NId()) : src.getOption());
+                        .setName(I18nCacheHolder.addId(src.getOptionI18NId()));
         }
         if (mapperContext.hasModeButNot(DataListMode.DataListOption2DataListMode.HIDE)) {
             dst.setDataListId(src.getDataListId());

@@ -10,6 +10,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dto.rest.link.LinkDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
@@ -42,7 +43,7 @@ public class LinkForwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, Li
                     throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + LinkMode.MANAGED + "] is not allowed for current user");
                 dst
                         .setId(src.getId())
-                        .setName(i18nService.translateToLocale(src.getForwardNameI18NId()))
+                        .setName(I18nCacheHolder.addId(src.getForwardNameI18NId()))
                         .setDstTwinClassId(src.getDstTwinClassId())
                         .setLinkStrengthId(src.getLinkStrengthId())
                         .setType(src.getType());
@@ -50,7 +51,7 @@ public class LinkForwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, Li
             case SHORT:
                 dst
                         .setId(src.getId())
-                        .setName(i18nService.translateToLocale(src.getForwardNameI18NId()));
+                        .setName(I18nCacheHolder.addId(src.getForwardNameI18NId()));
         }
         if (mapperContext.hasModeButNot(TwinClassMode.LinkDst2TwinClassMode.HIDE)) {
             dst.setDstTwinClassId(src.getDstTwinClassId());
