@@ -365,4 +365,8 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
             domain.setAttachmentsStorage(storages.get(domain.getAttachmentsStorageId()));
         });
     }
+
+    public boolean existsById(UUID domainId) {
+        return domainRepository.existsById(domainId);
+    }
 }

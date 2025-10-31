@@ -175,18 +175,31 @@ public class ApplicationConfig {
 
     @Bean
     public TaskExecutor twinChangeTaskExecutor(@Autowired(required = false) TaskDecorator taskDecorator) {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(5); //todo move to settings
-        executor.setMaxPoolSize(10);
-        executor.setThreadNamePrefix("twinChangeTaskExecutor-");
-        if (taskDecorator != null) executor.setTaskDecorator(taskDecorator);
-        executor.initialize();
-        return executor;
+        return createThreadPoolTaskExecutor("twinChangeTaskExecutor-", taskDecorator);
+    }
+
+    @Bean
+    public TaskExecutor twinEventDispatchTaskExecutor(@Autowired(required = false) TaskDecorator taskDecorator) {
+        return createThreadPoolTaskExecutor("twinEventDispatchTaskExecutor-", taskDecorator);
     }
 
     @Bean(name = "emailTaskExecutor")
     public Executor taskExecutor() {
         return Executors.newFixedThreadPool(10);
+    }
+
+    /**
+     * Helper to create {@link ThreadPoolTaskExecutor} with common settings in one place.
+     * Allows re-use for different task executors without code duplication.
+     */
+    private ThreadPoolTaskExecutor createThreadPoolTaskExecutor(String threadNamePrefix, TaskDecorator taskDecorator) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5); //todo move to settings
+        executor.setMaxPoolSize(10);
+        executor.setThreadNamePrefix(threadNamePrefix);
+        if (taskDecorator != null) executor.setTaskDecorator(taskDecorator);
+        executor.initialize();
+        return executor;
     }
 
 //    @Bean(name = "cacheManagerRequestScope")
