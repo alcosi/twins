@@ -199,28 +199,26 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     public void loadRuleFields(Collection<TwinClassFieldRuleEntity> ruleEntities) throws ServiceException {
-        List<TwinClassFieldRuleEntity> needLoad = ruleEntities.stream()
+        Kit<TwinClassFieldRuleEntity, UUID> needLoad = new Kit<>(TwinClassFieldRuleEntity::getId);
+
+        ruleEntities.stream()
                 .filter(rule -> rule.getFieldKit() == null)
-                .toList();
+                .forEach(needLoad::add);
 
         if (needLoad.isEmpty()) return;
 
-        Set<UUID> ruleIds = needLoad.stream()
-                .map(TwinClassFieldRuleEntity::getId)
-                .collect(Collectors.toSet());
-
-        Kit<TwinClassFieldRuleMapEntity, UUID> ruleMapsKit = twinClassFieldRuleMapService.findEntitiesSafe(ruleIds);
+        Kit<TwinClassFieldRuleMapEntity, UUID> ruleMapsKit = twinClassFieldRuleMapService.findEntitiesSafe(needLoad.getIdSet());
 
         if (ruleMapsKit.isEmpty()) {
             needLoad.forEach(rule -> rule.setFieldKit(Kit.EMPTY));
             return;
         }
 
-        Set<UUID> fieldIds = ruleMapsKit.stream()
-                .map(TwinClassFieldRuleMapEntity::getTwinClassFieldId)
-                .collect(Collectors.toSet());
-
-        Kit<TwinClassFieldEntity, UUID> fieldsKit = findEntitiesSafe(fieldIds);
+        Kit<TwinClassFieldEntity, UUID> fieldsKit = findEntitiesSafe(
+                ruleMapsKit.stream()
+                        .map(TwinClassFieldRuleMapEntity::getTwinClassFieldId)
+                        .collect(Collectors.toSet())
+        );
 
         needLoad.forEach(rule -> {
             Kit<TwinClassFieldEntity, UUID> ruleFieldKit = new Kit<>(TwinClassFieldEntity::getId);
@@ -474,7 +472,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             return Collections.emptyList();
         }
 
-        Kit<TwinClassFieldEntity, UUID> dbFieldsKit =findEntitiesSafe(
+        Kit<TwinClassFieldEntity, UUID> dbFieldsKit = findEntitiesSafe(
                 twinClassFieldSaves.stream()
                         .map(s -> s.getField().getId())
                         .collect(Collectors.toList())
@@ -630,7 +628,6 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         if (changesHelper.isChanged(TwinClassFieldEntity.Fields.beValidationErrorI18nId, dbTwinClassFieldEntity.getBeValidationErrorI18nId(), beValidationErrorI18n.getId()))
             dbTwinClassFieldEntity.setBeValidationErrorI18nId(beValidationErrorI18n.getId());
     }
-
 
 
     public void updateTwinClassFieldViewPermission(TwinClassFieldEntity dbTwinClassFieldEntity, UUID newViewPermissionId, ChangesHelper changesHelper) {
