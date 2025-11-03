@@ -24,10 +24,12 @@ import org.twins.core.dto.rest.twinflow.TwinflowFactoryCreateRqDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowFactoryCreateRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twinflow.TwinflowFactoryBaseRestDTOMapperV1;
-import org.twins.core.mappers.rest.twinflow.TwinflowFactoryCreateRestDTOReverseMapper;
+import org.twins.core.mappers.rest.twinflow.TwinflowFactoryRestDTOMapperV1;
+import org.twins.core.mappers.rest.twinflow.TwinflowFactorySaveRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowFactoryService;
+
+import java.util.List;
 
 
 @Tag(name = ApiTag.TWINFLOW)
@@ -38,8 +40,8 @@ import org.twins.core.service.twinflow.TwinflowFactoryService;
 public class TwinflowFactoryCreateController extends ApiController {
 
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
-    private final TwinflowFactoryCreateRestDTOReverseMapper twinflowFactoryCreateRestDTOReverseMapper;
-    private final TwinflowFactoryBaseRestDTOMapperV1 twinflowFactoryBaseRestDTOMapper;
+    private final TwinflowFactorySaveRestDTOReverseMapper twinflowFactorySaveRestDTOReverseMapper;
+    private final TwinflowFactoryRestDTOMapperV1 twinflowFactoryRestDTOMapperV1;
     private final TwinflowFactoryService twinflowFactoryService;
 
     @ParametersApiUserHeaders
@@ -51,16 +53,16 @@ public class TwinflowFactoryCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twinflow/factory/v1")
     public ResponseEntity<?> twinflowFactoryCreateV1(
-            @MapperContextBinding(roots = TwinflowFactoryBaseRestDTOMapperV1.class, response = TwinflowFactoryCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinflowFactoryRestDTOMapperV1.class, response = TwinflowFactoryCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody TwinflowFactoryCreateRqDTOv1 request) {
         TwinflowFactoryCreateRsDTOv1 rs = new TwinflowFactoryCreateRsDTOv1();
 
         try {
-            TwinflowFactoryEntity twinflowFactoryEntity = twinflowFactoryCreateRestDTOReverseMapper.convert(request);
-            twinflowFactoryEntity = twinflowFactoryService.createTwinflowFactory(twinflowFactoryEntity);
+            List<TwinflowFactoryEntity> twinflowFactoryEntities = twinflowFactorySaveRestDTOReverseMapper.convertCollection(request.getTwinflowFactories());
+            twinflowFactoryEntities = twinflowFactoryService.createTwinflowFactories(twinflowFactoryEntities);
 
             rs
-                    .setTwinflowFactory(twinflowFactoryBaseRestDTOMapper.convert(twinflowFactoryEntity, mapperContext))
+                    .setTwinflowFactories(twinflowFactoryRestDTOMapperV1.convertCollection(twinflowFactoryEntities, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

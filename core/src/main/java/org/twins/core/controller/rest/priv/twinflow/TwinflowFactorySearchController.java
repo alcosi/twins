@@ -28,7 +28,7 @@ import org.twins.core.dto.rest.twinflow.TwinflowFactorySearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twinflow.TwinflowFactoryBaseRestDTOMapperV1;
+import org.twins.core.mappers.rest.twinflow.TwinflowFactoryRestDTOMapperV1;
 import org.twins.core.mappers.rest.twinflow.TwinflowFactorySearchRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowFactorySearchService;
@@ -44,7 +44,7 @@ public class TwinflowFactorySearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;
     private final TwinflowFactorySearchService twinflowFactorySearchService;
-    private final TwinflowFactoryBaseRestDTOMapperV1 twinflowFactoryBaseRestDTOMapperV1;
+    private final TwinflowFactoryRestDTOMapperV1 twinflowFactoryRestDTOMapperV1;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinflowFactorySearchV1", summary = "Returns twinflow factory search result")
@@ -55,7 +55,7 @@ public class TwinflowFactorySearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twinflow/factory/search/v1")
     public ResponseEntity<?> twinflowFactorySearchV1(
-            @MapperContextBinding(roots = TwinflowFactoryBaseRestDTOMapperV1.class, response = TwinflowFactorySearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinflowFactoryRestDTOMapperV1.class, response = TwinflowFactorySearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody TwinflowFactorySearchRqDTOv1 request) {
         TwinflowFactorySearchRsDTOv1 rs = new TwinflowFactorySearchRsDTOv1();
@@ -63,7 +63,7 @@ public class TwinflowFactorySearchController extends ApiController {
             PaginationResult<TwinflowFactoryEntity> twinflowFactoryList = twinflowFactorySearchService
                     .findTwinflowFactory(twinflowFactorySearchRestDTOReverseMapper.convert(request), pagination);
             rs
-                    .setTwinflowFactories(twinflowFactoryBaseRestDTOMapperV1.convertCollection(twinflowFactoryList.getList(), mapperContext))
+                    .setTwinflowFactories(twinflowFactoryRestDTOMapperV1.convertCollection(twinflowFactoryList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinflowFactoryList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {

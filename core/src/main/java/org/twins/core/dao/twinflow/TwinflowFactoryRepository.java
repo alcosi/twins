@@ -15,8 +15,8 @@ public interface TwinflowFactoryRepository extends CrudRepository<TwinflowFactor
 
     List<TwinflowFactoryEntity> findByTwinflowId(UUID twinflowId);
     List<TwinflowFactoryEntity> findByTwinflowIdIn(Collection<UUID> twinflowId);
-    boolean existsByTwinflowIdAndTwinFactorylauncher(UUID twinflowId, FactoryLauncher launcher);
+    boolean existsByTwinflowIdAndTwinFactoryLauncher(UUID twinflowId, FactoryLauncher launcher);
 
-    @Query("SELECT t.twinFactoryId, COUNT(t) FROM TwinflowFactoryEntity t WHERE t.twinFactoryId IN :ids AND t.twinFactorylauncher='afterTransitionPerform' GROUP BY t.twinFactoryId")
+    @Query("SELECT t.twinFactoryId, COUNT(t) FROM TwinflowFactoryEntity t WHERE t.twinFactoryId IN :ids AND t.twinFactoryLauncher='afterTransitionPerform' GROUP BY t.twinFactoryId")
     List<Object[]> countByAfterTransitionPerformFactoryIds(Collection<UUID> ids);
 }

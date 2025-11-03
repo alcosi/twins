@@ -10,8 +10,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "TwinflowFactoryBaseV1")
-public class TwinflowFactoryBaseDTOv1 {
+@Schema(name = "TwinflowFactoryV1")
+public class TwinflowFactoryDTOv1 {
 
     @Schema(example = DTOExamples.TWINFLOW_FACTORY_ID)
     public UUID id;

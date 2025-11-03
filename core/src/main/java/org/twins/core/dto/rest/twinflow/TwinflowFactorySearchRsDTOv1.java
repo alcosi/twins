@@ -18,5 +18,5 @@ public class TwinflowFactorySearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - twinflow factory list")
-    public List<TwinflowFactoryBaseDTOv1> twinflowFactories;
+    public List<TwinflowFactoryDTOv1> twinflowFactories;
 }

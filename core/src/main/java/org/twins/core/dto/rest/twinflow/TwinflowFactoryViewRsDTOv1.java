@@ -6,14 +6,12 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 
-import java.util.List;
-
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "TwinflowFactoryRsV1")
-public class TwinflowFactoryRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+@Schema(name = "TwinflowFactoryCreateRsV1")
+public class TwinflowFactoryViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
 
-    @Schema(description = "results - twinflow factories")
-    public List<TwinflowFactoryDTOv1> twinflowFactories;
+    @Schema(description = "results - twinflow factory")
+    public TwinflowFactoryDTOv1 twinflowFactory;
 }

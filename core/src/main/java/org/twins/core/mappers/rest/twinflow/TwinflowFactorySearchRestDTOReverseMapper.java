@@ -14,13 +14,13 @@ public class TwinflowFactorySearchRestDTOReverseMapper extends RestSimpleDTOMapp
     @Override
     public void map(TwinflowFactorySearchRqDTOv1 src, TwinflowFactorySearch dst, MapperContext mapperContext) throws Exception {
         dst
-                .setIdList(src.getIdList())
-                .setIdExcludeList(src.getIdExcludeList())
-                .setTwinflowIdList(src.getTwinflowIdList())
-                .setTwinflowIdExcludeList(src.getTwinflowIdExcludeList())
-                .setTwinFactoryIdList(src.getTwinFactoryIdList())
-                .setTwinFactoryIdExcludeList(src.getTwinFactoryIdExcludeList())
-                .setFactoryLauncherList(src.getFactoryLauncherList())
-                .setFactoryLauncherExcludeList(src.getFactoryLauncherExcludeList());
+                .setIdSet(src.getIdSet())
+                .setIdExcludeSet(src.getIdExcludeSet())
+                .setTwinflowIdSet(src.getTwinflowIdSet())
+                .setTwinflowIdExcludeSet(src.getTwinflowIdExcludeSet())
+                .setTwinFactoryIdSet(src.getTwinFactoryIdSet())
+                .setTwinFactoryIdExcludeSet(src.getTwinFactoryIdExcludeSet())
+                .setFactoryLauncherSet(src.getFactoryLauncherSet())
+                .setFactoryLauncherExcludeSet(src.getFactoryLauncherExcludeSet());
     }
 }

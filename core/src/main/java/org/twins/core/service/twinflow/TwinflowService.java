@@ -310,10 +310,6 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         dbTwinflowEntity.setInitialTwinStatusId(initStatusId);
     }
 
-    public boolean existsById(UUID twinflowId) {
-        return twinflowRepository.existsById(twinflowId);
-    }
-
     public TwinStatusEntity getInitSketchStatusSafe(TwinflowEntity twinflow) throws ServiceException {
         var sketchStatus = twinflow.getInitialSketchTwinStatusId(); //hope that getTwinClass is not null
         if (sketchStatus == null) {

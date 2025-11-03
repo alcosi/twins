@@ -15,27 +15,27 @@ import java.util.UUID;
 @Schema(name = "TwinflowFactorySearchRqV1")
 public class TwinflowFactorySearchRqDTOv1 extends Request {
 
-    @Schema(description = "id list")
-    public Set<UUID> idList;
+    @Schema(description = "id set")
+    public Set<UUID> idSet;
 
-    @Schema(description = "id exclude list")
-    public Set<UUID> idExcludeList;
+    @Schema(description = "id exclude set")
+    public Set<UUID> idExcludeSet;
 
-    @Schema(description = "twinflow id list")
-    public Set<UUID> twinflowIdList;
+    @Schema(description = "twinflow id set")
+    public Set<UUID> twinflowIdSet;
 
-    @Schema(description = "twinflow id exclude list")
-    public Set<UUID> twinflowIdExcludeList;
+    @Schema(description = "twinflow id exclude set")
+    public Set<UUID> twinflowIdExcludeSet;
 
-    @Schema(description = "twin factory id list")
-    public Set<UUID> twinFactoryIdList;
+    @Schema(description = "twin factory id set")
+    public Set<UUID> twinFactoryIdSet;
 
-    @Schema(description = "twin factory id exclude list")
-    public Set<UUID> twinFactoryIdExcludeList;
+    @Schema(description = "twin factory id exclude set")
+    public Set<UUID> twinFactoryIdExcludeSet;
 
-    @Schema(description = "factory launcher list")
-    public Set<String> factoryLauncherList;
+    @Schema(description = "factory launcher set")
+    public Set<String> factoryLauncherSet;
 
-    @Schema(description = "factory launcher exclude list")
-    public Set<String> factoryLauncherExcludeList;
+    @Schema(description = "factory launcher exclude set")
+    public Set<String> factoryLauncherExcludeSet;
 }
