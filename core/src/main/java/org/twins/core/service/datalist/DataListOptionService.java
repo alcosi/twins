@@ -303,22 +303,40 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
 
         if (!missedList.isEmpty()) {
             if (supportCustomValue) {
+                List<I18nEntity> i18nEntitiesToCreate = new ArrayList<>();
+
+                for (var missed : missedList) {
+                    I18nEntity i18nEntity = new I18nEntity().setTranslationsKit(
+                            new Kit<>(List.of(new I18nTranslationEntity()
+                                    .setLocale(Locale.ENGLISH)
+                                    .setTranslation(missed)),
+                                    I18nTranslationEntity::getLocale));
+
+                    i18nEntitiesToCreate.add(i18nEntity);
+                }
+
+                List<I18nEntity> createdI18nEntities = i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, i18nEntitiesToCreate);
+
+                Map<String, UUID> translationMap = new HashMap<>();
+                for (I18nEntity created : createdI18nEntities) {
+                    String translation = created.getTranslationsKit().get(Locale.ENGLISH).getTranslation();
+                    translationMap.put(translation, created.getId());
+                }
+
                 List<DataListOptionEntity> optionsForSave = new ArrayList<>();
                 for (var missed : missedList) {
-                    optionsForSave.add(
-                            incompleteOptionKit.get(missed)
-                                    .setBusinessAccountId(businessAccountId)
-                                    .setDataListId(dataListId)
-                                    .setCustom(true)
-                                    .setExternalId(missed)
-                                    .setStatus(DataListStatus.active)
-                                    .setOptionI18NId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE,
-                                            new I18nEntity().setTranslationsKit(
-                                                    new Kit<>(List.of(new I18nTranslationEntity()
-                                                                    .setLocale(Locale.ENGLISH)
-                                                                    .setTranslation(missed)),
-                                                            I18nTranslationEntity::getLocale))).getId()));
+
+                    DataListOptionEntity option = incompleteOptionKit.get(missed)
+                            .setBusinessAccountId(businessAccountId)
+                            .setDataListId(dataListId)
+                            .setCustom(true)
+                            .setExternalId(missed)
+                            .setStatus(DataListStatus.active)
+                            .setOptionI18NId(translationMap.get(missed));
+
+                    optionsForSave.add(option);
                 }
+
                 log.info("Creating {} new datalist options with externalIds: {}", optionsForSave.size(), missedList);
                 Iterable<DataListOptionEntity> savedOptions = saveOptions(optionsForSave);
                 savedOptions.forEach(options::add);
