@@ -329,6 +329,18 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
         return i18nEntities;
     }
 
+    @Transactional
+    public void saveTranslations(Collection<I18nTranslationLight> translations) {
+        List<I18nTranslationEntity> entities = translations.stream()
+                .map(light -> new I18nTranslationEntity()
+                        .setI18nId(light.i18nId())
+                        .setLocale(light.locale())
+                        .setTranslation(light.translation()))
+                .toList();
+
+        i18nTranslationRepository.saveAll(entities);
+    }
+
     private String addCopyPostfix(String originalStr) {
         if (org.apache.commons.lang3.StringUtils.isEmpty(originalStr))
             return originalStr;

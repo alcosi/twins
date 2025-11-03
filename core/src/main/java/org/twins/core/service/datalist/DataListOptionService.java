@@ -26,6 +26,7 @@ import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
+import org.twins.core.dao.i18n.I18nTranslationLight;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListOptionCreate;
 import org.twins.core.domain.datalist.DataListOptionUpdate;
@@ -303,28 +304,11 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
 
         if (!missedList.isEmpty()) {
             if (supportCustomValue) {
-                List<I18nEntity> i18nEntitiesToCreate = new ArrayList<>();
-
-                for (var missed : missedList) {
-                    I18nEntity i18nEntity = new I18nEntity().setTranslationsKit(
-                            new Kit<>(List.of(new I18nTranslationEntity()
-                                    .setLocale(Locale.ENGLISH)
-                                    .setTranslation(missed)),
-                                    I18nTranslationEntity::getLocale));
-
-                    i18nEntitiesToCreate.add(i18nEntity);
-                }
-
-                List<I18nEntity> createdI18nEntities = i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, i18nEntitiesToCreate);
-
-                Map<String, UUID> translationMap = new HashMap<>();
-                for (I18nEntity created : createdI18nEntities) {
-                    String translation = created.getTranslationsKit().get(Locale.ENGLISH).getTranslation();
-                    translationMap.put(translation, created.getId());
-                }
-
                 List<DataListOptionEntity> optionsForSave = new ArrayList<>();
+                List<I18nTranslationLight> translationsToSave = new ArrayList<>();
+
                 for (var missed : missedList) {
+                    UUID i18nId = UUID.randomUUID();
 
                     DataListOptionEntity option = incompleteOptionKit.get(missed)
                             .setBusinessAccountId(businessAccountId)
@@ -332,10 +316,19 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                             .setCustom(true)
                             .setExternalId(missed)
                             .setStatus(DataListStatus.active)
-                            .setOptionI18NId(translationMap.get(missed));
+                            .setOptionI18NId(i18nId);
 
                     optionsForSave.add(option);
+
+                    translationsToSave.add(new I18nTranslationLight(
+                            i18nId,
+                            I18nType.DATA_LIST_OPTION_VALUE,
+                            Locale.ENGLISH,
+                            missed
+                    ));
                 }
+
+                i18nService.saveTranslations(translationsToSave);
 
                 log.info("Creating {} new datalist options with externalIds: {}", optionsForSave.size(), missedList);
                 Iterable<DataListOptionEntity> savedOptions = saveOptions(optionsForSave);
