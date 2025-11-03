@@ -9,6 +9,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
+import org.twins.core.enums.twinclass.LogicOperator;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -56,6 +57,12 @@ public class TwinClassFieldConditionEntity implements EasyLoggable {
      */
     @Column(name = "group_no")
     private Integer groupNo = 1;
+
+    @Column(name = "parent_twin_class_field_condition_id")
+    private UUID parentTwinClassFieldConditionId;
+
+    @Column(name = "logic_operator_id")
+    private LogicOperator logicOperatorId;
 
     @Column(name = "condition_evaluator_featurer_id")
     private Integer conditionEvaluatorFeaturerId;

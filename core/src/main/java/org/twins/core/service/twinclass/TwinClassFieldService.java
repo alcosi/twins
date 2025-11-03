@@ -24,10 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionRepository;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldRepository;
-import org.twins.core.dao.twinclass.TwinClassRepository;
+import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinSort;
 import org.twins.core.domain.twinclass.TwinClassFieldSave;
@@ -71,6 +68,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     private CacheManager cacheManager;
     @Autowired
     private TwinClassRepository twinClassRepository;
+    @Autowired
+    private TwinClassFieldRuleMapService twinClassFieldRuleMapService;
 
     @Override
     public CrudRepository<TwinClassFieldEntity, UUID> entityRepository() {
@@ -193,6 +192,50 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             TwinFieldStorage storage = fieldTyper.getStorage(twinClassField);
             twinClassEntity.getFieldStorageSet().add(storage);
         }
+    }
+
+    public void loadRuleFields(TwinClassFieldRuleEntity ruleEntity) throws ServiceException {
+        loadRuleFields(Collections.singleton(ruleEntity));
+    }
+
+    public void loadRuleFields(Collection<TwinClassFieldRuleEntity> ruleEntities) throws ServiceException {
+        List<TwinClassFieldRuleEntity> needLoad = ruleEntities.stream()
+                .filter(rule -> rule.getFieldKit() == null)
+                .toList();
+
+        if (needLoad.isEmpty()) return;
+
+        Set<UUID> ruleIds = needLoad.stream()
+                .map(TwinClassFieldRuleEntity::getId)
+                .collect(Collectors.toSet());
+
+        Kit<TwinClassFieldRuleMapEntity, UUID> ruleMapsKit = twinClassFieldRuleMapService.findEntitiesSafe(ruleIds);
+
+        if (ruleMapsKit.isEmpty()) {
+            needLoad.forEach(rule -> rule.setFieldKit(Kit.EMPTY));
+            return;
+        }
+
+        Set<UUID> fieldIds = ruleMapsKit.stream()
+                .map(TwinClassFieldRuleMapEntity::getTwinClassFieldId)
+                .collect(Collectors.toSet());
+
+        Kit<TwinClassFieldEntity, UUID> fieldsKit = findEntitiesSafe(fieldIds);
+
+        needLoad.forEach(rule -> {
+            Kit<TwinClassFieldEntity, UUID> ruleFieldKit = new Kit<>(TwinClassFieldEntity::getId);
+
+            ruleMapsKit.getList().stream()
+                    .filter(ruleMap -> rule.getId().equals(ruleMap.getTwinClassFieldRuleId()))
+                    .forEach(ruleMap -> {
+                        TwinClassFieldEntity field = fieldsKit.get(ruleMap.getTwinClassFieldId());
+                        if (field != null) {
+                            ruleFieldKit.add(field);
+                        }
+                    });
+
+            rule.setFieldKit(ruleFieldKit.isNotEmpty() ? ruleFieldKit : Kit.EMPTY);
+        });
     }
 
     public TwinClassFieldEntity findByTwinClassIdAndKey(UUID twinClassId, String key) {

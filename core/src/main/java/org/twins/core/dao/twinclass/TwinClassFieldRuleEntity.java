@@ -37,12 +37,6 @@ public class TwinClassFieldRuleEntity implements EasyLoggable {
     private UUID id;
 
     /**
-     * Field that will be affected when the rule is triggered.
-     */
-    @Column(name = "twin_class_field_id")
-    private UUID twinClassFieldId;
-
-    /**
      * Value that will be assigned to the dependent field (or its parameter) if all conditions evaluate to TRUE.
      * todo - what in case of a sublist?
      */
@@ -58,12 +52,6 @@ public class TwinClassFieldRuleEntity implements EasyLoggable {
     @Column(name = "rule_priority")
     private Integer rulePriority;
 
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "twin_class_field_id", insertable = false, updatable = false)
-    private TwinClassFieldEntity twinClassField;
-
     @Column(name = "field_overwriter_featurer_id")
     private Integer fieldOverwriterFeaturerId;
 
@@ -76,11 +64,14 @@ public class TwinClassFieldRuleEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     private Kit<TwinClassFieldConditionEntity, UUID> conditionKit;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinClassFieldEntity, UUID> fieldKit;
+
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case SHORT -> "twinClassFieldRule[" + id + "]";
-            default -> "twinClassFieldRule[id:" + id + ", twinClassFieldId:" + twinClassFieldId + "]";
+            default -> "twinClassFieldRule[id:" + id + "]";
         };
     }
 }

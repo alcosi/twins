@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.twinclass;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionCreateDTOv1;
+import org.twins.core.enums.twinclass.LogicOperator;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
@@ -18,7 +19,9 @@ public class TwinClassFieldConditionRestDTOReverseMapper extends RestSimpleDTOMa
                 .setId(UUID.randomUUID())
                 .setBaseTwinClassFieldId(src.getBaseTwinClassFieldId())
                 .setConditionOrder(src.getConditionOrder())
-                .setGroupNo(src.getGroupNo());
+                .setGroupNo(src.getGroupNo())
+                .setParentTwinClassFieldConditionId(src.getParentTwinClassFieldConditionId())
+                .setLogicOperatorId(LogicOperator.valueOf(src.getLogicOperator()));
         dst.setConditionEvaluatorFeaturerId(src.getConditionEvaluatorFeaturerId());
         dst.setConditionEvaluatorParams(src.getConditionEvaluatorParams());
     }

@@ -28,4 +28,10 @@ public class TwinClassFieldConditionDTOv1 {
 
     @Schema(description = "condition descriptor", example = "")
     public TwinClassFieldConditionDescriptorDTO conditionDescriptor;
+
+    @Schema(description = "parent twin class field condition id")
+    public UUID parentTwinClassFieldConditionId;
+
+    @Schema(description = "logic operator id", example = "AND")
+    public String logicOperatorId;
 }

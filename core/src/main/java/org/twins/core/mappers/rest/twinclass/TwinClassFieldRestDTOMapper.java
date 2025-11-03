@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldRuleMapService;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
@@ -20,7 +21,6 @@ import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassFieldRuleService;
 
 import java.util.Collection;
 
@@ -49,7 +49,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     private final I18nService i18nService;
     private final FeaturerService featurerService;
     private final PermissionService permissionService;
-    private final TwinClassFieldRuleService twinClassFieldRuleService;
+    private final TwinClassFieldRuleMapService twinClassFieldRuleMapService;
 
 
     @Override
@@ -128,7 +128,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
             twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinClassField2TwinClassMode.SHORT));
         }
         if (mapperContext.hasModeButNot(TwinClassFieldRuleMode.TwinClassField2TwinClassFieldRuleMode.HIDE)) {
-            twinClassFieldRuleService.loadRules(src);
+            twinClassFieldRuleMapService.loadRules(src);
             dst.setRuleIds(src.getRuleKit().getIdSet());
             twinClassFieldRuleRestDTOMapper.postpone(src.getRuleKit(), mapperContext.forkOnPoint(TwinClassFieldRuleMode.TwinClassField2TwinClassFieldRuleMode.SHORT));
         }
@@ -139,7 +139,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasModeButNot(TwinClassFieldRuleMode.TwinClassField2TwinClassFieldRuleMode.HIDE)) {
             //preload rules for all fields in srcCollection to avoid n+1 problem
-            twinClassFieldRuleService.loadRules(srcCollection);
+            twinClassFieldRuleMapService.loadRules(srcCollection);
         }
     }
 

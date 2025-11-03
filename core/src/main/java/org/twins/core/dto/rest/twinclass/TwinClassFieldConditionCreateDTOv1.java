@@ -27,4 +27,10 @@ public class TwinClassFieldConditionCreateDTOv1 {
     @Schema(description = "Condition evaluator parameters", example = "{}")
     public HashMap<String, String> conditionEvaluatorParams;
 
+    @Schema(description = "parent condition id")
+    public UUID parentTwinClassFieldConditionId;
+
+    @Schema(description = "logic operator", example = "AND")
+    public String logicOperator;
+
 }
