@@ -25,6 +25,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListOptionCreate;
 import org.twins.core.domain.datalist.DataListOptionUpdate;
@@ -309,9 +310,14 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                                     .setBusinessAccountId(businessAccountId)
                                     .setDataListId(dataListId)
                                     .setCustom(true)
-                                    .setOption(missed)
                                     .setExternalId(missed)
-                                    .setStatus(DataListStatus.active));
+                                    .setStatus(DataListStatus.active)
+                                    .setOptionI18NId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE,
+                                            new I18nEntity().setTranslationsKit(
+                                                    new Kit<>(List.of(new I18nTranslationEntity()
+                                                                    .setLocale(Locale.ENGLISH)
+                                                                    .setTranslation(missed)),
+                                                            I18nTranslationEntity::getLocale))).getId()));
                 }
                 log.info("Creating {} new datalist options with externalIds: {}", optionsForSave.size(), missedList);
                 Iterable<DataListOptionEntity> savedOptions = saveOptions(optionsForSave);
