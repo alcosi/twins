@@ -5,16 +5,16 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
+import org.twins.core.dto.rest.twin.TwinFieldDTOv2;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.function.Predicate.not;
@@ -70,12 +70,20 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
 
     private void mapFieldsToDto(TwinDTOv2 dst, MapperContext mapperContext, Collection<FieldValue> fields) throws Exception {
         TwinFieldCollectionMapMode mapMode = mapperContext.getModeOrUse(TwinFieldCollectionMapMode.KEY);
-        dst.fields(twinFieldValueRestDTOMapperV2.convertCollection(fields, mapperContext).stream()
-                .collect(Collectors.toMap(
-                        fieldValueText -> mapMode == TwinFieldCollectionMapMode.KEY ?
-                                fieldValueText.getTwinClassField().getKey() :
-                                fieldValueText.getTwinClassField().getId().toString(),
-                        FieldValueText::getValue)));
+        var fieldsValues = twinFieldValueRestDTOMapperV2.convertCollection(fields, mapperContext);
+        dst
+                .setFields(new HashMap<>(fieldsValues.size()))
+                .setFieldsMap(new HashMap<>(fieldsValues.size()));
+        for (var fieldValueText : fieldsValues) {
+            if (mapMode == TwinFieldCollectionMapMode.KEY) {
+                dst.getFields().put(fieldValueText.getTwinClassField().getKey(), fieldValueText.getValue());
+            } else {
+                dst.getFields().put(fieldValueText.getTwinClassField().getId().toString(), fieldValueText.getValue());
+            }
+            dst.getFieldsMap().put(fieldValueText.getTwinClassField().getId(), new TwinFieldDTOv2()
+                    .setKey(fieldValueText.getTwinClassField().getKey())
+                    .setValue(fieldValueText.getValue()));
+        }
     }
 
     @Override
