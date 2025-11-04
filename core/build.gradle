@@ -190,3 +190,8 @@ task generateInitRelatedObjectsDTO(type: GenerateInitRelatedObjectsTask) {
     description = 'Generates init related objects methods in the generated folder'
     group = 'code generation'
 }
+
+task generateTypeScriptDTOsTask(type: GenerateTypeScriptDTOsTask) {
+    description = 'Convert DTOs to typescript'
+    group = 'code generation'
+}
