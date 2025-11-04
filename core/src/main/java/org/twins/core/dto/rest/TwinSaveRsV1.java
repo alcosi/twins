@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 
 import java.util.Map;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @AllArgsConstructor
+@Accessors(chain = true)
 public class TwinSaveRsV1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "Invalid twin field id list")
     private Map<UUID, String> invalidTwinFieldErrors;

@@ -119,7 +119,8 @@ public class TwinUpdateController extends ApiController {
             // get twin by id and set result based on mapper context
 
             rs
-                    .setTwin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(twinId), mapperContext));
+                    .setTwin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(twinId), mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (TwinFieldValidationException ve) {
             return createErrorRs(ve, rs, null);
         } catch (ServiceException se) {
