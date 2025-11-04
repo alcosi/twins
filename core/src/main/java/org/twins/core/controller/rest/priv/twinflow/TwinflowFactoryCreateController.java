@@ -24,8 +24,8 @@ import org.twins.core.dto.rest.twinflow.TwinflowFactoryCreateRqDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowFactoryCreateRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.mappers.rest.twinflow.TwinflowFactoryCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowFactoryRestDTOMapperV1;
-import org.twins.core.mappers.rest.twinflow.TwinflowFactorySaveRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowFactoryService;
 
@@ -40,7 +40,7 @@ import java.util.List;
 public class TwinflowFactoryCreateController extends ApiController {
 
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
-    private final TwinflowFactorySaveRestDTOReverseMapper twinflowFactorySaveRestDTOReverseMapper;
+    private final TwinflowFactoryCreateRestDTOReverseMapper twinflowFactoryCreateRestDTOReverseMapper;
     private final TwinflowFactoryRestDTOMapperV1 twinflowFactoryRestDTOMapperV1;
     private final TwinflowFactoryService twinflowFactoryService;
 
@@ -58,7 +58,7 @@ public class TwinflowFactoryCreateController extends ApiController {
         TwinflowFactoryCreateRsDTOv1 rs = new TwinflowFactoryCreateRsDTOv1();
 
         try {
-            List<TwinflowFactoryEntity> twinflowFactoryEntities = twinflowFactorySaveRestDTOReverseMapper.convertCollection(request.getTwinflowFactories());
+            List<TwinflowFactoryEntity> twinflowFactoryEntities = twinflowFactoryCreateRestDTOReverseMapper.convertCollection(request.getTwinflowFactories());
             twinflowFactoryEntities = twinflowFactoryService.createTwinflowFactories(twinflowFactoryEntities);
 
             rs

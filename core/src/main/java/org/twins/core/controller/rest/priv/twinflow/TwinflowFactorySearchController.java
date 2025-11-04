@@ -59,9 +59,10 @@ public class TwinflowFactorySearchController extends ApiController {
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody TwinflowFactorySearchRqDTOv1 request) {
         TwinflowFactorySearchRsDTOv1 rs = new TwinflowFactorySearchRsDTOv1();
+
         try {
-            PaginationResult<TwinflowFactoryEntity> twinflowFactoryList = twinflowFactorySearchService
-                    .findTwinflowFactory(twinflowFactorySearchRestDTOReverseMapper.convert(request), pagination);
+            PaginationResult<TwinflowFactoryEntity> twinflowFactoryList = twinflowFactorySearchService.findTwinflowFactory(twinflowFactorySearchRestDTOReverseMapper.convert(request.getSearch()), pagination);
+
             rs
                     .setTwinflowFactories(twinflowFactoryRestDTOMapperV1.convertCollection(twinflowFactoryList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinflowFactoryList))
@@ -71,6 +72,7 @@ public class TwinflowFactorySearchController extends ApiController {
         } catch (Exception e) {
             return createErrorRs(e, rs);
         }
+
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 }

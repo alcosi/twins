@@ -25,7 +25,7 @@ import org.twins.core.dto.rest.twinflow.TwinflowFactoryUpdateRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinflow.TwinflowFactoryRestDTOMapperV1;
-import org.twins.core.mappers.rest.twinflow.TwinflowFactoryRestDTOReverseMapper;
+import org.twins.core.mappers.rest.twinflow.TwinflowFactoryUpdateRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowFactoryService;
 
@@ -40,7 +40,7 @@ public class TwinflowFactoryUpdateController extends ApiController {
 
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final TwinflowFactoryRestDTOMapperV1 twinflowFactoryBaseRestDTOMapper;
-    private final TwinflowFactoryRestDTOReverseMapper twinflowFactoryRestDTOReverseMapper;
+    private final TwinflowFactoryUpdateRestDTOReverseMapper twinflowFactoryRestDTOReverseMapper;
     private final TwinflowFactoryService twinflowFactoryService;
 
     @ParametersApiUserHeaders
@@ -55,9 +55,11 @@ public class TwinflowFactoryUpdateController extends ApiController {
             @MapperContextBinding(roots = TwinflowFactoryRestDTOMapperV1.class, response = TwinflowFactoryUpdateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody TwinflowFactoryUpdateRqDTOv1 request) {
         TwinflowFactoryUpdateRsDTOv1 rs = new TwinflowFactoryUpdateRsDTOv1();
+
         try {
             List<TwinflowFactoryEntity> twinflowFactoryEntities = twinflowFactoryRestDTOReverseMapper.convertCollection(request.getTwinflowFactories());
             twinflowFactoryEntities = twinflowFactoryService.updateTwinflowFactory(twinflowFactoryEntities);
+
             rs
                     .setTwinflowFactories(twinflowFactoryBaseRestDTOMapper.convertCollection(twinflowFactoryEntities, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
@@ -66,6 +68,7 @@ public class TwinflowFactoryUpdateController extends ApiController {
         } catch (Exception e) {
             return createErrorRs(e, rs);
         }
+
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 }

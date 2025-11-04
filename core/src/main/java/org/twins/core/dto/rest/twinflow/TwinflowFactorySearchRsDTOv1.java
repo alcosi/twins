@@ -14,6 +14,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "TwinflowFactorySearchRsV1")
 public class TwinflowFactorySearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 

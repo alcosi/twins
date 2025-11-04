@@ -11,8 +11,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name =  "TwinflowFactorySaveRqV1")
-public class TwinflowFactorySaveRqDTOv1 {
+@Schema(name =  "TwinflowFactorySaveV1")
+public class TwinflowFactorySaveDTOv1 {
 
     @Schema(example = DTOExamples.TWINFLOW_ID)
     public UUID twinflowId;

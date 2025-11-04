@@ -15,5 +15,5 @@ import java.util.List;
 public class TwinflowFactoryCreateRqDTOv1 extends Request {
 
     @Schema(description = "Twinflow factory list")
-    private List<TwinflowFactorySaveRqDTOv1> twinflowFactories;
+    private List<TwinflowFactoryCreateDTOv1> twinflowFactories;
 }
