@@ -80,7 +80,7 @@ public class TwinUpdateController extends ApiController {
     @Operation(summary = "twinUpdateV1", description = "Updates a twin using a multipart form. The twin data should be a JSON string in the 'request' form field.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
-                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TwinRsDTOv2.class))
+                    @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TwinSaveRsV1.class))
             }),
             @ApiResponse(responseCode = "401", description = "Access is denied")
     })
