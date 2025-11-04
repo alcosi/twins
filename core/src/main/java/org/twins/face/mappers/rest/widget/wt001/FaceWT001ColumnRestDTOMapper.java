@@ -20,7 +20,7 @@ public class FaceWT001ColumnRestDTOMapper extends RestSimpleDTOMapper<FaceWT001C
     public void map(FaceWT001ColumnEntity src, FaceWT001ColumnDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
                 .setId(src.getId())
-                .setLabel(I18nCacheHolder.addId(src.getLabelI18nId()))
+                .setLabel(I18nCacheHolder.addId(src.getLabelI18nId() != null ? src.getLabelI18nId() : src.getTwinClassField().getNameI18nId()))
                 .setOrder(src.getOrder())
                 .setShowByDefault(src.getShowByDefault())
                 .setTwinClassFieldId(src.getTwinClassFieldId());
