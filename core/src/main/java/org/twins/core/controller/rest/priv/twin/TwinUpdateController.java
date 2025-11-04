@@ -30,6 +30,7 @@ import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
+import org.twins.core.dto.rest.TwinSaveRsV1;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapper;
@@ -63,7 +64,7 @@ public class TwinUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin/{twinId}/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinUpdateV1(
-            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSaveRsV1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestBody TwinUpdateRqDTOv1 request) {
         return updateTwin(mapperContext, twinId, request, new HashMap<>());
@@ -85,7 +86,7 @@ public class TwinUpdateController extends ApiController {
     })
     @PutMapping(value = "/private/twin/{twinId}/v1", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinUpdateFromMultipart(
-            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSaveRsV1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @Schema(hidden = true) MultipartHttpServletRequest request, @Schema(implementation = TwinUpdateRqDTOv1.class) @RequestPart("request") byte[] requestBytes) {
         Map<String, MultipartFile> filesMap = new HashMap<>();
@@ -100,7 +101,7 @@ public class TwinUpdateController extends ApiController {
 
 
     protected ResponseEntity<? extends Response> updateTwin(MapperContext mapperContext, UUID twinId, TwinUpdateRqDTOv1 request, Map<String, MultipartFile> filesMap) {
-        TwinRsDTOv2 rs = new TwinRsDTOv2();
+        TwinSaveRsV1 rs = new TwinSaveRsV1();
         try {
             if (request.getTwinId() != null && !twinId.equals(request.getTwinId())) {
                 throw new ServiceException(ErrorCodeTwins.UUID_MISMATCH, " twin id in header and request body are different");
@@ -118,10 +119,9 @@ public class TwinUpdateController extends ApiController {
             // get twin by id and set result based on mapper context
 
             rs
-                    .setTwin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(twinId), mapperContext))
-                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
+                    .setTwin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(twinId), mapperContext));
         } catch (TwinFieldValidationException ve) {
-            return createErrorRs(ve, rs);
+            return createErrorRs(ve, rs, null);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -197,7 +197,7 @@ public class TwinUpdateController extends ApiController {
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
 
         } catch (TwinFieldValidationException ve) {
-            return createErrorRs(ve, rs);
+            return createErrorRs(ve, rs, null);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
