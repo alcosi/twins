@@ -139,4 +139,16 @@ public class DomainUserService extends EntitySecureFindServiceImpl<DomainUserEnt
         ApiUser apiUser = authService.getApiUser();
         return domainUserRepository.findByDomainIdAndUserId(apiUser.getDomainId(), apiUser.getUserId());
     }
+
+    /**
+     * Update subscriptionEnabled flag for a user in a domain.
+     *
+     * @param domainId            domain identifier
+     * @param userId              user identifier
+     * @param subscriptionEnabled new subscription flag value
+     */
+    @Transactional(rollbackFor = Throwable.class)
+    public void updateDomainUserSubscriptionStatus(UUID domainId, UUID userId, boolean subscriptionEnabled) throws ServiceException {
+        domainUserRepository.updateDomainUserSubscriptionStatus(domainId, userId, subscriptionEnabled);
+    }
 }

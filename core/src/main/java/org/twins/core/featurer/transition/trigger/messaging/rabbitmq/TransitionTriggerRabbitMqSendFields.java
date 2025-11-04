@@ -7,7 +7,6 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -15,7 +14,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.transition.trigger.messaging.rabbitmq.payloads.RabbitMqMessagePayloadFields;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.rabbit.AmpqManager;
+import org.twins.core.service.rabbit.RabbitMessageSender;
 
 import java.util.Properties;
 
@@ -27,7 +26,7 @@ import java.util.Properties;
 @RequiredArgsConstructor
 public class TransitionTriggerRabbitMqSendFields extends TransitionTriggerRabbitMqConnection {
 
-    private final AmpqManager ampqManager;
+    private final RabbitMessageSender rabbitMessageSender;
 
     private final AuthService authService;
 
@@ -47,7 +46,7 @@ public class TransitionTriggerRabbitMqSendFields extends TransitionTriggerRabbit
     public static final FeaturerParamUUIDSet excludeInfoFields = new FeaturerParamUUIDSet("excludeInfoFields");
 
     @Override
-    public void send(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
+    public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
 
         RabbitMqMessagePayloadFields payload = new RabbitMqMessagePayloadFields(
@@ -60,11 +59,12 @@ public class TransitionTriggerRabbitMqSendFields extends TransitionTriggerRabbit
                 fields.extract(properties),
                 excludeInfoFields.extract(properties)
         );
-
-        ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(
-                TransitionTriggerRabbitMqConnection.url.extract(properties));
-
-        ampqManager.sendMessage(factory, exchange.extract(properties), queue.extract(properties), payload);
+        rabbitMessageSender.send(
+                url.extract(properties),
+                exchange.extract(properties),
+                queue.extract(properties),
+                payload
+        );
     }
 }
 

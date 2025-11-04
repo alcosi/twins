@@ -248,7 +248,8 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
 
     public T updateSafe(T entity, ChangesHelper changesHelper) throws ServiceException {
         if (changesHelper.hasChanges()) {
-            validateEntity(entity, EntitySmartService.EntityValidateMode.beforeSave);
+            //  maybe there is a need in validateEntity method here so i need to create another method??
+            validateEntityAndThrow(entity, EntitySmartService.EntityValidateMode.beforeSave);
             return entitySmartService.saveAndLogChanges(entity, entityRepository(), changesHelper);
         }
         return entity;
@@ -259,7 +260,8 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         StringBuilder changes = new StringBuilder();
         for (var entry : changesHelperMulti.entrySet()) {
             if (entry.getValue().hasChanges()) {
-                validateEntity(entry.getKey(), EntitySmartService.EntityValidateMode.beforeSave);
+                //  same story here
+                validateEntityAndThrow(entry.getKey(), EntitySmartService.EntityValidateMode.beforeSave);
                 entityList.add(entry.getKey());
                 changes.append(entry.getValue().collectForLog());
             }

@@ -18,7 +18,27 @@ public class RabbitManager implements AmpqManager {
     public void sendMessage(ConnectionFactory connectionFactory, String exchangeName, String routingKey, Object message) {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(new Jackson2JsonMessageConverter(new ObjectMapper()));
-        rabbitTemplate.convertAndSend(exchangeName, routingKey, message, new MessagePostProcessorCustom());
-        log.debug("Sent message {}", message);
+
+        // Enable mandatory flag so that unroutable messages are returned
+        rabbitTemplate.setMandatory(true);
+
+        // Confirm callback
+        rabbitTemplate.setConfirmCallback((correlationData, ack, cause) -> {
+            if (ack) {
+                log.debug("Message confirmed by broker: {}", correlationData != null ? correlationData.getId() : "n/a");
+            } else {
+                log.warn("Message NOT confirmed by broker. Cause: {}", cause);
+            }
+        });
+
+        // Returns callback for unroutable messages
+        rabbitTemplate.setReturnsCallback(returned -> log.warn("Message returned: replyCode={}, replyText={}, exchange={}, routingKey={}",
+                returned.getReplyCode(), returned.getReplyText(), returned.getExchange(), returned.getRoutingKey()));
+
+        // Correlation data for tracking confirms
+        org.springframework.amqp.rabbit.connection.CorrelationData correlationData = new org.springframework.amqp.rabbit.connection.CorrelationData(java.util.UUID.randomUUID().toString());
+
+        rabbitTemplate.convertAndSend(exchangeName, routingKey, message, new MessagePostProcessorCustom(), correlationData);
+        log.debug("Sent message {} with correlationId {}", message, correlationData.getId());
     }
 }
