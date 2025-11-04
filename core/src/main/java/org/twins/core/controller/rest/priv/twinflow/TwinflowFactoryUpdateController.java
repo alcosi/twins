@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -30,7 +29,7 @@ import org.twins.core.mappers.rest.twinflow.TwinflowFactoryRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowFactoryService;
 
-import java.util.UUID;
+import java.util.List;
 
 @Tag(name = ApiTag.TWINFLOW)
 @RestController
@@ -57,10 +56,10 @@ public class TwinflowFactoryUpdateController extends ApiController {
             @RequestBody TwinflowFactoryUpdateRqDTOv1 request) {
         TwinflowFactoryUpdateRsDTOv1 rs = new TwinflowFactoryUpdateRsDTOv1();
         try {
-            Kit<TwinflowFactoryEntity, UUID> twinflowFactoryEntities = new Kit<>(twinflowFactoryRestDTOReverseMapper.convertCollection(request.getTwinflowFactories()), TwinflowFactoryEntity::getId);
-
+            List<TwinflowFactoryEntity> twinflowFactoryEntities = twinflowFactoryRestDTOReverseMapper.convertCollection(request.getTwinflowFactories());
+            twinflowFactoryEntities = twinflowFactoryService.updateTwinflowFactory(twinflowFactoryEntities);
             rs
-                    .setTwinflowFactories(twinflowFactoryBaseRestDTOMapper.convertCollection(twinflowFactoryService.updateTwinflowFactory(twinflowFactoryEntities), mapperContext))
+                    .setTwinflowFactories(twinflowFactoryBaseRestDTOMapper.convertCollection(twinflowFactoryEntities, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

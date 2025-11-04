@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "TwinflowFactoryCreateRsV1")
+@Schema(name = "TwinflowFactoryViewRsV1")
 public class TwinflowFactoryViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
 
     @Schema(description = "results - twinflow factory")

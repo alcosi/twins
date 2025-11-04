@@ -76,8 +76,7 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
                 }
 
                 if (twinflowFactoryRepository.existsByTwinflowIdAndTwinFactoryLauncher(entity.getTwinflowId(), entity.getTwinFactoryLauncher())) {
-                    return logErrorAndReturnFalse(entity.logNormal() + " entity with twinflowId[" + entity.getTwinflowId() +
-                            "] and factoryLauncher[" + entity.getTwinFactoryLauncher() + "] already exists");
+                    return logErrorAndReturnFalse(entity.logNormal() + " already exists");
                 }
 
                 if (entity.getTwinflow() == null || !entity.getTwinflow().getId().equals(entity.getTwinflowId())) {
@@ -203,14 +202,15 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
         return StreamSupport.stream(saveSafe(twinflowFactoryEntity).spliterator(), false).toList();
     }
 
-    public List<TwinflowFactoryEntity> updateTwinflowFactory(Kit<TwinflowFactoryEntity, UUID> updateEntities) throws ServiceException {
-        Kit<TwinflowFactoryEntity, UUID> dbEntities = findEntitiesSafe(updateEntities.stream().map(TwinflowFactoryEntity::getId).toList());
+    public List<TwinflowFactoryEntity> updateTwinflowFactory(Collection<TwinflowFactoryEntity> updateEntities) throws ServiceException {
+        Kit<TwinflowFactoryEntity, UUID> updateKit = new Kit<>(updateEntities, TwinflowFactoryEntity::getId);
+        Kit<TwinflowFactoryEntity, UUID> dbEntities = findEntitiesSafe(updateKit.getIdSet());
         ChangesHelper changesHelper = new ChangesHelper();
         ChangesHelperMulti<TwinflowFactoryEntity> changesHelperMulti = new ChangesHelperMulti<>();
 
         for (var dbEntity : dbEntities) {
             updateEntityFieldByValueIfNotNull(
-                    updateEntities.get(dbEntity.getId()).getTwinflowId(),
+                    updateKit.get(dbEntity.getId()).getTwinflowId(),
                     dbEntity,
                     TwinflowFactoryEntity::getTwinflowId,
                     TwinflowFactoryEntity::setTwinflowId,
@@ -219,7 +219,7 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
             );
 
             updateEntityFieldByValueIfNotNull(
-                    updateEntities.get(dbEntity.getId()).getTwinFactoryId(),
+                    updateKit.get(dbEntity.getId()).getTwinFactoryId(),
                     dbEntity,
                     TwinflowFactoryEntity::getTwinFactoryId,
                     TwinflowFactoryEntity::setTwinFactoryId,
@@ -228,14 +228,13 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
             );
 
             updateEntityFieldByValueIfNotNull(
-                    updateEntities.get(dbEntity.getId()).getTwinFactoryLauncher(),
+                    updateKit.get(dbEntity.getId()).getTwinFactoryLauncher(),
                     dbEntity,
                     TwinflowFactoryEntity::getTwinFactoryLauncher,
                     TwinflowFactoryEntity::setTwinFactoryLauncher,
                     TwinflowFactoryEntity.Fields.twinFactoryLauncher,
                     changesHelper
             );
-
             changesHelperMulti.add(dbEntity, changesHelper);
         }
 

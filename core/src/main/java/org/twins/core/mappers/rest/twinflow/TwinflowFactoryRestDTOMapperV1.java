@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
-import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowFactoryEntity;
 import org.twins.core.dto.rest.twinflow.TwinflowFactoryDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -13,9 +12,6 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinflowFactoryMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinflowMode;
-import org.twins.core.service.twinflow.TwinflowFactoryService;
-
-import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
@@ -27,8 +23,6 @@ public class TwinflowFactoryRestDTOMapperV1 extends RestSimpleDTOMapper<Twinflow
 
     @MapperModePointerBinding(modes = FactoryMode.TwinflowFactory2FactoryMode.class)
     private final FactoryRestDTOMapperV2 factoryRestDTOMapperV2;
-
-    private final TwinflowFactoryService twinflowFactoryService;
 
     @Override
     public void map(TwinflowFactoryEntity src, TwinflowFactoryDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -42,23 +36,13 @@ public class TwinflowFactoryRestDTOMapperV1 extends RestSimpleDTOMapper<Twinflow
         }
 
         if (mapperContext.hasModeButNot(TwinflowMode.TwinflowFactory2TwinflowMode.HIDE)) {
-            dst
-                    .setTwinflowId(src.getTwinflowId());
-
-            TwinflowEntity twinflow = src.getTwinflow();
-            twinflowBaseV1RestDTOMapper.postpone(twinflow, mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinflowMode.TwinflowFactory2TwinflowMode.SHORT)));
+            dst.setTwinflowId(src.getTwinflowId());
+            twinflowBaseV1RestDTOMapper.postpone(src.getTwinflow(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinflowMode.TwinflowFactory2TwinflowMode.SHORT)));
         }
 
         if (mapperContext.hasModeButNot(FactoryMode.TwinflowFactory2FactoryMode.HIDE)) {
-            dst
-                    .setTwinFactoryId(src.getTwinFactoryId());
-
+            dst.setTwinFactoryId(src.getTwinFactoryId());
             factoryRestDTOMapperV2.postpone(src.getTwinFactory(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FactoryMode.TwinflowFactory2FactoryMode.SHORT)));
         }
-    }
-
-    @Override
-    public void beforeCollectionConversion(Collection<TwinflowFactoryEntity> srcCollection, MapperContext mapperContext) throws Exception {
-        super.beforeCollectionConversion(srcCollection, mapperContext);
     }
 }
