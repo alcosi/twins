@@ -99,7 +99,7 @@ public class TwinCreateController extends ApiController {
                     .convert(twinService
                             .createTwin(twinCreate));
         } catch (TwinFieldValidationException ve) {
-            return createErrorRs(ve, rs);
+            return createErrorRs(ve, rs, null);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -164,7 +164,7 @@ public class TwinCreateController extends ApiController {
                     .convert(twinService
                             .createTwin(twinCreate));
         } catch (TwinFieldValidationException ve) {
-            return createErrorRs(ve, rs);
+            return createErrorRs(ve, rs, null);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -227,7 +227,7 @@ public class TwinCreateController extends ApiController {
                     .setTwinList(twinRestDTOMapperV2.convertCollection(twinEntities, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (TwinFieldValidationException ve) {
-            return createErrorRs(ve, rs);
+            return createErrorRs(ve, rs, null);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

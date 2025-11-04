@@ -66,7 +66,7 @@ public class TwinUpdateValidationController extends ApiController {
                     .setCheckEditPermission(true);
             twinService.validateFields(dbTwinEntity, twinUpdate.getFields());
         } catch (TwinFieldValidationException ve) {
-            return createErrorRs(ve, rs);
+            return createErrorRs(ve, rs, HttpStatus.OK);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
