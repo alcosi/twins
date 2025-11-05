@@ -1,17 +1,21 @@
-package org.twins.core.dao.twinclass;
+package org.twins.core.service.twinclass;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.service.twinclass.TwinClassFieldRuleService;
-import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldRuleMapEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldRuleMapRepository;
 
 import java.util.*;
 import java.util.function.Function;
@@ -22,8 +26,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<TwinClassFieldRuleMapEntity> {
     private final TwinClassFieldRuleMapRepository twinClassFieldRuleMapRepository;
-    private final TwinClassFieldRuleService twinClassFieldRuleService;
     private final TwinClassService twinClassService;
+
+    @Lazy
+    private final TwinClassFieldRuleService twinClassFieldRuleService;
+
 
 
     @Override
@@ -69,33 +76,37 @@ public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<Tw
 
         if (needLoad.isEmpty()) return;
 
-        Kit<TwinClassFieldRuleMapEntity, UUID> ruleMapsKit = findEntitiesSafe(needLoad.getIdSet());
+        List<TwinClassFieldRuleMapEntity> ruleMaps = twinClassFieldRuleMapRepository.findByTwinClassFieldIdIn(needLoad.getIdSet());
 
-        if (ruleMapsKit.isEmpty()) {
+        if (ruleMaps.isEmpty()) {
             needLoad.forEach(field -> field.setRuleKit(Kit.EMPTY));
             return;
         }
 
         Kit<TwinClassFieldRuleEntity, UUID> rulesKit = twinClassFieldRuleService.findEntitiesSafe(
-                ruleMapsKit.stream()
+                ruleMaps.stream()
                         .map(TwinClassFieldRuleMapEntity::getTwinClassFieldRuleId)
                         .collect(Collectors.toSet())
         );
 
-        needLoad.forEach(field -> {
-            Kit<TwinClassFieldRuleEntity, UUID> fieldRuleKit = new Kit<>(TwinClassFieldRuleEntity::getId);
+        Map<UUID, UUID> fieldIdByRuleId = ruleMaps.stream()
+                .collect(Collectors.toMap(
+                        TwinClassFieldRuleMapEntity::getTwinClassFieldRuleId,
+                        TwinClassFieldRuleMapEntity::getTwinClassFieldId
+                ));
 
-            ruleMapsKit.getList().stream()
-                    .filter(ruleMap -> field.getId().equals(ruleMap.getTwinClassFieldId()))
-                    .forEach(ruleMap -> {
-                        TwinClassFieldRuleEntity rule = rulesKit.get(ruleMap.getTwinClassFieldRuleId());
-                        if (rule != null) {
-                            fieldRuleKit.add(rule);
-                        }
-                    });
+        KitGrouped<TwinClassFieldRuleEntity, UUID, UUID> rulesGrouped = new KitGrouped<>(
+                rulesKit,
+                TwinClassFieldRuleEntity::getId,
+                rule -> fieldIdByRuleId.get(rule.getId())
+        );
 
-            field.setRuleKit(fieldRuleKit.isNotEmpty() ? fieldRuleKit : Kit.EMPTY);
-        });
+        for (TwinClassFieldEntity fieldEntity : needLoad) {
+            if (rulesGrouped.containsGroupedKey(fieldEntity.getId()))
+                fieldEntity.setRuleKit(new Kit<>(rulesGrouped.getGrouped(fieldEntity.getId()), TwinClassFieldRuleEntity::getId));
+            else
+                fieldEntity.setRuleKit(Kit.EMPTY);
+        }
     }
 
     public void deleteRuleMaps(UUID twinClassId) throws ServiceException {
@@ -103,5 +114,9 @@ public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<Tw
             return;
         twinClassService.findEntitySafe(twinClassId);
         twinClassFieldRuleMapRepository.deleteByTwinClassId(twinClassId);
+    }
+
+    public List<TwinClassFieldRuleMapEntity> findByTwinClassFieldRuleIdIn(Collection<UUID> fieldIds) {
+        return twinClassFieldRuleMapRepository.findByTwinClassFieldRuleIdIn(fieldIds);
     }
 }

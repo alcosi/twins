@@ -16,10 +16,6 @@ import java.util.UUID;
 
 /**
  * Single comparison that belongs to a {@link TwinClassFieldRuleEntity}.
- * <p>
- * All conditions with the same {@link #groupNo} are combined with logical AND, different groups are OR-ed.
- * Grouping allows you to build complex logical expressions with brackets.
- * </p>
  */
 @Entity
 @Table(name = "twin_class_field_condition")
@@ -52,15 +48,10 @@ public class TwinClassFieldConditionEntity implements EasyLoggable {
     @Column(name = "condition_order")
     private Integer conditionOrder;
 
-    /**
-     * Group number – conditions with the same group are AND-ed, different groups OR-ed
-     */
-    @Column(name = "group_no")
-    private Integer groupNo = 1;
-
     @Column(name = "parent_twin_class_field_condition_id")
     private UUID parentTwinClassFieldConditionId;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "logic_operator_id")
     private LogicOperator logicOperatorId;
 

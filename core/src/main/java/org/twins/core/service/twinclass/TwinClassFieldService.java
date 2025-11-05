@@ -207,33 +207,37 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
         if (needLoad.isEmpty()) return;
 
-        Kit<TwinClassFieldRuleMapEntity, UUID> ruleMapsKit = twinClassFieldRuleMapService.findEntitiesSafe(needLoad.getIdSet());
+        List<TwinClassFieldRuleMapEntity> ruleMaps = twinClassFieldRuleMapService.findByTwinClassFieldRuleIdIn(needLoad.getIdSet());
 
-        if (ruleMapsKit.isEmpty()) {
+        if (ruleMaps.isEmpty()) {
             needLoad.forEach(rule -> rule.setFieldKit(Kit.EMPTY));
             return;
         }
 
         Kit<TwinClassFieldEntity, UUID> fieldsKit = findEntitiesSafe(
-                ruleMapsKit.stream()
+                ruleMaps.stream()
                         .map(TwinClassFieldRuleMapEntity::getTwinClassFieldId)
                         .collect(Collectors.toSet())
         );
 
-        needLoad.forEach(rule -> {
-            Kit<TwinClassFieldEntity, UUID> ruleFieldKit = new Kit<>(TwinClassFieldEntity::getId);
+        Map<UUID, UUID> ruleIdByFieldId = ruleMaps.stream()
+                .collect(Collectors.toMap(
+                        TwinClassFieldRuleMapEntity::getTwinClassFieldId,
+                        TwinClassFieldRuleMapEntity::getTwinClassFieldRuleId
+                ));
 
-            ruleMapsKit.getList().stream()
-                    .filter(ruleMap -> rule.getId().equals(ruleMap.getTwinClassFieldRuleId()))
-                    .forEach(ruleMap -> {
-                        TwinClassFieldEntity field = fieldsKit.get(ruleMap.getTwinClassFieldId());
-                        if (field != null) {
-                            ruleFieldKit.add(field);
-                        }
-                    });
+        KitGrouped<TwinClassFieldEntity, UUID, UUID> fieldsGrouped = new KitGrouped<>(
+                fieldsKit,
+                TwinClassFieldEntity::getId,
+                field -> ruleIdByFieldId.get(field.getId())
+        );
 
-            rule.setFieldKit(ruleFieldKit.isNotEmpty() ? ruleFieldKit : Kit.EMPTY);
-        });
+        for (TwinClassFieldRuleEntity ruleEntity : needLoad) {
+            if (fieldsGrouped.containsGroupedKey(ruleEntity.getId()))
+                ruleEntity.setFieldKit(new Kit<>(fieldsGrouped.getGrouped(ruleEntity.getId()), TwinClassFieldEntity::getId));
+            else
+                ruleEntity.setFieldKit(Kit.EMPTY);
+        }
     }
 
     public TwinClassFieldEntity findByTwinClassIdAndKey(UUID twinClassId, String key) {

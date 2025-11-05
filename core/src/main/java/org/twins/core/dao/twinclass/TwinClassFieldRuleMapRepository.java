@@ -8,10 +8,16 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Repository
 public interface TwinClassFieldRuleMapRepository extends CrudRepository<TwinClassFieldRuleMapEntity, UUID>, JpaSpecificationExecutor<TwinClassFieldRuleMapEntity> {
+    List<TwinClassFieldRuleMapEntity> findByTwinClassFieldIdIn(Collection<UUID> fieldIds);
+    List<TwinClassFieldRuleMapEntity> findByTwinClassFieldRuleIdIn(Collection<UUID> fieldRuleIds);
+
+    // can delete rules from fields that belong to other twin classes
     @Modifying
     @Query(value = """
         DELETE FROM twin_class_field_rule_map m

@@ -19,7 +19,6 @@ public class TwinClassFieldConditionRestDTOReverseMapper extends RestSimpleDTOMa
                 .setId(UUID.randomUUID())
                 .setBaseTwinClassFieldId(src.getBaseTwinClassFieldId())
                 .setConditionOrder(src.getConditionOrder())
-                .setGroupNo(src.getGroupNo())
                 .setParentTwinClassFieldConditionId(src.getParentTwinClassFieldConditionId())
                 .setLogicOperatorId(LogicOperator.valueOf(src.getLogicOperator()));
         dst.setConditionEvaluatorFeaturerId(src.getConditionEvaluatorFeaturerId());

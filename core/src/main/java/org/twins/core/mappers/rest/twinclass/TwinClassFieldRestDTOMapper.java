@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldRuleMapService;
+import org.twins.core.service.twinclass.TwinClassFieldRuleMapService;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
@@ -42,9 +42,9 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     @MapperModePointerBinding(modes = FeaturerMode.TwinClassField2FeaturerMode.class)
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
 
+    @Lazy
     @MapperModePointerBinding(modes = TwinClassFieldRuleMode.TwinClassField2TwinClassFieldRuleMode.class)
-    private final
-    TwinClassFieldRuleRestDTOMapper twinClassFieldRuleRestDTOMapper;
+    private final TwinClassFieldRuleRestDTOMapper twinClassFieldRuleRestDTOMapper;
 
     private final I18nService i18nService;
     private final FeaturerService featurerService;

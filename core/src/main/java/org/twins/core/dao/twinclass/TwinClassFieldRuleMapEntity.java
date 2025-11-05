@@ -1,9 +1,6 @@
 package org.twins.core.dao.twinclass;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
@@ -18,6 +15,7 @@ import java.util.UUID;
 @FieldNameConstants
 public class TwinClassFieldRuleMapEntity implements EasyLoggable {
     @Id
+    @GeneratedValue(generator = "uuid")
     private UUID id;
 
     @Column(name = "twin_class_field_rule_id")
@@ -26,12 +24,11 @@ public class TwinClassFieldRuleMapEntity implements EasyLoggable {
     @Column(name = "twin_class_field_id")
     private UUID twinClassFieldId;
 
-    /**
-     * @param level
-     * @return
-     */
     @Override
     public String easyLog(Level level) {
-        return "TwinClassFieldRuleMapEntity [id=" + id + "]";
+        return switch (level) {
+            case SHORT -> "twinClassFieldRuleMapEntity [id=" + id + "]";
+            default -> "twinClassFieldRuleMapEntity [id:" + id + "]" + ", twinClassFieldRuleId=" + twinClassFieldRuleId + "]" + ", twinClassFieldId=" + twinClassFieldId + "]";
+        };
     }
 }
