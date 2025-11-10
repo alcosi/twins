@@ -7,6 +7,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamListOfMaps;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.http.HttpEntity;
@@ -22,9 +23,12 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.storager.StoragerAbstractChecked;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.cambium.common.util.UrlUtils.toURI;
 
 
 @Component
@@ -36,7 +40,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class StoragerFileHandlerController extends StoragerAbstractChecked {
 
-    // did this because of example with S3, but maybe it will be better to make this properties value
     @FeaturerParam(
             name = "fileHandlerUri", description = "URI of file handler",
             optional = true,
@@ -44,6 +47,14 @@ public class StoragerFileHandlerController extends StoragerAbstractChecked {
             exampleValues = {"http://192.168.7.212:8011", "http://file-handler:8011"}
     )
     public static final FeaturerParamString fileHandlerUri = new FeaturerParamString("fileHandlerUri");
+
+    @FeaturerParam(name = "downloadExternalFileConnectionTimeout",
+            description = "If the File is added as external URI, it should be downloaded first.\nSo this params sets timout time in milliseconds for such download request.\n",
+            optional = true,
+            defaultValue = "1000",
+            exampleValues = {"60000", "1000"}
+    )
+    public static final FeaturerParamInt downloadExternalFileConnectionTimeout = new FeaturerParamInt("downloadExternalFileConnectionTimeout");
 
     @FeaturerParam(
             name = "basePath",
@@ -61,12 +72,20 @@ public class StoragerFileHandlerController extends StoragerAbstractChecked {
     )
     public static final FeaturerParamListOfMaps resizeTasks = new FeaturerParamListOfMaps("resizeTasks");
 
+
     private final RestTemplate restTemplate;
     private static final Set<String> RESIZABLE_CONTENT_TYPES = Set.of("image/jpeg", "image/png", "image/jpg");
 
     @Override
-    protected Duration getDownloadExternalFileConnectionTimeout(HashMap<String, String> params) {
-        return null;
+    protected Duration getDownloadExternalFileConnectionTimeout(HashMap<String, String> params) throws ServiceException {
+        Properties properties = extractProperties(params, false);
+        Integer extracted = downloadExternalFileConnectionTimeout.extract(properties);
+        return Duration.ofMillis(extracted == null || extracted < 1 ? 60000 : extracted.longValue());
+    }
+
+    @Override
+    public URI getFileUri(UUID fileId, String fileKey, HashMap<String, String> params) throws ServiceException {
+        return toURI(fileKey);
     }
 
     @Override
