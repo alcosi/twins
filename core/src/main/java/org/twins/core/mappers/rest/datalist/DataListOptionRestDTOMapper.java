@@ -46,7 +46,7 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
             case SHORT ->
                 dst
                         .setId(src.getId())
-                        .setName(I18nCacheHolder.addId(src.getOptionI18NId()));
+                        .setName(src.getOptionI18NId() != null ? I18nCacheHolder.addId(src.getOptionI18NId()) : src.getOption());
         }
         if (mapperContext.hasModeButNot(DataListMode.DataListOption2DataListMode.HIDE)) {
             dst.setDataListId(src.getDataListId());
