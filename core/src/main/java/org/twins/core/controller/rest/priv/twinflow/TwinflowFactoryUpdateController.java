@@ -40,7 +40,7 @@ public class TwinflowFactoryUpdateController extends ApiController {
 
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final TwinflowFactoryRestDTOMapperV1 twinflowFactoryBaseRestDTOMapper;
-    private final TwinflowFactoryUpdateRestDTOReverseMapper twinflowFactoryRestDTOReverseMapper;
+    private final TwinflowFactoryUpdateRestDTOReverseMapper twinflowFactoryUpdateRestDTOReverseMapper;
     private final TwinflowFactoryService twinflowFactoryService;
 
     @ParametersApiUserHeaders
@@ -57,7 +57,7 @@ public class TwinflowFactoryUpdateController extends ApiController {
         TwinflowFactoryUpdateRsDTOv1 rs = new TwinflowFactoryUpdateRsDTOv1();
 
         try {
-            List<TwinflowFactoryEntity> twinflowFactoryEntities = twinflowFactoryRestDTOReverseMapper.convertCollection(request.getTwinflowFactories());
+            List<TwinflowFactoryEntity> twinflowFactoryEntities = twinflowFactoryUpdateRestDTOReverseMapper.convertCollection(request.getTwinflowFactories());
             twinflowFactoryEntities = twinflowFactoryService.updateTwinflowFactory(twinflowFactoryEntities);
 
             rs
