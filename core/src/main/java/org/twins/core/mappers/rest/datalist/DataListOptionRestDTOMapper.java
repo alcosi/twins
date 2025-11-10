@@ -22,7 +22,6 @@ import java.util.Hashtable;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = DataListOptionMode.class)
 public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOptionEntity, DataListOptionDTOv1> {
-    private final I18nService i18nService;
     @MapperModePointerBinding(modes = DataListMode.DataListOption2DataListMode.class)
     private final DataListRestDTOMapper dataListRestDTOMapper;
     @MapperModePointerBinding(modes = BusinessAccountMode.DataListOption2BusinessAccountMode.class)
@@ -34,7 +33,7 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
             case DETAILED ->
                 dst
                         .setId(src.getId())
-                        .setName(I18nCacheHolder.addId(src.getOptionI18NId()))
+                        .setName(src.getOptionI18NId() != null ? I18nCacheHolder.addId(src.getOptionI18NId()) : src.getOption())
                         .setIcon(src.getIcon())
                         .setAttributes(getAttributes(src))
                         .setStatus(src.getStatus())
