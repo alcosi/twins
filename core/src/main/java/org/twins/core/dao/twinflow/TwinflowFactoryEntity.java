@@ -27,7 +27,7 @@ public class TwinflowFactoryEntity implements EasyLoggable {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "twin_factory_launcher_id")
-    private FactoryLauncher twinFactorylauncher;
+    private FactoryLauncher twinFactoryLauncher;
 
     @Column(name = "twin_factory_id")
     private UUID twinFactoryId;
