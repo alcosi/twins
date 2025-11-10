@@ -200,43 +200,32 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     public void loadRuleFields(Collection<TwinClassFieldRuleEntity> ruleEntities) throws ServiceException {
         Kit<TwinClassFieldRuleEntity, UUID> needLoad = new Kit<>(TwinClassFieldRuleEntity::getId);
-
         ruleEntities.stream()
                 .filter(rule -> rule.getFieldKit() == null)
                 .forEach(needLoad::add);
 
         if (needLoad.isEmpty()) return;
 
-        List<TwinClassFieldRuleMapEntity> ruleMaps = twinClassFieldRuleMapService.findByTwinClassFieldRuleIdIn(needLoad.getIdSet());
+        KitGrouped<TwinClassFieldRuleMapEntity, UUID, UUID> ruleMaps = new KitGrouped<>(
+                twinClassFieldRuleMapService.findByTwinClassFieldRuleIdIn(needLoad.getIdSet()),
+                TwinClassFieldRuleMapEntity::getId,
+                TwinClassFieldRuleMapEntity::getTwinClassFieldRuleId
+        );
 
         if (ruleMaps.isEmpty()) {
             needLoad.forEach(rule -> rule.setFieldKit(Kit.EMPTY));
             return;
         }
 
-        Kit<TwinClassFieldEntity, UUID> fieldsKit = findEntitiesSafe(
-                ruleMaps.stream()
-                        .map(TwinClassFieldRuleMapEntity::getTwinClassFieldId)
-                        .collect(Collectors.toSet())
-        );
-
-        Map<UUID, UUID> ruleIdByFieldId = ruleMaps.stream()
-                .collect(Collectors.toMap(
-                        TwinClassFieldRuleMapEntity::getTwinClassFieldId,
-                        TwinClassFieldRuleMapEntity::getTwinClassFieldRuleId
-                ));
-
-        KitGrouped<TwinClassFieldEntity, UUID, UUID> fieldsGrouped = new KitGrouped<>(
-                fieldsKit,
-                TwinClassFieldEntity::getId,
-                field -> ruleIdByFieldId.get(field.getId())
-        );
-
         for (TwinClassFieldRuleEntity ruleEntity : needLoad) {
-            if (fieldsGrouped.containsGroupedKey(ruleEntity.getId()))
-                ruleEntity.setFieldKit(new Kit<>(fieldsGrouped.getGrouped(ruleEntity.getId()), TwinClassFieldEntity::getId));
-            else
+            if (ruleMaps.containsGroupedKey(ruleEntity.getId())) {
+                List<TwinClassFieldEntity> fields = ruleMaps.getGrouped(ruleEntity.getId()).stream()
+                        .map(TwinClassFieldRuleMapEntity::getTwinClassField)
+                        .collect(Collectors.toList());
+                ruleEntity.setFieldKit(new Kit<>(fields, TwinClassFieldEntity::getId));
+            } else {
                 ruleEntity.setFieldKit(Kit.EMPTY);
+            }
         }
     }
 

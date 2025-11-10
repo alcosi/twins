@@ -1,5 +1,6 @@
 package org.twins.core.dao.twinclass;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Repository
 public interface TwinClassFieldRuleMapRepository extends CrudRepository<TwinClassFieldRuleMapEntity, UUID>, JpaSpecificationExecutor<TwinClassFieldRuleMapEntity> {
     List<TwinClassFieldRuleMapEntity> findByTwinClassFieldIdIn(Collection<UUID> fieldIds);
+    @EntityGraph(attributePaths = {"twinClassField"})
     List<TwinClassFieldRuleMapEntity> findByTwinClassFieldRuleIdIn(Collection<UUID> fieldRuleIds);
 
     // can delete rules from fields that belong to other twin classes

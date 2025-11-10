@@ -96,6 +96,10 @@ public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<Tw
         }
     }
 
+    public List<TwinClassFieldRuleMapEntity> findByTwinClassFieldIdIn(Collection<UUID> fieldIds) {
+        return twinClassFieldRuleMapRepository.findByTwinClassFieldIdIn(fieldIds);
+    }
+
     public void deleteRuleMaps(UUID twinClassId) throws ServiceException {
         if (twinClassId == null)
             return;

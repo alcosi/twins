@@ -129,10 +129,7 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
             return;
 
         twinClassService.findEntitySafe(twinClassId);
-
-
         twinClassFieldConditionService.deleteConditions(twinClassId);
-
         Set<UUID> ruleIdsToDelete = twinClassFieldRuleRepository.findRuleIdsByTwinClassId(twinClassId);
         twinClassFieldRuleMapService.deleteRuleMaps(twinClassId);
         twinClassFieldRuleRepository.deleteAllById(ruleIdsToDelete);
