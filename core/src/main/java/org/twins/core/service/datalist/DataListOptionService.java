@@ -328,7 +328,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                     ));
                 }
 
-                i18nService.saveTranslations(translationsToSave);
+                i18nService.createI18nAndTranslationsLight(translationsToSave);
 
                 log.info("Creating {} new datalist options with externalIds: {}", optionsForSave.size(), missedList);
                 Iterable<DataListOptionEntity> savedOptions = saveOptions(optionsForSave);
