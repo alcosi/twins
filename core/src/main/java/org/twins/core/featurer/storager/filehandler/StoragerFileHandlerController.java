@@ -111,7 +111,7 @@ public class StoragerFileHandlerController extends StoragerAbstractChecked {
         try {
             var properties = extractProperties(params, false);
             var url = fileHandlerUri.extract(properties) + "/api/delete/synced";
-            var dirs = addSlashAtTheEndIfNeeded(String.join("/", Arrays.copyOfRange(fileKey.split("/"), 4, fileKey.split("/").length - 1))); // extracting only relative path without file name
+            var dirs = extractDirsToDelete(fileKey); // extracting only relative path without file name
             var request = new HttpEntity<>(new FileHandlerDeleteRqDTO(List.of(dirs), StorageType.S3), new HttpHeaders());
             var resp = restTemplate.exchange(url, HttpMethod.POST, request, Void.class);
 
@@ -251,6 +251,11 @@ public class StoragerFileHandlerController extends StoragerAbstractChecked {
         }
 
         return result;
+    }
+
+    private String extractDirsToDelete(String fileKey) {
+        //extracting only relative path (ex. {businessAccountId}/{fileId}/)
+        return addSlashAtTheEndIfNeeded(String.join("/", Arrays.copyOfRange(fileKey.split("/"), 4, fileKey.split("/").length - 1)));
     }
 
     public enum StorageType {
