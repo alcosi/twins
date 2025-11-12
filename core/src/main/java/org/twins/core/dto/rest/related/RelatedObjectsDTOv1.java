@@ -13,6 +13,8 @@ import org.twins.core.dto.rest.factory.FactoryDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.i18n.I18nDTOv1;
+import org.twins.core.dto.rest.link.LinkDTOv1;
+import org.twins.core.dto.rest.link.TwinLinkDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
@@ -114,4 +116,7 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related field rules")
     public Map<UUID, TwinClassFieldRuleDTOv1> fieldRuleMap;
+
+    @Schema(description = "related link map", example = "{link map}")
+    public Map<UUID, LinkDTOv1> linkMap;
 }

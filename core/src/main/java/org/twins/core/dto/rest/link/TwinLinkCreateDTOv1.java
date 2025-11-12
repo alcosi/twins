@@ -4,10 +4,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.DTOExamples;
+
+import java.util.UUID;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-@Schema(name =  "TwinLinkAddV1")
-public class TwinLinkAddDTOv1 extends TwinLinkBaseDTOv1 {
+@EqualsAndHashCode(callSuper = true)
+@Schema(name = "TwinLinkCreateV1")
+public class TwinLinkCreateDTOv1 extends TwinLinkSaveDTOv1 {
 }

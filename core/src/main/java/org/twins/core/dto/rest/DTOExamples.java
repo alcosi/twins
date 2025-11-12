@@ -37,6 +37,7 @@ public interface DTOExamples {
     String TWIN_NAME = "Oak";
     String TWIN_ALIAS = "LESNAYA9-2";
     String TWIN_FIELD_ID = "cf8b1aec-c07c-4131-b834-8024462cfc93";
+    String TWIN_LINK_ID = "33c0870e-180b-4461-98da-1d66c8894043";
     String TWIN_TAG_ID = "cf8b1aec-c07c-4131-b834-8024462cfc93";
     String TWIN_FIELD_KEY = "brand";
     String TWIN_FIELD_VALUE = "alcosi";
