@@ -1,5 +1,6 @@
 package org.twins.core.featurer.storager.filehandler;
 
+import io.github.breninsul.io.service.stream.inputStream.CountedLimitedSizeInputStream;
 import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,17 +10,17 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamListOfMaps;
+import org.cambium.featurer.params.FeaturerParamMap;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import org.twins.core.dto.rest.featurer.storager.FileHandlerDeleteDTO;
-import org.twins.core.dto.rest.featurer.storager.FileHandlerResizeSaveDTO;
-import org.twins.core.dto.rest.featurer.storager.FileHandlerSaveDTO;
-import org.twins.core.dto.rest.featurer.storager.ResizeTaskDTO;
+import org.twins.core.dto.rest.featurer.storager.filehandler.*;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.StoragerAbstractChecked;
 
 import java.io.InputStream;
@@ -51,19 +52,26 @@ public class StoragerFileHandlerController extends StoragerAbstractChecked {
     @FeaturerParam(name = "downloadExternalFileConnectionTimeout",
             description = "If the File is added as external URI, it should be downloaded first.\nSo this params sets timout time in milliseconds for such download request.\n",
             optional = true,
-            defaultValue = "1000",
+            defaultValue = "60000",
             exampleValues = {"60000", "1000"}
     )
     public static final FeaturerParamInt downloadExternalFileConnectionTimeout = new FeaturerParamInt("downloadExternalFileConnectionTimeout");
 
     @FeaturerParam(
-            name = "basePath",
-            description = "Prefix for file keys.\nPlaceholders {domainId} and {businessAccountId} can be used to make domain/account relevant path.",
+            name = "basePathReplaceMap",
+            description = "Param to replace base path part in storage file key",
+            optional = false
+    )
+    public static final FeaturerParamMap basePathReplaceMap = new FeaturerParamMap("basePathReplaceMap");
+
+    @FeaturerParam(
+            name = "relativePath",
+            description = "Prefix for file keys.\nPlaceholders {domainId}, {businessAccountId} and {fileId} can be used to make domain/account relevant path.",
             optional = true,
             defaultValue = "/{businessAccountId}/{fileId}",
             exampleValues = {"/twins-resources/{domainId}/{businessAccountId}", "/{domainId}/{businessAccountId}", "/files"}
     )
-    public static final FeaturerParamString basePath = new FeaturerParamString("basePath");
+    public static final FeaturerParamString relativePath = new FeaturerParamString("relativePath");
 
     @FeaturerParam(
             name = "resizeTasks",
@@ -72,19 +80,19 @@ public class StoragerFileHandlerController extends StoragerAbstractChecked {
     )
     public static final FeaturerParamListOfMaps resizeTasks = new FeaturerParamListOfMaps("resizeTasks");
 
-
-    private final RestTemplate restTemplate;
     private static final Set<String> RESIZABLE_CONTENT_TYPES = Set.of("image/jpeg", "image/png", "image/jpg");
+    private static final String ORIGINAL_TYPE = "ORIGINAL";
+    private final RestTemplate restTemplate;
 
     @Override
     protected Duration getDownloadExternalFileConnectionTimeout(HashMap<String, String> params) throws ServiceException {
-        Properties properties = extractProperties(params, false);
-        Integer extracted = downloadExternalFileConnectionTimeout.extract(properties);
+        var properties = extractProperties(params, false);
+        var extracted = downloadExternalFileConnectionTimeout.extract(properties);
         return Duration.ofMillis(extracted == null || extracted < 1 ? 60000 : extracted.longValue());
     }
 
     @Override
-    public URI getFileUri(UUID fileId, String fileKey, HashMap<String, String> params) throws ServiceException {
+    public URI getFileUri(UUID fileId, String fileKey, HashMap<String, String> params) {
         return toURI(fileKey);
     }
 
@@ -103,8 +111,8 @@ public class StoragerFileHandlerController extends StoragerAbstractChecked {
         try {
             var properties = extractProperties(params, false);
             var url = fileHandlerUri.extract(properties) + "/api/delete/synced";
-            var dirs = Arrays.copyOf(fileKey.split("/"), fileKey.split("/").length - 1);
-            var request = new HttpEntity<>(new FileHandlerDeleteDTO(dirs, StorageType.S3), new HttpHeaders());
+            var dirs = addSlashAtTheEndIfNeeded(String.join("/", Arrays.copyOfRange(fileKey.split("/"), 4, fileKey.split("/").length - 1))); // extracting only relative path without file name
+            var request = new HttpEntity<>(new FileHandlerDeleteRqDTO(List.of(dirs), StorageType.S3), new HttpHeaders());
             var resp = restTemplate.exchange(url, HttpMethod.POST, request, Void.class);
 
             if (!resp.getStatusCode().is2xxSuccessful()) {
@@ -118,11 +126,10 @@ public class StoragerFileHandlerController extends StoragerAbstractChecked {
 
     @Override
     public String generateFileKey(UUID fileId, HashMap<String, String> params) throws ServiceException {
-        //after all file key will be smth like 111/222/222.jpeg
         var properties = extractProperties(params, false);
         var businessAccount = getBusinessAccountId().map(UUID::toString).orElse("defaultBusinessAccount");
-        var baseLocalPathString = addSlashAtTheEndIfNeeded(basePath.extract(properties));
-        var key = baseLocalPathString
+        var relativePathString = addSlashAtTheEndIfNeeded(relativePath.extract(properties));
+        var key = relativePathString
                 .replace("{businessAccountId}", businessAccount)
                 .replace("{fileId}", fileId.toString()) + fileId;
         var removedDoubleSlashes = removeDoubleSlashes(key);
@@ -135,16 +142,19 @@ public class StoragerFileHandlerController extends StoragerAbstractChecked {
     }
 
     @Override
-    protected void addFileInternal(String fileKey, InputStream fileStream, String mimeType, HashMap<String, String> params) throws ServiceException {
+    protected AddedFileKey addFileInternal(String fileKey, InputStream fileStream, String mimeType, HashMap<String, String> params) throws ServiceException {
         try {
-            try (fileStream) {
+            Integer fileSizeLimit = getFileSizeLimit(params);
+            CountedLimitedSizeInputStream sizeLimitedStream = new CountedLimitedSizeInputStream(fileStream, fileSizeLimit, 0);
+
+            try (sizeLimitedStream) {
                 var properties = extractProperties(params, false);
                 var baseUrl = fileHandlerUri.extract(properties);
                 var fileKeyElems = Arrays.stream(fileKey.split("/")).collect(Collectors.toList());
                 var fileName = fileKeyElems.removeLast();
                 var fileId = Arrays.stream(fileName.split("\\.")).toList().getFirst();
                 var storageDir = String.join("/", fileKeyElems);
-                var fileBytes = fileStream.readAllBytes();
+                var fileBytes = sizeLimitedStream.readAllBytes();
 
                 if (shouldResize(mimeType)) {
                     var url = baseUrl + "/api/resize/save/synced";
@@ -162,14 +172,20 @@ public class StoragerFileHandlerController extends StoragerAbstractChecked {
                                     Boolean.parseBoolean(taskParams.get("keepAspectRatio"))
                             ));
                         }
+
+                        if (tasks.size() != tasks.stream().map(ResizeTaskDTO::type).distinct().count()) {
+                            log.info("Type field in tasks params is not unique");
+                            throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS);
+                        }
                     } catch (Throwable t) {
                         log.info("Unable to create resize tasks. Check tasks params: {}\n{}", tasksParams, t.getMessage(), t);
                         throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS);
                     }
 
-                    var rqBody = new FileHandlerResizeSaveDTO(
+                    var rqBody = new FileHandlerResizeSaveRqDTO(
                             fileId,
                             fileName,
+                            ORIGINAL_TYPE,
                             fileBytes,
                             tasks,
                             StorageType.S3,
@@ -177,25 +193,44 @@ public class StoragerFileHandlerController extends StoragerAbstractChecked {
                             true
                     );
                     var req = new HttpEntity<>(rqBody);
-                    var resp = restTemplate.exchange(url, HttpMethod.POST, req, Void.class);
+                    var resp = restTemplate.exchange(url, HttpMethod.POST, req,  new ParameterizedTypeReference<List<FileHandlerResizeSaveRsDTO>>() {});
 
-                    if (!resp.getStatusCode().is2xxSuccessful()) {
+                    if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
                         throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
                     }
+
+                    var modifications = new ArrayList<AttachmentModifications>();
+                    var objectLink = "";
+
+                    for (var modification : resp.getBody()) {
+                        if (modification.type().equals(ORIGINAL_TYPE)) {
+                            objectLink = modification.objectLink();
+                        } else {
+                            modifications.add(new AttachmentModifications(
+                                    modification.id(),
+                                    modification.type(),
+                                    prepareObjectLink(modification.objectLink(), properties)
+                            ));
+                        }
+                    }
+
+                    return new AddedFileKey(prepareObjectLink(objectLink, properties), sizeLimitedStream.bytesRead(), modifications);
                 } else {
                     var url = baseUrl + "/api/save/synced";
-                    var rqBody = new FileHandlerSaveDTO(fileId, fileName, fileBytes, StorageType.S3, storageDir);
+                    var rqBody = new FileHandlerSaveRqDTO(fileId, fileName, ORIGINAL_TYPE, fileBytes, StorageType.S3, storageDir);
                     var req = new HttpEntity<>(rqBody);
-                    var resp = restTemplate.exchange(url, HttpMethod.POST, req, Void.class);
+                    var resp = restTemplate.exchange(url, HttpMethod.POST, req, FileHandlerResizeSaveRsDTO.class);
 
-                    if (!resp.getStatusCode().is2xxSuccessful()) {
+                    if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
                         throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
                     }
+
+                    return new AddedFileKey(prepareObjectLink(resp.getBody().objectLink(), properties), sizeLimitedStream.bytesRead(), Collections.emptyList());
                 }
             }
         } catch (Throwable t) {
             log.info("Unable to save file in file-handler service: {}", t.getMessage(), t);
-            throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unable save file in file-handler service");
+            throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unable to save file in file-handler service");
         }
     }
 
@@ -205,6 +240,17 @@ public class StoragerFileHandlerController extends StoragerAbstractChecked {
 
     private String getMimeSubType(String mimeType) {
         return mimeType.split("/")[1].toUpperCase();
+    }
+
+    private String prepareObjectLink(String objectLink, Properties properties) {
+        var replaceMap = basePathReplaceMap.extract(properties);
+        var result = "";
+
+        for (var entry : replaceMap.entrySet()) {
+            result = objectLink.replace(entry.getKey(), entry.getValue());
+        }
+
+        return result;
     }
 
     public enum StorageType {

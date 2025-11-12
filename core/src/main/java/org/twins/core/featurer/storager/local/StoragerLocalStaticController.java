@@ -13,6 +13,7 @@ import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.StoragerAbstractChecked;
 
 import java.io.File;
@@ -21,6 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.UUID;
@@ -66,17 +68,20 @@ public class StoragerLocalStaticController extends StoragerAbstractChecked {
     }
 
     @Override
-    protected void addFileInternal(String fileKey, InputStream fileStream, String mimeType, HashMap<String, String> params) throws ServiceException {
+    protected AddedFileKey addFileInternal(String fileKey, InputStream fileStream, String mimeType, HashMap<String, String> params) throws ServiceException {
         String filePath = fileKey;
         try {
+            long fileSize;
             Path path = Paths.get(filePath);
             if (path.getParent() != null) {
                 Files.createDirectories(path.getParent()); // Ensure parent directories exist
             }
             try (InputStream is = fileStream) {
-                Files.copy(is, path);
+                fileSize = Files.copy(is, path);
             } // Write the content to the file
             log.info("Successfully created and saved file at: {}", filePath);
+
+            return new AddedFileKey(fileKey, fileSize, Collections.emptyList());
         } catch (Exception e) {
             log.error("Error while creating and saving file: {}", filePath, e);
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unable to create or save file");
