@@ -119,6 +119,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 twinChangesCollector.addAll(attachmentEntity.getModifications());
             }
         }
+        //todo parallelize these tasks because it's too long to sequentially create/save files
 //        attachments.parallelStream().forEach(attachmentEntity -> {
 //            final UUID uuid = UUID.randomUUID();
 //            twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
