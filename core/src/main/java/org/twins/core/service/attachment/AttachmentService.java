@@ -24,6 +24,7 @@ import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
 import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.*;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
@@ -92,56 +93,49 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     }
 
     public void addAttachments(List<TwinAttachmentEntity> attachments, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        loadTwins(attachments);
-        storageService.loadStorages(attachments);
-        for (TwinAttachmentEntity attachmentEntity : attachments) {
-            final UUID uuid = UUID.randomUUID();
-            twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
-            saveFile(attachmentEntity, uuid);
-            attachmentEntity
-                    .setId(uuid) // need for history
-                    .setCreatedByUserId(apiUser.getUserId())
-                    .setCreatedByUser(apiUser.getUser());
-            if (StringUtils.isEmpty(attachmentEntity.getStorageFileKey())) {
-                throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "storageFileKey is empty");
-            }
-            twinChangesCollector.add(attachmentEntity);
-            if (twinChangesCollector.isHistoryCollectorEnabled())
-                twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentCreate(attachmentEntity));
-            if (!CollectionUtils.isEmpty(attachmentEntity.getModifications())) {
-                attachmentEntity.getModifications().forEach(mod -> {
-                    if (mod.getTwinAttachmentId() == null) {
-                        mod.setTwinAttachment(attachmentEntity);
-                        mod.setTwinAttachmentId(uuid);
+        try {
+            ApiUser apiUser = authService.getApiUser();
+            UUID userId = apiUser.getUserId();
+            UserEntity user = apiUser.getUser();
+            loadTwins(attachments);
+            storageService.loadStorages(attachments);
+            attachments.parallelStream().forEach(attachmentEntity -> {
+                try {
+                    final UUID uuid = UUID.randomUUID();
+                    twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
+                    saveFile(attachmentEntity, uuid);
+
+                    attachmentEntity
+                            .setId(uuid) // need for history
+                            .setCreatedByUserId(userId)
+                            .setCreatedByUser(user);
+
+                    if (StringUtils.isEmpty(attachmentEntity.getStorageFileKey())) {
+                        throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "storageFileKey is empty");
                     }
-                });
-                twinChangesCollector.addAll(attachmentEntity.getModifications());
-            }
+
+                    twinChangesCollector.add(attachmentEntity);
+                    if (twinChangesCollector.isHistoryCollectorEnabled()) {
+                        twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentCreate(attachmentEntity));
+                    }
+
+                    if (!CollectionUtils.isEmpty(attachmentEntity.getModifications())) {
+                        attachmentEntity.getModifications().forEach(mod -> {
+                            if (mod.getTwinAttachmentId() == null) {
+                                mod.setTwinAttachment(attachmentEntity);
+                                mod.setTwinAttachmentId(uuid);
+                            }
+                        });
+                        twinChangesCollector.addAll(attachmentEntity.getModifications());
+                    }
+                } catch (Throwable t) {
+                    log.info("Unable to add attachment: {}.\nException: {} {} {}", attachmentEntity.logNormal(), t, t.getMessage(), t.getStackTrace());
+                    throw new RuntimeException();
+                }
+            });
+        } catch (Throwable t) {
+            throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Unable to add attachments");
         }
-        //todo parallelize these tasks because it's too long to sequentially create/save files
-//        attachments.parallelStream().forEach(attachmentEntity -> {
-//            final UUID uuid = UUID.randomUUID();
-//            twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
-//            saveFile(attachmentEntity, uuid);
-//            attachmentEntity
-//                    .setId(uuid) // need for history
-//                    .setCreatedByUserId(apiUser.getUserId())
-//                    .setCreatedByUser(apiUser.getUser());
-//            if (StringUtils.isEmpty(attachmentEntity.getStorageFileKey())) {
-//                throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "storageFileKey is empty");
-//            }
-//            twinChangesCollector.add(attachmentEntity);
-//            if (twinChangesCollector.isHistoryCollectorEnabled())
-//                twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentCreate(attachmentEntity));
-//            if (!CollectionUtils.isEmpty(attachmentEntity.getModifications())) {
-//                attachmentEntity.getModifications().forEach(mod -> {
-//                    mod.setTwinAttachment(attachmentEntity);
-//                    mod.setTwinAttachmentId(uuid);
-//                });
-//                twinChangesCollector.addAll(attachmentEntity.getModifications());
-//            }
-//        });
     }
 
     protected void saveFile(TwinAttachmentEntity attachmentEntity, UUID uuid) throws ServiceException {

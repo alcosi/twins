@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.time.Duration;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.cambium.common.util.UrlUtils.toURI;
@@ -82,6 +83,8 @@ public class StoragerFileHandlerController extends StoragerAbstractChecked {
 
     private static final Set<String> RESIZABLE_CONTENT_TYPES = Set.of("image/jpeg", "image/png", "image/jpg");
     private static final String ORIGINAL_TYPE = "ORIGINAL";
+    private static final Pattern GENERATE_FILE_KEY_REGEXP = Pattern.compile("^[^/]+/[^/]+/[^/]+$");
+    private static final Pattern FULL_PATH_REGEXP = Pattern.compile("^https?://[^/]+(/[^/]+){4}$");
     private final RestTemplate restTemplate;
 
     @Override
@@ -242,7 +245,12 @@ public class StoragerFileHandlerController extends StoragerAbstractChecked {
         return mimeType.split("/")[1].toUpperCase();
     }
 
-    private String prepareObjectLink(String objectLink, Properties properties) {
+    private String prepareObjectLink(String objectLink, Properties properties) throws ServiceException {
+        if (objectLink == null) {
+            log.info("File wasn't saved on file-handler service, objectLink is null");
+            throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
+        }
+
         var replaceMap = basePathReplaceMap.extract(properties);
         var result = "";
 
@@ -253,9 +261,17 @@ public class StoragerFileHandlerController extends StoragerAbstractChecked {
         return result;
     }
 
-    private String extractDirsToDelete(String fileKey) {
+    private String extractDirsToDelete(String fileKey) throws ServiceException {
         //extracting only relative path (ex. {businessAccountId}/{fileId}/)
-        return addSlashAtTheEndIfNeeded(String.join("/", Arrays.copyOfRange(fileKey.split("/"), 4, fileKey.split("/").length - 1)));
+
+        if (FULL_PATH_REGEXP.matcher(fileKey).matches()) {
+            return addSlashAtTheEndIfNeeded(String.join("/", Arrays.copyOfRange(fileKey.split("/"), 4, fileKey.split("/").length - 1)));
+        } else if (GENERATE_FILE_KEY_REGEXP.matcher(fileKey).matches()) {
+            return addSlashAtTheEndIfNeeded(String.join("/", Arrays.copyOf(fileKey.split("/"), fileKey.split("/").length - 1)));
+        } else {
+            log.info("Invalid file key for file handler storager: {}", fileKey);
+            throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
+        }
     }
 
     public enum StorageType {
