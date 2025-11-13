@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "TwinLinkSearchRqV1")
+@Schema(name = "TwinLinkSearchV1")
 public class TwinLinkSearchDTOv1 {
     @Schema(description = "id list")
     public Set<UUID> idList;
