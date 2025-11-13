@@ -60,7 +60,7 @@ public class TwinLinkSearchController extends ApiController {
         TwinLinkListRsDTOv1 rs = new TwinLinkListRsDTOv1();
         try {
             PaginationResult<TwinLinkEntity> twinLinkList = twinLinkService
-                    .findTwinLinks(twinLinkSearchDTOReverseMapper.convert(request), pagination);
+                    .findTwinLinks(twinLinkSearchDTOReverseMapper.convert(request.getTwinkLinkSearch()), pagination);
             rs
                     .setTwinLinks(twinLinkBaseRestDTOMapper.convertCollection(twinLinkList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinLinkList))
