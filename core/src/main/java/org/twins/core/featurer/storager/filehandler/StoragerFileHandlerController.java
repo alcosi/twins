@@ -265,8 +265,10 @@ public class StoragerFileHandlerController extends StoragerAbstractChecked {
         //extracting only relative path (ex. {businessAccountId}/{fileId}/)
 
         if (FULL_PATH_REGEXP.matcher(fileKey).matches()) {
+            // normal case
             return addSlashAtTheEndIfNeeded(String.join("/", Arrays.copyOfRange(fileKey.split("/"), 4, fileKey.split("/").length - 1)));
         } else if (GENERATE_FILE_KEY_REGEXP.matcher(fileKey).matches()) {
+            // when any error happened it is a common case that we will have smth like relative path in tryDeleteFile method
             return addSlashAtTheEndIfNeeded(String.join("/", Arrays.copyOf(fileKey.split("/"), fileKey.split("/").length - 1)));
         } else {
             log.info("Invalid file key for file handler storager: {}", fileKey);
