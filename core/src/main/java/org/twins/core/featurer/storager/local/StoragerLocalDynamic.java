@@ -18,7 +18,7 @@ import java.util.Properties;
         description = "Service to save files in local file system and return their URL as '$selfHostDomainBaseUri'+'$relativeFileUri'"
 )
 @Slf4j
-public class StoragerLocalDynamicController extends StoragerLocalStaticController {
+public class StoragerLocalDynamic extends StoragerLocalStatic {
     @FeaturerParam(name = "relativeFileUri", description = "Relative uri of controller to provide files",
             optional = true,
             defaultValue = "/public/static-resource/{id}/v1",

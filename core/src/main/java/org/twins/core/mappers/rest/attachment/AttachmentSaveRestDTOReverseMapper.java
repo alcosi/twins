@@ -83,11 +83,6 @@ public class AttachmentSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Atta
                 .setSize(src.getSize() == null ? 0 : src.getSize())
                 .setDescription(src.getDescription())
                 .setExternalId(src.getExternalId());
-        if (src.isExternalLink()) {
-            dst
-                    .setStorageId(TWIN_ATTACHMENT_EXTERNAL_URI_STORAGER_ID)
-                    .setStorage(storageService.getExternalUrlStorage());
-        }
         if (null != src.getModifications()) {
             for (Map.Entry<String, String> mod : src.getModifications().entrySet()) {
                 TwinAttachmentModificationEntity modEntity = new TwinAttachmentModificationEntity();
