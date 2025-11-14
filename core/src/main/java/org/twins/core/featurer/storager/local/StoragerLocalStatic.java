@@ -33,7 +33,7 @@ import java.util.UUID;
         name = "StoragerLocalStaticController",
         description = "Service to save files in local file system and return their URL as '$selfHostDomainBaseUri'+'public/resource/{id}/v1'")
 @Slf4j
-public class StoragerLocalStaticController extends StoragerAbstractChecked {
+public class StoragerLocalStatic extends StoragerAbstractChecked {
     @Value("${server.servlet.context-path:}")
     protected String contextPath;
 

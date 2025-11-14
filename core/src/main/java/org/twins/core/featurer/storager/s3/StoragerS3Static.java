@@ -33,7 +33,7 @@ import java.util.UUID;
         name = "StoragerS3",
         description = "Service to save files to S3 and return their URL as '$selfHostDomainBaseUri'+'public/resource/{id}/v1'")
 @Slf4j
-public class StoragerS3StaticController extends StoragerAbstractChecked {
+public class StoragerS3Static extends StoragerAbstractChecked {
     @Value("${server.servlet.context-path:}")
     protected String contextPath;
     protected final Long DEFAULT_PART_SIZE = 10485760L;

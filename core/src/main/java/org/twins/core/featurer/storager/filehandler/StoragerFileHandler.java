@@ -40,7 +40,7 @@ import static org.cambium.common.util.UrlUtils.toURI;
         description = "Service to save or delete files via file-handler service"
 )
 @Slf4j
-public class StoragerFileHandlerController extends StoragerAbstractChecked {
+public class StoragerFileHandler extends StoragerAbstractChecked {
 
     @FeaturerParam(
             name = "fileHandlerUri", description = "URI of file handler",
