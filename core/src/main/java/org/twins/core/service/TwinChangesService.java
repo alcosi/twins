@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.TaskStatus;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationRepository;
@@ -109,7 +110,7 @@ public class TwinChangesService {
                     .setTwinId(entry.getKey())
                     .setTwinFactoryId(entry.getValue().getLeft())
                     .setTwinFactorylauncher(entry.getValue().getRight())
-                    .setStatusId(TwinChangeTaskStatus.NEED_START));
+                    .setStatusId(TaskStatus.NEED_START));
         }
         twinChangeTaskService.addTasks(changeTaskList);
     }

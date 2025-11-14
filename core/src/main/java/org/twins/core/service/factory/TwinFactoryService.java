@@ -15,12 +15,12 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.TaskStatus;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.factory.*;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
-import org.twins.core.dao.twin.TwinChangeTaskStatus;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowFactoryRepository;
 import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
@@ -423,7 +423,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                         .setTwinId(entry.getKey())
                         .setTwinFactoryId(entry.getValue())
                         .setTwinFactorylauncher(FactoryLauncher.factoryPipeline)
-                        .setStatusId(TwinChangeTaskStatus.NEED_START));
+                        .setStatusId(TaskStatus.NEED_START));
             }
             twinChangeTaskService.addTasks(changeTaskList);
             return factoryResultCommited;

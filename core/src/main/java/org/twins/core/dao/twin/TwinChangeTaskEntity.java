@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.TaskStatus;
 import org.twins.core.domain.factory.FactoryLauncher;
 
 import java.sql.Timestamp;
@@ -41,7 +42,7 @@ public class TwinChangeTaskEntity implements EasyLoggable {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "twin_change_task_status_id")
-    private TwinChangeTaskStatus statusId;
+    private TaskStatus statusId;
 
     @Column(name = "twin_change_task_status_details")
     private String statusDetails;

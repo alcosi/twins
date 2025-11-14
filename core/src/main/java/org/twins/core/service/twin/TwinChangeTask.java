@@ -7,9 +7,9 @@ import org.cambium.common.util.LoggerUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.TaskStatus;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
 import org.twins.core.dao.twin.TwinChangeTaskRepository;
-import org.twins.core.dao.twin.TwinChangeTaskStatus;
 import org.twins.core.domain.factory.FactoryBranchId;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryResultUncommited;
@@ -67,17 +67,17 @@ public class TwinChangeTask implements Runnable {
             }
             twinFactoryService.commitResult(result);
             twinChangeTaskEntity
-                    .setStatusId(TwinChangeTaskStatus.DONE)
+                    .setStatusId(TaskStatus.DONE)
                     .setDoneAt(Timestamp.from(Instant.now()));
         } catch (ServiceException e) {
             log.error(e.log());
             twinChangeTaskEntity
-                    .setStatusId(TwinChangeTaskStatus.FAILED)
+                    .setStatusId(TaskStatus.FAILED)
                     .setStatusDetails(e.log());
         } catch (Throwable e) {
             log.error("Exception: ", e);
             twinChangeTaskEntity
-                    .setStatusId(TwinChangeTaskStatus.FAILED)
+                    .setStatusId(TaskStatus.FAILED)
                     .setStatusDetails(e.getMessage());
         } finally {
             authService.removeThreadLocalApiUser();
