@@ -129,11 +129,8 @@ public abstract class StoragerAbstractChecked extends Storager {
             var fileInfo = checkMimeTypeAndCacheStream(fileStream, params);
             fileKey = fileKey + fileInfo.extension;
             fileStream = fileInfo.fileStream;
-            //Wrap to count bytes and limit if needed
-            Integer fileSizeLimit = getFileSizeLimit(params);
-            CountedLimitedSizeInputStream sizeLimitedStream = new CountedLimitedSizeInputStream(fileStream, fileSizeLimit, 0);
-            addFileInternal(fileKey, sizeLimitedStream, fileInfo.mimeType, params);
-            return new AddedFileKey(fileKey, sizeLimitedStream.bytesRead());
+
+            return addFileInternal(fileKey, fileStream, fileInfo.mimeType, params);
         } catch (CountedLimitedSizeInputStream.SizeExceededException ex) {
             tryDeleteFile(fileKey, params);
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "File size limit " + ex.getLimit() + " exceeded (" + ex.getBytesRead() + ")");
@@ -191,9 +188,10 @@ public abstract class StoragerAbstractChecked extends Storager {
      * @param fileStream the input stream representing the file content to be stored
      * @param mimeType   the MIME type of the file being stored, if known; otherwise, set to null or empty string.
      * @param params     a map of additional parameters required for the storage operation
+     * @return An instance of {@code AddedFileKey} that contains information about the uploaded file, such as its key and size.
      * @throws ServiceException if any error occurs during the file addition process
      */
-    protected abstract void addFileInternal(String fileKey, InputStream fileStream, String mimeType, HashMap<String, String> params) throws ServiceException;
+    protected abstract AddedFileKey addFileInternal(String fileKey, InputStream fileStream, String mimeType, HashMap<String, String> params) throws ServiceException;
 
     /**
      * Validates whether a given raw MIME type is supported based on a set of supported MIME types.

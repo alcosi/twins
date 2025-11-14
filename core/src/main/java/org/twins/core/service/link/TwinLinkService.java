@@ -77,7 +77,8 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
 
     @Override
     public boolean isEntityReadDenied(TwinLinkEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return true;
+        //todo check src and dst twins belong to the domain
+        return false;
     }
 
     @Override

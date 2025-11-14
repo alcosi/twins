@@ -320,6 +320,5 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         }
         return twinflow.getInitialSketchTwinStatus();
     }
-
 }
 

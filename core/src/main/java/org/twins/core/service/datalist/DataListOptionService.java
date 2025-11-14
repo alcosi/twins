@@ -25,6 +25,8 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
+import org.twins.core.dao.i18n.I18nTranslationLight;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListOptionCreate;
 import org.twins.core.domain.datalist.DataListOptionUpdate;
@@ -303,16 +305,31 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         if (!missedList.isEmpty()) {
             if (supportCustomValue) {
                 List<DataListOptionEntity> optionsForSave = new ArrayList<>();
+                List<I18nTranslationLight> translationsToSave = new ArrayList<>();
+
                 for (var missed : missedList) {
-                    optionsForSave.add(
-                            incompleteOptionKit.get(missed)
-                                    .setBusinessAccountId(businessAccountId)
-                                    .setDataListId(dataListId)
-                                    .setCustom(true)
-                                    .setOption(missed)
-                                    .setExternalId(missed)
-                                    .setStatus(DataListStatus.active));
+                    UUID i18nId = UUID.randomUUID();
+
+                    DataListOptionEntity option = incompleteOptionKit.get(missed)
+                            .setBusinessAccountId(businessAccountId)
+                            .setDataListId(dataListId)
+                            .setCustom(true)
+                            .setExternalId(missed)
+                            .setStatus(DataListStatus.active)
+                            .setOptionI18NId(i18nId);
+
+                    optionsForSave.add(option);
+
+                    translationsToSave.add(new I18nTranslationLight(
+                            i18nId,
+                            I18nType.DATA_LIST_OPTION_VALUE,
+                            Locale.ENGLISH,
+                            missed
+                    ));
                 }
+
+                i18nService.createI18nAndTranslationsLight(translationsToSave);
+
                 log.info("Creating {} new datalist options with externalIds: {}", optionsForSave.size(), missedList);
                 Iterable<DataListOptionEntity> savedOptions = saveOptions(optionsForSave);
                 savedOptions.forEach(options::add);

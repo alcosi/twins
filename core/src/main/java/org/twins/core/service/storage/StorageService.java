@@ -70,9 +70,10 @@ public class StorageService extends EntitySecureFindServiceImpl<StorageEntity> {
         for (TwinAttachmentEntity attachmentEntity : collection) {
             if (attachmentEntity.getStorageId() == null) {
                 if (attachmentEntity.getTwinClassFieldId() == null) {
+                    UUID storageId = authService.getApiUser().getDomain().getAttachmentsStorageId();
                     attachmentEntity
-                            .setStorageId(TWIN_ATTACHMENT_EXTERNAL_URI_STORAGER_ID)
-                            .setStorage(getExternalUrlStorage());
+                            .setStorageId(storageId);
+                    MapUtils.safeAdd(needLoad, attachmentEntity.getStorageId(), attachmentEntity);
                 } else {
                     TwinClassFieldEntity twinClassField = attachmentEntity.getTwinClassField();
                     FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
@@ -95,12 +96,5 @@ public class StorageService extends EntitySecureFindServiceImpl<StorageEntity> {
                         .setStorage(storage);
             }
         }
-    }
-
-    public StorageEntity getExternalUrlStorage() throws ServiceException {
-        if (externalUrlStorage == null) {
-            externalUrlStorage = findEntitySafe(TWIN_ATTACHMENT_EXTERNAL_URI_STORAGER_ID);
-        }
-        return externalUrlStorage;
     }
 }

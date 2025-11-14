@@ -18,7 +18,7 @@ import java.util.Properties;
         description = "Service to save files to S3 and return their URL as '$selfHostDomainBaseUri'+'$relativeFileUri' parameters "
 )
 @Slf4j
-public class StoragerS3DynamicController extends StoragerS3StaticController {
+public class StoragerS3Dynamic extends StoragerS3Static {
     @FeaturerParam(name = "relativeFileUri", description = "Relative uri of controller to provide files",
             optional = true,
             defaultValue = "/public/static-resource/{id}/v1",

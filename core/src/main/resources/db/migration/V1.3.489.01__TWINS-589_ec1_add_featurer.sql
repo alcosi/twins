@@ -1,0 +1,1 @@
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2906::integer, 29::integer, 'org.twins.core.featurer.storager.filehandler.StoragerAlcosiFileHandler'::varchar, 'StoragerFileHandlerController'::varchar, 'Service to save or delete files via file-handler service'::varchar(255), false::boolean) on conflict do nothing;
