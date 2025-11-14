@@ -1,6 +1,5 @@
 package org.twins.core.dto.rest.twin;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,7 +8,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.attachment.AttachmentCudDTOv1;
-import org.twins.core.dto.rest.link.TwinLinkAddDTOv1;
+import org.twins.core.dto.rest.link.TwinLinkCreateDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkUpdateDTOv1;
 
 import java.util.*;
@@ -40,14 +39,14 @@ public class TwinUpdateDTOv1 extends Request {
     @Schema(description = "Attachments add/update/delete operations")
     public AttachmentCudDTOv1 attachments;
 
-    @Schema(description = "TwinLinks for adding")
-    public List<TwinLinkAddDTOv1> twinLinksAdd;
-
-    @Schema(description = "TwinLinks id list for deleting")
-    public Set<UUID> twinLinksDelete;
+    @Schema(description = "TwinLinks for create")
+    public List<TwinLinkCreateDTOv1> twinLinksCreate;
 
     @Schema(description = "TwinLinks for updating")
     public List<TwinLinkUpdateDTOv1> twinLinksUpdate;
+
+    @Schema(description = "TwinLinks id list for deleting")
+    public Set<UUID> twinLinksDelete;
 
     @Schema(description = "TwinTags for updating")
     public TwinTagManageDTOv1 tagsUpdate;
@@ -61,18 +60,18 @@ public class TwinUpdateDTOv1 extends Request {
         return this;
     }
 
-    public TwinUpdateDTOv1 addTwinLinksAddItem(TwinLinkAddDTOv1 item) {
-        this.twinLinksAdd = CollectionUtils.safeAdd(this.twinLinksAdd, item);
-        return this;
-    }
-
-    public TwinUpdateDTOv1 addTwinLinksDeleteItem(UUID item) {
-        this.twinLinksDelete = CollectionUtils.safeAdd(this.twinLinksDelete, item);
+    public TwinUpdateDTOv1 addTwinLinksCreateItem(TwinLinkCreateDTOv1 item) {
+        this.twinLinksCreate = CollectionUtils.safeAdd(this.twinLinksCreate, item);
         return this;
     }
 
     public TwinUpdateDTOv1 addTwinLinksUpdateItem(TwinLinkUpdateDTOv1 item) {
         this.twinLinksUpdate = CollectionUtils.safeAdd(this.twinLinksUpdate, item);
+        return this;
+    }
+
+    public TwinUpdateDTOv1 addTwinLinksDeleteItem(UUID item) {
+        this.twinLinksDelete = CollectionUtils.safeAdd(this.twinLinksDelete, item);
         return this;
     }
 }

@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
-import org.twins.core.dto.rest.link.TwinLinkAddDTOv1;
+import org.twins.core.dto.rest.link.TwinLinkCreateDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkUpdateDTOv1;
 
 import java.util.HashMap;
@@ -27,20 +27,20 @@ public class TwinUpdateRqDTOv1 extends TwinUpdateDTOv1 {
     }
 
     @Override
-    public TwinUpdateRqDTOv1 addTwinLinksAddItem(TwinLinkAddDTOv1 item) {
-        this.twinLinksAdd = CollectionUtils.safeAdd(this.twinLinksAdd, item);
-        return this;
-    }
-
-    @Override
-    public TwinUpdateRqDTOv1 addTwinLinksDeleteItem(UUID item) {
-        this.twinLinksDelete = CollectionUtils.safeAdd(this.twinLinksDelete, item);
+    public TwinUpdateRqDTOv1 addTwinLinksCreateItem(TwinLinkCreateDTOv1 item) {
+        this.twinLinksCreate = CollectionUtils.safeAdd(this.twinLinksCreate, item);
         return this;
     }
 
     @Override
     public TwinUpdateRqDTOv1 addTwinLinksUpdateItem(TwinLinkUpdateDTOv1 item) {
         this.twinLinksUpdate = CollectionUtils.safeAdd(this.twinLinksUpdate, item);
+        return this;
+    }
+
+    @Override
+    public TwinUpdateRqDTOv1 addTwinLinksDeleteItem(UUID item) {
+        this.twinLinksDelete = CollectionUtils.safeAdd(this.twinLinksDelete, item);
         return this;
     }
 }

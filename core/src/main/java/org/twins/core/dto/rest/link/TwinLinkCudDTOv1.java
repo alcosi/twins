@@ -1,4 +1,3 @@
-
 package org.twins.core.dto.rest.link;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,8 +11,8 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name =  "TwinLinkCudV1")
 public class TwinLinkCudDTOv1 {
-    @Schema(description = "TwinLinks for adding")
-    public List<TwinLinkAddDTOv1> create;
+    @Schema(description = "TwinLinks for creating")
+    public List<TwinLinkCreateDTOv1> create;
 
     @Schema(description = "TwinLinks for updating")
     public List<TwinLinkUpdateDTOv1> update;

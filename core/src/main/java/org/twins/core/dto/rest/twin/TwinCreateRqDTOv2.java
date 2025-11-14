@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dto.rest.attachment.AttachmentCreateDTOv1;
-import org.twins.core.dto.rest.link.TwinLinkAddDTOv1;
+import org.twins.core.dto.rest.link.TwinLinkCreateDTOv1;
 
 import java.util.HashMap;
 
@@ -15,7 +15,6 @@ import java.util.HashMap;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinCreateRqV2")
 public class TwinCreateRqDTOv2 extends TwinDraftDTOv1 {
-
 
     @Override
     public TwinCreateRqDTOv2 putFieldsItem(String key, String item) {
@@ -31,7 +30,7 @@ public class TwinCreateRqDTOv2 extends TwinDraftDTOv1 {
     }
 
     @Override
-    public TwinCreateRqDTOv2 addLinksItem(TwinLinkAddDTOv1 item) {
+    public TwinCreateRqDTOv2 addLinksItem(TwinLinkCreateDTOv1 item) {
         this.links = CollectionUtils.safeAdd(this.links, item);
         return this;
     }

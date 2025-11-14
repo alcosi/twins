@@ -13,6 +13,7 @@ import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
@@ -38,6 +39,7 @@ import org.twins.core.dto.rest.factory.FactoryDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.i18n.I18nDTOv1;
+import org.twins.core.dto.rest.link.LinkDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
@@ -66,6 +68,7 @@ import org.twins.core.mappers.rest.factory.FactoryPipelineRestDTOMapperV2;
 import org.twins.core.mappers.rest.factory.FactoryRestDTOMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.i18n.I18nRestDTOMapper;
+import org.twins.core.mappers.rest.link.LinkBackwardRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.RelatedObject;
 import org.twins.core.mappers.rest.permission.PermissionGroupRestDTOMapper;
@@ -122,6 +125,7 @@ public class RelatedObjectsRestDTOConverter {
     private final AttachmentRestrictionRestDTOMapper attachmentRestrictionRestDTOMapper;
     private final TwinClassFreezeDTOMapper twinClassFreezeDTOMapper;
     private final TwinClassFieldRuleRestDTOMapper twinClassFieldRuleRestDTOMapper;
+    private final LinkBackwardRestDTOMapper linkBackwardRestDTOMapper;
 
     public RelatedObjectsDTOv1 convert(MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())
@@ -153,6 +157,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, AttachmentRestrictionDTOv1> attachmentRestrictionMap = new HashMap<>();
         Map<UUID, TwinClassFreezeDTOv1> twinClassFreezeMap = new HashMap<>();
         Map<UUID, TwinClassFieldRuleDTOv1> twinClassFieldRuleMap = new HashMap<>();
+        Map<UUID, LinkDTOv1> linkMap = new HashMap<>();
 
         MapperContext mapperContextLevel2 = mapperContext.cloneIgnoreRelatedObjects();
         if (!mapperContext.getRelatedTwinClassMap().isEmpty())
@@ -207,6 +212,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContext.getRelatedTwinClassFreezeMap(), twinClassFreezeDTOMapper, mapperContextLevel2, twinClassFreezeMap, TwinClassFreezeEntity::getId);
         if (!mapperContext.getRelatedClassFieldRuleMap().isEmpty())
             convertAndPut(mapperContext.getRelatedClassFieldRuleMap(), twinClassFieldRuleRestDTOMapper, mapperContextLevel2, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
+        if (!mapperContext.getRelatedLinkMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedLinkMap(), linkBackwardRestDTOMapper, mapperContextLevel2, linkMap, LinkEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         MapperContext mapperContextLevel3 = mapperContextLevel2.cloneIgnoreRelatedObjects();
@@ -262,6 +269,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel2.getRelatedTwinClassFreezeMap(), twinClassFreezeDTOMapper, mapperContextLevel3, twinClassFreezeMap, TwinClassFreezeEntity::getId);
         if (!mapperContextLevel2.getRelatedClassFieldRuleMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedClassFieldRuleMap(), twinClassFieldRuleRestDTOMapper, mapperContextLevel3, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
+        if (!mapperContextLevel2.getRelatedLinkMap().isEmpty())
+            convertAndPut(mapperContextLevel2.getRelatedLinkMap(), linkBackwardRestDTOMapper, mapperContextLevel3, linkMap, LinkEntity::getId);
 
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
@@ -319,6 +328,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedTwinClassFreezeMap(), twinClassFreezeDTOMapper, mapperContextLevel3, twinClassFreezeMap, TwinClassFreezeEntity::getId);
         if (!mapperContextLevel3.getRelatedClassFieldRuleMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedClassFieldRuleMap(), twinClassFieldRuleRestDTOMapper, mapperContextLevel3, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
+        if (!mapperContextLevel3.getRelatedLinkMap().isEmpty())
+            convertAndPut(mapperContextLevel3.getRelatedLinkMap(), linkBackwardRestDTOMapper, mapperContextLevel3, linkMap, LinkEntity::getId);
 
         ret
                 .setTwinClassMap(twinClassMap.isEmpty() ? null : twinClassMap)
@@ -347,6 +358,7 @@ public class RelatedObjectsRestDTOConverter {
                 .setAttachmentRestrictionMap(attachmentRestrictionMap.isEmpty() ? null : attachmentRestrictionMap)
                 .setTwinClassFreezeMap(twinClassFreezeMap.isEmpty() ? null : twinClassFreezeMap)
                 .setFieldRuleMap(twinClassFieldRuleMap.isEmpty() ? null : twinClassFieldRuleMap)
+                .setLinkMap(linkMap.isEmpty() ? null : linkMap)
         ;
         return ret;
     }

@@ -14,14 +14,14 @@ import org.twins.core.service.link.TwinLinkService;
 @RequiredArgsConstructor
 public class TwinLinkCUDRestDTOReverseMapperV2 extends RestSimpleDTOMapper<TwinLinkCudDTOv1, EntityCUD<TwinLinkEntity>> {
     private final TwinLinkService twinLinkService;
-    private final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
+    private final TwinLinkCreateRestDTOReverseMapper twinLinkCreateRestDTOReverseMapper;
     private final TwinLinkUpdateRestDTOReverseMapper twinLinkUpdateRestDTOReverseMapper;
 
     @Override
     public void map(TwinLinkCudDTOv1 src, EntityCUD<TwinLinkEntity> dst, MapperContext mapperContext) throws Exception {
         dst
                 .setUpdateList(twinLinkUpdateRestDTOReverseMapper.convertCollection(src.getUpdate()))
-                .setCreateList(twinLinkAddRestDTOReverseMapper.convertCollection(src.getCreate()))
+                .setCreateList(twinLinkCreateRestDTOReverseMapper.convertCollection(src.getCreate()))
                 .setDeleteList(twinLinkService.findEntitiesSafe(src.getDelete()).getList());
     }
 }

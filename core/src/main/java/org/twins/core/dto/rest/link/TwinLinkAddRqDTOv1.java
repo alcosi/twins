@@ -14,5 +14,5 @@ import java.util.List;
 @Schema(name =  "TwinLinkAddRqV1")
 public class TwinLinkAddRqDTOv1 extends Request {
     @Schema(description = "Links list")
-    public List<TwinLinkAddDTOv1> links;
+    public List<TwinLinkCreateDTOv1> links;
 }

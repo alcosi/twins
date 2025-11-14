@@ -14,6 +14,7 @@ import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
@@ -92,6 +93,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<TwinClassFreezeEntity>> relatedTwinClassFreezeMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID,RelatedObject<TwinClassFieldRuleEntity>> relatedClassFieldRuleMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID,RelatedObject<LinkEntity>> relatedLinkMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
@@ -237,6 +240,8 @@ public class MapperContext {
             smartPut(relatedClassFieldRuleMap, entity, entity.getId());
         else if (relatedObject instanceof TwinClassFreezeEntity entity)
             smartPut(relatedTwinClassFreezeMap, entity, entity.getId());
+        else if (relatedObject instanceof LinkEntity entity)
+            smartPut(relatedLinkMap, entity, entity.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -446,6 +451,7 @@ public class MapperContext {
         dstMapperContext.relatedAttachmentRestrictionMap = srcMapperContext.relatedAttachmentRestrictionMap;
         dstMapperContext.relatedTwinClassFreezeMap = srcMapperContext.relatedTwinClassFreezeMap;
         dstMapperContext.relatedClassFieldRuleMap = srcMapperContext.relatedClassFieldRuleMap;
+        dstMapperContext.relatedLinkMap = srcMapperContext.relatedLinkMap;
     }
 
     public MapperContext fork(MapperModeCollection mapperModeCollection) {
