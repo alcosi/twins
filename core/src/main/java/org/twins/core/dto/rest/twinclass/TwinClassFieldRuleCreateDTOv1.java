@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -13,8 +14,8 @@ import java.util.UUID;
 @Schema(name = "TwinClassFieldRuleCreateV1")
 public class TwinClassFieldRuleCreateDTOv1 {
 
-    @Schema(description = "field whose value or parameter will be overwritten if the rule fires")
-    public UUID dependentTwinClassFieldId;
+    @Schema(description = "fields whose value or parameter will be overwritten if the rule fires")
+    public Set<UUID> dependentTwinClassFieldIds;
 
     @Schema(description = "value that will be written to the dependent field (or its parameter) when the rule fires")
     public String overwrittenValue;
