@@ -90,3 +90,6 @@ create or replace trigger twin_attachment_after_delete_wrapper_trigger
     on twin_attachment
     for each row
 execute procedure twin_attachment_after_delete_wrapper();
+
+
+drop trigger if exists trg_update_attachment_storage on twin_attachment;

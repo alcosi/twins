@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.TaskStatus;
+import org.twins.core.dao.resource.StorageEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -36,6 +37,10 @@ public class AttachmentDeleteTaskEntity implements EasyLoggable {
 
     @Column(name = "created_at")
     private Timestamp createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "storage_id", insertable = false, updatable = false, nullable = false)
+    private StorageEntity storage;
 
     @Override
     public String easyLog(Level level) {
