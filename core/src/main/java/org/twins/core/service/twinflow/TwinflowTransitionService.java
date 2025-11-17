@@ -73,6 +73,7 @@ import java.util.function.Function;
 
 import static org.cambium.common.util.RowUtils.mapUuidInt;
 import static org.twins.core.dao.specifications.twinflow.TransitionAliasSpecification.*;
+import static org.twins.core.enums.twinflow.TwinflowTransitionType.ignoreChangeStatus;
 
 
 @Slf4j
@@ -865,7 +866,9 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public void transitionToDstStatus(TransitionContext transitionContext, FactoryResultUncommited factoryResultUncommited) throws ServiceException {
         for (TwinUpdate twinUpdate : factoryResultUncommited.getUpdates()) {
             if (isTransitionedTwin(transitionContext, twinUpdate.getTwinEntity())) {// case when twin was taken from input, we have to force update status from transition
-                if (twinUpdate.getTwinEntity().getTwinStatusId() == null || twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinStatusId()))
+                if (ignoreChangeStatus(transitionContext.getTransitionEntity()) &&
+                        (twinUpdate.getTwinEntity().getTwinStatusId() == null
+                                || twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinStatusId())))
                     twinUpdate.getTwinEntity()
                             .setTwinStatusId(transitionContext.getTransitionEntity().getDstTwinStatusId())
                             .setTwinStatus(transitionContext.getTransitionEntity().getDstTwinStatus());
