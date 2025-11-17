@@ -43,7 +43,7 @@ public class FillerTwinBasicFieldsFromContextBasics extends Filler {
             Set<UUID> needLoad = new HashSet<>();
             Kit<UserEntity, UUID> loadedUsersKit;
             if (fieldsString.contains(TwinBasicFields.Basics.createdByUserId)) {
-                if (basics.getCreatedByUserId().equals(UuidUtils.NULLIFY_MARKER)) {
+                if (UuidUtils.isNullifyMarker(basics.getCreatedByUserId())) {
                     outputTwinEntity.setCreatedByUserId(factoryItem.getOutput().nullifyUUID());
                 } else {
                     outputTwinEntity.setCreatedByUserId(basics.getCreatedByUserId());
@@ -53,7 +53,7 @@ public class FillerTwinBasicFieldsFromContextBasics extends Filler {
                 }
             }
             if (fieldsString.contains(TwinBasicFields.Basics.assigneeUserId)) {
-                if (basics.getAssigneeUserId().equals(UuidUtils.NULLIFY_MARKER)) {
+                if (UuidUtils.isNullifyMarker(basics.getAssigneeUserId())) {
                     outputTwinEntity.setAssignerUserId(factoryItem.getOutput().nullifyUUID());
                 } else {
                     outputTwinEntity.setAssignerUserId(basics.getAssigneeUserId());
