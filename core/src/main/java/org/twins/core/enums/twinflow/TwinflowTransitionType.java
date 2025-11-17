@@ -10,7 +10,8 @@ public enum TwinflowTransitionType {
     MARKETING,
     STATUS_CHANGE_MARKETING;
 
-    public static boolean ignoreChangeStatus(TwinflowTransitionEntity transition) {
-        return transition.getTwinflowTransitionTypeId() != STATUS_CHANGE_MARKETING;
+    public static boolean isMarketing(TwinflowTransitionEntity transition) {
+        return transition.getTwinflowTransitionTypeId() != MARKETING
+                && transition.getTwinflowTransitionTypeId() != STATUS_CHANGE_MARKETING;
     }
 }
