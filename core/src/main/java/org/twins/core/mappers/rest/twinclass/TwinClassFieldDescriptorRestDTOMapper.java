@@ -58,17 +58,22 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                     .beforeDate(dateDescriptor.beforeDate())
                     .afterDate(dateDescriptor.afterDate());
         else if (fieldDescriptor instanceof FieldDescriptorList listDescriptor)
-            if (listDescriptor.dataListId() != null) {
-                return new TwinClassFieldDescriptorListLongDTOv1()
+            if (listDescriptor.options() == null) {
+                TwinClassFieldDescriptorListLongDTOv1 listLongFieldDescriptor = new TwinClassFieldDescriptorListLongDTOv1()
                         .supportCustom(listDescriptor.supportCustom())
                         .multiple(listDescriptor.multiple())
-                        .dataListId(listDescriptor.dataListId());
+                        .dataListId(listDescriptor.dataListId())
+                        .dataListOptionIdList(listDescriptor.dataListOptionIdList())
+                        .dataListOptionIdExcludeList(listDescriptor.dataListOptionIdExcludeList())
+                        .dataListSubsetIdList(listDescriptor.dataListSubsetIdList())
+                        .dataListSubsetIdExcludeList(listDescriptor.dataListSubsetIdExcludeList());
+                return listLongFieldDescriptor;
             } else {
                 TwinClassFieldDescriptorListDTOv1 listFieldDescriptor = new TwinClassFieldDescriptorListDTOv1()
                         .supportCustom(listDescriptor.supportCustom())
                         .multiple(listDescriptor.multiple())
                         .options(dataListOptionRestDTOMapper.convertCollectionPostpone(listDescriptor.options(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListOptionMode.TwinClassFieldDescriptor2DataListOptionMode.SHORT))));
-                if (listFieldDescriptor.options == null && CollectionUtils.isNotEmpty(listDescriptor.options()))
+                if (CollectionUtils.isNotEmpty(listDescriptor.options()))
                     listFieldDescriptor.optionIdList(listDescriptor.options().stream().map(DataListOptionEntity::getId).collect(Collectors.toSet()));
                 return listFieldDescriptor;
             }

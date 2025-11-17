@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.dao.action.TwinAction;
+import org.twins.core.enums.action.TwinAction;
 import org.twins.core.dao.action.TwinActionEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 

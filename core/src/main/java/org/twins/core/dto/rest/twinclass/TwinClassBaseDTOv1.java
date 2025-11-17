@@ -4,12 +4,13 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.enums.twinclass.OwnerType;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -32,8 +33,14 @@ public class TwinClassBaseDTOv1 {
     @Schema(description = "created at", example = DTOExamples.INSTANT)
     public LocalDateTime createdAt;
 
-    @Schema(description = "logo", example = "http://twins.org/t/class/project.png")
-    public String logo;
+    @Schema(description = "freeze of twin class", example = DTOExamples.TWIN_CLASS_FREEZE_ID)
+    public UUID twinClassFreezeId;
+
+    @Schema(description = "iconDark", example = "http://twins.org/t/class/project.png")
+    public String iconDark;
+
+    @Schema(description = "iconLight", example = "http://twins.org/t/class/project.png")
+    public String iconLight;
 
     @Schema(description = "if class is abstract no twin of it can be created. Some child class must be used")
     public Boolean abstractClass;
@@ -48,7 +55,7 @@ public class TwinClassBaseDTOv1 {
     public UUID tagsDataListId;
 
     @Schema(description = "twin class owner type")
-    public TwinClassEntity.OwnerType ownerType;
+    public OwnerType ownerType;
 
     @Schema(description = "extends class id or empty if class is not linked to any classes")
     public UUID extendsClassId;
@@ -109,4 +116,19 @@ public class TwinClassBaseDTOv1 {
 
     @Schema(description = "external properties")
     public Map<String, String> externalProperties;
+
+    @Schema(description = "External JSON data")
+    public Map<String, Object> externalJson;
+
+    @Schema(description = "segment class id")
+    public Set<UUID> segmentClassIds;
+
+    @Schema(description = "Class fields id list")
+    public Set<UUID> fieldIds;
+
+    @Schema(description = "List of status id." + DTOExamples.LAZY_RELATION_MODE_OFF)
+    public Set<UUID> statusList;
+
+    @Schema(description = "List of marker id." + DTOExamples.LAZY_RELATION_MODE_OFF)
+    public Set<UUID> markerList;
 }

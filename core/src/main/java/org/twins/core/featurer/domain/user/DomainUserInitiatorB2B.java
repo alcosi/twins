@@ -62,6 +62,6 @@ public class DomainUserInitiatorB2B extends DomainUserInitiator {
         }
         // we can not switch active business account here, because user is activated, but not logged in (no token from IDP)
         // identityProviderService.switchActiveBusinessAccount(newBusinessAccountId);
-        userGroupService.enterGroups(userGroupIds.extract(properties));
+        userGroupService.manageForUser(domainUserEntity.getUserId(), userGroupIds.extract(properties), null);
     }
 }

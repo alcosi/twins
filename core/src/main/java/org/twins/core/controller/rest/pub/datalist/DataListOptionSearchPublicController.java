@@ -24,7 +24,7 @@ import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.datalist.DataListOptionSearchRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionSearchRsDTOv1;
-import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapperV3;
+import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
@@ -42,7 +42,7 @@ public class DataListOptionSearchPublicController extends ApiController {
     private final AuthService authService;
     private final DataListOptionSearchDTOReverseMapper dataListOptionSearchDTOReverseMapper;
     private final DataListOptionSearchService dataListOptionSearchService;
-    private final DataListOptionRestDTOMapperV3 dataListOptionRestDTOMapperV3;
+    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     @ParametersApiUserAnonymousHeaders
     @Operation(operationId = "dataListOptionSearchPublicListV1", summary = "Return a list of all public data list options")
@@ -53,16 +53,16 @@ public class DataListOptionSearchPublicController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/public/data_list_option/search/v1")
     public ResponseEntity<?> dataListOptionSearchPublicListV1(
-            @MapperContextBinding(roots = DataListOptionRestDTOMapperV3.class, response = DataListOptionSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, response = DataListOptionSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody DataListOptionSearchRqDTOv1 request,
-            @SimplePaginationParams(sortField = DataListOptionEntity.Fields.option) SimplePagination pagination) {
+            @SimplePaginationParams(sortField = {DataListOptionEntity.Fields.option, DataListOptionEntity.Fields.externalId}) SimplePagination pagination) {
         DataListOptionSearchRsDTOv1 rs = new DataListOptionSearchRsDTOv1();
         try {
             authService.getApiUser().setAnonymous();
             PaginationResult<DataListOptionEntity> dataListOptionList = dataListOptionSearchService
                     .findDataListOptionForDomain(dataListOptionSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setOptions(dataListOptionRestDTOMapperV3.convertCollection(dataListOptionList.getList(), mapperContext))
+                    .setOptions(dataListOptionRestDTOMapper.convertCollection(dataListOptionList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(dataListOptionList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {

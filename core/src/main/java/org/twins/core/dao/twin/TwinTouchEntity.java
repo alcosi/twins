@@ -3,15 +3,14 @@ package org.twins.core.dao.twin;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.enums.twin.Touch;
 
 import java.sql.Timestamp;
-import java.util.Arrays;
 import java.util.UUID;
 
 @Entity
@@ -56,20 +55,4 @@ public class TwinTouchEntity implements EasyLoggable {
         };
     }
 
-    @Getter
-    public enum Touch {
-        WATCHED("WATCHED"),
-        STARRED("STARRED"),
-        REVIEWED("REVIEWED");
-
-        private final String id;
-
-        Touch(String id) {
-            this.id = id;
-        }
-
-        public static Touch valueOfId(String type) {
-            return Arrays.stream(Touch.values()).filter(t -> t.id.equalsIgnoreCase(type)).findAny().orElseThrow();
-        }
-    }
 }

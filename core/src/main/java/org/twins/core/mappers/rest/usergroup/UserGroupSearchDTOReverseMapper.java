@@ -1,7 +1,7 @@
 package org.twins.core.mappers.rest.usergroup;
 
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.user.UserGroupTypeEntity;
+import org.twins.core.enums.user.UserGroupType;
 import org.twins.core.domain.search.UserGroupSearch;
 import org.twins.core.dto.rest.usergroup.UserGroupSearchRqDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -27,7 +27,7 @@ public class UserGroupSearchDTOReverseMapper extends RestSimpleDTOMapper<UserGro
                 .setTypeExcludeList(safeConvert(src.getTypeExcludeList()));
     }
 
-    private Set<String> safeConvert(Set<UserGroupTypeEntity.UserGroupType> list) {
+    private Set<String> safeConvert(Set<UserGroupType> list) {
         return list == null ? Collections.emptySet() : list.stream().map(Enum::name).collect(Collectors.toSet());
     }
 }

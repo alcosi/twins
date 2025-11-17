@@ -20,7 +20,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
-import org.twins.core.domain.system.CacheInfoDTO;
+import org.twins.core.domain.system.CacheInfo;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.system.CacheInfoRsDTOv1;
 import org.twins.core.dto.rest.system.CacheRsDTOv1;
@@ -53,7 +53,7 @@ public class CacheGetController extends ApiController {
             @Parameter(example = DTOExamples.CACHE_KEY) @PathVariable String cacheKey) {
         CacheRsDTOv1 rs = new CacheRsDTOv1();
         try {
-            rs = cacheRestDTOMapper.convert(cacheService.getCacheInfo(cacheKey));
+            rs.setCacheInfo(cacheRestDTOMapper.convert(cacheService.getCacheInfo(cacheKey)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -73,8 +73,8 @@ public class CacheGetController extends ApiController {
     public ResponseEntity<?> allCachesInfoV1() {
         CacheInfoRsDTOv1 rs = new CacheInfoRsDTOv1();
         try {
-            List<CacheInfoDTO> allCachesInfo = cacheService.getAllCachesInfo();
-            rs.setCaches(allCachesInfo);
+            List<CacheInfo> allCachesInfo = cacheService.getAllCachesInfo();
+            rs.setCaches(cacheRestDTOMapper.convertCollection(allCachesInfo));
             return new ResponseEntity<>(rs, HttpStatus.OK);
         } catch (Exception e) {
             return createErrorRs(e, rs);

@@ -8,7 +8,7 @@ import org.twins.core.domain.face.PointedFace;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
-import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.service.face.FaceService;
 import org.twins.face.dto.rest.twidget.FaceTwidgetDTOv1;
 
@@ -21,7 +21,7 @@ public class FaceTwidgetRestDTOMapper extends RestSimpleDTOMapper<PointedFace<? 
     protected final FaceRestDTOMapper faceRestDTOMapper;
     protected final FaceService faceService;
     @MapperModePointerBinding(modes = TwinMode.FaceTwidget2TwinMode.class)
-    protected final TwinRestDTOMapper twinRestDTOMapper;
+    protected final TwinRestDTOMapperV2 twinRestDTOMapper;
 
     @Override
     public void map(PointedFace<? extends FacePointedEntity> src, FaceTwidgetDTOv1 dst, MapperContext mapperContext) throws Exception {

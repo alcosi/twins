@@ -6,23 +6,25 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinClassExternalJsonMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
-import org.twins.core.service.face.FaceService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.resource.ResourceService;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = TwinClassMode.class)
+@MapperModeBinding(modes = {TwinClassMode.class, TwinClassExternalJsonMode.class})
 public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity, TwinClassBaseDTOv1> {
 
     private final I18nService i18nService;
     private final PermissionService permissionService;
-    private final FaceService faceService;
+    private final ResourceService resourceService;
 
     @Override
     public void map(TwinClassEntity src, TwinClassBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -40,9 +42,11 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setAbstractClass(src.getAbstractt())
                         .setMarkersDataListId(src.getMarkerDataListId())
                         .setTagsDataListId(src.getTagDataListId())
-                        .setName(i18nService.translateToLocale(src.getNameI18NId()))
-                        .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
-                        .setLogo(src.getLogo())
+                        .setTwinClassFreezeId(src.getTwinClassFreezeId())
+                        .setName(I18nCacheHolder.addId(src.getNameI18NId()))
+                        .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
+                        .setIconDark(resourceService.getResourceUri(src.getIconDarkResource()))
+                        .setIconLight(resourceService.getResourceUri(src.getIconLightResource()))
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setHeadHunterFeaturerId(src.getHeadHunterFeaturerId())
                         .setHeadHunterParams(src.getHeadHunterParams())
@@ -75,9 +79,11 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setAbstractClass(src.getAbstractt())
                         .setMarkersDataListId(src.getMarkerDataListId())
                         .setTagsDataListId(src.getTagDataListId())
-                        .setName(i18nService.translateToLocale(src.getNameI18NId()))
-                        .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
-                        .setLogo(src.getLogo())
+                        .setTwinClassFreezeId(src.getTwinClassFreezeId())
+                        .setName(I18nCacheHolder.addId(src.getNameI18NId()))
+                        .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
+                        .setIconDark(resourceService.getResourceUri(src.getIconDarkResource()))
+                        .setIconLight(resourceService.getResourceUri(src.getIconLightResource()))
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setExternalId(src.getExternalId())
                         .setExternalProperties(src.getExternalProperties());
@@ -88,6 +94,8 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setKey(src.getKey());
                 break;
         }
+        if (mapperContext.hasModeButNot(TwinClassExternalJsonMode.HIDE))
+            dst.setExternalJson(src.getExternalJson());
     }
 
     @Override

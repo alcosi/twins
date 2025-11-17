@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryDTOv1;
@@ -35,7 +34,7 @@ public class TwinflowTransitionBaseDTOv2 extends TwinflowTransitionBaseDTOv1 {
     public UUID twinflowId;
 
     @Schema(description = "twinflow")
-    public TwinflowBaseDTOv2 twinflow;
+    public TwinflowBaseDTOv1 twinflow;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)

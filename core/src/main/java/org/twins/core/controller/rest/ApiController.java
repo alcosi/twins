@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCode;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.exception.TwinFieldValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.dao.error.ErrorEntity;
 import org.twins.core.dao.error.ErrorRepository;
 import org.twins.core.dto.rest.Response;
+import org.twins.core.dto.rest.TwinSaveRsV1;
 import org.twins.core.service.i18n.I18nService;
 
 import java.util.Hashtable;
@@ -71,6 +73,14 @@ public abstract class ApiController {
 
     public ResponseEntity<Response> createErrorRs(Exception ex) {
         return createErrorRs(ex, new Response());
+    }
+
+    public ResponseEntity<Response> createErrorRs(TwinFieldValidationException ex, Response rs, HttpStatus overrideHttpStatus) {
+        ResponseEntity<Response> response = createErrorRs(ex, ex.getErrorCode(), ex.getMessage(), overrideHttpStatus == null ? ex.getHttpStatus() : overrideHttpStatus, rs, ex.getContext());
+        if (rs instanceof TwinSaveRsV1) {
+            ((TwinSaveRsV1) response.getBody()).setInvalidTwinFieldErrors(ex.getInvalidFieldIds());
+        }
+        return response;
     }
 
     protected <T> T mapRequest(byte[] bytes, Class<T> clazz) {

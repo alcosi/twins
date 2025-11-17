@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.statistic.TwinStatisticProgressPercent;
 import org.twins.core.dto.rest.statistic.TwinStatisticProgressPercentItemDTOv1;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.i18n.I18nService;
@@ -17,7 +18,7 @@ public class ItemDTOMapper extends RestSimpleDTOMapper<TwinStatisticProgressPerc
     @Override
     public void map(TwinStatisticProgressPercent.Item src, TwinStatisticProgressPercentItemDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
-                .setLabel(src.getLabelI18nId() != null ? i18nService.translateToLocale(src.getLabelI18nId()) : null)
+                .setLabel(I18nCacheHolder.addId(src.getLabelI18nId()))
                 .setKey(src.getKey())
                 .setPercent(src.getPercent())
                 .setColorHex(src.getColorHex());

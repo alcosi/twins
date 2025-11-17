@@ -22,6 +22,7 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.user.UserSearchConfiguredDTOv1;
 import org.twins.core.dto.rest.user.UserSearchConfiguredRqDTOv1;
 import org.twins.core.dto.rest.user.UserSearchRqDTOv1;
 import org.twins.core.dto.rest.user.UserSearchRsDTOv1;
@@ -60,7 +61,7 @@ public class UserSearchController extends ApiController {
     @PostMapping(value = "/private/user/search/v1")
     public ResponseEntity<?> userSearchV1(
             @MapperContextBinding(roots = UserRestDTOMapper.class, response = UserSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @SimplePaginationParams SimplePagination pagination,
+            @SimplePaginationParams(sortField = UserEntity.Fields.createdAt) SimplePagination pagination,
             @RequestBody UserSearchRqDTOv1 request) {
         UserSearchRsDTOv1 rs = new UserSearchRsDTOv1();
         try {
@@ -78,7 +79,7 @@ public class UserSearchController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "configuredUserSearchV1", summary = "Return a list of users by configured search criteria")
+    @Operation(operationId = "userSearchConfiguredV1", summary = "Return a list of users by configured search criteria")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
@@ -86,14 +87,20 @@ public class UserSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")
     })
     @PostMapping(value = "/private/user/search/{searchId}/v1")
-    public ResponseEntity<?> configuredUserSearchV1(
+    public ResponseEntity<?> userSearchConfiguredV1(
             @MapperContextBinding(roots = UserRestDTOMapper.class, response = UserSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @SimplePaginationParams SimplePagination pagination,
+            @SimplePaginationParams(sortField = UserEntity.Fields.createdAt) SimplePagination pagination,
             @Parameter(example = DTOExamples.SEARCH_ID) @PathVariable UUID searchId,
             @RequestBody UserSearchConfiguredRqDTOv1 request) {
         UserSearchRsDTOv1 rs = new UserSearchRsDTOv1();
         try {
-            PaginationResult<UserEntity> users = userSearchService.findUsers(searchId, userSearchConfiguredDTOReverseMapper.convert(request.getSearch()), request.getSearch().getParams(), pagination);
+            UserSearchConfiguredDTOv1 search = request.getSearch();
+            PaginationResult<UserEntity> users = userSearchService.findUsers(
+                    searchId,
+                    userSearchConfiguredDTOReverseMapper.convert(search),
+                    search != null ? search.getParams() : null,
+                    pagination
+            );
             rs
                     .setUsers(userRestDTOMapper.convertCollection(users.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(users))

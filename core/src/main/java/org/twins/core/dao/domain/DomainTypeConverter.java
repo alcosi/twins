@@ -2,6 +2,7 @@ package org.twins.core.dao.domain;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import org.twins.core.enums.domain.DomainType;
 
 @Converter
 public class DomainTypeConverter implements AttributeConverter<DomainType, String> {

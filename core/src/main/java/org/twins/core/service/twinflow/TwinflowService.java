@@ -24,7 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
@@ -33,6 +32,8 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.status.StatusType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 import org.twins.core.service.SystemEntityService;
@@ -128,7 +129,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         return twinflowEntity;
     }
 
-    private UUID getTwinflowSchemaSpaceId(TwinEntity twinEntity) {
+    private UUID getTwinflowSchemaSpaceId(TwinEntity twinEntity) throws ServiceException {
         if (twinEntity.getTwinflowSchemaSpaceId() != null)
             return twinEntity.getTwinflowSchemaSpaceId();
         //looks like new twin creation
@@ -309,5 +310,15 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         dbTwinflowEntity.setInitialTwinStatusId(initStatusId);
     }
 
+    public TwinStatusEntity getInitSketchStatusSafe(TwinflowEntity twinflow) throws ServiceException {
+        var sketchStatus = twinflow.getInitialSketchTwinStatusId(); //hope that getTwinClass is not null
+        if (sketchStatus == null) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_STATUS_SKETCH_FORBIDDEN);
+        }
+        if (!twinflow.getInitialSketchTwinStatus().getType().equals(StatusType.SKETCH)) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_STATUS_INCORRECT, "configured status[{}] is not a sketch status", sketchStatus);
+        }
+        return twinflow.getInitialSketchTwinStatus();
+    }
 }
 

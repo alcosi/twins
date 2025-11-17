@@ -95,7 +95,7 @@ public class StoragerExternalUri extends StoragerAbstractChecked {
 
     @Override
     @SneakyThrows
-    protected void addFileInternal(String fileKey, InputStream fileStream, HashMap<String, String> params) throws ServiceException {
+    protected AddedFileKey addFileInternal(String fileKey, InputStream fileStream, String mimeType, HashMap<String, String> params) {
         throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "External URI service is not configured to store file bytes!");
     }
 
@@ -106,7 +106,7 @@ public class StoragerExternalUri extends StoragerAbstractChecked {
             boolean haveToCheckSize = fileSizeLimit != null && fileSizeLimit > -1 && fileSizeLimit < Integer.MAX_VALUE;
             boolean haveToCheckMimeType = supportedMimeTypes != null && !supportedMimeTypes.isEmpty();
             if (!haveToCheckSize && !haveToCheckMimeType) {
-                return new AddedFileKey(externalUri, -1);
+                return new AddedFileKey(externalUri, -1, Collections.emptyList());
             }
             //Have to make request
             HttpResponse<InputStream> response = getInputStreamHttpResponse(toURI(externalUri), params);
@@ -116,9 +116,9 @@ public class StoragerExternalUri extends StoragerAbstractChecked {
                 fileStream.close();
                 throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "File size limit " + fileSizeLimit + " exceeded (" + contentLengthHeader + ")");
             }
-            try (InputStream is = checkMimeTypeAndCacheStream(fileStream, params)) {
+            try (InputStream is = checkMimeTypeAndCacheStream(fileStream, params).fileStream()) {
                 if (contentLengthHeader > -1) {
-                    return new AddedFileKey(externalUri, contentLengthHeader);
+                    return new AddedFileKey(externalUri, contentLengthHeader, Collections.emptyList());
                 }
                 //Chunked response, have to check content length by downloading file =(
                 CountedLimitedSizeInputStream sizeLimitedStream = new CountedLimitedSizeInputStream(is, fileSizeLimit, 0);
@@ -127,7 +127,7 @@ public class StoragerExternalUri extends StoragerAbstractChecked {
                 while (sizeLimitedStream.read() > -1) {
                     sizeLimitedStream.readNBytes(byteBufferSize);
                 }
-                return new AddedFileKey(externalUri, sizeLimitedStream.bytesRead());
+                return new AddedFileKey(externalUri, sizeLimitedStream.bytesRead(), Collections.emptyList());
             }
 
         } catch (ServiceException e) {

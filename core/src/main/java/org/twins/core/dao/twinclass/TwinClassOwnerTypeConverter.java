@@ -2,16 +2,17 @@ package org.twins.core.dao.twinclass;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import org.twins.core.enums.twinclass.OwnerType;
 
 @Converter
-public class TwinClassOwnerTypeConverter implements AttributeConverter<TwinClassEntity.OwnerType, String> {
+public class TwinClassOwnerTypeConverter implements AttributeConverter<OwnerType, String> {
     @Override
-    public String convertToDatabaseColumn(TwinClassEntity.OwnerType ownerType) {
+    public String convertToDatabaseColumn(OwnerType ownerType) {
         return ownerType.getId();
     }
 
     @Override
-    public TwinClassEntity.OwnerType convertToEntityAttribute(String id) {
-        return TwinClassEntity.OwnerType.valueOd(id);
+    public OwnerType convertToEntityAttribute(String id) {
+        return OwnerType.valueOd(id);
     }
 }

@@ -1,16 +1,17 @@
 package org.twins.core.mappers.rest.twinflow;
 
 import lombok.RequiredArgsConstructor;
-import org.twins.core.service.i18n.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
+import org.twins.core.service.i18n.I18nService;
 
 @Component
 @RequiredArgsConstructor
@@ -28,8 +29,8 @@ public class TransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
                 dst
                         .setId(src.getId())
                         .setDstTwinStatusId(src.getDstTwinStatusId())
-                        .setName(i18nService.translateToLocale(src.getNameI18NId()))
-                        .setDescription(i18nService.translateToLocale(src.getDescriptionI18NId()))
+                        .setName(I18nCacheHolder.addId(src.getNameI18NId()))
+                        .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
                         .setAllowComment(src.isAllowComment())
                         .setAllowAttachments(src.isAllowAttachment())
                         .setAllowLinks(src.isAllowLinks())
@@ -37,7 +38,7 @@ public class TransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
                         .setType(src.getTwinflowTransitionTypeId());
             case SHORT ->
                 dst
-                        .setName(i18nService.translateToLocale(src.getNameI18NId()))
+                        .setName(I18nCacheHolder.addId(src.getNameI18NId()))
                         .setAlias(src.getTwinflowTransitionAlias().getAlias())
                         .setId(src.getId());
         }

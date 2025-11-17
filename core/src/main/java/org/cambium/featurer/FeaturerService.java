@@ -339,7 +339,9 @@ public class FeaturerService {
     public void basicParamsValidation(Integer featurerId, Properties properties) throws ServiceException {
         var paramsMap = featurerParamsMap.get(featurerId);
         for (var entry : paramsMap.entrySet()) {
-            entry.getValue().validate(properties.getProperty(entry.getKey()));
+            if (properties.getProperty(entry.getKey()) != null) {
+                entry.getValue().validate(properties.getProperty(entry.getKey()));
+            }
         }
     }
 
@@ -352,7 +354,7 @@ public class FeaturerService {
     }
 
     public HashMap<String, String> prepareForStore(Integer featurerId, HashMap<String, String> featurerParams) throws ServiceException {
-
+        if (null == featurerId) return null;
         Featurer featurer = featurerMap.get(featurerId);
         if (featurer == null)
             throw new ServiceException(ErrorCodeCommon.FEATURER_ID_UNKNOWN, "unknown featurer id[" + featurerId + "]");

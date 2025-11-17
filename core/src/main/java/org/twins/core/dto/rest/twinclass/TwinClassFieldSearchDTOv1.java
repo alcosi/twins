@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.LongRangeDTOv1;
 
 import java.util.Map;
 import java.util.Set;
@@ -72,4 +73,19 @@ public class TwinClassFieldSearchDTOv1 {
 
     @Schema(description = "required", example = DTOExamples.TERNARY)
     public Ternary required;
+
+    @Schema(description = "frontend validation error i18n like list")
+    public Set<String> feValidationErrorI18nLikeList;
+
+    @Schema(description = "frontend validation error i18n not like list")
+    public Set<String> feValidationErrorI18nNotLikeList;
+
+    @Schema(description = "backend validation error i18n like list")
+    public Set<String> beValidationErrorI18nLikeList;
+
+    @Schema(description = "backend validation error i18n not like list")
+    public Set<String> beValidationErrorI18nNotLikeList;
+
+    @Schema(description = "order range")
+    public LongRangeDTOv1 orderRange;
 }

@@ -8,6 +8,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.UuidUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -245,9 +246,14 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         return entityRepository().save(entity);
     }
 
+    public Iterable<T> saveSafe(Collection<T> entities) throws ServiceException {
+        validateEntitiesAndThrow(entities, EntitySmartService.EntityValidateMode.beforeSave);
+        return entitySmartService.saveAllAndLog(entities, entityRepository());
+    }
+
     public T updateSafe(T entity, ChangesHelper changesHelper) throws ServiceException {
         if (changesHelper.hasChanges()) {
-            validateEntity(entity, EntitySmartService.EntityValidateMode.beforeSave);
+            validateEntityAndThrow(entity, EntitySmartService.EntityValidateMode.beforeSave);
             return entitySmartService.saveAndLogChanges(entity, entityRepository(), changesHelper);
         }
         return entity;
@@ -258,7 +264,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         StringBuilder changes = new StringBuilder();
         for (var entry : changesHelperMulti.entrySet()) {
             if (entry.getValue().hasChanges()) {
-                validateEntity(entry.getKey(), EntitySmartService.EntityValidateMode.beforeSave);
+                validateEntityAndThrow(entry.getKey(), EntitySmartService.EntityValidateMode.beforeSave);
                 entityList.add(entry.getKey());
                 changes.append(entry.getValue().collectForLog());
             }
@@ -283,8 +289,25 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         return entity;
     }
 
+    public Collection<T> validateEntitiesAndThrow(Collection<T> entities, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entityValidateMode == EntitySmartService.EntityValidateMode.none) {
+            return entities;
+        }
+
+        if (!validateEntities(entities, entityValidateMode)) {
+            throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Entity from list is invalid");
+        }
+
+        return entities;
+    }
+
     @Override
     public abstract boolean validateEntity(T entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException;
+
+    // todo somehow force other devs to implement this method if they want to use validateEntitiesAndThrow
+    public boolean validateEntities(Collection<T> entities, EntitySmartService.EntityValidateMode entityValidateMode) {
+        return true;
+    }
 
     public boolean logErrorAndReturnFalse(String message) {
         log.error(message);
@@ -303,6 +326,8 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         R dbValue = getFunction.apply(dbEntity);
         if (!changesHelper.isChanged(field, dbValue, updateValue))
             return;
+        if (updateValue instanceof UUID && UuidUtils.NULLIFY_MARKER.equals(updateValue))
+            updateValue = null;
         setFunction.accept(dbEntity, updateValue);
     }
 
@@ -312,6 +337,19 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         R dbValue = getFunction.apply(dbEntity);
         if (!changesHelper.isChanged(field, dbValue, updateValue))
             return;
+        setFunction.accept(dbEntity, (R) updateValue);
+    }
+
+    protected <T, R> void updateEntityFieldByValueIfNotNull(Object updateValue, T dbEntity, Function<T, R> getFunction, BiConsumer<T, R> setFunction, String field, ChangesHelper changesHelper) {
+        if (updateValue == null) {
+            return;
+        }
+
+        R dbValue = getFunction.apply(dbEntity);
+        if (!changesHelper.isChanged(field, dbValue, updateValue)) {
+            return;
+        }
+
         setFunction.accept(dbEntity, (R) updateValue);
     }
 }

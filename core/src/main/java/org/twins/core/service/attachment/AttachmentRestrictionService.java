@@ -14,7 +14,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.action.TwinAction;
+import org.twins.core.enums.action.TwinAction;
 import org.twins.core.dao.attachment.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -38,9 +38,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.cambium.common.util.InformationVolumeUtils.convertToGb;
-import static org.twins.core.dao.attachment.AttachmentFileCreateUpdateProblem.*;
-import static org.twins.core.dao.attachment.AttachmentGlobalCreateDeleteProblem.MAX_COUNT_EXCEEDED;
-import static org.twins.core.dao.attachment.AttachmentGlobalCreateDeleteProblem.MIN_COUNT_NOT_REACHED;
+import static org.twins.core.enums.attachment.problem.AttachmentFileCreateUpdateProblem.*;
+import static org.twins.core.enums.attachment.problem.AttachmentGlobalCreateDeleteProblem.MAX_COUNT_EXCEEDED;
+import static org.twins.core.enums.attachment.problem.AttachmentGlobalCreateDeleteProblem.MIN_COUNT_NOT_REACHED;
 
 @Slf4j
 @Service
@@ -154,7 +154,7 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
         Kit<TwinClassFieldEntity, UUID> twinClassFieldKit = twinClassFieldService.findEntitiesSafe(twinClassFieldIds);
 
         for (var fieldEntity : twinClassFieldKit.getCollection()) {
-            FieldTyper<?, ?, ?, ?> fieldTyper = featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
+            FieldTyper<?, ?, ?, ?> fieldTyper = featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
 
             if (fieldTyper.getStorageType() != TwinFieldStorageAttachment.class) {
                 throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Wrong fieldTyper for [" + fieldEntity.getId() + "]");
@@ -170,7 +170,7 @@ public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<Tw
     }
 
     public UUID getRestrictionIdFromFieldTyper(TwinClassFieldEntity fieldEntity) throws ServiceException {
-        FieldTyper<?, ?, ?, ?> fieldTyper = featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
+        FieldTyper<?, ?, ?, ?> fieldTyper = featurerService.getFeaturer(fieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
 
         if (fieldTyper.getStorageType() != TwinFieldStorageAttachment.class) {
             throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Wrong fieldTyper for [" + fieldEntity.getId() + "]");
