@@ -13,7 +13,8 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name =  "TwinV2")
 public class TwinDTOv2 extends TwinBaseDTOv3 {
-    @Schema(description = "fields")
+    @Deprecated
+    @Schema(description = "old fields format")
     public Map<String, String> fields;
 
     @Schema(description = "fields")
