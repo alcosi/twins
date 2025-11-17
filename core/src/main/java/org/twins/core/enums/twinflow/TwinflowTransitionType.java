@@ -11,7 +11,7 @@ public enum TwinflowTransitionType {
     STATUS_CHANGE_MARKETING;
 
     public static boolean isMarketing(TwinflowTransitionEntity transition) {
-        return transition.getTwinflowTransitionTypeId() != MARKETING
-                && transition.getTwinflowTransitionTypeId() != STATUS_CHANGE_MARKETING;
+        return transition.getTwinflowTransitionTypeId() == MARKETING
+                || transition.getTwinflowTransitionTypeId() == STATUS_CHANGE_MARKETING;
     }
 }
