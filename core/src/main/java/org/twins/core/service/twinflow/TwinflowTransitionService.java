@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.draft.DraftEntity;
-import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.enums.draft.DraftStatus;
 import org.twins.core.dao.i18n.I18nEntity;
@@ -580,6 +579,9 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (transition.getSrcTwinStatusId() != null && !twinEntity.getTwinStatusId().equals(transition.getSrcTwinStatusId()))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be performed for " + twinEntity.logDetailed()
                     + ". Given transition is valid only from status[" + transition.getSrcTwinStatusId() + "]");
+        if (TwinflowTransitionType.ignoreChangeStatus(transition))
+            throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be performed for " + twinEntity.logDetailed()
+                    + ". Prohibition of execution of marketing transition[" + transition.getTwinflowTransitionTypeId() + "]");
     }
 
     private static void checkTransitionValid(String transitionIdOrAlias, TwinflowTransitionEntity transition, Map.Entry<TransitionDetectKey, List<TwinEntity>> entry) throws ServiceException {
