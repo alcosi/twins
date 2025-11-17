@@ -7,7 +7,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twinflow.TwinflowFactoryEntity;
 import org.twins.core.dto.rest.twinflow.TwinflowFactoryDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.factory.FactoryRestDTOMapperV2;
+import org.twins.core.mappers.rest.factory.FactoryRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinflowFactoryMode;
@@ -22,7 +22,7 @@ public class TwinflowFactoryRestDTOMapperV1 extends RestSimpleDTOMapper<Twinflow
     private final TwinflowBaseV1RestDTOMapper twinflowBaseV1RestDTOMapper;
 
     @MapperModePointerBinding(modes = FactoryMode.TwinflowFactory2FactoryMode.class)
-    private final FactoryRestDTOMapperV2 factoryRestDTOMapperV2;
+    private final FactoryRestDTOMapper factoryRestDTOMapperV2;
 
     @Override
     public void map(TwinflowFactoryEntity src, TwinflowFactoryDTOv1 dst, MapperContext mapperContext) throws Exception {
