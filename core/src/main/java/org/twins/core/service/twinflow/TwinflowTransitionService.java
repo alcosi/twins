@@ -579,7 +579,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (transition.getSrcTwinStatusId() != null && !twinEntity.getTwinStatusId().equals(transition.getSrcTwinStatusId()))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be performed for " + twinEntity.logDetailed()
                     + ". Given transition is valid only from status[" + transition.getSrcTwinStatusId() + "]");
-        if (!TwinflowTransitionType.isMarketing(transition))
+        if (TwinflowTransitionType.isMarketing(transition))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be performed for " + twinEntity.logDetailed()
                     + ". Prohibition of execution of marketing transition[" + transition.getTwinflowTransitionTypeId() + "]");
     }
