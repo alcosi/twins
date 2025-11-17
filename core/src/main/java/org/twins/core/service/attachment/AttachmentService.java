@@ -16,15 +16,19 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.enums.action.TwinAction;
-import org.twins.core.dao.attachment.*;
-import org.twins.core.enums.history.HistoryType;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
+import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
+import org.twins.core.dao.attachment.TwinAttachmentModificationRepository;
+import org.twins.core.dao.attachment.TwinAttachmentRepository;
 import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
 import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.*;
+import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
+import org.twins.core.enums.history.HistoryType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.Storager;
@@ -89,30 +93,48 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     }
 
     public void addAttachments(List<TwinAttachmentEntity> attachments, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        loadTwins(attachments);
-        storageService.loadStorages(attachments);
-        for (TwinAttachmentEntity attachmentEntity : attachments) {
-            final UUID uuid = UUID.randomUUID();
-            twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
-            saveFile(attachmentEntity, uuid);
-            attachmentEntity
-                    .setId(uuid) // need for history
-                    .setCreatedByUserId(apiUser.getUserId())
-                    .setCreatedByUser(apiUser.getUser());
-            if (StringUtils.isEmpty(attachmentEntity.getStorageFileKey())) {
-                throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "storageFileKey is empty");
-            }
-            twinChangesCollector.add(attachmentEntity);
-            if (twinChangesCollector.isHistoryCollectorEnabled())
-                twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentCreate(attachmentEntity));
-            if (!CollectionUtils.isEmpty(attachmentEntity.getModifications())) {
-                attachmentEntity.getModifications().forEach(mod -> {
-                    mod.setTwinAttachment(attachmentEntity);
-                    mod.setTwinAttachmentId(uuid);
-                });
-                twinChangesCollector.addAll(attachmentEntity.getModifications());
-            }
+        try {
+            ApiUser apiUser = authService.getApiUser();
+            UUID userId = apiUser.getUserId();
+            UserEntity user = apiUser.getUser();
+            loadTwins(attachments);
+            storageService.loadStorages(attachments);
+            attachments.parallelStream().forEach(attachmentEntity -> {
+                try {
+                    final UUID uuid = UUID.randomUUID();
+                    twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
+                    saveFile(attachmentEntity, uuid);
+
+                    attachmentEntity
+                            .setId(uuid) // need for history
+                            .setCreatedByUserId(userId)
+                            .setCreatedByUser(user);
+
+                    if (StringUtils.isEmpty(attachmentEntity.getStorageFileKey())) {
+                        throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "storageFileKey is empty");
+                    }
+
+                    twinChangesCollector.add(attachmentEntity);
+                    if (twinChangesCollector.isHistoryCollectorEnabled()) {
+                        twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentCreate(attachmentEntity));
+                    }
+
+                    if (!CollectionUtils.isEmpty(attachmentEntity.getModifications())) {
+                        attachmentEntity.getModifications().forEach(mod -> {
+                            if (mod.getTwinAttachmentId() == null) {
+                                mod.setTwinAttachment(attachmentEntity);
+                                mod.setTwinAttachmentId(uuid);
+                            }
+                        });
+                        twinChangesCollector.addAll(attachmentEntity.getModifications());
+                    }
+                } catch (Throwable t) {
+                    log.info("Unable to add attachment: {}.\nException: {} {} {}", attachmentEntity.logNormal(), t, t.getMessage(), t.getStackTrace());
+                    throw new RuntimeException();
+                }
+            });
+        } catch (Throwable t) {
+            throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Unable to add attachments");
         }
     }
 
@@ -120,11 +142,36 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         //Not just link, have to add file to storage
         StorageEntity storage = attachmentEntity.getStorage();
         Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
+        AddedFileKey addedFileKey;
         if (attachmentEntity.getAttachmentFile() != null) {
-            AddedFileKey addedFileKey = fileService.addFile(uuid, attachmentEntity.getAttachmentFile().content(), storage.getStoragerParams());
-            attachmentEntity.setStorageFileKey(addedFileKey.fileKey());
+            addedFileKey = fileService.addFile(uuid, attachmentEntity.getAttachmentFile().content(), storage.getStoragerParams());
         } else {
-            fileService.addExternalUrlFile(uuid, attachmentEntity.getStorageFileKey(), storage.getStoragerParams());
+            addedFileKey = fileService.addExternalUrlFile(uuid, attachmentEntity.getStorageFileKey(), storage.getStoragerParams());
+        }
+
+        modifyAttachment(attachmentEntity, addedFileKey);
+    }
+
+    private void modifyAttachment(TwinAttachmentEntity attachmentEntity, AddedFileKey addedFileKey) {
+        log.info("Replacing modifications, storage file key and size in attachmentEntity with data from file handler service.");
+
+        attachmentEntity.setSize(addedFileKey.fileSize());
+        attachmentEntity.setStorageFileKey(addedFileKey.fileKey());
+
+        if (CollectionUtils.isNotEmpty(addedFileKey.modifications())) {
+            attachmentEntity.setModifications(
+                    new Kit<>(
+                            addedFileKey.modifications().stream()
+                                    .map(
+                                            (mod) -> new TwinAttachmentModificationEntity()
+                                                    .setTwinAttachmentId(mod.twinAttachmentId())
+                                                    .setStorageFileKey(mod.storageFileKey())
+                                                    .setModificationType(mod.modificationType() == null ? "ORIGINAL" : mod.modificationType())
+                                    )
+                                    .toList(),
+                            TwinAttachmentModificationEntity::getStorageFileKey
+                    )
+            );
         }
     }
 

@@ -159,7 +159,7 @@ public enum TwinMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinLink2TwinMode implements MapperModePointer<TwinMode> {
+    public enum TransitionResult2TwinMode implements MapperModePointer<TwinMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

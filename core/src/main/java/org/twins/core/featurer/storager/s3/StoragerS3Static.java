@@ -1,5 +1,6 @@
 package org.twins.core.featurer.storager.s3;
 
+import io.github.breninsul.io.service.stream.inputStream.CountedLimitedSizeInputStream;
 import io.github.breninsul.springHttpMessageConverter.inputStream.ContentDispositionType;
 import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
 import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponseMinIOExtensionKt;
@@ -15,11 +16,13 @@ import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.StoragerAbstractChecked;
 
 import java.io.InputStream;
 import java.net.URI;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.UUID;
@@ -30,7 +33,7 @@ import java.util.UUID;
         name = "StoragerS3",
         description = "Service to save files to S3 and return their URL as '$selfHostDomainBaseUri'+'public/resource/{id}/v1'")
 @Slf4j
-public class StoragerS3StaticController extends StoragerAbstractChecked {
+public class StoragerS3Static extends StoragerAbstractChecked {
     @Value("${server.servlet.context-path:}")
     protected String contextPath;
     protected final Long DEFAULT_PART_SIZE = 10485760L;
@@ -101,9 +104,12 @@ public class StoragerS3StaticController extends StoragerAbstractChecked {
 
 
     @Override
-    protected void addFileInternal(String fileKey, InputStream fileStream, String mimeType, HashMap<String, String> params) throws ServiceException {
+    protected AddedFileKey addFileInternal(String fileKey, InputStream fileStream, String mimeType, HashMap<String, String> params) throws ServiceException {
         try {
-            try (InputStream is = fileStream) {
+            //Wrap to count bytes and limit if needed
+            Integer fileSizeLimit = getFileSizeLimit(params);
+            CountedLimitedSizeInputStream sizeLimitedStream = new CountedLimitedSizeInputStream(fileStream, fileSizeLimit, 0);
+            try (sizeLimitedStream) {
                 MinioClient s3Client = getS3MinioClient(params);
                 Properties properties = extractProperties(params, false);
                 String bucket = s3Bucket.extract(properties);
@@ -114,12 +120,15 @@ public class StoragerS3StaticController extends StoragerAbstractChecked {
                         log.error("Error trying to create bucket {}: {}", bucket, t.getMessage(), t);
                     }
                 }
+
                 var response = s3Client.putObject(
                         PutObjectArgs.builder()
                                 .bucket(bucket)
                                 .object(fileKey)
                                 .contentType(mimeType)
-                                .stream(is, -1L, DEFAULT_PART_SIZE).build());
+                                .stream(sizeLimitedStream, -1L, DEFAULT_PART_SIZE).build());
+
+                return new AddedFileKey(fileKey, sizeLimitedStream.bytesRead(), Collections.emptyList());
             }
         } catch (Throwable t) {
             log.error("Error trying to save file to S3: {}", t.getMessage(), t);
