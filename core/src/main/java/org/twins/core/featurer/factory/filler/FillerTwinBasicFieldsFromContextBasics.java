@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,15 +43,23 @@ public class FillerTwinBasicFieldsFromContextBasics extends Filler {
             Set<UUID> needLoad = new HashSet<>();
             Kit<UserEntity, UUID> loadedUsersKit;
             if (fieldsString.contains(TwinBasicFields.Basics.createdByUserId)) {
-                outputTwinEntity.setCreatedByUserId(basics.getCreatedByUserId());
-                if (outputTwinEntity.getCreatedByUser() == null) {
-                    needLoad.add(outputTwinEntity.getCreatedByUserId());
+                if (basics.getCreatedByUserId().equals(UuidUtils.NULLIFY_MARKER)) {
+                    outputTwinEntity.setCreatedByUserId(factoryItem.getOutput().nullifyUUID());
+                } else {
+                    outputTwinEntity.setCreatedByUserId(basics.getCreatedByUserId());
+                    if (outputTwinEntity.getCreatedByUserId() != null && outputTwinEntity.getCreatedByUser() == null) {
+                        needLoad.add(outputTwinEntity.getCreatedByUserId());
+                    }
                 }
             }
             if (fieldsString.contains(TwinBasicFields.Basics.assigneeUserId)) {
-                outputTwinEntity.setAssignerUserId(basics.getAssigneeUserId());
-                if (outputTwinEntity.getAssignerUser() == null) {
-                    needLoad.add(outputTwinEntity.getAssignerUserId());
+                if (basics.getAssigneeUserId().equals(UuidUtils.NULLIFY_MARKER)) {
+                    outputTwinEntity.setAssignerUserId(factoryItem.getOutput().nullifyUUID());
+                } else {
+                    outputTwinEntity.setAssignerUserId(basics.getAssigneeUserId());
+                    if (outputTwinEntity.getAssignerUser() == null) {
+                        needLoad.add(outputTwinEntity.getAssignerUserId());
+                    }
                 }
             }
             if (CollectionUtils.isNotEmpty(needLoad)) {
