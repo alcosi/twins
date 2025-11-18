@@ -42,6 +42,9 @@ public class TwinClassFieldAttributeEntity implements EasyLoggable {
 
     @Override
     public String easyLog(Level level) {
-        return "twinClassFieldAttribute[id:" + id + "]";
+        return switch (level) {
+            case SHORT -> "twinClassFieldAttribute[id:" + id + "]";
+            default -> "twinClassFieldAttribute[id:" + id + ", key:" + key + "]";
+        };
     }
 }

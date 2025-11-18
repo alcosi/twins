@@ -22,7 +22,9 @@ import org.twins.core.service.twinclass.TwinClassFieldAttributeService;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -87,7 +89,7 @@ public class TwinFieldAttributeService extends EntitySecureFindServiceImpl<TwinF
             //permission check after validation to make sure TwinClassFieldAttributeEntity is loaded
             UUID createPermissionId = twinFieldAttributeEntity.getTwinClassFieldAttributeEntity().getCreatePermissionId();
             if (createPermissionId != null && !permissionService.currentUserHasPermission(createPermissionId)) {
-                throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "cannot create field attribute without permission required for field class attribute " + twinFieldAttributeEntity.getTwinClassFieldAttributeEntity().getKey());
+                throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "cannot create % without permission[%]", twinFieldAttributeEntity.getTwinClassFieldAttributeEntity().logNormal(), createPermissionId.toString());
             }
             twinChangesCollector.add(twinFieldAttributeEntity);
         }
@@ -130,7 +132,7 @@ public class TwinFieldAttributeService extends EntitySecureFindServiceImpl<TwinF
         for (TwinFieldAttributeEntity twinFieldAttributeEntity : entities) {
             UUID deletePermissionId = twinFieldAttributeEntity.getTwinClassFieldAttributeEntity().getDeletePermissionId();
             if (deletePermissionId != null && !permissionService.currentUserHasPermission(deletePermissionId)) {
-                throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "cannot delete field attribute without permission required for field class attribute " + twinFieldAttributeEntity.getTwinClassFieldAttributeEntity().getKey());
+                throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "cannot delete % without permission[%]", twinFieldAttributeEntity.getTwinClassFieldAttributeEntity().logNormal(), deletePermissionId.toString());
             }
 
             twinChangesCollector.delete(twinFieldAttributeEntity);
@@ -147,7 +149,7 @@ public class TwinFieldAttributeService extends EntitySecureFindServiceImpl<TwinF
 
             UUID updatePermissionId = dbAttributeEntity.getTwinClassFieldAttributeEntity().getUpdatePermissionId();
             if (updatePermissionId != null && !permissionService.currentUserHasPermission(updatePermissionId)) {
-                throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "cannot update field attribute without permission required for field class attribute " + dbAttributeEntity.getTwinClassFieldAttributeEntity().getKey());
+                throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "cannot update % without permission[%]", dbAttributeEntity.getTwinClassFieldAttributeEntity(), updatePermissionId.toString());
             }
 
             twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.twinId, dbAttributeEntity.getTwinId(), attributeEntity.getTwinId());
@@ -157,9 +159,5 @@ public class TwinFieldAttributeService extends EntitySecureFindServiceImpl<TwinF
             twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.noteMsgContext, dbAttributeEntity.getNoteMsgContext(), attributeEntity.getNoteMsgContext());
             twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.changedAt, dbAttributeEntity.getChangedAt(), Timestamp.valueOf(LocalDateTime.now()));
         }
-    }
-
-    public List<TwinFieldAttributeEntity> findByClassFieldIdSet(Set<UUID> classFieldIdSet) {
-        return twinFieldAttributeRepository.findByTwinClassFieldIdIn(classFieldIdSet);
     }
 }
