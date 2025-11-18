@@ -78,16 +78,17 @@ public class TwinFieldAttributeService extends EntitySecureFindServiceImpl<TwinF
         }
 
         for (TwinFieldAttributeEntity twinFieldAttributeEntity : twinFieldAttributeEntities) {
-            UUID createPermissionId = twinFieldAttributeEntity.getTwinClassFieldAttributeEntity().getCreatePermissionId();
-            if (createPermissionId != null && !permissionService.currentUserHasPermission(createPermissionId)) {
-                throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "cannot create field attribute without permission required for field class attribute " + twinFieldAttributeEntity.getTwinClassFieldAttributeEntity().getKey());
-            }
-
             twinFieldAttributeEntity
                     .setTwinId(twinEntity.getId())
                     .setTwin(twinEntity)
                     .setChangedAt(Timestamp.valueOf(LocalDateTime.now()));
+
             validateEntityAndThrow(twinFieldAttributeEntity, EntitySmartService.EntityValidateMode.beforeSave);
+            //permission check after validation to make sure TwinClassFieldAttributeEntity is loaded
+            UUID createPermissionId = twinFieldAttributeEntity.getTwinClassFieldAttributeEntity().getCreatePermissionId();
+            if (createPermissionId != null && !permissionService.currentUserHasPermission(createPermissionId)) {
+                throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "cannot create field attribute without permission required for field class attribute " + twinFieldAttributeEntity.getTwinClassFieldAttributeEntity().getKey());
+            }
             twinChangesCollector.add(twinFieldAttributeEntity);
         }
     }
