@@ -25,7 +25,7 @@ public class AuthService {
     private static final ThreadLocal<ApiUser> threadLocalApiUser = new ThreadLocal<>();
 
     public ApiUser getApiUser() throws ServiceException {
-        if (RequestContextHolder.getRequestAttributes() != null)
+        if (threadLocalApiUser.get() == null)
             return apiUser;
         else // in so,e cases we need to emulate user work, for example it some job is running from scheduler
             return threadLocalApiUser.get();

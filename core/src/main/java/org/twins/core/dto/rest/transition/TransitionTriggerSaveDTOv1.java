@@ -27,10 +27,10 @@ public class TransitionTriggerSaveDTOv1 {
     @RelatedObject(type = TwinflowTransitionBaseDTOv1.class, name = "twinflowTransition")
     public UUID twinflowTransitionId;
 
-    @Schema(description = "[optional] an id of transition trigger featurer", example = DTOExamples.INTEGER)
+    @Schema(description = "an id of transition trigger featurer", example = DTOExamples.INTEGER)
     public Integer transitionTriggerFeaturerId;
 
-    @Schema(description = "[optional] head hunter featurer params", example = DTOExamples.FACTORY_PARAMS_MAP)
+    @Schema(description = "featurer params", example = DTOExamples.FACTORY_PARAMS_MAP)
     public HashMap<String, String> transitionTriggerParams;
 }
 
