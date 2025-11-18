@@ -30,6 +30,9 @@ public class TwinClassFieldAttributeEntity implements EasyLoggable {
     @Column(name = "create_permission_id")
     private UUID createPermissionId;
 
+    @Column(name = "update_permission_id")
+    private UUID updatePermissionId;
+
     @Column(name = "delete_permission_id")
     private UUID deletePermissionId;
 

@@ -1,5 +1,7 @@
 package org.twins.core.config.advice;
 
+import org.cambium.common.util.MapUtils;
+import org.cambium.common.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
@@ -40,12 +42,16 @@ public class I18nResponseBodyAdvice implements ResponseBodyAdvice<Object> {
         Set<UUID> idsToLoad = I18nCacheHolder.getIdsToLoad();
         Map<UUID, Map<String, String>> contexts = I18nCacheHolder.getContexts();
         if (!idsToLoad.isEmpty() && I18nCacheHolder.getTranslations().isEmpty()) {
-            Map<UUID, String> translations = new HashMap<>();
+            Map<UUID, String> translations = i18nService.translateToLocale(idsToLoad);
 
-            for (UUID i18nId : idsToLoad) {
-                Map<String, String> context = contexts.get(i18nId);
-                String translation = i18nService.translateToLocale(i18nId, context);
-                translations.put(i18nId, translation);
+            for (Map.Entry<UUID, Map<String, String>> entry : contexts.entrySet()) {
+                UUID i18nId = entry.getKey();
+                Map<String, String> context = entry.getValue();
+                String translation = translations.get(i18nId);
+
+                if (StringUtils.isNotBlank(translation) && MapUtils.isNotEmpty(context)) {
+                    translations.put(i18nId, StringUtils.replaceVariables(translation, context));
+                }
             }
 
             I18nCacheHolder.setTranslations(translations);

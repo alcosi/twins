@@ -23,15 +23,11 @@ public class I18nCacheHolder {
     }
 
     public static String addId(UUID id, Map<String, String> context) {
-        if (id != null) {
-            i18nIds.get().add(id);
-            if (context != null && !context.isEmpty()) {
-                i18nContexts.get().put(id, new HashMap<>(context));
-            }
-            return PREFIX + id;
-        } else {
-            return "";
+        String result = addId(id);
+        if (id != null && context != null && !context.isEmpty()) {
+            i18nContexts.get().put(id, new HashMap<>(context));
         }
+        return result;
     }
 
     public static Set<UUID> getIdsToLoad() {

@@ -9,7 +9,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassFieldAttributeEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldAttributeRepository;
-import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.UUID;
 import java.util.function.Function;
