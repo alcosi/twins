@@ -27,7 +27,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.time.Duration;
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.cambium.common.util.UrlUtils.toURI;
@@ -83,8 +82,6 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
 
     private static final Set<String> RESIZABLE_CONTENT_TYPES = Set.of("image/jpeg", "image/png", "image/jpg");
     private static final String ORIGINAL_TYPE = "ORIGINAL";
-    private static final Pattern GENERATE_FILE_KEY_REGEXP = Pattern.compile("^[^/]+/[^/]+/[^/]+$");
-    private static final Pattern FULL_PATH_REGEXP = Pattern.compile("^https?://[^/]+(/[^/]+){4}$");
     private final RestTemplate restTemplate;
 
     @Override
@@ -263,15 +260,14 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
 
     private String extractDirsToDelete(String fileKey) throws ServiceException {
         //extracting only relative path (ex. {businessAccountId}/{fileId}/)
+        try {
+            var strings = new ArrayList<>(List.of(Arrays.copyOf(fileKey.split("/"), fileKey.split("/").length - 1)));
+            var fileId = strings.removeLast();
+            var businessAccountId = strings.removeLast();
 
-        if (FULL_PATH_REGEXP.matcher(fileKey).matches()) {
-            // normal case
-            return addSlashAtTheEndIfNeeded(String.join("/", Arrays.copyOfRange(fileKey.split("/"), 4, fileKey.split("/").length - 1)));
-        } else if (GENERATE_FILE_KEY_REGEXP.matcher(fileKey).matches()) {
-            // when any error happened it is a common case that we will have smth like relative path in tryDeleteFile method
-            return addSlashAtTheEndIfNeeded(String.join("/", Arrays.copyOf(fileKey.split("/"), fileKey.split("/").length - 1)));
-        } else {
-            log.info("Invalid file key for file handler storager: {}", fileKey);
+            return businessAccountId + "/" + fileId + "/";
+        } catch (Exception e) {
+            log.info("Invalid file key for file handler storager: {}, {} {} {}", fileKey, e, e.getMessage(), e.getStackTrace());
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
         }
     }
