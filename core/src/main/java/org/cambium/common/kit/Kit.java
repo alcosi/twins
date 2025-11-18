@@ -74,6 +74,22 @@ public class Kit<E, K> implements Collection<E> {
         return map.containsKey(key);
     }
 
+    public boolean containsKeyIgnoreCase(K key) {
+        getMap();
+        if (map == null || key == null)
+            return false;
+
+        if (!(key instanceof String)) {
+            return map.containsKey(key);
+        }
+
+        String searchKey = (String) key;
+        return map.keySet().stream()
+                .filter(k -> k instanceof String)
+                .map(k -> (String) k)
+                .anyMatch(k -> k.equalsIgnoreCase(searchKey));
+    }
+
     public E get(K key) {
         getMap();
         if (map == null)
