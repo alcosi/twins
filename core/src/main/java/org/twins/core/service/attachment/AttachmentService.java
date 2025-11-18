@@ -8,6 +8,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
+import org.cambium.common.util.LoggerUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -103,8 +104,11 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             storageService.loadStorages(attachments);
             attachments.parallelStream().forEach(attachmentEntity -> {
                 try {
-                    authService.setThreadLocalApiUser(domainId, businessAccountId, userId);
                     final UUID uuid = UUID.randomUUID();
+                    LoggerUtils.logSession(uuid);
+                    LoggerUtils.logController("addAttachments$");
+                    LoggerUtils.logPrefix("ADD_ATTACHMENT[" + uuid + "]:");
+                    authService.setThreadLocalApiUser(domainId, businessAccountId, userId);
                     twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
                     saveFile(attachmentEntity, uuid);
 
@@ -134,6 +138,9 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 } catch (Throwable t) {
                     log.info("Unable to add attachment: {}.\nException: {} {} {}", attachmentEntity.logNormal(), t, t.getMessage(), t.getStackTrace());
                     throw new RuntimeException();
+                } finally {
+                    authService.removeThreadLocalApiUser();
+                    LoggerUtils.cleanMDC();
                 }
             });
         } catch (Throwable t) {
