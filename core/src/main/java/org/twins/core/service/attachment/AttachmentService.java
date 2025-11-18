@@ -95,12 +95,15 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     public void addAttachments(List<TwinAttachmentEntity> attachments, TwinChangesCollector twinChangesCollector) throws ServiceException {
         try {
             ApiUser apiUser = authService.getApiUser();
+            UUID domainId = apiUser.getDomainId();
+            UUID businessAccountId = apiUser.getBusinessAccountId();
             UUID userId = apiUser.getUserId();
             UserEntity user = apiUser.getUser();
             loadTwins(attachments);
             storageService.loadStorages(attachments);
             attachments.parallelStream().forEach(attachmentEntity -> {
                 try {
+                    authService.setThreadLocalApiUser(domainId, businessAccountId, userId);
                     final UUID uuid = UUID.randomUUID();
                     twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
                     saveFile(attachmentEntity, uuid);
