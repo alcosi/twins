@@ -8,6 +8,8 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.twin.TwinPointerEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -44,6 +46,18 @@ public class ProjectionEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_twin_pointer_id", insertable = false, updatable = false)
     private TwinPointerEntity srcTwinPointer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "src_twin_class_field_id", insertable = false, updatable = false)
+    private TwinClassFieldEntity srcTwinClassField;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dst_twin_class_field_id", insertable = false, updatable = false)
+    private TwinClassFieldEntity dstTwinClassField;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "dst_twin_class_id", insertable = false, updatable = false)
+    private TwinClassEntity dstTwinClass;
 
     @Override
     public String easyLog(Level level) {
