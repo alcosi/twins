@@ -25,7 +25,7 @@ public class TwinClassFieldAttributeEntity implements EasyLoggable {
     private String key;
 
     @Column(name = "note_msg_i18n_id")
-    private UUID noteMsgI18nOd;
+    private UUID noteMsgI18nId;
 
     @Column(name = "create_permission_id")
     private UUID createPermissionId;

@@ -16,5 +16,6 @@ public class TwinFieldAttributeUpdateRestDTOReverseMapper extends RestSimpleDTOM
     @Override
     public void map(TwinFieldAttributeUpdateDTOv1 src, TwinFieldAttributeEntity dst, MapperContext mapperContext) throws Exception {
         twinFieldAttributeSaveRestDTOReverseMapper.map(src, dst, mapperContext);
+        dst.setId(src.getId());
     }
 }

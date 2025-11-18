@@ -316,6 +316,10 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    private KitGrouped<TwinFieldAttributeEntity, UUID, UUID> twinFieldAttributeKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
     private Map<UUID, Object> twinFieldCalculated;
 
     @Transient
@@ -341,10 +345,6 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<DataListOptionEntity, UUID> twinTagKit;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    private Kit<TwinFieldAttributeEntity, UUID> twinFieldAttributeKit;
 
     @Transient
     @EqualsAndHashCode.Exclude

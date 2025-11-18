@@ -9,6 +9,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.service.i18n.I18nService;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -37,8 +38,16 @@ public class I18nResponseBodyAdvice implements ResponseBodyAdvice<Object> {
                                   @NotNull org.springframework.http.server.ServerHttpResponse response) {
 
         Set<UUID> idsToLoad = I18nCacheHolder.getIdsToLoad();
+        Map<UUID, Map<String, String>> contexts = I18nCacheHolder.getContexts();
         if (!idsToLoad.isEmpty() && I18nCacheHolder.getTranslations().isEmpty()) {
-            Map<UUID, String> translations = i18nService.translateToLocale(idsToLoad);
+            Map<UUID, String> translations = new HashMap<>();
+
+            for (UUID i18nId : idsToLoad) {
+                Map<String, String> context = contexts.get(i18nId);
+                String translation = i18nService.translateToLocale(i18nId, context);
+                translations.put(i18nId, translation);
+            }
+
             I18nCacheHolder.setTranslations(translations);
         }
 

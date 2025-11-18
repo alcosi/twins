@@ -31,7 +31,8 @@ import static java.util.function.Predicate.not;
         TwinFieldCollectionMapMode.class,
         TwinFieldCollectionFilterEmptyMode.class,
         TwinFieldCollectionFilterSystemMode.class,
-        TwinFieldCollectionFilterRequiredMode.class})
+        TwinFieldCollectionFilterRequiredMode.class,
+        TwinFieldAttributeMode.class})
 public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTOv2> {
 
     private final TwinBaseV3RestDTOMapper twinBaseV3RestDTOMapper;
@@ -97,22 +98,13 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
                     .setKey(fieldKey)
                     .setValue(fieldValue);
 
-            if (src.getTwinFieldAttributeKit() != null && src.getTwinFieldAttributeKit().isNotEmpty()) {
-                List<TwinFieldAttributeEntity> attributesForField = src.getTwinFieldAttributeKit().getCollection().stream()
-                        .filter(attr -> isAttributeBelongsToField(attr, fieldId))
-                        .collect(Collectors.toList());
+            if (src.getTwinFieldAttributeKit() != null && src.getTwinFieldAttributeKit().containsGroupedKey(fieldId)) {
+                Map<UUID, TwinFieldAttributeDTOv1> fieldAttributesMap = twinFieldAttributeRestDTOMapper.convertCollection(src.getTwinFieldAttributeKit().getGrouped(fieldId), mapperContext)
+                        .stream()
+                        .collect(Collectors.toMap(TwinFieldAttributeDTOv1::getTwinClassFieldAttributeId, Function.identity()));
 
-                if (!attributesForField.isEmpty()) {
-                    Map<UUID, TwinFieldAttributeDTOv1> fieldAttributesMap = twinFieldAttributeRestDTOMapper
-                            .convertCollection(attributesForField, mapperContext)
-                            .stream()
-                            .collect(Collectors.toMap(
-                                    TwinFieldAttributeDTOv1::getId,
-                                    Function.identity()
-                            ));
+                fieldDto.setFieldAttributes(fieldAttributesMap);
 
-                    fieldDto.setFieldAttributes(fieldAttributesMap);
-                }
             }
             if (mapMode == TwinFieldCollectionMapMode.KEY) {
                 dst.fields().put(fieldKey, fieldValue);
@@ -124,16 +116,15 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
         }
     }
 
-    private boolean isAttributeBelongsToField(TwinFieldAttributeEntity attributeEntity, UUID fieldId) {
-        return attributeEntity.getTwinClassFieldId() != null && attributeEntity.getTwinClassFieldId().equals(fieldId);
-    }
-
     @Override
     public void beforeCollectionConversion(Collection<TwinEntity> srcCollection, MapperContext mapperContext) throws Exception {
         twinBaseV3RestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
         TwinFieldCollectionMode.legacyConverter(mapperContext);
         if (mapperContext.hasMode(TwinFieldCollectionMode.SHOW)) {
             twinService.loadTwinFields(srcCollection); // bulk load (minimizing the number of db queries)
+
+        }
+        if (mapperContext.hasMode(TwinFieldAttributeMode.SHOW)) {
             twinFieldAttributeService.loadAttributes(srcCollection);
         }
     }

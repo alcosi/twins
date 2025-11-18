@@ -5,6 +5,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -84,27 +85,21 @@ public class TwinFieldAttributeService extends EntitySecureFindServiceImpl<TwinF
     }
 
     public void loadAttributes(Collection<TwinEntity> twinEntityList) {
-        Map<UUID, TwinEntity> needLoad = new HashMap<>();
+        Kit<TwinEntity, UUID> needLoad = new Kit<>(TwinEntity::getId);
         for (TwinEntity twinEntity : twinEntityList) {
             if (twinEntity.getTwinFieldAttributeKit() == null) {
-                needLoad.put(twinEntity.getId(), twinEntity);
+                needLoad.add(twinEntity);
             }
         }
-        if (needLoad.isEmpty()) {
+        if (needLoad.isEmpty())
             return;
-        }
-        List<TwinFieldAttributeEntity> twinFieldAttributeEntityList = twinFieldAttributeRepository.findByTwinIdIn(needLoad.keySet());
 
-        Map<UUID, List<TwinFieldAttributeEntity>> attributesByTwinId = twinFieldAttributeEntityList.stream().collect(Collectors.groupingBy(TwinFieldAttributeEntity::getTwinId));
-
-        for (Map.Entry<UUID, List<TwinFieldAttributeEntity>> entry : attributesByTwinId.entrySet()) {
-            TwinEntity twinEntity = needLoad.get(entry.getKey());
-            if (twinEntity != null) {
-                Kit<TwinFieldAttributeEntity, UUID> kit = new Kit<>(TwinFieldAttributeEntity::getId);
-                kit.addAll(entry.getValue());
-                twinEntity.setTwinFieldAttributeKit(kit);
-            }
-
+        KitGrouped<TwinFieldAttributeEntity, UUID, UUID> attributes = new KitGrouped<>(twinFieldAttributeRepository.findByTwinIdIn(needLoad.getIdSet()), TwinFieldAttributeEntity::getId, TwinFieldAttributeEntity::getTwinId);
+        for (TwinEntity twinEntity : needLoad) {
+            if (attributes.containsGroupedKey(twinEntity.getId()))
+                twinEntity.setTwinFieldAttributeKit(new KitGrouped<>(attributes.getGrouped(twinEntity.getId()), TwinFieldAttributeEntity::getId, TwinFieldAttributeEntity::getTwinClassFieldId));
+            else
+                twinEntity.setTwinFieldAttributeKit(KitGrouped.EMPTY);
         }
     }
 
