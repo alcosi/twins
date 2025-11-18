@@ -94,6 +94,9 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         } else if (entity instanceof TwinFieldTwinClassEntity twinFieldTwinClassEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinFieldTwinClassEntity.getTwin(), k -> new HashSet<>());
             invalidates.add(TwinInvalidate.twinFieldTwinClassKit);
+        } else if (entity instanceof TwinFieldAttributeEntity twinFieldAttributeEntity) {
+            invalidates = invalidationMap.computeIfAbsent(twinFieldAttributeEntity.getTwin(), k -> new HashSet<>());
+            invalidates.add(TwinInvalidate.twinFieldAttributeKit);
         }
     }
 
@@ -125,6 +128,7 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         fieldValuesKit,
         twinFieldBooleanKit,
         twinFieldTwinClassKit,
-        twinLinks;
+        twinLinks,
+        twinFieldAttributeKit;
     }
 }
