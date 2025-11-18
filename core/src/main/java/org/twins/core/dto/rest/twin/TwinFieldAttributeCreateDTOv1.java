@@ -1,18 +1,17 @@
-package org.twins.core.dto.rest.projection;
+package org.twins.core.dto.rest.twin;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name =  "ProjectionExclusionSaveV1")
-public class ProjectionExclusionSaveDTOv1 {
-    @Schema(description = "twin id")
-    public UUID twinId;
-
+@EqualsAndHashCode(callSuper = true)
+@Schema(name =  "TwinFieldAttributeCreateV1")
+public class TwinFieldAttributeCreateDTOv1 extends TwinFieldAttributeSaveDTOv1 {
     @Schema(description = "twin class field id")
     public UUID twinClassFieldId;
 }

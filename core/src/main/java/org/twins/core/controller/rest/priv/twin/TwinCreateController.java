@@ -60,6 +60,7 @@ public class TwinCreateController extends ApiController {
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
+    @Deprecated
     @ParametersApiUserHeaders
     @Operation(operationId = "twinCreateV1", summary = "Create new twin")
     @ApiResponses(value = {
