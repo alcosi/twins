@@ -101,6 +101,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             storageService.loadStorages(attachments);
             attachments.parallelStream().forEach(attachmentEntity -> {
                 try {
+                    authService.setThreadLocalApiUser(apiUser.getDomainId(), apiUser.getBusinessAccountId(), apiUser.getUserId());
                     final UUID uuid = UUID.randomUUID();
                     twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
                     saveFile(attachmentEntity, uuid);
