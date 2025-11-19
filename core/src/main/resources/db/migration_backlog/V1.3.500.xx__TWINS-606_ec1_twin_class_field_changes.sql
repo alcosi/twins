@@ -43,3 +43,8 @@ create or replace trigger projection_after_update_wrapper_trigger
     on projection
     for each row
 execute procedure projection_after_update_wrapper();
+
+
+-- to make triggers work
+update projection
+    set id = id;
