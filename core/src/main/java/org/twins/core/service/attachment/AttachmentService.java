@@ -8,6 +8,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
+import org.cambium.common.util.LoggerUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -95,6 +96,8 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     public void addAttachments(List<TwinAttachmentEntity> attachments, TwinChangesCollector twinChangesCollector) throws ServiceException {
         try {
             ApiUser apiUser = authService.getApiUser();
+            UUID domainId = apiUser.getDomainId();
+            UUID businessAccountId = apiUser.getBusinessAccountId();
             UUID userId = apiUser.getUserId();
             UserEntity user = apiUser.getUser();
             loadTwins(attachments);
@@ -102,6 +105,10 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             attachments.parallelStream().forEach(attachmentEntity -> {
                 try {
                     final UUID uuid = UUID.randomUUID();
+                    LoggerUtils.logSession(uuid);
+                    LoggerUtils.logController("addAttachments$");
+                    LoggerUtils.logPrefix("ADD_ATTACHMENT[" + uuid + "]:");
+                    authService.setThreadLocalApiUser(domainId, businessAccountId, userId);
                     twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
                     saveFile(attachmentEntity, uuid);
 
@@ -131,6 +138,9 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 } catch (Throwable t) {
                     log.info("Unable to add attachment: {}.\nException: {} {} {}", attachmentEntity.logNormal(), t, t.getMessage(), t.getStackTrace());
                     throw new RuntimeException();
+                } finally {
+                    authService.removeThreadLocalApiUser();
+                    LoggerUtils.cleanMDC();
                 }
             });
         } catch (Throwable t) {
@@ -155,7 +165,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     private void modifyAttachment(TwinAttachmentEntity attachmentEntity, AddedFileKey addedFileKey) {
         log.info("Replacing modifications, storage file key and size in attachmentEntity with data from file handler service.");
 
-        attachmentEntity.setSize(addedFileKey.fileSize());
+        attachmentEntity.setSize(addedFileKey.fileSize() != -1 ? addedFileKey.fileSize() : attachmentEntity.getSize());
         attachmentEntity.setStorageFileKey(addedFileKey.fileKey());
 
         if (CollectionUtils.isNotEmpty(addedFileKey.modifications())) {

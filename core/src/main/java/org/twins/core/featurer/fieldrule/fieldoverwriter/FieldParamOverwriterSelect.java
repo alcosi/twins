@@ -20,7 +20,6 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsDataListId;
 import org.twins.core.service.datalist.DataListService;
 
 import java.util.Properties;
-import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -34,7 +33,7 @@ public class FieldParamOverwriterSelect extends FieldParamOverwriter<FieldDescri
     @FeaturerParam(name = "Support custom", description = "If true, then user can enter custom value", order = 3, optional = true)
     public static final FeaturerParamBoolean supportCustom = new FeaturerParamBoolean("supportCustom");
 
-    @FeaturerParam(name = "Long list threshold", description = "If options count is bigger then given threshold longList type will be used", order = 4, optional = true)
+    @FeaturerParam(name = "Long list threshold", description = "If options count is bigger then given threshold longList type will be used", order = 4, optional = true, defaultValue = "0")
     public static final FeaturerParamInt longListThreshold = new FeaturerParamInt("longListThreshold");
 
     @FeaturerParam(name = "Datalist", description = "", order = 1)
