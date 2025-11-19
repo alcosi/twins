@@ -165,7 +165,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     private void modifyAttachment(TwinAttachmentEntity attachmentEntity, AddedFileKey addedFileKey) {
         log.info("Replacing modifications, storage file key and size in attachmentEntity with data from file handler service.");
 
-        attachmentEntity.setSize(addedFileKey.fileSize());
+        attachmentEntity.setSize(addedFileKey.fileSize() != -1 ? addedFileKey.fileSize() : attachmentEntity.getSize());
         attachmentEntity.setStorageFileKey(addedFileKey.fileKey());
 
         if (CollectionUtils.isNotEmpty(addedFileKey.modifications())) {

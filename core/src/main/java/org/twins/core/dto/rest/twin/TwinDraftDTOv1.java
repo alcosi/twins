@@ -20,10 +20,10 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinDraftV1")
 public class TwinDraftDTOv1 extends Request {
-    @Schema(description = "Class Id", example = DTOExamples.TWIN_CLASS_ID)
+    @Schema(description = "class Id", example = DTOExamples.TWIN_CLASS_ID)
     public UUID classId;
 
-    @Schema(description = "Head twin id, if selected class had to be linked to some head twin", example = DTOExamples.HEAD_TWIN_ID)
+    @Schema(description = "head twin id, if selected class had to be linked to some head twin", example = DTOExamples.HEAD_TWIN_ID)
     public UUID headTwinId;
 
     @Schema(description = "name", example = "Oak")
@@ -38,13 +38,13 @@ public class TwinDraftDTOv1 extends Request {
     @Schema(description = "fields")
     public Map<String, String> fields;
 
-    @Schema(description = "Attachments")
+    @Schema(description = "attachments")
     public List<AttachmentCreateDTOv1> attachments;
 
-    @Schema(description = "Links list")
+    @Schema(description = "links list")
     public List<TwinLinkAddDTOv1> links;
 
-    @Schema(description = "Tags list")
+    @Schema(description = "tags list")
     public TwinTagAddDTOv1 tags;
 
     @Schema(description = "external id")
@@ -52,6 +52,9 @@ public class TwinDraftDTOv1 extends Request {
 
     @Schema(description = "is sketch being created")
     public Boolean isSketch;
+
+    @Schema(description = "field attributes")
+    public List<TwinFieldAttributeCreateDTOv1> fieldAttributes;
 
     public TwinDraftDTOv1 putFieldsItem(String key, String item) {
         if (this.fields == null) this.fields = new HashMap<>();

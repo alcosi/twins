@@ -1,20 +1,24 @@
 package org.twins.core.mappers.rest.twin;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinFieldAttributeEntity;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
+import org.twins.core.dto.rest.twin.TwinFieldAttributeDTOv1;
 import org.twins.core.dto.rest.twin.TwinFieldDTOv2;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
+import org.twins.core.service.twin.TwinFieldAttributeService;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.function.Predicate.not;
@@ -27,7 +31,8 @@ import static java.util.function.Predicate.not;
         TwinFieldCollectionMapMode.class,
         TwinFieldCollectionFilterEmptyMode.class,
         TwinFieldCollectionFilterSystemMode.class,
-        TwinFieldCollectionFilterRequiredMode.class})
+        TwinFieldCollectionFilterRequiredMode.class,
+        TwinFieldAttributeMode.class})
 public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTOv2> {
 
     private final TwinBaseV3RestDTOMapper twinBaseV3RestDTOMapper;
@@ -35,6 +40,10 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
     private final TwinFieldValueRestDTOMapperV2 twinFieldValueRestDTOMapperV2;
 
     private final TwinService twinService;
+
+    @Lazy
+    private final TwinFieldAttributeService twinFieldAttributeService;
+    private final TwinFieldAttributeRestDTOMapper twinFieldAttributeRestDTOMapper;
 
     @Override
     public void map(TwinEntity src, TwinDTOv2 dst, MapperContext mapperContext) throws Exception {
@@ -63,26 +72,46 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
                     default -> fieldsStream;
                 };
                 List<FieldValue> fields = fieldsStream.toList();
-                mapFieldsToDto(dst, mapperContext, fields);
+                mapFieldsToDto(src, dst, mapperContext, fields);
             }
         }
     }
 
-    private void mapFieldsToDto(TwinDTOv2 dst, MapperContext mapperContext, Collection<FieldValue> fields) throws Exception {
+    private void mapFieldsToDto(TwinEntity src, TwinDTOv2 dst, MapperContext mapperContext, Collection<FieldValue> fields) throws Exception {
         TwinFieldCollectionMapMode mapMode = mapperContext.getModeOrUse(TwinFieldCollectionMapMode.KEY);
         var fieldsValues = twinFieldValueRestDTOMapperV2.convertCollection(fields, mapperContext);
+
         dst
-                .setFields(new HashMap<>(fieldsValues.size()))
-                .setFieldsMap(new HashMap<>(fieldsValues.size()));
+                .fields(new HashMap<>(fieldsValues.size()))
+                .fieldsMap(new HashMap<>(fieldsValues.size()));
+
+        if (mapperContext.hasMode(TwinFieldAttributeMode.SHOW) && (src.getTwinFieldAttributeKit() == null || src.getTwinFieldAttributeKit().isEmpty())) {
+            twinFieldAttributeService.loadAttributes(Collections.singletonList(src));
+        }
+
         for (var fieldValueText : fieldsValues) {
-            if (mapMode == TwinFieldCollectionMapMode.KEY) {
-                dst.getFields().put(fieldValueText.getTwinClassField().getKey(), fieldValueText.getValue());
-            } else {
-                dst.getFields().put(fieldValueText.getTwinClassField().getId().toString(), fieldValueText.getValue());
+            UUID fieldId = fieldValueText.getTwinClassField().getId();
+            String fieldKey = fieldValueText.getTwinClassField().getKey();
+            String fieldValue = fieldValueText.getValue();
+
+            TwinFieldDTOv2 fieldDto = new TwinFieldDTOv2()
+                    .setKey(fieldKey)
+                    .setValue(fieldValue);
+
+            if (mapperContext.hasMode(TwinFieldAttributeMode.SHOW) && src.getTwinFieldAttributeKit() != null && src.getTwinFieldAttributeKit().containsGroupedKey(fieldId)) {
+                Map<UUID, TwinFieldAttributeDTOv1> fieldAttributesMap = twinFieldAttributeRestDTOMapper.convertCollection(src.getTwinFieldAttributeKit().getGrouped(fieldId), mapperContext)
+                        .stream()
+                        .collect(Collectors.toMap(TwinFieldAttributeDTOv1::getTwinClassFieldAttributeId, Function.identity()));
+
+                fieldDto.setFieldAttributes(fieldAttributesMap);
             }
-            dst.getFieldsMap().put(fieldValueText.getTwinClassField().getId(), new TwinFieldDTOv2()
-                    .setKey(fieldValueText.getTwinClassField().getKey())
-                    .setValue(fieldValueText.getValue()));
+            if (mapMode == TwinFieldCollectionMapMode.KEY) {
+                dst.fields().put(fieldKey, fieldValue);
+            } else {
+                dst.fields().put(fieldId.toString(), fieldValue);
+            }
+
+            dst.fieldsMap().put(fieldId, fieldDto);
         }
     }
 
@@ -90,8 +119,13 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
     public void beforeCollectionConversion(Collection<TwinEntity> srcCollection, MapperContext mapperContext) throws Exception {
         twinBaseV3RestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
         TwinFieldCollectionMode.legacyConverter(mapperContext);
-        if (mapperContext.hasMode(TwinFieldCollectionMode.SHOW))
+        if (mapperContext.hasMode(TwinFieldCollectionMode.SHOW)) {
             twinService.loadTwinFields(srcCollection); // bulk load (minimizing the number of db queries)
+
+        }
+        if (mapperContext.hasMode(TwinFieldAttributeMode.SHOW)) {
+            twinFieldAttributeService.loadAttributes(srcCollection);
+        }
     }
 
     @Override
