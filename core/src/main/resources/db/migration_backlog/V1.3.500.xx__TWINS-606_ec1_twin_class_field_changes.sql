@@ -1,5 +1,5 @@
 alter table if exists twin_class_field
-    add column if not exists projection_field_id uuid references projection on delete cascade on update cascade,
+    add column if not exists projection_field boolean not null default false,
     add column if not exists has_projected_fields boolean not null default false;
 
 
@@ -9,9 +9,12 @@ as
 $$
 begin
     update twin_class_field
-        set projection_field_id=new.id,
-            has_projected_fields=true
+        set has_projected_fields=true
     where id=new.dst_twin_class_field_id;
+
+    update twin_class_field
+        set projection_field=true
+    where id=new.src_twin_class_field_id;
 
     return old;
 end;
@@ -30,9 +33,12 @@ as
 $$
 begin
     update twin_class_field
-    set projection_field_id=new.id,
-        has_projected_fields=true
+    set has_projected_fields=true
     where id=new.dst_twin_class_field_id;
+
+    update twin_class_field
+    set projection_field=true
+    where id=new.src_twin_class_field_id;
 
     return new;
 end;

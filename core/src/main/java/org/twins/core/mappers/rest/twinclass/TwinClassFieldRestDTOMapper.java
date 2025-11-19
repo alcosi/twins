@@ -89,7 +89,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setExternalProperties(src.getExternalProperties())
                         .setOrder(src.getOrder())
                         .setHasProjectedFields(src.getHasProjectedFields())
-                        .setProjectionFieldId(src.getProjectionFieldId());
+                        .setProjectionField(src.getProjectionField());
                 if (mapperContext.hasModeButNot(FeaturerMode.TwinClassField2FeaturerMode.HIDE)) {
                     dst.setFieldTyperFeaturerId(src.getFieldTyperFeaturerId());
                     featurerRestDTOMapper.postpone(featurerService.getFeaturerEntity(src.getFieldTyperFeaturerId()), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
@@ -120,7 +120,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setExternalProperties(src.getExternalProperties())
                         .setOrder(src.getOrder())
                         .setHasProjectedFields(src.getHasProjectedFields())
-                        .setProjectionFieldId(src.getProjectionFieldId());
+                        .setProjectionField(src.getProjectionField());
                 break;
             case SHORT:
                 dst

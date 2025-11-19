@@ -12,7 +12,6 @@ import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
-import org.twins.core.dao.projection.ProjectionEntity;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.service.SystemEntityService;
 
@@ -98,8 +97,8 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Basic
     private Integer order;
 
-    @Column(name = "projection_field_id")
-    private UUID projectionFieldId;
+    @Column(name = "projection_field")
+    private Boolean projectionField;
 
     @Column(name = "has_projected_fields")
     private Boolean hasProjectedFields;
@@ -133,12 +132,6 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "edit_permission_id", insertable = false, updatable = false)
     private PermissionEntity editPermission;
-
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "projection_field_id", insertable = false, updatable = false)
-    private ProjectionEntity projectionField;
 
     @Transient
     @EqualsAndHashCode.Exclude
