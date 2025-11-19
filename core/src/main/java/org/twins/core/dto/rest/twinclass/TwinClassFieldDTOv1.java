@@ -91,4 +91,9 @@ public class TwinClassFieldDTOv1 {
     @Schema(description = "order", example = "")
     public Integer order;
 
+    @Schema(name = "is projection field", example = "")
+    private Boolean projectionField;
+
+    @Schema(name = "has projected fields", example = "")
+    private Boolean hasProjectedFields;
 }
