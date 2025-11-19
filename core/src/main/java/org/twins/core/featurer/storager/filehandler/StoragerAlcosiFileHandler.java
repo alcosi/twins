@@ -111,7 +111,7 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
         try {
             var properties = extractProperties(params, false);
             var url = fileHandlerUri.extract(properties) + "/api/delete/synced";
-            var dirs = extractDirsToDelete(fileKey);
+            var dirs = extractDirsToDelete(fileKey, properties);
             var request = new HttpEntity<>(new FileHandlerDeleteRqDTO(List.of(dirs), StorageType.S3), new HttpHeaders());
             var resp = restTemplate.exchange(url, HttpMethod.POST, request, Void.class);
 
@@ -258,17 +258,26 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
         return result;
     }
 
-    private String extractDirsToDelete(String fileKey) throws ServiceException {
+    private String extractDirsToDelete(String fileKey, Properties properties) throws ServiceException {
         //extracting only relative path (ex. {businessAccountId}/{fileId}/)
-        try {
-            var strings = new ArrayList<>(List.of(Arrays.copyOf(fileKey.split("/"), fileKey.split("/").length - 1)));
-            var fileId = strings.removeLast();
-            var businessAccountId = strings.removeLast();
 
-            return businessAccountId + "/" + fileId + "/";
-        } catch (Exception e) {
-            log.info("Invalid file key for file handler storager: {}, {} {} {}", fileKey, e, e.getMessage(), e.getStackTrace());
-            throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
+        var parts = new ArrayList<>(List.of(fileKey.split("/")));
+        var fileName = parts.removeLast();
+        var fileId = fileName.split("\\.")[0];
+        var businessAccountId = getBusinessAccountId().map(UUID::toString).orElseThrow(() -> new ServiceException(ErrorCodeCommon.UUID_UNKNOWN));
+        var domainId = getDomainId().map(UUID::toString).orElseThrow(() -> new ServiceException(ErrorCodeCommon.UUID_UNKNOWN));
+
+        var dirs = relativePath.extract(properties)
+                .replace("{domainId}", domainId)
+                .replace("{businessAccountId}", businessAccountId)
+                .replace("{fileId}", fileId);
+
+        dirs = addSlashAtTheEndIfNeeded(dirs);
+
+        if (dirs.startsWith("/")) {
+            return dirs.substring(1);
+        } else {
+            return dirs;
         }
     }
 
