@@ -1077,6 +1077,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public TwinEntity duplicateTwin(TwinEntity srcTwin, UUID newTwinId) throws ServiceException {
+        if (newTwinId == null)
+            newTwinId = UUID.randomUUID();
         TwinEntity duplicateEntity = fillDuplicate(srcTwin, newTwinId);
         duplicateEntity = createTwin(duplicateEntity);
         cloneTwinFieldListAndSave(srcTwin, duplicateEntity);
