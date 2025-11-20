@@ -15,9 +15,11 @@ import org.twins.core.dao.datalist.DataListOptionProjectionEntity;
 import org.twins.core.dao.datalist.DataListOptionProjectionRepository;
 import org.twins.core.domain.search.DataListOptionProjectionSearch;
 
+import java.util.List;
+
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 
-// Log calls that took more then 2 seconds
+// Log calls that took more than 2 seconds
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @Service
@@ -25,7 +27,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 public class DataListOptionProjectionSearchService {
     private final DataListOptionProjectionRepository dataListOptionProjectionRepository;
 
-    public java.util.List<DataListOptionProjectionEntity> findDataListOptionProjections(DataListOptionProjectionSearch search) throws ServiceException {
+    public List<DataListOptionProjectionEntity> findDataListOptionProjections(DataListOptionProjectionSearch search) throws ServiceException {
         Specification<DataListOptionProjectionEntity> spec = createSpecification(search);
         return dataListOptionProjectionRepository.findAll(spec);
     }

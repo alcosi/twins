@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS data_list_projection (
     dst_data_list_id uuid NOT NULL REFERENCES data_list(id) ON UPDATE CASCADE ON DELETE CASCADE,
     name varchar(40),
     saved_by_user_id uuid NOT NULL REFERENCES "user"(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    saved_at timestamp default CURRENT_TIMESTAMP,
+    changed_at timestamp default CURRENT_TIMESTAMP,
     CONSTRAINT data_list_projection_src_dst_unique UNIQUE (src_data_list_id, dst_data_list_id)
 );
 
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS data_list_option_projection (
     src_data_list_option_id uuid NOT NULL REFERENCES data_list_option(id) ON UPDATE CASCADE ON DELETE CASCADE,
     dst_data_list_option_id uuid NOT NULL REFERENCES data_list_option(id) ON UPDATE CASCADE ON DELETE CASCADE,
     saved_by_user_id uuid NOT NULL REFERENCES "user"(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    saved_at timestamp default CURRENT_TIMESTAMP,
+    changed_at timestamp default CURRENT_TIMESTAMP,
     CONSTRAINT data_list_option_projection_triple_unique UNIQUE (data_list_projection_id, src_data_list_option_id, dst_data_list_option_id)
 );
 

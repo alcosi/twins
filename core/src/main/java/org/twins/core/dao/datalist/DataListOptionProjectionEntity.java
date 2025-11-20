@@ -33,8 +33,8 @@ public class DataListOptionProjectionEntity implements EasyLoggable {
     @Column(name = "saved_by_user_id")
     private UUID savedByUserId;
 
-    @Column(name = "saved_at")
-    private Timestamp savedAt;
+    @Column(name = "changed_at")
+    private Timestamp changedAt;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

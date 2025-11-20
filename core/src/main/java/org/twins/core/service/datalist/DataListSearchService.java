@@ -27,7 +27,7 @@ import static org.twins.core.dao.i18n.specifications.I18nSpecification.doubleJoi
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.datalist.DataListSpecification.*;
 
-//Log calls that took more then 2 seconds
+//Log calls that took more than 2 seconds
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @Service
