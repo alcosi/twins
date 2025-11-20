@@ -6,14 +6,13 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
-import java.util.Set;
-import java.util.UUID;
+import java.util.List;
 
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name =  "DataListProjectionSearchRqV1")
-public class DataListProjectionSearchRqDTOv1 extends Request {
-    @Schema
-    public DataListProjectionSearchDTOv1 search;
+@Schema(name = "DataListOptionProjectionUpdateRqV1")
+public class DataListOptionProjectionUpdateRqDTOv1 extends Request {
+    @Schema(description = "data list option projection list")
+    public List<DataListOptionProjectionUpdateDTOv1> dataListOptionProjectionList;
 }

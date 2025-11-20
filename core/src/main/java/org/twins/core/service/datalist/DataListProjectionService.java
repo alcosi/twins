@@ -18,6 +18,7 @@ import org.twins.core.dao.datalist.DataListProjectionEntity;
 import org.twins.core.dao.datalist.DataListProjectionRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -30,6 +31,7 @@ import java.util.stream.StreamSupport;
 @RequiredArgsConstructor
 public class DataListProjectionService extends EntitySecureFindServiceImpl<DataListProjectionEntity> {
     private final DataListProjectionRepository dataListProjectionRepository;
+    private final UserService userService;
     private final AuthService authService;
     @Lazy
     @Autowired
@@ -59,13 +61,17 @@ public class DataListProjectionService extends EntitySecureFindServiceImpl<DataL
 
         switch (entityValidateMode) {
             case beforeSave:
-                loadDataList(entity); //todo move to beforeValidateEntities
+                if (entity.getSrcDataList() == null || entity.getDstDataList() == null || !entity.getDstDataList().getId().equals(entity.getDstDataListId()) || !entity.getSrcDataList().getId().equals(entity.getSrcDataListId())) {
+                    loadDataList(entity); //todo move to beforeValidateEntities
+                }
                 UUID srcDomain = entity.getSrcDataList().getDomainId();
                 UUID dstDomain = entity.getDstDataList().getDomainId();
                 if (srcDomain != null && dstDomain != null && !srcDomain.equals(dstDomain)) {
                     return logErrorAndReturnFalse(entity.logNormal() + " src/dst dataLists belong to different domains: " + srcDomain + " vs " + dstDomain);
                 }
-                break;
+                if (entity.getSavedByUser() == null) {
+                    entity.setSavedByUser(userService.findEntitySafe(entity.getSavedByUserId()));
+                }
         }
         return true;
     }
@@ -128,11 +134,11 @@ public class DataListProjectionService extends EntitySecureFindServiceImpl<DataL
             DataListProjectionEntity dbEntity = dbDataListProjectionEntitiesKit.get(entity.getId());
             ChangesHelper changesHelper = new ChangesHelper();
 
-           updateEntityFieldByEntity(entity, dbEntity, DataListProjectionEntity::getName, DataListProjectionEntity::setName, DataListProjectionEntity.Fields.name, changesHelper);
-           updateEntityFieldByEntity(entity, dbEntity, DataListProjectionEntity::getSrcDataListId, DataListProjectionEntity::setSrcDataListId, DataListProjectionEntity.Fields.srcDataListId, changesHelper);
-           updateEntityFieldByEntity(entity, dbEntity, DataListProjectionEntity::getDstDataListId, DataListProjectionEntity::setDstDataListId, DataListProjectionEntity.Fields.dstDataListId, changesHelper);
-           updateEntityFieldByValue(Timestamp.valueOf(LocalDateTime.now()), dbEntity, DataListProjectionEntity::getChangedAt, DataListProjectionEntity::setChangedAt, DataListProjectionEntity.Fields.changedAt, changesHelper);
-           changes.add(dbEntity, changesHelper);
+            updateEntityFieldByEntity(entity, dbEntity, DataListProjectionEntity::getName, DataListProjectionEntity::setName, DataListProjectionEntity.Fields.name, changesHelper);
+            updateEntityFieldByEntity(entity, dbEntity, DataListProjectionEntity::getSrcDataListId, DataListProjectionEntity::setSrcDataListId, DataListProjectionEntity.Fields.srcDataListId, changesHelper);
+            updateEntityFieldByEntity(entity, dbEntity, DataListProjectionEntity::getDstDataListId, DataListProjectionEntity::setDstDataListId, DataListProjectionEntity.Fields.dstDataListId, changesHelper);
+            updateEntityFieldByValue(Timestamp.valueOf(LocalDateTime.now()), dbEntity, DataListProjectionEntity::getChangedAt, DataListProjectionEntity::setChangedAt, DataListProjectionEntity.Fields.changedAt, changesHelper);
+            changes.add(dbEntity, changesHelper);
         }
         updateSafe(changes);
 

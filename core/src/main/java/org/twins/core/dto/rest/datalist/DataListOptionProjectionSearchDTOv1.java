@@ -11,30 +11,30 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Schema(name =  "DataListProjectionSearchV1")
-public class DataListProjectionSearchDTOv1 {
+public class DataListOptionProjectionSearchDTOv1 {
     @Schema(description = "id list")
     public Set<UUID> idList;
 
     @Schema(description = "id exclude list")
     public Set<UUID> idExcludeList;
 
-    @Schema(description = "src data list id list")
-    public Set<UUID> srcDataListIdList;
+    @Schema(description = "data list projection id list")
+    public Set<UUID> dataListProjectionIdList;
 
-    @Schema(description = "src data list id exclude list")
-    public Set<UUID> srcDataListIdExcludeList;
+    @Schema(description = "data list projection id exclude list")
+    public Set<UUID> dataListProjectionIdExcludeList;
 
-    @Schema(description = "dst data list id list")
-    public Set<UUID> dstDataListIdList;
+    @Schema(description = "scr data list option id list")
+    public Set<UUID> srcDataListOptionIdList;
 
-    @Schema(description = "dst data list id exclude list")
-    public Set<UUID> dstDataListIdExcludeList;
+    @Schema(description = "scr data list option id exclude list")
+    public Set<UUID> srcDataListOptionIdExcludeList;
 
-    @Schema(description = "datalist name like list")
-    public Set<String> nameLikeList;
+    @Schema(description = "dst data list option id list")
+    public Set<UUID> dstDataListOptionIdList;
 
-    @Schema(description = "datalist name not like list")
-    public Set<String> nameNotLikeList;
+    @Schema(description = "dst data list option id exclude list")
+    public Set<UUID> dstDataListOptionIdExcludeList;
 
     @Schema(description = "saved by user id list")
     public Set<UUID> savedByUserIdList;

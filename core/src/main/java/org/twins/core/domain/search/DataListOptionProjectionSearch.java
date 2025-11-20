@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.CollectionUtils;
+import org.twins.core.domain.DataTimeRange;
 
 import java.util.Set;
 import java.util.UUID;
@@ -26,6 +27,8 @@ public class DataListOptionProjectionSearch {
 
     private Set<UUID> savedByUserIdList;
     private Set<UUID> savedByUserIdExcludeList;
+
+    private DataTimeRange changedAt;
 
     public DataListOptionProjectionSearch addDataListProjectionId(UUID dataListProjectionId, boolean exclude) {
         if (exclude)

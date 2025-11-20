@@ -11,8 +11,8 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "DataListProjectionRsV1")
-public class DataListProjectionRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
-    @Schema(description = "data list projections")
-    public List<DataListProjectionDTOv1> dataListProjections;
+@Schema(name = "DataListOptionProjectionRsV1")
+public class DataListOptionProjectionRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+    @Schema(description = "data list option projection list")
+    public List<DataListOptionProjectionDTOv1> dataListOptionProjections;
 }
