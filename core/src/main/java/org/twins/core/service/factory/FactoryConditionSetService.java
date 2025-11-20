@@ -3,19 +3,36 @@ package org.twins.core.service.factory;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetRepository;
+import org.twins.core.dao.projection.ProjectionEntity;
+import org.twins.core.domain.projection.ProjectionUpdate;
+import org.twins.core.dto.rest.factory.FactoryConditionSetCreateDTOv1;
 import org.twins.core.service.auth.AuthService;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -49,5 +66,59 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
     @Override
     public boolean validateEntity(TwinFactoryConditionSetEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinFactoryConditionSetEntity> createFactoryConditionSet(
+            List<TwinFactoryConditionSetEntity> conditionSetCreates
+    ) throws ServiceException {
+        if (CollectionUtils.isEmpty(conditionSetCreates)) {
+            return Collections.emptyList();
+        }
+        UUID apiUserId = authService.getApiUser().getUserId();
+        for (TwinFactoryConditionSetEntity twinFactoryConditionSetEntity : conditionSetCreates) {
+            twinFactoryConditionSetEntity
+                    .setCreatedAt(Timestamp.valueOf(LocalDateTime.now()))
+                    .setCreatedByUserId(apiUserId);
+        validateEntityAndThrow(twinFactoryConditionSetEntity, EntitySmartService.EntityValidateMode.beforeSave);
+        }
+        return StreamSupport.stream(
+                entityRepository().saveAll(conditionSetCreates).spliterator(), false
+        ).toList();
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinFactoryConditionSetEntity> updateFactoryConditionSet(
+            List<TwinFactoryConditionSetEntity> conditionSetUpdates
+    ) throws ServiceException {
+        if (CollectionUtils.isEmpty(conditionSetUpdates)) {
+            return Collections.emptyList();
+        }
+
+        Kit<TwinFactoryConditionSetEntity, UUID> dbFactoryConditionSetKit = findEntitiesSafe(
+                conditionSetUpdates.stream()
+                        .map(TwinFactoryConditionSetEntity::getId)
+                        .collect(Collectors.toList())
+        );
+
+        ChangesHelperMulti<TwinFactoryConditionSetEntity> changes = new ChangesHelperMulti<>();
+
+        for (TwinFactoryConditionSetEntity twinFactoryConditionSetEntity : conditionSetUpdates) {
+            ChangesHelper changesHelper = new ChangesHelper();
+            TwinFactoryConditionSetEntity dbFactoryConditionSetEntity = dbFactoryConditionSetKit.get(
+                    twinFactoryConditionSetEntity.getId()
+            );
+            updateEntityFieldByEntity(twinFactoryConditionSetEntity, dbFactoryConditionSetEntity,
+                    TwinFactoryConditionSetEntity::getName, TwinFactoryConditionSetEntity::setName,
+                    TierEntity.Fields.name, changesHelper);
+            updateEntityFieldByEntity(twinFactoryConditionSetEntity, dbFactoryConditionSetEntity,
+                    TwinFactoryConditionSetEntity::getDescription, TwinFactoryConditionSetEntity::setDescription,
+                    TierEntity.Fields.description, changesHelper);
+
+            dbFactoryConditionSetEntity.setUpdatedAt(Timestamp.from(Instant.now()));
+            changes.add(dbFactoryConditionSetEntity, changesHelper);
+        }
+        updateSafe(changes);
+        return dbFactoryConditionSetKit.getList();
     }
 }
