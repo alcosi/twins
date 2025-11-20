@@ -60,6 +60,7 @@ public class TwinCreateController extends ApiController {
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
+    @Deprecated
     @ParametersApiUserHeaders
     @Operation(operationId = "twinCreateV1", summary = "Create new twin")
     @ApiResponses(value = {
@@ -99,7 +100,7 @@ public class TwinCreateController extends ApiController {
                     .convert(twinService
                             .createTwin(twinCreate));
         } catch (TwinFieldValidationException ve) {
-            return createErrorRs(ve, rs);
+            return createErrorRs(ve, rs, null);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -164,7 +165,7 @@ public class TwinCreateController extends ApiController {
                     .convert(twinService
                             .createTwin(twinCreate));
         } catch (TwinFieldValidationException ve) {
-            return createErrorRs(ve, rs);
+            return createErrorRs(ve, rs, null);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -227,7 +228,7 @@ public class TwinCreateController extends ApiController {
                     .setTwinList(twinRestDTOMapperV2.convertCollection(twinEntities, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (TwinFieldValidationException ve) {
-            return createErrorRs(ve, rs);
+            return createErrorRs(ve, rs, null);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

@@ -12,6 +12,7 @@ import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -65,9 +66,9 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                 dst
                         .setId(src.getId())
                         .setKey(src.getKey())
-                        .setName(i18nService.translateToLocale(src.getNameI18nId()))
+                        .setName(I18nCacheHolder.addId(src.getNameI18nId()))
                         .setRequired(src.getRequired())
-                        .setDescription(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
+                        .setDescription(I18nCacheHolder.addId(src.getDescriptionI18nId()))
                         .setTwinClassId(src.getTwinClassId())
                         .setNameI18nId(src.getNameI18nId())
                         .setDescriptionI18nId(src.getDescriptionI18nId())
@@ -78,14 +79,15 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setEditPermissionId(src.getEditPermissionId())
                         .setDescriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext))
                         .setFeValidationErrorI18nId(src.getFeValidationErrorI18nId())
-                        .setFeValidationError(src.getFeValidationErrorI18nId() != null ? i18nService.translateToLocale(src.getFeValidationErrorI18nId()) : "")
+                        .setFeValidationError(I18nCacheHolder.addId(src.getFeValidationErrorI18nId()))
                         .setBeValidationErrorI18nId(src.getBeValidationErrorI18nId())
-                        .setBeValidationError(src.getBeValidationErrorI18nId() != null ? i18nService.translateToLocale(src.getBeValidationErrorI18nId()) : "")
+                        .setBeValidationError(I18nCacheHolder.addId(src.getBeValidationErrorI18nId()))
                         .setExternalId(src.getExternalId())
                         .setSystem(src.getSystem())
                         .setDependent(src.getDependentField())
                         .setHasDependentFields(src.getHasDependentFields())
-                        .setExternalProperties(src.getExternalProperties());
+                        .setExternalProperties(src.getExternalProperties())
+                        .setOrder(src.getOrder());
                 if (mapperContext.hasModeButNot(FeaturerMode.TwinClassField2FeaturerMode.HIDE)) {
                     dst.setFieldTyperFeaturerId(src.getFieldTyperFeaturerId());
                     featurerRestDTOMapper.postpone(featurerService.getFeaturerEntity(src.getFieldTyperFeaturerId()), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
@@ -104,16 +106,17 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                 dst
                         .setId(src.getId())
                         .setKey(src.getKey())
-                        .setName(i18nService.translateToLocale(src.getNameI18nId()))
+                        .setName(I18nCacheHolder.addId(src.getNameI18nId()))
                         .setRequired(src.getRequired())
-                        .setDescription(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
+                        .setDescription(I18nCacheHolder.addId(src.getDescriptionI18nId()))
                         .setDescriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext))
-                        .setFeValidationError(src.getFeValidationErrorI18nId() != null ? i18nService.translateToLocale(src.getFeValidationErrorI18nId()) : "")
+                        .setFeValidationError(I18nCacheHolder.addId(src.getFeValidationErrorI18nId()))
                         .setExternalId(src.getExternalId())
                         .setSystem(src.getSystem())
                         .setDependent(src.getDependentField())
                         .setHasDependentFields(src.getHasDependentFields())
-                        .setExternalProperties(src.getExternalProperties());
+                        .setExternalProperties(src.getExternalProperties())
+                        .setOrder(src.getOrder());
                 break;
             case SHORT:
                 dst

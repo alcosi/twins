@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.transition.TransitionResult;
 import org.twins.core.domain.transition.TransitionResultMajor;
 import org.twins.core.domain.transition.TransitionResultMinor;
@@ -18,6 +20,7 @@ import org.twins.core.mappers.rest.draft.DraftRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TransitionResultMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 
 import java.util.*;
@@ -36,19 +39,19 @@ public class TwinTransitionPerformRsRestDTOMapperV2 extends RestSimpleDTOMapper<
             TwinTransitionPerformResultMinorDTOv1 transitionResultMinorDTO = new TwinTransitionPerformResultMinorDTOv1();
             switch (mapperContext.getModeOrUse(TransitionResultMode.DETAILED)) {
                 case DETAILED:
-                    List<TwinDTOv2> processedList = twinRestDTOMapperV2.convertCollection(transitionResultMinor.getProcessedTwinList(), mapperContext);
+                    Kit<TwinDTOv2, UUID> processedList = new Kit<>(twinRestDTOMapperV2.convertCollection(transitionResultMinor.getProcessedTwinList(), mapperContext.forkOnPoint(TwinMode.TransitionResult2TwinMode.SHORT)), TwinDTOv2::id);
                     if (CollectionUtils.isNotEmpty(processedList)) {
                         Map<UUID, List<TwinDTOv2>> processedGroupedByClass = new HashMap<>();
-                        for (TwinDTOv2 twinDTOv2 : processedList) {
-                            List<TwinDTOv2> twinsGroupedByClass = processedGroupedByClass.computeIfAbsent(twinDTOv2.twinClassId(), k -> new ArrayList<>());
-                            twinsGroupedByClass.add(twinDTOv2);
+                        for (TwinEntity twin : transitionResultMinor.getProcessedTwinList()) {
+                            List<TwinDTOv2> twinsGroupedByClass = processedGroupedByClass.computeIfAbsent(twin.getTwinClassId(), k -> new ArrayList<>());
+                            twinsGroupedByClass.add(processedList.get(twin.getId()));
                         }
                         transitionResultMinorDTO.setProcessedTwinList(processedGroupedByClass);
                     }
-                    transitionResultMinorDTO.setTransitionedTwinList(twinRestDTOMapperV2.convertCollection(transitionResultMinor.getTransitionedTwinList(), mapperContext));
+                    transitionResultMinorDTO.setTransitionedTwinList(twinRestDTOMapperV2.convertCollection(transitionResultMinor.getTransitionedTwinList(), mapperContext.forkOnPoint(TwinMode.TransitionResult2TwinMode.SHORT)));
                     break;
                 case SHORT:
-                    transitionResultMinorDTO.setTransitionedTwinList(twinRestDTOMapperV2.convertCollection(transitionResultMinor.getTransitionedTwinList(), mapperContext));
+                    transitionResultMinorDTO.setTransitionedTwinList(twinRestDTOMapperV2.convertCollection(transitionResultMinor.getTransitionedTwinList(), mapperContext.forkOnPoint(TwinMode.TransitionResult2TwinMode.SHORT)));
                     break;
             }
             dst.setResult(transitionResultMinorDTO);

@@ -28,7 +28,7 @@ public class DataListOptionEntity implements EasyLoggable {
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            this.id = UUID.nameUUIDFromBytes((dataListId + option + optionI18NId).getBytes());
+            this.id = UUID.nameUUIDFromBytes((dataListId + option + optionI18NId + businessAccountId + externalId).getBytes());
         }
     }
 
@@ -75,6 +75,9 @@ public class DataListOptionEntity implements EasyLoggable {
     @Column(name = "font_color")
     private String fontColor;
 
+    @Column(name = "custom")
+    private boolean custom;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "data_list_id", insertable = false, updatable = false)
     private DataListEntity dataList;
@@ -95,7 +98,7 @@ public class DataListOptionEntity implements EasyLoggable {
 
     @Deprecated //for specification only
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "dataListOption")
+    @OneToMany(mappedBy = "dataListOption", fetch = FetchType.LAZY)
     private Set<DataListSubsetOptionEntity> subsetOptions;
 
 //    @ManyToOne(fetch = FetchType.EAGER)

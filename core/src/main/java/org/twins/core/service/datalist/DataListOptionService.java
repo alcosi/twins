@@ -9,11 +9,13 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
-import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -21,14 +23,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
-import org.twins.core.enums.datalist.DataListStatus;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
+import org.twins.core.dao.i18n.I18nTranslationLight;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListOptionCreate;
 import org.twins.core.domain.datalist.DataListOptionUpdate;
 import org.twins.core.domain.search.DataListOptionSearch;
+import org.twins.core.enums.datalist.DataListStatus;
+import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
@@ -48,6 +52,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     final DataListOptionRepository dataListOptionRepository;
     final AuthService authService;
     private final I18nService i18nService;
+    final CacheManager cacheManager;
 
     @Lazy
     @Autowired
@@ -235,15 +240,25 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         setAttr.accept(dbEntity, newAttr);
     }
 
+    public Iterable<DataListOptionEntity> saveOptions(List<DataListOptionEntity> newOptions) {
+        return entitySmartService.saveAllAndLog(newOptions, dataListOptionRepository);
+    }
+
     //Method for reloading options if dataList is not present in entity;
     public List<DataListOptionEntity> reloadOptionsOnDataListAbsent(List<DataListOptionEntity> options) throws ServiceException {
         List<UUID> idsForReload = new ArrayList<>();
-        for (var option : options)
-            if (null == option.getDataList() || null == option.getDataListId()) idsForReload.add(option.getId());
+
+        for (var option : options) {
+            if (null == option.getDataList() || null == option.getDataListId()) {
+                idsForReload.add(option.getId());
+            }
+        }
+
         if (!idsForReload.isEmpty()) {
             options.removeIf(o -> idsForReload.contains(o.getId()));
-            options.addAll(findEntitiesSafe(idsForReload));
+            options.addAll(findEntities(idsForReload, EntitySmartService.ListFindMode.ifMissedThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.afterRead));
         }
+
         return options;
     }
 
@@ -257,35 +272,155 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     }
 
 
-    public List<DataListOptionEntity> processExternalOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId) throws ServiceException {
-        DataListOptionSearch dataListOptionSearch = new DataListOptionSearch()
-                .addDataListId(dataListId, false);
-        if (businessAccountId != null)
-            dataListOptionSearch.addBusinessAccountId(businessAccountId, false);
+    public void processIncompleteOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId, boolean supportCustomValue) throws ServiceException {
+        processIncompleteByExternalIdOptions(dataListId, options, businessAccountId, supportCustomValue);
+        processIncompleteByKeyOptions(dataListId, options, businessAccountId, supportCustomValue);
+    }
 
+    public void processIncompleteByExternalIdOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId, boolean supportCustomValue) throws ServiceException {
+        Kit<DataListOptionEntity, String> incompleteOptionKit = new Kit<>(DataListOptionEntity::getExternalId);
         Iterator<DataListOptionEntity> iterator = options.iterator();
         while (iterator.hasNext()) {
             DataListOptionEntity option = iterator.next();
             if (option.getId() == null && StringUtils.isNotEmpty(option.getExternalId())) {
-                dataListOptionSearch.addExternalId(option.getExternalId(), false);
-                iterator.remove(); // безопасное удаление
+                iterator.remove();
+                incompleteOptionKit.add(option);
             }
         }
-        if (CollectionUtils.isEmpty(dataListOptionSearch.getExternalIdLikeList())) {
-            return options;
+        if (KitUtils.isEmpty(incompleteOptionKit)) {
+            return;
         }
-        Kit<DataListOptionEntity, String> externalOptions = new Kit<>(dataListOptionSearchService.findDataListOptions(dataListOptionSearch), DataListOptionEntity::getExternalId);
-        if (externalOptions.size() != dataListOptionSearch.getExternalIdLikeList().size()) {
-            StringJoiner stringJoiner = new StringJoiner(",", "[", "]");
-            for (var externalId : dataListOptionSearch.getExternalIdLikeList()) {
-                if (!externalOptions.containsKey(externalId)) {
-                    stringJoiner.add(externalId);
+        DataListOptionSearch dataListOptionSearch = new DataListOptionSearch()
+                .addDataListId(dataListId, false)
+                .setExternalIdList(incompleteOptionKit.getIdSet());
+        if (businessAccountId != null)
+            dataListOptionSearch.addBusinessAccountId(businessAccountId, false);
+        Kit<DataListOptionEntity, String> existedOptions = new Kit<>(dataListOptionSearchService.findDataListOptions(dataListOptionSearch), DataListOptionEntity::getExternalId);
+        options.addAll(existedOptions.getCollection());
+
+        List<String> missedList = incompleteOptionKit.getIdSet().stream()
+                .filter(incomplete -> !existedOptions.containsKey(incomplete))
+                .collect(Collectors.toList());
+
+        if (!missedList.isEmpty()) {
+            if (supportCustomValue) {
+                List<DataListOptionEntity> optionsForSave = new ArrayList<>();
+                List<I18nTranslationLight> translationsToSave = new ArrayList<>();
+
+                for (var missed : missedList) {
+                    UUID i18nId = UUID.randomUUID();
+
+                    DataListOptionEntity option = incompleteOptionKit.get(missed)
+                            .setBusinessAccountId(businessAccountId)
+                            .setDataListId(dataListId)
+                            .setCustom(true)
+                            .setExternalId(missed)
+                            .setStatus(DataListStatus.active)
+                            .setOptionI18NId(i18nId);
+
+                    optionsForSave.add(option);
+
+                    translationsToSave.add(new I18nTranslationLight(
+                            i18nId,
+                            I18nType.DATA_LIST_OPTION_VALUE,
+                            Locale.ENGLISH,
+                            missed
+                    ));
                 }
+
+                i18nService.createI18nAndTranslationsLight(translationsToSave);
+
+                log.info("Creating {} new datalist options with externalIds: {}", optionsForSave.size(), missedList);
+                Iterable<DataListOptionEntity> savedOptions = saveOptions(optionsForSave);
+                savedOptions.forEach(options::add);
+                evictOptionsCloudCache(dataListId, businessAccountId);
+            } else {
+                String formattedIds = missedList.stream().collect(Collectors.joining(",", "[", "]"));
+                throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, "unknown external ids" + formattedIds);
             }
-            throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, "unknown external ids" + stringJoiner);
         }
-        options.addAll(externalOptions.getCollection());
+    }
+
+    public void processIncompleteByKeyOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId, boolean supportCustomValue) throws ServiceException {
+        Kit<DataListOptionEntity, String> incompleteOptionKit = new Kit<>(DataListOptionEntity::getOption);
+        Iterator<DataListOptionEntity> iterator = options.iterator();
+        while (iterator.hasNext()) {
+            DataListOptionEntity option = iterator.next();
+            if (option.getId() == null && option.getExternalId() == null && StringUtils.isNotEmpty(option.getOption())) {
+                iterator.remove();
+                incompleteOptionKit.add(option);
+            }
+        }
+        if (KitUtils.isEmpty(incompleteOptionKit)) {
+            return;
+        }
+        DataListOptionSearch dataListOptionSearch = new DataListOptionSearch()
+                .addDataListId(dataListId, false)
+                .setOptionLikeList(incompleteOptionKit.getIdSet());
+        if (businessAccountId != null)
+            dataListOptionSearch.addBusinessAccountId(businessAccountId, false);
+        Kit<DataListOptionEntity, String> existedOptions = new Kit<>(dataListOptionSearchService.findDataListOptions(dataListOptionSearch), DataListOptionEntity::getOption);
+        options.addAll(existedOptions.getCollection());
+
+        List<String> missedList = incompleteOptionKit.getIdSet().stream()
+                .filter(incomplete -> !existedOptions.containsKeyIgnoreCase(incomplete))
+                .collect(Collectors.toList());
+
+        if (!missedList.isEmpty()) {
+            if (supportCustomValue) {
+                List<DataListOptionEntity> optionsForSave = new ArrayList<>();
+                for (var missed : missedList) {
+                    optionsForSave.add(
+                            incompleteOptionKit.get(missed)
+                                    .setBusinessAccountId(businessAccountId)
+                                    .setDataListId(dataListId)
+                                    .setCustom(true)
+                                    .setOption(missed)
+                                    .setStatus(DataListStatus.active));
+                }
+
+                log.info("Creating {} new datalist options with optionKey: {}", optionsForSave.size(), missedList);
+                Iterable<DataListOptionEntity> savedOptions = saveOptions(optionsForSave);
+                savedOptions.forEach(options::add);
+                evictOptionsCloudCache(dataListId, businessAccountId);
+            } else {
+                String formattedIds = missedList.stream().collect(Collectors.joining(",", "[", "]"));
+                throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, "unknown option" + formattedIds);
+            }
+        }
+    }
+
+    private DataListOptionEntity createNewCustomOption(UUID dataListId, UUID businessAccountId, String option, String externalId) {
+        return new DataListOptionEntity()
+                .setOption(option)
+                .setBusinessAccountId(businessAccountId)
+                .setStatus(DataListStatus.active)
+                .setDataListId(dataListId)
+                .setExternalId(externalId)
+                .setCustom(true);
+    }
+
+    public List<DataListOptionEntity> processNewOptions(UUID dataListId, Set<String> newOptions, UUID businessAccountId) throws ServiceException {
+        List<DataListOptionEntity> options = new ArrayList<>();
+        for (String optionName : newOptions) {
+            options.add(
+                    new DataListOptionEntity()
+                            .setDataListId(dataListId)
+                            .setOption(optionName));
+        }
+        processIncompleteByKeyOptions(dataListId, options, businessAccountId, true);
         return options;
+    }
+
+    private void evictOptionsCloudCache(UUID dataListId, UUID businessAccountId) {
+        Cache cache = cacheManager.getCache(DataListOptionRepository.CACHE_DATA_LIST_OPTIONS);
+        if (cache != null)
+            cache.evictIfPresent(dataListId);
+        if (businessAccountId != null) {
+            cache = cacheManager.getCache(DataListOptionRepository.CACHE_DATA_LIST_OPTIONS_WITH_BUSINESS_ACCOUNT);
+            if (cache != null)
+                cache.evictIfPresent(dataListId + "" + businessAccountId);
+        }
     }
     //todo move *options methods from  DataListService
 }

@@ -22,4 +22,6 @@ public class DataListSearch {
     private DataListOptionSearch optionSearch;
     private Set<String> externalIdLikeList;
     private Set<String> externalIdNotLikeList;
+    private Set<UUID> defaultOptionIdList;
+    private Set<UUID> defaultOptionIdExcludeList;
 }

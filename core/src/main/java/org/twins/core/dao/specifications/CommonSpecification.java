@@ -439,6 +439,21 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
+    public static <T> Specification<T> checkFieldIn(final Collection<String> search, final boolean not,
+                                                        final boolean or, boolean includeNullValues, final String... fieldPath) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(search))
+                return cb.conjunction();
+
+            List<Predicate> predicates = search.stream().map(name -> {
+                Predicate predicate = cb.equal(getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, fieldPath), name);
+                if (not) predicate = cb.not(predicate);
+                return predicate;
+            }).toList();
+            return getPredicate(cb, predicates, or);
+        };
+    }
+
     public static <T> Specification<T> checkFieldLongRange(
             final LongRange range,
             final String... fieldPath) {

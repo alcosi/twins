@@ -43,6 +43,7 @@ public class TwinChangesService {
     private final TwinFieldBooleanRepository twinFieldBooleanRepository;
     private final TwinFieldTwinClassListRepository twinFieldTwinClassListRepository;
     private final TwinAttachmentModificationRepository twinAttachmentModificationRepository;
+    private final TwinFieldAttributeRepository twinFieldAttributeRepository;
     private final SpaceRoleUserRepository spaceRoleUserRepository;
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
@@ -68,6 +69,7 @@ public class TwinChangesService {
         saveEntities(twinChangesCollector, TwinFieldBooleanEntity.class, twinFieldBooleanRepository, changesApplyResult);
         saveEntities(twinChangesCollector, SpaceRoleUserEntity.class, spaceRoleUserRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldTwinClassEntity.class, twinFieldTwinClassListRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, TwinFieldAttributeEntity.class, twinFieldAttributeRepository, changesApplyResult);
 
         if (!twinChangesCollector.getSaveEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Map<Object, ChangesHelper>> classChanges : twinChangesCollector.getSaveEntityMap().entrySet()) {
@@ -88,6 +90,7 @@ public class TwinChangesService {
         deleteEntities(twinChangesCollector, TwinFieldBooleanEntity.class, twinFieldBooleanRepository);
         deleteEntities(twinChangesCollector, SpaceRoleUserEntity.class, spaceRoleUserRepository);
         deleteEntities(twinChangesCollector, TwinFieldTwinClassEntity.class, twinFieldTwinClassListRepository);
+        deleteEntities(twinChangesCollector, TwinFieldAttributeEntity.class, twinFieldAttributeRepository);
 
         if (!twinChangesCollector.getDeleteEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Set<Object>> classChanges : twinChangesCollector.getDeleteEntityMap().entrySet()) {
@@ -131,6 +134,7 @@ public class TwinChangesService {
                         case twinFieldI18nKit -> twinEntity.setTwinFieldI18nKit(null);
                         case twinFieldBooleanKit -> twinEntity.setTwinFieldBooleanKit(null);
                         case twinFieldTwinClassKit -> twinEntity.setTwinFieldTwinClassKit(null);
+                        case twinFieldAttributeKit -> twinEntity.setTwinFieldAttributeKit(null);
                     }
                 }
             } else if (entry.getKey() instanceof TwinAttachmentEntity twinAttachmentEntity) {

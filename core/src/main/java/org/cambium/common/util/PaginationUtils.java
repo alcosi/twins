@@ -17,9 +17,10 @@ public class PaginationUtils {
     public static final int DEFAULT_VALUE_LIMIT = 10;
     public static final String SORT_UNSORTED = "unsorted";
 
-    public static Sort sortType(boolean sortAsc, String sortField) {
-        if (sortField.equals(SORT_UNSORTED) || StringUtils.isEmpty(sortField))
+    public static Sort sortType(boolean sortAsc, String... sortField) {
+        if (sortField == null || sortField.length == 0 || (sortField.length == 1 && (sortField[0].equals(SORT_UNSORTED) || StringUtils.isEmpty(sortField[0])))) {
             return Sort.unsorted();
+        }
         return Sort.by(sortAsc ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
     }
 

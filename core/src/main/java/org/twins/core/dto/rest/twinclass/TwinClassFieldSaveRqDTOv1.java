@@ -57,4 +57,7 @@ public abstract class TwinClassFieldSaveRqDTOv1 extends Request {
 
     @Schema(description = "Twin Sorter parameters", example = "{}")
     public HashMap<String, String> twinSorterParams;
+
+    @Schema(description = "order", example = "1")
+    public Integer order;
 }

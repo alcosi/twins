@@ -88,5 +88,7 @@ public class TwinClassFieldDTOv1 {
     @Schema(description = "field rule ids", example = "")
     public Set<UUID> ruleIds;
 
+    @Schema(description = "order", example = "")
+    public Integer order;
 
 }

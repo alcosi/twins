@@ -6,6 +6,7 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.businessaccount.BusinessAccountDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -21,7 +22,6 @@ import java.util.Hashtable;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = DataListOptionMode.class)
 public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOptionEntity, DataListOptionDTOv1> {
-    private final I18nService i18nService;
     @MapperModePointerBinding(modes = DataListMode.DataListOption2DataListMode.class)
     private final DataListRestDTOMapper dataListRestDTOMapper;
     @MapperModePointerBinding(modes = BusinessAccountMode.DataListOption2BusinessAccountMode.class)
@@ -33,7 +33,7 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
             case DETAILED ->
                 dst
                         .setId(src.getId())
-                        .setName(src.getOptionI18NId() != null ? i18nService.translateToLocale(src.getOptionI18NId()) : src.getOption())
+                        .setName(src.getOptionI18NId() != null ? I18nCacheHolder.addId(src.getOptionI18NId()) : src.getOption())
                         .setIcon(src.getIcon())
                         .setAttributes(getAttributes(src))
                         .setStatus(src.getStatus())
@@ -41,11 +41,12 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
                         .setExternalId(src.getExternalId())
                         .setFontColor(src.getFontColor())
                         .setDataListId(src.getDataListId())
-                        .setBusinessAccountId(src.getBusinessAccountId());
+                        .setBusinessAccountId(src.getBusinessAccountId())
+                        .setCustom(src.isCustom());
             case SHORT ->
                 dst
                         .setId(src.getId())
-                        .setName(src.getOptionI18NId() != null ? i18nService.translateToLocale(src.getOptionI18NId()) : src.getOption());
+                        .setName(src.getOptionI18NId() != null ? I18nCacheHolder.addId(src.getOptionI18NId()) : src.getOption());
         }
         if (mapperContext.hasModeButNot(DataListMode.DataListOption2DataListMode.HIDE)) {
             dst.setDataListId(src.getDataListId());

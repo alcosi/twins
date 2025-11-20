@@ -16,5 +16,7 @@ public class DataListUpdateDTOReverseMapper extends RestSimpleDTOMapper<DataList
     @Override
     public void map(DataListUpdateRqDTOv1 src, DataListUpdate dst, MapperContext mapperContext) throws Exception {
         dataListSaveDTOReverseMapper.map(src, dst, mapperContext);
+        dst
+                .setDefaultOptionId(src.getDefaultOptionId());
     }
 }

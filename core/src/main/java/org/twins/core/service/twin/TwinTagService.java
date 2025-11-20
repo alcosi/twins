@@ -9,27 +9,24 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.UuidUtils;
-import org.twins.core.enums.EntityRelinkOperationStrategy;
-import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinTagEntity;
 import org.twins.core.dao.twin.TwinTagRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.enums.EntityRelinkOperationStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.datalist.DataListService;
-import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -41,15 +38,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
     final TwinTagRepository twinTagRepository;
-    final DataListOptionRepository dataListOptionRepository;
     final TwinService twinService;
     final DataListService dataListService;
-    final EntitySmartService entitySmartService;
-    final I18nService i18nService;
     final AuthService authService;
-    final CacheManager cacheManager;
-    @Lazy
-    final TwinClassService twinClassService;
+    private final DataListOptionService dataListOptionService;
 
     @Override
     public CrudRepository<TwinTagEntity, UUID> entityRepository() {
@@ -161,7 +153,7 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
             businessAccountId = authService.getApiUser().getBusinessAccountId();
         Kit<TwinTagEntity, UUID> tagsToSave = new Kit<>(TwinTagEntity::getTagDataListOptionId); //we will use kit to guaranty uniq
         if (CollectionUtils.isNotEmpty(newTagsStrings)) {
-            List<DataListOptionEntity> newTags = dataListService.processNewOptions(twinEntity.getTwinClass().getTagDataListId(), newTagsStrings, businessAccountId);
+            List<DataListOptionEntity> newTags = dataListOptionService.processNewOptions(twinEntity.getTwinClass().getTagDataListId(), newTagsStrings, businessAccountId);
             for (var option : newTags) {
                 tagsToSave.add(createTagEntity(twinEntity, option.getId(), option));
             }

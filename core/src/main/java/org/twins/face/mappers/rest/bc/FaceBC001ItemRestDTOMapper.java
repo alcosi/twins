@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.resource.ResourceService;
 import org.twins.face.dao.bc.FaceBC001ItemEntity;
 import org.twins.face.dto.rest.bc.FaceBC001ItemDTOv1;
@@ -14,8 +14,6 @@ import org.twins.face.dto.rest.bc.FaceBC001ItemDTOv1;
 @Component
 @RequiredArgsConstructor
 public class FaceBC001ItemRestDTOMapper extends RestSimpleDTOMapper<Pair<FaceBC001ItemEntity, TwinEntity>, FaceBC001ItemDTOv1> {
-
-    private final I18nService i18nService;
     private final ResourceService resourceService;
 
     @Override
@@ -27,7 +25,7 @@ public class FaceBC001ItemRestDTOMapper extends RestSimpleDTOMapper<Pair<FaceBC0
                 .setId(item.getId())
                 .setOrder(item.getOrder())
                 .setTwinId(twin.getId())
-                .setLabel(item.getLabelId() != null ? i18nService.translateToLocale(item.getLabelId()) : twin.getName())
+                .setLabel(I18nCacheHolder.addId(item.getLabelId()))
                 .setIconUrl(resourceService.getResourceUri(item.getIconResource()));
     }
 }
