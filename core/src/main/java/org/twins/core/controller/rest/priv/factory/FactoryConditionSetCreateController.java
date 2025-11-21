@@ -22,12 +22,9 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dto.rest.factory.FactoryConditionSetCreateRqDTOv1;
-import org.twins.core.dto.rest.factory.FactoryConditionSetCreateRsDTOv1;
-import org.twins.core.dto.rest.factory.FactoryConditionSetSearchRqDTOv1;
-import org.twins.core.dto.rest.factory.FactoryConditionSetSearchRsDTOv1;
+import org.twins.core.dto.rest.factory.FactoryConditionSetListRsDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryConditionSetCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.factory.FactoryConditionSetRestDTOMapperV2;
-import org.twins.core.mappers.rest.factory.FactoryConditionSetSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryConditionSetService;
@@ -52,27 +49,21 @@ public class FactoryConditionSetCreateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Condition set add", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = FactoryConditionSetCreateRsDTOv1.class))}),
+                    @Schema(implementation = FactoryConditionSetListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(
             value = "/private/factory_condition_set/v1",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> factoryConditionSetCreateV1(
-            @MapperContextBinding(
-                    roots = FactoryConditionSetRestDTOMapperV2.class, response = FactoryConditionSetCreateRsDTOv1.class
-            )
+            @MapperContextBinding(roots = FactoryConditionSetRestDTOMapperV2.class, response = FactoryConditionSetListRsDTOv1.class)
             @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody FactoryConditionSetCreateRqDTOv1 request
-    ) {
-        FactoryConditionSetCreateRsDTOv1 rs = new FactoryConditionSetCreateRsDTOv1();
+            @RequestBody FactoryConditionSetCreateRqDTOv1 request) {
+        FactoryConditionSetListRsDTOv1 rs = new FactoryConditionSetListRsDTOv1();
         try {
             List<TwinFactoryConditionSetEntity> conditionSet = factoryConditionSetService.createFactoryConditionSet(
                     factoryConditionSetCreateRestDTOReverseMapper.convertCollection(
-                            request.getConditionSets(), mapperContext
-                    )
-            );
+                            request.getConditionSets(), mapperContext));
 
             rs
                     .setConditionSets(factoryConditionSetRestDTOMapperV2.convertCollection(conditionSet, mapperContext))

@@ -9,12 +9,12 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 @Component
 @RequiredArgsConstructor
-public class FactoryConditionSetSaveRestDTOReverseMapper
-        extends RestSimpleDTOMapper<FactoryConditionSetSaveDTOv1, TwinFactoryConditionSetEntity> {
+public class FactoryConditionSetSaveRestDTOReverseMapper extends RestSimpleDTOMapper<FactoryConditionSetSaveDTOv1, TwinFactoryConditionSetEntity> {
 
     @Override
-    public void map(FactoryConditionSetSaveDTOv1 src, TwinFactoryConditionSetEntity dst, MapperContext mapperContext)
-            throws Exception {
-        dst.setName(src.getName()).setDescription(src.getDescription());
+    public void map(FactoryConditionSetSaveDTOv1 src, TwinFactoryConditionSetEntity dst, MapperContext mapperContext) throws Exception {
+        dst
+                .setName(src.getName())
+                .setDescription(src.getDescription());
     }
 }

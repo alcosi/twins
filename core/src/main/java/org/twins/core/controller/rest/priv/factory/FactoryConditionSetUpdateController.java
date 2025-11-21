@@ -21,8 +21,8 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
+import org.twins.core.dto.rest.factory.FactoryConditionSetListRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryConditionSetUpdateRqDTOv1;
-import org.twins.core.dto.rest.factory.FactoryConditionSetUpdateRsDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryConditionSetRestDTOMapperV2;
 import org.twins.core.mappers.rest.factory.FactoryConditionSetUpdateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -49,27 +49,21 @@ public class FactoryConditionSetUpdateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Update condition set", content = {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema =
-                    @Schema(implementation = FactoryConditionSetUpdateRsDTOv1.class))}),
+                    @Schema(implementation = FactoryConditionSetListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(
             value = "/private/factory_condition_set/v1",
             consumes = {MediaType.APPLICATION_JSON_VALUE},
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> factoryConditionSetUpdateV1(
-            @MapperContextBinding(
-                    roots = FactoryConditionSetRestDTOMapperV2.class, response = FactoryConditionSetUpdateRsDTOv1.class
-            )
+            @MapperContextBinding(roots = FactoryConditionSetRestDTOMapperV2.class, response = FactoryConditionSetListRsDTOv1.class)
             @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody FactoryConditionSetUpdateRqDTOv1 request
-    ){
-        FactoryConditionSetUpdateRsDTOv1 rs = new FactoryConditionSetUpdateRsDTOv1();
+            @RequestBody FactoryConditionSetUpdateRqDTOv1 request) {
+        FactoryConditionSetListRsDTOv1 rs = new FactoryConditionSetListRsDTOv1();
         try {
             List<TwinFactoryConditionSetEntity> conditionSet = factoryConditionSetService.updateFactoryConditionSet(
                     factoryConditionSetUpdateRestDTOReverseMapper.convertCollection(
-                            request.getConditionSets(), mapperContext
-                    )
-            );
+                            request.getConditionSets(), mapperContext));
             rs
                     .setConditionSets(factoryConditionSetRestDTOMapperV2.convertCollection(conditionSet, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
