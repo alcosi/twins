@@ -1,4 +1,4 @@
-package org.twins.core.domain.factory;
+package org.twins.core.enums.factory;
 
 public enum FactoryLauncher {
     transition,
