@@ -175,17 +175,13 @@ public abstract class Storager extends FeaturerTwins {
 
     /**
      * Attempts to delete a file using the provided file key, parameters, and context.
-     * If the deletion fails, logs the error with the file key and exception details.
+     * If the deletion fails method will throw error.
      *
      * @param fileKey the unique identifier of the file to be deleted
      * @param params  a map containing parameters related to the file deletion
      */
-    public void tryDeleteFile(String fileKey, HashMap<String, String> params) {
-        try {
-            deleteFile(fileKey, params);
-        } catch (Throwable t) {
-            log.error("Error deleting file: {}", fileKey, t);
-        }
+    public void tryDeleteFile(String fileKey, HashMap<String, String> params) throws ServiceException {
+        deleteFile(fileKey, params);
     }
 
     /**

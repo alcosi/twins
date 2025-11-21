@@ -184,6 +184,11 @@ public class ApplicationConfig {
         return executor;
     }
 
+    @Bean(name = "attachmentDeleteTaskExecutor")
+    public Executor attachmentDeleteTaskExecutor() {
+        return Executors.newVirtualThreadPerTaskExecutor();
+    }
+
     @Bean(name = "emailTaskExecutor")
     public Executor taskExecutor() {
         return Executors.newFixedThreadPool(10);
