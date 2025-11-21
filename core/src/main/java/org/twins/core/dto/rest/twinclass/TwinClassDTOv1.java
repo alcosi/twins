@@ -13,6 +13,7 @@ import org.twins.core.dto.rest.face.FaceDTOv1;
 import org.twins.core.dto.rest.link.LinkDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.enums.twinclass.OwnerType;
 
 import java.time.LocalDateTime;
@@ -144,14 +145,17 @@ public class TwinClassDTOv1 {
     @Schema(description = "segment class id")
     public Set<UUID> segmentClassIds;
 
+    @RelatedObject(type = TwinClassFieldDTOv1.class, name = "fieldList")
     @Schema(description = "Class fields id list")
     public Set<UUID> fieldIds;
 
+    @RelatedObject(type = TwinStatusDTOv1.class, name = "statusList")
     @Schema(description = "List of status id." + DTOExamples.LAZY_RELATION_MODE_OFF)
-    public Set<UUID> statusList;
+    public Set<UUID> statusIds;
 
+    @RelatedObject(type = DataListOptionDTOv1.class, name = "markerList")
     @Schema(description = "List of marker id." + DTOExamples.LAZY_RELATION_MODE_OFF)
-    public Set<UUID> markerList;
+    public Set<UUID> markerIds;
 
     @Schema()
     public Map<UUID, LinkDTOv1> forwardLinkMap;
