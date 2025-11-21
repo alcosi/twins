@@ -75,11 +75,8 @@ public class DataListOptionProjectionService extends EntitySecureFindServiceImpl
                 if (entity.getDataListProjection() == null || !entity.getDataListProjection().getId().equals(entity.getDataListProjectionId())) {
                     entity.setDataListProjection(dataListProjectionService.findEntitySafe(entity.getDataListProjectionId()));
                 }
-                if (entity.getSrcDataListOption() == null || !entity.getSrcDataListOption().getId().equals(entity.getSrcDataListOptionId())) {
-                    entity.setSrcDataListOption(dataListOptionService.findEntitySafe(entity.getSrcDataListOptionId()));
-                }
-                if (entity.getDstDataListOption() == null || !entity.getDstDataListOption().getId().equals(entity.getDstDataListOptionId())) {
-                    entity.setDstDataListOption(dataListOptionService.findEntitySafe(entity.getDstDataListOptionId()));
+                if (entity.getSrcDataListOption() == null || entity.getDstDataListOption() == null || !entity.getSrcDataListOption().getId().equals(entity.getSrcDataListOptionId()) || !entity.getDstDataListOption().getId().equals(entity.getDstDataListOptionId())) {
+                    loadDataListOptions(entity);
                 }
                 if (entity.getSavedByUser() == null) {
                     entity.setSavedByUser(userService.findEntitySafe(entity.getSavedByUserId()));
@@ -97,20 +94,38 @@ public class DataListOptionProjectionService extends EntitySecureFindServiceImpl
         if (projections == null || projections.isEmpty())
             return;
         Set<UUID> needIds = new HashSet<>();
+        Map<UUID, List<DataListOptionProjectionEntity>> srcMap = new HashMap<>();
+        Map<UUID, List<DataListOptionProjectionEntity>> dstMap = new HashMap<>();
         for (DataListOptionProjectionEntity p : projections) {
-            if (p.getSrcDataListOption() == null && p.getSrcDataListOptionId() != null)
-                needIds.add(p.getSrcDataListOptionId());
-            if (p.getDstDataListOption() == null && p.getDstDataListOptionId() != null)
-                needIds.add(p.getDstDataListOptionId());
+            if (p.getSrcDataListOption() == null) {
+                UUID srcId = p.getSrcDataListOptionId();
+                srcMap.computeIfAbsent(srcId, k -> new ArrayList<>()).add(p);
+                needIds.add(srcId);
+            }
+            if (p.getDstDataListOption() == null) {
+                UUID dstId = p.getDstDataListOptionId();
+                dstMap.computeIfAbsent(dstId, k -> new ArrayList<>()).add(p);
+                needIds.add(dstId);
+            }
         }
         if (needIds.isEmpty())
             return;
         Kit<DataListOptionEntity, UUID> items = dataListOptionService.findEntitiesSafe(needIds);
-        for (DataListOptionProjectionEntity p : projections) {
-            if (p.getSrcDataListOption() == null && p.getSrcDataListOptionId() != null)
-                p.setSrcDataListOption(items.get(p.getSrcDataListOptionId()));
-            if (p.getDstDataListOption() == null && p.getDstDataListOptionId() != null)
-                p.setDstDataListOption(items.get(p.getDstDataListOptionId()));
+        for (Map.Entry<UUID, List<DataListOptionProjectionEntity>> entry : srcMap.entrySet()) {
+            DataListOptionEntity entity = items.get(entry.getKey());
+            if (entity != null) {
+                for (DataListOptionProjectionEntity p : entry.getValue()) {
+                    p.setSrcDataListOption(entity);
+                }
+            }
+        }
+        for (Map.Entry<UUID, List<DataListOptionProjectionEntity>> entry : dstMap.entrySet()) {
+            DataListOptionEntity entity = items.get(entry.getKey());
+            if (entity != null) {
+                for (DataListOptionProjectionEntity p : entry.getValue()) {
+                    p.setDstDataListOption(entity);
+                }
+            }
         }
     }
 

@@ -56,7 +56,7 @@ public class DataListProjectionCreateController extends ApiController {
             @RequestBody DataListProjectionCreateRqDTOv1 request) {
         DataListProjectionRsDTOv1 rs = new DataListProjectionRsDTOv1();
         try {
-            List<DataListProjectionEntity> dataListProjectionEntities = dataListProjectionService.createDataListProjections(dataListProjectionCreateDTOReverseMapper.convertCollection(request.getDataListProjectionList()));
+            List<DataListProjectionEntity> dataListProjectionEntities = dataListProjectionService.createDataListProjections(dataListProjectionCreateDTOReverseMapper.convertCollection(request.getDataListProjections()));
             rs
                     .setDataListProjections(dataListProjectionRestDTOMapper.convertCollection(dataListProjectionEntities, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

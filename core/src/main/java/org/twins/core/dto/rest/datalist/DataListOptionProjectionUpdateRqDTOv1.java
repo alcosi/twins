@@ -13,6 +13,6 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "DataListOptionProjectionUpdateRqV1")
 public class DataListOptionProjectionUpdateRqDTOv1 extends Request {
-    @Schema(description = "data list option projection list")
-    public List<DataListOptionProjectionUpdateDTOv1> dataListOptionProjectionList;
+    @Schema(description = "data list option projections")
+    public List<DataListOptionProjectionUpdateDTOv1> dataListOptionProjections;
 }

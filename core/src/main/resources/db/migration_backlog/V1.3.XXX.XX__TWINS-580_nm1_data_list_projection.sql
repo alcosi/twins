@@ -29,3 +29,4 @@ CREATE TABLE IF NOT EXISTS data_list_option_projection (
 CREATE INDEX IF NOT EXISTS data_list_option_projection_proj_idx ON data_list_option_projection (data_list_projection_id);
 CREATE INDEX IF NOT EXISTS data_list_option_projection_src_opt_idx ON data_list_option_projection (src_data_list_option_id);
 CREATE INDEX IF NOT EXISTS data_list_option_projection_dst_opt_idx ON data_list_option_projection (dst_data_list_option_id);
+CREATE UNIQUE INDEX IF NOT EXISTS data_list_option_projection_proj_src_unique_idx ON data_list_option_projection (data_list_projection_id, src_data_list_option_id);

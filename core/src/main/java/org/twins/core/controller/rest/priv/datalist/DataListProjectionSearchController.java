@@ -26,6 +26,7 @@ import org.twins.core.mappers.rest.datalist.DataListProjectionRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListProjectionSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.datalist.DataListProjectionSearchService;
 import org.twins.core.service.permission.Permissions;
 
@@ -39,6 +40,7 @@ public class DataListProjectionSearchController extends ApiController {
     private final DataListProjectionSearchService dataListProjectionSearchService;
     private final DataListProjectionSearchDTOReverseMapper dataListProjectionSearchDTOReverseMapper;
     private final DataListProjectionRestDTOMapper dataListProjectionRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListProjectionSearchV1", summary = "Returns lists data list projections")
@@ -57,8 +59,9 @@ public class DataListProjectionSearchController extends ApiController {
         try {
             PaginationResult<DataListProjectionEntity> dataListProjectionsList = dataListProjectionSearchService.findDataListProjections(dataListProjectionSearchDTOReverseMapper.convert(request.getSearch()), pagination);
             rs
+                    .setPagination(paginationMapper.convert(dataListProjectionsList))
                     .setDataListProjections(dataListProjectionRestDTOMapper.convertCollection(dataListProjectionsList.getList(), mapperContext))
-                    .setPagination(paginationMapper.convert(dataListProjectionsList));
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

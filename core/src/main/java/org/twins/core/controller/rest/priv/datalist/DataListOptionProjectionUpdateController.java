@@ -62,7 +62,7 @@ public class DataListOptionProjectionUpdateController extends ApiController {
             @RequestBody DataListOptionProjectionUpdateRqDTOv1 request) {
         DataListOptionProjectionRsDTOv1 rs = new DataListOptionProjectionRsDTOv1();
         try {
-            List<DataListOptionProjectionEntity> dataListOptionProjectionEntities = dataListOptionProjectionService.updateDataListOptionProjections(dataListOptionProjectionUpdateDTOReverseMapper.convertCollection(request.getDataListOptionProjectionList()));
+            List<DataListOptionProjectionEntity> dataListOptionProjectionEntities = dataListOptionProjectionService.updateDataListOptionProjections(dataListOptionProjectionUpdateDTOReverseMapper.convertCollection(request.getDataListOptionProjections()));
             rs
                     .setDataListOptionProjections(dataListOptionProjectionRestDTOMapper.convertCollection(dataListOptionProjectionEntities, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

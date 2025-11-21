@@ -13,10 +13,7 @@ import java.util.List;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "DataListOptionProjectionSearchRsV1")
-public class DataListOptionProjectionSearchRsDTOv1 extends Response {
+public class DataListOptionProjectionSearchRsDTOv1 extends DataListOptionProjectionRsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
-
-    @Schema(description = "data list option projections")
-    public List<DataListOptionProjectionDTOv1> dataListOptionProjections;
 }

@@ -26,6 +26,7 @@ import org.twins.core.mappers.rest.datalist.DataListOptionProjectionRestDTOMappe
 import org.twins.core.mappers.rest.datalist.DataListOptionProjectionSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.datalist.DataListOptionProjectionSearchService;
 import org.twins.core.service.permission.Permissions;
 
@@ -39,6 +40,7 @@ public class DataListOptionProjectionSearchController extends ApiController {
     private final DataListOptionProjectionSearchService dataListOptionProjectionSearchService;
     private final DataListOptionProjectionSearchDTOReverseMapper dataListOptionProjectionSearchDTOReverseMapper;
     private final DataListOptionProjectionRestDTOMapper dataListOptionProjectionRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListOptionProjectionSearchV1", summary = "Returns lists data list option projections")
@@ -57,8 +59,9 @@ public class DataListOptionProjectionSearchController extends ApiController {
         try {
             PaginationResult<DataListOptionProjectionEntity> dataListOptionProjectionsList = dataListOptionProjectionSearchService.findDataListOptionProjections(dataListOptionProjectionSearchDTOReverseMapper.convert(request.getSearch()), pagination);
             rs
+                    .setPagination(paginationMapper.convert(dataListOptionProjectionsList))
                     .setDataListOptionProjections(dataListOptionProjectionRestDTOMapper.convertCollection(dataListOptionProjectionsList.getList(), mapperContext))
-                    .setPagination(paginationMapper.convert(dataListOptionProjectionsList));
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
