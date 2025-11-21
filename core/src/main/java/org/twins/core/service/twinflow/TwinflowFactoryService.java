@@ -22,6 +22,7 @@ import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinSave;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.enums.factory.FactoryLauncher;
 import org.twins.core.service.factory.TwinFactoryService;
 
 import java.util.Collection;

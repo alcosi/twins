@@ -1,7 +1,7 @@
 package org.twins.core.dto.rest.featurer.storager.filehandler;
 
-import java.util.List;
+import org.twins.core.enums.featurer.storager.StorageType;
 
-import static org.twins.core.featurer.storager.filehandler.StoragerAlcosiFileHandler.StorageType;
+import java.util.List;
 
 public record FileHandlerDeleteRqDTO(List<String> dirs, StorageType storageType) {}

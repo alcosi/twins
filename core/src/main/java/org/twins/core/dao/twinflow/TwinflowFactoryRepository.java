@@ -4,7 +4,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import org.twins.core.domain.factory.FactoryLauncher;
+import org.twins.core.enums.factory.FactoryLauncher;
 
 import java.util.Collection;
 import java.util.List;
