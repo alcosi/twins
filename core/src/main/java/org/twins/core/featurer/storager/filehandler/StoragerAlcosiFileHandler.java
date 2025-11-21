@@ -19,6 +19,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.twins.core.dto.rest.featurer.storager.filehandler.*;
+import org.twins.core.enums.featurer.storager.StorageType;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.StoragerAbstractChecked;
@@ -279,9 +280,5 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
         } else {
             return dirs;
         }
-    }
-
-    public enum StorageType {
-        S3
     }
 }
