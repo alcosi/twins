@@ -24,10 +24,24 @@ subprojects {
         mavenCentral()
     }
 
-    sourceCompatibility = '21'
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
 
-    tasks.withType(JavaCompile) {
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs += '--enable-preview'
         options.encoding = 'UTF-8'
+    }
+
+    // ← КРИТИЧНО: без этого тесты не запустятся с preview!
+    tasks.withType(Test).configureEach {
+        jvmArgs '--enable-preview'
+    }
+
+    tasks.withType(JavaExec).configureEach {
+        jvmArgs '--enable-preview'
     }
 
     tasks.withType(Jar) {
