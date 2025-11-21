@@ -9,7 +9,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.TaskStatus;
+import org.twins.core.dao.TwinChangeTaskStatus;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
 import org.twins.core.dao.twin.TwinChangeTaskRepository;
 
@@ -30,7 +30,7 @@ public class TwinChangeTaskScheduler {
             LoggerUtils.logSession();
             LoggerUtils.logController("factoryTaskScheduler$");
             log.debug("Loading twin change tasks from database");
-            List<TwinChangeTaskEntity> taskEntityList = twinChangeTaskRepository.findByStatusIdIn(List.of(TaskStatus.NEED_START));
+            List<TwinChangeTaskEntity> taskEntityList = twinChangeTaskRepository.findByStatusIdIn(List.of(TwinChangeTaskStatus.NEED_START));
             if (CollectionUtils.isEmpty(taskEntityList)) {
                 log.debug("No run factory tasks");
                 return;
@@ -39,7 +39,7 @@ public class TwinChangeTaskScheduler {
             for (var taskEntity : taskEntityList) {
                 try {
                     log.info("Running twin change task[{}] from status[{}]", taskEntity.getId(), taskEntity.getStatusId());
-                    taskEntity.setStatusId(TaskStatus.IN_PROGRESS);
+                    taskEntity.setStatusId(TwinChangeTaskStatus.IN_PROGRESS);
                     twinChangeTaskRepository.save(taskEntity);
                     TwinChangeTask draftCommitTask = applicationContext.getBean(TwinChangeTask.class, taskEntity);
                     taskExecutor.execute(draftCommitTask);

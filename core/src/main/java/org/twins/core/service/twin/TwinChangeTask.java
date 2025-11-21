@@ -7,7 +7,7 @@ import org.cambium.common.util.LoggerUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.TaskStatus;
+import org.twins.core.dao.TwinChangeTaskStatus;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
 import org.twins.core.dao.twin.TwinChangeTaskRepository;
 import org.twins.core.domain.factory.FactoryBranchId;
@@ -67,17 +67,17 @@ public class TwinChangeTask implements Runnable {
             }
             twinFactoryService.commitResult(result);
             twinChangeTaskEntity
-                    .setStatusId(TaskStatus.DONE)
+                    .setStatusId(TwinChangeTaskStatus.DONE)
                     .setDoneAt(Timestamp.from(Instant.now()));
         } catch (ServiceException e) {
             log.error(e.log());
             twinChangeTaskEntity
-                    .setStatusId(TaskStatus.FAILED)
+                    .setStatusId(TwinChangeTaskStatus.FAILED)
                     .setStatusDetails(e.log());
         } catch (Throwable e) {
             log.error("Exception: ", e);
             twinChangeTaskEntity
-                    .setStatusId(TaskStatus.FAILED)
+                    .setStatusId(TwinChangeTaskStatus.FAILED)
                     .setStatusDetails(e.getMessage());
         } finally {
             authService.removeThreadLocalApiUser();

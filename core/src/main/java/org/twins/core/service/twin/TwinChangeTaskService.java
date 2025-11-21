@@ -11,7 +11,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.TaskStatus;
+import org.twins.core.dao.TwinChangeTaskStatus;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
 import org.twins.core.dao.twin.TwinChangeTaskRepository;
@@ -72,7 +72,7 @@ public class TwinChangeTaskService extends EntitySecureFindServiceImpl<TwinChang
                     .setCreatedByUserId(apiUser.getUserId())
                     .setBusinessAccountId(apiUser.getBusinessAccountId());
             if (task.getStatusId() == null)
-                task.setStatusId(TaskStatus.NEED_START);
+                task.setStatusId(TwinChangeTaskStatus.NEED_START);
             changeTaskList.add(task);
         }
         entitySmartService.saveAllAndLog(changeTaskList, repository);

@@ -1,6 +1,7 @@
 create table if not exists twin_attachment_delete_task (
     id                 uuid primary key,
     twin_attachment_id uuid not null,
+    twin_id            uuid not null references twin on update cascade on delete no action,  -- no action for cases when twin is deleted but attachment task is still in NEED_START
     storage_id         uuid not null references storage on update cascade on delete cascade,
     storage_file_key   varchar(255) not null,
     status             varchar(50) not null default 'NEED_START',
