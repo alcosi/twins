@@ -21,7 +21,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.datalist.DataListProjectionEntity;
 import org.twins.core.dto.rest.datalist.DataListProjectionCreateRqDTOv1;
-import org.twins.core.dto.rest.datalist.DataListProjectionRsDTOv1;
+import org.twins.core.dto.rest.datalist.DataListProjectionListRsDTOv1;
 import org.twins.core.mappers.rest.datalist.DataListProjectionCreateDTOReverseMapper;
 import org.twins.core.mappers.rest.datalist.DataListProjectionRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -48,13 +48,13 @@ public class DataListProjectionCreateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Data list projection created", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = DataListProjectionRsDTOv1.class))}),
+                    @Schema(implementation = DataListProjectionListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/data_list_projection/v1")
     public ResponseEntity<?> dataListProjectionCreateV1(
-            @MapperContextBinding(roots = DataListProjectionRestDTOMapper.class, response = DataListProjectionRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListProjectionRestDTOMapper.class, response = DataListProjectionListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody DataListProjectionCreateRqDTOv1 request) {
-        DataListProjectionRsDTOv1 rs = new DataListProjectionRsDTOv1();
+        DataListProjectionListRsDTOv1 rs = new DataListProjectionListRsDTOv1();
         try {
             List<DataListProjectionEntity> dataListProjectionEntities = dataListProjectionService.createDataListProjections(dataListProjectionCreateDTOReverseMapper.convertCollection(request.getDataListProjections()));
             rs

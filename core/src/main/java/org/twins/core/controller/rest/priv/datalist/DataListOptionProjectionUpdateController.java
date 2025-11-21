@@ -20,19 +20,13 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.datalist.DataListOptionProjectionEntity;
-import org.twins.core.dao.datalist.DataListProjectionEntity;
-import org.twins.core.dto.rest.datalist.DataListOptionProjectionRsDTOv1;
+import org.twins.core.dto.rest.datalist.DataListOptionProjectionListRsDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionProjectionUpdateRqDTOv1;
-import org.twins.core.dto.rest.datalist.DataListProjectionRsDTOv1;
-import org.twins.core.dto.rest.datalist.DataListProjectionUpdateRqDTOv1;
 import org.twins.core.mappers.rest.datalist.DataListOptionProjectionRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionProjectionUpdateDTOReverseMapper;
-import org.twins.core.mappers.rest.datalist.DataListProjectionRestDTOMapper;
-import org.twins.core.mappers.rest.datalist.DataListProjectionUpdateDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.datalist.DataListOptionProjectionService;
-import org.twins.core.service.datalist.DataListProjectionService;
 import org.twins.core.service.permission.Permissions;
 
 import java.util.List;
@@ -54,13 +48,13 @@ public class DataListOptionProjectionUpdateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Data list option projection updated", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = DataListOptionProjectionRsDTOv1.class))}),
+                    @Schema(implementation = DataListOptionProjectionListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/data_list_option_projection/v1")
     public ResponseEntity<?> dataListOptionProjectionUpdateV1(
-            @MapperContextBinding(roots = DataListOptionProjectionRestDTOMapper.class, response = DataListOptionProjectionRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListOptionProjectionRestDTOMapper.class, response = DataListOptionProjectionListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody DataListOptionProjectionUpdateRqDTOv1 request) {
-        DataListOptionProjectionRsDTOv1 rs = new DataListOptionProjectionRsDTOv1();
+        DataListOptionProjectionListRsDTOv1 rs = new DataListOptionProjectionListRsDTOv1();
         try {
             List<DataListOptionProjectionEntity> dataListOptionProjectionEntities = dataListOptionProjectionService.updateDataListOptionProjections(dataListOptionProjectionUpdateDTOReverseMapper.convertCollection(request.getDataListOptionProjections()));
             rs
