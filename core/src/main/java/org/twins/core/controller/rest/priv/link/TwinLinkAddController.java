@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +17,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.link.TwinLinkAddRqDTOv1;
+import org.twins.core.dto.rest.link.TwinLinkCreateRqDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkAddRsDTOv1;
 import org.twins.core.mappers.rest.link.TwinLinkCreateRestDTOReverseMapper;
 import org.twins.core.service.link.TwinLinkService;
@@ -47,11 +46,11 @@ public class TwinLinkAddController extends ApiController {
     @PostMapping(value = "/private/twin/{twinId}/link/v1")
     public ResponseEntity<?> twinLinkAddV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @RequestBody TwinLinkAddRqDTOv1 request) {
+            @RequestBody TwinLinkCreateRqDTOv1 request) {
         TwinLinkAddRsDTOv1 rs = new TwinLinkAddRsDTOv1();
         try {
             twinLinkService.addLinks(
-                    twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows),
+                    twinService.findEntitySafe(twinId),
                     twinLinkCreateRestDTOReverseMapper.convertCollection(request.getLinks()));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

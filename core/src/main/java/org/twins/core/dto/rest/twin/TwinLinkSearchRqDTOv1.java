@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.Request;
 @Schema(name = "TwinLinkSearchRqV1")
 public class TwinLinkSearchRqDTOv1 extends Request {
     @Schema(description = "twin link search")
-    public TwinLinkSearchDTOv1 twinkLinkSearch;
+    public TwinLinkSearchDTOv1 search;
 }

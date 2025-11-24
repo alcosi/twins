@@ -14,7 +14,7 @@ import java.util.List;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "TwinLinkSearchRsV1")
-public class TwinLinkListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+public class TwinLinkSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 

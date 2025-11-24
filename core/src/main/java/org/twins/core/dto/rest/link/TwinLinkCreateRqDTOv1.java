@@ -11,8 +11,8 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinLinkAddRqV1")
-public class TwinLinkAddRqDTOv1 extends Request {
+@Schema(name =  "TwinLinkCreateRqV1")
+public class TwinLinkCreateRqDTOv1 extends Request {
     @Schema(description = "Links list")
     public List<TwinLinkCreateDTOv1> links;
 }

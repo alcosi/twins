@@ -44,6 +44,6 @@ public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, T
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(TwinLinkMode.Twin2TwinLinkMode.HIDE);
+        return mapperContext.hasModeOrEmpty(TwinLinkMode.HIDE);
     }
 }

@@ -23,7 +23,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.twin.TwinLinkEntity;
-import org.twins.core.dto.rest.twin.TwinLinkListRsDTOv1;
+import org.twins.core.dto.rest.twin.TwinLinkSearchRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinLinkSearchRqDTOv1;
 import org.twins.core.mappers.rest.link.TwinLinkBaseRestDTOMapper;
 import org.twins.core.mappers.rest.link.TwinLinkSearchDTOReverseMapper;
@@ -50,17 +50,17 @@ public class TwinLinkSearchController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin link data", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinLinkListRsDTOv1.class))}),
+                    @Schema(implementation = TwinLinkSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_link/search/v1")
     public ResponseEntity<?> twinLinkSearchV1(
-            @MapperContextBinding(roots = TwinLinkBaseRestDTOMapper.class, response = TwinLinkListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinLinkBaseRestDTOMapper.class, response = TwinLinkSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody TwinLinkSearchRqDTOv1 request) {
-        TwinLinkListRsDTOv1 rs = new TwinLinkListRsDTOv1();
+        TwinLinkSearchRsDTOv1 rs = new TwinLinkSearchRsDTOv1();
         try {
             PaginationResult<TwinLinkEntity> twinLinkList = twinLinkService
-                    .findTwinLinks(twinLinkSearchDTOReverseMapper.convert(request.getTwinkLinkSearch()), pagination);
+                    .findTwinLinks(twinLinkSearchDTOReverseMapper.convert(request.getSearch()), pagination);
             rs
                     .setTwinLinks(twinLinkBaseRestDTOMapper.convertCollection(twinLinkList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinLinkList))
