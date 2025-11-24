@@ -35,7 +35,6 @@ subprojects {
         options.encoding = 'UTF-8'
     }
 
-    // ← КРИТИЧНО: без этого тесты не запустятся с preview!
     tasks.withType(Test).configureEach {
         jvmArgs '--enable-preview'
     }
