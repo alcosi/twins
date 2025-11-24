@@ -66,8 +66,8 @@ public class FactoryConditionSetSearchController extends ApiController {
             PaginationResult<TwinFactoryConditionSetEntity> conditionSetList = factoryConditionSetSearchService
                     .findFactoryConditionSets(factoryConditionSetSearchRqDTOReverseMapper.convert(request), pagination);
             rs
-                    .setConditionSets(factoryConditionSetRestDTOMapper.convertCollection(conditionSetList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(conditionSetList))
+                    .setConditionSets(factoryConditionSetRestDTOMapperV2.convertCollection(conditionSetList.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
