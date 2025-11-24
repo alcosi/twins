@@ -12,7 +12,7 @@ import org.twins.core.dto.rest.twin.TwinCreateRqDTOv2;
 import org.twins.core.dto.rest.twin.TwinTagAddDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentCreateRestDTOReverseMapper;
-import org.twins.core.mappers.rest.link.TwinLinkCreateRestDTOReverseMapper;
+import org.twins.core.mappers.rest.link.TwinLinkAddRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserService;
@@ -28,7 +28,8 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
 
     private final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
     private final AttachmentCreateRestDTOReverseMapper attachmentCreateRestDTOReverseMapper;
-    private final TwinLinkCreateRestDTOReverseMapper twinLinkCreateRestDTOReverseMapper;
+    private final TwinFieldAttributeCreateRestDTOReverseMapper twinFieldAttributeCreateRestDTOReverseMapper;
+    private final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
     private final UserService userService;
     private final AuthService authService;
 
@@ -50,7 +51,8 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
                         .setExternalId(src.getExternalId()));
         dst
                 .setAttachmentEntityList(attachmentCreateRestDTOReverseMapper.convertCollection(src.getAttachments()))
-                .setLinksEntityList(twinLinkCreateRestDTOReverseMapper.convertCollection(src.getLinks()))
+                .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertCollection(src.getLinks()))
+                .setTwinFieldAttributeEntityList(twinFieldAttributeCreateRestDTOReverseMapper.convertCollection(src.getFieldAttributes()))
                 .setTagsAddNew(Optional.ofNullable(src.getTags())
                         .map(TwinTagAddDTOv1::newTags)
                         .orElseGet(HashSet::new))

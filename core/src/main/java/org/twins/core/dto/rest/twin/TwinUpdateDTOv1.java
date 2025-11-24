@@ -54,6 +54,9 @@ public class TwinUpdateDTOv1 extends Request {
     @Schema(description = "twin id")
     public UUID twinId;
 
+    @Schema(description = "fields attributes")
+    public TwinFieldAttributeCudDTOv1 fieldsAttributes;
+
     public TwinUpdateDTOv1 putFieldsItem(String key, String item) {
         if (this.fields == null) this.fields = new HashMap<>();
         this.fields.put(key, item);

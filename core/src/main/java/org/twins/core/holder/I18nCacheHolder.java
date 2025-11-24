@@ -11,6 +11,8 @@ public class I18nCacheHolder {
     // Map<UUID, translation> loaded translations
     private static final ThreadLocal<Map<UUID, String>> i18nTranslations = ThreadLocal.withInitial(HashMap::new);
 
+    private static final ThreadLocal<Map<UUID, Map<String, String>>> i18nContexts = ThreadLocal.withInitial(HashMap::new);
+
     public static String addId(UUID id) {
         if (id != null) {
             i18nIds.get().add(id);
@@ -20,8 +22,20 @@ public class I18nCacheHolder {
 
     }
 
+    public static String addId(UUID id, Map<String, String> context) {
+        String result = addId(id);
+        if (id != null && context != null && !context.isEmpty()) {
+            i18nContexts.get().put(id, new HashMap<>(context));
+        }
+        return result;
+    }
+
     public static Set<UUID> getIdsToLoad() {
         return i18nIds.get();
+    }
+
+    public static Map<UUID, Map<String, String>> getContexts() {
+        return i18nContexts.get();
     }
 
     public static void setTranslations(Map<UUID, String> cache) {
@@ -35,5 +49,6 @@ public class I18nCacheHolder {
     public static void clear() {
         i18nIds.remove();
         i18nTranslations.remove();
+        i18nContexts.remove();
     }
 }

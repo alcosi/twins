@@ -27,7 +27,6 @@ import java.io.InputStream;
 import java.net.URI;
 import java.time.Duration;
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.cambium.common.util.UrlUtils.toURI;
@@ -83,8 +82,6 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
 
     private static final Set<String> RESIZABLE_CONTENT_TYPES = Set.of("image/jpeg", "image/png", "image/jpg");
     private static final String ORIGINAL_TYPE = "ORIGINAL";
-    private static final Pattern GENERATE_FILE_KEY_REGEXP = Pattern.compile("^[^/]+/[^/]+/[^/]+$");
-    private static final Pattern FULL_PATH_REGEXP = Pattern.compile("^https?://[^/]+(/[^/]+){4}$");
     private final RestTemplate restTemplate;
 
     @Override
@@ -114,7 +111,7 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
         try {
             var properties = extractProperties(params, false);
             var url = fileHandlerUri.extract(properties) + "/api/delete/synced";
-            var dirs = extractDirsToDelete(fileKey);
+            var dirs = extractDirsToDelete(fileKey, properties);
             var request = new HttpEntity<>(new FileHandlerDeleteRqDTO(List.of(dirs), StorageType.S3), new HttpHeaders());
             var resp = restTemplate.exchange(url, HttpMethod.POST, request, Void.class);
 
@@ -261,18 +258,26 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
         return result;
     }
 
-    private String extractDirsToDelete(String fileKey) throws ServiceException {
+    private String extractDirsToDelete(String fileKey, Properties properties) throws ServiceException {
         //extracting only relative path (ex. {businessAccountId}/{fileId}/)
 
-        if (FULL_PATH_REGEXP.matcher(fileKey).matches()) {
-            // normal case
-            return addSlashAtTheEndIfNeeded(String.join("/", Arrays.copyOfRange(fileKey.split("/"), 4, fileKey.split("/").length - 1)));
-        } else if (GENERATE_FILE_KEY_REGEXP.matcher(fileKey).matches()) {
-            // when any error happened it is a common case that we will have smth like relative path in tryDeleteFile method
-            return addSlashAtTheEndIfNeeded(String.join("/", Arrays.copyOf(fileKey.split("/"), fileKey.split("/").length - 1)));
+        var parts = new ArrayList<>(List.of(fileKey.split("/")));
+        var fileName = parts.removeLast();
+        var fileId = fileName.split("\\.")[0];
+        var businessAccountId = getBusinessAccountId().map(UUID::toString).orElseThrow(() -> new ServiceException(ErrorCodeCommon.UUID_UNKNOWN));
+        var domainId = getDomainId().map(UUID::toString).orElseThrow(() -> new ServiceException(ErrorCodeCommon.UUID_UNKNOWN));
+
+        var dirs = relativePath.extract(properties)
+                .replace("{domainId}", domainId)
+                .replace("{businessAccountId}", businessAccountId)
+                .replace("{fileId}", fileId);
+
+        dirs = addSlashAtTheEndIfNeeded(dirs);
+
+        if (dirs.startsWith("/")) {
+            return dirs.substring(1);
         } else {
-            log.info("Invalid file key for file handler storager: {}", fileKey);
-            throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
+            return dirs;
         }
     }
 

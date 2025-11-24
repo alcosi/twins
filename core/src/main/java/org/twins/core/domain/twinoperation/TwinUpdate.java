@@ -5,13 +5,11 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinFieldAttributeEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.EntityCUD;
 
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static org.cambium.common.util.UuidUtils.NULLIFY_MARKER;
 
@@ -24,6 +22,7 @@ public class TwinUpdate extends TwinSave {
     private EntityCUD<TwinLinkEntity> twinLinkCUD;
     protected Set<UUID> markersDelete;
     protected Set<UUID> tagsDelete;
+    private EntityCUD<TwinFieldAttributeEntity> twinFieldAttributeCUD;
     private boolean checkEditPermission = false;
     private Mode mode = Mode.twinUpdate; //we had to create this flag here, because a status of dbTwinEntity can be changed during TwinUpdate flow
 
