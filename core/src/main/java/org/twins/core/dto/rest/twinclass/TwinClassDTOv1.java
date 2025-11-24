@@ -145,6 +145,12 @@ public class TwinClassDTOv1 {
     @Schema(description = "segment class id")
     public Set<UUID> segmentClassIds;
 
+    @Schema(description = "")
+    public Boolean segment;
+
+    @Schema(description = "")
+    public Boolean hasSegment;
+
     @RelatedObject(type = TwinClassFieldDTOv1.class, name = "fieldList")
     @Schema(description = "Class fields id list")
     public Set<UUID> fieldIds;

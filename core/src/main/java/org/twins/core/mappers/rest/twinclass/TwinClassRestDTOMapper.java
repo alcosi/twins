@@ -134,7 +134,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                         .setInheritedBreadCrumbsFaceId(src.getInheritedBreadCrumbsFaceId())
                         .setAssigneeRequired(src.getAssigneeRequired())
                         .setExternalId(src.getExternalId())
-                        .setExternalProperties(src.getExternalProperties());
+                        .setExternalProperties(src.getExternalProperties())
+                        .setSegment(src.getSegment())
+                        .setHasSegment(src.getHasSegment());
                 break;
             case DETAILED:
                 dst
@@ -152,7 +154,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                         .setIconLight(resourceService.getResourceUri(src.getIconLightResource()))
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setExternalId(src.getExternalId())
-                        .setExternalProperties(src.getExternalProperties());
+                        .setExternalProperties(src.getExternalProperties())
+                        .setSegment(src.getSegment())
+                        .setHasSegment(src.getHasSegment());
                 break;
             case SHORT:
                 dst
@@ -191,7 +195,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         }
         if (mapperContext.hasModeButNot(StatusMode.TwinClass2StatusMode.HIDE)) {
             twinStatusService.loadStatusesForTwinClasses(src);
-            dst.setStatusList(src.getTwinStatusKit().getIdSet());
+            dst.setStatusIds(src.getTwinStatusKit().getIdSet());
             twinStatusRestDTOMapper.postpone(src.getTwinStatusKit(), mapperContext.forkOnPoint(StatusMode.TwinClass2StatusMode.SHORT));
         }
         //todo delete me
