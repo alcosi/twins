@@ -68,7 +68,9 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setInheritedBreadCrumbsFaceId(src.getInheritedBreadCrumbsFaceId())
                         .setAssigneeRequired(src.getAssigneeRequired())
                         .setExternalId(src.getExternalId())
-                        .setExternalProperties(src.getExternalProperties());
+                        .setExternalProperties(src.getExternalProperties())
+                        .setSegment(src.getSegment())
+                        .setHasSegment(src.getHasSegment());
                 break;
             case DETAILED:
                 dst
@@ -86,7 +88,9 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .setIconLight(resourceService.getResourceUri(src.getIconLightResource()))
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setExternalId(src.getExternalId())
-                        .setExternalProperties(src.getExternalProperties());
+                        .setExternalProperties(src.getExternalProperties())
+                        .setSegment(src.getSegment())
+                        .setHasSegment(src.getHasSegment());
                 break;
             case SHORT:
                 dst
