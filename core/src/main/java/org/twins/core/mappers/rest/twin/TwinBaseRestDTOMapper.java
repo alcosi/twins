@@ -24,7 +24,7 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = {TwinMode.class})
+@MapperModeBinding(modes = {TwinMode.class, RelationTwinMode.TwinByHeadMode.class})
 public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinBaseDTOv1> {
     @MapperModePointerBinding(modes = {UserMode.Twin2UserMode.class})
     final UserRestDTOMapper userDTOMapper;
