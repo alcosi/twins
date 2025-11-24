@@ -44,6 +44,7 @@ import org.twins.core.service.twin.TwinService;
 
 import java.io.InputStream;
 import java.util.*;
+import java.util.concurrent.StructuredTaskScope;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -100,49 +101,76 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             UUID businessAccountId = apiUser.getBusinessAccountId();
             UUID userId = apiUser.getUserId();
             UserEntity user = apiUser.getUser();
+
             loadTwins(attachments);
             storageService.loadStorages(attachments);
-            attachments.parallelStream().forEach(attachmentEntity -> {
-                try {
-                    final UUID uuid = UUID.randomUUID();
+
+            try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+                // todo somehow rewrite thread-local logic for api user to use scoped values
+                attachments.forEach(attachmentEntity -> scope.fork(() -> {
+                    UUID uuid = UUID.randomUUID();
                     LoggerUtils.logSession(uuid);
                     LoggerUtils.logController("addAttachments$");
-                    LoggerUtils.logPrefix("ADD_ATTACHMENT[" + uuid + "]:");
-                    authService.setThreadLocalApiUser(domainId, businessAccountId, userId);
-                    twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
-                    saveFile(attachmentEntity, uuid);
+                    LoggerUtils.logPrefix(STR."ADD_ATTACHMENT[\{uuid}]:");
 
-                    attachmentEntity
-                            .setId(uuid) // need for history
-                            .setCreatedByUserId(userId)
-                            .setCreatedByUser(user);
+                    try {
+                        // ThreadLocal context
+                        authService.setThreadLocalApiUser(domainId, businessAccountId, userId);
 
-                    if (StringUtils.isEmpty(attachmentEntity.getStorageFileKey())) {
-                        throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "storageFileKey is empty");
+                        twinActionService.checkAllowed(
+                                attachmentEntity.getTwin(),
+                                TwinAction.ATTACHMENT_ADD
+                        );
+
+                        saveFile(attachmentEntity, uuid);
+
+                        attachmentEntity
+                                .setId(uuid)
+                                .setCreatedByUserId(userId)
+                                .setCreatedByUser(user);
+
+                        if (StringUtils.isEmpty(attachmentEntity.getStorageFileKey())) {
+                            throw new ServiceException(
+                                    ErrorCodeTwins.ATTACHMENTS_NOT_VALID,
+                                    "storageFileKey is empty"
+                            );
+                        }
+
+                        twinChangesCollector.add(attachmentEntity);
+
+                        if (twinChangesCollector.isHistoryCollectorEnabled()) {
+                            twinChangesCollector
+                                    .getHistoryCollector(attachmentEntity.getTwin())
+                                    .add(historyService.attachmentCreate(attachmentEntity));
+                        }
+
+                        if (!CollectionUtils.isEmpty(attachmentEntity.getModifications())) {
+                            attachmentEntity.getModifications().forEach(mod -> {
+                                if (mod.getTwinAttachmentId() == null) {
+                                    mod.setTwinAttachment(attachmentEntity);
+                                    mod.setTwinAttachmentId(uuid);
+                                }
+                            });
+
+                            twinChangesCollector.addAll(attachmentEntity.getModifications());
+                        }
+
+                    } catch (Throwable t) {
+                        log.error("Unable to add attachment {}: {}", attachmentEntity.logNormal(), t.getMessage(), t);
+                        throw t;
+                    } finally {
+                        authService.removeThreadLocalApiUser();
+                        LoggerUtils.cleanMDC();
                     }
 
-                    twinChangesCollector.add(attachmentEntity);
-                    if (twinChangesCollector.isHistoryCollectorEnabled()) {
-                        twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentCreate(attachmentEntity));
-                    }
+                    return null;
+                }));
 
-                    if (!CollectionUtils.isEmpty(attachmentEntity.getModifications())) {
-                        attachmentEntity.getModifications().forEach(mod -> {
-                            if (mod.getTwinAttachmentId() == null) {
-                                mod.setTwinAttachment(attachmentEntity);
-                                mod.setTwinAttachmentId(uuid);
-                            }
-                        });
-                        twinChangesCollector.addAll(attachmentEntity.getModifications());
-                    }
-                } catch (Throwable t) {
-                    log.info("Unable to add attachment: {}.\nException: {} {} {}", attachmentEntity.logNormal(), t, t.getMessage(), t.getStackTrace());
-                    throw new RuntimeException();
-                } finally {
-                    authService.removeThreadLocalApiUser();
-                    LoggerUtils.cleanMDC();
-                }
-            });
+                scope.join().throwIfFailed(cause -> {
+                    log.error("One or more attachments failed. First error:", cause);
+                    return new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID);
+                });
+            }
         } catch (Throwable t) {
             throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Unable to add attachments");
         }
@@ -162,7 +190,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         modifyAttachment(attachmentEntity, addedFileKey);
     }
 
-    private void modifyAttachment(TwinAttachmentEntity attachmentEntity, AddedFileKey addedFileKey) {
+    private void modifyAttachment(TwinAttachmentEntity attachmentEntity, AddedFileKey addedFileKey) throws ServiceException {
         log.info("Replacing modifications, storage file key and size in attachmentEntity with data from file handler service.");
 
         attachmentEntity.setSize(addedFileKey.fileSize() != -1 ? addedFileKey.fileSize() : attachmentEntity.getSize());
@@ -175,6 +203,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                                     .map(
                                             (mod) -> new TwinAttachmentModificationEntity()
                                                     .setTwinAttachmentId(mod.twinAttachmentId())
+                                                    .setTwinAttachment(attachmentEntity)
                                                     .setStorageFileKey(mod.storageFileKey())
                                                     .setModificationType(mod.modificationType() == null ? "ORIGINAL" : mod.modificationType())
                                     )
