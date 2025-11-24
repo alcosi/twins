@@ -13,14 +13,18 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.link.LinkEntity;
+import org.twins.core.domain.search.LinkSearch;
+import org.twins.core.domain.search.TwinLinkSearch;
 import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
@@ -45,6 +49,10 @@ import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeIn;
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
+import static org.twins.core.dao.specifications.link.LinkSpecification.checkSrcOrDstTwinClassIdIn;
 import static org.twins.core.dao.specifications.link.TwinLinkSpecification.checkStrength;
 import static org.twins.core.dao.specifications.link.TwinLinkSpecification.checkUuidIn;
 
@@ -348,6 +356,25 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             search.addTwinClassId(srcTwinClass.getExtendsHierarchyChildClassKit().getIdSet(), false);
         } else
             throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "unknown link type");
+    }
+
+    public PaginationResult<TwinLinkEntity> findTwinLinks(TwinLinkSearch search, SimplePagination pagination) throws ServiceException {
+        Specification<TwinLinkEntity> spec = createTwinLinkSearchSpecification(search);
+        Page<TwinLinkEntity> ret = twinLinkRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
+        return PaginationUtils.convertInPaginationResult(ret, pagination);
+    }
+
+    private Specification<TwinLinkEntity> createTwinLinkSearchSpecification(TwinLinkSearch search) {
+        return Specification.allOf(
+                checkUuidIn(search.getIdList(), false, false, TwinLinkEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, TwinLinkEntity.Fields.id),
+                checkUuidIn(search.getSrcTwinIdList(), false, false, TwinLinkEntity.Fields.srcTwinId),
+                checkUuidIn(search.getSrcTwinIdExcludeList(), true, false, TwinLinkEntity.Fields.srcTwinId),
+                checkUuidIn(search.getDstTwinIdList(), false, false, TwinLinkEntity.Fields.dstTwinId),
+                checkUuidIn(search.getDstTwinIdExcludeList(), true, false, TwinLinkEntity.Fields.dstTwinId),
+                checkUuidIn(search.getLinkIdList(), false, false, TwinLinkEntity.Fields.linkId),
+                checkUuidIn(search.getLinkIdExcludeList(), true, false, TwinLinkEntity.Fields.linkId)
+        );
     }
 
     public Collection<TwinLinkEntity> findTwinLinks(LinkEntity linkEntity, TwinEntity twinEntity, LinkService.LinkDirection linkDirection) throws ServiceException {

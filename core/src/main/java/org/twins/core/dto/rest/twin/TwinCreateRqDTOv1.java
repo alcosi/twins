@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.attachment.AttachmentCreateDTOv1;
-import org.twins.core.dto.rest.link.TwinLinkAddDTOv1;
+import org.twins.core.dto.rest.link.TwinLinkCreateDTOv1;
 
 import java.util.List;
 import java.util.Map;
@@ -16,7 +16,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name =  "TwinCreateRqV1")
+@Schema(name = "TwinCreateRqV1")
 public class TwinCreateRqDTOv1 extends Request {
     @Schema(description = "Class Id", example = DTOExamples.TWIN_CLASS_ID)
     public UUID classId;
@@ -43,5 +43,5 @@ public class TwinCreateRqDTOv1 extends Request {
     public List<AttachmentCreateDTOv1> attachments;
 
     @Schema(description = "Links list")
-    public List<TwinLinkAddDTOv1> links;
+    public List<TwinLinkCreateDTOv1> links;
 }

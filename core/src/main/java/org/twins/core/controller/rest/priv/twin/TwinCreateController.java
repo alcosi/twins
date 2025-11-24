@@ -29,7 +29,7 @@ import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.mappers.rest.attachment.AttachmentCreateRestDTOReverseMapper;
-import org.twins.core.mappers.rest.link.TwinLinkAddRestDTOReverseMapper;
+import org.twins.core.mappers.rest.link.TwinLinkCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.TwinCreateRqRestDTOReverseMapper;
@@ -55,7 +55,7 @@ public class TwinCreateController extends ApiController {
     private final UserService userService;
     private final TwinCreateRsRestDTOMapper twinCreateRsRestDTOMapper;
     private final AttachmentCreateRestDTOReverseMapper attachmentCreateRestDTOReverseMapper;
-    private final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
+    private final TwinLinkCreateRestDTOReverseMapper twinLinkCreateRestDTOReverseMapper;
     private final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -92,7 +92,7 @@ public class TwinCreateController extends ApiController {
                             .setDescription(request.getDescription()));
             twinCreate
                     .setAttachmentEntityList(attachmentCreateRestDTOReverseMapper.convertCollection(request.getAttachments()))
-                    .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertCollection(request.getLinks()))
+                    .setLinksEntityList(twinLinkCreateRestDTOReverseMapper.convertCollection(request.getLinks()))
                     .setCheckCreatePermission(true)
                     .setLauncher(TwinOperation.Launcher.direct);
 
