@@ -24,7 +24,7 @@ import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dto.rest.factory.FactoryConditionSetCreateRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryConditionSetListRsDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryConditionSetCreateRestDTOReverseMapper;
-import org.twins.core.mappers.rest.factory.FactoryConditionSetRestDTOMapperV2;
+import org.twins.core.mappers.rest.factory.FactoryConditionSetRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryConditionSetService;
@@ -41,7 +41,7 @@ public class FactoryConditionSetCreateController extends ApiController {
 
     private final FactoryConditionSetService factoryConditionSetService;
     private final FactoryConditionSetCreateRestDTOReverseMapper factoryConditionSetCreateRestDTOReverseMapper;
-    private final FactoryConditionSetRestDTOMapperV2 factoryConditionSetRestDTOMapperV2;
+    private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
@@ -56,7 +56,7 @@ public class FactoryConditionSetCreateController extends ApiController {
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> factoryConditionSetCreateV1(
-            @MapperContextBinding(roots = FactoryConditionSetRestDTOMapperV2.class, response = FactoryConditionSetListRsDTOv1.class)
+            @MapperContextBinding(roots = FactoryConditionSetRestDTOMapper.class, response = FactoryConditionSetListRsDTOv1.class)
             @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody FactoryConditionSetCreateRqDTOv1 request) {
         FactoryConditionSetListRsDTOv1 rs = new FactoryConditionSetListRsDTOv1();
@@ -66,7 +66,7 @@ public class FactoryConditionSetCreateController extends ApiController {
                             request.getConditionSets(), mapperContext));
 
             rs
-                    .setConditionSets(factoryConditionSetRestDTOMapperV2.convertCollection(conditionSet, mapperContext))
+                    .setConditionSets(factoryConditionSetRestDTOMapper.convertCollection(conditionSet, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

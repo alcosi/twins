@@ -67,7 +67,7 @@ public class FactoryConditionSetSearchController extends ApiController {
                     .findFactoryConditionSets(factoryConditionSetSearchRqDTOReverseMapper.convert(request), pagination);
             rs
                     .setPagination(paginationMapper.convert(conditionSetList))
-                    .setConditionSets(factoryConditionSetRestDTOMapperV2.convertCollection(conditionSetList.getList(), mapperContext))
+                    .setConditionSets(factoryConditionSetRestDTOMapper.convertCollection(conditionSetList.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
