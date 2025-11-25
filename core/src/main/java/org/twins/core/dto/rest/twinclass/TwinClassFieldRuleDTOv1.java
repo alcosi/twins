@@ -3,13 +3,12 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 
 import java.util.List;
 import java.util.UUID;
 
 /**
- * REST representation of {@link TwinClassFieldRuleEntity}.
+ * REST representation of {link TwinClassFieldRuleEntity}.
  * <p>
  * It contains all rule-level settings as well as the list of atomic
  * {@link TwinClassFieldConditionDTOv1 conditions} that must be evaluated in order to decide
