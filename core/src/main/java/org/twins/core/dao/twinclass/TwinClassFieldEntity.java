@@ -97,6 +97,12 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Basic
     private Integer order;
 
+    @Column(name = "projection_field")
+    private Boolean projectionField;
+
+    @Column(name = "has_projected_fields")
+    private Boolean hasProjectedFields;
+
     @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
