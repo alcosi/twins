@@ -24,3 +24,5 @@ public class TwinSearchByLinkDTOv1 {
     @Schema(description = "search direction")
     public boolean srcElseDst;
 }
+
+

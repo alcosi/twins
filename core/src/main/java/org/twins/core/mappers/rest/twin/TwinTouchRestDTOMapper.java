@@ -6,8 +6,8 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinTouchEntity;
 import org.twins.core.dto.rest.twin.TwinTouchDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TouchMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
 
@@ -28,14 +28,17 @@ public class TwinTouchRestDTOMapper extends RestSimpleDTOMapper<TwinTouchEntity,
                         .setId(src.getId())
                         .setTwinId(src.getTwinId())
                         .setTouchId(src.getTouchId())
-                        .setCreatedAt(src.getCreatedAt().toLocalDateTime())
-                        .setTwin(twinBaseRestDTOMapper.convert(src.getTwin(), mapperContext.forkOnPoint(TwinMode.Touch2TwinMode.SHORT)));
+                        .setCreatedAt(src.getCreatedAt().toLocalDateTime());
                 break;
             case SHORT:
                 dst
                         .setTwinId(src.getTwinId())
                         .setTouchId(src.getTouchId());
                 break;
+        }
+        if (mapperContext.hasModeButNot(TwinMode.Touch2TwinMode.HIDE)) {
+            dst.setTwinId(src.getTwinId());
+            twinBaseRestDTOMapper.postpone(src.getTwin(), mapperContext.forkOnPoint(TwinMode.Touch2TwinMode.SHORT));
         }
     }
 }

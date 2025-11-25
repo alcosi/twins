@@ -6,7 +6,6 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 import org.twins.core.dto.rest.pagination.PaginationDTOv1;
-import org.twins.core.dto.rest.permission.PermissionGrantSpaceRoleDTOv2;
 
 import java.util.List;
 

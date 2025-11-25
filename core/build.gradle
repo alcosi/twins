@@ -1,3 +1,12 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.github.javaparser:javaparser-core:3.26.2'
+    }
+}
+
 plugins {
     // id 'war'
     id 'java'
@@ -6,7 +15,6 @@ plugins {
     id 'net.nemerosa.versioning' version '3.1.0'
     id 'com.bmuschko.docker-remote-api' version '9.3.4'
 }
-
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.Dockerfile
@@ -22,14 +30,12 @@ def dockerWorkingDir = project.property('docker.work.dir') + "/twins"
 def appName = 'twins'
 def uniqueContainerName = "$dockerHost/$dockerRepo$appName:$imageVersionWithProfile"
 
-
 println "Using profile [${profile}]"
 project.version = imageVersion
 
 repositories {
     mavenCentral()
     gradlePluginPortal()
-
 }
 
 docker {
@@ -118,19 +124,16 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'io.github.breninsul:log-time-aspect-starter:1.0.1'
     implementation 'io.github.breninsul:spring-input-stream-response-converter:1.1.4'
-
     implementation 'io.minio:minio:8.5.17'
     implementation 'org.jasypt:jasypt:1.9.3'
     implementation 'com.alcosi:alcosi-identity-server-communication-error-parser:1.00-RELEASE'
     implementation 'org.openjdk.jol:jol-core:0.17'
-
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 configurations {
     runtime.exclude group: "com.zaxxer", module: "HikariCP"
 }
-
 
 jar {
     setZip64(true)
@@ -148,13 +151,12 @@ jar {
                 'Build-OS': "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}"
         )
     }
-
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
 
-task createManifest { //task for manifest.mf file creation on local run from IDE
+task createManifest {
     doLast {
         def manifestDir = file("$projectDir/src/main/resources/META-INF")
         def manifestFile = file("$manifestDir/MANIFEST.MF")
@@ -177,4 +179,19 @@ Build-OS: ${System.properties['os.name']} ${System.properties['os.arch']} ${Syst
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+task generateRelatedObjectsDTO(type: GenerateRelatedObjectsTask) {
+    description = 'Generates DTOs with related objects handling in the generated folder'
+    group = 'code generation'
+}
+
+task generateInitRelatedObjectsDTO(type: GenerateInitRelatedObjectsTask) {
+    description = 'Generates init related objects methods in the generated folder'
+    group = 'code generation'
+}
+
+task generateTypeScriptDTOsTask(type: GenerateTypeScriptDTOsTask) {
+    description = 'Convert DTOs to typescript'
+    group = 'code generation'
 }

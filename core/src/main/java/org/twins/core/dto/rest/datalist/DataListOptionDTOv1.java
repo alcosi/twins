@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
+import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.enums.datalist.DataListStatus;
 
 import java.util.Map;
@@ -38,9 +40,11 @@ public class DataListOptionDTOv1 {
     public String externalId;
 
     @Schema(description = "datalist id", example = DTOExamples.DATA_LIST_ID)
+    @RelatedObject(type = DataListOptionDTOv1.class, name = "dataList")
     public UUID dataListId;
 
     @Schema(description = "business account id", example = DTOExamples.BUSINESS_ACCOUNT_ID)
+    @RelatedObject(type = BusinessAccountDTOv1.class, name = "businessAccount")
     public UUID businessAccountId;
 
     @Schema(description = "flag for custom field", example = DTOExamples.BOOLEAN_TRUE)

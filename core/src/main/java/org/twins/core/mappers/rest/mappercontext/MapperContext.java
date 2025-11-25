@@ -11,7 +11,9 @@ import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.face.FaceEntity;
+import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
+import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
@@ -20,9 +22,9 @@ import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.dao.twinclass.TwinClassFreezeEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.twinclass.TwinClassFreezeEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
@@ -72,6 +74,10 @@ public class MapperContext {
     private Map<UUID, RelatedObject<TwinFactoryEntity>> relatedFactoryMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinFactoryPipelineEntity>> relatedFactoryPipelineMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinFactoryConditionSetEntity>> relatedFactoryConditionSetMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinFactoryMultiplierEntity>> relatedFactoryMultiplierMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<FaceEntity>> relatedFaceMap = new LinkedHashMap<>();
     @Getter
@@ -217,6 +223,10 @@ public class MapperContext {
             smartPut(relatedFactoryMap, twinFactory, twinFactory.getId());
         else if (relatedObject instanceof TwinFactoryPipelineEntity twinFactoryPipeline)
             smartPut(relatedFactoryPipelineMap, twinFactoryPipeline, twinFactoryPipeline.getId());
+        else if (relatedObject instanceof TwinFactoryConditionSetEntity factoryConditionSet)
+            smartPut(relatedFactoryConditionSetMap, factoryConditionSet, factoryConditionSet.getId());
+        else if (relatedObject instanceof TwinFactoryMultiplierEntity factoryMultiplier)
+            smartPut(relatedFactoryMultiplierMap, factoryMultiplier, factoryMultiplier.getId());
         else if (relatedObject instanceof FaceEntity face)
             smartPut(relatedFaceMap, face, face.getId());
         else if (relatedObject instanceof I18nEntity i18n)
@@ -436,6 +446,8 @@ public class MapperContext {
         dstMapperContext.relatedTwinflowMap = srcMapperContext.relatedTwinflowMap;
         dstMapperContext.relatedFactoryMap = srcMapperContext.relatedFactoryMap;
         dstMapperContext.relatedFactoryPipelineMap = srcMapperContext.relatedFactoryPipelineMap;
+        dstMapperContext.relatedFactoryConditionSetMap = srcMapperContext.relatedFactoryConditionSetMap;
+        dstMapperContext.relatedFactoryMultiplierMap = srcMapperContext.relatedFactoryMultiplierMap;
         dstMapperContext.relatedFaceMap = srcMapperContext.relatedFaceMap;
         dstMapperContext.relatedI18nMap = srcMapperContext.relatedI18nMap;
         dstMapperContext.relatedFeaturerMap = srcMapperContext.relatedFeaturerMap;

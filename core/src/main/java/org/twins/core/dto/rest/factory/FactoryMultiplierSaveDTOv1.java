@@ -29,3 +29,5 @@ public class FactoryMultiplierSaveDTOv1 {
     @Schema(description = "description", example = DTOExamples.DESCRIPTION)
     public String description;
 }
+
+

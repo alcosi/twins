@@ -28,7 +28,7 @@ import org.twins.core.dto.rest.permission.PermissionGrantSpaceRoleViewRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.permission.PermissionGrantRoleSpaceSearchDTOReverseMapper;
-import org.twins.core.mappers.rest.permission.PermissionGrantSpaceRoleRestDTOMapperV2;
+import org.twins.core.mappers.rest.permission.PermissionGrantSpaceRoleRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantSpaceRoleSearchService;
 import org.twins.core.service.permission.PermissionGrantSpaceRoleService;
@@ -47,7 +47,7 @@ public class PermissionGrantSpaceRoleSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PermissionGrantSpaceRoleSearchService permissionGrantSpaceRoleSearchService;
     private final PermissionGrantRoleSpaceSearchDTOReverseMapper permissionGrantRoleSpaceSearchDTOReverseMapper;
-    private final PermissionGrantSpaceRoleRestDTOMapperV2 permissionGrantSpaceRoleRestDTOMapperV2;
+    private final PermissionGrantSpaceRoleRestDTOMapper permissionGrantSpaceRoleRestDTOMapper;
     private final PermissionGrantSpaceRoleService permissionGrantSpaceRoleService;
 
     @ParametersApiUserHeaders
@@ -59,7 +59,7 @@ public class PermissionGrantSpaceRoleSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/space_role/search/v1")
     public ResponseEntity<?> permissionGrantSpaceRoleSearchV1(
-            @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapperV2.class, response = PermissionGrantSpaceRoleSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapper.class, response = PermissionGrantSpaceRoleSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody PermissionGrantSpaceRoleSearchRqDTOv1 request) {
         PermissionGrantSpaceRoleSearchRsDTOv1 rs = new PermissionGrantSpaceRoleSearchRsDTOv1();
@@ -67,7 +67,7 @@ public class PermissionGrantSpaceRoleSearchController extends ApiController {
             PaginationResult<PermissionGrantSpaceRoleEntity> permissionGrants = permissionGrantSpaceRoleSearchService
                     .findPermissionGrantSpaceRoles(permissionGrantRoleSpaceSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setPermissionGrantSpaceRoles(permissionGrantSpaceRoleRestDTOMapperV2.convertCollection(permissionGrants.getList(), mapperContext))
+                    .setPermissionGrantSpaceRoles(permissionGrantSpaceRoleRestDTOMapper.convertCollection(permissionGrants.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(permissionGrants))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -87,14 +87,14 @@ public class PermissionGrantSpaceRoleSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/permission_grant/space_role/{grantId}/v1")
     public ResponseEntity<?> permissionGrantSpaceRoleViewV1(
-            @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapperV2.class, response = PermissionGrantSpaceRoleViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapper.class, response = PermissionGrantSpaceRoleViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.SPACE_ROLE_USER_ID) @PathVariable("grantId") UUID grantId) {
         PermissionGrantSpaceRoleViewRsDTOv1 rs = new PermissionGrantSpaceRoleViewRsDTOv1();
         try {
             PermissionGrantSpaceRoleEntity role = permissionGrantSpaceRoleService.findEntitySafe(grantId);
 
             rs
-                    .setPermissionGrantSpaceRole(permissionGrantSpaceRoleRestDTOMapperV2.convert(role, mapperContext))
+                    .setPermissionGrantSpaceRole(permissionGrantSpaceRoleRestDTOMapper.convert(role, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

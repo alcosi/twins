@@ -22,7 +22,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionGrantSpaceRoleRsDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGrantSpaceRoleUpdateRqDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.permission.PermissionGrantSpaceRoleRestDTOMapperV2;
+import org.twins.core.mappers.rest.permission.PermissionGrantSpaceRoleRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionGrantSpaceRoleUpdateDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantSpaceRoleService;
@@ -37,7 +37,7 @@ import java.util.UUID;
 @ProtectedBy({Permissions.PERMISSION_GRANT_SPACE_ROLE_MANAGE, Permissions.PERMISSION_GRANT_SPACE_ROLE_UPDATE})
 public class PermissionGrantSpaceRoleUpdateController extends ApiController {
     private final PermissionGrantSpaceRoleService permissionGrantSpaceRoleService;
-    private final PermissionGrantSpaceRoleRestDTOMapperV2 permissionGrantSpaceRoleRestDTOMapper;
+    private final PermissionGrantSpaceRoleRestDTOMapper permissionGrantSpaceRoleRestDTOMapper;
     private final PermissionGrantSpaceRoleUpdateDTOReverseMapper permissionGrantSpaceRoleUpdateDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
@@ -50,7 +50,7 @@ public class PermissionGrantSpaceRoleUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/permission_grant/space_role/{permissionGrantSpaceRoleId}/v1")
     public ResponseEntity<?> permissionGrantSpaceRoleV1(
-            @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapperV2.class, response = PermissionGrantSpaceRoleRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapper.class, response = PermissionGrantSpaceRoleRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GRANT_SPACE_ROLE_ID) @PathVariable UUID permissionGrantSpaceRoleId,
             @RequestBody PermissionGrantSpaceRoleUpdateRqDTOv1 request) {
 

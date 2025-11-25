@@ -52,28 +52,28 @@ public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
                         .setCreatedByUserId(src.getCreatedByUserId());
                 break;
         }
-        if (mapperContext.hasModeButNot(StatusMode.Transition2StatusMode.HIDE))
-            dst
-                    .setSrcTwinStatusId(src.getSrcTwinStatusId())
-                    .setSrcTwinStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getSrcTwinStatus(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(StatusMode.Transition2StatusMode.SHORT))));
-        if (mapperContext.hasModeButNot(PermissionMode.Transition2PermissionMode.HIDE) && src.getPermissionId() != null)
-            dst
-                    .setPermissionId(src.getPermissionId())
-                    .setPermission(permissionRestDTOMapper.convertOrPostpone(twinflowTransitionService.loadPermission(src), mapperContext.forkOnPoint(PermissionMode.Transition2PermissionMode.SHORT)));
-        if (mapperContext.hasModeButNot(TwinflowMode.Transition2TwinflowMode.HIDE) && src.getTwinflowId() != null)
-            dst
-                    .setTwinflowId(src.getTwinflowId())
-                    .setTwinflow(twinflowBaseV1RestDTOMapper.convertOrPostpone(src.getTwinflow(), mapperContext.forkOnPoint(TwinflowMode.Transition2TwinflowMode.SHORT)));
-        if (mapperContext.hasModeButNot(UserMode.Transition2UserMode.HIDE) && src.getCreatedByUserId() != null)
-            dst
-                    .setCreatedByUserId(src.getCreatedByUserId())
-                    .setCreatedByUser(userRestDTOMapper.convertOrPostpone(twinflowTransitionService.loadCreatedBy(src), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Transition2UserMode.SHORT))));
-        if (mapperContext.hasModeButNot(FactoryMode.Transition2FactoryMode.HIDE))
-            dst
-                    .setInbuiltTwinFactoryId(src.getInbuiltTwinFactoryId())
-                    .setInbuiltTwinFactory(factoryRestDTOMapper.convertOrPostpone(src.getInbuiltFactory(), mapperContext.forkOnPoint(FactoryMode.Transition2FactoryMode.SHORT)))
-                    .setDraftingTwinFactoryId(src.getDraftingTwinFactoryId())
-                    .setDraftingTwinFactory(factoryRestDTOMapper.convertOrPostpone(src.getDraftingFactory(), mapperContext.forkOnPoint(FactoryMode.Transition2FactoryMode.SHORT)));
+        if (mapperContext.hasModeButNot(StatusMode.Transition2StatusMode.HIDE) && src.getSrcTwinStatusId() != null) {
+            dst.setSrcTwinStatusId(src.getSrcTwinStatusId());
+            twinStatusRestDTOMapper.postpone(src.getSrcTwinStatus(), mapperContext.forkOnPoint(StatusMode.Transition2StatusMode.SHORT));
+        }
+        if (mapperContext.hasModeButNot(PermissionMode.Transition2PermissionMode.HIDE) && src.getPermissionId() != null) {
+            dst.setPermissionId(src.getPermissionId());
+            permissionRestDTOMapper.postpone(twinflowTransitionService.loadPermission(src), mapperContext.forkOnPoint(PermissionMode.Transition2PermissionMode.SHORT));
+        }
+        if (mapperContext.hasModeButNot(TwinflowMode.Transition2TwinflowMode.HIDE) && src.getTwinflowId() != null) {
+            dst.setTwinflowId(src.getTwinflowId());
+            twinflowBaseV1RestDTOMapper.postpone(src.getTwinflow(), mapperContext.forkOnPoint(TwinflowMode.Transition2TwinflowMode.SHORT));
+        }
+        if (mapperContext.hasModeButNot(UserMode.Transition2UserMode.HIDE) && src.getCreatedByUserId() != null) {
+            dst.setCreatedByUserId(src.getCreatedByUserId());
+            userRestDTOMapper.postpone(twinflowTransitionService.loadCreatedBy(src), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Transition2UserMode.SHORT)));
+        }
+        if (mapperContext.hasModeButNot(FactoryMode.Transition2FactoryMode.HIDE)) {
+            dst.setInbuiltTwinFactoryId(src.getInbuiltTwinFactoryId());
+            factoryRestDTOMapper.postpone(src.getInbuiltFactory(), mapperContext.forkOnPoint(FactoryMode.Transition2FactoryMode.SHORT));
+            dst.setDraftingTwinFactoryId(src.getDraftingTwinFactoryId());
+            factoryRestDTOMapper.postpone(src.getDraftingFactory(), mapperContext.forkOnPoint(FactoryMode.Transition2FactoryMode.SHORT));
+        }
     }
 
     @Override

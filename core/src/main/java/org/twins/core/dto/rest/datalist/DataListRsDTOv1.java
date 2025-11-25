@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Schema(name = "DataListRsV1")
 public class DataListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "results - data lists list")
-    public DataListDTOv2 dataList;
+    public DataListDTOv1 dataList;
 }

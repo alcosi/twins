@@ -6,8 +6,8 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.space.SpaceRoleUserGroupEntity;
 import org.twins.core.dto.rest.space.SpaceRoleUserGroupDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.SpaceRoleMode;
 import org.twins.core.mappers.rest.mappercontext.modes.SpaceRoleUserGroupMode;
 
@@ -18,7 +18,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.SpaceRoleUserGroupMode;
 public class SpaceRoleUserGroupDTOMapper extends RestSimpleDTOMapper<SpaceRoleUserGroupEntity, SpaceRoleUserGroupDTOv1> {
 
     @MapperModePointerBinding(modes = SpaceRoleMode.SpaceRoleUserGroup2SpaceRoleMode.class)
-    private final SpaceRoleDTOMapperV2 spaceRoleDTOMapperV2;
+    private final SpaceRoleDTOMapper spaceRoleDTOMapper;
 
     @Override
     public void map(SpaceRoleUserGroupEntity src, SpaceRoleUserGroupDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -29,8 +29,7 @@ public class SpaceRoleUserGroupDTOMapper extends RestSimpleDTOMapper<SpaceRoleUs
                         .setTwinId(src.getTwinId())
                         .setSpaceRoleId(src.getSpaceRoleId())
                         .setUserGroupId(src.getUserGroupId())
-                        .setCreatedByUserId(src.getCreatedByUserId())
-                        .setSpaceRole(spaceRoleDTOMapperV2.convert(src.getSpaceRole(), mapperContext));
+                        .setCreatedByUserId(src.getCreatedByUserId());
                 break;
             case SHORT:
                 dst
@@ -40,10 +39,10 @@ public class SpaceRoleUserGroupDTOMapper extends RestSimpleDTOMapper<SpaceRoleUs
                         .setUserGroupId(src.getUserGroupId());
                 break;
         }
-        if (mapperContext.hasModeButNot(SpaceRoleMode.SpaceRoleUserGroup2SpaceRoleMode.HIDE))
-            dst
-                    .setSpaceRole(spaceRoleDTOMapperV2.convert(src.getSpaceRole(), mapperContext
-                            .forkOnPoint(SpaceRoleMode.SpaceRoleUserGroup2SpaceRoleMode.SHORT)));
+        if (mapperContext.hasModeButNot(SpaceRoleMode.SpaceRoleUserGroup2SpaceRoleMode.HIDE)) {
+            dst.setSpaceRoleId(src.getSpaceRoleId());
+            spaceRoleDTOMapper.postpone(src.getSpaceRole(), mapperContext.forkOnPoint(SpaceRoleMode.SpaceRoleUserGroup2SpaceRoleMode.SHORT));
+        }
     }
 
     @Override

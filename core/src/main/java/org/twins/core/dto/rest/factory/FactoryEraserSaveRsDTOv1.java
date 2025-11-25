@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Schema(name = "FactoryEraserSaveRsV1")
 public class FactoryEraserSaveRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "eraser")
-    public FactoryEraserDTOv2 eraser;
+    public FactoryEraserDTOv1 eraser;
 }

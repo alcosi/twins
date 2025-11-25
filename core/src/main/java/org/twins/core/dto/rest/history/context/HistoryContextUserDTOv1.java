@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.util.UUID;
@@ -16,14 +17,12 @@ public class HistoryContextUserDTOv1 implements HistoryContextDTO {
     public String contextType = KEY;
 
     @Schema(description = "From user id", example = DTOExamples.USER_ID)
+    @RelatedObject(type = UserDTOv1.class, name = "fromUser")
     public UUID fromUserId;
 
-    @Schema(description = "From user")
-    public UserDTOv1 fromUser;
-
     @Schema(description = "To user id")
+    @RelatedObject(type = UserDTOv1.class, name = "toUser")
     public UUID toUserId;
-
-    @Schema(description = "To user")
-    public UserDTOv1 toUser;
 }
+
+

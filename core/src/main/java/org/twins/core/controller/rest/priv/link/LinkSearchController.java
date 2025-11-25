@@ -22,10 +22,10 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.factory.LinkSearchRsDTOv1;
-import org.twins.core.dto.rest.factory.LinkViewRsDTOv1;
 import org.twins.core.dto.rest.link.LinkSearchRqDTOv1;
-import org.twins.core.mappers.rest.link.LinkForwardRestDTOV3Mapper;
+import org.twins.core.dto.rest.link.LinkSearchRsDTOv1;
+import org.twins.core.dto.rest.link.LinkViewRsDTOv1;
+import org.twins.core.mappers.rest.link.LinkForwardRestDTOV2Mapper;
 import org.twins.core.mappers.rest.link.LinkSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
@@ -44,7 +44,7 @@ import java.util.UUID;
 public class LinkSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    private final LinkForwardRestDTOV3Mapper linkForwardRestDTOV3Mapper;
+    private final LinkForwardRestDTOV2Mapper linkForwardRestDTOV2Mapper;
     private final LinkSearchDTOReverseMapper linkSearchDTOReverseMapper;
     private final LinkSearchService linkSearchService;
     private final LinkService linkService;
@@ -58,7 +58,7 @@ public class LinkSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/link/search/v1")
     public ResponseEntity<?> linkSearchV1(
-            @MapperContextBinding(roots = LinkForwardRestDTOV3Mapper.class, response = LinkSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = LinkForwardRestDTOV2Mapper.class, response = LinkSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody LinkSearchRqDTOv1 request) {
         LinkSearchRsDTOv1 rs = new LinkSearchRsDTOv1();
@@ -66,7 +66,7 @@ public class LinkSearchController extends ApiController {
             PaginationResult<LinkEntity> linkList = linkSearchService
                     .findLinks(linkSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setLinks(linkForwardRestDTOV3Mapper.convertCollection(linkList.getList(), mapperContext))
+                    .setLinks(linkForwardRestDTOV2Mapper.convertCollection(linkList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(linkList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -86,13 +86,13 @@ public class LinkSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/link/{linkId}/v1")
     public ResponseEntity<?> linkViewV1(
-            @MapperContextBinding(roots = LinkForwardRestDTOV3Mapper.class, response = LinkViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = LinkForwardRestDTOV2Mapper.class, response = LinkViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.LINK_ID) @PathVariable("linkId") UUID linkId) {
         LinkViewRsDTOv1 rs = new LinkViewRsDTOv1();
         try {
             LinkEntity link = linkService.findEntitySafe(linkId);
             rs
-                    .setLink(linkForwardRestDTOV3Mapper.convert(link, mapperContext))
+                    .setLink(linkForwardRestDTOV2Mapper.convert(link, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

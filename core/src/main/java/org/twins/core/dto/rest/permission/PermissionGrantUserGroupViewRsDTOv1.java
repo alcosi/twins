@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Schema(name = "PermissionGrantUserGroupViewRsV1")
 public class PermissionGrantUserGroupViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "result - permission grant user-group")
-    public PermissionGrantUserGroupDTOv2 permissionGrantUserGroup;
+    public PermissionGrantUserGroupDTOv1 permissionGrantUserGroup;
 }

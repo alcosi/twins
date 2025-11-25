@@ -65,6 +65,7 @@ public class DataListOptionPublicController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
+    @Deprecated //no pagination support
     @ParametersApiUserAnonymousHeaders
     @Operation(operationId = "dataListOptionsMapViewPublicV1", summary = "Returns map option id ref list data option")
     @ApiResponses(value = {

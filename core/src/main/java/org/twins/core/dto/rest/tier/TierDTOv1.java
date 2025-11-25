@@ -6,8 +6,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
+import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
+import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
+import org.twins.core.dto.rest.twinflow.TwinflowSchemaDTOv1;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -21,12 +24,15 @@ public class TierDTOv1 {
     public UUID id;
 
     @Schema(description = "permission schema id")
+    @RelatedObject(type = PermissionSchemaDTOv1.class, name = "permissionSchema")
     public UUID permissionSchemaId;
 
     @Schema(description = "twinflow schema id")
+    @RelatedObject(type = TwinflowSchemaDTOv1.class, name = "twinflowSchema")
     public UUID twinflowSchemaId;
 
     @Schema(description = "twinclass schema id")
+    @RelatedObject(type = TwinClassSchemaDTOv1.class, name = "twinClassSchema")
     public UUID twinClassSchemaId;
 
     @Schema(description = "name")
@@ -55,3 +61,5 @@ public class TierDTOv1 {
     @Schema(description = "updated at")
     private LocalDateTime updatedAt;
 }
+
+

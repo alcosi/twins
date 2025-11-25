@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -31,6 +33,7 @@ public class FactoryDTOv1 {
     public LocalDateTime createdAt;
 
     @Schema(description = "created by user id", example = DTOExamples.USER_ID)
+    @RelatedObject(type = UserDTOv1.class, name = "createdByUser")
     public UUID createdByUserId;
 
     @Schema(description = "factory usages count", example = DTOExamples.COUNT)
@@ -48,3 +51,5 @@ public class FactoryDTOv1 {
     @Schema(description = "factory erasers count", example = DTOExamples.COUNT)
     public Integer factoryErasersCount;
 }
+
+

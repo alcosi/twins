@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Schema(name = "PermissionSchemaViewRsV1")
 public class PermissionSchemaViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "permission schema")
-    public PermissionSchemaDTOv2 permissionSchema;
+    public PermissionSchemaDTOv1 permissionSchema;
 }

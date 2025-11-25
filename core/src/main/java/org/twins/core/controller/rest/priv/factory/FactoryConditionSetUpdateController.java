@@ -23,7 +23,7 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dto.rest.factory.FactoryConditionSetListRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryConditionSetUpdateRqDTOv1;
-import org.twins.core.mappers.rest.factory.FactoryConditionSetRestDTOMapperV2;
+import org.twins.core.mappers.rest.factory.FactoryConditionSetRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryConditionSetUpdateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -41,7 +41,7 @@ public class FactoryConditionSetUpdateController extends ApiController {
 
     private final FactoryConditionSetService factoryConditionSetService;
     private final FactoryConditionSetUpdateRestDTOReverseMapper factoryConditionSetUpdateRestDTOReverseMapper;
-    private final FactoryConditionSetRestDTOMapperV2 factoryConditionSetRestDTOMapperV2;
+    private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
@@ -56,7 +56,7 @@ public class FactoryConditionSetUpdateController extends ApiController {
             consumes = {MediaType.APPLICATION_JSON_VALUE},
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> factoryConditionSetUpdateV1(
-            @MapperContextBinding(roots = FactoryConditionSetRestDTOMapperV2.class, response = FactoryConditionSetListRsDTOv1.class)
+            @MapperContextBinding(roots = FactoryConditionSetRestDTOMapper.class, response = FactoryConditionSetListRsDTOv1.class)
             @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody FactoryConditionSetUpdateRqDTOv1 request) {
         FactoryConditionSetListRsDTOv1 rs = new FactoryConditionSetListRsDTOv1();
@@ -65,7 +65,7 @@ public class FactoryConditionSetUpdateController extends ApiController {
                     factoryConditionSetUpdateRestDTOReverseMapper.convertCollection(
                             request.getConditionSets(), mapperContext));
             rs
-                    .setConditionSets(factoryConditionSetRestDTOMapperV2.convertCollection(conditionSet, mapperContext))
+                    .setConditionSets(factoryConditionSetRestDTOMapper.convertCollection(conditionSet, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

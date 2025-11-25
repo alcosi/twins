@@ -22,7 +22,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryBranchCreateRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryBranchRsDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryBranchCreateDTOReverseMapper;
-import org.twins.core.mappers.rest.factory.FactoryBranchRestDTOMapperV2;
+import org.twins.core.mappers.rest.factory.FactoryBranchRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryBranchService;
@@ -36,7 +36,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.BRANCH_MANAGE, Permissions.BRANCH_CREATE})
 public class FactoryBranchCreateController extends ApiController {
-    private final FactoryBranchRestDTOMapperV2 factoryBranchRestDTOMapperV2;
+    private final FactoryBranchRestDTOMapper factoryBranchRestDTOMapper;
     private final FactoryBranchCreateDTOReverseMapper factoryBranchCreateDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final FactoryBranchService factoryBranchService;
@@ -50,7 +50,7 @@ public class FactoryBranchCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory/{factoryId}/factory_branch/v1")
     public ResponseEntity<?> factoryBranchCreateV1(
-            @MapperContextBinding(roots = FactoryBranchRestDTOMapperV2.class, response = FactoryBranchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryBranchRestDTOMapper.class, response = FactoryBranchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_ID) @PathVariable UUID factoryId,
             @RequestBody FactoryBranchCreateRqDTOv1 request) {
         FactoryBranchRsDTOv1 rs = new FactoryBranchRsDTOv1();
@@ -59,7 +59,7 @@ public class FactoryBranchCreateController extends ApiController {
             branchEntity.setTwinFactoryId(factoryId);
             branchEntity = factoryBranchService.createFactoryBranch(branchEntity);
             rs
-                    .setFactoryBranch(factoryBranchRestDTOMapperV2.convert(branchEntity, mapperContext))
+                    .setFactoryBranch(factoryBranchRestDTOMapper.convert(branchEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

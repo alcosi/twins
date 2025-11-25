@@ -22,3 +22,5 @@ public class TwinClassFieldDescriptorUserLongDTOv1 implements TwinClassFieldDesc
     @Schema(description = "User filter list id for grabbing valid users", example = "")
     public UUID userFilterId;
 }
+
+

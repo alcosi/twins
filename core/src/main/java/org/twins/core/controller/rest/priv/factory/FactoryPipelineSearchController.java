@@ -25,7 +25,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryPipelineSearchRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineSearchRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineViewRsDTOv1;
-import org.twins.core.mappers.rest.factory.FactoryPipelineRestDTOMapperV2;
+import org.twins.core.mappers.rest.factory.FactoryPipelineRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryPipelineSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
@@ -46,7 +46,7 @@ public class FactoryPipelineSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final FactoryPipelineSearchService factoryPipelineSearchService;
-    private final FactoryPipelineRestDTOMapperV2 factoryPipelineRestDTOMapperV2;
+    private final FactoryPipelineRestDTOMapper factoryPipelineRestDTOMapper;
     private final FactoryPipelineSearchDTOReverseMapper factoryPipelineSearchDTOReverseMapper;
     private final FactoryPipelineService factoryPipelineService;
 
@@ -59,7 +59,7 @@ public class FactoryPipelineSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory_pipeline/search/v1")
     public ResponseEntity<?> factoryPipelineSearchV1(
-            @MapperContextBinding(roots = FactoryPipelineRestDTOMapperV2.class, response = FactoryPipelineSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryPipelineRestDTOMapper.class, response = FactoryPipelineSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody FactoryPipelineSearchRqDTOv1 request) {
         FactoryPipelineSearchRsDTOv1 rs = new FactoryPipelineSearchRsDTOv1();
@@ -67,7 +67,7 @@ public class FactoryPipelineSearchController extends ApiController {
             PaginationResult<TwinFactoryPipelineEntity> pipelines = factoryPipelineSearchService
                     .findFactoryPipelines(factoryPipelineSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setPipelines(factoryPipelineRestDTOMapperV2.convertCollection(pipelines.getList(), mapperContext))
+                    .setPipelines(factoryPipelineRestDTOMapper.convertCollection(pipelines.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(pipelines))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -87,13 +87,13 @@ public class FactoryPipelineSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/factory_pipeline/{pipelineId}/v1")
     public ResponseEntity<?> factoryPipelineViewV1(
-            @MapperContextBinding(roots = FactoryPipelineRestDTOMapperV2.class, response = FactoryPipelineViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryPipelineRestDTOMapper.class, response = FactoryPipelineViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_PIPELINE_ID) @PathVariable("pipelineId") UUID pipelineId) {
         FactoryPipelineViewRsDTOv1 rs = new FactoryPipelineViewRsDTOv1();
         try {
             TwinFactoryPipelineEntity pipeline = factoryPipelineService.findEntitySafe(pipelineId);
             rs
-                    .setPipeline(factoryPipelineRestDTOMapperV2.convert(pipeline, mapperContext))
+                    .setPipeline(factoryPipelineRestDTOMapper.convert(pipeline, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
