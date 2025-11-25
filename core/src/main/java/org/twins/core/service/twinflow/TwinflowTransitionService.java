@@ -580,7 +580,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (transition.getSrcTwinStatusId() != null && !twinEntity.getTwinStatusId().equals(transition.getSrcTwinStatusId()))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be performed for " + twinEntity.logDetailed()
                     + ". Given transition is valid only from status[" + transition.getSrcTwinStatusId() + "]");
-        if (TwinflowTransitionType.isMarketing(transition))
+        if (isMarketing(transition))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be performed for " + twinEntity.logDetailed()
                     + ". Prohibition of execution of marketing transition[" + transition.getTwinflowTransitionTypeId() + "]");
     }
@@ -597,6 +597,11 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (transition.getSrcTwinStatusId() != null && !transition.getSrcTwinStatusId().equals(entry.getKey().srcStatusId))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be performed for [" + entry.getValue().size() + "] twins."
                     + " Given transition is valid only from status[" + transition.getSrcTwinStatusId() + "]");
+    }
+
+    public static boolean isMarketing(TwinflowTransitionEntity transition) {
+        return transition.getTwinflowTransitionTypeId() == TwinflowTransitionType.MARKETING
+                || transition.getTwinflowTransitionTypeId() == TwinflowTransitionType.STATUS_CHANGE_MARKETING;
     }
 
     public TransitionContext createTransitionContext(TwinEntity twinEntity, String transitionAlias) throws ServiceException {
