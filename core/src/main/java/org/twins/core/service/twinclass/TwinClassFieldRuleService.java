@@ -4,8 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -13,10 +11,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldRuleRepository;
+import org.twins.core.dao.twinclass.*;
+import org.twins.core.domain.twinclass.TwinClassFieldRuleSave;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 
@@ -32,6 +28,7 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
     private final TwinClassFieldRuleRepository twinClassFieldRuleRepository;
     private final EntitySmartService entitySmartService;
     private final TwinClassFieldConditionService twinClassFieldConditionService;
+    private final TwinClassFieldRuleMapService twinClassFieldRuleMapService;
 
     @Lazy
     private final TwinClassService twinClassService;
@@ -51,28 +48,18 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
 
     @Override
     public boolean isEntityReadDenied(TwinClassFieldRuleEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return twinClassFieldService.isEntityReadDenied(entity.getTwinClassField(), readPermissionCheckMode);
+        return false;
     }
 
     @Override
     public boolean validateEntity(TwinClassFieldRuleEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        if (null == entity.getTwinClassFieldId())
-            return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_RULE_TWIN_CLASS_FIELD_NOT_SPECIFIED.getMessage());
         if (null == entity.getFieldOverwriterFeaturerId())
             return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_RULE_FEATURER_NOT_SPECIFIED.getMessage());
-        if(null == entity.getOverwrittenValue()
+        if (null == entity.getOverwrittenValue()
                 && null == entity.getOverwrittenRequired()
                 && entity.getFieldOverwriterFeaturerId() == FIELD_OVERWRITER_STUB_ID)
             return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_RULE_OVERWRITTEN_VALUE_NOT_SPECIFIED.getMessage());
-        /*
-        check overwriter params
-         */
-        switch (entityValidateMode) {
-            case beforeSave:
-                if (entity.getTwinClassField() == null || !entity.getTwinClassField().getId().equals(entity.getTwinClassFieldId()))
-                    entity.setTwinClassField(twinClassFieldService.findEntitySafe(entity.getTwinClassFieldId()));
-            default:
-        }
+
         return true;
     }
 
@@ -87,18 +74,23 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
      * </p>
      */
     @Transactional(rollbackFor = Throwable.class)
-    public List<TwinClassFieldRuleEntity> createRules(List<TwinClassFieldRuleEntity> rules) throws Exception {
+    public List<TwinClassFieldRuleEntity> createRules(List<TwinClassFieldRuleSave> rules) throws Exception {
         if (CollectionUtils.isEmpty(rules))
             return Collections.emptyList();
         List<TwinClassFieldRuleEntity> result = new ArrayList<>(rules.size());
         List<TwinClassFieldConditionEntity> conditionsToSave = new ArrayList<>();
-        for (TwinClassFieldRuleEntity rule : rules) {
+        List<TwinClassFieldRuleMapEntity> ruleMapsToSave = new ArrayList<>();
+
+        for (TwinClassFieldRuleSave ruleSave : rules) {
+            TwinClassFieldRuleEntity rule = ruleSave.getTwinClassFieldRule();
+
             if (rule.getFieldOverwriterFeaturerId() == null) {
                 rule.setFieldOverwriterFeaturerId(FIELD_OVERWRITER_STUB_ID);
             }
             if (rule.getId() == null) {
-                rule.setId(UUID.randomUUID()); //change to uuidV7
+                rule.setId(UUID.randomUUID()); // change to uuidV7
             }
+
             if (KitUtils.isNotEmpty(rule.getConditionKit())) {
                 for (var condition : rule.getConditionKit()) {
                     condition.setTwinClassFieldRuleId(rule.getId());
@@ -106,35 +98,26 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
                     conditionsToSave.add(condition);
                 }
             }
+
+            if (ruleSave.getTwinClassFieldIds() != null && !ruleSave.getTwinClassFieldIds().isEmpty()) {
+                for (UUID twinClassFieldId : ruleSave.getTwinClassFieldIds()) {
+                    TwinClassFieldRuleMapEntity ruleMap = new TwinClassFieldRuleMapEntity()
+                            .setTwinClassFieldRuleId(rule.getId())
+                            .setTwinClassFieldId(twinClassFieldId);
+                    ruleMapsToSave.add(ruleMap);
+                }
+            }
+
+            result.add(rule);
         }
-        entitySmartService.saveAllAndLog(rules, twinClassFieldRuleRepository);
+        entitySmartService.saveAllAndLog(result, twinClassFieldRuleRepository);
         if (!conditionsToSave.isEmpty())
-            twinClassFieldConditionService.saveConditions(conditionsToSave);
+            twinClassFieldConditionService.createConditions(conditionsToSave);
+        if (!ruleMapsToSave.isEmpty()) {
+            twinClassFieldRuleMapService.createRuleMaps(ruleMapsToSave);
+        }
         return result;
     }
-
-    public void loadRules(TwinClassFieldEntity ruleEntity) {
-        loadRules(Collections.singleton(ruleEntity));
-    }
-
-    public void loadRules(Collection<TwinClassFieldEntity> fieldEntities) {
-        Kit<TwinClassFieldEntity, UUID> needLoad = new Kit<>(TwinClassFieldEntity::getId);
-        for (TwinClassFieldEntity fieldEntity : fieldEntities) {
-            if (fieldEntity.getRuleKit() == null) {
-                needLoad.add(fieldEntity);
-            }
-        }
-        if (needLoad.isEmpty())
-            return;
-        KitGrouped<TwinClassFieldRuleEntity, UUID, UUID> rules = new KitGrouped<>(twinClassFieldRuleRepository.findByTwinClassFieldIdIn(needLoad.getIdSet()), TwinClassFieldRuleEntity::getId, TwinClassFieldRuleEntity::getTwinClassFieldId);
-        for (TwinClassFieldEntity fieldEntity : needLoad) {
-            if (rules.containsGroupedKey(fieldEntity.getId()))
-                fieldEntity.setRuleKit(new Kit<>(rules.getGrouped(fieldEntity.getId()), TwinClassFieldRuleEntity::getId));
-            else
-                fieldEntity.setRuleKit(Kit.EMPTY);
-        }
-    }
-
 
     /**
      * Removes every rule and its conditions associated with the given Twin-Class.
@@ -144,8 +127,11 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
     public void deleteRulesByTwinClass(UUID twinClassId) throws ServiceException {
         if (twinClassId == null)
             return;
+
         twinClassService.findEntitySafe(twinClassId);
         twinClassFieldConditionService.deleteConditions(twinClassId);
-        twinClassFieldRuleRepository.deleteByTwinClassId(twinClassId);
+        Set<UUID> ruleIdsToDelete = twinClassFieldRuleRepository.findRuleIdsByTwinClassId(twinClassId);
+        twinClassFieldRuleMapService.deleteRuleMaps(twinClassId);
+        twinClassFieldRuleRepository.deleteAllById(ruleIdsToDelete);
     }
 }

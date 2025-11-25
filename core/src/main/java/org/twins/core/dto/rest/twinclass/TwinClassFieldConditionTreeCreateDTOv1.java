@@ -6,13 +6,13 @@ import lombok.experimental.Accessors;
 import org.twins.core.enums.twinclass.LogicOperator;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "TwinClassFieldConditionCreateV1")
-public class TwinClassFieldConditionCreateDTOv1 {
-
+@Schema(name = "TwinClassFieldConditionTreeCreateV1")
+public class TwinClassFieldConditionTreeCreateDTOv1 {
     @Schema(description = "base (source) twin class field id")
     public UUID baseTwinClassFieldId;
 
@@ -25,10 +25,9 @@ public class TwinClassFieldConditionCreateDTOv1 {
     @Schema(description = "Condition evaluator parameters", example = "{}")
     public HashMap<String, String> conditionEvaluatorParams;
 
-    @Schema(description = "parent condition id")
-    public UUID parentTwinClassFieldConditionId;
-
     @Schema(description = "logic operator", example = "AND")
     public LogicOperator logicOperator;
 
+    @Schema(description = "list of atomic conditions that make up the rule")
+    public List<TwinClassFieldConditionTreeCreateDTOv1> childConditions;
 }

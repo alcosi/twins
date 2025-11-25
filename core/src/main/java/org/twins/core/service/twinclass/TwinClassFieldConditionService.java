@@ -5,11 +5,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -79,14 +81,16 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
         }
     }
 
-    public List<TwinClassFieldConditionEntity> saveConditions(Collection<TwinClassFieldConditionEntity> conditions) {
-        Iterable<TwinClassFieldConditionEntity> savedEntities = entitySmartService.saveAllAndLog(
-                conditions,
-                twinClassFieldConditionRepository
-        );
-        List<TwinClassFieldConditionEntity> result = StreamSupport.stream(savedEntities.spliterator(), false)
-                .collect(Collectors.toList());
-        return result;
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinClassFieldConditionEntity> createConditions(Collection<TwinClassFieldConditionEntity> conditions) throws ServiceException {
+        if (CollectionUtils.isEmpty(conditions))
+            return Collections.emptyList();
+
+       for (TwinClassFieldConditionEntity condition : conditions) {
+           validateEntityAndThrow(condition, EntitySmartService.EntityValidateMode.beforeSave);
+       }
+
+        return StreamSupport.stream(entityRepository().saveAll(conditions).spliterator(), false).toList();
     }
 
     public void deleteConditions(UUID twinClassId) throws ServiceException {
@@ -114,6 +118,8 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
 
     @Override
     public boolean validateEntity(TwinClassFieldConditionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (null == entity.getTwinClassFieldRuleId())
+            return logErrorAndReturnFalse(entity.logNormal() + " empty twinClassFieldRuleId");
         if (null == entity.getBaseTwinClassFieldId())
             return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_CONDITION_BASE_FIELD_NOT_SPECIFIED.getMessage());
         if (null == entity.getConditionEvaluatorFeaturerId())

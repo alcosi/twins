@@ -4,6 +4,7 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.enums.twinclass.LogicOperator;
 
 import java.util.UUID;
 
@@ -23,9 +24,12 @@ public class TwinClassFieldConditionDTOv1 {
     @Schema(description = "order of the condition inside the rule")
     public Integer conditionOrder;
 
-    @Schema(description = "group number – conditions inside the same group are AND-ed; different groups are OR-ed")
-    public Integer groupNo;
-
     @Schema(description = "condition descriptor", example = "")
     public TwinClassFieldConditionDescriptorDTO conditionDescriptor;
+
+    @Schema(description = "parent twin class field condition id")
+    public UUID parentTwinClassFieldConditionId;
+
+    @Schema(description = "logic operator id", example = "AND")
+    public LogicOperator logicOperatorId;
 }
