@@ -3,14 +3,15 @@ package org.twins.core.mappers.rest.datalist;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.twins.core.service.i18n.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
-import org.twins.core.mappers.rest.mappercontext.modes.DataListMode;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.DataListMode;
+import org.twins.core.service.i18n.I18nService;
 
 import static org.cambium.common.util.DateUtils.convertOrNull;
 
@@ -29,8 +30,8 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
             case MANAGED -> {
                 dst
                         .setId(src.getId())
-                        .setName(i18nService.translateToLocale(src.getNameI18nId()))
-                        .setDescription(i18nService.translateToLocale(src.getDescriptionI18NId()))
+                        .setName(I18nCacheHolder.addId(src.getNameI18nId()))
+                        .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
                         .setKey(src.getKey())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setUpdatedAt(convertOrNull(src.getUpdatedAt()))
@@ -47,8 +48,8 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
             case DETAILED ->
                 dst
                         .setId(src.getId())
-                        .setName(i18nService.translateToLocale(src.getNameI18nId()))
-                        .setDescription(i18nService.translateToLocale(src.getDescriptionI18NId()))
+                        .setName(I18nCacheHolder.addId(src.getNameI18nId()))
+                        .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
                         .setKey(src.getKey())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setUpdatedAt(convertOrNull(src.getUpdatedAt()))
@@ -56,7 +57,7 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
             case SHORT ->
                 dst
                         .setId(src.getId())
-                        .setName(i18nService.translateToLocale(src.getNameI18nId()));
+                        .setName(I18nCacheHolder.addId(src.getNameI18nId()));
         }
     }
     

@@ -2,7 +2,6 @@ package org.twins.core.service.projection;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
@@ -53,15 +52,15 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
     @Override
     public boolean validateEntity(ProjectionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entity.getSrcTwinPointerId() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty srcTwinPointerId");
+            return logErrorAndReturnFalse(entity.logNormal() + " empty srcTwinPointerId");
         if (entity.getSrcTwinClassFieldId() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty srcTwinClassFieldId");
+            return logErrorAndReturnFalse(entity.logNormal() + " empty srcTwinClassFieldId");
         if (entity.getDstTwinClassFieldId() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty dstTwinClassFieldId");
+            return logErrorAndReturnFalse(entity.logNormal() + " empty dstTwinClassFieldId");
         if (entity.getDstTwinClassId() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty dstTwinClassFieldId");
+            return logErrorAndReturnFalse(entity.logNormal() + " empty dstTwinClassFieldId");
         if (entity.getFieldProjectorFeaturerId() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty fieldProjectorFeaturerId");
+            return logErrorAndReturnFalse(entity.logNormal() + " empty fieldProjectorFeaturerId");
 
         switch (entityValidateMode) {
             case beforeSave:

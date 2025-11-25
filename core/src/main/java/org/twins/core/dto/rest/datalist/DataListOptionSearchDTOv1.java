@@ -77,6 +77,12 @@ public class DataListOptionSearchDTOv1 extends Request {
     @Schema(description = "external id not like list")
     public Set<String> externalIdNotLikeList;
 
+    @Schema(description = "external id list")
+    public Set<String> externalIdList;
+
+    @Schema(description = "external id exclude list")
+    public Set<String> externalIdExcludeList;
+
     @Schema(description = "datalist linked to given twin class fields list")
     public Set<UUID> validForTwinClassFieldIdList;
 

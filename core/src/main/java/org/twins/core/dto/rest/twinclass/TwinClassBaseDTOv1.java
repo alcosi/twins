@@ -120,6 +120,12 @@ public class TwinClassBaseDTOv1 {
     @Schema(description = "External JSON data")
     public Map<String, Object> externalJson;
 
+    @Schema(description = "")
+    public Boolean segment;
+
+    @Schema(description = "")
+    public Boolean hasSegment;
+
     @Schema(description = "segment class id")
     public Set<UUID> segmentClassIds;
 

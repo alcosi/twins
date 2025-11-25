@@ -38,7 +38,7 @@ public class FaceWT003RestDTOMapper extends RestSimpleDTOMapper<FaceWT003Entity,
 
         dst
                 .setLevel(src.getLevel())
-                .setTitle(i18nService.translateToLocale(src.getTitleI18nId(), titleContext))
+                .setTitle(i18nService.translateToLocale(src.getTitleI18nId(), titleContext)) //todo think over batch
                 .setMessage(i18nService.translateToLocale(src.getMessageI18nId(), messageContext))
                 .setIcon(resourceService.getResourceUri(src.getIconResource()))
                 .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "));

@@ -1,17 +1,18 @@
 package org.twins.core.mappers.rest.card;
 
 import lombok.RequiredArgsConstructor;
-import org.twins.core.service.i18n.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.card.CardEntity;
 import org.twins.core.dto.rest.card.CardDTOv1;
-import org.twins.core.mappers.rest.mappercontext.modes.CardMode;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.CardMode;
 import org.twins.core.mappers.rest.mappercontext.modes.WidgetMode;
 import org.twins.core.service.card.CardService;
+import org.twins.core.service.i18n.I18nService;
 
 
 @Component
@@ -32,7 +33,7 @@ public class CardRestDTOMapper extends RestSimpleDTOMapper<CardEntity, CardDTOv1
                 dst
                         .id(src.getId())
                         .key(src.getKey())
-                        .name(i18nService.translateToLocale(src.getNameI18NId()))
+                        .name(I18nCacheHolder.addId(src.getNameI18NId()))
                         .layoutKey(src.getCardLayout().getKey())
                         .logo(src.getLogo());
                 break;
@@ -40,7 +41,7 @@ public class CardRestDTOMapper extends RestSimpleDTOMapper<CardEntity, CardDTOv1
                 dst
                         .id(src.getId())
                         .key(src.getKey())
-                        .name(i18nService.translateToLocale(src.getNameI18NId()));
+                        .name(I18nCacheHolder.addId(src.getNameI18NId()));
                 break;
         }
         if (!cardWidgetRestDTOMapper.hideMode(mapperContext))

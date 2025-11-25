@@ -2,16 +2,18 @@ package org.twins.core.service.twinflow;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowFactoryEntity;
@@ -20,22 +22,27 @@ import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinSave;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.enums.factory.FactoryLauncher;
 import org.twins.core.service.factory.TwinFactoryService;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
 @Lazy
 @RequiredArgsConstructor
 public class TwinflowFactoryService extends EntitySecureFindServiceImpl<TwinflowFactoryEntity> {
-    private final TwinflowFactoryRepository repository;
+
     private final TwinflowService twinflowService;
     @Lazy
     private final TwinFactoryService twinFactoryService;
+    private final TwinflowFactoryRepository repository;
+    private final TwinflowFactoryRepository twinflowFactoryRepository;
 
     @Override
     public CrudRepository<TwinflowFactoryEntity, UUID> entityRepository() {
@@ -55,16 +62,70 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
 
     @Override
     public boolean validateEntity(TwinflowFactoryEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        if(entity.getTwinflowId() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinflowId");
-        if(entity.getTwinFactoryId() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinFactoryId");
-        if(entity.getTwinFactorylauncher() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty factoryLauncher");
-
         switch (entityValidateMode) {
-            case beforeSave:
+            case beforeSave -> {
+                if (entity.getTwinflowId() == null) {
+                    return logErrorAndReturnFalse(entity.logNormal() + " empty twinflowId");
+                }
+
+                if (entity.getTwinFactoryId() == null) {
+                    return logErrorAndReturnFalse(entity.logNormal() + " empty twinFactoryId");
+                }
+
+                if (entity.getTwinFactoryLauncher() == null) {
+                    return logErrorAndReturnFalse(entity.logNormal() + " empty factoryLauncher");
+                }
+
+                if (twinflowFactoryRepository.existsByTwinflowIdAndTwinFactoryLauncher(entity.getTwinflowId(), entity.getTwinFactoryLauncher())) {
+                    return logErrorAndReturnFalse(entity.logNormal() + " already exists");
+                }
+
+                if (entity.getTwinflow() == null || !entity.getTwinflow().getId().equals(entity.getTwinflowId())) {
+                    try {
+                        entity.setTwinflow(twinflowService.findEntitySafe(entity.getTwinflowId()));
+                    } catch (ServiceException e) {
+                        return logErrorAndReturnFalse("Twinflow with id[" + entity.getTwinflowId() + "] does not exist");
+                    }
+                }
+
+                if (entity.getTwinFactory() == null || !entity.getTwinFactory().getId().equals(entity.getTwinFactoryId())) {
+                    try {
+                        entity.setTwinFactory(twinFactoryService.findEntitySafe(entity.getTwinFactoryId()));
+                    } catch (ServiceException e) {
+                        return logErrorAndReturnFalse("TwinFactory with id[" + entity.getTwinFactoryId() + "] does not exist");
+                    }
+                }
+            }
         }
+        return true;
+    }
+
+    @Override
+    public boolean validateEntities(Collection<TwinflowFactoryEntity> entities, EntitySmartService.EntityValidateMode entityValidateMode) {
+        try {
+            Kit<TwinflowEntity, UUID> twinflowKit = twinflowService.findEntitiesSafe(entities.stream().map(TwinflowFactoryEntity::getTwinflowId).toList());
+
+            for (var entity : entities) {
+                entity.setTwinflow(twinflowKit.get(entity.getTwinflowId()));
+            }
+        } catch (ServiceException e) {
+            return logErrorAndReturnFalse("List contains invalid twinflow id");
+        }
+
+        try {
+            Kit<TwinFactoryEntity, UUID> twinFactoryKit = twinFactoryService.findEntitiesSafe(entities.stream().map(TwinflowFactoryEntity::getTwinFactoryId).toList());
+
+            for (var entity : entities) {
+                entity.setTwinFactory(twinFactoryKit.get(entity.getTwinFactoryId()));
+            }
+        } catch (ServiceException e) {
+            return logErrorAndReturnFalse("List contains invalid twin factory id");
+        }
+
+        if (!existsNone(entities)) {
+            return logErrorAndReturnFalse("Entity from list already exists in db");
+        }
+
         return true;
     }
 
@@ -86,7 +147,7 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
         KitGrouped<TwinflowFactoryEntity, UUID, UUID> loaded = new KitGrouped<>(repository.findByTwinflowIdIn(needLoad.getIdSet()), TwinflowFactoryEntity::getId, TwinflowFactoryEntity::getTwinflowId);
         for (var twinflow : needLoad) {
             if (loaded.containsGroupedKey(twinflow.getId())) {
-                twinflow.setFactoriesKit(new Kit<>(loaded.getGrouped(twinflow.getId()), TwinflowFactoryEntity::getTwinFactorylauncher));
+                twinflow.setFactoriesKit(new Kit<>(loaded.getGrouped(twinflow.getId()), TwinflowFactoryEntity::getTwinFactoryLauncher));
             } else {
                 twinflow.setFactoriesKit(Kit.EMPTY);
             }
@@ -104,7 +165,7 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
     public void runFactoryOn(TwinSave twinSave, TwinflowFactoryEntity twinflowFactory) throws ServiceException {
         if (twinflowFactory == null)
             return;
-        FactoryContext factoryContext = new FactoryContext(twinflowFactory.getTwinFactorylauncher(), FactoryBranchId.root(twinflowFactory.getTwinFactoryId()));
+        FactoryContext factoryContext = new FactoryContext(twinflowFactory.getTwinFactoryLauncher(), FactoryBranchId.root(twinflowFactory.getTwinFactoryId()));
         factoryContext.add(new FactoryItem().setOutput(twinSave).setFactoryContext(factoryContext));
         FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(twinflowFactory.getTwinFactoryId(), factoryContext);
         if (result.getUpdates().size() > 1 || !result.getCreates().isEmpty() || !result.getDeletes().isEmpty()) {
@@ -126,7 +187,7 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
             return;
         }
         log.info("twin change task will be created for {} ", twinflowFactory.logNormal());
-        twinChangesCollector.addPostponedChange(twinEntity.getId(), twinflowFactory.getTwinFactoryId(), twinflowFactory.getTwinFactorylauncher());
+        twinChangesCollector.addPostponedChange(twinEntity.getId(), twinflowFactory.getTwinFactoryId(), twinflowFactory.getTwinFactoryLauncher());
     }
 
     private static TwinEntity detectTwinEntity(TwinSave twinSave) {
@@ -136,5 +197,53 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
         } else
             twinEntity = twinSave.getTwinEntity();
         return twinEntity;
+    }
+
+    public List<TwinflowFactoryEntity> createTwinflowFactories(List<TwinflowFactoryEntity> twinflowFactoryEntity) throws ServiceException {
+        return StreamSupport.stream(saveSafe(twinflowFactoryEntity).spliterator(), false).toList();
+    }
+
+    public List<TwinflowFactoryEntity> updateTwinflowFactory(Collection<TwinflowFactoryEntity> updateEntities) throws ServiceException {
+        Kit<TwinflowFactoryEntity, UUID> updateKit = new Kit<>(updateEntities, TwinflowFactoryEntity::getId);
+        Kit<TwinflowFactoryEntity, UUID> dbEntities = findEntitiesSafe(updateKit.getIdSet());
+        ChangesHelper changesHelper = new ChangesHelper();
+        ChangesHelperMulti<TwinflowFactoryEntity> changesHelperMulti = new ChangesHelperMulti<>();
+
+        for (var dbEntity : dbEntities) {
+            updateEntityFieldByValueIfNotNull(
+                    updateKit.get(dbEntity.getId()).getTwinflowId(),
+                    dbEntity,
+                    TwinflowFactoryEntity::getTwinflowId,
+                    TwinflowFactoryEntity::setTwinflowId,
+                    TwinflowFactoryEntity.Fields.twinflowId,
+                    changesHelper
+            );
+
+            updateEntityFieldByValueIfNotNull(
+                    updateKit.get(dbEntity.getId()).getTwinFactoryId(),
+                    dbEntity,
+                    TwinflowFactoryEntity::getTwinFactoryId,
+                    TwinflowFactoryEntity::setTwinFactoryId,
+                    TwinflowFactoryEntity.Fields.twinFactoryId,
+                    changesHelper
+            );
+
+            updateEntityFieldByValueIfNotNull(
+                    updateKit.get(dbEntity.getId()).getTwinFactoryLauncher(),
+                    dbEntity,
+                    TwinflowFactoryEntity::getTwinFactoryLauncher,
+                    TwinflowFactoryEntity::setTwinFactoryLauncher,
+                    TwinflowFactoryEntity.Fields.twinFactoryLauncher,
+                    changesHelper
+            );
+            changesHelperMulti.add(dbEntity, changesHelper);
+        }
+
+        return StreamSupport.stream(updateSafe(changesHelperMulti).spliterator(), false).toList();
+    }
+
+    public boolean existsNone(Collection<TwinflowFactoryEntity> entities) {
+        return entities.stream()
+                .noneMatch(entity -> twinflowFactoryRepository.existsByTwinflowIdAndTwinFactoryLauncher(entity.getTwinflowId(), entity.getTwinFactoryLauncher()));
     }
 }

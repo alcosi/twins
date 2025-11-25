@@ -36,7 +36,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.factory.FactoryLauncher;
+import org.twins.core.enums.factory.FactoryLauncher;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.domain.twinoperation.TwinOperation;
@@ -118,6 +118,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinTagService twinTagService;
     @Lazy
     private final TwinAliasService twinAliasService;
+    @Lazy
+    private final TwinFieldAttributeService twinFieldAttributeService;
     private final UserService userService;
     @Autowired
     private TwinFactoryService twinFactoryService;
@@ -347,6 +349,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional(rollbackFor = Throwable.class)
     public List<TwinEntity> createTwinsAsync(List<TwinCreate> twinCreateList) throws ServiceException {
+        // todo try to use parallel stream for this
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         for (TwinCreate twinCreate : twinCreateList) {
             createTwin(twinCreate, twinChangesCollector);
@@ -402,12 +405,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             attachmentService.checkAndSetAttachmentTwin(twinCreate.getAttachmentEntityList(), twinEntity);
             attachmentService.addAttachments(twinCreate.getAttachmentEntityList(), twinChangesCollector);
         }
-        if (CollectionUtils.isNotEmpty(twinCreate.getLinksEntityList()))
+        if (CollectionUtils.isNotEmpty(twinCreate.getLinksEntityList())) {
             twinLinkService.addLinks(twinEntity, twinCreate.getLinksEntityList(), twinChangesCollector);
-        if (CollectionUtils.isNotEmpty(twinCreate.getMarkersAdd()))
+        }
+        if (CollectionUtils.isNotEmpty(twinCreate.getMarkersAdd())) {
             twinMarkerService.addMarkers(twinEntity, twinCreate.getMarkersAdd(), twinChangesCollector);
+        }
         if (CollectionUtils.isNotEmpty(twinCreate.getTagsAddNew()) || CollectionUtils.isNotEmpty(twinCreate.getTagsAddExisted())) {
             twinTagService.createTags(twinEntity, twinCreate.getTagsAddNew(), twinCreate.getTagsAddExisted(), twinChangesCollector);
+        }
+        if (CollectionUtils.isNotEmpty(twinCreate.getTwinFieldAttributeEntityList())) {
+            twinFieldAttributeService.addAttributes(twinEntity, twinCreate.getTwinFieldAttributeEntityList(), twinChangesCollector);
         }
         runFactoryAfterCreate(twinCreate, twinChangesCollector);
     }
@@ -682,6 +690,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinMarkerService.addMarkers(twinUpdate.getDbTwinEntity(), twinUpdate.getMarkersAdd(), twinChangesCollector);
         twinMarkerService.deleteMarkers(twinUpdate.getDbTwinEntity(), twinUpdate.getMarkersDelete(), twinChangesCollector);
         twinTagService.updateTwinTags(twinUpdate.getDbTwinEntity(), twinUpdate.getTagsDelete(), twinUpdate.getTagsAddNew(), twinUpdate.getTagsAddExisted(), twinChangesCollector);
+        twinFieldAttributeService.cudAttributes(twinUpdate.getDbTwinEntity(), twinUpdate.getTwinFieldAttributeCUD(), twinChangesCollector);
         runFactoryAfterUpdate(twinUpdate, twinChangesCollector);
     }
 
@@ -1068,6 +1077,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public TwinEntity duplicateTwin(TwinEntity srcTwin, UUID newTwinId) throws ServiceException {
+        if (newTwinId == null)
+            newTwinId = UUID.randomUUID();
         TwinEntity duplicateEntity = fillDuplicate(srcTwin, newTwinId);
         duplicateEntity = createTwin(duplicateEntity);
         cloneTwinFieldListAndSave(srcTwin, duplicateEntity);

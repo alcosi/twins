@@ -4,18 +4,19 @@ import lombok.Getter;
 import org.cambium.common.util.ChangesHelper;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class EntitiesChangesCollector {
     @Getter
-    Map<Class<?>, Map<Object, ChangesHelper>> saveEntityMap = new HashMap<>();
+    Map<Class<?>, Map<Object, ChangesHelper>> saveEntityMap = new ConcurrentHashMap<>();
     @Getter
-    Map<Class<?>, Set<Object>> deleteEntityMap = new HashMap<>();
+    Map<Class<?>, Set<Object>> deleteEntityMap = new ConcurrentHashMap<>();
     //    Map<Class<?>, Set<UUID>> deleteEntityIdMap = new HashMap<>(); id's is not enough for drafting
 
     public EntitiesChangesCollector() {}
 
     protected ChangesHelper detectChangesHelper(Object entity) {
-        Map<Object, ChangesHelper> entityClassChanges = saveEntityMap.computeIfAbsent(entity.getClass(), k -> new HashMap<>());
+        Map<Object, ChangesHelper> entityClassChanges = saveEntityMap.computeIfAbsent(entity.getClass(), k -> new ConcurrentHashMap<>());
         return entityClassChanges.computeIfAbsent(entity, k -> new ChangesHelper());
     }
 

@@ -8,7 +8,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.factory.TwinFactoryEntity;
-import org.twins.core.domain.factory.FactoryLauncher;
+import org.twins.core.enums.factory.FactoryLauncher;
 
 import java.util.UUID;
 
@@ -27,7 +27,7 @@ public class TwinflowFactoryEntity implements EasyLoggable {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "twin_factory_launcher_id")
-    private FactoryLauncher twinFactorylauncher;
+    private FactoryLauncher twinFactoryLauncher;
 
     @Column(name = "twin_factory_id")
     private UUID twinFactoryId;

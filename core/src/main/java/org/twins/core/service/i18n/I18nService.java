@@ -224,6 +224,23 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
         return translateToLocale(i18nId, resolveCurrentUserLocale(), null);
     }
 
+    public Map<UUID, String> translateToLocale(Set<UUID> idsToLoad) {
+        if (CollectionUtils.isEmpty(idsToLoad)) {
+            return Collections.emptyMap();
+        } else if (idsToLoad.size() == 1) {
+            UUID id = idsToLoad.iterator().next();
+            return Map.of(id, translateToLocale(id));
+        } else {
+            Map<UUID, String> result = new HashMap<>();
+            Locale locale = resolveCurrentUserLocale();
+            i18nTranslationRepository.findByI18nIdInAndLocale(idsToLoad, locale).forEach(t -> result.put(t.getI18nId(), t.getTranslation()));
+            if (idsToLoad.size() != result.size()) {
+                idsToLoad.stream().filter(id -> !result.containsKey(id)).forEach(id -> result.put(id, ""));
+            }
+            return result;
+        }
+    }
+
     @Transactional
     public I18nEntity duplicateI18n(UUID srcI18nId) {
         return duplicateI18n(i18nRepository.findById(srcI18nId).get());
@@ -275,7 +292,8 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
         i18nEntity
                 .setType(i18nType)
                 .setId(null)
-                .setId(i18nRepository.save(i18nEntity).getId());
+                .setId(i18nRepository.save(i18nEntity).getId())
+                .setDomainId(resolveCurrentDomainId());
         if (KitUtils.isEmpty(i18nEntity.getTranslationsKit()))
             return i18nEntity;
         for (var entry : i18nEntity.getTranslationsKit().getCollection()) {
@@ -291,9 +309,11 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
     public List<I18nEntity> createI18nAndTranslations(I18nType i18nType, List<I18nEntity> i18nEntities) throws ServiceException {
         if (null == i18nType)
             throw new ServiceException(ErrorCodeI18n.INCORRECT_CONFIGURATION, "i18n type not specified");
+        UUID domainId = resolveCurrentDomainId();
         i18nEntities.forEach(i -> {
             i.setType(i18nType);
             i.setId(null);
+            i.setDomainId(domainId);
         });
         var saved = StreamSupport.stream(i18nRepository.saveAll(i18nEntities).spliterator(), false).toList();
         var translations = saved.stream().flatMap(i18nEntity -> {
@@ -312,10 +332,41 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
         return i18nEntities;
     }
 
+    @Transactional
+    public void createI18nAndTranslationsLight(Collection<I18nTranslationLight> translations) {
+        UUID domainId = resolveCurrentDomainId();
+        List<I18nEntity> i18nEntities = translations.stream()
+                .map(light -> new I18nEntity()
+                        .setId(light.i18nId())
+                        .setType(light.i18nType())
+                        .setDomainId(domainId))
+                .toList();
+
+        List<I18nTranslationEntity> translationEntities = translations.stream()
+                .map(light -> new I18nTranslationEntity()
+                        .setI18nId(light.i18nId())
+                        .setLocale(light.locale())
+                        .setTranslation(light.translation()))
+                .toList();
+
+        i18nRepository.saveAll(i18nEntities);
+        i18nTranslationRepository.saveAll(translationEntities);
+    }
+
     private String addCopyPostfix(String originalStr) {
         if (org.apache.commons.lang3.StringUtils.isEmpty(originalStr))
             return originalStr;
         return originalStr + " [copy]";
+    }
+
+    public UUID resolveCurrentDomainId() {
+        ApiUser apiUser;
+        try {
+            apiUser = authService.getApiUser();
+            return apiUser.getDomainId();
+        } catch (ServiceException e) {
+            return null;
+        }
     }
 
     public Locale resolveCurrentUserLocale() {
@@ -381,6 +432,4 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
 
         return i18nEntity;
     }
-
-
 }

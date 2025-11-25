@@ -127,4 +127,27 @@ public enum TwinClassFieldMode implements MapperMode {
             };
         }
     }
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum Projection2TwinClassFieldMode implements MapperModePointer<TwinClassFieldMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2),
+        @FieldNameConstants.Include MANAGED(3);
+
+
+        final int priority;
+
+        @Override
+        public TwinClassFieldMode point() {
+            return switch (this) {
+                case HIDE -> TwinClassFieldMode.HIDE;
+                case SHORT -> TwinClassFieldMode.SHORT;
+                case DETAILED -> TwinClassFieldMode.DETAILED;
+                case MANAGED -> TwinClassFieldMode.MANAGED;
+            };
+        }
+    }
+
 }

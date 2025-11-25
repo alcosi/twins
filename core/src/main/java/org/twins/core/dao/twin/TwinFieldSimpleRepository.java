@@ -18,7 +18,6 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
 
     List<TwinFieldSimpleEntity> findByTwinIdInAndTwinClassFieldIdIn(Collection<UUID> twinIdSet, Collection<UUID> twinClassFieldIds);
     boolean existsByTwinClassFieldId(UUID twinClassFieldId);
-    boolean existsByTwinClassFieldIdAndValue(UUID twinClassFieldId, String value);
 
     @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and child.twinStatusId in :childrenTwinStatusIdList")
     long countChildrenTwinsWithStatusIn(@Param("headTwinId") UUID headTwinId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
@@ -141,18 +140,24 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             @Param("statusIdList") Collection<UUID> statusIdList);
 
     @Query(value = """
-        select COUNT(*) = 0 from TwinFieldSimpleEntity tfs
-        inner join TwinEntity t on tfs.twinId = t.id
-        where t.ownerUserId = :ownerUserId and tfs.value = :value and tfs.twinClassFieldId = :twinClassFieldId
+    select COUNT(*) = 0 from TwinFieldSimpleEntity tfs
+    inner join TwinEntity t on tfs.twinId = t.id
+    where t.ownerUserId = :ownerUserId and tfs.value = :value and tfs.twinClassFieldId = :twinClassFieldId and tfs.twinId != :excludeTwinId
     """)
-    boolean existsByTwinClassFieldIdAndValueAndOwnerUserId(UUID twinClassFieldId, String value, UUID ownerUserId);
+    boolean existsByTwinClassFieldIdAndValueAndOwnerUserIdExcludingTwin(UUID twinClassFieldId, String value, UUID ownerUserId, UUID excludeTwinId);
 
     @Query(value = """
-        select COUNT(*) = 0 from TwinFieldSimpleEntity tfs
-        inner join TwinEntity t on tfs.twinId = t.id
-        where t.ownerBusinessAccountId = :ownerBusinessAccountId and tfs.value = :value and tfs.twinClassFieldId = :twinClassFieldId
+    select COUNT(*) = 0 from TwinFieldSimpleEntity tfs
+    inner join TwinEntity t on tfs.twinId = t.id
+    where t.ownerBusinessAccountId = :ownerBusinessAccountId and tfs.value = :value and tfs.twinClassFieldId = :twinClassFieldId and tfs.twinId != :excludeTwinId
     """)
-    boolean existsByTwinClassFieldIdAndValueAndOwnerBusinessAccountId(UUID twinClassFieldId, String value, UUID ownerBusinessAccountId);
+    boolean existsByTwinClassFieldIdAndValueAndOwnerBusinessAccountIdExcludingTwin(UUID twinClassFieldId, String value, UUID ownerBusinessAccountId, UUID excludeTwinId);
+
+    @Query(value = """
+    select COUNT(*) = 0 from TwinFieldSimpleEntity tfs
+    where tfs.twinClassFieldId = :twinClassFieldId and tfs.value = :value and tfs.twinId != :excludeTwinId
+    """)
+    boolean existsByTwinClassFieldIdAndValueExcludingTwin(UUID twinClassFieldId, String value, UUID excludeTwinId);
 
     @Query(value = """
         select new org.twins.core.dao.twin.TwinFieldHeadSumCountProjection(t.headTwinId, sum(cast(tfs.value as double)), count(tfs.id))

@@ -6,6 +6,7 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
@@ -39,8 +40,8 @@ public class TwinflowBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
             case DETAILED:
                 dst
                         .setId(src.getId())
-                        .setName(src.getNameI18NId() != null ? i18nService.translateToLocale(src.getNameI18NId()) : "")
-                        .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
+                        .setName(I18nCacheHolder.addId(src.getNameI18NId()))
+                        .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
                         .setTwinClassId(src.getTwinClassId())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setCreatedByUserId(src.getCreatedByUserId())
