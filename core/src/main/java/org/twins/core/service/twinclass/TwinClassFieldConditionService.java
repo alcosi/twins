@@ -27,6 +27,8 @@ import java.util.stream.StreamSupport;
 @Service
 @RequiredArgsConstructor
 public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<TwinClassFieldConditionEntity> {
+    public static final int MAX_RECURSION_DEPTH = 5;
+
     private final TwinClassFieldConditionRepository twinClassFieldConditionRepository;
     private final EntitySmartService entitySmartService;
 
@@ -84,11 +86,7 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
         if (CollectionUtils.isEmpty(conditions))
             return Collections.emptyList();
 
-       for (TwinClassFieldConditionEntity condition : conditions) {
-           validateEntityAndThrow(condition, EntitySmartService.EntityValidateMode.beforeSave);
-       }
-
-        return StreamSupport.stream(entityRepository().saveAll(conditions).spliterator(), false).toList();
+        return StreamSupport.stream(saveSafe(conditions).spliterator(), false).toList();
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -104,19 +102,15 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
             allEntities.addAll(treeEntities);
         }
 
-        for (TwinClassFieldConditionEntity condition : allEntities) {
-            validateEntityAndThrow(condition, EntitySmartService.EntityValidateMode.beforeSave);
-        }
-
-        return StreamSupport.stream(entityRepository().saveAll(allEntities).spliterator(), false).toList();
+        return StreamSupport.stream(saveSafe(allEntities).spliterator(), false).toList();
     }
 
     /**
      * Converts a condition tree into a flat list of entities
      */
-    private List<TwinClassFieldConditionEntity> flattenConditionTree(TwinClassFieldConditionTree tree) {
+    private List<TwinClassFieldConditionEntity> flattenConditionTree(TwinClassFieldConditionTree tree) throws ServiceException {
         List<TwinClassFieldConditionEntity> result = new ArrayList<>();
-        flattenTreeRecursive(tree, null, result);
+        flattenTreeRecursive(tree, null, result, 0);
         return result;
     }
 
@@ -125,7 +119,12 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
      */
     private void flattenTreeRecursive(TwinClassFieldConditionTree node,
                                       UUID parentId,
-                                      List<TwinClassFieldConditionEntity> result) {
+                                      List<TwinClassFieldConditionEntity> result,
+                                      int currentDepth) throws ServiceException {
+        if (currentDepth > MAX_RECURSION_DEPTH) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_CONDITION_DEPTH_EXCEEDED, " maximum depth is " + MAX_RECURSION_DEPTH);
+        }
+
         TwinClassFieldConditionEntity entity = new TwinClassFieldConditionEntity()
                 .setId(UUID.randomUUID())
                 .setTwinClassFieldRuleId(node.getTwinClassFieldRuleId())
@@ -140,7 +139,7 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
 
         if (node.getChildConditions() != null && !node.getChildConditions().isEmpty()) {
             for (TwinClassFieldConditionTree childTree : node.getChildConditions()) {
-                flattenTreeRecursive(childTree, entity.getId(), result);
+                flattenTreeRecursive(childTree, entity.getId(), result, currentDepth + 1);
             }
         }
     }
