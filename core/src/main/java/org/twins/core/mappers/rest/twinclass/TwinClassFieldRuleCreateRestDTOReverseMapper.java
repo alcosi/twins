@@ -14,7 +14,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 @Component
 @RequiredArgsConstructor
 public class TwinClassFieldRuleCreateRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassFieldRuleCreateDTOv1, TwinClassFieldRuleSave> {
-    private final TwinClassFieldConditionRestDTOReverseMapper twinClassFieldConditionRestDTOReverseMapper;
+    private final TwinClassFieldConditionSaveRestDTOReverseMapper twinClassFieldConditionSaveRestDTOReverseMapper;
 
     @Override
     public void map(TwinClassFieldRuleCreateDTOv1 src, TwinClassFieldRuleSave dst, MapperContext mapperContext) throws Exception {
@@ -34,7 +34,7 @@ public class TwinClassFieldRuleCreateRestDTOReverseMapper extends RestSimpleDTOM
 
         // map conditions (if provided)
         if (CollectionUtils.isNotEmpty(src.getConditions())) {
-            dst.getTwinClassFieldRule().setConditionKit(new Kit<>(twinClassFieldConditionRestDTOReverseMapper.convertCollection(src.getConditions()), TwinClassFieldConditionEntity::getId));
+            dst.getTwinClassFieldRule().setConditionKit(new Kit<>(twinClassFieldConditionSaveRestDTOReverseMapper.convertCollection(src.getConditions()), TwinClassFieldConditionEntity::getId));
         }
     }
 }

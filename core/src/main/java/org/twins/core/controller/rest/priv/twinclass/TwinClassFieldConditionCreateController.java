@@ -19,16 +19,16 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
+import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
-import org.twins.core.domain.twinclass.TwinClassFieldRuleSave;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldRuleCreateRqDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldRuleRsDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionCreateRqDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twinclass.TwinClassFieldRuleCreateRestDTOReverseMapper;
-import org.twins.core.mappers.rest.twinclass.TwinClassFieldRuleRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassFieldConditionCreateRestDTOReverseMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassFieldConditionRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassFieldRuleService;
+import org.twins.core.service.twinclass.TwinClassFieldConditionService;
 
 import java.util.List;
 
@@ -44,31 +44,31 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_CLASS_FIELD_RULE_MANAGE, Permissions.TWIN_CLASS_FIELD_RULE_CREATE})
-public class TwinClassFieldRuleCreateController extends ApiController {
+@ProtectedBy({Permissions.TWIN_CLASS_FIELD_RULE_MANAGE, Permissions.TWIN_CLASS_FIELD_RULE_UPDATE})
+public class TwinClassFieldConditionCreateController extends ApiController {
 
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
-    private final TwinClassFieldRuleCreateRestDTOReverseMapper twinClassFieldRuleCreateDTOReverseMapper;
-    private final TwinClassFieldRuleRestDTOMapper twinClassFieldRuleRestDTOMapper;
-    private final TwinClassFieldRuleService twinClassFieldRuleService;
+    private final TwinClassFieldConditionCreateRestDTOReverseMapper twinClassFieldConditionCreateRestDTOReverseMapper;
+    private final TwinClassFieldConditionRestDTOMapper twinClassFieldConditionRestDTOMapper;
+    private final TwinClassFieldConditionService twinClassFieldConditionService;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinClassFieldRuleCreateV1", summary = "Create a rule that defines dependent fields behaviour")
+    @Operation(operationId = "twinClassFieldConditionCreateV1", summary = "Create new conditions for twin class rule")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Rule has been successfully created", content = {
+            @ApiResponse(responseCode = "200", description = "Conditions successfully created", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinClassFieldRuleRsDTOv1.class))}),
+                    @Schema(implementation = TwinClassFieldConditionRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/twin_class_field_rule/v1")
-    public ResponseEntity<?> twinClassFieldRuleCreateV1(
-            @MapperContextBinding(roots = TwinClassFieldRuleRestDTOMapper.class, response = TwinClassFieldRuleRsDTOv1.class) MapperContext mapperContext,
-            @RequestBody TwinClassFieldRuleCreateRqDTOv1 request) {
-        TwinClassFieldRuleRsDTOv1 rs = new TwinClassFieldRuleRsDTOv1();
+    @PostMapping(value = "/private/twin_class_field_condition/v1")
+    public ResponseEntity<?> twinClassFieldConditionCreateV1(
+            @MapperContextBinding(roots = TwinClassFieldConditionRestDTOMapper.class, response = TwinClassFieldConditionRsDTOv1.class) MapperContext mapperContext,
+            @RequestBody TwinClassFieldConditionCreateRqDTOv1 request) {
+        TwinClassFieldConditionRsDTOv1 rs = new TwinClassFieldConditionRsDTOv1();
         try {
-            List<TwinClassFieldRuleEntity> ruleEntities = twinClassFieldRuleService.createRules(twinClassFieldRuleCreateDTOReverseMapper.convertCollection(request.getRules(), mapperContext));
+            List<TwinClassFieldConditionEntity> conditionEntities = twinClassFieldConditionService.createConditions(twinClassFieldConditionCreateRestDTOReverseMapper.convertCollection(request.getConditions(), mapperContext));
 
             rs
-                    .setRules(twinClassFieldRuleRestDTOMapper.convertCollection(ruleEntities, mapperContext))
+                    .setConditions(twinClassFieldConditionRestDTOMapper.convertCollection(conditionEntities, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

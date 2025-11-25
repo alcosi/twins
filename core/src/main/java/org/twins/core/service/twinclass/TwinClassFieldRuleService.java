@@ -112,7 +112,7 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
         }
         entitySmartService.saveAllAndLog(result, twinClassFieldRuleRepository);
         if (!conditionsToSave.isEmpty())
-            twinClassFieldConditionService.saveConditions(conditionsToSave);
+            twinClassFieldConditionService.createConditions(conditionsToSave);
         if (!ruleMapsToSave.isEmpty()) {
             twinClassFieldRuleMapService.createRuleMaps(ruleMapsToSave);
         }
