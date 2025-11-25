@@ -16,14 +16,11 @@ import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
+import org.twins.core.domain.twinclass.TwinClassFieldConditionTree;
 import org.twins.core.exception.ErrorCodeTwins;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Slf4j
@@ -38,6 +35,7 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
 
     @Lazy
     private final TwinClassFieldService twinClassFieldService;
+    private final TwinClassFieldRuleService twinClassFieldRuleService;
 
 
     public void loadConditions(TwinClassFieldRuleEntity ruleEntity) {
@@ -91,6 +89,60 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
        }
 
         return StreamSupport.stream(entityRepository().saveAll(conditions).spliterator(), false).toList();
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinClassFieldConditionEntity> createConditionsTree(Collection<TwinClassFieldConditionTree> conditionTrees) throws ServiceException {
+        if (CollectionUtils.isEmpty(conditionTrees)) {
+            return Collections.emptyList();
+        }
+
+        List<TwinClassFieldConditionEntity> allEntities = new ArrayList<>();
+
+        for (TwinClassFieldConditionTree tree : conditionTrees) {
+            List<TwinClassFieldConditionEntity> treeEntities = flattenConditionTree(tree);
+            allEntities.addAll(treeEntities);
+        }
+
+        for (TwinClassFieldConditionEntity condition : allEntities) {
+            validateEntityAndThrow(condition, EntitySmartService.EntityValidateMode.beforeSave);
+        }
+
+        return StreamSupport.stream(entityRepository().saveAll(allEntities).spliterator(), false).toList();
+    }
+
+    /**
+     * Converts a condition tree into a flat list of entities
+     */
+    private List<TwinClassFieldConditionEntity> flattenConditionTree(TwinClassFieldConditionTree tree) {
+        List<TwinClassFieldConditionEntity> result = new ArrayList<>();
+        flattenTreeRecursive(tree, null, result);
+        return result;
+    }
+
+    /**
+     * Recursively traverses the tree and init entities
+     */
+    private void flattenTreeRecursive(TwinClassFieldConditionTree node,
+                                      UUID parentId,
+                                      List<TwinClassFieldConditionEntity> result) {
+        TwinClassFieldConditionEntity entity = new TwinClassFieldConditionEntity()
+                .setId(UUID.randomUUID())
+                .setTwinClassFieldRuleId(node.getTwinClassFieldRuleId())
+                .setBaseTwinClassFieldId(node.getBaseTwinClassFieldId())
+                .setConditionOrder(node.getConditionOrder())
+                .setConditionEvaluatorFeaturerId(node.getConditionEvaluatorFeaturerId())
+                .setConditionEvaluatorParams(node.getConditionEvaluatorParams())
+                .setLogicOperatorId(node.getLogicOperator())
+                .setParentTwinClassFieldConditionId(parentId);
+
+        result.add(entity);
+
+        if (node.getChildConditions() != null && !node.getChildConditions().isEmpty()) {
+            for (TwinClassFieldConditionTree childTree : node.getChildConditions()) {
+                flattenTreeRecursive(childTree, entity.getId(), result);
+            }
+        }
     }
 
     public void deleteConditions(UUID twinClassId) throws ServiceException {
