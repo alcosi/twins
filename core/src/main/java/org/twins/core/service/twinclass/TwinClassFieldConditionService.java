@@ -37,7 +37,6 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
 
     @Lazy
     private final TwinClassFieldService twinClassFieldService;
-    private final TwinClassFieldRuleService twinClassFieldRuleService;
 
 
     public void loadConditions(TwinClassFieldRuleEntity ruleEntity) {
