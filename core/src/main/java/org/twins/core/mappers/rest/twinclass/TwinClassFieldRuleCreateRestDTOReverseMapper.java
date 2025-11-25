@@ -1,10 +1,8 @@
 package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.domain.twinclass.TwinClassFieldRuleSave;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldRuleCreateDTOv1;
@@ -14,7 +12,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 @Component
 @RequiredArgsConstructor
 public class TwinClassFieldRuleCreateRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassFieldRuleCreateDTOv1, TwinClassFieldRuleSave> {
-    private final TwinClassFieldConditionSaveRestDTOReverseMapper twinClassFieldConditionSaveRestDTOReverseMapper;
+    private final TwinClassFieldConditionTreeRestDTOReverseMapper twinClassFieldConditionTreeRestDTOReverseMapper;
 
     @Override
     public void map(TwinClassFieldRuleCreateDTOv1 src, TwinClassFieldRuleSave dst, MapperContext mapperContext) throws Exception {
@@ -32,9 +30,9 @@ public class TwinClassFieldRuleCreateRestDTOReverseMapper extends RestSimpleDTOM
                     .setFieldOverwriterParams(src.getFieldParamOverwriterParams());
         }
 
-        // map conditions (if provided)
-        // if (CollectionUtils.isNotEmpty(src.getConditions())) {
-        //     dst.getTwinClassFieldRule().setConditionKit(new Kit<>(twinClassFieldConditionSaveRestDTOReverseMapper.convertCollection(src.getConditions()), TwinClassFieldConditionEntity::getId));
-        // }
+        //map conditions (if provided)
+        if (CollectionUtils.isNotEmpty(src.getConditions())) {
+            dst.setTwinClassFieldConditionTrees(twinClassFieldConditionTreeRestDTOReverseMapper.convertCollection(src.getConditions(), mapperContext));
+        }
     }
 }

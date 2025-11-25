@@ -20,7 +20,6 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
-import org.twins.core.domain.twinclass.TwinClassFieldRuleSave;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldRuleCreateRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldRuleRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;

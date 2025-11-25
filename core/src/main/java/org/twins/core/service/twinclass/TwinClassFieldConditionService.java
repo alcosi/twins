@@ -16,20 +16,19 @@ import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
+import org.twins.core.domain.twinclass.TwinClassFieldConditionTree;
 import org.twins.core.exception.ErrorCodeTwins;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<TwinClassFieldConditionEntity> {
+    public static final int MAX_RECURSION_DEPTH = 5;
+
     private final TwinClassFieldConditionRepository twinClassFieldConditionRepository;
     private final EntitySmartService entitySmartService;
 
@@ -38,6 +37,7 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
 
     @Lazy
     private final TwinClassFieldService twinClassFieldService;
+    private final TwinClassFieldRuleService twinClassFieldRuleService;
 
 
     public void loadConditions(TwinClassFieldRuleEntity ruleEntity) {
@@ -86,11 +86,62 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
         if (CollectionUtils.isEmpty(conditions))
             return Collections.emptyList();
 
-       for (TwinClassFieldConditionEntity condition : conditions) {
-           validateEntityAndThrow(condition, EntitySmartService.EntityValidateMode.beforeSave);
-       }
+        return StreamSupport.stream(saveSafe(conditions).spliterator(), false).toList();
+    }
 
-        return StreamSupport.stream(entityRepository().saveAll(conditions).spliterator(), false).toList();
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinClassFieldConditionEntity> createConditionsTree(Collection<TwinClassFieldConditionTree> conditionTrees) throws ServiceException {
+        if (CollectionUtils.isEmpty(conditionTrees)) {
+            return Collections.emptyList();
+        }
+
+        List<TwinClassFieldConditionEntity> allEntities = new ArrayList<>();
+
+        for (TwinClassFieldConditionTree tree : conditionTrees) {
+            List<TwinClassFieldConditionEntity> treeEntities = flattenConditionTree(tree);
+            allEntities.addAll(treeEntities);
+        }
+
+        return StreamSupport.stream(saveSafe(allEntities).spliterator(), false).toList();
+    }
+
+    /**
+     * Converts a condition tree into a flat list of entities
+     */
+    private List<TwinClassFieldConditionEntity> flattenConditionTree(TwinClassFieldConditionTree tree) throws ServiceException {
+        List<TwinClassFieldConditionEntity> result = new ArrayList<>();
+        flattenTreeRecursive(tree, null, result, 0);
+        return result;
+    }
+
+    /**
+     * Recursively traverses the tree and init entities
+     */
+    private void flattenTreeRecursive(TwinClassFieldConditionTree node,
+                                      UUID parentId,
+                                      List<TwinClassFieldConditionEntity> result,
+                                      int currentDepth) throws ServiceException {
+        if (currentDepth > MAX_RECURSION_DEPTH) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_CONDITION_DEPTH_EXCEEDED, " maximum depth is " + MAX_RECURSION_DEPTH);
+        }
+
+        TwinClassFieldConditionEntity entity = new TwinClassFieldConditionEntity()
+                .setId(UUID.randomUUID())
+                .setTwinClassFieldRuleId(node.getTwinClassFieldRuleId())
+                .setBaseTwinClassFieldId(node.getBaseTwinClassFieldId())
+                .setConditionOrder(node.getConditionOrder())
+                .setConditionEvaluatorFeaturerId(node.getConditionEvaluatorFeaturerId())
+                .setConditionEvaluatorParams(node.getConditionEvaluatorParams())
+                .setLogicOperatorId(node.getLogicOperator())
+                .setParentTwinClassFieldConditionId(parentId);
+
+        result.add(entity);
+
+        if (node.getChildConditions() != null && !node.getChildConditions().isEmpty()) {
+            for (TwinClassFieldConditionTree childTree : node.getChildConditions()) {
+                flattenTreeRecursive(childTree, entity.getId(), result, currentDepth + 1);
+            }
+        }
     }
 
     public void deleteConditions(UUID twinClassId) throws ServiceException {
