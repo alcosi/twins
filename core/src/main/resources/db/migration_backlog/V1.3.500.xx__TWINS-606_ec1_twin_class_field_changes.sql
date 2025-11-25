@@ -10,11 +10,11 @@ $$
 begin
     update twin_class_field
         set has_projected_fields=true
-    where id=new.dst_twin_class_field_id;
+    where id=new.src_twin_class_field_id;
 
     update twin_class_field
         set projection_field=true
-    where id=new.src_twin_class_field_id;
+    where id=new.dst_twin_class_field_id;
 
     return old;
 end;
@@ -34,11 +34,11 @@ $$
 begin
     update twin_class_field
     set has_projected_fields=true
-    where id=new.dst_twin_class_field_id;
+    where id=new.src_twin_class_field_id;
 
     update twin_class_field
     set projection_field=true
-    where id=new.src_twin_class_field_id;
+    where id=new.dst_twin_class_field_id;
 
     return new;
 end;
