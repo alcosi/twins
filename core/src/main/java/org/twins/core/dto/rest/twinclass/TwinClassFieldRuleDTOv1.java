@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * REST representation of {@link TwinClassFieldRuleEntity}.
+ * REST representation of {link TwinClassFieldRuleEntity}.
  * <p>
  * It contains all rule-level settings as well as the list of atomic
  * {@link TwinClassFieldConditionDTOv1 conditions} that must be evaluated in order to decide

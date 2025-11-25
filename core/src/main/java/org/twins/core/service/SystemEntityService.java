@@ -258,7 +258,9 @@ public class SystemEntityService {
                         .setRequired(field.required())
                         .setSystem(field.system())
                         .setDependentField(false)
-                        .setHasDependentFields(false));
+                        .setHasDependentFields(false)
+                        .setProjectionField(false)
+                        .setHasProjectedFields(false));
             }
         }
         entitySmartService.saveAllAndLog(i18nEntities, i18nRepository);
