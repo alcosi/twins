@@ -33,6 +33,6 @@ public class TwinClassFieldRuleCreateDTOv1 {
     public Integer rulePriority;
 
     @Schema(description = "list of atomic conditions that make up the rule")
-    public List<TwinClassFieldConditionCreateDTOv1> conditions;
+    public List<TwinClassFieldConditionTreeCreateDTOv1> conditions;
 
 }
