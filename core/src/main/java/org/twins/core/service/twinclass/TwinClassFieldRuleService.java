@@ -93,9 +93,9 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
             }
 
             if (ruleSave.getTwinClassFieldConditionTrees() != null) {
-                for (var condition : ruleSave.getTwinClassFieldConditionTrees()) {
-                    condition.setTwinClassFieldRuleId(rule.getId());
-                    conditionsToSave.add(condition);
+                for (var conditionTree : ruleSave.getTwinClassFieldConditionTrees()) {
+                    setRuleIdForConditionTree(conditionTree, rule.getId());
+                    conditionsToSave.add(conditionTree);
                 }
             }
 
@@ -117,6 +117,15 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
             twinClassFieldRuleMapService.createRuleMaps(ruleMapsToSave);
         }
         return result;
+    }
+
+    private void setRuleIdForConditionTree(TwinClassFieldConditionTree conditionTree, UUID ruleId) {
+        conditionTree.setTwinClassFieldRuleId(ruleId);
+        if (conditionTree.getChildConditions() != null) {
+            for (TwinClassFieldConditionTree child : conditionTree.getChildConditions()) {
+                setRuleIdForConditionTree(child, ruleId);
+            }
+        }
     }
 
     /**
