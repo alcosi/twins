@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.enums.twinclass.LogicOperator;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -28,6 +29,6 @@ public class TwinClassFieldConditionCreateDTOv1 {
     public UUID parentTwinClassFieldConditionId;
 
     @Schema(description = "logic operator", example = "AND")
-    public String logicOperator;
+    public LogicOperator logicOperator;
 
 }

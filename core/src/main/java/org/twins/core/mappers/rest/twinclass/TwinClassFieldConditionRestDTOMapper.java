@@ -51,7 +51,7 @@ public class TwinClassFieldConditionRestDTOMapper extends RestSimpleDTOMapper<Tw
                         .setBaseTwinClassFieldId(src.getBaseTwinClassFieldId())
                         .setConditionOrder(src.getConditionOrder())
                         .setParentTwinClassFieldConditionId(src.getParentTwinClassFieldConditionId())
-                        .setLogicOperatorId(String.valueOf(src.getLogicOperatorId()));
+                        .setLogicOperatorId(src.getLogicOperatorId());
                 if (src.getConditionEvaluatorFeaturerId() != null) {
                     ConditionEvaluator<?> evaluator = featurerService.getFeaturer(src.getConditionEvaluatorFeaturerId(), ConditionEvaluator.class);
                     ConditionDescriptor descriptor = evaluator.getConditionDescriptor(src);
