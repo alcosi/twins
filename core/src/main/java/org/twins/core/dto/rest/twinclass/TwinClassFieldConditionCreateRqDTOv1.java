@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "TwinClassFieldRuleCreateRqV1")
+@Schema(name = "TwinClassFieldConditionCreateRqV1")
 public class TwinClassFieldConditionCreateRqDTOv1 extends Request {
     @Schema(description = "conditions")
     public List<TwinClassFieldConditionCreateDTOv1> conditions;

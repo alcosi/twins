@@ -32,14 +32,6 @@ import org.twins.core.service.twinclass.TwinClassFieldConditionService;
 
 import java.util.List;
 
-/**
- * REST-controller that allows to create a {@link TwinClassFieldRuleEntity} together with its
- * child {@code twin_class_field_condition} rows.
- * <p>
- * Endpoint is aligned with other *Create* controllers existing in the code-base, therefore the
- * implementation closely follows {@code TwinClassFieldCreateController} and
- * {@code TransitionTriggerCreateController} patterns.
- */
 @Tag(description = "", name = ApiTag.TWIN_CLASS)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
