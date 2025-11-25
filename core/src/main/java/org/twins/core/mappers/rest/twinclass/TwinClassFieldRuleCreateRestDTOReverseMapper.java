@@ -33,8 +33,8 @@ public class TwinClassFieldRuleCreateRestDTOReverseMapper extends RestSimpleDTOM
         }
 
         // map conditions (if provided)
-        if (CollectionUtils.isNotEmpty(src.getConditions())) {
-            dst.getTwinClassFieldRule().setConditionKit(new Kit<>(twinClassFieldConditionSaveRestDTOReverseMapper.convertCollection(src.getConditions()), TwinClassFieldConditionEntity::getId));
-        }
+        // if (CollectionUtils.isNotEmpty(src.getConditions())) {
+        //     dst.getTwinClassFieldRule().setConditionKit(new Kit<>(twinClassFieldConditionSaveRestDTOReverseMapper.convertCollection(src.getConditions()), TwinClassFieldConditionEntity::getId));
+        // }
     }
 }
