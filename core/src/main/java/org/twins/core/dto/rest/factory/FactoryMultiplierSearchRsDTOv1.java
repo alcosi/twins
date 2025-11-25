@@ -18,5 +18,5 @@ public class FactoryMultiplierSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - factory multiplier list")
-    public List<FactoryMultiplierDTOv2> multipliers;
+    public List<FactoryMultiplierDTOv1> multipliers;
 }

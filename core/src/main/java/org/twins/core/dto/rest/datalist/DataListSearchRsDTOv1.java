@@ -18,5 +18,5 @@ public class DataListSearchRsDTOv1 extends Response {
     public PaginationDTOv1 pagination;
 
     @Schema(description = "data list")
-    public List<DataListDTOv2> dataListList;
+    public List<DataListDTOv1> dataListList;
 }

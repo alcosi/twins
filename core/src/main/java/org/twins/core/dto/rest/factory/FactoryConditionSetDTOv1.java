@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.LocalDateTime;
@@ -25,6 +26,7 @@ public class FactoryConditionSetDTOv1 {
     public String description;
 
     @Schema(description = "created by user id", example = DTOExamples.USER_ID)
+    @RelatedObject(type = UserDTOv1.class, name = "createdByUser")
     public UUID createdByUserId;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
@@ -50,3 +52,5 @@ public class FactoryConditionSetDTOv1 {
     @Schema(description = "count in factory eraser usages", example = DTOExamples.COUNT)
     public Integer inFactoryEraserUsagesCount;
 }
+
+

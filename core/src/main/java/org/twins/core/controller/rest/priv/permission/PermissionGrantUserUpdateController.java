@@ -22,9 +22,9 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryEraserSaveRsDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGrantUserSaveRsDTOV1;
 import org.twins.core.dto.rest.permission.PermissionGrantUserUpdateRqDTOv1;
-import org.twins.core.mappers.rest.factory.FactoryEraserRestDTOMapperV2;
+import org.twins.core.mappers.rest.factory.FactoryEraserRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.permission.PermissionGrantUserRestDTOMapperV2;
+import org.twins.core.mappers.rest.permission.PermissionGrantUserRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionGrantUserUpdateDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantUserService;
@@ -40,7 +40,7 @@ import java.util.UUID;
 public class PermissionGrantUserUpdateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final PermissionGrantUserUpdateDTOReverseMapper permissionGrantUserUpdateDTOReverseMapper;
-    private final PermissionGrantUserRestDTOMapperV2 permissionGrantUserRestDTOMapperV2;
+    private final PermissionGrantUserRestDTOMapper permissionGrantUserRestDTOMapper;
     private final PermissionGrantUserService permissionGrantUserService;
 
     @ParametersApiUserHeaders
@@ -52,7 +52,7 @@ public class PermissionGrantUserUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/permission_grant/user/{permissionGrantUserId}/v1")
     public ResponseEntity<?> permissionGrantUserUpdateV1(
-            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryEraserRestDTOMapper.class, response = FactoryEraserSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GRANT_USER_ID) @PathVariable UUID permissionGrantUserId,
             @RequestBody PermissionGrantUserUpdateRqDTOv1 request) {
         PermissionGrantUserSaveRsDTOV1 rs = new PermissionGrantUserSaveRsDTOV1();
@@ -60,7 +60,7 @@ public class PermissionGrantUserUpdateController extends ApiController {
             PermissionGrantUserEntity entity = permissionGrantUserUpdateDTOReverseMapper.convert(request.getPermissionGrantUser());
             entity = permissionGrantUserService.updatePermissionGrantUser(entity.setId(permissionGrantUserId));
             rs
-                    .setPermissionGrantUser(permissionGrantUserRestDTOMapperV2.convert(entity, mapperContext))
+                    .setPermissionGrantUser(permissionGrantUserRestDTOMapper.convert(entity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

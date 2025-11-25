@@ -54,11 +54,10 @@ public class LinkBackwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, L
                         .setName(I18nCacheHolder.addId(src.getBackwardNameI18NId()));
         }
 
-        if (mapperContext.hasModeButNot(TwinClassMode.LinkDst2TwinClassMode.HIDE))
-            dst
-                    .setDstTwinClassId(src.getSrcTwinClassId())
-                    .setDstTwinClass(twinClassRestDTOMapper.convertOrPostpone(src.getSrcTwinClass(), mapperContext
-                            .forkOnPoint(TwinClassMode.LinkDst2TwinClassMode.SHORT)));
+        if (mapperContext.hasModeButNot(TwinClassMode.LinkDst2TwinClassMode.HIDE)) {
+            dst.setDstTwinClassId(src.getSrcTwinClassId());
+            twinClassRestDTOMapper.convertOrPostpone(src.getSrcTwinClass(), mapperContext.forkOnPoint(TwinClassMode.LinkDst2TwinClassMode.SHORT));
+        }
     }
 
     @Override

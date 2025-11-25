@@ -14,5 +14,5 @@ import java.util.List;
 @Schema(name = "FactoryConditionSetListRsDTOv1")
 public class FactoryConditionSetListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "results - condition list")
-    public List<FactoryConditionSetDTOv2> conditionSets;
+    public List<FactoryConditionSetDTOv1> conditionSets;
 }

@@ -24,7 +24,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.link.LinkUpdateDTOv1;
 import org.twins.core.dto.rest.link.LinkUpdateRsDTOv1;
 import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
-import org.twins.core.mappers.rest.link.LinkForwardRestDTOV3Mapper;
+import org.twins.core.mappers.rest.link.LinkForwardRestDTOV2Mapper;
 import org.twins.core.mappers.rest.link.LinkUpdateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -43,7 +43,7 @@ public class LinkUpdateController extends ApiController {
     private final LinkService linkService;
     private final LinkUpdateRestDTOReverseMapper linkUpdateRestDTOReverseMapper;
     private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
-    private final LinkForwardRestDTOV3Mapper linkForwardRestDTOV3Mapper;
+    private final LinkForwardRestDTOV2Mapper linkForwardRestDTOV2Mapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
@@ -55,7 +55,7 @@ public class LinkUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/link/{linkId}/v1")
     public ResponseEntity<?> linkUpdateV1(
-            @MapperContextBinding(roots = {LinkForwardRestDTOV3Mapper.class}, response = LinkUpdateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = {LinkForwardRestDTOV2Mapper.class}, response = LinkUpdateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.LINK_ID) @PathVariable UUID linkId,
             @RequestBody LinkUpdateDTOv1 request) {
         LinkUpdateRsDTOv1 rs = new LinkUpdateRsDTOv1();
@@ -65,7 +65,7 @@ public class LinkUpdateController extends ApiController {
             LinkUpdate linkUpdate = linkUpdateRestDTOReverseMapper.convert(request).setId(linkId);
             LinkEntity linkEntity = linkService.updateLink(linkUpdate, forwardNameI18n, backwardNameI18n);
             rs
-                    .setLink(linkForwardRestDTOV3Mapper.convert(linkEntity, mapperContext))
+                    .setLink(linkForwardRestDTOV2Mapper.convert(linkEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Schema(name = "FactoryMultiplierRsV1")
 public class FactoryMultiplierRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "results - factory multiplier")
-    public FactoryMultiplierDTOv2 factoryMultiplier;
+    public FactoryMultiplierDTOv1 factoryMultiplier;
 }

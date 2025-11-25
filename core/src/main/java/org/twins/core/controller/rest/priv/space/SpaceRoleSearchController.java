@@ -28,7 +28,7 @@ import org.twins.core.dto.rest.space.SpaceRoleSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.space.SpaceRoleDTOMapperV2;
+import org.twins.core.mappers.rest.space.SpaceRoleDTOMapper;
 import org.twins.core.mappers.rest.space.SpaceRoleSearchDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.space.SpaceRoleSearchService;
@@ -43,7 +43,7 @@ public class SpaceRoleSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final SpaceRoleSearchDTOReverseMapper spaceRoleSearchDTOReverseMapper;
     private final SpaceRoleSearchService spaceRoleSearchService;
-    private final SpaceRoleDTOMapperV2 spaceRoleDTOMapperV2;
+    private final SpaceRoleDTOMapper spaceRoleDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "spaceRoleSearchListV1", summary = "Return a list of all space role for the current domain")
@@ -54,7 +54,7 @@ public class SpaceRoleSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/space_role/search/v1")
     public ResponseEntity<?> spaceRoleSearchListV1(
-            @MapperContextBinding(roots = SpaceRoleDTOMapperV2.class, response = SpaceRoleSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = SpaceRoleDTOMapper.class, response = SpaceRoleSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody SpaceRoleSearchRqDTOv1 request,
             @SimplePaginationParams SimplePagination pagination) {
         SpaceRoleSearchRsDTOv1 rs = new SpaceRoleSearchRsDTOv1();
@@ -62,7 +62,7 @@ public class SpaceRoleSearchController extends ApiController {
             PaginationResult<SpaceRoleEntity> spaceRoleList = spaceRoleSearchService
                     .findSpaceRole(spaceRoleSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setSpaceRoles(spaceRoleDTOMapperV2.convertCollection(spaceRoleList.getList(), mapperContext))
+                    .setSpaceRoles(spaceRoleDTOMapper.convertCollection(spaceRoleList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(spaceRoleList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {

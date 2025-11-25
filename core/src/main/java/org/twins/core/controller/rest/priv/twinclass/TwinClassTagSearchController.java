@@ -29,7 +29,7 @@ import org.twins.core.dto.rest.twinclass.TagSearchRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TagSearchRsDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
-import org.twins.core.mappers.rest.datalist.DataListRestDTOMapperV2;
+import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.twinclass.TagSearchDTOReverseMapper;
@@ -66,7 +66,7 @@ public class TwinClassTagSearchController extends ApiController {
     })
     @PostMapping(value = "/private/twin_class/{twinClassId}/tag/search/v1")
     public ResponseEntity<?> tagSearchV1(
-            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = TagSearchRsDTOv1.class)
+            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = TagSearchRsDTOv1.class)
             @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,

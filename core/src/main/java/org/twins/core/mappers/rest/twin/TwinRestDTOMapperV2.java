@@ -82,8 +82,8 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
         var fieldsValues = twinFieldValueRestDTOMapperV2.convertCollection(fields, mapperContext);
 
         dst
-                .fields(new HashMap<>(fieldsValues.size()))
-                .fieldsMap(new HashMap<>(fieldsValues.size()));
+                .setFields(new HashMap<>(fieldsValues.size()))
+                .setFieldsMap(new HashMap<>(fieldsValues.size()));
 
         if (mapperContext.hasMode(TwinFieldAttributeMode.SHOW) && (src.getTwinFieldAttributeKit() == null || src.getTwinFieldAttributeKit().isEmpty())) {
             twinFieldAttributeService.loadAttributes(Collections.singletonList(src));
@@ -106,12 +106,12 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
                 fieldDto.setFieldAttributes(fieldAttributesMap);
             }
             if (mapMode == TwinFieldCollectionMapMode.KEY) {
-                dst.fields().put(fieldKey, fieldValue);
+                dst.getFields().put(fieldKey, fieldValue);
             } else {
-                dst.fields().put(fieldId.toString(), fieldValue);
+                dst.getFields().put(fieldId.toString(), fieldValue);
             }
 
-            dst.fieldsMap().put(fieldId, fieldDto);
+            dst.getFieldsMap().put(fieldId, fieldDto);
         }
     }
 

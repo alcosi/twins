@@ -19,7 +19,7 @@ import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 public class DataListProjectionRestDTOMapper extends RestSimpleDTOMapper<DataListProjectionEntity, DataListProjectionDTOv1> {
 
     @MapperModePointerBinding(modes = DataListMode.DataListProjection2DataListMode.class)
-    private final DataListRestDTOMapperV2 dataListRestDTOMapperV2;
+    private final DataListRestDTOMapper dataListRestDTOMapper;
 
     @MapperModePointerBinding(modes = UserMode.DataListProjection2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapperV2;
@@ -38,8 +38,8 @@ public class DataListProjectionRestDTOMapper extends RestSimpleDTOMapper<DataLis
             dst
                     .setSrcDataListId(src.getId())
                     .setDstDataListId(dst.getId());
-            dataListRestDTOMapperV2.postpone(src.getSrcDataList(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListMode.DataListProjection2DataListMode.SHORT)));
-            dataListRestDTOMapperV2.postpone(src.getDstDataList(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListMode.DataListProjection2DataListMode.SHORT)));
+            dataListRestDTOMapper.postpone(src.getSrcDataList(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListMode.DataListProjection2DataListMode.SHORT)));
+            dataListRestDTOMapper.postpone(src.getDstDataList(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListMode.DataListProjection2DataListMode.SHORT)));
         }
 
         if (mapperContext.hasModeButNot(UserMode.DataListProjection2UserMode.HIDE)) {

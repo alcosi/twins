@@ -21,3 +21,5 @@ public class I18nTranslationDTOv1 {
     @Schema(description = "translation", example = DTOExamples.TRANSLATION)
     public String translation;
 }
+
+
