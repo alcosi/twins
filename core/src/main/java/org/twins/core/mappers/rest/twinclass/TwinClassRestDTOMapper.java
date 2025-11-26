@@ -81,6 +81,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     @MapperModePointerBinding(modes = FaceMode.TwinClassPage2FaceMode.class)
     private final FaceRestDTOMapper faceRestDTOMapper;
 
+    @MapperModePointerBinding(modes = TwinClassFreezeMode.TwinClassMode2TwinClassFreezeMode.class)
     private final TwinClassFreezeDTOMapper twinClassFreezeDTOMapper;
 
     private final I18nService i18nService;
