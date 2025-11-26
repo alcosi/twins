@@ -12,6 +12,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twinclass.*;
+import org.twins.core.domain.twinclass.TwinClassFieldConditionTree;
 import org.twins.core.domain.twinclass.TwinClassFieldRuleSave;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
@@ -78,7 +79,7 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
         if (CollectionUtils.isEmpty(rules))
             return Collections.emptyList();
         List<TwinClassFieldRuleEntity> result = new ArrayList<>(rules.size());
-        List<TwinClassFieldConditionEntity> conditionsToSave = new ArrayList<>();
+        List<TwinClassFieldConditionTree> conditionsToSave = new ArrayList<>();
         List<TwinClassFieldRuleMapEntity> ruleMapsToSave = new ArrayList<>();
 
         for (TwinClassFieldRuleSave ruleSave : rules) {
@@ -91,11 +92,10 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
                 rule.setId(UUID.randomUUID()); // change to uuidV7
             }
 
-            if (KitUtils.isNotEmpty(rule.getConditionKit())) {
-                for (var condition : rule.getConditionKit()) {
-                    condition.setTwinClassFieldRuleId(rule.getId());
-                    condition.setTwinClassFieldRule(rule);
-                    conditionsToSave.add(condition);
+            if (ruleSave.getTwinClassFieldConditionTrees() != null) {
+                for (var conditionTree : ruleSave.getTwinClassFieldConditionTrees()) {
+                    setRuleIdForConditionTree(conditionTree, rule.getId());
+                    conditionsToSave.add(conditionTree);
                 }
             }
 
@@ -112,11 +112,20 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
         }
         entitySmartService.saveAllAndLog(result, twinClassFieldRuleRepository);
         if (!conditionsToSave.isEmpty())
-            twinClassFieldConditionService.createConditions(conditionsToSave);
+            twinClassFieldConditionService.createConditionsTree(conditionsToSave);
         if (!ruleMapsToSave.isEmpty()) {
             twinClassFieldRuleMapService.createRuleMaps(ruleMapsToSave);
         }
         return result;
+    }
+
+    private void setRuleIdForConditionTree(TwinClassFieldConditionTree conditionTree, UUID ruleId) {
+        conditionTree.setTwinClassFieldRuleId(ruleId);
+        if (conditionTree.getChildConditions() != null) {
+            for (TwinClassFieldConditionTree child : conditionTree.getChildConditions()) {
+                setRuleIdForConditionTree(child, ruleId);
+            }
+        }
     }
 
     /**
