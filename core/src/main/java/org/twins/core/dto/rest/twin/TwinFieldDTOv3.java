@@ -45,7 +45,7 @@ public class TwinFieldDTOv3 implements ContainsRelatedObjects {
         return getFieldRelated(TwinDTOv2.class);
     }
 
-    public UserDTOv1 getValueAsdUser() {
+    public UserDTOv1 getValueAsUser() {
         return getFieldRelated(UserDTOv1.class);
     }
 
@@ -62,7 +62,7 @@ public class TwinFieldDTOv3 implements ContainsRelatedObjects {
         return getFieldRelatedObjects(TwinDTOv2.class);
     }
 
-    public List<UserDTOv1> catsToUsers() {
+    public List<UserDTOv1> getValueAsUsers() {
         return getFieldRelatedObjects(UserDTOv1.class);
     }
 
