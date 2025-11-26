@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.UUID;
 
 @Data
@@ -22,4 +23,7 @@ public class TwinFieldAttributeDTOv1 {
 
     @Schema(description = "changed at")
     public LocalDateTime changedAt;
+
+    @Schema(description = "context")
+    public HashMap<String, String> context;
 }
