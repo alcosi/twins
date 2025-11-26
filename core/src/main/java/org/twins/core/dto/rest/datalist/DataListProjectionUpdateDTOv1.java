@@ -10,7 +10,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "DataListProjectionCreateV1")
+@Schema(name = "DataListProjectionUpdateV1")
 public class DataListProjectionUpdateDTOv1 extends DataListProjectionSaveDTOv1 {
     @Schema
     public UUID id;
