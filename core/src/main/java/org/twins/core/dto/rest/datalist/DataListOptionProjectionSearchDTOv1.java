@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name =  "DataListProjectionSearchV1")
+@Schema(name =  "DataListOptionProjectionSearchV1")
 public class DataListOptionProjectionSearchDTOv1 {
     @Schema(description = "id list")
     public Set<UUID> idList;
