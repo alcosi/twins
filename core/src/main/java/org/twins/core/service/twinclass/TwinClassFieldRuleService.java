@@ -20,6 +20,8 @@ import org.twins.core.featurer.FeaturerTwins;
 import java.util.*;
 import java.util.function.Function;
 
+import static org.twins.core.service.twinclass.TwinClassFieldConditionService.MAX_RECURSION_DEPTH;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -94,7 +96,7 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
 
             if (ruleSave.getTwinClassFieldConditionTrees() != null) {
                 for (var conditionTree : ruleSave.getTwinClassFieldConditionTrees()) {
-                    setRuleIdForConditionTree(conditionTree, rule.getId());
+                    setRuleIdForConditionTree(conditionTree, rule.getId(), 0);
                     conditionsToSave.add(conditionTree);
                 }
             }
@@ -119,11 +121,15 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
         return result;
     }
 
-    private void setRuleIdForConditionTree(TwinClassFieldConditionTree conditionTree, UUID ruleId) {
+    private void setRuleIdForConditionTree(TwinClassFieldConditionTree conditionTree, UUID ruleId, int currentDepth) throws ServiceException {
+        if (currentDepth > MAX_RECURSION_DEPTH) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_CONDITION_DEPTH_EXCEEDED, " maximum depth is " + MAX_RECURSION_DEPTH);
+        }
+
         conditionTree.setTwinClassFieldRuleId(ruleId);
         if (conditionTree.getChildConditions() != null) {
             for (TwinClassFieldConditionTree child : conditionTree.getChildConditions()) {
-                setRuleIdForConditionTree(child, ruleId);
+                setRuleIdForConditionTree(child, ruleId, currentDepth + 1);
             }
         }
     }
