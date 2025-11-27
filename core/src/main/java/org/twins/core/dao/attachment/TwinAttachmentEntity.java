@@ -80,7 +80,7 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
     @Column(name = "storage_id", nullable = false)
     private UUID storageId;
 
-    @Column(name = "order")
+    @Column(name = "'order'")
     private Integer order;
 
     @ManyToOne
