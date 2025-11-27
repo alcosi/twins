@@ -80,7 +80,8 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
                     .setSize(src.getSize())
                     .setTitle(src.getTitle())
                     .setExternalId(src.getExternalId())
-                    .setStorageLink(attachmentService.getAttachmentUri(src));
+                    .setStorageLink(attachmentService.getAttachmentUri(src))
+                    .setOrder(src.getOrder());
             case SHORT -> dst
                     .setId(src.getId())
                     .setStorageLink(attachmentService.getAttachmentUri(src));

@@ -52,7 +52,8 @@ public class AttachmentSearchService {
                 checkFieldLikeIn(search.getTitleNotLikeList(), true, true, TwinAttachmentEntity.Fields.title),
                 checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinAttachmentEntity.Fields.description),
                 checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinAttachmentEntity.Fields.description),
-                checkFieldLocalDateTimeBetween(search.getCreatedAt(), TwinAttachmentEntity.Fields.createdAt)
+                checkFieldLocalDateTimeBetween(search.getCreatedAt(), TwinAttachmentEntity.Fields.createdAt),
+                checkFieldLongRange(search.getOrder(), TwinAttachmentEntity.Fields.order)
         );
     }
 }

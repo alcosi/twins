@@ -77,9 +77,11 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
     @Column(name = "twin_class_field_id")
     private UUID twinClassFieldId;
 
-
     @Column(name = "storage_id", nullable = false)
     private UUID storageId;
+
+    @Column(name = "`order`")
+    private Integer order;
 
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
@@ -146,7 +148,8 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
                 .setTwinflowTransitionId(twinflowTransitionId)
                 .setViewPermission(viewPermission)
                 .setViewPermissionId(viewPermissionId)
-                .setSize(size);
+                .setSize(size)
+                .setOrder(order);
     }
 
     public String easyLog(Level level) {
