@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.AttachmentSearch;
 import org.twins.core.dto.rest.attachment.AttachmentSearchRqDTOv1;
 import org.twins.core.mappers.rest.DataTimeRangeDTOReverseMapper;
+import org.twins.core.mappers.rest.LongRangeDTOReverseMapper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
@@ -12,6 +13,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 @AllArgsConstructor
 public class AttachmentSearchDTOReverseMapper extends RestSimpleDTOMapper<AttachmentSearchRqDTOv1, AttachmentSearch> {
     private final DataTimeRangeDTOReverseMapper dataTimeRangeDTOReverseMapper;
+    private final LongRangeDTOReverseMapper longRangeDTOReverseMapper;
 
     @Override
     public void map(AttachmentSearchRqDTOv1 src, AttachmentSearch dst, MapperContext mapperContext) throws Exception {
@@ -38,6 +40,7 @@ public class AttachmentSearchDTOReverseMapper extends RestSimpleDTOMapper<Attach
                 .setTitleNotLikeList(src.getTitleNotLikeList())
                 .setDescriptionLikeList(src.getDescriptionLikeList())
                 .setDescriptionNotLikeList(src.getDescriptionNotLikeList())
-                .setCreatedAt(dataTimeRangeDTOReverseMapper.convert(src.getCreatedAt()));
+                .setCreatedAt(dataTimeRangeDTOReverseMapper.convert(src.getCreatedAt()))
+                .setOrder(longRangeDTOReverseMapper.convert(src.getOrder()));
     }
 }

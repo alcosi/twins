@@ -36,6 +36,9 @@ public class AttachmentSaveDTOv1 {
     @Schema(description = "File size in bytes", example = DTOExamples.INTEGER)
     public Long size;
 
+    @Schema(description = "Order", example = DTOExamples.INTEGER)
+    public Integer order;
+
     @Schema(hidden = true)
     @JsonIgnore
     public boolean isExternalLink;

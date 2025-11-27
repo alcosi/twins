@@ -18,6 +18,7 @@ public class AttachmentSnapshot {
     private String externalId;
     private String title;
     private String description;
+    private Integer order;
 
     public static AttachmentSnapshot convertEntity(TwinAttachmentEntity attachmentEntity) {
         if (attachmentEntity == null)
@@ -29,7 +30,8 @@ public class AttachmentSnapshot {
                 .setModifications(modificationMap)
                 .setExternalId(attachmentEntity.getExternalId())
                 .setTitle(attachmentEntity.getTitle())
-                .setDescription(attachmentEntity.getDescription());
+                .setDescription(attachmentEntity.getDescription())
+                .setOrder(attachmentEntity.getOrder());
     }
 
     private static Map<String, String> convertModificationsToMap(Collection<TwinAttachmentModificationEntity> modifications) {
@@ -49,5 +51,6 @@ public class AttachmentSnapshot {
         vars.put(prefix + "externalId", attachmentSnapshot != null ? attachmentSnapshot.externalId : "");
         vars.put(prefix + "title", attachmentSnapshot != null ? attachmentSnapshot.title : "");
         vars.put(prefix + "description", attachmentSnapshot != null ? attachmentSnapshot.description : "");
+        vars.put(prefix + "order", attachmentSnapshot != null ? String.valueOf(attachmentSnapshot.order) : "");
     }
 }
