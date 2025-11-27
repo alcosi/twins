@@ -15,18 +15,13 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetRepository;
-import org.twins.core.dao.projection.ProjectionEntity;
-import org.twins.core.domain.projection.ProjectionUpdate;
-import org.twins.core.dto.rest.factory.FactoryConditionSetCreateDTOv1;
 import org.twins.core.service.auth.AuthService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -110,10 +105,10 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
             );
             updateEntityFieldByEntity(twinFactoryConditionSetEntity, dbFactoryConditionSetEntity,
                     TwinFactoryConditionSetEntity::getName, TwinFactoryConditionSetEntity::setName,
-                    TierEntity.Fields.name, changesHelper);
+                    TwinFactoryConditionSetEntity.Fields.name, changesHelper);
             updateEntityFieldByEntity(twinFactoryConditionSetEntity, dbFactoryConditionSetEntity,
                     TwinFactoryConditionSetEntity::getDescription, TwinFactoryConditionSetEntity::setDescription,
-                    TierEntity.Fields.description, changesHelper);
+                    TwinFactoryConditionSetEntity.Fields.description, changesHelper);
 
             dbFactoryConditionSetEntity.setUpdatedAt(Timestamp.from(Instant.now()));
             changes.add(dbFactoryConditionSetEntity, changesHelper);
