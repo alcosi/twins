@@ -49,6 +49,9 @@ public class AttachmentDTOv1 {
     @Schema(description = "File size in bytes", example = DTOExamples.INTEGER)
     public Long size;
 
+    @Schema(description = "Order", example = DTOExamples.INTEGER)
+    public Integer order;
+
     @Schema(description = "view permission id")
     @RelatedObject(type = PermissionDTOv1.class, name = "viewPermission")
     public UUID viewPermissionId;

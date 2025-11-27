@@ -3,6 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.math.LongRange;
 import org.twins.core.domain.DataTimeRange;
 
 import java.util.Set;
@@ -35,4 +36,5 @@ public class AttachmentSearch {
     private Set<String> descriptionLikeList;
     private Set<String> descriptionNotLikeList;
     private DataTimeRange createdAt;
+    private LongRange order;
 }
