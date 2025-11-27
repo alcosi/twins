@@ -101,7 +101,7 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
             if (mapperContext.hasMode(TwinFieldAttributeMode.SHOW) && src.getTwinFieldAttributeKit() != null && src.getTwinFieldAttributeKit().containsGroupedKey(fieldId)) {
                 Map<UUID, TwinFieldAttributeDTOv1> fieldAttributesMap = twinFieldAttributeRestDTOMapper.convertCollection(src.getTwinFieldAttributeKit().getGrouped(fieldId), mapperContext)
                         .stream()
-                        .collect(Collectors.toMap(TwinFieldAttributeDTOv1::getTwinClassFieldAttributeId, Function.identity()));
+                        .collect(Collectors.toMap(TwinFieldAttributeDTOv1::getId, Function.identity()));
 
                 fieldDto.setFieldAttributes(fieldAttributesMap);
             }
