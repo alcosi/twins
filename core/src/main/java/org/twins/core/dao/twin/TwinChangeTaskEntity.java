@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.TwinChangeTaskStatus;
 import org.twins.core.enums.factory.FactoryLauncher;
 
 import java.sql.Timestamp;
