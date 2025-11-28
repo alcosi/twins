@@ -72,7 +72,7 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
             return Collections.emptyList();
         }
         UUID apiUserId = authService.getApiUser().getUserId();
-        UUID domainId = authService.getApiUser().getDomain().getId();
+        UUID domainId = authService.getApiUser().getDomainId();
         for (TwinFactoryConditionSetEntity twinFactoryConditionSetEntity : conditionSetCreates) {
             twinFactoryConditionSetEntity
                     .setCreatedAt(Timestamp.valueOf(LocalDateTime.now()))
