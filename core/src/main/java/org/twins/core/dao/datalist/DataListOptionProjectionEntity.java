@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.projection.ProjectionTypeEntity;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
@@ -21,8 +22,8 @@ public class DataListOptionProjectionEntity implements EasyLoggable {
     @Id
     private UUID id;
 
-    @Column(name = "data_list_projection_id")
-    private UUID dataListProjectionId;
+    @Column(name = "projection_type_id")
+    private UUID projectionTypeId;
 
     @Column(name = "src_data_list_option_id")
     private UUID srcDataListOptionId;
@@ -39,8 +40,8 @@ public class DataListOptionProjectionEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "data_list_projection_id", insertable = false, updatable = false)
-    private DataListProjectionEntity dataListProjection;
+    @JoinColumn(name = "projection_type_id", insertable = false, updatable = false)
+    private ProjectionTypeEntity ProjectionType;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -64,8 +65,8 @@ public class DataListOptionProjectionEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "dataListOptionProjection[" + id + "]";
-            case NORMAL -> "dataListOptionProjection[id:" + id + ", proj:" + dataListProjectionId + "]";
-            default -> "dataListOptionProjection[id:" + id + ", proj:" + dataListProjectionId + ", srcOpt:" + srcDataListOptionId + ", dstOpt:" + dstDataListOptionId + "]";
+            case NORMAL -> "dataListOptionProjection[id:" + id + ", projection type:" + projectionTypeId + "]";
+            default -> "dataListOptionProjection[id:" + id + ", projection type:" + projectionTypeId + ", srcOpt:" + srcDataListOptionId + ", dstOpt:" + dstDataListOptionId + "]";
         };
     }
 }

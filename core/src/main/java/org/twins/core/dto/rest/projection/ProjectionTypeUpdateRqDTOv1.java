@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.datalist;
+package org.twins.core.dto.rest.projection;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -11,8 +11,8 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "DataListProjectionCreateRqV1")
-public class DataListProjectionCreateRqDTOv1 extends Request {
-    @Schema(description = "data list projections")
-    public List<DataListProjectionCreateDTOv1> dataListProjections;
+@Schema(name = "ProjectionTypeUpdateRqV1")
+public class ProjectionTypeUpdateRqDTOv1 extends Request {
+    @Schema(description = "Projection type list")
+    public List<ProjectionTypeUpdateDTOv1> ProjectionTypes;
 }

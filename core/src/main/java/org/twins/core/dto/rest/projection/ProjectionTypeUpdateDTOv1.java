@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.datalist;
+package org.twins.core.dto.rest.projection;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -10,8 +10,8 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "DataListProjectionUpdateV1")
-public class DataListProjectionUpdateDTOv1 extends DataListProjectionSaveDTOv1 {
+@Schema(name = "ProjectionTypeUpdateV1")
+public class ProjectionTypeUpdateDTOv1 extends ProjectionTypeSaveDTOv1 {
     @Schema
     public UUID id;
 }

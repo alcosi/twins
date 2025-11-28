@@ -13,6 +13,7 @@ public class ProjectionSave {
     private UUID srcTwinClassFieldId;
     private UUID dstTwinClassId;
     private UUID dstTwinClassFieldId;
+    private UUID projectionTypeId;
     private Integer fieldProjectorFeaturerId;
     private HashMap<String, String> fieldProjectorParams;
 
