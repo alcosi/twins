@@ -130,5 +130,7 @@ public interface DTOExamples {
     String EMAIL = "user@example.com";
     String PASSWORD = "secret";
     String CACHE_KEY = "TwinClassRepository.findById";
-
+    String CONDITIONER_FEATURE_ID = "";
+    String CONDITIONER_PARAMS_MAP = "";
+    String FACTORY_CONDITION_ID = "";
 }
