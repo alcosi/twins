@@ -18,15 +18,11 @@ import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetRepository;
-import org.twins.core.dao.projection.ProjectionEntity;
-import org.twins.core.domain.projection.ProjectionUpdate;
-import org.twins.core.dto.rest.factory.FactoryConditionSetCreateDTOv1;
 import org.twins.core.service.auth.AuthService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -76,10 +72,12 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
             return Collections.emptyList();
         }
         UUID apiUserId = authService.getApiUser().getUserId();
+        UUID domainId = authService.getApiUser().getDomain().getId();
         for (TwinFactoryConditionSetEntity twinFactoryConditionSetEntity : conditionSetCreates) {
             twinFactoryConditionSetEntity
                     .setCreatedAt(Timestamp.valueOf(LocalDateTime.now()))
-                    .setCreatedByUserId(apiUserId);
+                    .setCreatedByUserId(apiUserId)
+                    .setDomainId(domainId);
         validateEntityAndThrow(twinFactoryConditionSetEntity, EntitySmartService.EntityValidateMode.beforeSave);
         }
         return StreamSupport.stream(
