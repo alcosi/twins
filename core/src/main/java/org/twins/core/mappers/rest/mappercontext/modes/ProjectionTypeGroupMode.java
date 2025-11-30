@@ -9,7 +9,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 @Getter
 @AllArgsConstructor
 @FieldNameConstants(onlyExplicitlyIncluded = true)
-public enum DataListProjectionMode implements MapperMode {
+public enum ProjectionTypeGroupMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include SHOW(1);
 
@@ -18,17 +18,17 @@ public enum DataListProjectionMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum DataListOptionProjection2DataListProjectionMode implements MapperModePointer<DataListProjectionMode> {
+    public enum ProjectionType2ProjectionTypeGroupMode implements MapperModePointer<ProjectionTypeGroupMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHOW(1);
 
         final int priority;
 
         @Override
-        public DataListProjectionMode point() {
+        public ProjectionTypeGroupMode point() {
             return switch (this) {
-                case HIDE -> DataListProjectionMode.HIDE;
-                case SHOW -> DataListProjectionMode.SHOW;
+                case HIDE -> ProjectionTypeGroupMode.HIDE;
+                case SHOW -> ProjectionTypeGroupMode.SHOW;
             };
         }
     }

@@ -87,7 +87,8 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
                     .setDstTwinClassId(projectionCreate.getDstTwinClassId())
                     .setDstTwinClassFieldId(projectionCreate.getDstTwinClassFieldId())
                     .setFieldProjectorFeaturerId(projectionCreate.getFieldProjectorFeaturerId())
-                    .setFieldProjectorParams(projectionCreate.getFieldProjectorParams());
+                    .setFieldProjectorParams(projectionCreate.getFieldProjectorParams())
+                    .setProjectionTypeId(projectionCreate.getProjectionTypeId());
 
             validateEntityAndThrow(projectionEntity, EntitySmartService.EntityValidateMode.beforeSave);
             projectionEntities.add(projectionEntity);
@@ -118,6 +119,7 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
             updateEntityFieldByValue(projectionUpdate.getSrcTwinClassFieldId(), dbProjectionEntity, ProjectionEntity::getSrcTwinClassFieldId, ProjectionEntity::setSrcTwinClassFieldId, ProjectionEntity.Fields.srcTwinClassFieldId, changesHelper);
             updateEntityFieldByValue(projectionUpdate.getDstTwinClassId(), dbProjectionEntity, ProjectionEntity::getDstTwinClassId, ProjectionEntity::setDstTwinClassId, ProjectionEntity.Fields.dstTwinClassId, changesHelper);
             updateEntityFieldByValue(projectionUpdate.getDstTwinClassFieldId(), dbProjectionEntity, ProjectionEntity::getDstTwinClassFieldId, ProjectionEntity::setDstTwinClassFieldId, ProjectionEntity.Fields.dstTwinClassFieldId, changesHelper);
+            updateEntityFieldByValue(projectionUpdate.getProjectionTypeId(), dbProjectionEntity, ProjectionEntity::getProjectionTypeId, ProjectionEntity::setProjectionTypeId, ProjectionEntity.Fields.projectionTypeId, changesHelper);
             updateFieldProjectorFeaturerId(dbProjectionEntity, projectionUpdate.getFieldProjectorFeaturerId(), projectionUpdate.getFieldProjectorParams(), changesHelper);
 
             changes.add(dbProjectionEntity, changesHelper);

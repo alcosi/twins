@@ -10,16 +10,17 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionProjectionMode;
-import org.twins.core.mappers.rest.mappercontext.modes.DataListProjectionMode;
+import org.twins.core.mappers.rest.mappercontext.modes.ProjectionTypeMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
+import org.twins.core.mappers.rest.projection.ProjectionTypeRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = DataListOptionProjectionMode.class)
 public class DataListOptionProjectionRestDTOMapper extends RestSimpleDTOMapper<DataListOptionProjectionEntity, DataListOptionProjectionDTOv1> {
-    @MapperModePointerBinding(modes = DataListProjectionMode.DataListOptionProjection2DataListProjectionMode.class)
-    private final DataListProjectionRestDTOMapper dataListprojectionRestDTOMapper;
+    @MapperModePointerBinding(modes = ProjectionTypeMode.DataListOptionProjection2ProjectionTypeMode.class)
+    private final ProjectionTypeRestDTOMapper projectionTypeRestDTOMapper;
 
     @MapperModePointerBinding(modes = DataListOptionMode.DataListOptionProjection2DataListOptionMode.class)
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
@@ -35,9 +36,9 @@ public class DataListOptionProjectionRestDTOMapper extends RestSimpleDTOMapper<D
                     .setChangedAt(src.getChangedAt().toLocalDateTime());
         }
 
-        if (mapperContext.hasMode(DataListProjectionMode.DataListOptionProjection2DataListProjectionMode.SHOW)) {
-            dst.setDataListProjectionId(src.getDataListProjectionId());
-            dataListprojectionRestDTOMapper.postpone(src.getDataListProjection(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListProjectionMode.DataListOptionProjection2DataListProjectionMode.SHOW)));
+        if (mapperContext.hasMode(ProjectionTypeMode.DataListOptionProjection2ProjectionTypeMode.SHOW)) {
+            dst.setProjectionTypeId(src.getProjectionTypeId());
+            projectionTypeRestDTOMapper.postpone(src.getProjectionType(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(ProjectionTypeMode.DataListOptionProjection2ProjectionTypeMode.SHOW)));
         }
 
         if (mapperContext.hasModeButNot(DataListOptionMode.DataListOptionProjection2DataListOptionMode.HIDE)) {

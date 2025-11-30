@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.datalist;
+package org.twins.core.dto.rest.projection;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -9,8 +9,8 @@ import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "DataListProjectionSearchRsV1")
-public class DataListProjectionSearchRsDTOv1 extends DataListProjectionListRsDTOv1 {
+@Schema(name = "ProjectionTypeSearchRsV1")
+public class ProjectionTypeSearchRsDTOv1 extends ProjectionTypeRsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 }

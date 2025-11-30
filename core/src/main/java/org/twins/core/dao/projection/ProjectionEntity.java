@@ -3,6 +3,8 @@ package org.twins.core.dao.projection;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -36,6 +38,9 @@ public class ProjectionEntity implements EasyLoggable {
     @Column(name = "dst_twin_class_field_id")
     private UUID dstTwinClassFieldId;
 
+    @Column(name = "projection_type_id")
+    private UUID projectionTypeId;
+
     @Column(name = "field_projector_featurer_id")
     private Integer fieldProjectorFeaturerId;
 
@@ -58,6 +63,10 @@ public class ProjectionEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dst_twin_class_id", insertable = false, updatable = false)
     private TwinClassEntity dstTwinClass;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "projection_type_id", insertable = false, updatable = false)
+    private ProjectionTypeEntity ProjectionType;
 
     @Override
     public String easyLog(Level level) {

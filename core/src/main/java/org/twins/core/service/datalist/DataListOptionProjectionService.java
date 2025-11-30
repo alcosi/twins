@@ -18,9 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionProjectionEntity;
 import org.twins.core.dao.datalist.DataListOptionProjectionRepository;
-import org.twins.core.dao.datalist.DataListProjectionEntity;
+import org.twins.core.dao.projection.ProjectionTypeEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.projection.ProjectionTypeService;
 import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
@@ -44,7 +45,7 @@ public class DataListOptionProjectionService extends EntitySecureFindServiceImpl
 
     @Lazy
     @Autowired
-    private DataListProjectionService dataListProjectionService;
+    private ProjectionTypeService projectionTypeService;
 
     @Override
     public CrudRepository<DataListOptionProjectionEntity, UUID> entityRepository() {
@@ -63,8 +64,8 @@ public class DataListOptionProjectionService extends EntitySecureFindServiceImpl
 
     @Override
     public boolean validateEntity(DataListOptionProjectionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        if (entity.getDataListProjectionId() == null)
-            return logErrorAndReturnFalse(entity.logNormal() + " empty dataListProjectionId");
+        if (entity.getProjectionTypeId() == null)
+            return logErrorAndReturnFalse(entity.logNormal() + " empty ProjectionTypeId");
         if (entity.getSrcDataListOptionId() == null)
             return logErrorAndReturnFalse(entity.logNormal() + " empty srcDataListOptionId");
         if (entity.getDstDataListOptionId() == null)
@@ -72,8 +73,8 @@ public class DataListOptionProjectionService extends EntitySecureFindServiceImpl
 
         switch (entityValidateMode) {
             case beforeSave:
-                if (entity.getDataListProjection() == null || !entity.getDataListProjection().getId().equals(entity.getDataListProjectionId())) {
-                    entity.setDataListProjection(dataListProjectionService.findEntitySafe(entity.getDataListProjectionId()));
+                if (entity.getProjectionType() == null || !entity.getProjectionType().getId().equals(entity.getProjectionTypeId())) {
+                    entity.setProjectionType(projectionTypeService.findEntitySafe(entity.getProjectionTypeId()));
                 }
                 if (entity.getSrcDataListOption() == null || entity.getDstDataListOption() == null || !entity.getSrcDataListOption().getId().equals(entity.getSrcDataListOptionId()) || !entity.getDstDataListOption().getId().equals(entity.getDstDataListOptionId())) {
                     loadDataListOptions(entity);
@@ -129,23 +130,23 @@ public class DataListOptionProjectionService extends EntitySecureFindServiceImpl
         }
     }
 
-    public void loadDataListProjections(DataListOptionProjectionEntity src) throws ServiceException {
-        loadDataListProjections(Collections.singletonList(src));
+    public void loadProjectionTypes(DataListOptionProjectionEntity src) throws ServiceException {
+        loadProjectionTypes(Collections.singletonList(src));
     }
 
-    public void loadDataListProjections(Collection<DataListOptionProjectionEntity> projections) throws ServiceException {
+    public void loadProjectionTypes(Collection<DataListOptionProjectionEntity> projections) throws ServiceException {
         if (projections == null || projections.isEmpty())
             return;
-        KitGrouped<DataListOptionProjectionEntity, UUID, UUID> needLoad = new KitGrouped<>(DataListOptionProjectionEntity::getId, DataListOptionProjectionEntity::getDataListProjectionId);
+        KitGrouped<DataListOptionProjectionEntity, UUID, UUID> needLoad = new KitGrouped<>(DataListOptionProjectionEntity::getId, DataListOptionProjectionEntity::getProjectionTypeId);
         for (DataListOptionProjectionEntity p : projections) {
-            if (p.getDataListProjectionId() != null && p.getDataListProjection() == null)
+            if (p.getProjectionTypeId() != null && p.getProjectionType() == null)
                 needLoad.add(p);
         }
         if (KitUtils.isEmpty(needLoad))
             return;
-        Kit<DataListProjectionEntity, UUID> items = dataListProjectionService.findEntitiesSafe(needLoad.getGroupedKeySet());
+        Kit<ProjectionTypeEntity, UUID> items = projectionTypeService.findEntitiesSafe(needLoad.getGroupedKeySet());
         for (var p : needLoad)
-            p.setDataListProjection(items.get(p.getDataListProjectionId()));
+            p.setProjectionType(items.get(p.getProjectionTypeId()));
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -182,7 +183,7 @@ public class DataListOptionProjectionService extends EntitySecureFindServiceImpl
             DataListOptionProjectionEntity dbEntity = dbDataListOptionProjectionEntitiesKit.get(entity.getId());
             ChangesHelper changesHelper = new ChangesHelper();
 
-            updateEntityFieldByEntity(entity, dbEntity, DataListOptionProjectionEntity::getDataListProjectionId, DataListOptionProjectionEntity::setDataListProjectionId, DataListOptionProjectionEntity.Fields.dataListProjectionId, changesHelper);
+            updateEntityFieldByEntity(entity, dbEntity, DataListOptionProjectionEntity::getProjectionTypeId, DataListOptionProjectionEntity::setProjectionTypeId, DataListOptionProjectionEntity.Fields.projectionTypeId, changesHelper);
             updateEntityFieldByEntity(entity, dbEntity, DataListOptionProjectionEntity::getSrcDataListOptionId, DataListOptionProjectionEntity::setSrcDataListOptionId, DataListOptionProjectionEntity.Fields.srcDataListOptionId, changesHelper);
             updateEntityFieldByEntity(entity, dbEntity, DataListOptionProjectionEntity::getDstDataListOptionId, DataListOptionProjectionEntity::setDstDataListOptionId, DataListOptionProjectionEntity.Fields.dstDataListOptionId, changesHelper);
             updateEntityFieldByValue(Timestamp.valueOf(LocalDateTime.now()), dbEntity, DataListOptionProjectionEntity::getChangedAt, DataListOptionProjectionEntity::setChangedAt, DataListOptionProjectionEntity.Fields.changedAt, changesHelper);

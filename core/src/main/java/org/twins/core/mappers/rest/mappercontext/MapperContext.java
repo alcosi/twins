@@ -19,6 +19,8 @@ import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
+import org.twins.core.dao.projection.ProjectionTypeEntity;
+import org.twins.core.dao.projection.ProjectionTypeGroupEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -97,7 +99,11 @@ public class MapperContext {
     @Getter
     private Map<UUID, RelatedObject<TwinClassFreezeEntity>> relatedTwinClassFreezeMap = new LinkedHashMap<>();
     @Getter
-    private Map<UUID,RelatedObject<TwinClassFieldRuleEntity>> relatedClassFieldRuleMap = new LinkedHashMap<>();
+    private Map<UUID, RelatedObject<TwinClassFieldRuleEntity>> relatedClassFieldRuleMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<ProjectionTypeGroupEntity>> relatedProjectionTypeGroupMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<ProjectionTypeEntity>> relatedProjectionTypeMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
@@ -247,6 +253,10 @@ public class MapperContext {
             smartPut(relatedClassFieldRuleMap, entity, entity.getId());
         else if (relatedObject instanceof TwinClassFreezeEntity entity)
             smartPut(relatedTwinClassFreezeMap, entity, entity.getId());
+        else if (relatedObject instanceof ProjectionTypeGroupEntity entity)
+            smartPut(relatedProjectionTypeGroupMap, entity, entity.getId());
+        else if (relatedObject instanceof ProjectionTypeEntity entity)
+            smartPut(relatedProjectionTypeMap, entity, entity.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -458,6 +468,8 @@ public class MapperContext {
         dstMapperContext.relatedAttachmentRestrictionMap = srcMapperContext.relatedAttachmentRestrictionMap;
         dstMapperContext.relatedTwinClassFreezeMap = srcMapperContext.relatedTwinClassFreezeMap;
         dstMapperContext.relatedClassFieldRuleMap = srcMapperContext.relatedClassFieldRuleMap;
+        dstMapperContext.relatedProjectionTypeGroupMap = srcMapperContext.relatedProjectionTypeGroupMap;
+        dstMapperContext.relatedProjectionTypeMap = srcMapperContext.relatedProjectionTypeMap;
     }
 
     public MapperContext fork(MapperModeCollection mapperModeCollection) {

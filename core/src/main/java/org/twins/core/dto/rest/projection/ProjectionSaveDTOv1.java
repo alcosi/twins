@@ -23,6 +23,9 @@ public class ProjectionSaveDTOv1 {
     @Schema(description = "dst twin class field id")
     public UUID dstTwinClassFieldId;
 
+    @Schema(description = "projection type id")
+    public UUID projectionTypeId;
+
     @Schema(description = "field projector featurer id")
     public Integer fieldProjectorFeaturerId;
 

@@ -32,6 +32,10 @@ public class ProjectionDTOv1 {
     @RelatedObject(type = TwinClassFieldDTOv1.class, name = "dstTwinClassField")
     public UUID dstTwinClassFieldId;
 
+    @Schema(description = "projection type id")
+    @RelatedObject(type = ProjectionTypeDTOv1.class, name = "projectionType")
+    public UUID projectionTypeId;
+
     @Schema(description = "field projector featurer id")
     public Integer fieldProjectorFeaturerId;
 

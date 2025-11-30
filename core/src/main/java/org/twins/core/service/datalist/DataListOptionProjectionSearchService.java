@@ -43,8 +43,8 @@ public class DataListOptionProjectionSearchService {
                 checkUuidIn(search.getIdList(), false, false, DataListOptionProjectionEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, DataListOptionProjectionEntity.Fields.id),
 
-                checkUuidIn(search.getDataListProjectionIdList(), false, false, DataListOptionProjectionEntity.Fields.dataListProjectionId),
-                checkUuidIn(search.getDataListProjectionIdExcludeList(), true, false, DataListOptionProjectionEntity.Fields.dataListProjectionId),
+                checkUuidIn(search.getProjectionTypeIdList(), false, false, DataListOptionProjectionEntity.Fields.projectionTypeId),
+                checkUuidIn(search.getProjectionTypeIdExcludeList(), true, false, DataListOptionProjectionEntity.Fields.projectionTypeId),
 
                 checkUuidIn(search.getSrcDataListOptionIdList(), false, false, DataListOptionProjectionEntity.Fields.srcDataListOptionId),
                 checkUuidIn(search.getSrcDataListOptionIdExcludeList(), true, false, DataListOptionProjectionEntity.Fields.srcDataListOptionId),

@@ -1,15 +1,13 @@
-package org.twins.core.dto.rest.datalist;
+package org.twins.core.dto.rest.projection;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import java.util.UUID;
-
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "DataListProjectionCreateV1")
-public class DataListProjectionCreateDTOv1 extends DataListProjectionSaveDTOv1 {
+@Schema(name = "ProjectionTypeCreateV1")
+public class ProjectionTypeCreateDTOv1 extends ProjectionTypeSaveDTOv1 {
 }
