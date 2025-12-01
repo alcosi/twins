@@ -10,7 +10,8 @@ import org.twins.core.mappers.rest.mappercontext.MapperMode;
 @FieldNameConstants(onlyExplicitlyIncluded = true)
 public enum DataListOptionProjectionMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
-    @FieldNameConstants.Include SHOW(1);
+    @FieldNameConstants.Include SHORT(1),
+    @FieldNameConstants.Include DETAILED(2);
 
     final int priority;
 }

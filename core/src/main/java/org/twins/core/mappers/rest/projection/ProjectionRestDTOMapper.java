@@ -10,6 +10,7 @@ import org.twins.core.dto.rest.projection.ProjectionDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.ProjectionMode;
+import org.twins.core.mappers.rest.mappercontext.modes.ProjectionTypeMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
@@ -28,6 +29,9 @@ public class ProjectionRestDTOMapper extends RestSimpleDTOMapper<ProjectionEntit
     @MapperModePointerBinding(modes = TwinClassMode.Projection2TwinClassMode.class)
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
+    @MapperModePointerBinding(modes = ProjectionTypeMode.Projection2ProjectionTypeMode.class)
+    private final ProjectionTypeRestDTOMapper projectionTypeRestDTOMapper;
+
     @Override
     public void map(ProjectionEntity src, ProjectionDTOv1 dst, MapperContext mapperContext) throws Exception {
         TwinEntity srcTwin = faceTwinPointerService.getPointer(src.getSrcTwinPointerId());
@@ -39,19 +43,26 @@ public class ProjectionRestDTOMapper extends RestSimpleDTOMapper<ProjectionEntit
                     .setDstTwinClassId(src.getDstTwinClassId())
                     .setDstTwinClassFieldId(src.getDstTwinClassFieldId())
                     .setFieldProjectorFeaturerId(src.getFieldProjectorFeaturerId())
-                    .setFieldProjectorParams(src.getFieldProjectorParams());
+                    .setFieldProjectorParams(src.getFieldProjectorParams())
+                    .setProjectionTypeId(src.getProjectionTypeId());
 
             case DETAILED -> dst
                     .setId(src.getId())
                     .setSrcPointedTwinId(srcTwin == null ? null : srcTwin.getId())
                     .setSrcTwinClassFieldId(src.getSrcTwinClassFieldId())
                     .setDstTwinClassId(src.getDstTwinClassId())
-                    .setDstTwinClassFieldId(src.getDstTwinClassFieldId());
+                    .setDstTwinClassFieldId(src.getDstTwinClassFieldId())
+                    .setProjectionTypeId(src.getProjectionTypeId());
 
             case SHORT -> dst
                     .setId(src.getId())
                     .setSrcTwinClassFieldId(src.getSrcTwinClassFieldId())
                     .setDstTwinClassFieldId(src.getDstTwinClassFieldId());
+        }
+
+        if (mapperContext.hasModeButNot(ProjectionTypeMode.Projection2ProjectionTypeMode.HIDE)) {
+            dst.setProjectionTypeId(src.getProjectionTypeId());
+            projectionTypeRestDTOMapper.postpone(src.getProjectionType(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(ProjectionTypeMode.Projection2ProjectionTypeMode.SHORT)));
         }
 
         if (mapperContext.hasModeButNot(TwinClassFieldMode.Projection2TwinClassFieldMode.HIDE)) {

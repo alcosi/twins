@@ -19,8 +19,8 @@ public class DataListOptionProjectionSearchDTOReverseMapper extends RestSimpleDT
         dst
                 .setIdList(src.getIdList())
                 .setIdExcludeList(src.getIdExcludeList())
-                .setDataListProjectionIdList(src.getDataListProjectionIdList())
-                .setDataListProjectionIdExcludeList(src.getDataListProjectionIdExcludeList())
+                .setProjectionTypeIdList(src.getProjectionTypeIdList())
+                .setProjectionTypeIdExcludeList(src.getProjectionTypeIdExcludeList())
                 .setSrcDataListOptionIdList(src.getSrcDataListOptionIdList())
                 .setSrcDataListOptionIdExcludeList(src.getSrcDataListOptionIdExcludeList())
                 .setDstDataListOptionIdList(src.getDstDataListOptionIdList())

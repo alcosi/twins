@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.twins.core.domain.DataTimeRange;
-import org.twins.core.dto.rest.DataTimeRangeDTOv1;
 
 import java.util.Set;
 import java.util.UUID;
@@ -13,16 +12,15 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class DataListProjectionSearch {
+public class ProjectionTypeSearch {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
-    private Set<UUID> srcDataListIdList;
-    private Set<UUID> srcDataListIdExcludeList;
-    private Set<UUID> dstDataListIdList;
-    private Set<UUID> dstDataListIdExcludeList;
+    private Set<String> keyLikeList;
+    private Set<String> keyNotLikeList;
     private Set<String> nameLikeList;
     private Set<String> nameNotLikeList;
-    private Set<UUID> savedByUserIdList;
-    private Set<UUID> savedByUserIdExcludeList;
-    private DataTimeRange changedAt;
+    private Set<UUID> projectionTypeGroupIdList;
+    private Set<UUID> projectionTypeGroupIdExcludeList;
+    private Set<UUID> membershipTwinClassIdList;
+    private Set<UUID> membershipTwinClassIdExcludeList;
 }
