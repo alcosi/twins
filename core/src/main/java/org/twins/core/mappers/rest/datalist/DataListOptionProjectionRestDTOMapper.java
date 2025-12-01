@@ -30,15 +30,22 @@ public class DataListOptionProjectionRestDTOMapper extends RestSimpleDTOMapper<D
 
     @Override
     public void map(DataListOptionProjectionEntity src, DataListOptionProjectionDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(DataListOptionProjectionMode.SHOW)) {
-            case SHOW -> dst
+        switch (mapperContext.getModeOrUse(DataListOptionProjectionMode.DETAILED)) {
+            case DETAILED -> dst
+                    .setId(src.getId())
+                    .setChangedAt(src.getChangedAt().toLocalDateTime())
+                    .setDstDataListOptionId(src.getDstDataListOptionId())
+                    .setDstDataListOptionId(src.getDstDataListOptionId())
+                    .setSavedByUserId(src.getSavedByUserId())
+                    .setProjectionTypeId(src.getProjectionTypeId());
+            case SHORT -> dst
                     .setId(src.getId())
                     .setChangedAt(src.getChangedAt().toLocalDateTime());
         }
 
-        if (mapperContext.hasMode(ProjectionTypeMode.DataListOptionProjection2ProjectionTypeMode.SHOW)) {
+        if (mapperContext.hasModeButNot(ProjectionTypeMode.DataListOptionProjection2ProjectionTypeMode.HIDE)) {
             dst.setProjectionTypeId(src.getProjectionTypeId());
-            projectionTypeRestDTOMapper.postpone(src.getProjectionType(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(ProjectionTypeMode.DataListOptionProjection2ProjectionTypeMode.SHOW)));
+            projectionTypeRestDTOMapper.postpone(src.getProjectionType(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(ProjectionTypeMode.DataListOptionProjection2ProjectionTypeMode.SHORT)));
         }
 
         if (mapperContext.hasModeButNot(DataListOptionMode.DataListOptionProjection2DataListOptionMode.HIDE)) {

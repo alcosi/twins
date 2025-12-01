@@ -20,7 +20,7 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.projection.ProjectionTypeEntity;
-import org.twins.core.dto.rest.projection.ProjectionTypeRsDTOv1;
+import org.twins.core.dto.rest.projection.ProjectionTypeListRsDTOv1;
 import org.twins.core.dto.rest.projection.ProjectionTypeUpdateRqDTOv1;
 import org.twins.core.mappers.rest.projection.ProjectionTypeRestDTOMapper;
 import org.twins.core.mappers.rest.projection.ProjectionTypeUpdateDTOReverseMapper;
@@ -44,17 +44,17 @@ public class ProjectionTypeUpdateController extends ApiController {
     private final ProjectionTypeRestDTOMapper projectionTypeRestDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "ProjectionTypeUpdateV1", summary = "Projection type update")
+    @Operation(operationId = "projectionTypeUpdateV1", summary = "Projection type update")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Projection types updated", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = ProjectionTypeRsDTOv1.class))}),
+                    @Schema(implementation = ProjectionTypeListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/projection_type/v1")
-    public ResponseEntity<?> ProjectionTypeUpdateV1(
-            @MapperContextBinding(roots = ProjectionTypeRestDTOMapper.class, response = ProjectionTypeRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+    public ResponseEntity<?> projectionTypeUpdateV1(
+            @MapperContextBinding(roots = ProjectionTypeRestDTOMapper.class, response = ProjectionTypeListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody ProjectionTypeUpdateRqDTOv1 request) {
-        ProjectionTypeRsDTOv1 rs = new ProjectionTypeRsDTOv1();
+        ProjectionTypeListRsDTOv1 rs = new ProjectionTypeListRsDTOv1();
         try {
             List<ProjectionTypeEntity> projectionTypeEntities = projectionTypeService.updateProjectionTypes(projectionTypeUpdateDTOReverseMapper.convertCollection(request.getProjectionTypes()));
             rs

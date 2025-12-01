@@ -60,9 +60,9 @@ public class ProjectionRestDTOMapper extends RestSimpleDTOMapper<ProjectionEntit
                     .setDstTwinClassFieldId(src.getDstTwinClassFieldId());
         }
 
-        if (mapperContext.hasMode(ProjectionTypeMode.Projection2ProjectionTypeMode.SHOW)) {
+        if (mapperContext.hasModeButNot(ProjectionTypeMode.Projection2ProjectionTypeMode.HIDE)) {
             dst.setProjectionTypeId(src.getProjectionTypeId());
-            projectionTypeRestDTOMapper.postpone(src.getProjectionType(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(ProjectionTypeMode.Projection2ProjectionTypeMode.SHOW)));
+            projectionTypeRestDTOMapper.postpone(src.getProjectionType(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(ProjectionTypeMode.Projection2ProjectionTypeMode.SHORT)));
         }
 
         if (mapperContext.hasModeButNot(TwinClassFieldMode.Projection2TwinClassFieldMode.HIDE)) {

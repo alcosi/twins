@@ -65,7 +65,7 @@ public class DataListOptionProjectionService extends EntitySecureFindServiceImpl
     @Override
     public boolean validateEntity(DataListOptionProjectionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entity.getProjectionTypeId() == null)
-            return logErrorAndReturnFalse(entity.logNormal() + " empty ProjectionTypeId");
+            return logErrorAndReturnFalse(entity.logNormal() + " empty projectionTypeId");
         if (entity.getSrcDataListOptionId() == null)
             return logErrorAndReturnFalse(entity.logNormal() + " empty srcDataListOptionId");
         if (entity.getDstDataListOptionId() == null)
@@ -139,7 +139,7 @@ public class DataListOptionProjectionService extends EntitySecureFindServiceImpl
             return;
         KitGrouped<DataListOptionProjectionEntity, UUID, UUID> needLoad = new KitGrouped<>(DataListOptionProjectionEntity::getId, DataListOptionProjectionEntity::getProjectionTypeId);
         for (DataListOptionProjectionEntity p : projections) {
-            if (p.getProjectionTypeId() != null && p.getProjectionType() == null)
+            if (p.getProjectionType() == null)
                 needLoad.add(p);
         }
         if (KitUtils.isEmpty(needLoad))
@@ -162,10 +162,8 @@ public class DataListOptionProjectionService extends EntitySecureFindServiceImpl
                     .setSavedByUser(apiUser.getUser())
                     .setSavedByUserId(apiUser.getUser().getId())
                     .setChangedAt(Timestamp.valueOf(LocalDateTime.now()));
-
-            validateEntityAndThrow(entity, EntitySmartService.EntityValidateMode.beforeSave);
         }
-        return StreamSupport.stream(entityRepository().saveAll(dataListOptionProjectionEntities).spliterator(), false).toList();
+        return StreamSupport.stream(saveSafe(dataListOptionProjectionEntities).spliterator(), false).toList();
     }
 
     @Transactional(rollbackFor = Throwable.class)

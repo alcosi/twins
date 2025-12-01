@@ -11,7 +11,8 @@ import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 @FieldNameConstants(onlyExplicitlyIncluded = true)
 public enum ProjectionTypeMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
-    @FieldNameConstants.Include SHOW(1);
+    @FieldNameConstants.Include SHORT(1),
+    @FieldNameConstants.Include DETAILED(1);
 
     final int priority;
 
@@ -20,7 +21,8 @@ public enum ProjectionTypeMode implements MapperMode {
     @FieldNameConstants(onlyExplicitlyIncluded = true)
     public enum DataListOptionProjection2ProjectionTypeMode implements MapperModePointer<ProjectionTypeMode> {
         @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHOW(1);
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(1);
 
         final int priority;
 
@@ -28,7 +30,8 @@ public enum ProjectionTypeMode implements MapperMode {
         public ProjectionTypeMode point() {
             return switch (this) {
                 case HIDE -> ProjectionTypeMode.HIDE;
-                case SHOW -> ProjectionTypeMode.SHOW;
+                case SHORT -> ProjectionTypeMode.SHORT;
+                case DETAILED -> ProjectionTypeMode.DETAILED;
             };
         }
     }
@@ -38,7 +41,8 @@ public enum ProjectionTypeMode implements MapperMode {
     @FieldNameConstants(onlyExplicitlyIncluded = true)
     public enum Projection2ProjectionTypeMode implements MapperModePointer<ProjectionTypeMode> {
         @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHOW(1);
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(1);
 
         final int priority;
 
@@ -46,7 +50,8 @@ public enum ProjectionTypeMode implements MapperMode {
         public ProjectionTypeMode point() {
             return switch (this) {
                 case HIDE -> ProjectionTypeMode.HIDE;
-                case SHOW -> ProjectionTypeMode.SHOW;
+                case SHORT -> ProjectionTypeMode.SHORT;
+                case DETAILED -> ProjectionTypeMode.DETAILED;
             };
         }
     }

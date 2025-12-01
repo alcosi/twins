@@ -12,7 +12,7 @@ import java.util.List;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "ProjectionTypeListRsV1")
-public class ProjectionTypeRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+public class ProjectionTypeListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "projection types")
     public List<ProjectionTypeDTOv1> projectionTypes;
 }

@@ -26,8 +26,15 @@ public class ProjectionTypeRestDTOMapper extends RestSimpleDTOMapper<ProjectionT
 
     @Override
     public void map(ProjectionTypeEntity src, ProjectionTypeDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(ProjectionTypeMode.SHOW)) {
-            case SHOW ->
+        switch (mapperContext.getModeOrUse(ProjectionTypeMode.DETAILED)) {
+            case DETAILED ->
+                dst
+                        .setId(src.getId())
+                        .setName(src.getName())
+                        .setKey(src.getKey())
+                        .setMembershipTwinClassId(src.getMembershipTwinClassId())
+                        .setProjectionTypeGroupId(src.getProjectionTypeGroupId());
+            case SHORT ->
                 dst
                         .setId(src.getId())
                         .setName(src.getName())

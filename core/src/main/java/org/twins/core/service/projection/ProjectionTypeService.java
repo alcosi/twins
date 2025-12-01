@@ -83,10 +83,9 @@ public class ProjectionTypeService extends EntitySecureFindServiceImpl<Projectio
         for (ProjectionTypeEntity entity : ProjectionTypeEntities) {
             entity
                     .setDomainId(domainId);
-            validateEntityAndThrow(entity, EntitySmartService.EntityValidateMode.beforeSave);
         }
 
-        return StreamSupport.stream(entityRepository().saveAll(ProjectionTypeEntities).spliterator(), false).toList();
+        return StreamSupport.stream(saveSafe(ProjectionTypeEntities).spliterator(), false).toList();
     }
 
     public List<ProjectionTypeEntity> updateProjectionTypes(List<ProjectionTypeEntity> ProjectionTypeEntities) throws ServiceException {

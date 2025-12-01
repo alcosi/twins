@@ -21,7 +21,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.projection.ProjectionTypeEntity;
 import org.twins.core.dto.rest.projection.ProjectionTypeCreateRqDTOv1;
-import org.twins.core.dto.rest.projection.ProjectionTypeRsDTOv1;
+import org.twins.core.dto.rest.projection.ProjectionTypeListRsDTOv1;
 import org.twins.core.mappers.rest.projection.ProjectionTypeCreateDTOReverseMapper;
 import org.twins.core.mappers.rest.projection.ProjectionTypeRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -44,17 +44,17 @@ public class ProjectionTypeCreateController extends ApiController {
 
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "ProjectionTypeCreateV1", summary = "Projection type create")
+    @Operation(operationId = "projectionTypeCreateV1", summary = "Projection type create")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Projection types created", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = ProjectionTypeRsDTOv1.class))}),
+                    @Schema(implementation = ProjectionTypeListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/projection_type/v1")
-    public ResponseEntity<?> ProjectionTypeCreateV1(
-            @MapperContextBinding(roots = ProjectionTypeRestDTOMapper.class, response = ProjectionTypeRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+    public ResponseEntity<?> projectionTypeCreateV1(
+            @MapperContextBinding(roots = ProjectionTypeRestDTOMapper.class, response = ProjectionTypeListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody ProjectionTypeCreateRqDTOv1 request) {
-        ProjectionTypeRsDTOv1 rs = new ProjectionTypeRsDTOv1();
+        ProjectionTypeListRsDTOv1 rs = new ProjectionTypeListRsDTOv1();
         try {
             List<ProjectionTypeEntity> projectionTypeEntities = projectionTypeService.createProjectionTypes(projectionTypeCreateDTOReverseMapper.convertCollection(request.getProjectionTypes()));
             rs

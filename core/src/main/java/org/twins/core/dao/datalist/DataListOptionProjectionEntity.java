@@ -65,8 +65,8 @@ public class DataListOptionProjectionEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "dataListOptionProjection[" + id + "]";
-            case NORMAL -> "dataListOptionProjection[id:" + id + ", projection type:" + projectionTypeId + "]";
-            default -> "dataListOptionProjection[id:" + id + ", projection type:" + projectionTypeId + ", srcOpt:" + srcDataListOptionId + ", dstOpt:" + dstDataListOptionId + "]";
+            case NORMAL -> "dataListOptionProjection[id:" + id + ", projectionType:" + projectionTypeId + "]";
+            default -> "dataListOptionProjection[id:" + id + ", projectionType:" + projectionTypeId + ", srcOpt:" + srcDataListOptionId + ", dstOpt:" + dstDataListOptionId + "]";
         };
     }
 }

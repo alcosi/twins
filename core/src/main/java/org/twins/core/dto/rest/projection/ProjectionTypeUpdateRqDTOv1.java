@@ -14,5 +14,5 @@ import java.util.List;
 @Schema(name = "ProjectionTypeUpdateRqV1")
 public class ProjectionTypeUpdateRqDTOv1 extends Request {
     @Schema(description = "Projection type list")
-    public List<ProjectionTypeUpdateDTOv1> ProjectionTypes;
+    public List<ProjectionTypeUpdateDTOv1> projectionTypes;
 }
