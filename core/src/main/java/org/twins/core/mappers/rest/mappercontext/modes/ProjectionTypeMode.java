@@ -42,7 +42,7 @@ public enum ProjectionTypeMode implements MapperMode {
     public enum Projection2ProjectionTypeMode implements MapperModePointer<ProjectionTypeMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(1);
+        @FieldNameConstants.Include DETAILED(2);
 
         final int priority;
 
