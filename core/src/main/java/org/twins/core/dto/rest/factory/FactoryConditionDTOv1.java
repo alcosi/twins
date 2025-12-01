@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name =  "FactoryConditionDTOv1")
+@Schema(name =  "FactoryConditionV1")
 public class FactoryConditionDTOv1 {
 
     @Schema(description = "factory condition id", example = DTOExamples.FACTORY_ID)

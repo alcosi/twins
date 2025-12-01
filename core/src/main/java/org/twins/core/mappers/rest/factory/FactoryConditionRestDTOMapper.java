@@ -17,7 +17,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.FactoryConditionSetMode;
 public class FactoryConditionRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryConditionEntity, FactoryConditionDTOv1> {
 
 
-    @MapperModePointerBinding(modes = FactoryConditionSetMode.FactoryBranch2FactoryConditionSetMode.class)
+    @MapperModePointerBinding(modes = FactoryConditionSetMode.FactoryCondition2FactoryConditionSetMode.class)
     private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
 
     @Override
@@ -39,7 +39,7 @@ public class FactoryConditionRestDTOMapper extends RestSimpleDTOMapper<TwinFacto
         if (mapperContext.hasModeButNot(FactoryConditionSetMode.FactoryCondition2FactoryConditionSetMode.HIDE)) {
             dst
                     .setFactoryConditionSetId(src.getTwinFactoryConditionSetId());
-            factoryConditionSetRestDTOMapper.postpone(src.getConditionSet(), mapperContext.forkOnPoint(FactoryConditionSetMode.FactoryBranch2FactoryConditionSetMode.SHORT));
+            factoryConditionSetRestDTOMapper.postpone(src.getConditionSet(), mapperContext.forkOnPoint(FactoryConditionSetMode.FactoryCondition2FactoryConditionSetMode.SHORT));
         }
     }
 

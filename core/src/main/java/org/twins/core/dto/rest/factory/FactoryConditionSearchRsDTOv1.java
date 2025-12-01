@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "FactoryConditionSearchRsDTOv1")
+@Schema(name = "FactoryConditionSearchRsV1")
 public class FactoryConditionSearchRsDTOv1 extends FactoryConditionListRsDTOv1 {
 
     @Schema(description = "pagination data")

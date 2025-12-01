@@ -123,7 +123,7 @@ public class FactoryConditionService extends EntitySecureFindServiceImpl<TwinFac
 
     public void updateConditionerParams(TwinFactoryConditionEntity dbEntity, HashMap<String, String> newConditionerParams, ChangesHelper changesHelper) {
         if (!MapUtils.areEqual(dbEntity.getConditionerParams(), newConditionerParams)) {
-            changesHelper.add(TwinFactoryMultiplierEntity.Fields.multiplierParams, dbEntity.getConditionerParams(), newConditionerParams);
+            changesHelper.add(TwinFactoryConditionEntity.Fields.conditionerParams, dbEntity.getConditionerParams(), newConditionerParams);
             dbEntity
                     .setConditionerParams(newConditionerParams);
         }

@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "FactoryConditionSetUpdateRqDTOv1")
+@Schema(name = "FactoryConditionSetUpdateRqV1")
 public class FactoryConditionSetUpdateRqDTOv1 extends Request {
 
     @Schema(description = "condition set list")

@@ -8,6 +8,6 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "FactoryConditionCreateDTOv1")
+@Schema(name = "FactoryConditionCreateV1")
 public class FactoryConditionCreateDTOv1 extends FactoryConditionSaveDTOv1{
 }

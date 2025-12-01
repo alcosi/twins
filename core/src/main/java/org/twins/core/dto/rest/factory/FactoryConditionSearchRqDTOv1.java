@@ -14,7 +14,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name =  "FactoryConditionSearchRqDTOv1")
+@Schema(name =  "FactoryConditionSearchRqV1")
 public class FactoryConditionSearchRqDTOv1 extends Request {
 
     @Schema(description = "id list")

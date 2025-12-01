@@ -12,7 +12,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "FactoryConditionSaveDTOv1")
+@Schema(name = "FactoryConditionSaveV1")
 public class FactoryConditionSaveDTOv1 {
 
     @Schema(description = "factory condition set id", example = DTOExamples.FACTORY_CONDITION_SET_ID)

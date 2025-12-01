@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.DTOExamples;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "FactoryConditionSetSaveDTOv1")
+@Schema(name = "FactoryConditionSetSaveV1")
 public class FactoryConditionSetSaveDTOv1 {
 
     @Schema(description = "name", example = DTOExamples.NAME)
