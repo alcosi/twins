@@ -12,7 +12,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 public enum ProjectionTypeMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include SHORT(1),
-    @FieldNameConstants.Include DETAILED(1);
+    @FieldNameConstants.Include DETAILED(2);
 
     final int priority;
 
@@ -22,7 +22,7 @@ public enum ProjectionTypeMode implements MapperMode {
     public enum DataListOptionProjection2ProjectionTypeMode implements MapperModePointer<ProjectionTypeMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(1);
+        @FieldNameConstants.Include DETAILED(2);
 
         final int priority;
 
