@@ -15,8 +15,8 @@ CREATE TABLE IF NOT EXISTS projection_type (
 
 ALTER TABLE data_list_option_projection DROP COLUMN IF EXISTS data_list_projection_id;
 
-ALTER TABLE data_list_option_projection ADD COLUMN IF NOT EXISTS projection_type_id UUID NOT NULL REFERENCES projection_type(id) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE data_list_option_projection ADD COLUMN IF NOT EXISTS projection_type_id UUID REFERENCES projection_type(id) ON DELETE CASCADE ON UPDATE CASCADE;
 
-ALTER TABLE projection ADD COLUMN IF NOT EXISTS projection_type_id UUID NOT NULL REFERENCES projection_type(id) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE projection ADD COLUMN IF NOT EXISTS projection_type_id UUID REFERENCES projection_type(id) ON DELETE CASCADE ON UPDATE CASCADE;
 
 DROP TABLE IF EXISTS data_list_projection;
