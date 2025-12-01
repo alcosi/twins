@@ -10,7 +10,7 @@ import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "ProjectionTypeSearchRsV1")
-public class ProjectionTypeSearchListRsDTOv1 extends ProjectionTypeListRsDTOv1 {
+public class ProjectionTypeSearchRsDTOv1 extends ProjectionTypeListRsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 }

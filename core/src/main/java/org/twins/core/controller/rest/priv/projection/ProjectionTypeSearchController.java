@@ -20,7 +20,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.*;
 import org.twins.core.dao.projection.ProjectionTypeEntity;
-import org.twins.core.dto.rest.projection.ProjectionTypeSearchListRsDTOv1;
+import org.twins.core.dto.rest.projection.ProjectionTypeSearchRsDTOv1;
 import org.twins.core.dto.rest.projection.ProjectionTypeSearchRqDTOv1;
 import org.twins.core.mappers.rest.projection.ProjectionTypeRestDTOMapper;
 import org.twins.core.mappers.rest.projection.ProjectionTypeSearchDTOReverseMapper;
@@ -47,15 +47,15 @@ public class ProjectionTypeSearchController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Projection types prepared", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = ProjectionTypeSearchListRsDTOv1.class))}),
+                    @Schema(implementation = ProjectionTypeSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/projection_type/search/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> projectionTypeSearchV1(
-            @MapperContextBinding(roots = ProjectionTypeRestDTOMapper.class, response = ProjectionTypeSearchListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = ProjectionTypeRestDTOMapper.class, response = ProjectionTypeSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody ProjectionTypeSearchRqDTOv1 request) {
-        ProjectionTypeSearchListRsDTOv1 rs = new ProjectionTypeSearchListRsDTOv1();
+        ProjectionTypeSearchRsDTOv1 rs = new ProjectionTypeSearchRsDTOv1();
         try {
             PaginationResult<ProjectionTypeEntity> projectionTypesList = projectionTypeSearchService.findProjectionTypes(projectionTypeSearchDTOReverseMapper.convert(request.getSearch()), pagination);
             rs
