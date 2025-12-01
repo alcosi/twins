@@ -11,7 +11,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "FactoryConditionSetUpdateDTOv1")
+@Schema(name = "FactoryConditionSetUpdateV1")
 public class FactoryConditionSetUpdateDTOv1 extends FactoryConditionSetSaveDTOv1 {
 
     @Schema(description = "conditionSetId", example = DTOExamples.FACTORY_CONDITION_SET_ID)

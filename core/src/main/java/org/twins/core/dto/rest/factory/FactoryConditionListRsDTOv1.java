@@ -11,8 +11,8 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "FactoryConditionSetListRsV1")
-public class FactoryConditionSetListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
-    @Schema(description = "results - condition list")
-    public List<FactoryConditionSetDTOv1> conditionSets;
+@Schema(name = "FactoryConditionListRsV1")
+public class FactoryConditionListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+
+    public List<FactoryConditionDTOv1> conditions;
 }
