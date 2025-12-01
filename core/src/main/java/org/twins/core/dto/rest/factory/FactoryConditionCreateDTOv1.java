@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
-@Schema(name = "FactoryConditionSetCreateV1")
-public class FactoryConditionSetCreateDTOv1 extends FactoryConditionSetSaveDTOv1 {
+@EqualsAndHashCode(callSuper = false)
+@Schema(name = "FactoryConditionCreateV1")
+public class FactoryConditionCreateDTOv1 extends FactoryConditionSaveDTOv1{
 }
