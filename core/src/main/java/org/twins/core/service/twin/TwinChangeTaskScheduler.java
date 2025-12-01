@@ -9,9 +9,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.TwinChangeTaskStatus;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
 import org.twins.core.dao.twin.TwinChangeTaskRepository;
-import org.twins.core.dao.twin.TwinChangeTaskStatus;
 
 import java.util.List;
 

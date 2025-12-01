@@ -11,10 +11,10 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.TwinChangeTaskStatus;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
 import org.twins.core.dao.twin.TwinChangeTaskRepository;
-import org.twins.core.dao.twin.TwinChangeTaskStatus;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
 
