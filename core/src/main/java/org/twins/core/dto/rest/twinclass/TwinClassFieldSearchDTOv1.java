@@ -88,4 +88,40 @@ public class TwinClassFieldSearchDTOv1 {
 
     @Schema(description = "order range")
     public LongRangeDTOv1 orderRange;
+
+    @Schema(description = "is dependent field", example = DTOExamples.TERNARY)
+    public Ternary dependentField;
+
+    @Schema(description = "has dependent fields", example = DTOExamples.TERNARY)
+    public Ternary hasDependentFields;
+
+    @Schema(description = "src projection twin class field id list")
+    public Set<UUID> srcProjectionFieldIdList;
+
+    @Schema(description = "src projection twin class field id exclude list")
+    public Set<UUID> srcProjectionFieldIdExcludeList;
+
+    @Schema(description = "dst projection twin class id list")
+    public Set<UUID> dstProjectionClassIdList;
+
+    @Schema(description = "dst projection twin class id exclude list")
+    public Set<UUID> dstProjectionClassIdExcludeList;
+
+    @Schema(description = "dst projection twin class field id list")
+    public Set<UUID> dstProjectionFieldIdList;
+
+    @Schema(description = "src projection twin class field id list")
+    public Set<UUID> dstProjectionFieldIdExcludeList;
+
+    @Schema(description = "projection type id list")
+    public Set<UUID> projectionTypeIdList;
+
+    @Schema(description = "projection type id exclude list")
+    public Set<UUID> projectionTypeIdExcludeList;
+
+    @Schema(description = "is projection field", example = DTOExamples.TERNARY)
+    public Ternary projectionField;
+
+    @Schema(description = "has projection fields", example = DTOExamples.TERNARY)
+    public Ternary hasProjectionFields;
 }

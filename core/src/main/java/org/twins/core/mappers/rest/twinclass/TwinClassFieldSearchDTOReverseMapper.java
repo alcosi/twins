@@ -36,6 +36,18 @@ public class TwinClassFieldSearchDTOReverseMapper extends RestSimpleDTOMapper<Tw
                 .setRequired(src.getRequired())
                 .setExternalIdLikeList(src.getExternalIdLikeList())
                 .setExternalIdNotLikeList(src.getExternalIdNotLikeList())
-                .setOrderRange(longRangeDTOReverseMapper.convert(src.getOrderRange()));
+                .setOrderRange(longRangeDTOReverseMapper.convert(src.getOrderRange()))
+                .setDependentField(src.getDependentField())
+                .setHasDependentFields(src.getHasDependentFields())
+                .setSrcProjectionFieldIdList(src.getSrcProjectionFieldIdList())
+                .setSrcProjectionFieldIdExcludeList(src.getSrcProjectionFieldIdExcludeList())
+                .setDstProjectionFieldIdList(src.getDstProjectionFieldIdList())
+                .setDstProjectionFieldIdExcludeList(src.getDstProjectionFieldIdExcludeList())
+                .setDstProjectionClassIdList(src.getDstProjectionClassIdList())
+                .setDstProjectionClassIdExcludeList(src.getDstProjectionClassIdExcludeList())
+                .setProjectionTypeIdList(src.getProjectionTypeIdList())
+                .setProjectionTypeIdExcludeList(src.getProjectionTypeIdExcludeList())
+                .setProjectionField(src.getProjectionField())
+                .setHasProjectionFields(src.getHasProjectionFields());
     }
 }

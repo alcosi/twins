@@ -107,7 +107,17 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
                 checkTernary(search.getHasDependentFields(), TwinClassFieldEntity.Fields.hasDependentFields),
                 checkFieldLikeIn(search.getExternalIdLikeList(), false, true, TwinClassFieldEntity.Fields.externalId),
                 checkFieldLikeIn(search.getExternalIdNotLikeList(), true, true, TwinClassFieldEntity.Fields.externalId),
-                checkFieldLongRange(search.getOrderRange(), TwinClassFieldEntity.Fields.order));
+                checkFieldLongRange(search.getOrderRange(), TwinClassFieldEntity.Fields.order),
+                checkTernary(search.getProjectionField(), TwinClassFieldEntity.Fields.projectionField),
+                checkTernary(search.getHasProjectionFields(), TwinClassFieldEntity.Fields.hasProjectedFields),
+                checkSrcProjectionFieldIdIn(search.getSrcProjectionFieldIdList(), false),
+                checkSrcProjectionFieldIdIn(search.getSrcProjectionFieldIdExcludeList(), true),
+                checkDstProjectionFieldIdIn(search.getDstProjectionFieldIdList(), false),
+                checkDstProjectionFieldIdIn(search.getDstProjectionFieldIdExcludeList(), true),
+                checkDstProjectionClassIdIn(search.getDstProjectionClassIdList(), false),
+                checkDstProjectionClassIdIn(search.getDstProjectionClassIdExcludeList(), true),
+                checkProjectionTypeIdIn(search.getProjectionTypeIdList(), false),
+                checkProjectionTypeIdIn(search.getProjectionTypeIdExcludeList(), true));
     }
 
     private Specification<TwinClassFieldEntity> addSorting(TwinClassFieldSearch search, SimplePagination pagination, Specification<TwinClassFieldEntity> specification) throws ServiceException {
