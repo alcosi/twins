@@ -58,22 +58,11 @@ public class TwinArchiveEntity implements Cloneable, EasyLoggable {
 
     @Override
     public String easyLog(Level level) {
-        return "";
-    }
-
-    @Override
-    public String logNormal() {
-        return EasyLoggable.super.logNormal();
-    }
-
-    @Override
-    public String logShort() {
-        return EasyLoggable.super.logShort();
-    }
-
-    @Override
-    public String logDetailed() {
-        return EasyLoggable.super.logDetailed();
+        return switch (level) {
+            case SHORT -> STR."twinArchive[\{id}]";
+            case NORMAL -> STR."twinArchive[id:\{id}, twinClassId:\{twinClassId}]";
+            default -> STR."twin[id:\{id}, twinClassId:\{twinClassId}, twinStatusId:\{twinStatusId}]";
+        };
     }
 
     public TwinArchiveEntity clone() {
