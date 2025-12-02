@@ -45,14 +45,7 @@ public class TwinClassFieldSearch {
     private boolean excludeSystemFields = true;
     private boolean inactiveSearch = false;
     private TwinClassFieldSearchEntity configuredSearch;
-    private Set<UUID> srcProjectionFieldIdList;
-    private Set<UUID> srcProjectionFieldIdExcludeList;
-    private Set<UUID> dstProjectionClassIdList;
-    private Set<UUID> dstProjectionClassIdExcludeList;
-    private Set<UUID> dstProjectionFieldIdList;
-    private Set<UUID> dstProjectionFieldIdExcludeList;
-    private Set<UUID> projectionTypeIdList;
-    private Set<UUID> projectionTypeIdExcludeList;
+    private FieldProjectionSearch fieldProjectionSearch;
     private Ternary projectionField;
     private Ternary hasProjectionFields;
 

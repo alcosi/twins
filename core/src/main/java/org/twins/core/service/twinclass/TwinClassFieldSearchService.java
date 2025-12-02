@@ -18,8 +18,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.projection.ProjectionEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.search.FieldProjectionSearch;
 import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.featurer.classfield.finder.FieldFinder;
 import org.twins.core.featurer.classfield.sorter.FieldSorter;
@@ -32,6 +34,7 @@ import java.util.function.Function;
 
 import static org.cambium.common.util.SetUtils.narrowSet;
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecification.*;
 
 
@@ -110,14 +113,48 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
                 checkFieldLongRange(search.getOrderRange(), TwinClassFieldEntity.Fields.order),
                 checkTernary(search.getProjectionField(), TwinClassFieldEntity.Fields.projectionField),
                 checkTernary(search.getHasProjectionFields(), TwinClassFieldEntity.Fields.hasProjectedFields),
-                checkSrcProjectionFieldIdIn(search.getSrcProjectionFieldIdList(), false),
-                checkSrcProjectionFieldIdIn(search.getSrcProjectionFieldIdExcludeList(), true),
-                checkDstProjectionFieldIdIn(search.getDstProjectionFieldIdList(), false),
-                checkDstProjectionFieldIdIn(search.getDstProjectionFieldIdExcludeList(), true),
-                checkDstProjectionClassIdIn(search.getDstProjectionClassIdList(), false),
-                checkDstProjectionClassIdIn(search.getDstProjectionClassIdExcludeList(), true),
-                checkProjectionTypeIdIn(search.getProjectionTypeIdList(), false),
-                checkProjectionTypeIdIn(search.getProjectionTypeIdExcludeList(), true));
+                checkProjections(search));
+
+    }
+
+    private Specification<TwinClassFieldEntity> checkProjections(TwinClassFieldSearch search) throws ServiceException {
+        FieldProjectionSearch projectionSearch = search.getFieldProjectionSearch();
+        if (projectionSearch == null) {
+            return (root, query, cb) -> cb.conjunction();
+        }
+
+        FieldProjectionSearch.ProjectionFieldSelector selector = projectionSearch.getProjectionFieldSelector();
+        if (selector == null) {
+            selector = FieldProjectionSearch.ProjectionFieldSelector.all;
+        }
+
+        return switch (selector) {
+            case src -> Specification.allOf(
+                    checkUuidIn(projectionSearch.getSrcIdList(), false, false, TwinClassFieldEntity.Fields.projectionsBySrc, ProjectionEntity.Fields.srcTwinClassFieldId),
+                    checkUuidIn(projectionSearch.getDstIdList(), false, false, TwinClassFieldEntity.Fields.projectionsBySrc, ProjectionEntity.Fields.dstTwinClassFieldId),
+                    checkProjectionTypeIdIn(projectionSearch.getProjectionTypeIdList(), false)
+            );
+            case dst -> Specification.allOf(
+                    checkUuidIn(projectionSearch.getSrcIdList(), false, false, TwinClassFieldEntity.Fields.projectionsByDst, ProjectionEntity.Fields.srcTwinClassFieldId),
+                    checkUuidIn(projectionSearch.getDstIdList(), false, false, TwinClassFieldEntity.Fields.projectionsByDst, ProjectionEntity.Fields.dstTwinClassFieldId),
+                    checkProjectionTypeIdIn(projectionSearch.getProjectionTypeIdList(), false)
+            );
+            case all -> {
+                Specification<TwinClassFieldEntity> srcSpec = Specification.allOf(
+                        checkUuidIn(projectionSearch.getSrcIdList(), false, false, TwinClassFieldEntity.Fields.projectionsBySrc, ProjectionEntity.Fields.srcTwinClassFieldId),
+                        checkUuidIn(projectionSearch.getDstIdList(), false, false, TwinClassFieldEntity.Fields.projectionsBySrc, ProjectionEntity.Fields.dstTwinClassFieldId),
+                        checkProjectionTypeIdIn(projectionSearch.getProjectionTypeIdList(), false)
+                );
+
+                Specification<TwinClassFieldEntity> dstSpec = Specification.allOf(
+                        checkUuidIn(projectionSearch.getSrcIdList(), false, false, TwinClassFieldEntity.Fields.projectionsByDst, ProjectionEntity.Fields.srcTwinClassFieldId),
+                        checkUuidIn(projectionSearch.getDstIdList(), false, false, TwinClassFieldEntity.Fields.projectionsByDst, ProjectionEntity.Fields.dstTwinClassFieldId),
+                        checkProjectionTypeIdIn(projectionSearch.getProjectionTypeIdList(), false)
+                );
+
+                yield Specification.anyOf(srcSpec, dstSpec);
+            }
+        };
     }
 
     private Specification<TwinClassFieldEntity> addSorting(TwinClassFieldSearch search, SimplePagination pagination, Specification<TwinClassFieldEntity> specification) throws ServiceException {
