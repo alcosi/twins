@@ -1,6 +1,7 @@
 package org.twins.core.mappers.rest.permission;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
@@ -17,6 +18,7 @@ import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 @MapperModeBinding(modes = PermissionGroupMode.class)
 public class PermissionGroupRestDTOMapper extends RestSimpleDTOMapper<PermissionGroupEntity, PermissionGroupDTOv1> {
 
+    @Lazy
     @MapperModePointerBinding(modes = TwinClassMode.PermissionGroup2TwinClassMode.class)
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
@@ -37,11 +39,10 @@ public class PermissionGroupRestDTOMapper extends RestSimpleDTOMapper<Permission
                         .setKey(src.getKey());
                 break;
         }
-        if (mapperContext.hasModeButNot(TwinClassMode.PermissionGroup2TwinClassMode.HIDE))
-            dst
-                    .setTwinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.PermissionGroup2TwinClassMode.SHORT)))
-                    .setTwinClassId(src.getTwinClassId());
-
+        if (mapperContext.hasModeButNot(TwinClassMode.PermissionGroup2TwinClassMode.HIDE)) {
+            dst.setTwinClassId(src.getTwinClassId());
+            twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.PermissionGroup2TwinClassMode.SHORT));
+        }
     }
 
     @Override

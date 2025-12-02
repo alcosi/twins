@@ -4,6 +4,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
+import org.twins.core.dto.rest.permission.PermissionDTOv1;
+import org.twins.core.dto.rest.related.RelatedObject;
 
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +35,7 @@ public class TwinClassFieldDTOv1 {
     public TwinClassFieldDescriptorDTO descriptor;
 
     @Schema(description = "twin class id", example = "")
+    @RelatedObject(type = TwinClassDTOv1.class, name = "twinClass")
     public UUID twinClassId;
 
     @Schema(description = "name i18n id", example = "")
@@ -41,6 +45,7 @@ public class TwinClassFieldDTOv1 {
     public UUID descriptionI18nId;
 
     @Schema(description = "field typer featurer id", example = "")
+    @RelatedObject(type = FeaturerDTOv1.class, name = "fieldTyperFeaturer")
     public Integer fieldTyperFeaturerId;
 
     @Schema(description = "field typer params", example = "")
@@ -53,9 +58,11 @@ public class TwinClassFieldDTOv1 {
     public Map<String, String> twinSorterParams;
 
     @Schema(description = "view permission id", example = "")
+    @RelatedObject(type = PermissionDTOv1.class, name = "viewPermission")
     public UUID viewPermissionId;
 
     @Schema(description = "edit permission id", example = "")
+    @RelatedObject(type = PermissionDTOv1.class, name = "editPermission")
     public UUID editPermissionId;
 
     @Schema(description = "external id", example = "")
@@ -91,4 +98,11 @@ public class TwinClassFieldDTOv1 {
     @Schema(description = "order", example = "")
     public Integer order;
 
+    @Schema(name = "is projection field", example = "")
+    private Boolean projectionField;
+
+    @Schema(name = "has projected fields", example = "")
+    private Boolean hasProjectedFields;
 }
+
+

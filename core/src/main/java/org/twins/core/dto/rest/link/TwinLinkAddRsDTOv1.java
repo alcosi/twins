@@ -14,7 +14,6 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "TwinLinkAddRsV1")
 public class TwinLinkAddRsDTOv1 extends Response {
-
     @Schema(description = "id")
     public List<UUID> twinLinkIdList;
 }

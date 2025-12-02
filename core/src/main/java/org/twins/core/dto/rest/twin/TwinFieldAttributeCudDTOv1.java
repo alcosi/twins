@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name =  "TwinFieldAttributeCreateV1")
+@Schema(name =  "TwinFieldAttributeCudV1")
 public class TwinFieldAttributeCudDTOv1 {
     @Schema(description = "twin field attribute create list")
     public List<TwinFieldAttributeCreateDTOv1> creates;

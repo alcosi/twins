@@ -18,6 +18,9 @@ public class HistoryContextAttachmentDTOv1 implements HistoryContextDTO {
     @Schema(description = "Attachment id", example = DTOExamples.ATTACHMENT_ID)
     public UUID attachmentId;
 
+    //todo move to related objects
     @Schema(description = "Attachment")
     public AttachmentDTOv1 attachment;
 }
+
+

@@ -24,6 +24,7 @@ import org.twins.core.dto.rest.permission.PermissionCheckOverviewRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionCheckOverviewRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionCheckOverviewDTOMapper;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 
@@ -38,6 +39,7 @@ public class TwinPermissionCheckOverviewController extends ApiController {
 
     private final PermissionService permissionService;
     private final PermissionCheckOverviewDTOMapper permissionCheckOverviewDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "permissonCheckOverviewV1", summary = "Permisson check overview by twinId & userId")
@@ -56,6 +58,8 @@ public class TwinPermissionCheckOverviewController extends ApiController {
         try {
             PermissionCheckForTwinOverviewResult permissionCheckOverviewResult = permissionService.checkTwinAndUserForPermissions(request.userId(), twinId, request.permissionId());
             rs = permissionCheckOverviewDTOMapper.convert(permissionCheckOverviewResult, mapperContext);
+            rs
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

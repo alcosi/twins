@@ -27,7 +27,7 @@ import org.twins.core.dto.rest.permission.PermissionGrantTwinRoleSearchRsDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGrantTwinRoleViewRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
-import org.twins.core.mappers.rest.permission.PermissionGrantTwinRoleRestDTOMapperV2;
+import org.twins.core.mappers.rest.permission.PermissionGrantTwinRoleRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionGrantTwinRoleSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantTwinRoleSearchService;
@@ -44,7 +44,7 @@ import java.util.UUID;
 public class PermissionGrantTwinRoleSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    private final PermissionGrantTwinRoleRestDTOMapperV2 permissionGrantTwinRoleRestDTOMapperV2;
+    private final PermissionGrantTwinRoleRestDTOMapper permissionGrantTwinRoleRestDTOMapper;
     private final PermissionGrantTwinRoleSearchService permissionGrantTwinRoleSearchService;
     private final PermissionGrantTwinRoleSearchRqDTOReverseMapper permissionGrantTwinRoleSearchRqDTOReverseMapper;
     private final PermissionGrantTwinRoleService permissionGrantTwinRoleService;
@@ -58,7 +58,7 @@ public class PermissionGrantTwinRoleSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/twin_role/search/v1")
     public ResponseEntity<?> permissionGrantTwinRoleSearchV1(
-            @MapperContextBinding(roots = PermissionGrantTwinRoleRestDTOMapperV2.class, response = PermissionGrantTwinRoleSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantTwinRoleRestDTOMapper.class, response = PermissionGrantTwinRoleSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody PermissionGrantTwinRoleSearchRqDTOv1 request) {
         PermissionGrantTwinRoleSearchRsDTOv1 rs = new PermissionGrantTwinRoleSearchRsDTOv1();
@@ -66,7 +66,7 @@ public class PermissionGrantTwinRoleSearchController extends ApiController {
             PaginationResult<PermissionGrantTwinRoleEntity> permissionGrantTwinRoleList = permissionGrantTwinRoleSearchService
                     .findPermissionGrantTwinRoles(permissionGrantTwinRoleSearchRqDTOReverseMapper.convert(request), pagination);
             rs
-                    .setPermissionGrantTwinRoles(permissionGrantTwinRoleRestDTOMapperV2.convertCollection(permissionGrantTwinRoleList.getList(), mapperContext))
+                    .setPermissionGrantTwinRoles(permissionGrantTwinRoleRestDTOMapper.convertCollection(permissionGrantTwinRoleList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(permissionGrantTwinRoleList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -86,14 +86,14 @@ public class PermissionGrantTwinRoleSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/permission_grant/twin_role/{grantId}/v1")
     public ResponseEntity<?> permissionGrantTwinRoleViewV1(
-            @MapperContextBinding(roots = PermissionGrantTwinRoleRestDTOMapperV2.class, response = PermissionGrantTwinRoleViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantTwinRoleRestDTOMapper.class, response = PermissionGrantTwinRoleViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GRANT_TWIN_ROLE_ID) @PathVariable("grantId") UUID grantId) {
         PermissionGrantTwinRoleViewRsDTOv1 rs = new PermissionGrantTwinRoleViewRsDTOv1();
         try {
             PermissionGrantTwinRoleEntity permissionGrantTwinRole = permissionGrantTwinRoleService.findEntitySafe(grantId);
 
             rs
-                    .setPermissionGrantTwin(permissionGrantTwinRoleRestDTOMapperV2.convert(permissionGrantTwinRole, mapperContext))
+                    .setPermissionGrantTwin(permissionGrantTwinRoleRestDTOMapper.convert(permissionGrantTwinRole, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

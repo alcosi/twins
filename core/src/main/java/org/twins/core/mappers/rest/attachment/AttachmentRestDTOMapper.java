@@ -58,6 +58,7 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
     @MapperModePointerBinding(modes = TwinMode.Attachment2TwinMode.class)
     private TwinRestDTOMapperV2 twinRestDTOMapper;
 
+    @Lazy
     @Autowired
     private TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
 
@@ -80,7 +81,8 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
                     .setSize(src.getSize())
                     .setTitle(src.getTitle())
                     .setExternalId(src.getExternalId())
-                    .setStorageLink(attachmentService.getAttachmentUri(src));
+                    .setStorageLink(attachmentService.getAttachmentUri(src))
+                    .setOrder(src.getOrder());
             case SHORT -> dst
                     .setId(src.getId())
                     .setStorageLink(attachmentService.getAttachmentUri(src));

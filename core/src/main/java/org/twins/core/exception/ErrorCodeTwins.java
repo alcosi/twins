@@ -181,7 +181,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     FACE_CONFIG_IS_NOT_UNIQ(13001, "face has few config variants"),
     FACE_NO_CONFIG_IS_SUITABLE(13002, "no suitable face config found"),
     TWIN_VALIDATOR_INCORRECT(13101, "incorrect twin validator for this case"),
-    USER_SEARCH_CONFIG_INCORRECT(14001, "user search config incorrect");
+    USER_SEARCH_CONFIG_INCORRECT(14001, "user search config incorrect"),
+    TWIN_CLASS_FIELD_CONDITION_DEPTH_EXCEEDED(15001, "twin class field condition depth exceeded");
 
     private final int code;
     private final String message;

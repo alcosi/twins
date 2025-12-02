@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
+import org.twins.core.dto.rest.related.RelatedObject;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -20,6 +21,7 @@ public class TwinValidatorBaseDTOv1 {
     public UUID twinValidatorSetId;;
 
     @Schema(description = "validator featurer id")
+    @RelatedObject(type = FeaturerDTOv1.class, name = "validatorFeaturer")
     public Integer validatorFeaturerId;
 
     @Schema(description = "featurer params")
@@ -37,9 +39,9 @@ public class TwinValidatorBaseDTOv1 {
     @Schema(description = "order")
     public Integer order;
 
+    //todo move to related objects
     @Schema(description = "grouping set of twin validator")
     public TwinValidatorSetBaseDTOv1 twinValidatorSet;
-
-    @Schema(description = "validator featurer")
-    public FeaturerDTOv1 validatorFeaturer;
 }
+
+

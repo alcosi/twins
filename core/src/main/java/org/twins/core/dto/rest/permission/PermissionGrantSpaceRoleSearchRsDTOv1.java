@@ -18,5 +18,5 @@ public class PermissionGrantSpaceRoleSearchRsDTOv1 extends ResponseRelatedObject
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - permission grant space role list")
-    public List<PermissionGrantSpaceRoleDTOv2> permissionGrantSpaceRoles;
+    public List<PermissionGrantSpaceRoleDTOv1> permissionGrantSpaceRoles;
 }

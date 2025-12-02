@@ -7,9 +7,6 @@ import org.twins.core.dto.rest.twin.TwinFieldAttributeDTOv1;
 import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.service.i18n.I18nService;
-
-import java.util.Locale;
 
 @Component
 @RequiredArgsConstructor
@@ -20,6 +17,7 @@ public class TwinFieldAttributeRestDTOMapper extends RestSimpleDTOMapper<TwinFie
         dst
                 .setId(src.getId())
                 .setNoteMsg(src.getNoteMsg() != null ? src.getNoteMsg() : I18nCacheHolder.addId(src.getTwinClassFieldAttributeEntity().getNoteMsgI18nId(), src.getNoteMsgContext()))
+                .setContext(src.getNoteMsgContext())
                 .setTwinClassFieldAttributeId(src.getTwinClassFieldAttributeId())
                 .setChangedAt(src.getChangedAt().toLocalDateTime());
     }

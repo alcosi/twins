@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 
 import java.util.List;
@@ -15,5 +14,5 @@ import java.util.List;
 @Schema(name = "PermissionListRsV1")
 public class PermissionListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "permission list")
-    public List<PermissionDTOv2> permissions;
+    public List<PermissionDTOv1> permissions;
 }

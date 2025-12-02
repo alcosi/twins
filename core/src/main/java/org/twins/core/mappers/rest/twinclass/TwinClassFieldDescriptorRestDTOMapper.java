@@ -17,7 +17,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
-import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
 import java.util.stream.Collectors;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<FieldDescriptor, TwinClassFieldDescriptorDTO> {
 
     @MapperModePointerBinding(modes = TwinMode.TwinClassFieldDescriptor2TwinMode.class)
-    private final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
+    private final TwinRestDTOMapperV2 twinRestDTOMapper;
 
     @MapperModePointerBinding(modes = DataListOptionMode.TwinClassFieldDescriptor2DataListOptionMode.class)
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
@@ -120,11 +120,13 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                         .multiple(linkDescriptor.multiple())
                         .linkId(linkDescriptor.linkId());
             } else {
-                return new TwinClassFieldDescriptorLinkDTOv1()
+                var ret = new TwinClassFieldDescriptorLinkDTOv1();
+                ret
                         .multiple(linkDescriptor.multiple())
-                        .dstTwins(twinBaseV2RestDTOMapper.convertCollection(linkDescriptor.dstTwins(),
-                                mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinMode.TwinClassFieldDescriptor2TwinMode.SHORT))
-                        ));
+                        .dstTwinIds(linkDescriptor.dstTwins().getIdSet());
+                twinRestDTOMapper.postpone(linkDescriptor.dstTwins(),
+                        mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinMode.TwinClassFieldDescriptor2TwinMode.SHORT)));
+                return ret;
             }
         else if (fieldDescriptor instanceof FieldDescriptorI18n i18nDescriptor) {
             return new TwinClassFieldDescriptorI18nDTOv1();

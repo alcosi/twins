@@ -1,8 +1,11 @@
 package org.twins.core.dto.rest.twinstatus;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.enums.status.StatusType;
 
 import java.util.UUID;
@@ -36,6 +39,7 @@ public class TwinStatusDTOv1 {
     public String fontColor;
 
     @Schema(description = "twin class", example = DTOExamples.TWIN_CLASS_ID)
+    @RelatedObject(type = TwinClassDTOv1.class, name = "twinClass")
     public UUID twinClassId;
 
     @Schema(description = "type")

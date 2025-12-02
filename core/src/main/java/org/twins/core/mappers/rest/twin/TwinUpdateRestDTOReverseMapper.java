@@ -57,7 +57,7 @@ public class TwinUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Pair<Twi
             }
 
             if (twinUpdateDTO.getFieldsAttributes() != null) {
-                dst.setTwinFieldAttributeCUD(twinFieldAttributeCUDRestDTOReverseMapper.convert(twinUpdateDTO));
+                dst.setTwinFieldAttributeCUD(twinFieldAttributeCUDRestDTOReverseMapper.convert(twinUpdateDTO.getFieldsAttributes()));
             }
         }
     }

@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Schema(name = "FactoryPipelineStepViewRsV1")
 public class FactoryPipelineStepViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "result - factory pipeline step")
-    public FactoryPipelineStepDTOv2 step;
+    public FactoryPipelineStepDTOv1 step;
 }

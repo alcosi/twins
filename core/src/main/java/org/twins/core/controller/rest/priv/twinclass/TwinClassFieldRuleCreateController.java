@@ -52,7 +52,7 @@ public class TwinClassFieldRuleCreateController extends ApiController {
     private final TwinClassFieldRuleService twinClassFieldRuleService;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinClassFieldRuleCreateV1", summary = "Create a rule that defines dependent field behaviour")
+    @Operation(operationId = "twinClassFieldRuleCreateV1", summary = "Create a rule that defines dependent fields behaviour")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Rule has been successfully created", content = {
                     @Content(mediaType = "application/json", schema =
@@ -64,11 +64,11 @@ public class TwinClassFieldRuleCreateController extends ApiController {
             @RequestBody TwinClassFieldRuleCreateRqDTOv1 request) {
         TwinClassFieldRuleRsDTOv1 rs = new TwinClassFieldRuleRsDTOv1();
         try {
-            // convert DTO list -> entities, persist, convert back -> DTO list
-            List<TwinClassFieldRuleEntity> ruleEntities = twinClassFieldRuleCreateDTOReverseMapper.convertCollection(request.getRules(), mapperContext);
-            ruleEntities = twinClassFieldRuleService.createRules(ruleEntities);
+            List<TwinClassFieldRuleEntity> ruleEntities = twinClassFieldRuleService.createRules(twinClassFieldRuleCreateDTOReverseMapper.convertCollection(request.getRules(), mapperContext));
 
-            rs.setRules(twinClassFieldRuleRestDTOMapper.convertCollection(ruleEntities, mapperContext));
+            rs
+                    .setRules(twinClassFieldRuleRestDTOMapper.convertCollection(ruleEntities, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

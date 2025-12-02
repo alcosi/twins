@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Schema(name =  "TwinV2")
 public class TwinDTOv2 extends TwinBaseDTOv3 {
     @Deprecated

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.LocalDateTime;
@@ -22,6 +23,7 @@ public class DomainUserDTOv1 {
     public UUID id;
 
     @Schema(description = "user id", example = DTOExamples.USER_ID)
+    @RelatedObject(type = UserDTOv1.class, name = "user")
     public UUID userId;
 
     @Schema(description = "locale", example = DTOExamples.LOCALE)
@@ -33,4 +35,8 @@ public class DomainUserDTOv1 {
 
     @Schema(description = "Business account id list."  + DTOExamples.LAZY_RELATION_MODE_OFF)
     public Set<UUID> businessAccountUserIdList;
+
+    //todo think over move to related objects
+    @Schema(description = "Business account users." + DTOExamples.LAZY_RELATION_MODE_ON)
+    public List<BusinessAccountUserDTOv1> businessAccountUsers;
 }

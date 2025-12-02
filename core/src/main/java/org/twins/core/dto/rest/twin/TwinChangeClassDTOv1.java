@@ -30,3 +30,5 @@ public class TwinChangeClassDTOv1 extends Request {
     public List<TwinChangeClassStrategy> behavior;
 
 }
+
+

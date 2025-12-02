@@ -106,12 +106,8 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             storageService.loadStorages(attachments);
 
             try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
-                /*
-                todo rewrite this after java version update. attachments.forEach(att -> scope.forkAndIgnore)
-                for java <=22 this is the right version of working (https://openjdk.org/jeps/462)
-                todo somehow rewrite thread-local logic for api user to use scoped values
-                */
-                attachments.stream().map(attachmentEntity -> scope.fork(() -> {
+                // todo somehow rewrite thread-local logic for api user to use scoped values
+                attachments.forEach(attachmentEntity -> scope.fork(() -> {
                     UUID uuid = UUID.randomUUID();
                     LoggerUtils.logSession(uuid);
                     LoggerUtils.logController("addAttachments$");
@@ -168,7 +164,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                     }
 
                     return null;
-                })).toList();
+                }));
 
                 scope.join().throwIfFailed(cause -> {
                     log.error("One or more attachments failed. First error:", cause);
@@ -403,6 +399,10 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.title, dbAttachmentEntity.getTitle(), attachmentEntity.getTitle())) {
                 historyItem.getContext().setNewTitle(attachmentEntity.getTitle());
                 dbAttachmentEntity.setTitle(attachmentEntity.getTitle());
+            }
+            if (twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.order, dbAttachmentEntity.getOrder(), attachmentEntity.getOrder())) {
+                historyItem.getContext().setNewOrder(attachmentEntity.getOrder());
+                dbAttachmentEntity.setOrder(attachmentEntity.getOrder());
             }
             if (attachmentEntity.isFileChanged() || twinChangesCollector.collectIfChanged(dbAttachmentEntity, TwinAttachmentEntity.Fields.storageFileKey, dbAttachmentEntity.getStorageFileKey(), attachmentEntity.getStorageFileKey())) {
                 deleteFile(dbAttachmentEntity);

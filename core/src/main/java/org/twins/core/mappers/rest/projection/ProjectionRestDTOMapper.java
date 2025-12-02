@@ -31,7 +31,16 @@ public class ProjectionRestDTOMapper extends RestSimpleDTOMapper<ProjectionEntit
     @Override
     public void map(ProjectionEntity src, ProjectionDTOv1 dst, MapperContext mapperContext) throws Exception {
         TwinEntity srcTwin = faceTwinPointerService.getPointer(src.getSrcTwinPointerId());
-        switch (mapperContext.getModeOrUse(ProjectionMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(ProjectionMode.MANAGED)) {
+            case MANAGED -> dst
+                    .setId(src.getId())
+                    .setSrcPointedTwinId(srcTwin == null ? null : srcTwin.getId())
+                    .setSrcTwinClassFieldId(src.getSrcTwinClassFieldId())
+                    .setDstTwinClassId(src.getDstTwinClassId())
+                    .setDstTwinClassFieldId(src.getDstTwinClassFieldId())
+                    .setFieldProjectorFeaturerId(src.getFieldProjectorFeaturerId())
+                    .setFieldProjectorParams(src.getFieldProjectorParams());
+
             case DETAILED -> dst
                     .setId(src.getId())
                     .setSrcPointedTwinId(srcTwin == null ? null : srcTwin.getId())

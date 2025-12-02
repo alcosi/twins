@@ -27,7 +27,7 @@ import org.twins.core.dto.rest.permission.PermissionSchemaSearchRsDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaViewRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
-import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapperV2;
+import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionSchemaSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionSchemaSearchService;
@@ -45,7 +45,7 @@ public class PermissionSchemaSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;
     private final PermissionSchemaSearchService permissionSchemaSearchService;
-    private final PermissionSchemaRestDTOMapperV2 permissionSchemaRestDTOMapperV2;
+    private final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
     private final PermissionSchemaSearchDTOReverseMapper permissionSchemaSearchDTOReverseMapper;
     private final PermissionSchemaService permissionSchemaService;
 
@@ -58,7 +58,7 @@ public class PermissionSchemaSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_schema/search/v1")
     public ResponseEntity<?> permissionSchemaSearchV1(
-            @MapperContextBinding(roots = PermissionSchemaRestDTOMapperV2.class, response = PermissionSchemaSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionSchemaRestDTOMapper.class, response = PermissionSchemaSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody PermissionSchemaSearchRqDTOv1 request) {
         PermissionSchemaSearchRsDTOv1 rs = new PermissionSchemaSearchRsDTOv1();
@@ -66,7 +66,7 @@ public class PermissionSchemaSearchController extends ApiController {
             PaginationResult<PermissionSchemaEntity> permissionList = permissionSchemaSearchService
                     .findPermissionSchemasByDomain(permissionSchemaSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setPermissionSchemas(permissionSchemaRestDTOMapperV2.convertCollection(permissionList.getList(), mapperContext))
+                    .setPermissionSchemas(permissionSchemaRestDTOMapper.convertCollection(permissionList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(permissionList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -86,14 +86,14 @@ public class PermissionSchemaSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/permission_schema/{schemaId}/v1")
     public ResponseEntity<?> permissionSchemaViewV1(
-            @MapperContextBinding(roots = PermissionSchemaRestDTOMapperV2.class, response = PermissionSchemaViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionSchemaRestDTOMapper.class, response = PermissionSchemaViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_SCHEMA_ID) @PathVariable("schemaId") UUID schemaId) {
         PermissionSchemaViewRsDTOv1 rs = new PermissionSchemaViewRsDTOv1();
         try {
             PermissionSchemaEntity permission = permissionSchemaService.findEntitySafe(schemaId);
 
             rs
-                    .setPermissionSchema(permissionSchemaRestDTOMapperV2.convert(permission, mapperContext))
+                    .setPermissionSchema(permissionSchemaRestDTOMapper.convert(permission, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

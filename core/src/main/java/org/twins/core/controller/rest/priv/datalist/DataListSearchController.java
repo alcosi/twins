@@ -22,7 +22,7 @@ import org.twins.core.controller.rest.annotation.*;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dto.rest.datalist.DataListSearchRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListSearchRsDTOv1;
-import org.twins.core.mappers.rest.datalist.DataListRestDTOMapperV2;
+import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
@@ -38,7 +38,7 @@ public class DataListSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final DataListSearchService dataListSearchService;
     private final DataListSearchDTOReverseMapper dataListSearchDTOReverseMapper;
-    private final DataListRestDTOMapperV2 dataListRestDTOMapperV2;
+    private final DataListRestDTOMapper dataListRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListSearchV1", summary = "Returns lists details")
@@ -50,14 +50,14 @@ public class DataListSearchController extends ApiController {
     @PostMapping(value = "/private/data_list/search/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListSearchV1(
-            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody DataListSearchRqDTOv1 request) {
         DataListSearchRsDTOv1 rs = new DataListSearchRsDTOv1();
         try {
             PaginationResult<DataListEntity> dataListsList = dataListSearchService.findDataListsForDomain(dataListSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setDataListList(dataListRestDTOMapperV2.convertCollection(dataListsList.getList(), mapperContext))
+                    .setDataListList(dataListRestDTOMapper.convertCollection(dataListsList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(dataListsList));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

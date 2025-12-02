@@ -15,8 +15,6 @@ import java.util.HashMap;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinCreateRqV2")
 public class TwinCreateRqDTOv2 extends TwinDraftDTOv1 {
-
-
     @Override
     public TwinCreateRqDTOv2 putFieldsItem(String key, String item) {
         if (this.fields == null) this.fields = new HashMap<>();

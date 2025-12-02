@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -21,12 +22,13 @@ public interface TwinClassFieldConditionRepository extends CrudRepository<TwinCl
      */
     @Modifying
     @Query(value = """
-            delete from twin_class_field_condition c
-            using twin_class_field_rule r,
-                 twin_class_field f
-            where c.twin_class_field_rule_id = r.id
-              and r.twin_class_field_id = f.id
-              and f.twin_class_id = :twinClassId
-            """, nativeQuery = true)
-    void deleteByTwinClassId(UUID twinClassId);
+        DELETE FROM twin_class_field_condition c
+        WHERE c.twin_class_field_rule_id IN (
+            SELECT DISTINCT m.twin_class_field_rule_id
+            FROM twin_class_field_rule_map m
+            JOIN twin_class_field f ON m.twin_class_field_id = f.id
+            WHERE f.twin_class_id = :twinClassId
+        )
+        """, nativeQuery = true)
+    void deleteByTwinClassId(@Param("twinClassId") UUID twinClassId);
 }

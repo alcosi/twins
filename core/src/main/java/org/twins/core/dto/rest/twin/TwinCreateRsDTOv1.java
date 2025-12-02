@@ -20,3 +20,5 @@ public class TwinCreateRsDTOv1 extends TwinSaveRsV1 {
     @Schema(description = "twin alias list")
     public List<String> twinAliasList;
 }
+
+
