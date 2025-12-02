@@ -6,6 +6,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.util.LoggerUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.attachment.AttachmentDeleteTaskRepository;
 import org.twins.core.enums.attachment.AttachmentDeleteTaskStatus;
@@ -23,7 +24,7 @@ public class AttachmentDeleteTaskScheduler {
     @Qualifier("attachmentDeleteTaskExecutor")
     private final Executor executor;
 
-//    @Scheduled(fixedDelayString = "${attachment.delete.tasks.collect.scheduler.delay:2000}")
+    @Scheduled(fixedDelayString = "${attachment.delete.tasks.collect.scheduler.delay:2000}")
     public void collectDeleteTasks() {
         try {
             LoggerUtils.logSession();

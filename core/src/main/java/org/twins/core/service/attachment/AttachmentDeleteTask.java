@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.attachment.AttachmentDeleteTaskEntity;
 import org.twins.core.dao.attachment.AttachmentDeleteTaskRepository;
 import org.twins.core.dao.resource.StorageEntity;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.enums.attachment.AttachmentDeleteTaskStatus;
 import org.twins.core.featurer.storager.Storager;
 import org.twins.core.service.auth.AuthService;
@@ -40,9 +39,8 @@ public class AttachmentDeleteTask implements Runnable {
     public void run() {
         try {
             LoggerUtils.logController("attachmentDeleteTask$");
-            LoggerUtils.logPrefix("ATTACHMENT_DELETE_TASK[" + attachmentDeleteTaskEntity.getId() + "]:");
-            TwinEntity twinEntity = attachmentDeleteTaskEntity.getTwin();
-            authService.setThreadLocalApiUser(twinEntity.getTwinClass().getDomainId(), twinEntity.getOwnerBusinessAccountId(), twinEntity.getCreatedByUserId());
+            LoggerUtils.logPrefix(STR."ATTACHMENT_DELETE_TASK[\{attachmentDeleteTaskEntity.getId()}]:");
+            authService.setThreadLocalApiUser(attachmentDeleteTaskEntity.getDomainId(), attachmentDeleteTaskEntity.getBusinessAccountId(), attachmentDeleteTaskEntity.getCreatedByUserId());
             StorageEntity storage = attachmentDeleteTaskEntity.getStorage();
             Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
             fileService.tryDeleteFile(attachmentDeleteTaskEntity.getStorageFileKey(), storage.getStoragerParams());
