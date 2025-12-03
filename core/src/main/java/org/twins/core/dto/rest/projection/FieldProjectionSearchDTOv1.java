@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.domain.search.FieldProjectionSearch;
+import org.twins.core.enums.projection.ProjectionFieldSelector;
 
 import java.util.Set;
 import java.util.UUID;
@@ -15,7 +15,7 @@ import java.util.UUID;
 @Schema(name = "FieldProjectionSearchV1")
 public class FieldProjectionSearchDTOv1 {
     @Schema(description = "projection field selector")
-    public FieldProjectionSearch.ProjectionFieldSelector projectionFieldSelector;
+    public ProjectionFieldSelector projectionFieldSelector;
 
     @Schema(description = "src id list")
     public Set<UUID> srcIdList;
