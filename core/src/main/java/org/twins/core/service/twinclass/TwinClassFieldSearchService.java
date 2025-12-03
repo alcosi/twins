@@ -23,6 +23,7 @@ import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.FieldProjectionSearch;
 import org.twins.core.domain.search.TwinClassFieldSearch;
+import org.twins.core.enums.projection.ProjectionFieldSelector;
 import org.twins.core.featurer.classfield.finder.FieldFinder;
 import org.twins.core.featurer.classfield.sorter.FieldSorter;
 import org.twins.core.service.SystemEntityService;
@@ -123,9 +124,9 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
             return (root, query, cb) -> cb.conjunction();
         }
 
-        FieldProjectionSearch.ProjectionFieldSelector selector = projectionSearch.getProjectionFieldSelector();
+        ProjectionFieldSelector selector = projectionSearch.getProjectionFieldSelector();
         if (selector == null) {
-            selector = FieldProjectionSearch.ProjectionFieldSelector.all;
+            selector = ProjectionFieldSelector.all;
         }
 
         return switch (selector) {
