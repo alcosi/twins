@@ -50,12 +50,6 @@ public class TwinArchiveEntity implements Cloneable, EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @Column(name = "page_face_id")
-    private UUID pageFaceId;
-
-    @Column(name = "bread_crumbs_face_id")
-    private UUID breadCrumbsFaceId;
-
     @Override
     public String easyLog(Level level) {
         return switch (level) {
@@ -76,8 +70,6 @@ public class TwinArchiveEntity implements Cloneable, EasyLoggable {
                 .setOwnerUserId(ownerUserId)
                 .setTwinStatusId(twinStatusId)
                 .setCreatedByUserId(createdByUserId)
-                .setCreatedAt(createdAt)
-                .setPageFaceId(pageFaceId)
-                .setBreadCrumbsFaceId(breadCrumbsFaceId);
+                .setCreatedAt(createdAt);
     }
 }

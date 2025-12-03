@@ -2,16 +2,16 @@ drop table if exists twin_attachment_delete_task;
 
 create table if not exists twin_attachment_delete_task
 (
-    id                  uuid primary key,
-    twin_attachment_id  uuid         not null,
-    twin_id             uuid         not null,
-    domain_id           uuid         not null,
-    business_account_id uuid         not null,
-    created_by_user_id  uuid         not null,
-    storage_id          uuid         not null references storage on update cascade on delete cascade,
-    storage_file_key    varchar(255) not null,
-    status              varchar(50)  not null default 'NEED_START',
-    created_at          timestamp             default CURRENT_TIMESTAMP
+    id                       uuid primary key,
+    twin_attachment_id       uuid         not null,
+    twin_id                  uuid         not null,
+    domain_id                uuid         not null,
+    twin_business_account_id uuid         not null,
+    twin_created_by_user_id  uuid         not null,
+    storage_id               uuid         not null references storage on update cascade on delete cascade,
+    storage_file_key         varchar(255) not null,
+    status                   varchar(50)  not null default 'NEED_START',
+    created_at               timestamp             default CURRENT_TIMESTAMP
 );
 
 create table if not exists twin_archive
@@ -25,9 +25,7 @@ create table if not exists twin_archive
     created_at                timestamp default CURRENT_TIMESTAMP,
     owner_business_account_id uuid,
     owner_user_id             uuid,
-    hierarchy_tree            ltree,
-    page_face_id              uuid,
-    bread_crumbs_face_id      uuid
+    hierarchy_tree            ltree
 );
 
 create or replace function twin_after_insert_wrapper() returns trigger
@@ -63,11 +61,10 @@ $$
 begin
     insert into twin_archive(id, twin_class_id, head_twin_id, external_id, twin_status_id,
                              created_by_user_id, created_at, owner_business_account_id, owner_user_id,
-                             hierarchy_tree, page_face_id, bread_crumbs_face_id)
+                             hierarchy_tree)
     select id, twin_class_id, head_twin_id, external_id,
            twin_status_id, created_by_user_id, created_at,
-           owner_business_account_id, owner_user_id, hierarchy_tree,
-           page_face_id, bread_crumbs_face_id
+           owner_business_account_id, owner_user_id, hierarchy_tree
     from twin
     where twin.id = old.id;
 
@@ -122,7 +119,7 @@ begin
         attachments_storage_used_size = attachments_storage_used_size - old.size
     where domain.id = dom_id;
 
-    insert into twin_attachment_delete_task(id, twin_attachment_id, twin_id, domain_id, business_account_id, created_by_user_id, storage_id, status, storage_file_key, created_at)
+    insert into twin_attachment_delete_task(id, twin_attachment_id, twin_id, domain_id, twin_business_account_id, twin_created_by_user_id, storage_id, status, storage_file_key, created_at)
     values (uuid_generate_v4(), old.id, old.twin_id, dom_id, ba_id, old.created_by_user_id, old.storage_id, 'NEED_START', old.storage_file_key, now());
 
     return old;
