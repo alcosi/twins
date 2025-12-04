@@ -1,0 +1,13 @@
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4402::integer, 44::integer, '', '', '', DEFAULT) on conflict do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4403::integer, 44::integer, '', '', '', DEFAULT) on conflict do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4404::integer, 44::integer, '', '', '', DEFAULT) on conflict do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4405::integer, 44::integer, '', '', '', DEFAULT) on conflict do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4406::integer, 44::integer, '', '', '', DEFAULT) on conflict do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4407::integer, 44::integer, '', '', '', DEFAULT) on conflict do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4408::integer, 44::integer, '', '', '', DEFAULT) on conflict do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4409::integer, 44::integer, '', '', '', DEFAULT) on conflict do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4410::integer, 44::integer, '', '', '', DEFAULT) on conflict do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4411::integer, 44::integer, '', '', '', DEFAULT) on conflict do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4412::integer, 44::integer, '', '', '', DEFAULT) on conflict do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4413::integer, 44::integer, '', '', '', DEFAULT) on conflict do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4414::integer, 44::integer, '', '', '', DEFAULT) on conflict do nothing;

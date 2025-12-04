@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.LongRangeDTOv1;
+import org.twins.core.dto.rest.projection.FieldProjectionSearchDTOv1;
 
 import java.util.Map;
 import java.util.Set;
@@ -15,7 +16,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name =  "TwinClassFieldSearchV1")
+@Schema(name = "TwinClassFieldSearchV1")
 public class TwinClassFieldSearchDTOv1 {
     @Schema(description = "id list")
     public Set<UUID> idList;
@@ -88,4 +89,19 @@ public class TwinClassFieldSearchDTOv1 {
 
     @Schema(description = "order range")
     public LongRangeDTOv1 orderRange;
+
+    @Schema(description = "is dependent field", example = DTOExamples.TERNARY)
+    public Ternary dependentField;
+
+    @Schema(description = "has dependent fields", example = DTOExamples.TERNARY)
+    public Ternary hasDependentFields;
+
+    @Schema(description = "is projection field", example = DTOExamples.TERNARY)
+    public Ternary projectionField;
+
+    @Schema(description = "has projection fields", example = DTOExamples.TERNARY)
+    public Ternary hasProjectionFields;
+
+    @Schema(description = "field projection search")
+    public FieldProjectionSearchDTOv1 fieldProjectionSearch;
 }

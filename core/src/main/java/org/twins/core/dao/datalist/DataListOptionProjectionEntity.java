@@ -20,6 +20,7 @@ import java.util.UUID;
 @Table(name = "data_list_option_projection")
 public class DataListOptionProjectionEntity implements EasyLoggable {
     @Id
+    @GeneratedValue(generator = "uuid")
     private UUID id;
 
     @Column(name = "projection_type_id")
