@@ -36,6 +36,9 @@ public class TwinClassFieldSpecification extends CommonSpecification<TwinClassFi
             Collection<UUID> projectionTypeIdList
     ) {
         return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(srcIdList) && CollectionUtils.isEmpty(dstIdList) && CollectionUtils.isEmpty(projectionTypeIdList))
+                return cb.conjunction();
+
             Join<TwinClassFieldEntity, ProjectionEntity> projectionJoin = root.join(associationPath, JoinType.INNER);
 
             List<Predicate> predicates = new ArrayList<>();
@@ -49,9 +52,7 @@ public class TwinClassFieldSpecification extends CommonSpecification<TwinClassFi
             if (!CollectionUtils.isEmpty(projectionTypeIdList)) {
                 predicates.add(projectionJoin.get(ProjectionEntity.Fields.projectionTypeId).in(projectionTypeIdList));
             }
-            if (predicates.isEmpty()) {
-                return cb.conjunction();
-            }
+
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
