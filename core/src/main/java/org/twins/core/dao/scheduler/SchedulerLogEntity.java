@@ -1,0 +1,48 @@
+package org.twins.core.dao.scheduler;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Data;
+import lombok.experimental.Accessors;
+import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.sql.Timestamp;
+import java.util.UUID;
+
+@Entity
+@Table(name = "scheduler_log")
+@Accessors(chain = true)
+@Data
+public class SchedulerLogEntity implements EasyLoggable {
+
+    @Id
+    private UUID id;
+
+    @Column(name = "scheduler_id")
+    private UUID schedulerId;
+
+    @CreationTimestamp
+    @Column(name = "created_at")
+    private Timestamp createdAt;
+
+    @Column(name = "result")
+    private String result;
+
+    @Column(name = "execution_time")
+    private long executionTime;
+
+    @Override
+    public String easyLog(Level level) {
+        return switch (level) {
+            case SHORT ->
+                    STR."scheduleLogEntity[id:\{id}]";
+            case NORMAL ->
+                    STR."scheduleLogEntity[id:\{id}, schedulerId:\{schedulerId}, result:\{result}]";
+            case DETAILED ->
+                    STR."scheduleLogEntity[id:\{id}, schedulerId:\{schedulerId}, result:\{result}, createdAt:\{createdAt}, executionTime:\{executionTime}]";
+        };
+    }
+}
