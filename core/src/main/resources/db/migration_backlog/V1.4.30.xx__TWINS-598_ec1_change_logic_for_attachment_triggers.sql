@@ -2,17 +2,20 @@ drop table if exists twin_attachment_delete_task;
 
 create table if not exists twin_attachment_delete_task
 (
-    id                       uuid primary key,
-    twin_attachment_id       uuid         not null,
-    twin_id                  uuid         not null,
-    domain_id                uuid         not null,
-    twin_business_account_id uuid         not null,
-    twin_created_by_user_id  uuid         not null,
-    storage_id               uuid         not null references storage on update cascade on delete cascade,
-    storage_file_key         varchar(255) not null,
-    status                   varchar(50)  not null default 'NEED_START',
-    created_at               timestamp             default CURRENT_TIMESTAMP
+    id                             uuid primary key,
+    twin_attachment_id             uuid         not null,
+    twin_id                        uuid         not null,
+    domain_id                      uuid         not null,
+    twin_owner_business_account_id uuid         not null,
+    twin_created_by_user_id        uuid         not null,
+    storage_id                     uuid         not null references storage on update cascade on delete cascade,
+    storage_file_key               varchar(255) not null,
+    status                         varchar(50)  not null default 'NEED_START',
+    created_at                     timestamp             default CURRENT_TIMESTAMP
 );
+
+create index if not exists twin_attachment_delete_task_storage_id_index
+    on twin_attachment_delete_task (storage_id);
 
 create table if not exists twin_archive
 (

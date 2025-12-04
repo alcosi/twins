@@ -40,7 +40,7 @@ public class AttachmentDeleteTask implements Runnable {
         try {
             LoggerUtils.logController("attachmentDeleteTask$");
             LoggerUtils.logPrefix(STR."ATTACHMENT_DELETE_TASK[\{attachmentDeleteTaskEntity.getId()}]:");
-            authService.setThreadLocalApiUser(attachmentDeleteTaskEntity.getDomainId(), attachmentDeleteTaskEntity.getTwinBusinessAccountId(), attachmentDeleteTaskEntity.getTwinCreatedByUserId());
+            authService.setThreadLocalApiUser(attachmentDeleteTaskEntity.getDomainId(), attachmentDeleteTaskEntity.getTwinOwnerBusinessAccountId(), attachmentDeleteTaskEntity.getTwinCreatedByUserId());
             StorageEntity storage = attachmentDeleteTaskEntity.getStorage();
             Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
             fileService.tryDeleteFile(attachmentDeleteTaskEntity.getStorageFileKey(), storage.getStoragerParams());

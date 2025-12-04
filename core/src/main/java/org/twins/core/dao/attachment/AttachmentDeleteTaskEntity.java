@@ -31,8 +31,8 @@ public class AttachmentDeleteTaskEntity implements EasyLoggable {
     @Column(name = "domain_id")
     private UUID domainId;
 
-    @Column(name = "twin_business_account_id")
-    private UUID twinBusinessAccountId;
+    @Column(name = "twin_owner_business_account_id")
+    private UUID twinOwnerBusinessAccountId;
 
     @Column(name = "twin_created_by_user_id")
     private UUID twinCreatedByUserId;
@@ -58,7 +58,7 @@ public class AttachmentDeleteTaskEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case NORMAL -> STR."attachmentDeleteTask[id:\{id}, twinAttachmentId:\{twinAttachmentId}, storageId:\{storageId}]";
-            case DETAILED -> STR."attachmentDeleteTask[id:\{id}, twinAttachmentId:\{twinAttachmentId}, twinId:\{twinId}, domainId:\{domainId}, twinBusinessAccountId:\{twinBusinessAccountId}, twinCreatedByUserId:\{twinCreatedByUserId}, storageId:\{storageId}, storageFileKey:\{storageFileKey}, createdAt:\{createdAt}]";
+            case DETAILED -> STR."attachmentDeleteTask[id:\{id}, twinAttachmentId:\{twinAttachmentId}, twinId:\{twinId}, domainId:\{domainId}, twinOwnerBusinessAccountId:\{twinOwnerBusinessAccountId}, twinCreatedByUserId:\{twinCreatedByUserId}, storageId:\{storageId}, storageFileKey:\{storageFileKey}, createdAt:\{createdAt}]";
             default -> STR."attachmentDeleteTask[id:\{id}]";
         };
     }
