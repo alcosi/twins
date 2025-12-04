@@ -1,5 +1,6 @@
 package org.twins.core.dao.attachment;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -11,4 +12,5 @@ import java.util.UUID;
 @Repository
 public interface AttachmentDeleteTaskRepository extends CrudRepository<AttachmentDeleteTaskEntity, UUID>, JpaSpecificationExecutor<AttachmentDeleteTaskEntity> {
     List<AttachmentDeleteTaskEntity> findByStatusIn(List<AttachmentDeleteTaskStatus> needStartStatuses);
+    List<AttachmentDeleteTaskEntity> findByStatusIn(List<AttachmentDeleteTaskStatus> needStartStatuses, Pageable pageable);
 }
