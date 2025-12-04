@@ -1,8 +1,6 @@
 package org.twins.core.dao.specifications.twinclass;
 
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
-import jakarta.persistence.criteria.Subquery;
+import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -10,7 +8,9 @@ import org.twins.core.dao.projection.ProjectionEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -29,30 +29,30 @@ public class TwinClassFieldSpecification extends CommonSpecification<TwinClassFi
         };
     }
 
-    public static Specification<TwinClassFieldEntity> checkProjectionTypeIdIn(final Collection<UUID> typeIds, boolean not) {
+    public static Specification<TwinClassFieldEntity> buildProjectionSpec(
+            String associationPath,
+            Collection<UUID> srcIdList,
+            Collection<UUID> dstIdList,
+            Collection<UUID> projectionTypeIdList
+    ) {
         return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(typeIds)) {
+            Join<TwinClassFieldEntity, ProjectionEntity> projectionJoin = root.join(associationPath, JoinType.INNER);
+
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (!CollectionUtils.isEmpty(srcIdList)) {
+                predicates.add(projectionJoin.get(ProjectionEntity.Fields.srcTwinClassFieldId).in(srcIdList));
+            }
+            if (!CollectionUtils.isEmpty(dstIdList)) {
+                predicates.add(projectionJoin.get(ProjectionEntity.Fields.dstTwinClassFieldId).in(dstIdList));
+            }
+            if (!CollectionUtils.isEmpty(projectionTypeIdList)) {
+                predicates.add(projectionJoin.get(ProjectionEntity.Fields.projectionTypeId).in(projectionTypeIdList));
+            }
+            if (predicates.isEmpty()) {
                 return cb.conjunction();
             }
-
-            // check as src
-            Subquery<UUID> srcSubquery = query.subquery(UUID.class);
-            Root<ProjectionEntity> srcProjection = srcSubquery.from(ProjectionEntity.class);
-            srcSubquery.select(srcProjection.get(ProjectionEntity.Fields.srcTwinClassFieldId))
-                    .where(srcProjection.get(ProjectionEntity.Fields.projectionTypeId).in(typeIds));
-
-            // check as dst
-            Subquery<UUID> dstSubquery = query.subquery(UUID.class);
-            Root<ProjectionEntity> dstProjection = dstSubquery.from(ProjectionEntity.class);
-            dstSubquery.select(dstProjection.get(ProjectionEntity.Fields.dstTwinClassFieldId))
-                    .where(dstProjection.get(ProjectionEntity.Fields.projectionTypeId).in(typeIds));
-
-            Predicate condition = cb.or(
-                    root.get(TwinClassFieldEntity.Fields.id).in(srcSubquery),
-                    root.get(TwinClassFieldEntity.Fields.id).in(dstSubquery)
-            );
-
-            return not ? cb.not(condition) : condition;
+            return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
 }

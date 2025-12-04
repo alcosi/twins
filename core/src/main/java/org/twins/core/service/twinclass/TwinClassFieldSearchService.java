@@ -130,28 +130,13 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
         }
 
         return switch (selector) {
-            case src -> Specification.allOf(
-                    checkUuidIn(projectionSearch.getSrcIdList(), false, false, TwinClassFieldEntity.Fields.projectionsBySrc, ProjectionEntity.Fields.srcTwinClassFieldId),
-                    checkUuidIn(projectionSearch.getDstIdList(), false, false, TwinClassFieldEntity.Fields.projectionsBySrc, ProjectionEntity.Fields.dstTwinClassFieldId),
-                    checkProjectionTypeIdIn(projectionSearch.getProjectionTypeIdList(), false)
-            );
-            case dst -> Specification.allOf(
-                    checkUuidIn(projectionSearch.getSrcIdList(), false, false, TwinClassFieldEntity.Fields.projectionsByDst, ProjectionEntity.Fields.srcTwinClassFieldId),
-                    checkUuidIn(projectionSearch.getDstIdList(), false, false, TwinClassFieldEntity.Fields.projectionsByDst, ProjectionEntity.Fields.dstTwinClassFieldId),
-                    checkProjectionTypeIdIn(projectionSearch.getProjectionTypeIdList(), false)
-            );
+            case src -> buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsBySrc, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
+            case dst -> buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsByDst, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
             case all -> {
-                Specification<TwinClassFieldEntity> srcSpec = Specification.allOf(
-                        checkUuidIn(projectionSearch.getSrcIdList(), false, false, TwinClassFieldEntity.Fields.projectionsBySrc, ProjectionEntity.Fields.srcTwinClassFieldId),
-                        checkUuidIn(projectionSearch.getDstIdList(), false, false, TwinClassFieldEntity.Fields.projectionsBySrc, ProjectionEntity.Fields.dstTwinClassFieldId),
-                        checkProjectionTypeIdIn(projectionSearch.getProjectionTypeIdList(), false)
-                );
-
-                Specification<TwinClassFieldEntity> dstSpec = Specification.allOf(
-                        checkUuidIn(projectionSearch.getSrcIdList(), false, false, TwinClassFieldEntity.Fields.projectionsByDst, ProjectionEntity.Fields.srcTwinClassFieldId),
-                        checkUuidIn(projectionSearch.getDstIdList(), false, false, TwinClassFieldEntity.Fields.projectionsByDst, ProjectionEntity.Fields.dstTwinClassFieldId),
-                        checkProjectionTypeIdIn(projectionSearch.getProjectionTypeIdList(), false)
-                );
+                Specification<TwinClassFieldEntity> srcSpec =
+                        buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsBySrc, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
+                Specification<TwinClassFieldEntity> dstSpec =
+                        buildProjectionSpec(TwinClassFieldEntity.Fields.projectionsByDst, projectionSearch.getSrcIdList(), projectionSearch.getDstIdList(), projectionSearch.getProjectionTypeIdList());
 
                 yield Specification.anyOf(srcSpec, dstSpec);
             }
