@@ -9,7 +9,6 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.attachment.AttachmentDeleteTaskEntity;
 import org.twins.core.dao.attachment.AttachmentDeleteTaskRepository;
@@ -41,8 +40,7 @@ public class AttachmentDeleteTaskScheduler extends Scheduler {
     private final Executor executor;
     private final AttachmentDeleteTaskRepository attachmentDeleteTaskRepository;
 
-
-    public String processTasks(Properties properties) {
+    protected String processTasks(Properties properties) {
         try {
             LoggerUtils.logSession();
             LoggerUtils.logController("attachmentDeleteTaskScheduler");
@@ -61,6 +59,8 @@ public class AttachmentDeleteTaskScheduler extends Scheduler {
                 AttachmentDeleteTask attachmentDeleteTask = applicationContext.getBean(AttachmentDeleteTask.class, taskEntity);
                 executor.execute(attachmentDeleteTask);
             });
+
+            return STR."\{batchSizeParam.extract(properties) == null ? "All" : batchSizeParam.extract(properties)} task(s) from db was processed";
         } catch (Exception e) {
             log.error("Exception: ", e);
         } finally {
@@ -76,8 +76,7 @@ public class AttachmentDeleteTaskScheduler extends Scheduler {
         if (batchSize == null) {
             return attachmentDeleteTaskRepository.findByStatusIn(List.of(AttachmentDeleteTaskStatus.NEED_START));
         } else {
-            Pageable pageable = PageRequest.of(0, batchSize);
-            return attachmentDeleteTaskRepository.findByStatusIn(List.of(AttachmentDeleteTaskStatus.NEED_START), pageable);
+            return attachmentDeleteTaskRepository.findByStatusIn(List.of(AttachmentDeleteTaskStatus.NEED_START), PageRequest.of(0, batchSize));
         }
     }
 }
