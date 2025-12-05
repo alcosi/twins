@@ -35,12 +35,6 @@ public abstract class TwinClassFieldSaveDTOv1{
     @Schema(description = "System field", example = "true")
     public Boolean system;
 
-    @Schema(description = "Is dependent field", example = "true")
-    public Boolean dependentField;
-
-    @Schema(description = "has dependent fields", example = "true")
-    public Boolean hasDependentFields;
-
     @Schema(description = "external id", example = "")
     public String externalId;
 
@@ -49,6 +43,12 @@ public abstract class TwinClassFieldSaveDTOv1{
 
     @Schema(description = "Field typer parameters", example = "{}")
     public HashMap<String, String> fieldTyperParams;
+
+    @Schema(description = "Twin sorter featurer ID", example = "1")
+    public Integer twinSorterFeaturerId;
+
+    @Schema(description = "Twin sorter parameters", example = "{}")
+    public HashMap<String, String> twinSorterParams;
 
     @Schema(description = "I18n frontend validation error", example = "")
     public I18nSaveDTOv1 feValidationErrorI18n;

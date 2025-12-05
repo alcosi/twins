@@ -406,6 +406,11 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                         .setFieldTyperParams(SIMPLE_FIELD_PARAMS);
             }
 
+            if (field.getTwinSorterFeaturerId() != null) {
+                featurerService.checkValid(field.getTwinSorterFeaturerId(), field.getTwinSorterParams(), TwinSorter.class);
+                featurerService.prepareForStore(field.getTwinSorterFeaturerId(), field.getTwinSorterParams());
+            }
+
             if (field.getSystem() == null) {
                 field.setSystem(false);
             }
