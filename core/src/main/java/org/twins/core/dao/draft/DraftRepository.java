@@ -19,9 +19,8 @@ public interface DraftRepository extends JpaRepository<DraftEntity, UUID>, JpaSp
 
     List<DraftEntity> findByStatusIn(Collection<DraftStatus> statusIds);
     List<DraftEntity> findByStatusIn(Collection<DraftStatus> statusIds, Pageable pageable);
-
-    @Query(value = "select d from DraftEntity d where d.status = org.twins.core.enums.draft.DraftStatus.UNCOMMITED and d.autoCommit = true")
-    List<DraftEntity> findDraftsForCommit();
+    List<DraftEntity> findByStatusInAndAutoCommit(List<DraftStatus> statusIds, boolean autoCommit);
+    List<DraftEntity> findByStatusInAndAutoCommit(List<DraftStatus> statusIds, boolean autoCommit, Pageable pageable);
 
     @Transactional
     @Modifying
