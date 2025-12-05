@@ -63,7 +63,7 @@ public class TwinChangeTaskScheduler extends Scheduler {
                 }
             }
 
-            return STR."\{batchSizeParam.extract(properties) == null ? "All" : batchSizeParam.extract(properties)} task(s) from db was processed";
+            return STR."\{taskEntityList.size()} task(s) from db was processed";
         } catch (Exception e) {
             log.error("Exception: ", e);
         } finally {

@@ -50,7 +50,7 @@ public class TwinArchiveDeleteScheduler extends Scheduler {
                 log.info("No twin archive records to be deleted from database");
             }
 
-            return STR."\{batchSizeParam.extract(properties) == null ? "All" : batchSizeParam.extract(properties)} task(s) from db was processed";
+            return STR."\{batchSizeParam.extract(properties) == null ? size : batchSizeParam.extract(properties)} task(s) from db was deleted";
         } catch (Exception e) {
             log.error("Exception: ", e);
         } finally {
