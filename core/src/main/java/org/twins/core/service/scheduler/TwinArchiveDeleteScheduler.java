@@ -1,4 +1,4 @@
-package org.twins.core.service.twin;
+package org.twins.core.service.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +10,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinArchiveRepository;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.scheduler.Scheduler;
 
 import java.util.Properties;
 

@@ -1,4 +1,4 @@
-package org.twins.core.service.twin;
+package org.twins.core.service.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import org.twins.core.dao.TwinChangeTaskStatus;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
 import org.twins.core.dao.twin.TwinChangeTaskRepository;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.scheduler.Scheduler;
+import org.twins.core.service.twin.TwinChangeTask;
 
 import java.util.List;
 import java.util.Properties;

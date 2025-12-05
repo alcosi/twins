@@ -1,4 +1,4 @@
-package org.twins.core.service.draft;
+package org.twins.core.service.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.draft.DraftRepository;
 import org.twins.core.enums.draft.DraftStatus;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.scheduler.Scheduler;
+import org.twins.core.service.draft.DraftCommitTask;
 
 import java.util.List;
 import java.util.Properties;
