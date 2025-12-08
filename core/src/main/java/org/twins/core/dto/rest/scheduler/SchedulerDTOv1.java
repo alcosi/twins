@@ -1,10 +1,8 @@
 package org.twins.core.dto.rest.scheduler;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Column;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.twins.core.dto.rest.DTOExamples;
 
 import java.sql.Timestamp;
@@ -43,7 +41,6 @@ public class SchedulerDTOv1 {
     @Schema(example = DTOExamples.INSTANT)
     private Timestamp createdAt;
 
-    @UpdateTimestamp
-    @Column(name = "updated_at")
+    @Schema(example = DTOExamples.INSTANT)
     private Timestamp updatedAt;
 }
