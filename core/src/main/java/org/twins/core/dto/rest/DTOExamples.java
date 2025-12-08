@@ -133,4 +133,7 @@ public interface DTOExamples {
     String CONDITIONER_FEATURE_ID = "";
     String CONDITIONER_PARAMS_MAP = "";
     String FACTORY_CONDITION_ID = "";
+
+    String SCHEDULER_CRON = "0 0 10 * * ?";
+    String SCHEDULER_FIXED_RATE = "500";
 }
