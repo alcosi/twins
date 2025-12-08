@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.scheduler.SchedulerRepository;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.scheduler.Scheduler;
 
 import java.time.Duration;
 import java.util.*;
@@ -19,7 +20,7 @@ import java.util.concurrent.ScheduledFuture;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SchedulerService {
+public class SchedulerFeaturerService {
 
     private final ThreadPoolTaskScheduler taskScheduler;
     private final SchedulerRepository schedulerRepository;

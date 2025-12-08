@@ -1,4 +1,4 @@
-package org.twins.core.service.scheduler;
+package org.twins.core.featurer.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.draft.DraftRepository;
 import org.twins.core.enums.draft.DraftStatus;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.draft.DraftEraseScopeCollectTask;
+import org.twins.core.service.draft.DraftCommitTask;
 
 import java.util.List;
 import java.util.Properties;
@@ -24,11 +24,11 @@ import java.util.Properties;
 @Service
 @Slf4j
 @Featurer(
-        id = FeaturerTwins.ID_4704,
-        name = "DraftEraseScopeCollectScheduler",
-        description = "Scheduler for executing draft erases"
+        id = FeaturerTwins.ID_4705,
+        name = "DraftCommitScheduler",
+        description = "Scheduler for executing draft commits"
 )
-public class DraftEraseScopeCollectScheduler extends Scheduler {
+public class DraftCommitScheduler extends Scheduler {
 
     @FeaturerParam(
             name = "batchSize",
@@ -37,28 +37,28 @@ public class DraftEraseScopeCollectScheduler extends Scheduler {
     public static final FeaturerParamInt batchSizeParam = new FeaturerParamInt("batchSize");
 
     final DraftRepository draftRepository;
-    @Qualifier("draftCollectEraseScopeExecutor")
+    @Qualifier("draftCommitExecutor")
     final TaskExecutor taskExecutor;
 
-    public String processTasks(Properties properties) {
+    protected String processTasks(Properties properties) {
         try {
             LoggerUtils.logSession();
-            LoggerUtils.logController("draftCollectEraseScopeScheduler$");
+            LoggerUtils.logController("draftCommitScheduler$");
 
             var draftEntities = collectTasks(batchSizeParam.extract(properties));
 
             if (CollectionUtils.isEmpty(draftEntities)) {
-                log.debug("No erase scopes collect tasks");
+                log.debug("No draft need to be commited");
                 return "";
             }
 
-            log.info("{} drafts erase scopes need to be collected", draftEntities.size());
+            log.info("{} drafts need to be commited", draftEntities.size());
             for (DraftEntity draftEntity : draftEntities) {
                 try {
-                    log.info("Running draft[{}] erase scope collect from status[{}]", draftEntity.getId(), draftEntity.getStatus());
-                    draftEntity.setStatus(DraftStatus.ERASE_SCOPE_COLLECT_IN_PROGRESS);
+                    log.info("Running draft commit[{}] from status[{}]", draftEntity.getId(), draftEntity.getStatus());
+                    draftEntity.setStatus(DraftStatus.COMMIT_IN_PROGRESS);
                     draftRepository.save(draftEntity);
-                    DraftEraseScopeCollectTask draftCommitTask = applicationContext.getBean(DraftEraseScopeCollectTask.class, draftEntity);
+                    DraftCommitTask draftCommitTask = applicationContext.getBean(DraftCommitTask.class, draftEntity);
                     taskExecutor.execute(draftCommitTask);
                 } catch (Exception e) {
                     log.error("Exception ex: {}", e.getMessage(), e);
@@ -76,12 +76,12 @@ public class DraftEraseScopeCollectScheduler extends Scheduler {
     }
 
     private List<DraftEntity> collectTasks(Integer batchSize) {
-        log.debug("Loading erase scope collect tasks from database");
+        log.debug("Loading draft commit task from database");
 
         if (batchSize == null) {
-            return draftRepository.findByStatusIn(List.of(DraftStatus.ERASE_SCOPE_COLLECT_NEED_START));
+            return draftRepository.findByStatusInAndAutoCommit(List.of(DraftStatus.UNCOMMITED), true);
         } else {
-            return draftRepository.findByStatusIn(List.of(DraftStatus.ERASE_SCOPE_COLLECT_NEED_START), PageRequest.of(0, batchSize));
+            return draftRepository.findByStatusInAndAutoCommit(List.of(DraftStatus.UNCOMMITED), true, PageRequest.of(0, batchSize));
         }
     }
 }

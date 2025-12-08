@@ -1,4 +1,4 @@
-package org.twins.core.service.scheduler;
+package org.twins.core.featurer.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

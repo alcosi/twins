@@ -1,13 +1,13 @@
 package org.twins.core.dao.scheduler;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 @Entity
 @Table(name = "scheduler")
 @Accessors(chain = true)
+@FieldNameConstants
 @Data
 public class SchedulerEntity implements EasyLoggable {
 
@@ -56,6 +57,10 @@ public class SchedulerEntity implements EasyLoggable {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Timestamp updatedAt;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private FeaturerEntity featurer;
 
 
     @Override

@@ -1,4 +1,4 @@
-package org.twins.core.service.scheduler;
+package org.twins.core.featurer.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.draft.DraftRepository;
 import org.twins.core.enums.draft.DraftStatus;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.draft.DraftCommitTask;
+import org.twins.core.service.draft.DraftEraseScopeCollectTask;
 
 import java.util.List;
 import java.util.Properties;
@@ -24,11 +24,11 @@ import java.util.Properties;
 @Service
 @Slf4j
 @Featurer(
-        id = FeaturerTwins.ID_4705,
-        name = "DraftCommitScheduler",
-        description = "Scheduler for executing draft commits"
+        id = FeaturerTwins.ID_4704,
+        name = "DraftEraseScopeCollectScheduler",
+        description = "Scheduler for executing draft erases"
 )
-public class DraftCommitScheduler extends Scheduler {
+public class DraftEraseScopeCollectScheduler extends Scheduler {
 
     @FeaturerParam(
             name = "batchSize",
@@ -37,28 +37,28 @@ public class DraftCommitScheduler extends Scheduler {
     public static final FeaturerParamInt batchSizeParam = new FeaturerParamInt("batchSize");
 
     final DraftRepository draftRepository;
-    @Qualifier("draftCommitExecutor")
+    @Qualifier("draftCollectEraseScopeExecutor")
     final TaskExecutor taskExecutor;
 
-    protected String processTasks(Properties properties) {
+    public String processTasks(Properties properties) {
         try {
             LoggerUtils.logSession();
-            LoggerUtils.logController("draftCommitScheduler$");
+            LoggerUtils.logController("draftCollectEraseScopeScheduler$");
 
             var draftEntities = collectTasks(batchSizeParam.extract(properties));
 
             if (CollectionUtils.isEmpty(draftEntities)) {
-                log.debug("No draft need to be commited");
+                log.debug("No erase scopes collect tasks");
                 return "";
             }
 
-            log.info("{} drafts need to be commited", draftEntities.size());
+            log.info("{} drafts erase scopes need to be collected", draftEntities.size());
             for (DraftEntity draftEntity : draftEntities) {
                 try {
-                    log.info("Running draft commit[{}] from status[{}]", draftEntity.getId(), draftEntity.getStatus());
-                    draftEntity.setStatus(DraftStatus.COMMIT_IN_PROGRESS);
+                    log.info("Running draft[{}] erase scope collect from status[{}]", draftEntity.getId(), draftEntity.getStatus());
+                    draftEntity.setStatus(DraftStatus.ERASE_SCOPE_COLLECT_IN_PROGRESS);
                     draftRepository.save(draftEntity);
-                    DraftCommitTask draftCommitTask = applicationContext.getBean(DraftCommitTask.class, draftEntity);
+                    DraftEraseScopeCollectTask draftCommitTask = applicationContext.getBean(DraftEraseScopeCollectTask.class, draftEntity);
                     taskExecutor.execute(draftCommitTask);
                 } catch (Exception e) {
                     log.error("Exception ex: {}", e.getMessage(), e);
@@ -76,12 +76,12 @@ public class DraftCommitScheduler extends Scheduler {
     }
 
     private List<DraftEntity> collectTasks(Integer batchSize) {
-        log.debug("Loading draft commit task from database");
+        log.debug("Loading erase scope collect tasks from database");
 
         if (batchSize == null) {
-            return draftRepository.findByStatusInAndAutoCommit(List.of(DraftStatus.UNCOMMITED), true);
+            return draftRepository.findByStatusIn(List.of(DraftStatus.ERASE_SCOPE_COLLECT_NEED_START));
         } else {
-            return draftRepository.findByStatusInAndAutoCommit(List.of(DraftStatus.UNCOMMITED), true, PageRequest.of(0, batchSize));
+            return draftRepository.findByStatusIn(List.of(DraftStatus.ERASE_SCOPE_COLLECT_NEED_START), PageRequest.of(0, batchSize));
         }
     }
 }
