@@ -6,7 +6,6 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.resource.StorageEntity;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.enums.attachment.AttachmentDeleteTaskStatus;
 
 import java.sql.Timestamp;
@@ -29,6 +28,15 @@ public class AttachmentDeleteTaskEntity implements EasyLoggable {
     @Column(name = "twin_id")
     private UUID twinId;
 
+    @Column(name = "domain_id")
+    private UUID domainId;
+
+    @Column(name = "twin_owner_business_account_id")
+    private UUID twinOwnerBusinessAccountId;
+
+    @Column(name = "twin_created_by_user_id")
+    private UUID twinCreatedByUserId;
+
     @Column(name = "storage_id")
     private UUID storageId;
 
@@ -46,17 +54,12 @@ public class AttachmentDeleteTaskEntity implements EasyLoggable {
     @JoinColumn(name = "storage_id", insertable = false, updatable = false, nullable = false)
     private StorageEntity storage;
 
-    @ManyToOne()
-    @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
-    private TwinEntity twin;
-
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case NORMAL -> "attachmentDeleteTask[id:" + id + ", twinAttachmentId:" + twinAttachmentId + ", storageId:" + storageId + "]";
-            case DETAILED ->
-                    "attachmentDeleteTask[id:" + id + ", twinAttachmentId:" + twinAttachmentId + ", twinId:" + twinId + ", storageId:" + storageId + ", storageFileKey:" + storageFileKey + "]";
-            default -> "attachmentDeleteTask[id:" + id + "]";
+            case NORMAL -> STR."attachmentDeleteTask[id:\{id}, twinAttachmentId:\{twinAttachmentId}, storageId:\{storageId}]";
+            case DETAILED -> STR."attachmentDeleteTask[id:\{id}, twinAttachmentId:\{twinAttachmentId}, twinId:\{twinId}, domainId:\{domainId}, twinOwnerBusinessAccountId:\{twinOwnerBusinessAccountId}, twinCreatedByUserId:\{twinCreatedByUserId}, storageId:\{storageId}, storageFileKey:\{storageFileKey}, createdAt:\{createdAt}]";
+            default -> STR."attachmentDeleteTask[id:\{id}]";
         };
     }
 }

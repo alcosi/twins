@@ -406,12 +406,19 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                         .setFieldTyperParams(SIMPLE_FIELD_PARAMS);
             }
 
+            if (field.getTwinSorterFeaturerId() != null) {
+                featurerService.checkValid(field.getTwinSorterFeaturerId(), field.getTwinSorterParams(), TwinSorter.class);
+                featurerService.prepareForStore(field.getTwinSorterFeaturerId(), field.getTwinSorterParams());
+            }
+
             if (field.getSystem() == null) {
                 field.setSystem(false);
             }
             field
                     .setDependentField(false)
                     .setHasDependentFields(false)
+                    .setProjectionField(false)
+                    .setHasProjectedFields(false)
                     .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_NAME, save.getNameI18n()).getId())
                     .setDescriptionI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_DESCRIPTION, save.getDescriptionI18n()).getId())
                     .setFeValidationErrorI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_FE_VALIDATION_ERROR, save.getFeValidationErrorI18n()).getId())

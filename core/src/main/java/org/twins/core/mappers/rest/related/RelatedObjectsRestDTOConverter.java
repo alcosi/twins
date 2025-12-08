@@ -18,6 +18,8 @@ import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
+import org.twins.core.dao.projection.ProjectionTypeEntity;
+import org.twins.core.dao.projection.ProjectionTypeGroupEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -45,6 +47,8 @@ import org.twins.core.dto.rest.i18n.I18nDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
+import org.twins.core.dto.rest.projection.ProjectionTypeDTOv1;
+import org.twins.core.dto.rest.projection.ProjectionTypeGroupDTOv1;
 import org.twins.core.dto.rest.related.RelatedObjectsDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.tier.TierDTOv1;
@@ -77,6 +81,8 @@ import org.twins.core.mappers.rest.mappercontext.RelatedObject;
 import org.twins.core.mappers.rest.permission.PermissionGroupRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapper;
+import org.twins.core.mappers.rest.projection.ProjectionTypeGroupRestDTOMapper;
+import org.twins.core.mappers.rest.projection.ProjectionTypeRestDTOMapper;
 import org.twins.core.mappers.rest.space.SpaceRoleDTOMapper;
 import org.twins.core.mappers.rest.tier.TierRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
@@ -130,6 +136,8 @@ public class RelatedObjectsRestDTOConverter {
     private final AttachmentRestrictionRestDTOMapper attachmentRestrictionRestDTOMapper;
     private final TwinClassFreezeDTOMapper twinClassFreezeDTOMapper;
     private final TwinClassFieldRuleRestDTOMapper twinClassFieldRuleRestDTOMapper;
+    private final ProjectionTypeGroupRestDTOMapper projectionTypeGroupRestDTOMapper;
+    private final ProjectionTypeRestDTOMapper projectionTypeRestDTOMapper;
 
     public RelatedObjectsDTOv1 convert(MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())
@@ -163,6 +171,8 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, AttachmentRestrictionDTOv1> attachmentRestrictionMap = new HashMap<>();
         Map<UUID, TwinClassFreezeDTOv1> twinClassFreezeMap = new HashMap<>();
         Map<UUID, TwinClassFieldRuleDTOv1> twinClassFieldRuleMap = new HashMap<>();
+        Map<UUID, ProjectionTypeGroupDTOv1> projectionTypeGroupMap = new HashMap<>();
+        Map<UUID, ProjectionTypeDTOv1> projectionTypeMap = new HashMap<>();
 
         MapperContext mapperContextLevel2 = mapperContext.cloneIgnoreRelatedObjects();
         if (!mapperContext.getRelatedTwinClassMap().isEmpty())
@@ -221,6 +231,10 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContext.getRelatedTwinClassFreezeMap(), twinClassFreezeDTOMapper, mapperContextLevel2, twinClassFreezeMap, TwinClassFreezeEntity::getId);
         if (!mapperContext.getRelatedClassFieldRuleMap().isEmpty())
             convertAndPut(mapperContext.getRelatedClassFieldRuleMap(), twinClassFieldRuleRestDTOMapper, mapperContextLevel2, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
+        if (!mapperContext.getRelatedProjectionTypeGroupMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedProjectionTypeGroupMap(), projectionTypeGroupRestDTOMapper, mapperContextLevel2, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
+        if (!mapperContext.getRelatedProjectionTypeMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedProjectionTypeMap(), projectionTypeRestDTOMapper, mapperContextLevel2, projectionTypeMap, ProjectionTypeEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         MapperContext mapperContextLevel3 = mapperContextLevel2.cloneIgnoreRelatedObjects();
@@ -280,7 +294,10 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel2.getRelatedTwinClassFreezeMap(), twinClassFreezeDTOMapper, mapperContextLevel3, twinClassFreezeMap, TwinClassFreezeEntity::getId);
         if (!mapperContextLevel2.getRelatedClassFieldRuleMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedClassFieldRuleMap(), twinClassFieldRuleRestDTOMapper, mapperContextLevel3, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
-
+        if (!mapperContext.getRelatedProjectionTypeGroupMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedProjectionTypeGroupMap(), projectionTypeGroupRestDTOMapper, mapperContextLevel3, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
+        if (!mapperContext.getRelatedProjectionTypeMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedProjectionTypeMap(), projectionTypeRestDTOMapper, mapperContextLevel3, projectionTypeMap, ProjectionTypeEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         //this level was added because of dataLists. In case of search twins, twinClass will be detected on level1, twinClass.tagDataList will be detected on level2 and list options for tagDataList will be detected only on level3
@@ -341,6 +358,10 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedTwinClassFreezeMap(), twinClassFreezeDTOMapper, mapperContextLevel3, twinClassFreezeMap, TwinClassFreezeEntity::getId);
         if (!mapperContextLevel3.getRelatedClassFieldRuleMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedClassFieldRuleMap(), twinClassFieldRuleRestDTOMapper, mapperContextLevel3, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
+        if (!mapperContext.getRelatedProjectionTypeGroupMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedProjectionTypeGroupMap(), projectionTypeGroupRestDTOMapper, mapperContextLevel3, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
+        if (!mapperContext.getRelatedProjectionTypeMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedProjectionTypeMap(), projectionTypeRestDTOMapper, mapperContextLevel3, projectionTypeMap, ProjectionTypeEntity::getId);
 
         ret
                 .setTwinClassMap(twinClassMap.isEmpty() ? null : twinClassMap)
@@ -371,6 +392,8 @@ public class RelatedObjectsRestDTOConverter {
                 .setAttachmentRestrictionMap(attachmentRestrictionMap.isEmpty() ? null : attachmentRestrictionMap)
                 .setTwinClassFreezeMap(twinClassFreezeMap.isEmpty() ? null : twinClassFreezeMap)
                 .setFieldRuleMap(twinClassFieldRuleMap.isEmpty() ? null : twinClassFieldRuleMap)
+                .setProjectionTypeGroupMap(projectionTypeGroupMap.isEmpty() ? null : projectionTypeGroupMap)
+                .setProjectionTypeMap(projectionTypeMap.isEmpty() ? null : projectionTypeMap)
         ;
         return ret;
     }

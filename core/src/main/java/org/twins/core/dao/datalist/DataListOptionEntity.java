@@ -11,6 +11,7 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.enums.datalist.DataListStatus;
 
+import java.sql.Timestamp;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -77,6 +78,9 @@ public class DataListOptionEntity implements EasyLoggable {
 
     @Column(name = "custom")
     private boolean custom;
+
+    @Column(name = "created_at")
+    private Timestamp createdAt;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "data_list_id", insertable = false, updatable = false)

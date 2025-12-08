@@ -7,12 +7,14 @@ import org.twins.core.dto.rest.twinclass.TwinClassFieldSearchDTOv1;
 import org.twins.core.mappers.rest.LongRangeDTOReverseMapper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.projection.FieldProjectionSearchDTOReverseMapper;
 
 @Component
 @RequiredArgsConstructor
 public class TwinClassFieldSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinClassFieldSearchDTOv1, TwinClassFieldSearch> {
 
     private final LongRangeDTOReverseMapper longRangeDTOReverseMapper;
+    private final FieldProjectionSearchDTOReverseMapper fieldProjectionSearchDTOReverseMapper;
 
     @Override
     public void map(TwinClassFieldSearchDTOv1 src, TwinClassFieldSearch dst, MapperContext mapperContext) throws Exception {
@@ -36,6 +38,11 @@ public class TwinClassFieldSearchDTOReverseMapper extends RestSimpleDTOMapper<Tw
                 .setRequired(src.getRequired())
                 .setExternalIdLikeList(src.getExternalIdLikeList())
                 .setExternalIdNotLikeList(src.getExternalIdNotLikeList())
-                .setOrderRange(longRangeDTOReverseMapper.convert(src.getOrderRange()));
+                .setOrderRange(longRangeDTOReverseMapper.convert(src.getOrderRange()))
+                .setDependentField(src.getDependentField())
+                .setHasDependentFields(src.getHasDependentFields())
+                .setProjectionField(src.getProjectionField())
+                .setHasProjectionFields(src.getHasProjectionFields())
+                .setFieldProjectionSearch(fieldProjectionSearchDTOReverseMapper.convert(src.getFieldProjectionSearch()));
     }
 }
