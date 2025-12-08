@@ -7,6 +7,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -37,6 +38,9 @@ public abstract class TwinClassFieldSaveDTOv1{
 
     @Schema(description = "external id", example = "")
     public String externalId;
+
+    @Schema(description = "external properties")
+    public Map<String, String> externalProperties;
 
     @Schema(description = "Field typer featurer ID", example = "1")
     public Integer fieldTyperFeaturerId;
