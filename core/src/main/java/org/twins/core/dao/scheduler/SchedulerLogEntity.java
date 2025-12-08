@@ -1,10 +1,8 @@
 package org.twins.core.dao.scheduler;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.CreationTimestamp;
@@ -33,6 +31,10 @@ public class SchedulerLogEntity implements EasyLoggable {
 
     @Column(name = "execution_time")
     private long executionTime;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private SchedulerEntity scheduler;
 
     @Override
     public String easyLog(Level level) {

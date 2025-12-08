@@ -135,5 +135,5 @@ public interface DTOExamples {
     String FACTORY_CONDITION_ID = "";
 
     String SCHEDULER_CRON = "0 0 10 * * ?";
-    String SCHEDULER_FIXED_RATE = "500";
+    String SCHEDULER_TIME_IN_MILLIS = "500";
 }

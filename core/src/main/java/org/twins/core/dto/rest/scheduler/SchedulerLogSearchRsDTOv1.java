@@ -12,12 +12,12 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "SchedulerSearchResponseV1")
-public class SchedulerSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+@Schema(name = "SchedulerLogSearchResponseV1")
+public class SchedulerLogSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
 
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 
-    @Schema(description = "results - scheduler list")
-    public List<SchedulerDTOv1> schedulers;
+    @Schema(description = "results - scheduler log list")
+    public List<SchedulerLogDTOv1> schedulerLogs;
 }
