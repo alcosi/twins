@@ -11,7 +11,6 @@ import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.SchedulerMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinflowFactoryMode;
 import org.twins.core.service.scheduler.SchedulerService;
 
 import java.util.Collection;
@@ -27,7 +26,7 @@ public class SchedulerRestDTOMapperV1 extends RestSimpleDTOMapper<SchedulerEntit
 
     @Override
     public void map(SchedulerEntity src, SchedulerDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(TwinflowFactoryMode.SHORT)) {
+        switch (mapperContext.getModeOrUse(SchedulerMode.SHORT)) {
             case SHORT ->  dst
                     .setId(src.getId());
             case DETAILED ->  dst

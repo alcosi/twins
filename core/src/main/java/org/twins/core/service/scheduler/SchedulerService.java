@@ -8,7 +8,6 @@ import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.scheduler.SchedulerEntity;
@@ -22,7 +21,6 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-@Lazy
 @RequiredArgsConstructor
 public class SchedulerService extends EntitySecureFindServiceImpl<SchedulerEntity> {
 
@@ -46,7 +44,6 @@ public class SchedulerService extends EntitySecureFindServiceImpl<SchedulerEntit
 
     @Override
     public boolean validateEntity(SchedulerEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        // todo validate when crud for scheduler will be needed
         return false;
     }
 

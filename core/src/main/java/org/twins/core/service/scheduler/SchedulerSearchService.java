@@ -1,4 +1,4 @@
-package org.twins.core.service.twinflow;
+package org.twins.core.service.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
@@ -29,7 +29,7 @@ public class SchedulerSearchService {
         return PaginationUtils.convertInPaginationResult(schedulerList, pagination);
     }
 
-    private Specification<SchedulerEntity> createSchedulerEntitySearchSpecification(SchedulerSearch search) throws ServiceException {
+    private Specification<SchedulerEntity> createSchedulerEntitySearchSpecification(SchedulerSearch search) {
         return allOf(checkUuidIn(search.getIdSet(), false, false, SchedulerEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeSet(), true, false, SchedulerEntity.Fields.id),
                 checkIntegerIn(search.getFeaturerIdSet(), false, SchedulerEntity.Fields.featurerId),

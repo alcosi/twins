@@ -31,7 +31,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.scheduler.SchedulerRestDTOMapperV1;
 import org.twins.core.mappers.rest.scheduler.SchedulerSearchRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinflow.SchedulerSearchService;
+import org.twins.core.service.scheduler.SchedulerSearchService;
 
 @Tag(name = ApiTag.SCHEDULER)
 @RestController

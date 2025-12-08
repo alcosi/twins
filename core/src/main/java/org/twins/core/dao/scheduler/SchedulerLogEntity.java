@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Table(name = "scheduler_log")
 @Accessors(chain = true)
 @Data
+@FieldNameConstants
 public class SchedulerLogEntity implements EasyLoggable {
 
     @Id
