@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.scheduler.SchedulerLogEntity;
 import org.twins.core.dao.scheduler.SchedulerLogRepository;
 import org.twins.core.featurer.FeaturerTwins;
@@ -25,16 +26,16 @@ public abstract class Scheduler extends FeaturerTwins {
     @Autowired
     private SchedulerLogRepository schedulerLogRepo;
 
-    public Runnable getRunnableForScheduling(Properties properties, UUID schedulerId) {
+    public Runnable getRunnableForScheduling(Properties properties, SchedulerEntity schedulerEntity) {
         return () -> {
             SchedulerLogEntity schedulerLog = new SchedulerLogEntity();
             long startTime = System.currentTimeMillis();
             String result = processTasks(properties);
 
-            if (!result.isEmpty()) {
+            if (!result.isEmpty() && schedulerEntity.isLogEnabled()) {
                 schedulerLog
                         .setId(UUID.randomUUID())
-                        .setSchedulerId(schedulerId)
+                        .setSchedulerId(schedulerEntity.getId())
                         .setExecutionTime(System.currentTimeMillis() - startTime)
                         .setResult(result);
             }

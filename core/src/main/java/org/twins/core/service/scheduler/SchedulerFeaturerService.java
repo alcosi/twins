@@ -51,7 +51,7 @@ public class SchedulerFeaturerService {
         for (SchedulerEntity config : activeSchedules) {
             Properties properties = featurerService.extractProperties(config.getFeaturerId(), config.getSchedulerParams(), new HashMap<>());
             Scheduler scheduler = featurerService.getFeaturer(config.getFeaturerId(), Scheduler.class);
-            Runnable schedulerTask = scheduler.getRunnableForScheduling(properties, config.getId());
+            Runnable schedulerTask = scheduler.getRunnableForScheduling(properties, config);
 
             scheduleTask(schedulerTask, config);
         }
@@ -82,7 +82,7 @@ public class SchedulerFeaturerService {
 
         Properties properties = featurerService.extractProperties(config.getFeaturerId(), config.getSchedulerParams(), new HashMap<>());
         Scheduler scheduler = featurerService.getFeaturer(config.getFeaturerId(), Scheduler.class);
-        Runnable schedulerTask = scheduler.getRunnableForScheduling(properties, config.getId());
+        Runnable schedulerTask = scheduler.getRunnableForScheduling(properties, config);
 
         scheduleTask(schedulerTask, config);
     }
