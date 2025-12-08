@@ -1,5 +1,5 @@
 ALTER TABLE projection
-    DROP CONSTRAINT IF EXISTS projection_fields_unique;
+DROP CONSTRAINT IF EXISTS projection_fields_unique;
 
 ALTER TABLE projection
     ADD CONSTRAINT projection_fields_unique
