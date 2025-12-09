@@ -346,7 +346,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             return;
         log.info(attachement.logDetailed() + " will be deleted");
         entitySmartService.deleteAndLog(attachmentId, twinAttachmentRepository);
-        deleteFile(attachement);
         historyService.saveHistory(attachement.getTwin(), HistoryType.attachmentDelete, new HistoryContextAttachment()
                 .shotAttachment(attachement));
     }
@@ -486,7 +485,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             twinChangesCollector.delete(attachmentEntity);
             if (twinChangesCollector.isHistoryCollectorEnabled())
                 twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentDelete(attachmentEntity));
-            deleteFile(attachmentEntity);
         }
     }
 
