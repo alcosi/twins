@@ -39,30 +39,12 @@ public class FieldFinderByRelevantProjection extends FieldFinder {
     protected void concatSearch(Properties properties, TwinClassFieldSearch fieldSearch, Map<String, String> namedParamsMap) throws ServiceException {
         Set<UUID> groupIds = projectionTypeGroupIds.extract(properties);
 
-        KitGrouped<ProjectionTypeEntity, UUID, UUID> groupedProjections = loadAndGroupProjections(groupIds);
+        KitGrouped<ProjectionTypeEntity, UUID, UUID> groupedProjections = projectionTypeService.findAndGroupByTwinClassId(groupIds);
 
         if (groupedProjections.isEmpty()) {
             return;
         }
 
-        processProjections(groupedProjections, fieldSearch);
-    }
-
-    public KitGrouped<ProjectionTypeEntity, UUID, UUID> loadAndGroupProjections(Set<UUID> groupIds) throws ServiceException {
-        List<ProjectionTypeEntity> projections = projectionTypeService.findByProjectionTypeGroupIdIn(groupIds);
-
-        if (projections.isEmpty()) {
-            return KitGrouped.EMPTY;
-        }
-
-        return new KitGrouped<>(
-                projections,
-                ProjectionTypeEntity::getId,
-                ProjectionTypeEntity::getMembershipTwinClassId
-        );
-    }
-
-    private void processProjections(KitGrouped<ProjectionTypeEntity, UUID, UUID> groupedProjections, TwinClassFieldSearch fieldSearch) throws ServiceException {
         Set<UUID> twinClassIds = groupedProjections.getGroupedKeySet();
 
         BasicSearch basicSearch = new BasicSearch();
