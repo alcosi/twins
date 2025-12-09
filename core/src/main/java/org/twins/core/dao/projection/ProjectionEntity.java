@@ -54,10 +54,14 @@ public class ProjectionEntity implements EasyLoggable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_twin_class_field_id", insertable = false, updatable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private TwinClassFieldEntity srcTwinClassField;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dst_twin_class_field_id", insertable = false, updatable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private TwinClassFieldEntity dstTwinClassField;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -63,13 +63,15 @@ public class TwinClassFieldConditionEntity implements EasyLoggable {
     private HashMap<String, String> conditionEvaluatorParams;
 
 
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "twin_class_field_rule_id", insertable = false, updatable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private TwinClassFieldRuleEntity twinClassFieldRule;
 
     @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private TwinClassFieldEntity baseTwinClassField;
 
     @Override
