@@ -21,6 +21,7 @@ import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -182,6 +183,10 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
 
     public List<UUID> getUsersOutOfDomainAndBusinessAccount(Set<UUID> userIds, UUID businessAccountId, UUID domainId) {
         return userRepository.getUsersOutOfDomainAndBusinessAccount(userIds, businessAccountId, domainId);
+    }
+
+    public Set<UUID> filterUsersByBusinessAccountAndDomain(Collection<UUID> userIds, UUID businessAccountId, UUID domainId) {
+        return userRepository.findUserIdByBusinessAccountIdAndDomainIdFiltered(businessAccountId, domainId, userIds);
     }
 
     public UserEntity findByEmail(String email) {

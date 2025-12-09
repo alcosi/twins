@@ -8,9 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
-import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetUserId;
+import org.twins.core.service.space.SpaceRoleUserService;
 
 import java.util.Properties;
 import java.util.Set;
@@ -27,14 +27,10 @@ public class RecipientResolverSpaceRoles extends RecipientResolver {
 
     @Lazy
     @Autowired
-    private SpaceRoleUserRepository spaceRoleUserRepository;
+    private SpaceRoleUserService spaceRoleUserService;
 
     @Override
     protected Set<UUID> resolve(HistoryEntity history, Properties properties) throws ServiceException {
-        return getUsers(history.getTwin().getId(), spaceRoleIds.extract(properties));
-    }
-
-    private Set<UUID> getUsers(UUID twinId, Set<UUID> spaceRoleIds) {
-        return spaceRoleUserRepository.findUserIdsByTwinIdAndSpaceRoleIds(twinId, spaceRoleIds);
+        return spaceRoleUserService.getUsers(history.getTwin().getId(), spaceRoleIds.extract(properties));
     }
 }

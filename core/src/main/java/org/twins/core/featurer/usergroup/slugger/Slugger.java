@@ -225,4 +225,12 @@ public abstract class Slugger<T extends UserGroupMap> extends FeaturerTwins {
                 businessAccountId != null &&
                 businessAccountId.equals(apiUser.getBusinessAccountId());
     }
+
+    public Set<UUID> getUsers(HashMap<String, String> sluggerParams, UUID domainId, UUID businessAccountId, Collection<UUID> userGroupIds) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, sluggerParams, new HashMap<>());
+        return getUsers(properties, domainId, businessAccountId, userGroupIds);
+    }
+
+    protected abstract Set<UUID> getUsers(Properties properties, UUID domainId, UUID businessAccountId, Collection<UUID> userGroupIds) throws ServiceException;
+
 }

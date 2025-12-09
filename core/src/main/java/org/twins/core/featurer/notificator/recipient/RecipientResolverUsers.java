@@ -4,10 +4,14 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetUserId;
+import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.user.UserService;
 
 import java.util.Properties;
 import java.util.Set;
@@ -15,16 +19,27 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_4701,
-        name = "", //todo name
+        name = "User Recipient Resolver",
         description = "")
 public class RecipientResolverUsers extends RecipientResolver {
 
-    @FeaturerParam(name = "User ids", description = "", order = 1)
+    @FeaturerParam(name = "User ids", description = "", order = 1, optional = true)
     public static final FeaturerParamUUIDSet userIds = new FeaturerParamUUIDSetUserId("userIds");
+
+    @Lazy
+    @Autowired
+    private AuthService authService;
+
+    @Lazy
+    @Autowired
+    private UserService userService;
 
     @Override
     protected Set<UUID> resolve(HistoryEntity history, Properties properties) throws ServiceException {
-        //todo check impl logic
-        return userIds.extract(properties);
+        return userService.filterUsersByBusinessAccountAndDomain(
+                userIds.extract(properties),
+                history.getTwin().getOwnerBusinessAccountId(),
+                authService.getApiUser().getDomainId()
+        );
     }
 }

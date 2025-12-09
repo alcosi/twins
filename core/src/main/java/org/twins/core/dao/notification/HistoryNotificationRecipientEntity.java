@@ -31,7 +31,7 @@ public class HistoryNotificationRecipientEntity implements EasyLoggable {
     private UUID domainId;
 
     @Column(name = "recipient_resolver_featurer_id")
-    private UUID recipientResolverFeaturerId;
+    private Integer recipientResolverFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "recipient_resolver_params", columnDefinition = "hstore")

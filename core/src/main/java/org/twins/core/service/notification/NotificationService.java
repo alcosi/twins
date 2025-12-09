@@ -1,20 +1,27 @@
 package org.twins.core.service.notification;
 
+import alcosi.notification_manager.v1.Receiver;
+import alcosi.notification_manager.v1.ReceiverServiceGrpc;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.history.HistoryEntity;
-import org.twins.core.dao.notification.*;
+import org.twins.core.dao.notification.HistoryNotificationContextCollectorEntity;
+import org.twins.core.dao.notification.HistoryNotificationContextEntity;
+import org.twins.core.dao.notification.HistoryNotificationRecipientEntity;
+import org.twins.core.dao.notification.HistoryNotificationSchemaMapEntity;
 import org.twins.core.featurer.notificator.context.ContextCollector;
 import org.twins.core.featurer.notificator.recipient.RecipientResolver;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -24,23 +31,60 @@ public class NotificationService {
 
     private final HistoryNotificationSchemaMapService notificationSchemaMapService;
     private final FeaturerService featurerService;
+    private ReceiverServiceGrpc.ReceiverServiceFutureStub receiverServiceFutureStub;
 
-    // какой-то шедулер дергает метод по сбору данных
+    @PostConstruct
+    private void initReceiverServiceFutureStub() {
+        ManagedChannel channel = ManagedChannelBuilder
+                .forTarget("192.168.7.214:20108")
+                .usePlaintext()
+                .build();
+
+        receiverServiceFutureStub = ReceiverServiceGrpc.newFutureStub(channel);
+    }
+
+    //todo on scheduler
+//    @Scheduled(fixedRate = 5000)
+    @Transactional
     public void collect() throws ServiceException {
-        //todo status for history
-        HistoryEntity history = new HistoryEntity();
+        List<HistoryEntity> historyList = new ArrayList<>(); //todo get histories in statuses NOT SEND
+        List<Receiver.SendNotificationCommand> notificationCommandList = new ArrayList<>();
 
-        // changeAssignee history
-        HistoryNotificationSchemaMapEntity schemaMap = notificationSchemaMapService.findEntitySafe(UUID.fromString("ee3c93c4-9143-4787-bfba-4d9fd7e77c8c"));
+        UUID notificationSchemaId = UUID.fromString("167261cd-ca6f-45dc-a7d5-cf4d2581b652");
+        Set<HistoryNotificationSchemaMapEntity> schemaMaps = notificationSchemaMapService.getByNotificationSchemaAndEventCodes(notificationSchemaId, List.of("PROJECT_ADD", "TASK_ADD_COMMENT"));
 
-        //todo some logic for schema and channel
-        NotificationSchemaEntity notificationSchema = schemaMap.getNotificationSchema();
-        NotificationChannelEntity notificationChannel = schemaMap.getNotificationChannel();
+        for (HistoryEntity history : historyList) {
+            //todo нужно как-то определять, какою schemeNotificationMap вызввать для history
+            HistoryNotificationSchemaMapEntity historyNotificationSchemaMapEntity = schemaMaps.stream().findFirst().get();
 
-        Set<UUID> userIds = recipientResolve(schemaMap.getHistoryNotificationRecipient(), history);
-        Map<String, String> contextMap = collectHistoryContext(schemaMap.getHistoryNotificationContext(), history);
+            Set<UUID> userIds = recipientResolve(historyNotificationSchemaMapEntity.getHistoryNotificationRecipient(), history);
+            if (userIds.isEmpty())
+                continue;
+            String stringBusinessAccountId = history.getTwin().getOwnerBusinessAccountId().toString();
+            String eventCode = historyNotificationSchemaMapEntity.getNotificationChannelEvent().getEventCode();
+            Map<String, String> baseMap = fillBaseParams(stringBusinessAccountId, eventCode);
+            Map<String, String> contextMap = collectHistoryContext(
+                    historyNotificationSchemaMapEntity.getNotificationChannelEvent().getHistoryNotificationContext(),
+                    baseMap,
+                    history
+            );
 
-        return;
+            //collect notifications
+            notificationCommandList.add(Receiver.SendNotificationCommand.newBuilder()
+                    .addAllUsersIds(userIds.stream().map(UUID::toString).collect(Collectors.toList()))
+                    .putFilters("COMPANY_ID", stringBusinessAccountId)
+                    .setEventId(eventCode)
+                    .putAllData(contextMap)
+                    .build()
+            );
+
+//            history.setStatus("SEND");
+        }
+//            historyService.saveSafe(history);
+
+        for (Receiver.SendNotificationCommand notificationCommand : notificationCommandList) {
+            receiverServiceFutureStub.sendNotification(notificationCommand);
+        }
     }
 
     private Set<UUID> recipientResolve(HistoryNotificationRecipientEntity notificationRecipient, HistoryEntity history) throws ServiceException {
@@ -48,12 +92,18 @@ public class NotificationService {
         return recipientResolver.resolve(history, notificationRecipient.getRecipientResolverParams());
     }
 
-    private Map<String, String> collectHistoryContext(HistoryNotificationContextEntity historyNotificationContext, HistoryEntity history) throws ServiceException {
-        Map<String, String> context = new HashMap<>();
+    private Map<String, String> collectHistoryContext(HistoryNotificationContextEntity historyNotificationContext, Map<String, String> contextMap, HistoryEntity history) throws ServiceException {
         for (HistoryNotificationContextCollectorEntity contextCollector : historyNotificationContext.getContextCollectors()) {
             ContextCollector collector = featurerService.getFeaturer(contextCollector.getContextCollectorFeaturer(), ContextCollector.class);
-            context = collector.collect(history, context, contextCollector.getContextCollectorParams());
+            contextMap = collector.collectData(history, contextMap, contextCollector.getContextCollectorParams());
         }
-        return context;
+        return contextMap;
+    }
+
+    private Map<String, String> fillBaseParams(String stringBusinessAccountId, String eventCode) {
+        return new HashMap<>(Map.of(
+                "COMPANY_ID", stringBusinessAccountId,
+                "EVENT_ID", eventCode
+        ));
     }
 }

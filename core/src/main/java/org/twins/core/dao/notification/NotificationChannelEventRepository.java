@@ -7,8 +7,8 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface HistoryNotificationContextCollectorRepository extends CrudRepository<HistoryNotificationContextCollectorEntity, UUID>, JpaSpecificationExecutor<HistoryNotificationContextCollectorEntity> {
-    <T> T findById(UUID id, Class<T> type);
+public interface NotificationChannelEventRepository extends CrudRepository<NotificationChannelEventEntity, UUID>, JpaSpecificationExecutor<NotificationChannelEventEntity> {
+    NotificationChannelEventEntity findByEventCode(String eventId);
 }
 
 

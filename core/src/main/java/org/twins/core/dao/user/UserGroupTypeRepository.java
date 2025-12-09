@@ -16,7 +16,7 @@ public interface UserGroupTypeRepository extends CrudRepository<UserGroupTypeEnt
     @Query("select distinct ug.userGroupType from UserGroupEntity ug where " +
             "(ug.businessAccountId is null and ug.domainId = :domainId and ug.userGroupType.sluggerFeaturerId = 2001) or " +
             "(ug.businessAccountId is null and ug.domainId = :domainId and ug.userGroupType.sluggerFeaturerId = 2002) or " +
-            "(ug.businessAccountId = :businessAccountId and ug.domainId is null and ug.userGroupType.sluggerFeaturerId = 200) or " +
+            "(ug.businessAccountId = :businessAccountId and ug.domainId is null and ug.userGroupType.sluggerFeaturerId = 2003) or " +
             "(ug.businessAccountId = :businessAccountId and ug.domainId = :domainId and ug.userGroupType.sluggerFeaturerId = 2004) or " +
             "(ug.businessAccountId is null and ug.domainId is null and ug.userGroupType.sluggerFeaturerId = 2005)")
     List<UserGroupTypeEntity> findValidTypes(UUID domainId, UUID businessAccountId);

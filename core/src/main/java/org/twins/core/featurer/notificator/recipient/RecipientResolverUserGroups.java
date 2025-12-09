@@ -8,9 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
-import org.twins.core.dao.user.UserGroupMapType2Repository;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetUserId;
+import org.twins.core.service.user.UserGroupService;
 
 import java.util.Properties;
 import java.util.Set;
@@ -27,14 +27,10 @@ public class RecipientResolverUserGroups extends RecipientResolver {
 
     @Lazy
     @Autowired
-    private UserGroupMapType2Repository userGroupMapType2Repository;
+    private UserGroupService userGroupService;
 
     @Override
     protected Set<UUID> resolve(HistoryEntity history, Properties properties) throws ServiceException {
-        return getUsers(history.getTwin().getOwnerBusinessAccountId(), userGroupIds.extract(properties));
-    }
-
-    private Set<UUID> getUsers(UUID businessAccountId, Set<UUID> userGroupIds) {
-        return userGroupMapType2Repository.findUserIdsByBusinessAccountIdAndUserGroupIds(businessAccountId, userGroupIds);
+        return userGroupService.getUsersForGroups(history.getTwin().getOwnerBusinessAccountId(), userGroupIds.extract(properties));
     }
 }

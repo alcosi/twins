@@ -21,16 +21,16 @@ import java.util.UUID;
 @Slf4j
 public abstract class RecipientResolver extends FeaturerTwins {
 
-    @FeaturerParam(name = "Exclude creator", description = "", order = 1) //todo description
+    @FeaturerParam(name = "Exclude creator", description = "", order = 1, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeCreator = new FeaturerParamBoolean("excludeCreator");
 
-    @FeaturerParam(name = "Exclude old assignee", description = "", order = 2)
+    @FeaturerParam(name = "Exclude old assignee", description = "", order = 2, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeOldAssignee = new FeaturerParamBoolean("excludeOldAssignee");
 
-    @FeaturerParam(name = "Exclude new assignee", description = "", order = 3)
+    @FeaturerParam(name = "Exclude new assignee", description = "", order = 3, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeNewAssignee = new FeaturerParamBoolean("excludeNewAssignee");
 
-    @FeaturerParam(name = "Exclude actor", description = "User who is an author of history record", order = 4)
+    @FeaturerParam(name = "Exclude actor", description = "User who is an author of history record", order = 4, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeActor = new FeaturerParamBoolean("excludeActor");
 
     public Set<UUID> resolve(HistoryEntity history, HashMap<String, String> recipientParams) throws ServiceException {
@@ -40,7 +40,7 @@ public abstract class RecipientResolver extends FeaturerTwins {
             users.remove(history.getTwin().getCreatedByUserId());
         }
         if (history.getHistoryType().equals(HistoryType.assigneeChanged) && excludeOldAssignee.extract(properties)) {
-            String oldAssignee = history.getContext().getTemplateVars().get("fromValue");
+            String oldAssignee = history.getContext().getTemplateVars().get("fromValue"); //todo impl throws (HistoryContextUserChange)
             if (!oldAssignee.isBlank()) {
                 users.remove(UUID.fromString(oldAssignee));
             }

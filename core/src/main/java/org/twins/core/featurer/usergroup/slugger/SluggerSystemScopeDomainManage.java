@@ -12,10 +12,7 @@ import org.twins.core.featurer.FeaturerTwins;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -84,5 +81,10 @@ public class SluggerSystemScopeDomainManage extends Slugger<UserGroupMapType3Ent
     @Override
     protected void processBusinessAccountDeletion(Properties properties) throws ServiceException {
         //nothing to do
+    }
+
+    @Override
+    protected Set<UUID> getUsers(Properties properties, UUID domainId, UUID businessAccountId, Collection<UUID> userGroupIds) throws ServiceException {
+        return userGroupMapType3Repository.findUserIdsByDomainIdIdAndUserGroupIds(domainId, userGroupIds);
     }
 }
