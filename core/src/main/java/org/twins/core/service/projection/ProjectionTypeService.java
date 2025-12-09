@@ -3,6 +3,7 @@ package org.twins.core.service.projection;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
@@ -113,4 +114,25 @@ public class ProjectionTypeService extends EntitySecureFindServiceImpl<Projectio
         return allEntities;
     }
 
+    public KitGrouped<ProjectionTypeEntity, UUID, UUID> findAndGroupByTwinClassId(Set<UUID> groupIds) throws ServiceException {
+        List<ProjectionTypeEntity> projections = projectionTypeRepository.findByProjectionTypeGroupIdIn(groupIds);
+
+        if (projections.isEmpty()) {
+            return KitGrouped.EMPTY;
+        }
+
+        UUID domainId = authService.getApiUser().getDomainId();
+
+        List<ProjectionTypeEntity> filteredProjections = projections.stream().filter(projection -> domainId.equals(projection.getDomainId())).toList();
+
+        if (filteredProjections.isEmpty()) {
+            return KitGrouped.EMPTY;
+        }
+
+        return new KitGrouped<>(
+                filteredProjections,
+                ProjectionTypeEntity::getId,
+                ProjectionTypeEntity::getMembershipTwinClassId
+        );
+    }
 }
