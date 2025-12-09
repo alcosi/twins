@@ -45,25 +45,27 @@ public class TwinChangeTaskScheduler extends Scheduler {
             LoggerUtils.logSession();
             LoggerUtils.logController("factoryTaskScheduler$");
 
-            var taskEntityList = collectTasks(batchSizeParam.extract(properties));
-            if (CollectionUtils.isEmpty(taskEntityList)) {
+            var collectedTasks = collectTasks(batchSizeParam.extract(properties));
+            if (CollectionUtils.isEmpty(collectedTasks)) {
                 log.debug("No run factory tasks");
                 return "";
             }
-            log.info("{} twin change task(s) should be processed", taskEntityList.size());
-            for (var taskEntity : taskEntityList) {
+
+            collectedTasks.forEach(task -> task.setStatusId(TwinChangeTaskStatus.IN_PROGRESS));
+            var savedTasks = twinChangeTaskRepository.saveAll(collectedTasks);
+
+            log.info("{} twin change task(s) should be processed", collectedTasks.size());
+            for (var taskEntity : savedTasks) {
                 try {
                     log.info("Running twin change task[{}] from status[{}]", taskEntity.getId(), taskEntity.getStatusId());
-                    taskEntity.setStatusId(TwinChangeTaskStatus.IN_PROGRESS);
-                    twinChangeTaskRepository.save(taskEntity);
-                    TwinChangeTask draftCommitTask = applicationContext.getBean(TwinChangeTask.class, taskEntity);
+                    var draftCommitTask = applicationContext.getBean(TwinChangeTask.class, taskEntity);
                     taskExecutor.execute(draftCommitTask);
                 } catch (Exception e) {
                     log.error("Exception ex: {}", e.getMessage(), e);
                 }
             }
 
-            return STR."\{taskEntityList.size()} task(s) from db was processed";
+            return STR."\{collectedTasks.size()} task(s) from db was processed";
         } catch (Exception e) {
             log.error("Exception: ", e);
         } finally {

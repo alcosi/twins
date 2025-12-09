@@ -45,22 +45,23 @@ public class AttachmentDeleteTaskScheduler extends Scheduler {
             LoggerUtils.logSession();
             LoggerUtils.logController("attachmentDeleteTaskScheduler");
 
-            var taskEntityList = collectTasks(batchSizeParam.extract(properties));
-            if (CollectionUtils.isEmpty(taskEntityList)) {
+            var collectedTasks = collectTasks(batchSizeParam.extract(properties));
+            if (CollectionUtils.isEmpty(collectedTasks)) {
                 log.debug("No attachment delete tasks found");
                 return "";
             }
 
-            log.info("{} attachment delete task(s) should be processed", taskEntityList.size());
-            taskEntityList.forEach(taskEntity -> {
+            collectedTasks.forEach(task -> task.setStatus(AttachmentDeleteTaskStatus.IN_PROGRESS));
+            var savedTasks = attachmentDeleteTaskRepository.saveAll(collectedTasks);
+
+            log.info("{} attachment delete task(s) should be processed", collectedTasks.size());
+            savedTasks.forEach(taskEntity -> {
                 log.info("Running attachment delete task[{}] from status[{}]", taskEntity.getId(), taskEntity.getStatus());
-                taskEntity.setStatus(AttachmentDeleteTaskStatus.IN_PROGRESS);
-                attachmentDeleteTaskRepository.save(taskEntity);
-                AttachmentDeleteTask attachmentDeleteTask = applicationContext.getBean(AttachmentDeleteTask.class, taskEntity);
+                var attachmentDeleteTask = applicationContext.getBean(AttachmentDeleteTask.class, taskEntity);
                 executor.execute(attachmentDeleteTask);
             });
 
-            return STR."\{taskEntityList.size()} task(s) from db was processed";
+            return STR."\{collectedTasks.size()} task(s) from db was processed";
         } catch (Exception e) {
             log.error("Exception: ", e);
         } finally {

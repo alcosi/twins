@@ -45,27 +45,28 @@ public class DraftCommitScheduler extends Scheduler {
             LoggerUtils.logSession();
             LoggerUtils.logController("draftCommitScheduler$");
 
-            var draftEntities = collectTasks(batchSizeParam.extract(properties));
+            var collectedEntities = collectTasks(batchSizeParam.extract(properties));
 
-            if (CollectionUtils.isEmpty(draftEntities)) {
+            if (CollectionUtils.isEmpty(collectedEntities)) {
                 log.debug("No draft need to be commited");
                 return "";
             }
 
-            log.info("{} drafts need to be commited", draftEntities.size());
-            for (DraftEntity draftEntity : draftEntities) {
+            collectedEntities.forEach(entity -> entity.setStatus(DraftStatus.COMMIT_IN_PROGRESS));
+            var savedEntities = draftRepository.saveAll(collectedEntities);
+
+            log.info("{} drafts need to be commited", collectedEntities.size());
+            for (var draftEntity : savedEntities) {
                 try {
                     log.info("Running draft commit[{}] from status[{}]", draftEntity.getId(), draftEntity.getStatus());
-                    draftEntity.setStatus(DraftStatus.COMMIT_IN_PROGRESS);
-                    draftRepository.save(draftEntity);
-                    DraftCommitTask draftCommitTask = applicationContext.getBean(DraftCommitTask.class, draftEntity);
+                    var draftCommitTask = applicationContext.getBean(DraftCommitTask.class, draftEntity);
                     taskExecutor.execute(draftCommitTask);
                 } catch (Exception e) {
                     log.error("Exception ex: {}", e.getMessage(), e);
                 }
             }
 
-            return STR."\{draftEntities.size()} task(s) from db was processed";
+            return STR."\{savedEntities.size()} task(s) from db was processed";
         } catch (Exception e) {
             log.error("Exception: ", e);
         } finally {

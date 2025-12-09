@@ -45,27 +45,28 @@ public class DraftEraseScopeCollectScheduler extends Scheduler {
             LoggerUtils.logSession();
             LoggerUtils.logController("draftCollectEraseScopeScheduler$");
 
-            var draftEntities = collectTasks(batchSizeParam.extract(properties));
+            var collectedEntities = collectTasks(batchSizeParam.extract(properties));
 
-            if (CollectionUtils.isEmpty(draftEntities)) {
+            if (CollectionUtils.isEmpty(collectedEntities)) {
                 log.debug("No erase scopes collect tasks");
                 return "";
             }
 
-            log.info("{} drafts erase scopes need to be collected", draftEntities.size());
-            for (DraftEntity draftEntity : draftEntities) {
+            collectedEntities.forEach(entity -> entity.setStatus(DraftStatus.COMMIT_IN_PROGRESS));
+            var savedEntities = draftRepository.saveAll(collectedEntities);
+
+            log.info("{} drafts erase scopes need to be collected", collectedEntities.size());
+            for (DraftEntity draftEntity : savedEntities) {
                 try {
                     log.info("Running draft[{}] erase scope collect from status[{}]", draftEntity.getId(), draftEntity.getStatus());
-                    draftEntity.setStatus(DraftStatus.ERASE_SCOPE_COLLECT_IN_PROGRESS);
-                    draftRepository.save(draftEntity);
-                    DraftEraseScopeCollectTask draftCommitTask = applicationContext.getBean(DraftEraseScopeCollectTask.class, draftEntity);
+                    var draftCommitTask = applicationContext.getBean(DraftEraseScopeCollectTask.class, draftEntity);
                     taskExecutor.execute(draftCommitTask);
                 } catch (Exception e) {
                     log.error("Exception ex: {}", e.getMessage(), e);
                 }
             }
 
-            return STR."\{draftEntities.size()} task(s) from db was processed";
+            return STR."\{savedEntities.size()} task(s) from db was processed";
         } catch (Exception e) {
             log.error("Exception: ", e);
         } finally {
