@@ -16,8 +16,8 @@ public class DataListOptionProjectionSearch {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
 
-    private Set<UUID> dataListProjectionIdList;
-    private Set<UUID> dataListProjectionIdExcludeList;
+    private Set<UUID> projectionTypeIdList;
+    private Set<UUID> projectionTypeIdExcludeList;
 
     private Set<UUID> srcDataListOptionIdList;
     private Set<UUID> srcDataListOptionIdExcludeList;
@@ -30,11 +30,11 @@ public class DataListOptionProjectionSearch {
 
     private DataTimeRange changedAt;
 
-    public DataListOptionProjectionSearch addDataListProjectionId(UUID dataListProjectionId, boolean exclude) {
+    public DataListOptionProjectionSearch addProjectionTypeId(UUID ProjectionTypeId, boolean exclude) {
         if (exclude)
-            dataListProjectionIdExcludeList = CollectionUtils.safeAdd(dataListProjectionIdExcludeList, dataListProjectionId);
+            projectionTypeIdExcludeList = CollectionUtils.safeAdd(projectionTypeIdExcludeList, ProjectionTypeId);
         else
-            dataListProjectionIdList = CollectionUtils.safeAdd(dataListProjectionIdList, dataListProjectionId);
+            projectionTypeIdList = CollectionUtils.safeAdd(projectionTypeIdList, ProjectionTypeId);
         return this;
     }
 

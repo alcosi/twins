@@ -45,6 +45,9 @@ public class TwinClassFieldSearch {
     private boolean excludeSystemFields = true;
     private boolean inactiveSearch = false;
     private TwinClassFieldSearchEntity configuredSearch;
+    private FieldProjectionSearch fieldProjectionSearch;
+    private Ternary projectionField;
+    private Ternary hasProjectionFields;
 
     public TwinClassFieldSearch addTwinClassId(final UUID id, final boolean searchExtends, boolean exclude) {
         if (exclude) {

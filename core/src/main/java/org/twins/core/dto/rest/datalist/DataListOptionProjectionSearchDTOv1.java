@@ -18,11 +18,11 @@ public class DataListOptionProjectionSearchDTOv1 {
     @Schema(description = "id exclude list")
     public Set<UUID> idExcludeList;
 
-    @Schema(description = "data list projection id list")
-    public Set<UUID> dataListProjectionIdList;
+    @Schema(description = "projection type id list")
+    public Set<UUID> projectionTypeIdList;
 
-    @Schema(description = "data list projection id exclude list")
-    public Set<UUID> dataListProjectionIdExcludeList;
+    @Schema(description = "projection type id exclude list")
+    public Set<UUID> projectionTypeIdExcludeList;
 
     @Schema(description = "scr data list option id list")
     public Set<UUID> srcDataListOptionIdList;
