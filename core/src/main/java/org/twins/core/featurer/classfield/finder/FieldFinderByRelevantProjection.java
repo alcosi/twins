@@ -3,6 +3,7 @@ package org.twins.core.featurer.classfield.finder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
@@ -11,15 +12,15 @@ import org.twins.core.dao.projection.ProjectionTypeEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.FieldProjectionSearch;
-import org.twins.core.domain.search.ProjectionTypeSearch;
 import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.enums.projection.ProjectionFieldSelector;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetProjectionTypeGroupId;
-import org.twins.core.service.projection.ProjectionTypeSearchService;
+import org.twins.core.service.projection.ProjectionTypeService;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -31,42 +32,52 @@ public class FieldFinderByRelevantProjection extends FieldFinder {
     @FeaturerParam(name = "Projection type group ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet projectionTypeGroupIds = new FeaturerParamUUIDSetProjectionTypeGroupId("projectionTypeGroupIds");
 
-    private final ProjectionTypeSearchService projectionTypeSearchService;
+    private final ProjectionTypeService projectionTypeService;
     private final TwinSearchService twinSearchService;
 
     @Override
     protected void concatSearch(Properties properties, TwinClassFieldSearch fieldSearch, Map<String, String> namedParamsMap) throws ServiceException {
+        Set<UUID> groupIds = projectionTypeGroupIds.extract(properties);
 
-        List<ProjectionTypeEntity> projectionTypeEntities = projectionTypeSearchService.findProjectionTypes(
-                new ProjectionTypeSearch().setProjectionTypeGroupIdList(projectionTypeGroupIds.extract(properties)));
+        KitGrouped<ProjectionTypeEntity, UUID, UUID> groupedProjections = loadAndGroupProjections(groupIds);
 
-        if (projectionTypeEntities.isEmpty()) {
+        if (groupedProjections.isEmpty()) {
             return;
         }
 
-        Set<UUID> uniqueTwinClassIds = new HashSet<>();
-        for (ProjectionTypeEntity projectionType : projectionTypeEntities) {
-            uniqueTwinClassIds.add(projectionType.getMembershipTwinClassId());
+        processProjections(groupedProjections, fieldSearch);
+    }
+
+    public KitGrouped<ProjectionTypeEntity, UUID, UUID> loadAndGroupProjections(Set<UUID> groupIds) throws ServiceException {
+        List<ProjectionTypeEntity> projections = projectionTypeService.findByProjectionTypeGroupIdIn(groupIds);
+
+        if (projections.isEmpty()) {
+            return KitGrouped.EMPTY;
         }
+
+        return new KitGrouped<>(
+                projections,
+                ProjectionTypeEntity::getId,
+                ProjectionTypeEntity::getMembershipTwinClassId
+        );
+    }
+
+    private void processProjections(KitGrouped<ProjectionTypeEntity, UUID, UUID> groupedProjections, TwinClassFieldSearch fieldSearch) throws ServiceException {
+        Set<UUID> twinClassIds = groupedProjections.getGroupedKeySet();
 
         BasicSearch basicSearch = new BasicSearch();
-        basicSearch.setTwinClassIdList(uniqueTwinClassIds);
-        List<TwinEntity> twinEntities = twinSearchService.findTwins(basicSearch);
+        basicSearch.setTwinClassIdList(twinClassIds);
+        List<TwinEntity> twins = twinSearchService.findTwins(basicSearch);
 
-        Set<UUID> twinClassIdsWithTwins = new HashSet<>();
-        for (TwinEntity twin : twinEntities) {
-            twinClassIdsWithTwins.add(twin.getTwinClassId());
-        }
-
-        Set<UUID> relevantProductTypeIds = new HashSet<>();
-        for (ProjectionTypeEntity projectionType : projectionTypeEntities) {
-            if (twinClassIdsWithTwins.contains(projectionType.getMembershipTwinClassId())) {
-                relevantProductTypeIds.add(projectionType.getId());
-            }
-        }
+        Set<UUID> relevantProjectionIds = twins.stream()
+                .map(TwinEntity::getTwinClassId)
+                .filter(groupedProjections::containsGroupedKey)
+                .flatMap(classId -> groupedProjections.getGrouped(classId).stream())
+                .map(ProjectionTypeEntity::getId)
+                .collect(Collectors.toSet());
 
         fieldSearch.setFieldProjectionSearch(new FieldProjectionSearch()
                 .setProjectionFieldSelector(ProjectionFieldSelector.src)
-                .setProjectionTypeIdList(relevantProductTypeIds));
+                .setProjectionTypeIdList(relevantProjectionIds));
     }
 }

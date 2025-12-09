@@ -113,4 +113,8 @@ public class ProjectionTypeService extends EntitySecureFindServiceImpl<Projectio
         return allEntities;
     }
 
+    public List<ProjectionTypeEntity> findByProjectionTypeGroupIdIn(Set<UUID> groupIds) {
+        return projectionTypeRepository.findByProjectionTypeGroupIdIn(groupIds);
+    }
+
 }
