@@ -13,4 +13,6 @@ import java.util.UUID;
 public interface AttachmentDeleteTaskRepository extends CrudRepository<AttachmentDeleteTaskEntity, UUID>, JpaSpecificationExecutor<AttachmentDeleteTaskEntity> {
     List<AttachmentDeleteTaskEntity> findByStatusIn(List<AttachmentDeleteTaskStatus> needStartStatuses);
     List<AttachmentDeleteTaskEntity> findByStatusIn(List<AttachmentDeleteTaskStatus> needStartStatuses, Pageable pageable);
+
+    void deleteBatch(Pageable pageable);
 }

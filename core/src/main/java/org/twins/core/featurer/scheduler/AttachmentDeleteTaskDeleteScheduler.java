@@ -8,20 +8,20 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.twin.TwinArchiveRepository;
+import org.twins.core.dao.attachment.AttachmentDeleteTaskRepository;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.Properties;
 
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 @Slf4j
 @Featurer(
-        id = FeaturerTwins.ID_4702,
-        name = "TwinArchiveDeleteScheduler",
-        description = "Scheduler for clearing twin archive table"
+        id = FeaturerTwins.ID_4707,
+        name = "AttachmentDeleteTaskDeleteScheduler",
+        description = "Scheduler for attachment delete task table"
 )
-public class TwinArchiveDeleteScheduler extends Scheduler {
+public class AttachmentDeleteTaskDeleteScheduler extends Scheduler {
 
     @FeaturerParam(
             name = "batchSize",
@@ -29,24 +29,24 @@ public class TwinArchiveDeleteScheduler extends Scheduler {
     )
     public static final FeaturerParamInt batchSizeParam = new FeaturerParamInt("batchSize");
 
-    private final TwinArchiveRepository twinArchiveRepository;
+    private final AttachmentDeleteTaskRepository attachmentDeleteTaskRepository;
 
     protected String processTasks(Properties properties) {
         try {
             LoggerUtils.logSession();
-            LoggerUtils.logController("twinArchiveDeleteScheduler");
-            long size = twinArchiveRepository.count();
+            LoggerUtils.logController("attachmentDeleteTaskDeleteScheduler");
+            long size = attachmentDeleteTaskRepository.count();
 
             if (size > 0) {
                 if (batchSizeParam.extract(properties) == null) {
-                    log.info("Deleting {} twin archive records from database", size);
-                    twinArchiveRepository.deleteAll();
+                    log.info("Deleting {} attachment delete task records from database", size);
+                    attachmentDeleteTaskRepository.deleteAll();
                 } else {
-                    log.info("Deleting {} twin archive records from database", batchSizeParam.extract(properties));
-                    twinArchiveRepository.deleteBatch(PageRequest.of(0, batchSizeParam.extract(properties)));
+                    log.info("Deleting {} attachment delete task from database", batchSizeParam.extract(properties));
+                    attachmentDeleteTaskRepository.deleteBatch(PageRequest.of(0, batchSizeParam.extract(properties)));
                 }
             } else {
-                log.info("No twin archive records to be deleted from database");
+                log.info("No attachment delete task records to be deleted from database");
             }
 
             return STR."\{batchSizeParam.extract(properties) == null ? size : batchSizeParam.extract(properties)} task(s) from db was deleted";
