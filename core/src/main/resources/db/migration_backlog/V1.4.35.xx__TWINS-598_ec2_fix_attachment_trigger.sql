@@ -47,6 +47,20 @@ begin
 end;
 $$;
 
+create or replace function create_attachment_delete_task_and_decrease_storage_counters(old twin_attachment, ba_id uuid, dom_id uuid)
+    returns void
+    language plpgsql
+as
+$$
+begin
+    perform decrease_business_acc_counters(old, ba_id);
+    perform decrease_domain_counters(old, dom_id);
+
+    insert into twin_attachment_delete_task(id, twin_attachment_id, twin_id, domain_id, twin_owner_business_account_id, twin_created_by_user_id, storage_id, status, storage_file_key, created_at)
+    values (uuid_generate_v4(), old.id, old.twin_id, dom_id, ba_id, old.created_by_user_id, old.storage_id, 'NEED_START', old.storage_file_key, now());
+end;
+$$;
+
 create or replace function twin_attachment_after_delete_wrapper() returns trigger
     language plpgsql
 as
@@ -59,11 +73,7 @@ begin
     into dom_id, ba_id
     from get_data_for_attachment_delete_task(old);
 
-    perform decrease_business_acc_counters(old, ba_id);
-    perform decrease_domain_counters(old, dom_id);
-
-    insert into twin_attachment_delete_task(id, twin_attachment_id, twin_id, domain_id, twin_owner_business_account_id, twin_created_by_user_id, storage_id, status, storage_file_key, created_at)
-    values (uuid_generate_v4(), old.id, old.twin_id, dom_id, ba_id, old.created_by_user_id, old.storage_id, 'NEED_START', old.storage_file_key, now());
+    perform create_attachment_delete_task_and_decrease_storage_counters(old, ba_id, dom_id);
 
     return old;
 end;
