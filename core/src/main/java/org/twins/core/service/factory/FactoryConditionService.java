@@ -106,11 +106,11 @@ public class FactoryConditionService extends EntitySecureFindServiceImpl<TwinFac
                     TwinFactoryConditionEntity.Fields.description, changesHelper);
 
             updateEntityFieldByEntity(twinFactoryConditionEntity, dbFactoryConditionEntity,
-                    TwinFactoryConditionEntity::isActive, TwinFactoryConditionEntity::setActive,
+                    TwinFactoryConditionEntity::getActive, TwinFactoryConditionEntity::setActive,
                     TwinFactoryConditionEntity.Fields.active, changesHelper);
 
             updateEntityFieldByEntity(twinFactoryConditionEntity, dbFactoryConditionEntity,
-                    TwinFactoryConditionEntity::isInvert, TwinFactoryConditionEntity::setInvert,
+                    TwinFactoryConditionEntity::getInvert, TwinFactoryConditionEntity::setInvert,
                     TwinFactoryConditionEntity.Fields.invert, changesHelper);
 
             updateConditionerParams(dbFactoryConditionEntity, twinFactoryConditionEntity.getConditionerParams(), changesHelper);

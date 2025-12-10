@@ -35,8 +35,8 @@ public class FactoryConditionRestDTOMapper extends RestSimpleDTOMapper<TwinFacto
                             .setConditionerFeaturerId(src.getConditionerFeaturerId())
                             .setConditionerParams(src.getConditionerParams())
                             .setDescription(src.getDescription())
-                            .setActive(src.isActive())
-                            .setInvert(src.isInvert());
+                            .setActive(src.getActive())
+                            .setInvert(src.getInvert());
             case SHORT ->
                     dst
                             .setId(src.getId());
