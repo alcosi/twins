@@ -12,3 +12,4 @@ import java.util.UUID;
 public interface HistoryNotificationSchemaMapRepository extends CrudRepository<HistoryNotificationSchemaMapEntity, UUID>, JpaSpecificationExecutor<HistoryNotificationSchemaMapEntity> {
     Set<HistoryNotificationSchemaMapEntity> findByNotificationSchemaIdAndNotificationChannelEvent_EventCodeIn(UUID schemaId, Collection<String> eventCodes);
 }
+

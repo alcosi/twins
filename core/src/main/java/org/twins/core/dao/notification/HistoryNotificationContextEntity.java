@@ -47,4 +47,3 @@ public class HistoryNotificationContextEntity implements EasyLoggable {
         return "historyNotificationContext[id:" + id + "]";
     }
 }
-

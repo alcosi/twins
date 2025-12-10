@@ -10,6 +10,3 @@ import java.util.UUID;
 public interface NotificationChannelEventRepository extends CrudRepository<NotificationChannelEventEntity, UUID>, JpaSpecificationExecutor<NotificationChannelEventEntity> {
     NotificationChannelEventEntity findByEventCode(String eventId);
 }
-
-
-

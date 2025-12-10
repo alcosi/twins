@@ -183,7 +183,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_VALIDATOR_INCORRECT(13101, "incorrect twin validator for this case"),
     USER_SEARCH_CONFIG_INCORRECT(14001, "user search config incorrect"),
     TWIN_CLASS_FIELD_CONDITION_DEPTH_EXCEEDED(15001, "twin class field condition depth exceeded"),
-    NOTIFICATION_SCHEMA_MAP_UNKNOWN(16001, "notification schema map unknown");
+    NOTIFICATION_SCHEMA_MAP_UNKNOWN(16001, "notification schema map unknown"),
+    NOTIFICATION_REQUIRED_PARAMS(16002, "get notification params not equals count required params");
 
     private final int code;
     private final String message;

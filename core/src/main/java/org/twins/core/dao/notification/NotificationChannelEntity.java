@@ -42,4 +42,3 @@ public class NotificationChannelEntity implements EasyLoggable {
         return "notificationChannel[id:" + id + "]";
     }
 }
-

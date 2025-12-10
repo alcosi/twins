@@ -11,5 +11,3 @@ public interface HistoryNotificationContextCollectorRepository extends CrudRepos
     <T> T findById(UUID id, Class<T> type);
 }
 
-
-

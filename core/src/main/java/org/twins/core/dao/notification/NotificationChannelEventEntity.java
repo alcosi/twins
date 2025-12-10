@@ -29,7 +29,7 @@ public class NotificationChannelEventEntity implements EasyLoggable {
     @Column(name = "history_notification_context_id")
     private UUID historyNotificationContextId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "notification_channel_id", insertable = false, updatable = false)
     private NotificationChannelEntity notificationChannel;
 
@@ -45,4 +45,3 @@ public class NotificationChannelEventEntity implements EasyLoggable {
         };
     }
 }
-

@@ -45,7 +45,7 @@ public class HistoryNotificationSchemaMapEntity implements EasyLoggable {
     @JoinColumn(name = "history_notification_recipient_id", insertable = false, updatable = false)
     private HistoryNotificationRecipientEntity historyNotificationRecipient;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "notification_channel_event_id", insertable = false, updatable = false)
     private NotificationChannelEventEntity notificationChannelEvent;
 
@@ -53,4 +53,3 @@ public class HistoryNotificationSchemaMapEntity implements EasyLoggable {
         return "historyNotificationSchemaMap[id:" + id + "]";
     }
 }
-

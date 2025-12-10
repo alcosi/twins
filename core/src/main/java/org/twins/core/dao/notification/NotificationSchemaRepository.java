@@ -11,5 +11,3 @@ public interface NotificationSchemaRepository extends CrudRepository<Notificatio
     <T> T findById(UUID id, Class<T> type);
 }
 
-
-
