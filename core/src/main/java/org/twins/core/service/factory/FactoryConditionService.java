@@ -48,7 +48,7 @@ public class FactoryConditionService extends EntitySecureFindServiceImpl<TwinFac
     public boolean validateEntity(TwinFactoryConditionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entity.getTwinFactoryConditionSetId() == null)
             return logErrorAndReturnFalse(entity.logNormal() + " empty twinFactoryConditionSetId");
-        if (entity.getConditionerFeaturer() == null)
+        if (entity.getConditionerFeaturerId() == null)
             return logErrorAndReturnFalse(entity.logNormal() + " empty сonditionerFeaturer");
         return true;
     }
