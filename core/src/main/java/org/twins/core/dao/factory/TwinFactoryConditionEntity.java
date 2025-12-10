@@ -30,16 +30,16 @@ public class TwinFactoryConditionEntity implements EasyLoggable {
     private UUID twinFactoryConditionSetId;
 
     @Column(name = "conditioner_featurer_id")
-    private int conditionerFeaturerId;
+    private Integer conditionerFeaturerId;
 
     @Column(name = "description")
     private String description;
 
     @Column(name = "active")
-    private boolean active;
+    private Boolean active;
 
     @Column(name = "invert")
-    private boolean invert;
+    private Boolean invert;
 
     @FeaturerList(type = Multiplier.class)
     @ManyToOne(fetch = FetchType.EAGER)
