@@ -54,19 +54,14 @@ public class TwinClassFieldSpecification extends CommonSpecification<TwinClassFi
             }
 
             if (!CollectionUtils.isEmpty(projectionTypeIdList)) {
-                if (projectionTypeIdList.size() == 1) {
-                    predicates.add(projectionJoin.get(ProjectionEntity.Fields.projectionTypeId)
-                            .in(projectionTypeIdList));
-                } else {
-                    List<Predicate> typePredicates = new ArrayList<>();
-                    for (UUID typeId : projectionTypeIdList) {
-                        typePredicates.add(cb.equal(
-                                projectionJoin.get(ProjectionEntity.Fields.projectionTypeId),
-                                typeId
-                        ));
-                    }
-                    predicates.add(cb.or(typePredicates.toArray(new Predicate[0])));
+                List<Predicate> typePredicates = new ArrayList<>();
+                for (UUID typeId : projectionTypeIdList) {
+                    typePredicates.add(cb.equal(
+                            projectionJoin.get(ProjectionEntity.Fields.projectionTypeId),
+                            typeId
+                    ));
                 }
+                predicates.add(cb.or(typePredicates.toArray(new Predicate[0])));
             }
 
             query.distinct(true);
