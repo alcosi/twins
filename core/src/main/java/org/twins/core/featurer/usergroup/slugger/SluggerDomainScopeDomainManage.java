@@ -11,10 +11,7 @@ import org.twins.core.featurer.FeaturerTwins;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.List;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2001,
@@ -79,5 +76,10 @@ public class SluggerDomainScopeDomainManage extends Slugger<UserGroupMapType1Ent
     @Override
     protected void processBusinessAccountDeletion(Properties properties) throws ServiceException {
         //nothing to do
+    }
+
+    @Override
+    protected Set<UUID> getUsers(Properties properties, UUID domainId, UUID businessAccountId, Collection<UUID> userGroupIds) throws ServiceException {
+        return userGroupMapType1Repository.findUserIdsByUserGroupIdsAndDomainId(domainId, userGroupIds);
     }
 }

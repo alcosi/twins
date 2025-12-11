@@ -29,4 +29,7 @@ public interface SpaceRoleUserRepository extends CrudRepository<SpaceRoleUserEnt
     void deleteBySpaceIdAndSpaceRoleIdAndUserIdIn(@Param("spaceId") UUID spaceId, @Param("roleId") UUID roleId, @Param("userIds") Collection<UUID> userIds);
 
     List<SpaceRoleUserEntity> findByTwinIdIn(Set<UUID> spaceSet);
+
+    @Query("select distinct sru.userId from SpaceRoleUserEntity sru where sru.twinId = :twinId and sru.spaceRoleId in :spaceRoleIds")
+    Set<UUID> findUserIdsByTwinIdAndSpaceRoleIds(UUID twinId, Collection<UUID> spaceRoleIds);
 }

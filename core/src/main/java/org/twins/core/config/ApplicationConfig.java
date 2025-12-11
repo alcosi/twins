@@ -184,6 +184,17 @@ public class ApplicationConfig {
         return executor;
     }
 
+    @Bean
+    public TaskExecutor historyNotificationTaskExecutor(@Autowired(required = false) TaskDecorator taskDecorator) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5); //todo move to settings
+        executor.setMaxPoolSize(10);
+        executor.setThreadNamePrefix("historyNotificationTaskExecutor-");
+        if (taskDecorator != null) executor.setTaskDecorator(taskDecorator);
+        executor.initialize();
+        return executor;
+    }
+
     @Bean(name = "attachmentDeleteTaskExecutor")
     public Executor attachmentDeleteTaskExecutor() {
         return Executors.newVirtualThreadPerTaskExecutor();
