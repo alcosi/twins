@@ -145,7 +145,7 @@ alter table tier
             references notification_schema
             on update cascade on delete cascade;
 
-create table history_notification_task
+create table if not exists history_notification_task
 (
     id         uuid                                               not null
         constraint history_notification_task_pk
@@ -162,28 +162,35 @@ create table history_notification_task
 CREATE OR REPLACE FUNCTION insert_history_notification_task()
 RETURNS TRIGGER AS $$
 BEGIN
-INSERT INTO history_notification_task (id, history_id, status, created_at, updated_at) 
-VALUES (gen_random_uuid(), NEW.id, DEFAULT, CURRENT_TIMESTAMP, NULL);
+INSERT INTO history_notification_task (id, history_id)
+VALUES (gen_random_uuid(), NEW.id);
 RETURN NEW;
+EXCEPTION WHEN unique_violation THEN
+    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION update_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
+    IF (NEW.* IS DISTINCT FROM OLD.*) THEN
+        NEW.updated_at = CURRENT_TIMESTAMP;
+END IF;
 RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
+DO $$
+BEGIN
+DROP TRIGGER IF EXISTS trigger_insert_history_notification ON history;
 CREATE TRIGGER trigger_insert_history_notification
     AFTER INSERT ON history
     FOR EACH ROW
     EXECUTE FUNCTION insert_history_notification_task();
 
+DROP TRIGGER IF EXISTS trigger_update_notification_timestamp ON history_notification_task;
 CREATE TRIGGER trigger_update_notification_timestamp
     BEFORE UPDATE ON history_notification_task
     FOR EACH ROW
     EXECUTE FUNCTION update_timestamp();
-
-
+END $$;
