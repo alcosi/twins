@@ -28,7 +28,8 @@ public class NotifierAlcosiNotificationManager extends Notifier {
     public static final FeaturerParamString hostDomainBaseUri = new FeaturerParamString("hostDomainBaseUri");
 
     @Override
-    protected void notify(Set<UUID> recipientIds, Map<String, String> context, String eventCode, UUID businessAccountId, Properties properties) throws ServiceException {
+    protected void notify(Set<UUID> recipientIds, Map<String, String> context, String eventCode, Properties properties) throws ServiceException {
+        //todo ba_id should be taken from context
         fillBaseDataMap(context, businessAccountId, eventCode);
 
         String hostDomainBaseUriValue = getHostDomainBaseUri(properties);

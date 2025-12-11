@@ -154,7 +154,7 @@ create table if not exists history_notification_task
         constraint history_notification_task_history_id_fk
             references history
             on update cascade on delete cascade,
-    status     varchar(100) default 'NOT SENT'::character varying not null,
+    status     varchar(100) default 'NEED_START'::character varying not null,
     created_at timestamp    default CURRENT_TIMESTAMP             not null,
     updated_at timestamp
 );

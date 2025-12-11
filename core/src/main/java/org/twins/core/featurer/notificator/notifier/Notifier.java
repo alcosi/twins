@@ -16,10 +16,10 @@ public abstract class Notifier extends FeaturerTwins {
 
     protected final Map<String, Object> stubCache = new ConcurrentHashMap<>();
 
-    public void notify(Set<UUID> recipientIds, Map<String, String> context, String eventCode, UUID businessAccountId, HashMap<String, String> notifierParams) throws ServiceException {
+    public void notify(Set<UUID> recipientIds, Map<String, String> context, String eventCode, HashMap<String, String> notifierParams) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, notifierParams, new HashMap<>());
-        notify(recipientIds, context, eventCode, businessAccountId, properties);
+        notify(recipientIds, context, eventCode, properties);
     }
 
-    protected abstract void notify(Set<UUID> recipientIds, Map<String, String> context, String eventCode, UUID businessAccountId, Properties properties) throws ServiceException;
+    protected abstract void notify(Set<UUID> recipientIds, Map<String, String> context, String eventCode, Properties properties) throws ServiceException;
 }
