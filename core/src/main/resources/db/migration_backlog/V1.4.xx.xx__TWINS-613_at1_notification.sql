@@ -128,19 +128,62 @@ create table if not exists history_notification_schema_map
 );
 
 alter table domain_business_account
-    add notification_schema_id uuid
+    add if not exists notification_schema_id uuid
         constraint domain_business_account_notification_schema_id_fk
             references notification_schema
             on update cascade on delete cascade;
 
 alter table domain
-    add notification_schema_id uuid
+    add if not exists notification_schema_id uuid
         constraint domain_notification_schema_id_fk
             references notification_schema
             on update cascade on delete cascade;
 
 alter table tier
-    add notification_schema_id uuid
+    add if not exists notification_schema_id uuid
         constraint tier_notification_schema_id_fk
             references notification_schema
             on update cascade on delete cascade;
+
+create table history_notification_task
+(
+    id         uuid                                               not null
+        constraint history_notification_task_pk
+            primary key,
+    history_id uuid                                               not null
+        constraint history_notification_task_history_id_fk
+            references history
+            on update cascade on delete cascade,
+    status     varchar(100) default 'NOT SENT'::character varying not null,
+    created_at timestamp    default CURRENT_TIMESTAMP             not null,
+    updated_at timestamp
+);
+
+CREATE OR REPLACE FUNCTION insert_history_notification_task()
+RETURNS TRIGGER AS $$
+BEGIN
+INSERT INTO history_notification_task (id, history_id, status, created_at, updated_at) 
+VALUES (gen_random_uuid(), NEW.id, DEFAULT, CURRENT_TIMESTAMP, NULL);
+RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_insert_history_notification
+    AFTER INSERT ON history
+    FOR EACH ROW
+    EXECUTE FUNCTION insert_history_notification_task();
+
+CREATE TRIGGER trigger_update_notification_timestamp
+    BEFORE UPDATE ON history_notification_task
+    FOR EACH ROW
+    EXECUTE FUNCTION update_timestamp();
+
+
