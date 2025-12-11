@@ -856,17 +856,15 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         loadHeadHunter(Collections.singletonList(twinClassEntity));
     }
 
-    public void loadHeadHunter(Collection<TwinClassEntity> twinClassCollection) {
-        Map<Integer, TwinClassEntity> needLoad = new HashMap<>();
-        for (TwinClassEntity twinClass : twinClassCollection) {
-            if (twinClass.getHeadHunterFeaturer() == null && twinClass.getHeadHunterFeaturerId() != null)
-                needLoad.put(twinClass.getHeadHunterFeaturerId(), twinClass);
-        }
-        if (MapUtils.isEmpty(needLoad))
+    public void loadHeadHunter(Collection<TwinClassEntity> collection) {
+        if (CollectionUtils.isEmpty(collection))
             return;
-        List<FeaturerEntity> featurerList = featurerService.findByIdIn(needLoad.keySet());
-        for (Map.Entry<Integer, TwinClassEntity> map : needLoad.entrySet()) {
-            map.getValue().setHeadHunterFeaturer(featurerList.get(map.getKey()));
+        KitGrouped<TwinClassEntity, UUID, Integer> needLoad = KitUtils.createNeedLoadGrouped(collection, TwinClassEntity::getId, TwinClassEntity::getHeadHunterFeaturerId, TwinClassEntity::getHeadHunterFeaturer);
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        Kit<FeaturerEntity, Integer> loaded = featurerService.findEntitiesSafe(needLoad.getGroupedKeySet());
+        for (var item : needLoad) {
+            item.setHeadHunterFeaturer(loaded.get(item.getHeadHunterFeaturerId()));
         }
     }
 
