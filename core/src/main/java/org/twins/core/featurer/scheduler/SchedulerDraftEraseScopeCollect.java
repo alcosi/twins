@@ -25,10 +25,10 @@ import java.util.Properties;
 @Slf4j
 @Featurer(
         id = FeaturerTwins.ID_4704,
-        name = "DraftEraseScopeCollectScheduler",
+        name = "SchedulerDraftEraseScopeCollect",
         description = "Scheduler for executing draft erases"
 )
-public class DraftEraseScopeCollectScheduler extends Scheduler {
+public class SchedulerDraftEraseScopeCollect extends Scheduler {
 
     @FeaturerParam(
             name = "batchSize",
@@ -36,13 +36,12 @@ public class DraftEraseScopeCollectScheduler extends Scheduler {
     )
     public static final FeaturerParamInt batchSizeParam = new FeaturerParamInt("batchSize");
 
-    final DraftRepository draftRepository;
+    private final DraftRepository draftRepository;
     @Qualifier("draftCollectEraseScopeExecutor")
-    final TaskExecutor taskExecutor;
+    private final TaskExecutor taskExecutor;
 
     public String processTasks(Properties properties) {
         try {
-            LoggerUtils.logSession();
             LoggerUtils.logController("draftCollectEraseScopeScheduler$");
 
             var collectedEntities = collectTasks(batchSizeParam.extract(properties));
@@ -69,11 +68,10 @@ public class DraftEraseScopeCollectScheduler extends Scheduler {
             return STR."\{savedEntities.size()} task(s) from db was processed";
         } catch (Exception e) {
             log.error("Exception: ", e);
+            return STR."Processing tasks failed with exception: \{e}";
         } finally {
             LoggerUtils.cleanMDC();
         }
-
-        return "";
     }
 
     private List<DraftEntity> collectTasks(Integer batchSize) {

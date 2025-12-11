@@ -18,10 +18,10 @@ import java.util.Properties;
 @Slf4j
 @Featurer(
         id = FeaturerTwins.ID_4702,
-        name = "TwinArchiveDeleteScheduler",
+        name = "SchedulerTwinArchiveDelete",
         description = "Scheduler for clearing twin archive table"
 )
-public class TwinArchiveDeleteScheduler extends Scheduler {
+public class SchedulerTwinArchiveDelete extends Scheduler {
 
     @FeaturerParam(
             name = "batchSize",
@@ -33,7 +33,6 @@ public class TwinArchiveDeleteScheduler extends Scheduler {
 
     protected String processTasks(Properties properties) {
         try {
-            LoggerUtils.logSession();
             LoggerUtils.logController("twinArchiveDeleteScheduler");
             long size = twinArchiveRepository.count();
 
@@ -52,10 +51,9 @@ public class TwinArchiveDeleteScheduler extends Scheduler {
             return STR."\{batchSizeParam.extract(properties) == null ? size : batchSizeParam.extract(properties)} task(s) from db was deleted";
         } catch (Exception e) {
             log.error("Exception: ", e);
+            return STR."Processing tasks failed with exception: \{e}";
         } finally {
             LoggerUtils.cleanMDC();
         }
-
-        return "";
     }
 }

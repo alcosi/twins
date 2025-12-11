@@ -25,10 +25,10 @@ import java.util.concurrent.Executor;
 @Slf4j
 @Featurer(
         id = FeaturerTwins.ID_4701,
-        name = "AttachmentDeleteTaskScheduler",
+        name = "SchedulerAttachmentDelete",
         description = "Scheduler for clearing external file storages after twin/attachment deletion"
 )
-public class AttachmentDeleteTaskScheduler extends Scheduler {
+public class SchedulerAttachmentDelete extends Scheduler {
 
     @FeaturerParam(
             name = "batchSize",
@@ -42,7 +42,6 @@ public class AttachmentDeleteTaskScheduler extends Scheduler {
 
     protected String processTasks(Properties properties) {
         try {
-            LoggerUtils.logSession();
             LoggerUtils.logController("attachmentDeleteTaskScheduler");
 
             var collectedTasks = collectTasks(batchSizeParam.extract(properties));
@@ -58,17 +57,16 @@ public class AttachmentDeleteTaskScheduler extends Scheduler {
             savedTasks.forEach(taskEntity -> {
                 log.info("Running attachment delete task[{}] from status[{}]", taskEntity.getId(), taskEntity.getStatus());
                 var attachmentDeleteTask = applicationContext.getBean(AttachmentDeleteTask.class, taskEntity);
-                executor.execute(attachmentDeleteTask);
+                executor.execute(attachmentDeleteTask); // maybe use semaphore to handle overload of FH service?
             });
 
             return STR."\{collectedTasks.size()} task(s) from db was processed";
         } catch (Exception e) {
             log.error("Exception: ", e);
+            return STR."Processing tasks failed with exception: \{e}";
         } finally {
             LoggerUtils.cleanMDC();
         }
-
-        return "";
     }
 
     private List<AttachmentDeleteTaskEntity> collectTasks(Integer batchSize) {

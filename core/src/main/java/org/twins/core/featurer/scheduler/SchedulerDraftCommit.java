@@ -25,10 +25,10 @@ import java.util.Properties;
 @Slf4j
 @Featurer(
         id = FeaturerTwins.ID_4705,
-        name = "DraftCommitScheduler",
+        name = "SchedulerDraftCommit",
         description = "Scheduler for executing draft commits"
 )
-public class DraftCommitScheduler extends Scheduler {
+public class SchedulerDraftCommit extends Scheduler {
 
     @FeaturerParam(
             name = "batchSize",
@@ -36,13 +36,12 @@ public class DraftCommitScheduler extends Scheduler {
     )
     public static final FeaturerParamInt batchSizeParam = new FeaturerParamInt("batchSize");
 
-    final DraftRepository draftRepository;
+    private final DraftRepository draftRepository;
     @Qualifier("draftCommitExecutor")
-    final TaskExecutor taskExecutor;
+    private final TaskExecutor taskExecutor;
 
     protected String processTasks(Properties properties) {
         try {
-            LoggerUtils.logSession();
             LoggerUtils.logController("draftCommitScheduler$");
 
             var collectedEntities = collectTasks(batchSizeParam.extract(properties));
@@ -69,11 +68,10 @@ public class DraftCommitScheduler extends Scheduler {
             return STR."\{savedEntities.size()} task(s) from db was processed";
         } catch (Exception e) {
             log.error("Exception: ", e);
+            return STR."Processing tasks failed with exception: \{e}";
         } finally {
             LoggerUtils.cleanMDC();
         }
-
-        return "";
     }
 
     private List<DraftEntity> collectTasks(Integer batchSize) {

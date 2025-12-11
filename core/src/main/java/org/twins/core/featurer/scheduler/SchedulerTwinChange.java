@@ -25,10 +25,10 @@ import java.util.Properties;
 @Slf4j
 @Featurer(
         id = FeaturerTwins.ID_4703,
-        name = "TwinChangeTaskScheduler",
+        name = "SchedulerTwinChange",
         description = "Scheduler for executing thin changes"
 )
-public class TwinChangeTaskScheduler extends Scheduler {
+public class SchedulerTwinChange extends Scheduler {
 
     @FeaturerParam(
             name = "batchSize",
@@ -68,11 +68,10 @@ public class TwinChangeTaskScheduler extends Scheduler {
             return STR."\{collectedTasks.size()} task(s) from db was processed";
         } catch (Exception e) {
             log.error("Exception: ", e);
+            return STR."Processing tasks failed with exception: \{e}";
         } finally {
             LoggerUtils.cleanMDC();
         }
-
-        return "";
     }
 
     private List<TwinChangeTaskEntity> collectTasks(Integer batchSize) {

@@ -18,10 +18,10 @@ import java.util.Properties;
 @Slf4j
 @Featurer(
         id = FeaturerTwins.ID_4706,
-        name = "SchedulerLogDeleteScheduler",
-        description = "Scheduler for clearing scheduler log table"
+        name = "SchedulerSchedulerLogCleaner",
+        description = "Scheduler for cleaning scheduler log table"
 )
-public class SchedulerLogDeleteScheduler extends Scheduler {
+public class SchedulerSchedulerLogCleaner extends Scheduler {
 
     @FeaturerParam(
             name = "batchSize",
@@ -34,7 +34,6 @@ public class SchedulerLogDeleteScheduler extends Scheduler {
     @Override
     protected String processTasks(Properties properties) {
         try {
-            LoggerUtils.logSession();
             LoggerUtils.logController("schedulerLogDeleteScheduler");
             long size = schedulerLogRepository.count();
 
@@ -53,10 +52,9 @@ public class SchedulerLogDeleteScheduler extends Scheduler {
             return STR."\{batchSizeParam.extract(properties) == null ? size : batchSizeParam.extract(properties)} task(s) from db was deleted";
         } catch (Exception e) {
             log.error("Exception: ", e);
+            return STR."Processing tasks failed with exception: \{e}";
         } finally {
             LoggerUtils.cleanMDC();
         }
-
-        return "";
     }
 }

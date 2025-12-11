@@ -2,6 +2,7 @@ package org.twins.core.featurer.scheduler;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -28,6 +29,7 @@ public abstract class Scheduler extends FeaturerTwins {
 
     public Runnable getRunnableForScheduling(Properties properties, SchedulerEntity schedulerEntity) {
         return () -> {
+            LoggerUtils.logSession();
             SchedulerLogEntity schedulerLog = new SchedulerLogEntity();
             long startTime = System.currentTimeMillis();
             String result = processTasks(properties);
@@ -38,6 +40,8 @@ public abstract class Scheduler extends FeaturerTwins {
                         .setSchedulerId(schedulerEntity.getId())
                         .setExecutionTime(System.currentTimeMillis() - startTime)
                         .setResult(result);
+
+                schedulerLogRepo.save(schedulerLog);
             }
         };
     }

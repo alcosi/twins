@@ -5,7 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.scheduler.SchedulerEntity;
@@ -22,7 +23,8 @@ import java.util.concurrent.ScheduledFuture;
 @RequiredArgsConstructor
 public class SchedulerFeaturerService {
 
-    private final ThreadPoolTaskScheduler taskScheduler;
+    @Qualifier("virtualThreadTaskScheduler")
+    private final TaskScheduler taskScheduler;
     private final SchedulerRepository schedulerRepository;
     private final FeaturerService featurerService;
     private final Map<UUID, ScheduledFuture<?>> scheduledTasks = new HashMap<>();
