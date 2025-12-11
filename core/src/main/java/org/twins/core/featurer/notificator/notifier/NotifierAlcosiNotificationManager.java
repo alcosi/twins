@@ -6,16 +6,16 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
+import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.history.HistoryEntity;
-import org.twins.core.dao.notification.*;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.notificator.context.ContextCollector;
-import org.twins.core.featurer.notificator.recipient.RecipientResolver;
 
 import java.net.URI;
-import java.util.*;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -24,81 +24,62 @@ import java.util.stream.Collectors;
         description = "")
 public class NotifierAlcosiNotificationManager extends Notifier {
 
+    @FeaturerParam(name = "hostDomainBaseUri", optional = true, defaultValue = "/")
+    public static final FeaturerParamString hostDomainBaseUri = new FeaturerParamString("hostDomainBaseUri");
+
     @Override
-    protected void notify(List<HistoryEntity> historyList, HistoryNotificationSchemaMapEntity schemaMap, Properties properties) throws ServiceException {
+    protected void notify(Set<UUID> recipientIds, Map<String, String> context, String eventCode, UUID businessAccountId, Properties properties) throws ServiceException {
+        fillBaseDataMap(context, businessAccountId, eventCode);
+
         String hostDomainBaseUriValue = getHostDomainBaseUri(properties);
 
         ReceiverServiceGrpc.ReceiverServiceFutureStub receiverServiceFutureStub = getOrCreateStub(hostDomainBaseUriValue);
 
-        List<Receiver.SendNotificationCommand> notificationCommandList = new ArrayList<>();
+        Receiver.SendNotificationCommand notificationCommand = Receiver.SendNotificationCommand.newBuilder()
+                .addAllUsersIds(recipientIds.stream().map(UUID::toString).collect(Collectors.toList()))
+                .putFilters("COMPANY_ID", businessAccountId.toString())
+                .setEventId(eventCode)
+                .putAllData(context)
+                .build();
 
-        for (HistoryEntity history : historyList) {
-            Set<UUID> userIds = recipientResolve(schemaMap.getHistoryNotificationRecipient(), history);
-            if (userIds.isEmpty())
-                continue;
-
-            String stringBusinessAccountId = history.getTwin().getOwnerBusinessAccountId().toString();
-            String eventCode = schemaMap.getNotificationChannelEvent().getEventCode();
-
-            Set<String> requiredKeyParams = getRequiredKeyParams(properties);
-            Map<String, String> baseMap = fillBaseParams(requiredKeyParams, stringBusinessAccountId, eventCode);
-
-            Map<String, String> contextMap = collectHistoryContext(
-                    schemaMap.getNotificationChannelEvent().getHistoryNotificationContext(),
-                    baseMap,
-                    history
-            );
-
-            notificationCommandList.add(Receiver.SendNotificationCommand.newBuilder()
-                    .addAllUsersIds(userIds.stream().map(UUID::toString).collect(Collectors.toList()))
-                    .putFilters("COMPANY_ID", stringBusinessAccountId)
-                    .setEventId(eventCode)
-                    .putAllData(contextMap)
-                    .build()
-            );
-        }
-
-        for (Receiver.SendNotificationCommand notificationCommand : notificationCommandList) {
-            receiverServiceFutureStub.sendNotification(notificationCommand);
-        }
+        receiverServiceFutureStub.sendNotification(notificationCommand);
     }
 
-    private Set<UUID> recipientResolve(HistoryNotificationRecipientEntity notificationRecipient, HistoryEntity history) throws ServiceException {
-        RecipientResolver recipientResolver = featurerService.getFeaturer(notificationRecipient.getRecipientResolverFeaturer(), RecipientResolver.class);
-        return recipientResolver.resolve(history, notificationRecipient.getRecipientResolverParams());
+    private void fillBaseDataMap(Map<String, String> contextMap, UUID businessAccountId, String eventCode) {
+        contextMap.put("COMPANY_ID", businessAccountId.toString());
+        contextMap.put("EVENT_ID", eventCode);
     }
 
-    private Map<String, String> collectHistoryContext(HistoryNotificationContextEntity historyNotificationContext, Map<String, String> contextMap, HistoryEntity history) throws ServiceException {
-        for (HistoryNotificationContextCollectorEntity contextCollector : historyNotificationContext.getContextCollectors()) {
-            ContextCollector collector = featurerService.getFeaturer(contextCollector.getContextCollectorFeaturer(), ContextCollector.class);
-            contextMap = collector.collectData(history, contextMap, contextCollector.getContextCollectorParams());
+    protected String getHostDomainBaseUri(Properties properties) throws ServiceException {
+        String hostDomainBaseUriValue = hostDomainBaseUri.extract(properties);
+        if (hostDomainBaseUriValue == null || hostDomainBaseUriValue.isEmpty() || "/".equals(hostDomainBaseUriValue)) {
+            throw new ServiceException(org.cambium.featurer.exception.ErrorCodeFeaturer.INCORRECT_CONFIGURATION,
+                    "hostDomainBaseUri parameter is required for " + this.getClass().getSimpleName());
         }
-        return contextMap;
+        return hostDomainBaseUriValue;
     }
 
-    private Map<String, String> fillBaseParams(Set<String> requiredKeyParams, String... values) throws ServiceException {
-        if (requiredKeyParams == null || requiredKeyParams.isEmpty()) {
-            return new HashMap<>();
-        }
+    @SuppressWarnings("unchecked")
+    protected ReceiverServiceGrpc.ReceiverServiceFutureStub getOrCreateStub(String hostDomainBaseUri) {
+        return (ReceiverServiceGrpc.ReceiverServiceFutureStub) stubCache.computeIfAbsent(hostDomainBaseUri, uri -> {
+            try {
+                String target;
+                if (uri.startsWith("http://") || uri.startsWith("https://")) {
+                    URI parsedUri = URI.create(uri);
+                    target = parsedUri.getHost() + ":" + (parsedUri.getPort() != -1 ? parsedUri.getPort() : 20108);
+                } else {
+                    target = uri;
+                }
 
-        if (requiredKeyParams.size() != values.length) {
-            throw new ServiceException(ErrorCodeTwins.NOTIFICATION_REQUIRED_PARAMS);
-        }
+                ManagedChannel channel = ManagedChannelBuilder
+                        .forTarget(target)
+                        .usePlaintext()
+                        .build();
 
-        Iterator<String> valueIterator = Arrays.asList(values).iterator();
-
-        return requiredKeyParams.stream()
-                .collect(Collectors.toMap(
-                        key -> key,
-                        key -> valueIterator.next()
-                ));
-    }
-
-    protected Set<String> getRequiredKeyParams(Properties properties) {
-        List<String> list = requiredParamKeys.extract(properties);
-        if (list == null || list.isEmpty()) {
-            return Collections.emptySet();
-        }
-        return list.stream().map(String::toUpperCase).collect(Collectors.toSet());
+                return ReceiverServiceGrpc.newFutureStub(channel);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to create gRPC stub for URI: " + uri, e);
+            }
+        });
     }
 }
