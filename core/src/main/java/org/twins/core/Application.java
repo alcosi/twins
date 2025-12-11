@@ -1,6 +1,5 @@
 package org.twins.core;
 
-import org.cambium.common.exception.ServiceException;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -16,7 +15,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableCaching
 @EnableScheduling
 public class Application {
-    public static void main(String[] args) throws ServiceException {
+    public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
 
