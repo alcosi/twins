@@ -2,6 +2,8 @@ package org.twins.core.dao.idp;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -34,6 +36,8 @@ public class IdentityProviderInternalUserEntity implements EasyLoggable {
     @Column(name = "last_login_at")
     private Timestamp lastLoginAt;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private UserEntity user;

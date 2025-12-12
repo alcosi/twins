@@ -105,6 +105,8 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Column(name = "has_projected_fields")
     private Boolean hasProjectedFields;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;

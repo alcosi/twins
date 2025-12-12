@@ -49,26 +49,32 @@ public class ProjectionEntity implements EasyLoggable {
     @Column(name = "field_projector_params", columnDefinition = "hstore")
     private HashMap<String, String> fieldProjectorParams;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_twin_pointer_id", insertable = false, updatable = false)
     private TwinPointerEntity srcTwinPointer;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_twin_class_field_id", insertable = false, updatable = false)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
     private TwinClassFieldEntity srcTwinClassField;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dst_twin_class_field_id", insertable = false, updatable = false)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
     private TwinClassFieldEntity dstTwinClassField;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dst_twin_class_id", insertable = false, updatable = false)
     private TwinClassEntity dstTwinClass;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "projection_type_id", insertable = false, updatable = false)
     private ProjectionTypeEntity ProjectionType;

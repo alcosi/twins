@@ -66,16 +66,21 @@ public class LinkEntity implements EasyLoggable {
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
 //    private DomainEntity domain;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "src_twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity srcTwinClass;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "dst_twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity dstTwinClass;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity createdByUser;
 
     @Deprecated //for specification only

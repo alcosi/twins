@@ -2,6 +2,8 @@ package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
@@ -27,10 +29,14 @@ public class TwinWorkEntity {
     @Column(name = "minutes_spent")
     private int minutesSpent;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity twinByTwinId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "author_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity authorUser;
