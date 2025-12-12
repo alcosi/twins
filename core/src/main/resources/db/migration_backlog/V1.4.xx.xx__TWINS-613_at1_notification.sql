@@ -24,6 +24,7 @@ create table if not exists history_notification_task_staus
 INSERT INTO history_notification_task_staus (id) VALUES ('NEED_START') on conflict on constraint history_notification_task_staus_pk do nothing ;
 INSERT INTO history_notification_task_staus (id) VALUES ('IN_PROGRESS') on conflict on constraint history_notification_task_staus_pk do nothing ;
 INSERT INTO history_notification_task_staus (id) VALUES ('SENT') on conflict on constraint history_notification_task_staus_pk do nothing ;
+INSERT INTO history_notification_task_staus (id) VALUES ('SKIPPED') on conflict on constraint history_notification_task_staus_pk do nothing ;
 INSERT INTO history_notification_task_staus (id) VALUES ('FAILED') on conflict on constraint history_notification_task_staus_pk do nothing ;
 
 create table if not exists history_notification_recipient
@@ -132,6 +133,10 @@ create table if not exists history_notification_schema_map
     id                                uuid         not null
         constraint history_notification_schema_map_pk
             primary key,
+    twin_class_id            uuid         not null
+        constraint history_notification_schema_map_twin_class_id_id_fk
+            references twin_class
+            on update cascade on delete cascade,
     history_type_id                   varchar(255) not null
         constraint history_notification_schema_map_history_type_id_fk
             references history_type

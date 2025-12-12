@@ -31,7 +31,7 @@ public class HistoryNotificationTask implements Runnable {
     @Autowired
     private FeaturerService featurerService;
     @Autowired
-    private HistoryNotificationContextService historyNotificationContextService;
+    private NotificationContextService notificationContextService;
     
     private final Map<UUID, Map<String, String>> contextCache = new HashMap<>();
 
@@ -47,7 +47,11 @@ public class HistoryNotificationTask implements Runnable {
             LoggerUtils.logController("historyNotificationTask");
             LoggerUtils.logPrefix(STR."HISTORY[\{historyNotificationEntity.getId()}]:");
             log.info("Performing history notification task: {}", historyNotificationEntity.logDetailed());
-            List<HistoryNotificationSchemaMapEntity> configs = historyNotificationSchemaMapEntityRepository.findByHistoryTypeIdAndNotificationSchemaId(history.getHistoryType().name(), historyNotificationEntity.getNotificationSchemaId());
+            List<HistoryNotificationSchemaMapEntity> configs = historyNotificationSchemaMapEntityRepository.findByHistoryTypeIdAndTwinClassIdAndNotificationSchemaId(
+                    history.getHistoryType().name(),
+                    history.getTwin().getTwinClassId(),
+                    historyNotificationEntity.getNotificationSchemaId()
+            );
             KitGroupedObj<HistoryNotificationSchemaMapEntity, UUID, UUID, NotificationChannelEventEntity> notificationConfigsGroupedByChannelEvent = new KitGroupedObj<>(
                     configs,
                     HistoryNotificationSchemaMapEntity::getId,
@@ -97,7 +101,7 @@ public class HistoryNotificationTask implements Runnable {
 
     public Map<String, String> collectHistoryContext(UUID contextId, HistoryEntity history) throws ServiceException {
         Map<String, String> context = new HashMap<>();
-        for (NotificationContextCollectorEntity contextCollector : historyNotificationContextService.getContextCollectors(contextId)) {
+        for (NotificationContextCollectorEntity contextCollector : notificationContextService.getContextCollectors(contextId)) {
             ContextCollector collector = featurerService.getFeaturer(contextCollector.getContextCollectorFeaturer(), ContextCollector.class);
             context = collector.collectData(history, context, contextCollector.getContextCollectorParams());
         }

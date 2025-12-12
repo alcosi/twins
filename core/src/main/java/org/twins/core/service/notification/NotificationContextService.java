@@ -21,7 +21,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class HistoryNotificationContextService extends EntitySecureFindServiceImpl<NotificationContextEntity> {
+public class NotificationContextService extends EntitySecureFindServiceImpl<NotificationContextEntity> {
 
     private final NotificationContextRepository notificationContextRepository;
     private final NotificationContextCollectorRepository notificationContextCollectorRepository;

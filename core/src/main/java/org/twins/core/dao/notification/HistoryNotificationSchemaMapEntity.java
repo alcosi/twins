@@ -7,6 +7,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.DynamicUpdate;
 import org.twins.core.dao.history.HistoryTypeEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.UUID;
 
@@ -24,6 +25,9 @@ public class HistoryNotificationSchemaMapEntity implements EasyLoggable {
     @Column(name = "history_type_id")
     private String historyTypeId;
 
+    @Column(name = "twin_class_id")
+    private UUID twinClassId;
+
     @Column(name = "notification_schema_id")
     private UUID notificationSchemaId;
 
@@ -33,15 +37,19 @@ public class HistoryNotificationSchemaMapEntity implements EasyLoggable {
     @Column(name = "notification_channel_event_id")
     private UUID notificationChannelEventId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "history_type_id", insertable = false, updatable = false)
     private HistoryTypeEntity historyType;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "notification_schema_id", insertable = false, updatable = false)
     private NotificationSchemaEntity notificationSchema;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_class_id", insertable = false, updatable = false)
+    private TwinClassEntity twinClass;
+
+    @ManyToOne
     @JoinColumn(name = "history_notification_recipient_id", insertable = false, updatable = false)
     private HistoryNotificationRecipientEntity historyNotificationRecipient;
 
