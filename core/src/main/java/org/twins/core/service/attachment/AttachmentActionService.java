@@ -86,7 +86,7 @@ public class AttachmentActionService {
                         log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL), twinAttachmentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                         continue;
                     }
-                    TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
+                    TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturerId(), TwinValidator.class);
                     ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
                     if (!validationResult.isValid()) {
                         log.error(validationResult.getMessage());
@@ -124,7 +124,7 @@ public class AttachmentActionService {
                         log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.logNormal(), twinAttachmentActionSelfValidatorRuleEntity.logNormal());
                         continue;
                     }
-                    TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
+                    TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturerId(), TwinValidator.class);
                     ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twin, twinValidatorEntity.isInvert());
                     if (validationResult.isValid()) {
                         log.error(validationResult.getMessage());

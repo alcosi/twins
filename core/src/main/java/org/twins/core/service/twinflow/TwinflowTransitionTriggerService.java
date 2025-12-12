@@ -16,6 +16,8 @@ import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerRepository;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.function.Function;
@@ -103,5 +105,17 @@ public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImp
         if (!changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.isActive, dbEntity.isActive(), updateEntity.isActive()))
             return;
         dbEntity.setActive(updateEntity.isActive());
+    }
+
+    public void loadTrigger(TwinflowTransitionTriggerEntity src) {
+        loadTriggers(Collections.singleton(src));
+    }
+
+    public void loadTriggers(Collection<TwinflowTransitionTriggerEntity> srcCollection) {
+        featurerService.loadFeaturers(srcCollection,
+                TwinflowTransitionTriggerEntity::getId,
+                TwinflowTransitionTriggerEntity::getTransitionTriggerFeaturerId,
+                TwinflowTransitionTriggerEntity::getTransitionTriggerFeaturer,
+                TwinflowTransitionTriggerEntity::setTransitionTriggerFeaturer);
     }
 }

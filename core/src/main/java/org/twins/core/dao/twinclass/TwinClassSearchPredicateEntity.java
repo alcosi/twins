@@ -24,7 +24,7 @@ public class TwinClassSearchPredicateEntity implements EasyLoggable {
     private UUID twinClassSearchId;
 
     @Column(name = "class_finder_featurer_id")
-    private int classFinderFeaturerId;
+    private Integer classFinderFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "class_finder_params", columnDefinition = "hstore")

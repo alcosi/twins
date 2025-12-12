@@ -211,7 +211,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
             return;
         for (TwinStatusTransitionTriggerEntity triggerEntity : twinStatusTransitionTriggerEntityList) {
             log.info(triggerEntity.easyLog(EasyLoggable.Level.DETAILED) + " will be triggered");
-            TransitionTrigger transitionTrigger = featurerService.getFeaturer(triggerEntity.getTransitionTriggerFeaturer(), TransitionTrigger.class);
+            TransitionTrigger transitionTrigger = featurerService.getFeaturer(triggerEntity.getTransitionTriggerFeaturerId(), TransitionTrigger.class);
             transitionTrigger.run(triggerEntity.getTransitionTriggerParams(), twinEntity, srcStatusEntity, dstStatusEntity);
         }
     }

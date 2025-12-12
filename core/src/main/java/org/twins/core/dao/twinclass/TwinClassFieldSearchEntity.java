@@ -32,7 +32,7 @@ public class TwinClassFieldSearchEntity {
     private boolean forceSorting;
 
     @Column(name = "field_sorter_featurer_id")
-    private int fieldSorterFeaturerId;
+    private Integer fieldSorterFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "field_sorter_params", columnDefinition = "hstore")

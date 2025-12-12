@@ -3,12 +3,12 @@ package org.twins.core.dao.twin;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
-import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -39,9 +39,9 @@ public class TwinStatusTransitionTriggerEntity implements EasyLoggable {
     @Column(name = "active")
     private boolean active;
 
-    @FeaturerList(type = TransitionTrigger.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "transition_trigger_featurer_id", insertable = false, updatable = false)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity transitionTriggerFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
