@@ -19,10 +19,10 @@ import java.util.UUID;
         name = "Scheduler",
         description = "Services for scheduling tasks")
 @Slf4j
-@Getter
 public abstract class Scheduler extends FeaturerTwins {
 
     @Autowired
+    @Getter
     protected ApplicationContext applicationContext;
     @Autowired
     private SchedulerLogRepository schedulerLogRepo;

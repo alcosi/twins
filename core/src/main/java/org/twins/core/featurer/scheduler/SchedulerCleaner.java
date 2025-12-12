@@ -22,11 +22,11 @@ public abstract class SchedulerCleaner extends Scheduler {
 
     protected String processTasks(Properties properties) {
         try {
-            LoggerUtils.logController("twinArchiveDeleteScheduler");
+            LoggerUtils.logController("schedulerCleaner$");
             long size = countAll();
 
             if (size == 0) {
-                log.info("No scheduler log records to be deleted from database");
+                log.info("No records to be deleted from database");
                 return "0 task(s) from db was deleted";
             }
 
@@ -46,7 +46,7 @@ public abstract class SchedulerCleaner extends Scheduler {
     }
 
     private long deleteAllRecords(long totalCount) {
-        log.info("Deleting {} scheduler log records from database", totalCount);
+        log.info("Deleting {} records from database", totalCount);
         deleteAll();
 
         return totalCount;
@@ -56,7 +56,7 @@ public abstract class SchedulerCleaner extends Scheduler {
         Timestamp createdAfter = Timestamp.valueOf(LocalDateTime.now().minus(interval));
         long count = countAllByCreatedAtAfter(createdAfter);
 
-        log.info("Deleting {} scheduler log records from database", count);
+        log.info("Deleting {} records from database", count);
         deleteAllByCreatedAtAfter(createdAfter);
 
         return count;
