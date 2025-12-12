@@ -3,6 +3,7 @@ package org.twins.core.dao.comment;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.kit.Kit;
@@ -42,10 +43,14 @@ public class TwinCommentEntity {
 
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinEntity twin;
 
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity createdByUser;
 
     @Transient

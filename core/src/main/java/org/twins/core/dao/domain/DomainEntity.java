@@ -173,26 +173,31 @@ public class DomainEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_class_schema_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassSchemaEntity twinClassSchema;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionSchemaEntity permissionSchema;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "business_account_template_twin_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinEntity businessAccountTemplateTwin;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "default_tier_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TierEntity defaultTier;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_user_template_twin_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinEntity domainUserTemplateTwin;
 
     // needed for specification
@@ -204,6 +209,7 @@ public class DomainEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private DomainTypeEntity domainTypeEntity;
 
     public String easyLog(Level level) {

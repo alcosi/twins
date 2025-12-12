@@ -44,8 +44,9 @@ public class TwinFactoryEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @ManyToOne
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false)
     private UserEntity createdByUser;
 

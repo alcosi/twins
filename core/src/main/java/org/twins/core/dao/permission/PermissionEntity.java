@@ -45,6 +45,8 @@ public class PermissionEntity implements EasyLoggable {
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     private I18nEntity descriptionI18n;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "permission_group_id", insertable = false, updatable = false, nullable = false)
     private PermissionGroupEntity permissionGroup;

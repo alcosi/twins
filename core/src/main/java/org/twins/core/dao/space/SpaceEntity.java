@@ -2,6 +2,8 @@ package org.twins.core.dao.space;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
@@ -35,18 +37,26 @@ public class SpaceEntity {
     @Column(name = "business_account_alias_counter")
     private Integer businessAccountAliasCounter;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity twin;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false)
     private PermissionSchemaEntity permissionSchema;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twinflow_schema_id", insertable = false, updatable = false)
     private TwinflowSchemaEntity twinflowSchema;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_class_schema_id", insertable = false, updatable = false)
     private TwinClassSchemaEntity twinClassSchema;

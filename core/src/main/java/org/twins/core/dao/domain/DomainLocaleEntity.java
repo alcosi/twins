@@ -2,6 +2,8 @@ package org.twins.core.dao.domain;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.i18n.I18nLocaleEntity;
@@ -32,6 +34,8 @@ public class DomainLocaleEntity implements EasyLoggable {
     @Column(name = "active")
     private boolean active;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "i18n_locale_id", insertable = false, updatable = false, nullable = false)
     private I18nLocaleEntity i18nLocale;

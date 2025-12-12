@@ -59,6 +59,7 @@ public class TwinStatusEntity implements EasyLoggable {
     private StatusType type;
 
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twins_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
