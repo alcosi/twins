@@ -19,7 +19,11 @@ public class FeaturerParamDuration extends FeaturerParam<Duration> {
 
     @Override
     public Duration extract(Properties properties) {
-        String[] params = StringUtils.split((String) properties.get(key), ":");
-        return Duration.of(Integer.parseInt(params[1]), ChronoUnit.valueOf(params[0]));
+        if (properties.get(key) == null) {
+            return Duration.ZERO;
+        } else {
+            String[] params = StringUtils.split((String) properties.get(key), ":");
+            return Duration.of(Integer.parseInt(params[1]), ChronoUnit.valueOf(params[0]));
+        }
     }
 }

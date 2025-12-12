@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.scheduler.SchedulerLogRepository;
+import org.twins.core.dao.twin.TwinArchiveRepository;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.sql.Timestamp;
@@ -13,32 +13,31 @@ import java.sql.Timestamp;
 @Service
 @Slf4j
 @Featurer(
-        id = FeaturerTwins.ID_4706,
-        name = "SchedulerSchedulerLogCleaner",
-        description = "Scheduler for cleaning scheduler log table"
+        id = FeaturerTwins.ID_4702,
+        name = "SchedulerTwinArchiveCleaner",
+        description = "Scheduler for clearing twin archive table"
 )
-public class SchedulerSchedulerLogCleaner extends SchedulerCleaner {
+public class SchedulerTwinArchiveCleaner extends SchedulerCleaner {
 
-    private final SchedulerLogRepository schedulerLogRepository;
-
+    private final TwinArchiveRepository twinArchiveRepository;
 
     @Override
     protected void deleteAll() {
-        schedulerLogRepository.deleteAll();
+        twinArchiveRepository.deleteAll();
     }
 
     @Override
     protected long countAll() {
-        return schedulerLogRepository.count();
+        return twinArchiveRepository.count();
     }
 
     @Override
     protected void deleteAllByCreatedAtAfter(Timestamp createdAfter) {
-        schedulerLogRepository.deleteAllByCreatedAtAfter(createdAfter);
+        twinArchiveRepository.deleteAllByCreatedAtAfter(createdAfter);
     }
 
     @Override
     protected long countAllByCreatedAtAfter(Timestamp createdAfter) {
-        return schedulerLogRepository.countAllByCreatedAtAfter(createdAfter);
+        return twinArchiveRepository.count();
     }
 }

@@ -2,16 +2,14 @@ package org.twins.core.featurer.scheduler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.annotations.Featurer;
-import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamInt;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.attachment.AttachmentDeleteTaskRepository;
+import org.twins.core.enums.attachment.AttachmentDeleteTaskStatus;
 import org.twins.core.featurer.FeaturerTwins;
 
-import java.util.Properties;
+import java.sql.Timestamp;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -21,39 +19,27 @@ import java.util.Properties;
         name = "SchedulerAttachmentDeleteTaskCleaner",
         description = "Scheduler for cleaning attachment delete task table"
 )
-public class SchedulerAttachmentDeleteTaskCleaner extends Scheduler {
-
-    @FeaturerParam(
-            name = "batchSize",
-            description = "Param to specify the number of tasks that will be collected from db for execution"
-    )
-    public static final FeaturerParamInt batchSizeParam = new FeaturerParamInt("batchSize");
+public class SchedulerAttachmentDeleteTaskCleaner extends SchedulerCleaner {
 
     private final AttachmentDeleteTaskRepository attachmentDeleteTaskRepository;
 
-    protected String processTasks(Properties properties) {
-        try {
-            LoggerUtils.logController("attachmentDeleteTaskDeleteScheduler");
-            long size = attachmentDeleteTaskRepository.count();
+    @Override
+    protected void deleteAll() {
+        attachmentDeleteTaskRepository.deleteAll();
+    }
 
-            if (size > 0) {
-                if (batchSizeParam.extract(properties) == null) {
-                    log.info("Deleting {} attachment delete task records from database", size);
-                    attachmentDeleteTaskRepository.deleteAll();
-                } else {
-                    log.info("Deleting {} attachment delete task from database", batchSizeParam.extract(properties));
-                    attachmentDeleteTaskRepository.deleteBatch(PageRequest.of(0, batchSizeParam.extract(properties)));
-                }
-            } else {
-                log.info("No attachment delete task records to be deleted from database");
-            }
+    @Override
+    protected long countAll() {
+        return attachmentDeleteTaskRepository.count();
+    }
 
-            return STR."\{batchSizeParam.extract(properties) == null ? size : batchSizeParam.extract(properties)} task(s) from db was deleted";
-        } catch (Exception e) {
-            log.error("Exception: ", e);
-            return STR."Processing tasks failed with exception: \{e}";
-        } finally {
-            LoggerUtils.cleanMDC();
-        }
+    @Override
+    protected void deleteAllByCreatedAtAfter(Timestamp createdAfter) {
+        attachmentDeleteTaskRepository.deleteAllByStatusInAndCreatedAtAfter(List.of(AttachmentDeleteTaskStatus.DONE), createdAfter);
+    }
+
+    @Override
+    protected long countAllByCreatedAtAfter(Timestamp createdAfter) {
+        return attachmentDeleteTaskRepository.countAllByStatusInAndCreatedAtAfter(List.of(AttachmentDeleteTaskStatus.DONE), createdAfter);
     }
 }

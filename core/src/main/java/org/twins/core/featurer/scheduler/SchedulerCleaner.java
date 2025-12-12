@@ -1,0 +1,69 @@
+package org.twins.core.featurer.scheduler;
+
+import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.util.LoggerUtils;
+import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamDuration;
+
+import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.Properties;
+
+@Slf4j
+public abstract class SchedulerCleaner extends Scheduler {
+
+    @FeaturerParam(
+            name = "interval",
+            description = "Param to specify the time interval in which we should search for records",
+            exampleValues = "DAYS:3"
+    )
+    public static final FeaturerParamDuration intervalParam = new FeaturerParamDuration("interval");
+
+    protected String processTasks(Properties properties) {
+        try {
+            LoggerUtils.logController("twinArchiveDeleteScheduler");
+            long size = countAll();
+
+            if (size == 0) {
+                log.info("No scheduler log records to be deleted from database");
+                return "0 task(s) from db was deleted";
+            }
+
+            Duration interval = intervalParam.extract(properties);
+            long deletedCount = interval.equals(Duration.ZERO)
+                    ? deleteAllRecords(size)
+                    : deleteRecordsAfterInterval(interval);
+
+            return STR."\{deletedCount} task(s) from db was deleted";
+        } catch (Exception e) {
+            log.error("Exception: ", e);
+
+            return STR."Processing tasks failed with exception: \{e}";
+        } finally {
+            LoggerUtils.cleanMDC();
+        }
+    }
+
+    private long deleteAllRecords(long totalCount) {
+        log.info("Deleting {} scheduler log records from database", totalCount);
+        deleteAll();
+
+        return totalCount;
+    }
+
+    private long deleteRecordsAfterInterval(Duration interval) {
+        Timestamp createdAfter = Timestamp.valueOf(LocalDateTime.now().minus(interval));
+        long count = countAllByCreatedAtAfter(createdAfter);
+
+        log.info("Deleting {} scheduler log records from database", count);
+        deleteAllByCreatedAtAfter(createdAfter);
+
+        return count;
+    }
+
+    protected abstract void deleteAll();
+    protected abstract long countAll();
+    protected abstract void deleteAllByCreatedAtAfter(Timestamp createdAfter);
+    protected abstract long countAllByCreatedAtAfter(Timestamp createdAfter);
+}

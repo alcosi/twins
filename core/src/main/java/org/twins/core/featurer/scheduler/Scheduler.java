@@ -34,7 +34,7 @@ public abstract class Scheduler extends FeaturerTwins {
             long startTime = System.currentTimeMillis();
             String result = processTasks(properties);
 
-            if (!result.isEmpty() && schedulerEntity.isLogEnabled()) {
+            if (!result.isEmpty() && schedulerEntity.getLogEnabled()) {
                 schedulerLog
                         .setId(UUID.randomUUID())
                         .setSchedulerId(schedulerEntity.getId())
