@@ -33,7 +33,7 @@ create table if not exists notification_schema
     description_i18n_id uuid
         constraint notification_schema_description_i18n_id_fk
             references i18n
-            on update cascade on delete cascade,
+            on update cascade on delete cascade
 );
 
 create table if not exists notification_channel
@@ -62,40 +62,40 @@ create table if not exists notification_channel_event
             references notification_channel
             on update cascade on delete cascade,
     event_code                      varchar(255) not null,
-    history_notification_context_id uuid         not null
-        constraint notification_channel_event_history_notification_context_id_fk
-            references history_notification_context
+    notification_context_id uuid         not null
+        constraint notification_channel_event_notification_context_id_fk
+            references notification_context
             on update cascade on delete cascade
 );
 
-create table if not exists history_notification_context
+create table if not exists notification_context
 (
     id uuid not null
-        constraint history_notification_context_pk
+        constraint notification_context_pk
             primary key,
     domain_id uuid not null
-        constraint history_notification_context_domain_id_fk
+        constraint notification_context_domain_id_fk
             references domain
             on update cascade on delete cascade,
     name_i18n_id uuid not null
-        constraint history_notification_context_name_i18n_id_fk
+        constraint notification_context_name_i18n_id_fk
             references i18n
             on update cascade on delete cascade,
     description_i18n_id uuid
-        constraint history_notification_context_description_i18n_id_fk
+        constraint notification_context_description_i18n_id_fk
             references i18n
-            on update cascade on delete cascade,
+            on update cascade on delete cascade
 );
 
-create table if not exists history_notification_context_collector
+create table if not exists notification_context_collector
 (
     id                              uuid not null,
-    history_notification_context_id uuid not null
-        constraint history_notification_context_collector_context_id_fk
-            references history_notification_context
+    notification_context_id uuid not null
+        constraint notification_context_collector_context_id_fk
+            references notification_context
             on update cascade on delete cascade,
     context_collector_featurer_id   integer not null
-        constraint history_notification_context_collector_featurer_id_fk
+        constraint notification_context_collector_featurer_id_fk
             references featurer
             on update cascade on delete cascade,
     context_collector_params        hstore
@@ -157,8 +157,8 @@ create table if not exists history_notification_task
     notification_schema_id uuid not null
         constraint history_notification_task_notification_schema_id_fk
             references notification_schema
-            on update cascade on delete cascade
-    history_notification_task_status_id     varchar(100) default 'NEED_START'::character varying not null,
+            on update cascade on delete cascade,
+    history_notification_task_status_id     varchar(100) default 'NEED_START'::character varying not null, //todo FK
     status_details varchar,
     created_at timestamp    default CURRENT_TIMESTAMP             not null,
     done_at timestamp

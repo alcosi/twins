@@ -39,7 +39,7 @@ public class ContextCollectorTwin extends ContextCollector {
     @FeaturerParam(name = "Collect owner business account", description = "", order = 7, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean collectBusinessAccount = new FeaturerParamBoolean("collectBusinessAccount");
 
-    @FeaturerParam(name = "Collect owner business account key", description = "", order = 8, optional = true, defaultValue = "COMPANY_ID")
+    @FeaturerParam(name = "Collect owner business account key", description = "", order = 8, optional = true, defaultValue = "TWIN_OWNER_BUSINESS_ACCOUNT_ID")
     public static final FeaturerParamString collectBusinessAccountKey = new FeaturerParamString("collectBusinessAccountKey");
 
     @Override

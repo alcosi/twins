@@ -7,7 +7,7 @@ import io.grpc.ManagedChannelBuilder;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamString;
+import org.cambium.featurer.params.FeaturerParamUrl;
 import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
 
@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
         description = "")
 public class NotifierAlcosiNotificationManager extends Notifier {
 
-    @FeaturerParam(name = "hostDomainBaseUri", optional = true, defaultValue = "/")
-    public static final FeaturerParamString hostDomainBaseUri = new FeaturerParamString("hostDomainBaseUri");
+    @FeaturerParam(name = "hostDomainBaseUri", optional = false, defaultValue = "/")
+    public static final FeaturerParamUrl hostDomainBaseUri = new FeaturerParamUrl("hostDomainBaseUri");
 
     @Override
     protected void notify(Set<UUID> recipientIds, Map<String, String> context, String eventCode, Properties properties) throws ServiceException {
