@@ -165,7 +165,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
 
         Set<UUID> userIds = new HashSet<>();
         for (UserGroupTypeEntity userGroupTypeEntity : userGroupTypes) {
-            Slugger<UserGroupMap> slugger = featurerService.getFeaturer(userGroupTypeEntity.getSluggerFeaturer(), Slugger.class);
+            Slugger<UserGroupMap> slugger = featurerService.getFeaturer(userGroupTypeEntity.getSluggerFeaturerId(), Slugger.class);
             userIds.addAll(slugger.getUsers(userGroupTypeEntity.getSluggerParams(), domainId, businessAccountId, userGroupIds));
         }
         return userIds;
