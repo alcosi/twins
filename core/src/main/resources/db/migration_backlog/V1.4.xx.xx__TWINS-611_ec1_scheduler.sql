@@ -30,3 +30,13 @@ create table if not exists scheduler_log
 
 create index if not exists scheduler_log_scheduler_id_index
     on scheduler_log (scheduler_id);
+
+insert into scheduler(id, domain_id, scheduler_featurer_id, scheduler_params, active, log_enabled, cron, fixed_rate, description, created_at, updated_at)
+values
+    (uuid_generate_v4(), null, 4701, ''::hstore, true, true, null, 2000, 'Scheduler for clearing external file storages after twin/attachment deletion', now(), now()),
+    (uuid_generate_v4(), null, 4702, ''::hstore, true, true, '0 0 0 * * *', null, 'Scheduler for clearing twin archive table', now(), now()),
+    (uuid_generate_v4(), null, 4703, ''::hstore, true, true, null, 2000, 'Scheduler for executing twin changes', now(), now()),
+    (uuid_generate_v4(), null, 4704, ''::hstore, true, true, null, 500, 'Scheduler for executing draft erases', now(), now()),
+    (uuid_generate_v4(), null, 4705, ''::hstore, true, true, null, 500, 'Scheduler for executing draft commits', now(), now()),
+    (uuid_generate_v4(), null, 4706, ''::hstore, true, true, '0 0 0 * * *', null, 'Scheduler for cleaning scheduler log table', now(), now()),
+    (uuid_generate_v4(), null, 4707, ''::hstore, true, true, '0 0 0 * * *', null, 'Scheduler for cleaning attachment delete task table', now(), now());

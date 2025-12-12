@@ -43,8 +43,8 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
             for (var entity : savedEntities) {
                 try {
                     log.info("Running {}", entity.logNormal());
-                    var draftCommitTask = applicationContext.getBean(getTaskClass(), entity);
-                    taskExecutor.execute(draftCommitTask);
+                    var task = applicationContext.getBean(getTaskClass(), entity);
+                    taskExecutor.execute(task);
                 } catch (Exception e) {
                     log.error("Exception ex: {}", e.getMessage(), e);
                 }

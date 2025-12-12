@@ -21,7 +21,7 @@ import java.util.stream.StreamSupport;
 @Featurer(
         id = FeaturerTwins.ID_4703,
         name = "SchedulerTwinChangeTaskRunner",
-        description = "Scheduler for executing thin changes"
+        description = "Scheduler for executing twin changes"
 )
 public class SchedulerTwinChangeTaskRunner extends SchedulerTaskRunner<TwinChangeTask, TwinChangeTaskEntity> {
 
