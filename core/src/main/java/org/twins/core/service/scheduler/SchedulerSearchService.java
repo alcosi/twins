@@ -1,7 +1,6 @@
 package org.twins.core.service.scheduler;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
@@ -11,17 +10,21 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.scheduler.SchedulerRepository;
 import org.twins.core.domain.search.SchedulerSearch;
+import org.twins.core.mappers.rest.DataTimeRangeDTOReverseMapper;
+import org.twins.core.mappers.rest.IntegerRangeDTOReverseMapper;
 
 import static org.springframework.data.jpa.domain.Specification.allOf;
-import static org.twins.core.dao.specifications.scheduler.SchedulerSpecification.*;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 @Service
 @RequiredArgsConstructor
 public class SchedulerSearchService {
 
     private final SchedulerRepository schedulerRepository;
+    private final DataTimeRangeDTOReverseMapper dateMapper;
+    private final IntegerRangeDTOReverseMapper integerRangeMapper;
 
-    public PaginationResult<SchedulerEntity> search(SchedulerSearch schedulerSearch, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<SchedulerEntity> search(SchedulerSearch schedulerSearch, SimplePagination pagination) throws Exception {
         if (schedulerSearch == null) {
             schedulerSearch = new SchedulerSearch();
         }
@@ -29,7 +32,7 @@ public class SchedulerSearchService {
         return PaginationUtils.convertInPaginationResult(schedulerList, pagination);
     }
 
-    private Specification<SchedulerEntity> createSchedulerEntitySearchSpecification(SchedulerSearch search) {
+    private Specification<SchedulerEntity> createSchedulerEntitySearchSpecification(SchedulerSearch search) throws Exception {
         return allOf(checkUuidIn(search.getIdSet(), false, false, SchedulerEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeSet(), true, false, SchedulerEntity.Fields.id),
                 checkIntegerIn(search.getFeaturerIdSet(), false, SchedulerEntity.Fields.featurerId),
@@ -38,12 +41,11 @@ public class SchedulerSearchService {
                 checkTernary(search.getLogEnabled(), SchedulerEntity.Fields.logEnabled),
                 checkFieldLikeIn(search.getCronSet(), false, false, SchedulerEntity.Fields.cron),
                 checkFieldLikeIn(search.getCronExcludeSet(), true, true, SchedulerEntity.Fields.cron),
-                checkIntegerIn(search.getFixedRateSet(), false, SchedulerEntity.Fields.fixedRate),
-                checkIntegerIn(search.getFixedRateExcludeSet(), true, SchedulerEntity.Fields.fixedRate),
+                checkFieldIntegerRange(integerRangeMapper.convert(search.getFixedRateRange()), SchedulerEntity.Fields.fixedRate),
                 checkFieldLikeIn(search.getDescriptionSet(), false, false, SchedulerEntity.Fields.description),
                 checkFieldLikeIn(search.getDescriptionExcludeSet(), true, true, SchedulerEntity.Fields.description),
-                checkFieldLocalDateTimeBetween(search.getCreatedAt(), SchedulerEntity.Fields.createdAt),
-                checkFieldLocalDateTimeBetween(search.getUpdatedAt(), SchedulerEntity.Fields.updatedAt)
+                checkFieldLocalDateTimeBetween(dateMapper.convert(search.getCreatedAtRange()), SchedulerEntity.Fields.createdAt),
+                checkFieldLocalDateTimeBetween(dateMapper.convert(search.getUpdatedAtRange()), SchedulerEntity.Fields.updatedAt)
         );
     }
 }

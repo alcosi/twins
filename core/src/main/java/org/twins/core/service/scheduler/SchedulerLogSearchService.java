@@ -1,7 +1,6 @@
 package org.twins.core.service.scheduler;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
@@ -11,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.scheduler.SchedulerLogEntity;
 import org.twins.core.dao.scheduler.SchedulerLogRepository;
 import org.twins.core.domain.search.SchedulerLogSearch;
+import org.twins.core.mappers.rest.LongRangeDTOReverseMapper;
 
 import static org.springframework.data.jpa.domain.Specification.allOf;
 import static org.twins.core.dao.specifications.CommonSpecification.*;
@@ -20,8 +20,9 @@ import static org.twins.core.dao.specifications.CommonSpecification.*;
 public class SchedulerLogSearchService {
 
     private final SchedulerLogRepository schedulerLogRepository;
+    private final LongRangeDTOReverseMapper longRangeMapper;
 
-    public PaginationResult<SchedulerLogEntity> search(SchedulerLogSearch schedulerLogSearch, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<SchedulerLogEntity> search(SchedulerLogSearch schedulerLogSearch, SimplePagination pagination) throws Exception {
         if (schedulerLogSearch == null) {
             schedulerLogSearch = new SchedulerLogSearch();
         }
@@ -29,7 +30,7 @@ public class SchedulerLogSearchService {
         return PaginationUtils.convertInPaginationResult(schedulerList, pagination);
     }
 
-    private Specification<SchedulerLogEntity> createSchedulerLogEntitySearchSpecification(SchedulerLogSearch search) {
+    private Specification<SchedulerLogEntity> createSchedulerLogEntitySearchSpecification(SchedulerLogSearch search) throws Exception {
         return allOf(
                 checkUuidIn(search.getIdSet(), false, false, SchedulerLogEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeSet(), true, false, SchedulerLogEntity.Fields.id),
@@ -37,7 +38,8 @@ public class SchedulerLogSearchService {
                 checkUuidIn(search.getSchedulerIdExcludeSet(), true, false, SchedulerLogEntity.Fields.schedulerId),
                 checkFieldLikeIn(search.getResultSet(), false, false, SchedulerLogEntity.Fields.result),
                 checkFieldLikeIn(search.getResultExcludeSet(), true, true, SchedulerLogEntity.Fields.result),
-                checkFieldLocalDateTimeBetween(search.getCreatedAt(), SchedulerLogEntity.Fields.createdAt)
+                checkFieldLocalDateTimeBetween(search.getCreatedAt(), SchedulerLogEntity.Fields.createdAt),
+                checkFieldLongRange(longRangeMapper.convert(search.getExecutionTimeRange()), SchedulerLogEntity.Fields.executionTime)
         );
     }
 }

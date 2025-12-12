@@ -26,20 +26,21 @@ import java.util.stream.Collectors;
 public class SchedulerEntity implements EasyLoggable {
 
     @Id
+    @GeneratedValue(generator = "uuid")
     private UUID id;
 
     @Column(name = "scheduler_featurer_id")
-    private int featurerId;
+    private Integer featurerId;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "scheduler_params", columnDefinition = "hstore")
     private HashMap<String, String> schedulerParams;
 
     @Column(name = "active")
-    private boolean active;
+    private Boolean active;
 
     @Column(name = "log_enabled")
-    private boolean logEnabled;
+    private Boolean logEnabled;
 
     @Column(name = "cron")
     private String cron;
@@ -67,11 +68,11 @@ public class SchedulerEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT ->
-                    STR."scheduleEntity[id:\{id}]";
+                    STR."scheduler[id:\{id}]";
             case NORMAL ->
-                    STR."scheduleEntity[id:\{id}, featurerId:\{featurerId}, description:\{description}, active:\{active}]";
+                    STR."scheduler[id:\{id}, featurerId:\{featurerId}, description:\{description}, active:\{active}]";
             case DETAILED ->
-                    STR."scheduleEntity[id:\{id}, featurerId:\{featurerId}, description:\{description}, active:\{active}, logEnabled:\{logEnabled}, cron:\{cron}, fixedRate:\{fixedRate}, params:\{schedulerParams.entrySet().stream().filter(it -> it.getValue() != null).map(Map.Entry::getKey).collect(Collectors.joining(","))}]";
+                    STR."scheduler[id:\{id}, featurerId:\{featurerId}, description:\{description}, active:\{active}, logEnabled:\{logEnabled}, cron:\{cron}, fixedRate:\{fixedRate}, params:\{schedulerParams.entrySet().stream().filter(it -> it.getValue() != null).map(Map.Entry::getKey).collect(Collectors.joining(","))}]";
         };
     }
 }

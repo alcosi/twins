@@ -3,6 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.domain.DataTimeRange;
+import org.twins.core.dto.rest.LongRangeDTOv1;
 
 import java.util.Set;
 import java.util.UUID;
@@ -17,4 +18,5 @@ public class SchedulerLogSearch {
     public DataTimeRange createdAt;
     public Set<String> resultSet;
     public Set<String> resultExcludeSet;
+    public LongRangeDTOv1 executionTimeRange;
 }

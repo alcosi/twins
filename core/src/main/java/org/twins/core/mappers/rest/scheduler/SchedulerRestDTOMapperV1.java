@@ -31,10 +31,10 @@ public class SchedulerRestDTOMapperV1 extends RestSimpleDTOMapper<SchedulerEntit
                     .setId(src.getId());
             case DETAILED ->  dst
                     .setId(src.getId())
-                    .setFeaturerId(src.getFeaturerId())
+                    .setSchedulerFeaturerId(src.getFeaturerId())
                     .setSchedulerParams(src.getSchedulerParams())
-                    .setActive(src.isActive())
-                    .setLogEnabled(src.isLogEnabled())
+                    .setActive(src.getActive())
+                    .setLogEnabled(src.getLogEnabled())
                     .setCron(src.getCron())
                     .setFixedRate(src.getFixedRate())
                     .setDescription(src.getDescription())
@@ -44,7 +44,7 @@ public class SchedulerRestDTOMapperV1 extends RestSimpleDTOMapper<SchedulerEntit
 
         if (mapperContext.hasModeButNot(FeaturerMode.Scheduler2FeaturerMode.HIDE)) {
             schedulerService.loadFeaturer(src);
-            dst.setFeaturerId(src.getFeaturerId());
+            dst.setSchedulerFeaturerId(src.getFeaturerId());
             featurerRestDTOMapper.postpone(src.getFeaturer(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.Scheduler2FeaturerMode.SHORT)));
         }
     }

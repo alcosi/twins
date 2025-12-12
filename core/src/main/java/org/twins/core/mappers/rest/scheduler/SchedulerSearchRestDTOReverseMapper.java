@@ -20,13 +20,12 @@ public class SchedulerSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Sch
                 .setFeaturerIdExcludeSet(src.getFeaturerIdExcludeSet())
                 .setCronSet(src.getCronSet())
                 .setCronExcludeSet(src.getCronExcludeSet())
-                .setFixedRateSet(src.getFixedRateSet())
-                .setFixedRateExcludeSet(src.getFixedRateExcludeSet())
+                .setFixedRateRange(src.getFixedRateRange())
                 .setActive(src.getActive())
                 .setLogEnabled(src.getLogEnabled())
                 .setDescriptionSet(src.getDescriptionSet())
                 .setDescriptionExcludeSet(src.getDescriptionExcludeSet())
-                .setCreatedAt(src.getCreatedAt())
-                .setUpdatedAt(src.getUpdatedAt());
+                .setCreatedAtRange(src.getCreatedAtRange())
+                .setUpdatedAtRange(src.getUpdatedAtRange());
     }
 }

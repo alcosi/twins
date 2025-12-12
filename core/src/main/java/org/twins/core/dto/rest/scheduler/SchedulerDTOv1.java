@@ -3,8 +3,8 @@ package org.twins.core.dto.rest.scheduler;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 
 import java.sql.Timestamp;
@@ -16,34 +16,34 @@ import java.util.UUID;
 @Schema(name = "SchedulerV1")
 public class SchedulerDTOv1 {
 
-    @Schema(example = DTOExamples.FACE_ID)
-    private UUID id;
+    @Schema(example = DTOExamples.UUID_ID, description = "id")
+    public UUID id;
 
-    @Schema(example = DTOExamples.FEATURER_ID)
-    @RelatedObject(type = FeaturerEntity.class, name = "featurer")
-    private int featurerId;
+    @Schema(example = DTOExamples.FEATURER_ID, description = "scheduler featurer id")
+    @RelatedObject(type = FeaturerDTOv1.class, name = "schedulerFeaturer")
+    public Integer schedulerFeaturerId;
 
-    @Schema(example = DTOExamples.FEATURER_PARAM)
-    private Map<String, String> schedulerParams;
+    @Schema(example = DTOExamples.FEATURER_PARAM, description = "params for scheduler featurer")
+    public Map<String, String> schedulerParams;
 
-    @Schema(example = DTOExamples.BOOLEAN_TRUE)
-    private boolean active;
+    @Schema(example = DTOExamples.BOOLEAN_TRUE, description = "flag to activate/deactivate scheduler")
+    public Boolean active;
 
-    @Schema(example = DTOExamples.BOOLEAN_TRUE)
-    private boolean logEnabled;
+    @Schema(example = DTOExamples.BOOLEAN_TRUE, description = "flag to enable/disable logging scheduler results to db")
+    public Boolean logEnabled;
 
-    @Schema(example = DTOExamples.SCHEDULER_CRON)
-    private String cron;
+    @Schema(example = DTOExamples.CRON, description = "time condition to run scheduler task")
+    public String cron;
 
-    @Schema(example = DTOExamples.SCHEDULER_TIME_IN_MILLIS)
-    private Integer fixedRate;
+    @Schema(example = DTOExamples.TIME_IN_MILLIS, description = "time interval in ms at which scheduler will run task")
+    public Integer fixedRate;
 
-    @Schema(example = DTOExamples.DESCRIPTION)
-    private String description;
+    @Schema(example = DTOExamples.DESCRIPTION, description = "description")
+    public String description;
 
-    @Schema(example = DTOExamples.INSTANT)
-    private Timestamp createdAt;
+    @Schema(example = DTOExamples.INSTANT, description = "created at")
+    public Timestamp createdAt;
 
-    @Schema(example = DTOExamples.INSTANT)
-    private Timestamp updatedAt;
+    @Schema(example = DTOExamples.INSTANT, description = "updated at")
+    public Timestamp updatedAt;
 }

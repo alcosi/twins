@@ -4,8 +4,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
-import org.twins.core.domain.DataTimeRange;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.DataTimeRangeDTOv1;
+import org.twins.core.dto.rest.IntegerRangeDTOv1;
 
 import java.util.Set;
 import java.util.UUID;
@@ -39,11 +40,8 @@ public class SchedulerSearchDTOv1 {
     @Schema(description = "cron exclude set")
     public Set<String> cronExcludeSet;
 
-    @Schema(description = "fixed rate set")
-    public Set<Integer> fixedRateSet;
-
-    @Schema(description = "fixed rate exclude set")
-    public Set<Integer> fixedRateExcludeSet;
+    @Schema(description = "fixed rate range")
+    public IntegerRangeDTOv1 fixedRateRange;
 
     @Schema(description = "description set")
     public Set<String> descriptionSet;
@@ -51,9 +49,9 @@ public class SchedulerSearchDTOv1 {
     @Schema(description = "description exclude set")
     public Set<String> descriptionExcludeSet;
 
-    @Schema(description = "created at")
-    public DataTimeRange createdAt;
+    @Schema(description = "created at range")
+    public DataTimeRangeDTOv1 createdAtRange;
 
-    @Schema(description = "updated at")
-    public DataTimeRange updatedAt;
+    @Schema(description = "updated at range")
+    public DataTimeRangeDTOv1 updatedAtRange;
 }

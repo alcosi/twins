@@ -9,6 +9,6 @@ public class SchedulerStarter implements ApplicationListener<ApplicationReadyEve
 
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
-        event.getApplicationContext().getBean(SchedulerFeaturerService.class).init();
+        event.getApplicationContext().getBean(SchedulerService.class).init();
     }
 }

@@ -19,6 +19,7 @@ import java.util.UUID;
 public class SchedulerLogEntity implements EasyLoggable {
 
     @Id
+    @GeneratedValue(generator = "uuid")
     private UUID id;
 
     @Column(name = "scheduler_id")
@@ -42,11 +43,11 @@ public class SchedulerLogEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT ->
-                    STR."scheduleLogEntity[id:\{id}]";
+                    STR."schedulerLog[id:\{id}]";
             case NORMAL ->
-                    STR."scheduleLogEntity[id:\{id}, schedulerId:\{schedulerId}, result:\{result}]";
+                    STR."schedulerLog[id:\{id}, schedulerId:\{schedulerId}, result:\{result}]";
             case DETAILED ->
-                    STR."scheduleLogEntity[id:\{id}, schedulerId:\{schedulerId}, result:\{result}, createdAt:\{createdAt}, executionTime:\{executionTime}]";
+                    STR."schedulerLog[id:\{id}, schedulerId:\{schedulerId}, result:\{result}, createdAt:\{createdAt}, executionTime:\{executionTime}]";
         };
     }
 }

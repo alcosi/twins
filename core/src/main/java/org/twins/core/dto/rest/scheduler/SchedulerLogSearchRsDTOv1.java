@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "SchedulerLogSearchResponseV1")
+@Schema(name = "SchedulerLogSearchRsV1")
 public class SchedulerLogSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
 
     @Schema(description = "pagination data")

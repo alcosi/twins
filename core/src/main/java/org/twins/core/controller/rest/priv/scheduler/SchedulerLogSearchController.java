@@ -53,7 +53,7 @@ public class SchedulerLogSearchController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = SchedulerLogSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/scheduler-log/search/v1")
+    @PostMapping(value = "/private/scheduler_log/search/v1")
     public ResponseEntity<?> schedulerLogSearchV1(
             @MapperContextBinding(roots = SchedulerLogRestDTOMapperV1.class, response = SchedulerLogSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,

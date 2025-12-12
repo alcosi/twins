@@ -13,5 +13,5 @@ import org.twins.core.dto.rest.Request;
 public class SchedulerSearchRqDTOv1 extends Request {
 
     @Schema(description = "search DTO")
-    private SchedulerSearchDTOv1 search;
+    public SchedulerSearchDTOv1 search;
 }

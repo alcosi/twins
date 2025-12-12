@@ -4,13 +4,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.domain.DataTimeRange;
+import org.twins.core.dto.rest.LongRangeDTOv1;
 
 import java.util.Set;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "SchedulerSearchV1")
+@Schema(name = "SchedulerLogSearchV1")
 public class SchedulerLogSearchDTOv1 {
 
     @Schema(description = "id set")
@@ -33,4 +34,7 @@ public class SchedulerLogSearchDTOv1 {
 
     @Schema(description = "result exclude set")
     public Set<String> resultExcludeSet;
+
+    @Schema(description = "execution time range")
+    public LongRangeDTOv1 executionTimeRange;
 }
