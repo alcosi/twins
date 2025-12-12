@@ -3,6 +3,7 @@ package org.twins.core.dao.scheduler;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -37,6 +38,7 @@ public class SchedulerLogEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private SchedulerEntity scheduler;
 
     @Override
