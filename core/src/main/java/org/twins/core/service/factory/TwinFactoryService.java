@@ -220,7 +220,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 log.info("Skipping: no input of twinClass[" + factoryMultiplierEntity.getInputTwinClassId() + "]");
                 continue;
             }
-            Multiplier multiplier = featurerService.getFeaturer(factoryMultiplierEntity.getMultiplierFeaturer(), Multiplier.class);
+            Multiplier multiplier = featurerService.getFeaturer(factoryMultiplierEntity.getMultiplierFeaturerId(), Multiplier.class);
             log.info("Running multiplier[" + multiplier.getClass().getSimpleName() + "] with params: " + factoryMultiplierEntity.getMultiplierParams());
             List<FactoryItem> multiplierOutput = multiplier.multiply(factoryMultiplierEntity, multiplierInput, factoryContext);
             log.info("Result:" + multiplierOutput.size() + " factoryItems");
@@ -335,7 +335,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                     log.info(stepOrder + pipelineStepEntity.logNormal() + " was skipped)");
                     continue;
                 }
-                Filler filler = featurerService.getFeaturer(pipelineStepEntity.getFillerFeaturer(), Filler.class);
+                Filler filler = featurerService.getFeaturer(pipelineStepEntity.getFillerFeaturerId(), Filler.class);
                 logMsg = stepOrder + pipelineStepEntity.logNormal();
                 try {
                     filler.fill(pipelineStepEntity.getFillerParams(), pipelineInput, factoryPipelineEntity.getTemplateTwin(), logMsg);
@@ -460,7 +460,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             return true;
         List<TwinFactoryConditionEntity> conditionEntityList = twinFactoryConditionRepository.findByTwinFactoryConditionSetIdAndActiveTrue(conditionSetId);
         for (TwinFactoryConditionEntity conditionEntity : conditionEntityList) {
-            Conditioner conditioner = featurerService.getFeaturer(conditionEntity.getConditionerFeaturer(), Conditioner.class);
+            Conditioner conditioner = featurerService.getFeaturer(conditionEntity.getConditionerFeaturerId(), Conditioner.class);
             boolean conditionerResult = conditioner.check(conditionEntity, factoryItem);
             if (conditionEntity.getInvert())
                 conditionerResult = !conditionerResult;

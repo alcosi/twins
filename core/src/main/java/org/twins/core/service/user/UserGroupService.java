@@ -86,7 +86,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
             return;
         List<? extends UserGroupMap> userGroups;
         for (UserGroupTypeEntity userGroupTypeEntity : userGroupTypes) {
-            Slugger<UserGroupMap> slugger = featurerService.getFeaturer(userGroupTypeEntity.getSluggerFeaturer(), Slugger.class);
+            Slugger<UserGroupMap> slugger = featurerService.getFeaturer(userGroupTypeEntity.getSluggerFeaturerId(), Slugger.class);
             userGroups = slugger.getGroups(userGroupTypeEntity.getSluggerParams(), needLoad.getIdSet());
             if (CollectionUtils.isNotEmpty(userGroups))
                 for (var userGroupMap : userGroups) {
@@ -141,7 +141,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
     public void manageForUser(UserEntity user, Set<UUID> userGroupEnterList, Set<UUID> userGroupExitList) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         DomainEntity domainEntity = apiUser.getDomain();
-        UserGroupManager userGroupManager = featurerService.getFeaturer(domainEntity.getUserGroupManagerFeaturer(), UserGroupManager.class);
+        UserGroupManager userGroupManager = featurerService.getFeaturer(domainEntity.getUserGroupManagerFeaturerId(), UserGroupManager.class);
         userGroupManager.manageForUser(domainEntity.getUserGroupManagerParams(), user, userGroupEnterList, userGroupExitList, apiUser);
     }
 
@@ -151,7 +151,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         if (CollectionUtils.isEmpty(types))
             return;
         for (UserGroupTypeEntity type : types) {
-            Slugger slugger = featurerService.getFeaturer(type.getSluggerFeaturer(), Slugger.class);
+            Slugger slugger = featurerService.getFeaturer(type.getSluggerFeaturerId(), Slugger.class);
             slugger.processDomainBusinessAccountDeletion(type, businessAccountId);
         }
     }

@@ -75,6 +75,7 @@ public class ProjectionEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity fieldProjectorFeaturer;
 
     @Override

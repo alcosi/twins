@@ -857,15 +857,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public void loadHeadHunter(Collection<TwinClassEntity> collection) {
-        if (CollectionUtils.isEmpty(collection))
-            return;
-        KitGrouped<TwinClassEntity, UUID, Integer> needLoad = KitUtils.createNeedLoadGrouped(collection, TwinClassEntity::getId, TwinClassEntity::getHeadHunterFeaturerId, TwinClassEntity::getHeadHunterFeaturer);
-        if (KitUtils.isEmpty(needLoad))
-            return;
-        Kit<FeaturerEntity, Integer> loaded = featurerService.findEntitiesSafe(needLoad.getGroupedKeySet());
-        for (var item : needLoad) {
-            item.setHeadHunterFeaturer(loaded.get(item.getHeadHunterFeaturerId()));
-        }
+        featurerService.loadFeaturers(collection,
+                TwinClassEntity::getId,
+                TwinClassEntity::getHeadHunterFeaturerId,
+                TwinClassEntity::getHeadHunterFeaturer,
+                TwinClassEntity::setHeadHunterFeaturer);
     }
 
     public void loadFreeze(TwinClassEntity src) throws ServiceException {
