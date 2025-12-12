@@ -22,6 +22,12 @@ public class SchedulerSearchDTOv1 {
     @Schema(description = "id exclude set")
     public Set<UUID> idExcludeSet;
 
+    @Schema(description = "domain id set")
+    public Set<UUID> domainIdSet;
+
+    @Schema(description = "domain id exclude set")
+    public Set<UUID> domainIdExcludeSet;
+
     @Schema(description = "id set")
     public Set<Integer> featurerIdSet;
 

@@ -19,6 +19,9 @@ public class SchedulerDTOv1 {
     @Schema(example = DTOExamples.UUID_ID, description = "id")
     public UUID id;
 
+    @Schema(example = DTOExamples.UUID_ID, description = "domain id")
+    public UUID domainId;
+
     @Schema(example = DTOExamples.FEATURER_ID, description = "scheduler featurer id")
     @RelatedObject(type = FeaturerDTOv1.class, name = "schedulerFeaturer")
     public Integer schedulerFeaturerId;

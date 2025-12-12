@@ -14,6 +14,8 @@ import java.util.UUID;
 public class SchedulerSearch {
     public Set<UUID> idSet;
     public Set<UUID> idExcludeSet;
+    public Set<UUID> domainIdSet;
+    public Set<UUID> domainIdExcludeSet;
     public Set<Integer> featurerIdSet;
     public Set<Integer> featurerIdExcludeSet;
     public Ternary active;

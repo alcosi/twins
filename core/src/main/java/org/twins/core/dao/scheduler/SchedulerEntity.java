@@ -29,6 +29,9 @@ public class SchedulerEntity implements EasyLoggable {
     @GeneratedValue(generator = "uuid")
     private UUID id;
 
+    @Column(name = "domain_id")
+    private UUID domainId;
+
     @Column(name = "scheduler_featurer_id")
     private Integer featurerId;
 

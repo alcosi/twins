@@ -33,8 +33,11 @@ public class SchedulerSearchService {
     }
 
     private Specification<SchedulerEntity> createSchedulerEntitySearchSpecification(SchedulerSearch search) throws Exception {
-        return allOf(checkUuidIn(search.getIdSet(), false, false, SchedulerEntity.Fields.id),
+        return allOf(
+                checkUuidIn(search.getIdSet(), false, false, SchedulerEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeSet(), true, false, SchedulerEntity.Fields.id),
+                checkUuidIn(search.getDomainIdSet(), false, false, SchedulerEntity.Fields.domainId),
+                checkUuidIn(search.getDomainIdExcludeSet(), true, false, SchedulerEntity.Fields.domainId),
                 checkIntegerIn(search.getFeaturerIdSet(), false, SchedulerEntity.Fields.featurerId),
                 checkIntegerIn(search.getFeaturerIdExcludeSet(), true, SchedulerEntity.Fields.featurerId),
                 checkTernary(search.getActive(), SchedulerEntity.Fields.active),

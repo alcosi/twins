@@ -16,6 +16,8 @@ public class SchedulerSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Sch
         dst
                 .setIdSet(src.getIdSet())
                 .setIdExcludeSet(src.getIdExcludeSet())
+                .setDomainIdSet(src.getDomainIdSet())
+                .setDomainIdExcludeSet(src.getDomainIdExcludeSet())
                 .setFeaturerIdSet(src.getFeaturerIdSet())
                 .setFeaturerIdExcludeSet(src.getFeaturerIdExcludeSet())
                 .setCronSet(src.getCronSet())
