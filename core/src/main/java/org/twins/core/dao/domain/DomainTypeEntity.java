@@ -3,6 +3,8 @@ package org.twins.core.dao.domain;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
@@ -30,6 +32,8 @@ public class DomainTypeEntity implements EasyLoggable {
     @Column(name = "description")
     private String description;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @FeaturerList(type = DomainInitiator.class)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "domain_initiator_featurer_id", insertable = false, updatable = false)
@@ -39,10 +43,14 @@ public class DomainTypeEntity implements EasyLoggable {
     @Column(name = "domain_initiator_params", columnDefinition = "hstore")
     private HashMap<String, String> domainInitiatorParams;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "default_identity_provider_id", insertable = false, updatable = false)
     private IdentityProviderEntity defaultIdentityProvider;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @FeaturerList(type = UserGroupManager.class)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "default_user_group_manager_featurer_id", insertable = false, updatable = false)

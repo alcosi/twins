@@ -51,6 +51,8 @@ public class ResourceEntity implements EasyLoggable {
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "storage_id", insertable = false, updatable = false)
     private StorageEntity storage;

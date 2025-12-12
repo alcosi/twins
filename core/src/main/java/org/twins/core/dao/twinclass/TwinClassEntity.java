@@ -248,119 +248,148 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<UUID> extendedClassIdSet;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<UUID> headHierarchyClassIdSet;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinClassEntity, UUID> headHierarchyChildClassKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinClassEntity, UUID> extendsHierarchyChildClassKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinflowEntity, UUID> twinflowKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinClassFieldEntity, UUID> twinClassFieldKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<TwinFieldStorage> fieldStorageSet;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinStatusEntity, UUID> twinStatusKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<LinkEntity, UUID> linksKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinActionPermissionEntity, TwinAction> actionsProtectedByPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private KitGrouped<TwinActionValidatorRuleEntity, UUID, TwinAction> actionsProtectedByValidatorRules;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinCommentActionAlienPermissionEntity, TwinCommentAction> commentAlienActionsProtectedByPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private KitGrouped<TwinCommentActionAlienValidatorRuleEntity, UUID, TwinCommentAction> commentAlienActionsProtectedByValidatorRules;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinCommentActionSelfEntity, TwinCommentAction> commentSelfActionsRestriction;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinAttachmentActionAlienPermissionEntity, TwinAttachmentAction> attachmentAlienActionsProtectedByPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private KitGrouped<TwinAttachmentActionAlienValidatorRuleEntity, UUID, TwinAttachmentAction> attachmentAlienActionsProtectedByValidatorRules;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private KitGrouped<TwinAttachmentActionSelfValidatorRuleEntity, UUID, TwinAttachmentAction> attachmentSelfActionsRestriction;
 
     //TODO m.b. move to Twinflow entity? services logic
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinflowTransitionEntity, UUID> transitionsKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassFreezeEntity twinClassFreeze;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionEntity viewPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionEntity createPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionEntity editPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionEntity deletePermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassEntity headTwinClass;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassEntity extendsTwinClass;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private DataListEntity markerDataList;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private DataListEntity tagDataList;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinAttachmentRestrictionEntity generalAttachmentRestriction;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinClassEntity, UUID> segmentTwinsClassKit;
 
 

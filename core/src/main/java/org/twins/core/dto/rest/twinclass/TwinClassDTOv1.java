@@ -70,8 +70,11 @@ public class TwinClassDTOv1 {
     public OwnerType ownerType;
 
     @RelatedObject(type = TwinClassDTOv1.class, name = "extendsClass")
-    @Schema(description = "extends class id or empty if class is not linked to any classes")
+    @Schema(description = "extends class id (direct) or empty if class is not extends any classes")
     public UUID extendsClassId;
+
+    @Schema(description = "extends class id set ")
+    public Set<UUID> extendsClassIdSet;
 
     @Schema(description = "if true, take the twinflow scheme in space")
     public Boolean twinflowSchemaSpace;

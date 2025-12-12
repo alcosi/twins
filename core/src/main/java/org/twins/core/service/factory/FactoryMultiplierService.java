@@ -23,6 +23,8 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.function.Function;
@@ -125,5 +127,18 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
             dbMultiplierEntity
                     .setMultiplierParams(newFeaturerParams);
         }
+    }
+
+    public void loadMultiplier(TwinFactoryMultiplierEntity src) {
+        loadMultipliers(Collections.singleton(src) );
+    }
+
+    public void loadMultipliers(Collection<TwinFactoryMultiplierEntity> srcCollection) {
+        featurerService.loadFeaturers(srcCollection,
+                TwinFactoryMultiplierEntity::getId,
+                TwinFactoryMultiplierEntity::getMultiplierFeaturerId,
+                TwinFactoryMultiplierEntity::getMultiplierFeaturer,
+                TwinFactoryMultiplierEntity::setMultiplierFeaturer
+        );
     }
 }

@@ -2,6 +2,8 @@ package org.twins.core.dao.attachment;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -50,8 +52,10 @@ public class AttachmentDeleteTaskEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @ManyToOne()
+    @ManyToOne
     @JoinColumn(name = "storage_id", insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private StorageEntity storage;
 
     @Override

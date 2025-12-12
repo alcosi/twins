@@ -3,7 +3,6 @@ package org.twins.core.service.twin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
@@ -14,7 +13,6 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorEntity;
@@ -91,7 +89,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
                 continue;
             }
 
-            TwinValidator transitionValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
+            TwinValidator transitionValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturerId(), TwinValidator.class);
             ValidationResult validationResult = transitionValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
             validationResultOfSet = validationResult.isValid();
             if (!validationResultOfSet) {
@@ -100,5 +98,17 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
             }
         }
         return validatorContainer.getTwinValidatorSet().isInvert() != validationResultOfSet;
+    }
+
+    public void loadTwinValidator(TwinValidatorEntity src) {
+        loadTwinValidators(Collections.singletonList(src));
+    }
+
+    public void loadTwinValidators(Collection<TwinValidatorEntity> srcCollection) {
+        featurerService.loadFeaturers(srcCollection,
+                TwinValidatorEntity::getId,
+                TwinValidatorEntity::getTwinValidatorFeaturerId,
+                TwinValidatorEntity::getTwinValidatorFeaturer,
+                TwinValidatorEntity::setTwinValidatorFeaturer);
     }
 }

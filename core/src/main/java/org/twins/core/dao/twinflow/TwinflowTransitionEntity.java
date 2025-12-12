@@ -84,10 +84,14 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @Column(name = "twinflow_transition_alias_id")
     private UUID twinflowTransitionAliasId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twinflow_transition_alias_id", insertable = false, updatable = false, nullable = false)
     private TwinflowTransitionAliasEntity twinflowTransitionAlias;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twinflow_id", insertable = false, updatable = false, nullable = false)
     private TwinflowEntity twinflow;
@@ -106,28 +110,36 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @ToString.Exclude
     private I18nEntity descriptionI18n;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "src_twin_status_id", insertable = false, updatable = false)
     private TwinStatusEntity srcTwinStatus;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "dst_twin_status_id", insertable = false, updatable = false, nullable = false)
     private TwinStatusEntity dstTwinStatus;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinflowTransitionValidatorRuleEntity, UUID> validatorRulesKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinflowTransitionTriggerEntity, UUID> triggersKit;
 
     @Transient // because field can be useful only in admin panel
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionEntity permission;
 
     @Transient // because field can be useful only in admin panel
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity createdByUser;
 
     @EqualsAndHashCode.Exclude

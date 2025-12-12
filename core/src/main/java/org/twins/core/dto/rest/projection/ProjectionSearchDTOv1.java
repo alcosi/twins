@@ -43,6 +43,12 @@ public class ProjectionSearchDTOv1 {
     @Schema(description = "dst twin class field id exclude list")
     public Set<UUID> dstTwinClassFieldIdExcludeList;
 
+    @Schema(description = "projection type id list")
+    public Set<UUID> projectionTypeIdList;
+
+    @Schema(description = "projection type id exclude list")
+    public Set<UUID> projectionTypeIdExcludeList;
+
     @Schema(description = "field projector id list")
     public Set<Integer> fieldProjectorIdList;
 

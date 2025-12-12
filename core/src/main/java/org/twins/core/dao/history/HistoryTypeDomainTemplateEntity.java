@@ -2,6 +2,8 @@ package org.twins.core.dao.history;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.enums.history.HistoryType;
@@ -27,6 +29,8 @@ public class HistoryTypeDomainTemplateEntity implements EasyLoggable {
     @Column(name = "snapshot_message_template")
     private String snapshotMessageTemplate;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "history_type_id", insertable = false, updatable = false, nullable = false)
     private HistoryTypeEntity historyTypeEntity;

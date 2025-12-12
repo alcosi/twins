@@ -27,11 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.draft.DraftEntity;
-import org.twins.core.enums.factory.FactoryLauncher;
-import org.twins.core.enums.twinclass.OwnerType;
-import org.twins.core.enums.draft.DraftStatus;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -40,17 +36,20 @@ import org.twins.core.dao.twinflow.*;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleRepository;
-import org.twins.core.service.validator.TwinValidatorService;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.draft.DraftCollector;
-import org.twins.core.enums.twinflow.TwinflowTransitionType;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.search.TransitionAliasSearch;
 import org.twins.core.domain.search.TransitionSearch;
 import org.twins.core.domain.transition.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.enums.draft.DraftStatus;
+import org.twins.core.enums.factory.FactoryLauncher;
+import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.twinclass.OwnerType;
+import org.twins.core.enums.twinflow.TwinflowTransitionType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 import org.twins.core.service.TwinChangesService;
@@ -67,6 +66,7 @@ import org.twins.core.service.twin.TwinValidatorSetService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
+import org.twins.core.service.validator.TwinValidatorService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -942,7 +942,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     }
                     log.info("{} will be triggered", triggerEntity.logDetailed());
                     //todo run it by TransitionTriggerTask (async)
-                    TransitionTrigger transitionTrigger = featurerService.getFeaturer(triggerEntity.getTransitionTriggerFeaturer(), TransitionTrigger.class);
+                    TransitionTrigger transitionTrigger = featurerService.getFeaturer(triggerEntity.getTransitionTriggerFeaturerId(), TransitionTrigger.class);
                     transitionTrigger.run(triggerEntity.getTransitionTriggerParams(), targetTwin, transitionEntity.getSrcTwinStatus(), transitionEntity.getDstTwinStatus());
                 }
         }

@@ -13,7 +13,6 @@ import org.twins.core.dao.i18n.LocaleConverter;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
-import java.util.Collection;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
@@ -45,10 +44,14 @@ public class DomainUserEntity implements EasyLoggable {
     @Column(name = "last_active_business_account_id")
     private UUID lastActiveBusinessAccountId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private UserEntity user;

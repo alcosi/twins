@@ -2,6 +2,8 @@ package org.twins.core.dao.draft;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.CUD;
 import org.twins.core.dao.CUDConverter;
@@ -42,10 +44,14 @@ public class DraftTwinFieldTwinClassEntity {
     @Column(name = "twin_class_id")
     private UUID twinClassId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClassEntity;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "draft_id", insertable = false, updatable = false)
     private DraftEntity draft;

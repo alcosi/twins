@@ -21,7 +21,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinLinkNoRelationsProjection;
@@ -31,6 +30,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.linker.Linker;
 import org.twins.core.service.TwinChangesService;
@@ -322,7 +322,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             headTwinEntity = twinService.findEntitySafe(headTwinId);
         addClassCheckToValidTwinsForLinkSearch(linkEntity, srcTwinClassEntity, basicSearch);
         if (linkEntity.getLinkerFeaturerId() != null) {
-            Linker linker = featurerService.getFeaturer(linkEntity.getLinkerFeaturer(), Linker.class);
+            Linker linker = featurerService.getFeaturer(linkEntity.getLinkerFeaturerId(), Linker.class);
             linker.expandValidLinkedTwinSearch(linkEntity.getLinkerParams(), srcTwinClassEntity, headTwinEntity, basicSearch);
         }
         return twinSearchService.findTwins(basicSearch, pagination);
@@ -333,7 +333,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         TwinEntity twinEntity = twinService.findEntitySafe(twinId);
         addClassCheckToValidTwinsForLinkSearch(linkEntity, twinEntity.getTwinClass(), basicSearch);
         if (linkEntity.getLinkerFeaturerId() != null) {
-            Linker linker = featurerService.getFeaturer(linkEntity.getLinkerFeaturer(), Linker.class);
+            Linker linker = featurerService.getFeaturer(linkEntity.getLinkerFeaturerId(), Linker.class);
             linker.expandValidLinkedTwinSearch(linkEntity.getLinkerParams(), twinEntity, basicSearch);
         }
         return twinSearchService.findTwins(basicSearch, pagination);

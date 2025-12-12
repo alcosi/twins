@@ -3,6 +3,7 @@ package org.twins.core.dao.domain;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -65,18 +66,21 @@ public class TierEntity implements EasyLoggable {
     private UUID notificationSchemaId;
 
     //Performance safe because tier is not used in operations
-    @ManyToOne
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
     @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false)
     private PermissionSchemaEntity permissionSchema;
 
-    @ManyToOne
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
     @JoinColumn(name = "twinflow_schema_id", insertable = false, updatable = false)
     private TwinflowSchemaEntity twinflowSchema;
 
-    @ManyToOne
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
     @JoinColumn(name = "twin_class_schema_id", insertable = false, updatable = false)
     private TwinClassSchemaEntity twinClassSchema;
 

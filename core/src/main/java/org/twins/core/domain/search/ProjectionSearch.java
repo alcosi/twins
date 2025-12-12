@@ -21,6 +21,8 @@ public class ProjectionSearch {
     private Set<UUID> dstTwinClassIdExcludeList;
     private Set<UUID> dstTwinClassFieldIdList;
     private Set<UUID> dstTwinClassFieldIdExcludeList;
+    private Set<UUID> projectionTypeIdList;
+    private Set<UUID> projectionTypeIdExcludeList;
     private Set<Integer> fieldProjectorIdList;
     private Set<Integer> fieldProjectorIdExcludeList;
 }

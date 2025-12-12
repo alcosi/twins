@@ -34,7 +34,7 @@ public class WidgetService {
         WidgetEntity widgetEntity;
         while (iter.hasNext()) {
             widgetEntity = iter.next();
-            WidgetAccessor widgetAccessor = featurerService.getFeaturer(widgetEntity.widgetAccessorFeaturer(), WidgetAccessor.class);
+            WidgetAccessor widgetAccessor = featurerService.getFeaturer(widgetEntity.widgetAccessorFeaturerId(), WidgetAccessor.class);
             if (!widgetAccessor.isAvailableForClass(widgetEntity.widgetAccessorParams(), twinClassEntity))
                 iter.remove();
         }

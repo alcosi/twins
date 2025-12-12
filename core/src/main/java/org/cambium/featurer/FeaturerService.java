@@ -7,9 +7,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerParamType;
@@ -28,6 +30,8 @@ import org.twins.core.domain.search.FeaturerSearch;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.cambium.featurer.dao.specifications.FeaturerSpecification.checkIntegerIn;
@@ -356,6 +360,26 @@ public class FeaturerService {
             ret.add(featurerEntityKit.get(id));
         }
         return ret;
+    }
+
+    public <E, K> void loadFeaturers(Collection<E> srcCollection,
+                                     Function<? super E, ? extends K> functionGetId,
+                                     Function<? super E, Integer> functionGetFeaturerId,
+                                     Function<? super E, FeaturerEntity> functionGetFeaturerEntity,
+                                     BiConsumer<E, FeaturerEntity> functionSetFeaturerEntity) {
+        if (srcCollection.isEmpty()) {
+            return;
+        }
+        KitGrouped<E, K, Integer> needLoad = KitUtils.createNeedLoadGrouped(srcCollection, functionGetId, functionGetFeaturerId, functionGetFeaturerEntity);
+        if (KitUtils.isEmpty(needLoad)) {
+            return;
+        }
+        Kit<FeaturerEntity, Integer> featurers = findEntitiesSafe(needLoad.getGroupedKeySet());
+        int featurerId = 0;
+        for (var item : needLoad) {
+            featurerId = functionGetFeaturerId.apply(item);
+            functionSetFeaturerEntity.accept(item, featurers.get(featurerId));
+        }
     }
 
     public HashMap<String, String> prepareForStore(Integer featurerId, HashMap<String, String> featurerParams) throws ServiceException {

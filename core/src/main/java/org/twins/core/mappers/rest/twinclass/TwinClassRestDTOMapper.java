@@ -124,6 +124,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                         .setNameI18nId(src.getNameI18NId())
                         .setDescriptionI18nId(src.getDescriptionI18NId())
                         .setExtendsClassId(src.getExtendsTwinClassId())
+                        .setExtendsClassIdSet(src.getExtendedClassIdSet())
                         .setTwinflowSchemaSpace(src.getTwinflowSchemaSpace())
                         .setTwinClassSchemaSpace(src.getTwinClassSchemaSpace())
                         .setPermissionSchemaSpace(src.getPermissionSchemaSpace())
@@ -236,6 +237,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (mapperContext.hasModeButNot(TwinClassMode.TwinClassExtends2TwinClassMode.HIDE) && src.getExtendsTwinClassId() != null) {
             twinClassService.loadExtendsTwinClass(src);
             dst.setExtendsClassId(src.getExtendsTwinClassId());
+            //todo perhaps we need to postpone all extended classes
             twinClassRestDTOMapper.convertOrPostpone(src.getExtendsTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinClassExtends2TwinClassMode.SHORT));
         }
         if (mapperContext.hasModeButNot(PermissionMode.TwinClass2PermissionMode.HIDE) &&
