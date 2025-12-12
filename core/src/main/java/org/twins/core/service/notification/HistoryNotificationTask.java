@@ -3,6 +3,7 @@ package org.twins.core.service.notification;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.KitGroupedObj;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,9 @@ public class HistoryNotificationTask implements Runnable {
                     history.getTwin().getTwinClassId(),
                     historyNotificationEntity.getNotificationSchemaId()
             );
+            if (CollectionUtils.isEmpty(configs)) {
+                throw new NotificationSkippedException("No configs found for " + history.logNormal());
+            }
             KitGroupedObj<HistoryNotificationSchemaMapEntity, UUID, UUID, NotificationChannelEventEntity> notificationConfigsGroupedByChannelEvent = new KitGroupedObj<>(
                     configs,
                     HistoryNotificationSchemaMapEntity::getId,
@@ -73,11 +77,19 @@ public class HistoryNotificationTask implements Runnable {
                 Notifier notifier = featurerService.getFeaturer(notificationChannel.getNotifierFeaturerId(), Notifier.class);
                 notifier.notify(recipientIds, context, channelEvent.getEventCode(), notificationChannel.getNotifierParams());
             }
+            if (recipientsCount == 0) {
+                throw new NotificationSkippedException("No recipients were found for " + history.logNormal());
+            }
 
             historyNotificationEntity
                     .setStatusId(HistoryNotificationTaskStatus.SENT)
                     .setStatusDetails(STR."\{recipientsCount} recipients were notified")
                     .setDoneAt(Timestamp.from(Instant.now()));
+        } catch (NotificationSkippedException e) {
+            log.info(e.getMessage());
+            historyNotificationEntity
+                    .setStatusId(HistoryNotificationTaskStatus.SKIPPED)
+                    .setStatusDetails(e.getMessage());
         } catch (ServiceException e) {
             log.error(e.log());
             historyNotificationEntity
@@ -114,5 +126,11 @@ public class HistoryNotificationTask implements Runnable {
         Map<String, String> context = collectHistoryContext(contextId, history);
         contextCache.put(contextId, context);
         return context;
+    }
+
+    private static class NotificationSkippedException extends RuntimeException {
+        public NotificationSkippedException(String message) {
+            super(message);
+        }
     }
 }
