@@ -4,10 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
+import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -151,5 +154,23 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
 
     public void deleteProjections(Set<UUID> projectionIds) {
         entityRepository().deleteAllById(projectionIds);
+    }
+
+    public void loadProjectorFeaturer(ProjectionEntity entity) {
+        loadProjectorFeaturer(List.of(entity));
+    }
+
+    public void loadProjectorFeaturer(Collection<ProjectionEntity> entities) {
+        if (entities.isEmpty()) {
+            return;
+        }
+        KitGrouped<ProjectionEntity, UUID, Integer> needLoad = KitUtils.createNeedLoadGrouped(entities, ProjectionEntity::getId, ProjectionEntity::getFieldProjectorFeaturerId, ProjectionEntity::getFieldProjectorFeaturer);
+        if (KitUtils.isEmpty(needLoad)) {
+            return;
+        }
+        Kit<FeaturerEntity, Integer> featurers = featurerService.findEntitiesSafe(needLoad.getGroupedKeySet());
+        for (var item : needLoad) {
+            item.setFieldProjectorFeaturer(featurers.get(item.getFieldProjectorFeaturerId()));
+        }
     }
 }

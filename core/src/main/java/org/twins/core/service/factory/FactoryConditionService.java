@@ -48,7 +48,7 @@ public class FactoryConditionService extends EntitySecureFindServiceImpl<TwinFac
     public boolean validateEntity(TwinFactoryConditionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entity.getTwinFactoryConditionSetId() == null)
             return logErrorAndReturnFalse(entity.logNormal() + " empty twinFactoryConditionSetId");
-        if (entity.getConditionerFeaturer() == null)
+        if (entity.getConditionerFeaturerId() == null)
             return logErrorAndReturnFalse(entity.logNormal() + " empty сonditionerFeaturer");
         return true;
     }
@@ -106,11 +106,11 @@ public class FactoryConditionService extends EntitySecureFindServiceImpl<TwinFac
                     TwinFactoryConditionEntity.Fields.description, changesHelper);
 
             updateEntityFieldByEntity(twinFactoryConditionEntity, dbFactoryConditionEntity,
-                    TwinFactoryConditionEntity::isActive, TwinFactoryConditionEntity::setActive,
+                    TwinFactoryConditionEntity::getActive, TwinFactoryConditionEntity::setActive,
                     TwinFactoryConditionEntity.Fields.active, changesHelper);
 
             updateEntityFieldByEntity(twinFactoryConditionEntity, dbFactoryConditionEntity,
-                    TwinFactoryConditionEntity::isInvert, TwinFactoryConditionEntity::setInvert,
+                    TwinFactoryConditionEntity::getInvert, TwinFactoryConditionEntity::setInvert,
                     TwinFactoryConditionEntity.Fields.invert, changesHelper);
 
             updateConditionerParams(dbFactoryConditionEntity, twinFactoryConditionEntity.getConditionerParams(), changesHelper);

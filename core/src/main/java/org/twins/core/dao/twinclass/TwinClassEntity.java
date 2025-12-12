@@ -11,7 +11,6 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
@@ -38,7 +37,6 @@ import org.twins.core.enums.attachment.TwinAttachmentAction;
 import org.twins.core.enums.comment.TwinCommentAction;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
-import org.twins.core.featurer.headhunter.HeadHunter;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -152,9 +150,9 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "assignee_required")
     private Boolean assigneeRequired;
 
-    @FeaturerList(type = HeadHunter.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "head_hunter_featurer_id", insertable = false, updatable = false)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity headHunterFeaturer;
 
     @Type(PostgreSQLHStoreType.class)

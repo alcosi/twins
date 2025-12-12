@@ -37,6 +37,8 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -116,7 +118,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                     .setStatus(DataListStatus.active)
                     .setBackgroundColor(dataListOptionCreate.getBackgroundColor())
                     .setFontColor(dataListOptionCreate.getFontColor())
-                    .setExternalId(dataListOptionCreate.getExternalId());
+                    .setExternalId(dataListOptionCreate.getExternalId())
+                    .setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
             createAttributes(dataList, dataListOption, dataListOptionCreate.getAttributes());
             validateEntityAndThrow(dataListOption, EntitySmartService.EntityValidateMode.beforeSave);
             optionsToSave.add(dataListOption);

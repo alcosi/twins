@@ -45,6 +45,7 @@ public class FeaturerService {
     final FeaturerInjectionRepository injectionRepository;
     List<Featurer> featurerList;
     Hashtable<Integer, Featurer> featurerMap = new Hashtable<>();
+    Kit<FeaturerEntity, Integer> featurerEntityKit = new Kit<>(FeaturerEntity::getId);
     Hashtable<Integer, Map<String, FeaturerParam>> featurerParamsAnnotationsMap = new Hashtable<>();
     Hashtable<Integer, Map<String, org.cambium.featurer.params.FeaturerParam<?>>> featurerParamsMap = new Hashtable<>();
 
@@ -64,7 +65,6 @@ public class FeaturerService {
     private void syncFeaturers() {
         log.info("syncFeaturers: started");
         List<FeaturerTypeEntity> featurerTypeEntityList = new ArrayList<>();
-        List<FeaturerEntity> featurerEntityList = new ArrayList<>();
         List<FeaturerParamEntity> featurerParamEntityList = new ArrayList<>();
         for (Featurer featurer : featurerList) {
             try {
@@ -86,7 +86,7 @@ public class FeaturerService {
                 Deprecated deprecatedAnnotation = featurerClass.getAnnotation(Deprecated.class);
                 if (deprecatedAnnotation != null)
                     featurerEntity.setDeprecated(true);
-                featurerEntityList.add(featurerEntity);
+                featurerEntityKit.add(featurerEntity);
                 featurerMap.put(featurerAnnotation.id(), featurer);
                 syncFeaturersParams(featurerClass, featurerParamEntityList);
             } catch (Exception e) {
@@ -94,9 +94,9 @@ public class FeaturerService {
             }
         }
         featurerTypeRepository.saveAll(featurerTypeEntityList);
-        featurerRepository.saveAll(featurerEntityList);
+        featurerRepository.saveAll(featurerEntityKit.getCollection());
         //truncating old params
-        featurerParamRepository.deleteAllByFeaturerIdIn(featurerEntityList.stream().map(FeaturerEntity::getId).toList());
+        featurerParamRepository.deleteAllByFeaturerIdIn(featurerEntityKit.getIdSet());
         featurerParamRepository.saveAll(featurerParamEntityList);
         log.info("syncFeaturers: ended");
     }
@@ -166,6 +166,7 @@ public class FeaturerService {
         }
     }
 
+    @Deprecated
     public <T extends Featurer> T getFeaturer(FeaturerEntity featurerEntity, Class<T> featurerType) throws ServiceException {
         if (featurerEntity == null)
             throw new ServiceException(ErrorCodeCommon.FEATURER_IS_NULL);
@@ -349,8 +350,12 @@ public class FeaturerService {
         return featurerRepository.getById(featurerId);
     }
 
-    public List<FeaturerEntity> findByIdIn(Set<Integer> ids) {
-        return featurerRepository.findByIdIn(ids);
+    public Kit<FeaturerEntity, Integer> findEntitiesSafe(Set<Integer> ids) {
+        Kit<FeaturerEntity, Integer> ret = new Kit<>(FeaturerEntity::getId);
+        for (var id : ids) {
+            ret.add(featurerEntityKit.get(id));
+        }
+        return ret;
     }
 
     public HashMap<String, String> prepareForStore(Integer featurerId, HashMap<String, String> featurerParams) throws ServiceException {
