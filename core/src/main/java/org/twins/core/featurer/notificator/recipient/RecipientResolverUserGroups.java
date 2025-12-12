@@ -31,6 +31,6 @@ public class RecipientResolverUserGroups extends RecipientResolver {
 
     @Override
     protected Set<UUID> resolve(HistoryEntity history, Properties properties) throws ServiceException {
-        return userGroupService.getUsersForGroups(history.getTwin().getOwnerBusinessAccountId(), userGroupIds.extract(properties));
+        return userGroupService.getUsersForGroups(history.getTwin().getTwinClass().getDomainId(), history.getTwin().getOwnerBusinessAccountId(), userGroupIds.extract(properties));
     }
 }

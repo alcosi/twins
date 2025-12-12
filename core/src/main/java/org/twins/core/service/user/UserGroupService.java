@@ -156,16 +156,14 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         }
     }
 
-    public Set<UUID> getUsersForGroups(UUID businessAccountId, Set<UUID> userGroupIds) throws ServiceException {
-        //todo
-        UUID domainId = UUID.fromString("f67ad556-dd27-4871-9a00-16fb0e8a4102");
+    public Set<UUID> getUsersForGroups(UUID domainId, UUID businessAccountId, Set<UUID> userGroupIds) throws ServiceException {
         List<UserGroupTypeEntity> userGroupTypes = userGroupTypeRepository.findValidTypes(domainId, businessAccountId);
         if (CollectionUtils.isEmpty(userGroupTypes))
             return new HashSet<>();
 
         Set<UUID> userIds = new HashSet<>();
         for (UserGroupTypeEntity userGroupTypeEntity : userGroupTypes) {
-            Slugger<UserGroupMap> slugger = featurerService.getFeaturer(userGroupTypeEntity.getSluggerFeaturer(), Slugger.class);
+            Slugger<UserGroupMap> slugger = featurerService.getFeaturer(userGroupTypeEntity.getSluggerFeaturerId(), Slugger.class);
             userIds.addAll(slugger.getUsers(userGroupTypeEntity.getSluggerParams(), domainId, businessAccountId, userGroupIds));
         }
         return userIds;

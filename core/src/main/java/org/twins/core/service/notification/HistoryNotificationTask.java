@@ -48,6 +48,9 @@ public class HistoryNotificationTask implements Runnable {
             LoggerUtils.logController("historyNotificationTask");
             LoggerUtils.logPrefix(STR."HISTORY[\{historyNotificationEntity.getId()}]:");
             log.info("Performing history notification task: {}", historyNotificationEntity.logDetailed());
+            if (history.getTwin().getTwinClass().getDomainId() == null) {
+                throw new NotificationSkippedException("Twin is out of domain");
+            }
             List<HistoryNotificationSchemaMapEntity> configs = historyNotificationSchemaMapEntityRepository.findByHistoryTypeIdAndTwinClassIdAndNotificationSchemaId(
                     history.getHistoryType().name(),
                     history.getTwin().getTwinClassId(),

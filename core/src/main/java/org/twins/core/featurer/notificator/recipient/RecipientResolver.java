@@ -54,6 +54,7 @@ public abstract class RecipientResolver extends FeaturerTwins {
         if (excludeActor.extract(properties)) {
             users.remove(history.getActorUserId());
         }
+        //todo security risk: extra filter users by domain and business_account
         return users;
     }
 
