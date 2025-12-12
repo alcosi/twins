@@ -2,6 +2,7 @@ package org.cambium.featurer.params;
 
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.annotations.FeaturerParamType;
 
 import java.util.Properties;
@@ -19,8 +20,8 @@ public class FeaturerParamInt extends FeaturerParam<Integer> {
 
     @Override
     public Integer extract(Properties properties) {
-        final String value = properties.get(key).toString();
-        return value.isEmpty() ? null : Integer.parseInt(value);
+        String value = properties.getProperty(key);
+        return StringUtils.isEmpty(value) ? null : Integer.parseInt(value);
     }
 
     @Override

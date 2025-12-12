@@ -12,7 +12,6 @@ import org.twins.core.dao.scheduler.SchedulerLogRepository;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.Properties;
-import java.util.UUID;
 
 @FeaturerType(
         id = FeaturerTwins.TYPE_47,
@@ -36,7 +35,6 @@ public abstract class Scheduler extends FeaturerTwins {
 
             if (!result.isEmpty() && schedulerEntity.getLogEnabled()) {
                 schedulerLog
-                        .setId(UUID.randomUUID())
                         .setSchedulerId(schedulerEntity.getId())
                         .setExecutionTime(System.currentTimeMillis() - startTime)
                         .setResult(result);

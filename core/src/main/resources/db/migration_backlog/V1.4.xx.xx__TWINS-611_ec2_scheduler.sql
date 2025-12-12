@@ -3,7 +3,7 @@ create table if not exists scheduler
     id                    uuid primary key,
     domain_id             uuid references domain on update cascade on delete restrict,
     scheduler_featurer_id int                                 not null references featurer on update cascade on delete restrict,
-    scheduler_params      hstore    default ''::hstore        not null,
+    scheduler_params      hstore,
     active                boolean                             not null,
     log_enabled           boolean                             not null,
     cron                  varchar,
@@ -13,11 +13,14 @@ create table if not exists scheduler
     updated_at            timestamp default CURRENT_TIMESTAMP not null
 );
 
-create index if not exists schedule_scheduler_featurer_id_index
+create index if not exists scheduler_scheduler_featurer_id_index
     on scheduler (scheduler_featurer_id);
 
-create index if not exists schedule_domain_id_index
+create index if not exists scheduler_domain_id_index
     on scheduler (domain_id);
+
+create unique index if not exists scheduler_scheduler_featurer_id_uindex
+    on scheduler (scheduler_featurer_id);
 
 create table if not exists scheduler_log
 (
@@ -33,11 +36,11 @@ create index if not exists scheduler_log_scheduler_id_index
 
 insert into scheduler(id, domain_id, scheduler_featurer_id, scheduler_params, active, log_enabled, cron, fixed_rate, description, created_at, updated_at)
 values
-    (uuid_generate_v4(), null, 4701, ''::hstore, true, true, null, 2000, 'Scheduler for clearing external file storages after twin/attachment deletion', now(), now()),
-    (uuid_generate_v4(), null, 4702, ''::hstore, true, true, '0 0 0 * * *', null, 'Scheduler for clearing twin archive table', now(), now()),
-    (uuid_generate_v4(), null, 4703, ''::hstore, true, true, null, 2000, 'Scheduler for executing twin changes', now(), now()),
-    (uuid_generate_v4(), null, 4704, ''::hstore, true, true, null, 500, 'Scheduler for executing draft erases', now(), now()),
-    (uuid_generate_v4(), null, 4705, ''::hstore, true, true, null, 500, 'Scheduler for executing draft commits', now(), now()),
-    (uuid_generate_v4(), null, 4706, ''::hstore, true, true, '0 0 0 * * *', null, 'Scheduler for cleaning scheduler log table', now(), now()),
-    (uuid_generate_v4(), null, 4707, ''::hstore, true, true, '0 0 0 * * *', null, 'Scheduler for cleaning attachment delete task table', now(), now())
+    (uuid_generate_v4(), null, 4701, null, true, true, null, 2000, 'Scheduler for clearing external file storages after twin/attachment deletion', now(), now()),
+    (uuid_generate_v4(), null, 4702, null, true, true, '0 0 0 * * *', null, 'Scheduler for clearing twin archive table', now(), now()),
+    (uuid_generate_v4(), null, 4703, null, true, true, null, 2000, 'Scheduler for executing twin changes', now(), now()),
+    (uuid_generate_v4(), null, 4704, null, true, true, null, 500, 'Scheduler for executing draft erases', now(), now()),
+    (uuid_generate_v4(), null, 4705, null, true, true, null, 500, 'Scheduler for executing draft commits', now(), now()),
+    (uuid_generate_v4(), null, 4706, null, true, true, '0 0 0 * * *', null, 'Scheduler for cleaning scheduler log table', now(), now()),
+    (uuid_generate_v4(), null, 4707, null, true, true, '0 0 0 * * *', null, 'Scheduler for cleaning attachment delete task table', now(), now())
 on conflict do nothing;

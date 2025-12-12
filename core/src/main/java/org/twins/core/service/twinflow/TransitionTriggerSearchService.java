@@ -14,7 +14,6 @@ import org.twins.core.dao.twinflow.TwinflowTransitionTriggerRepository;
 import org.twins.core.domain.search.TransitionTriggerSearch;
 
 import static org.twins.core.dao.specifications.CommonSpecification.*;
-import static org.twins.core.dao.specifications.twinflow.TransitionTriggerSpecification.checkIntegerIn;
 
 
 @Slf4j

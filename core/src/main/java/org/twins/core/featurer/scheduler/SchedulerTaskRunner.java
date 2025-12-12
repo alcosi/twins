@@ -17,7 +17,8 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
 
     @FeaturerParam(
             name = "batchSize",
-            description = "Param to specify the number of tasks that will be collected from db for execution"
+            description = "Param to specify the number of tasks that will be collected from db for execution",
+            optional = true
     )
     public static final FeaturerParamInt batchSizeParam = new FeaturerParamInt("batchSize");
     private final Executor taskExecutor;

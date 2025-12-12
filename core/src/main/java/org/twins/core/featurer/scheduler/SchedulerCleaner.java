@@ -16,7 +16,8 @@ public abstract class SchedulerCleaner extends Scheduler {
     @FeaturerParam(
             name = "interval",
             description = "Param to specify the time interval in which we should search for records",
-            exampleValues = "DAYS:3"
+            exampleValues = "DAYS:3",
+            optional = true
     )
     public static final FeaturerParamDuration intervalParam = new FeaturerParamDuration("interval");
 
