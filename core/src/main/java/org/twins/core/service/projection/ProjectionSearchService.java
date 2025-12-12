@@ -30,16 +30,18 @@ public class ProjectionSearchService {
 
     private Specification<ProjectionEntity> createProjectionSearchSpecification(ProjectionSearch search) {
         return Specification.allOf(
-                checkUuidIn(search.getIdList(), false,false, ProjectionEntity.Fields.id),
-                checkUuidIn(search.getIdExcludeList(), true,false, ProjectionEntity.Fields.id),
-                checkUuidIn(search.getSrcTwinPointerIdList(), false,false, ProjectionEntity.Fields.srcTwinPointerId),
-                checkUuidIn(search.getSrcTwinPointerIdExcludeList(), true,false, ProjectionEntity.Fields.srcTwinPointerId),
-                checkUuidIn(search.getSrcTwinClassFieldIdList(), false,false, ProjectionEntity.Fields.srcTwinClassFieldId),
-                checkUuidIn(search.getSrcTwinClassFieldIdExcludeList(), true,false, ProjectionEntity.Fields.srcTwinClassFieldId),
-                checkUuidIn(search.getDstTwinClassIdList(), false,false, ProjectionEntity.Fields.dstTwinClassId),
-                checkUuidIn(search.getDstTwinClassIdExcludeList(), true,false, ProjectionEntity.Fields.dstTwinClassId),
-                checkUuidIn(search.getDstTwinClassFieldIdList(), false,false, ProjectionEntity.Fields.dstTwinClassFieldId),
-                checkUuidIn(search.getDstTwinClassFieldIdExcludeList(), true,false, ProjectionEntity.Fields.dstTwinClassFieldId),
+                checkUuidIn(search.getIdList(), false, false, ProjectionEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, ProjectionEntity.Fields.id),
+                checkUuidIn(search.getSrcTwinPointerIdList(), false, false, ProjectionEntity.Fields.srcTwinPointerId),
+                checkUuidIn(search.getSrcTwinPointerIdExcludeList(), true, false, ProjectionEntity.Fields.srcTwinPointerId),
+                checkUuidIn(search.getSrcTwinClassFieldIdList(), false, false, ProjectionEntity.Fields.srcTwinClassFieldId),
+                checkUuidIn(search.getSrcTwinClassFieldIdExcludeList(), true, false, ProjectionEntity.Fields.srcTwinClassFieldId),
+                checkUuidIn(search.getDstTwinClassIdList(), false, false, ProjectionEntity.Fields.dstTwinClassId),
+                checkUuidIn(search.getDstTwinClassIdExcludeList(), true, false, ProjectionEntity.Fields.dstTwinClassId),
+                checkUuidIn(search.getDstTwinClassFieldIdList(), false, false, ProjectionEntity.Fields.dstTwinClassFieldId),
+                checkUuidIn(search.getDstTwinClassFieldIdExcludeList(), true, false, ProjectionEntity.Fields.dstTwinClassFieldId),
+                checkUuidIn(search.getProjectionTypeIdList(), false, false, ProjectionEntity.Fields.projectionTypeId),
+                checkUuidIn(search.getProjectionTypeIdExcludeList(), true, false, ProjectionEntity.Fields.projectionTypeId),
                 checkFieldProjectorIdIn(search.getFieldProjectorIdList(), false),
                 checkFieldProjectorIdIn(search.getFieldProjectorIdExcludeList(), true)
         );
