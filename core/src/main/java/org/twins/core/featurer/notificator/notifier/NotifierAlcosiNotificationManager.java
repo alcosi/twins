@@ -29,8 +29,8 @@ public class NotifierAlcosiNotificationManager extends Notifier {
 
     @Override
     protected void notify(Set<UUID> recipientIds, Map<String, String> context, String eventCode, Properties properties) throws ServiceException {
-        //todo ba_id should be taken from context
-        fillBaseDataMap(context, businessAccountId, eventCode);
+        String businessAccountKey = "COMPANY_ID";
+        fillBaseDataMap(context, eventCode);
 
         String hostDomainBaseUriValue = getHostDomainBaseUri(properties);
 
@@ -38,7 +38,7 @@ public class NotifierAlcosiNotificationManager extends Notifier {
 
         Receiver.SendNotificationCommand notificationCommand = Receiver.SendNotificationCommand.newBuilder()
                 .addAllUsersIds(recipientIds.stream().map(UUID::toString).collect(Collectors.toList()))
-                .putFilters("COMPANY_ID", businessAccountId.toString())
+                .putFilters(businessAccountKey, context.get(businessAccountKey))
                 .setEventId(eventCode)
                 .putAllData(context)
                 .build();
@@ -46,8 +46,7 @@ public class NotifierAlcosiNotificationManager extends Notifier {
         receiverServiceFutureStub.sendNotification(notificationCommand);
     }
 
-    private void fillBaseDataMap(Map<String, String> contextMap, UUID businessAccountId, String eventCode) {
-        contextMap.put("COMPANY_ID", businessAccountId.toString());
+    private void fillBaseDataMap(Map<String, String> contextMap, String eventCode) {
         contextMap.put("EVENT_ID", eventCode);
     }
 

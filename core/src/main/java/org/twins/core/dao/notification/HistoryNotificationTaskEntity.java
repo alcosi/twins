@@ -32,15 +32,22 @@ public class HistoryNotificationTaskEntity implements EasyLoggable {
     @Enumerated(EnumType.STRING)
     private HistoryNotificationStatus statusId;
 
+    @Column(name = "status_details")
+    private String statusDetails;
+
+    @Column(name = "done_at")
+    private Timestamp doneAt;
+
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @Column(name = "updated_at")
-    private Timestamp updatedAt;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "history_id", insertable = false, updatable = false)
+    private HistoryEntity history;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "history_notification_context_id", insertable = false, updatable = false)
-    private HistoryEntity history;
+    @JoinColumn(name = "notification_schema_id", insertable = false, updatable = false)
+    private NotificationSchemaEntity notificationSchema;
 
     public String easyLog(Level level) {
         return "historyNotificationTaskEntity[id:" + id + "]";

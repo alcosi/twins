@@ -24,7 +24,6 @@ import java.util.function.Function;
 public class HistoryNotificationSchemaMapService extends EntitySecureFindServiceImpl<HistoryNotificationSchemaMapEntity> {
 
     private final HistoryNotificationSchemaMapRepository repository;
-    private final AuthService authService;
 
     @Override
     public CrudRepository<HistoryNotificationSchemaMapEntity, UUID> entityRepository() {
@@ -44,9 +43,5 @@ public class HistoryNotificationSchemaMapService extends EntitySecureFindService
     @Override
     public boolean validateEntity(HistoryNotificationSchemaMapEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
-    }
-
-    public Set<HistoryNotificationSchemaMapEntity> getByNotificationSchemaAndEventCodes(UUID notificationSchemaId, Collection<String> eventCodes) throws ServiceException {
-        return repository.findByNotificationSchemaIdAndNotificationChannelEvent_EventCodeIn(notificationSchemaId, eventCodes);
     }
 }

@@ -8,7 +8,6 @@ import org.cambium.featurer.FeaturerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.TwinChangeTaskStatus;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.notification.*;
 import org.twins.core.enums.HistoryNotificationStatus;
@@ -31,6 +30,8 @@ public class HistoryNotificationTask implements Runnable {
     private HistoryNotificationTaskRepository historyNotificationTaskRepository;
     @Autowired
     private FeaturerService featurerService;
+    @Autowired
+    private HistoryNotificationContextService historyNotificationContextService;
     
     private final Map<UUID, Map<String, String>> contextCache = new HashMap<>();
 
@@ -71,17 +72,17 @@ public class HistoryNotificationTask implements Runnable {
 
             historyNotificationEntity
                     .setStatusId(HistoryNotificationStatus.SENT)
-                    .setStatusDetails(recipientsCount + " recipients were notified");  //add to entity
-                    .setDoneAt(Timestamp.from(Instant.now())); //add to entity
+                    .setStatusDetails(recipientsCount + " recipients were notified")
+                    .setDoneAt(Timestamp.from(Instant.now()));
         } catch (ServiceException e) {
             log.error(e.log());
             historyNotificationEntity
-                    .setStatusId(TwinChangeTaskStatus.FAILED)
-                    .setStatusDetails(e.log());  //add to entity
+                    .setStatusId(HistoryNotificationStatus.FAILED)
+                    .setStatusDetails(e.log());
         } catch (Throwable e) {
             log.error("Exception: ", e);
             historyNotificationEntity
-                    .setStatusId(TwinChangeTaskStatus.FAILED)
+                    .setStatusId(HistoryNotificationStatus.FAILED)
                     .setStatusDetails(e.getMessage());
         } finally {
             historyNotificationTaskRepository.save(historyNotificationEntity);
@@ -95,8 +96,8 @@ public class HistoryNotificationTask implements Runnable {
     }
 
     public Map<String, String> collectHistoryContext(UUID contextId, HistoryEntity history) throws ServiceException {
-        var context = new HashMap<String, String>();
-        for (HistoryNotificationContextCollectorEntity contextCollector : contextId.getContextCollectors()) { //todo load from DB
+        Map<String, String> context = new HashMap<>();
+        for (HistoryNotificationContextCollectorEntity contextCollector : historyNotificationContextService.getCollectorContextCollection(contextId)) {
             ContextCollector collector = featurerService.getFeaturer(contextCollector.getContextCollectorFeaturer(), ContextCollector.class);
             context = collector.collectData(history, context, contextCollector.getContextCollectorParams());
         }

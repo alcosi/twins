@@ -4,10 +4,12 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
 public interface HistoryNotificationContextCollectorRepository extends CrudRepository<HistoryNotificationContextCollectorEntity, UUID>, JpaSpecificationExecutor<HistoryNotificationContextCollectorEntity> {
-    <T> T findById(UUID id, Class<T> type);
+
+    Set<HistoryNotificationContextCollectorEntity> findByHistoryNotificationContextId(UUID contextId);
 }
 

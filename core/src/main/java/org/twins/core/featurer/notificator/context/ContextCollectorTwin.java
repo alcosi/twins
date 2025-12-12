@@ -24,17 +24,23 @@ public class ContextCollectorTwin extends ContextCollector {
     @FeaturerParam(name = "Collect id key", description = "", order = 2, optional = true, defaultValue = "TWIN_ID")
     public static final FeaturerParamString collectIdKey = new FeaturerParamString("collectIdKey");
 
-    @FeaturerParam(name = "Collect name", description = "", order = 1, optional = true, defaultValue = "false")
+    @FeaturerParam(name = "Collect name", description = "", order = 3, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean collectName = new FeaturerParamBoolean("collectName");
 
-    @FeaturerParam(name = "Collect name key", description = "", order = 2, optional = true, defaultValue = "TWIN_NAME")
+    @FeaturerParam(name = "Collect name key", description = "", order = 4, optional = true, defaultValue = "TWIN_NAME")
     public static final FeaturerParamString collectNameKey = new FeaturerParamString("collectNameKey");
 
-    @FeaturerParam(name = "Collect description", description = "", order = 3, optional = true, defaultValue = "false")
+    @FeaturerParam(name = "Collect description", description = "", order = 5, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean collectDescription = new FeaturerParamBoolean("collectDescription");
 
-    @FeaturerParam(name = "Collect description key", description = "", order = 4, optional = true, defaultValue = "TWIN_DESCRIPTION")
+    @FeaturerParam(name = "Collect description key", description = "", order = 6, optional = true, defaultValue = "TWIN_DESCRIPTION")
     public static final FeaturerParamString collectDescriptionKey = new FeaturerParamString("collectDescriptionKey");
+
+    @FeaturerParam(name = "Collect owner business account", description = "", order = 7, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean collectBusinessAccount = new FeaturerParamBoolean("collectBusinessAccount");
+
+    @FeaturerParam(name = "Collect owner business account key", description = "", order = 8, optional = true, defaultValue = "COMPANY_ID")
+    public static final FeaturerParamString collectBusinessAccountKey = new FeaturerParamString("collectBusinessAccountKey");
 
     @Override
     protected Map<String, String> collectData(HistoryEntity history, Map<String, String> context, Properties properties) {
@@ -47,6 +53,9 @@ public class ContextCollectorTwin extends ContextCollector {
         }
         if (collectDescription.extract(properties)) {
             context.put(collectDescriptionKey.extract(properties), twin.getDescription());
+        }
+        if (collectBusinessAccount.extract(properties)) {
+            context.put(collectBusinessAccountKey.extract(properties), twin.getOwnerBusinessAccountId().toString());
         }
         return context;
     }

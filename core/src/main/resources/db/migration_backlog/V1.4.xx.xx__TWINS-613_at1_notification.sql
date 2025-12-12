@@ -154,9 +154,14 @@ create table if not exists history_notification_task
         constraint history_notification_task_history_id_fk
             references history
             on update cascade on delete cascade,
-    status     varchar(100) default 'NEED_START'::character varying not null,
+    notification_schema_id uuid not null
+        constraint history_notification_task_notification_schema_id_fk
+            references notification_schema
+            on update cascade on delete cascade
+    history_notification_task_status_id     varchar(100) default 'NEED_START'::character varying not null,
+    status_details varchar,
     created_at timestamp    default CURRENT_TIMESTAMP             not null,
-    updated_at timestamp
+    done_at timestamp
 );
 
 CREATE OR REPLACE FUNCTION insert_history_notification_task()
@@ -170,16 +175,6 @@ EXCEPTION WHEN unique_violation THEN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION update_timestamp()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF (NEW.* IS DISTINCT FROM OLD.*) THEN
-        NEW.updated_at = CURRENT_TIMESTAMP;
-END IF;
-RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
 DO $$
 BEGIN
 DROP TRIGGER IF EXISTS trigger_insert_history_notification ON history;
@@ -187,10 +182,4 @@ CREATE TRIGGER trigger_insert_history_notification
     AFTER INSERT ON history
     FOR EACH ROW
     EXECUTE FUNCTION insert_history_notification_task();
-
-DROP TRIGGER IF EXISTS trigger_update_notification_timestamp ON history_notification_task;
-CREATE TRIGGER trigger_update_notification_timestamp
-    BEFORE UPDATE ON history_notification_task
-    FOR EACH ROW
-    EXECUTE FUNCTION update_timestamp();
 END $$;
