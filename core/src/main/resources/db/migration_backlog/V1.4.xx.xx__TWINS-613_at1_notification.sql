@@ -136,6 +136,7 @@ create table if not exists history_notification_schema_map
     twin_class_id            uuid         not null
         constraint history_notification_schema_map_twin_class_id_id_fk
             references twin_class
+
             on update cascade on delete cascade,
     history_type_id                   varchar(255) not null
         constraint history_notification_schema_map_history_type_id_fk
@@ -220,7 +221,7 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$ IMMUTABLE LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION history_notification_task_insert_schema_on_hisotry_insert()
+CREATE OR REPLACE FUNCTION history_notification_task_insert_schema_on_history_insert()
 RETURNS TRIGGER AS $$
 DECLARE
     v_twin_owner_business_account_id uuid;
@@ -233,10 +234,13 @@ BEGIN
     JOIN twin_class tc ON t.twin_class_id = tc.id
     WHERE t.id = NEW.twin_id;
 
-    -- Detect notification schema
-    IF v_twin_class_domain_id IS NOT NULL THEN
-        v_notification_schema_id := notification_schema_detect(v_twin_class_domain_id, v_twin_owner_business_account_id);
+    -- Do not create task if twin class domain_id is empty
+    IF v_twin_class_domain_id IS NULL THEN
+        RETURN NEW;
     END IF;
+
+    -- Detect notification schema
+    v_notification_schema_id := notification_schema_detect(v_twin_class_domain_id, v_twin_owner_business_account_id);
 
     -- Insert into history_notification_task only if schema is detected
     IF v_notification_schema_id IS NOT NULL THEN
@@ -256,7 +260,7 @@ DROP TRIGGER IF EXISTS trigger_insert_history_notification ON history;
 CREATE TRIGGER trigger_insert_history_notification
     AFTER INSERT ON history
     FOR EACH ROW
-    EXECUTE FUNCTION history_notification_task_insert_schema_on_hisotry_insert();
+    EXECUTE FUNCTION history_notification_task_insert_schema_on_history_insert();
 END $$;
 
 -- Update tier triggers to include notification_schema_id
