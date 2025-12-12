@@ -64,7 +64,7 @@ public class HistoryNotificationTask implements Runnable {
                     continue;
                 recipientsCount += recipientIds.size();
                 var channelEvent = notificationConfigsGroupedByChannelEvent.getGroupingObject(entry.getKey());
-                var context = getContext(channelEvent.getHistoryNotificationContextId(), history);
+                var context = getContext(channelEvent.getNotificationContextId(), history);
                 NotificationChannelEntity notificationChannel = channelEvent.getNotificationChannel();
                 Notifier notifier = featurerService.getFeaturer(notificationChannel.getNotifierFeaturer(), Notifier.class);
                 notifier.notify(recipientIds, context, channelEvent.getEventCode(), notificationChannel.getNotifierParams());

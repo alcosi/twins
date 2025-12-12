@@ -48,6 +48,6 @@ public class HistoryNotificationContextService extends EntitySecureFindServiceIm
 
     public Set<NotificationContextCollectorEntity> getContextCollectors(UUID contextId) {
         //todo perhaps this can be cached
-        return notificationContextCollectorRepository.findByNotificationContextId(contextId);
+        return notificationContextCollectorRepository.findAllByNotificationContextId(contextId);
     }
 }

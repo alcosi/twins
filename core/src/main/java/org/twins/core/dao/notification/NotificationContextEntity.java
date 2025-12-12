@@ -8,8 +8,6 @@ import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.DynamicUpdate;
 import org.twins.core.dao.i18n.I18nEntity;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -39,9 +37,6 @@ public class NotificationContextEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     private I18nEntity descriptionI18n;
-
-    @OneToMany(mappedBy = "notificationContext", fetch = FetchType.LAZY)
-    private List<NotificationContextCollectorEntity> contextCollectors = new ArrayList<>();
 
     public String easyLog(Level level) {
         return "notificationContext[id:" + id + "]";

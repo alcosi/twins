@@ -10,6 +10,6 @@ import java.util.UUID;
 @Repository
 public interface NotificationContextCollectorRepository extends CrudRepository<NotificationContextCollectorEntity, UUID>, JpaSpecificationExecutor<NotificationContextCollectorEntity> {
 
-    Set<NotificationContextCollectorEntity> findByNotificationContextId(UUID contextId);
+    Set<NotificationContextCollectorEntity> findAllByNotificationContextId(UUID contextId);
 }
 

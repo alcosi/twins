@@ -1,4 +1,18 @@
---todo new rector in db featurer_type and new featurers
+-- insert new featurer type
+INSERT INTO featurer_type (id, name, description) VALUES (47, 'Recipient resolver', '') on conflict on constraint featurer_type_pk do nothing ;
+INSERT INTO featurer_type (id, name, description) VALUES (48, 'Notifier', '') on conflict on constraint featurer_type_pk do nothing ;
+INSERT INTO featurer_type (id, name, description) VALUES (49, 'Context collector', '') on conflict on constraint featurer_type_pk do nothing ;
+
+-- insert new featurer ids
+insert into featurer(id, featurer_type_id, class, name, description) values (4701, 47, '', '', '') on conflict (id) do nothing;
+insert into featurer(id, featurer_type_id, class, name, description) values (4702, 47, '', '', '') on conflict (id) do nothing;
+insert into featurer(id, featurer_type_id, class, name, description) values (4703, 47, '', '', '') on conflict (id) do nothing;
+insert into featurer(id, featurer_type_id, class, name, description) values (4801, 48, '', '', '') on conflict (id) do nothing;
+insert into featurer(id, featurer_type_id, class, name, description) values (4901, 49, '', '', '') on conflict (id) do nothing;
+insert into featurer(id, featurer_type_id, class, name, description) values (4902, 49, '', '', '') on conflict (id) do nothing;
+insert into featurer(id, featurer_type_id, class, name, description) values (4903, 49, '', '', '') on conflict (id) do nothing;
+insert into featurer(id, featurer_type_id, class, name, description) values (4904, 49, '', '', '') on conflict (id) do nothing;
+insert into featurer(id, featurer_type_id, class, name, description) values (4905, 49, '', '', '') on conflict (id) do nothing;
 
 create table if not exists history_notification_task_staus
 (
@@ -7,10 +21,10 @@ create table if not exists history_notification_task_staus
             primary key
 );
 
-INSERT INTO history_notification_task_staus (id) VALUES ('NEED_START');
-INSERT INTO history_notification_task_staus (id) VALUES ('IN_PROGRESS');
-INSERT INTO history_notification_task_staus (id) VALUES ('SENT');
-INSERT INTO history_notification_task_staus (id) VALUES ('FAILED');
+INSERT INTO history_notification_task_staus (id) VALUES ('NEED_START') on conflict on constraint history_notification_task_staus_pk do nothing ;
+INSERT INTO history_notification_task_staus (id) VALUES ('IN_PROGRESS') on conflict on constraint history_notification_task_staus_pk do nothing ;
+INSERT INTO history_notification_task_staus (id) VALUES ('SENT') on conflict on constraint history_notification_task_staus_pk do nothing ;
+INSERT INTO history_notification_task_staus (id) VALUES ('FAILED') on conflict on constraint history_notification_task_staus_pk do nothing ;
 
 create table if not exists history_notification_recipient
 (
@@ -64,22 +78,6 @@ create table if not exists notification_channel
     notifier_params hstore
 );
 
-create table if not exists notification_channel_event
-(
-    id                              uuid         not null
-        constraint notification_channel_event_pk
-            primary key,
-    notification_channel_id         uuid         not null
-        constraint notification_channel_event_notification_channel_id_fk
-            references notification_channel
-            on update cascade on delete cascade,
-    event_code                      varchar(255) not null,
-    notification_context_id uuid         not null
-        constraint notification_channel_event_notification_context_id_fk
-            references notification_context
-            on update cascade on delete cascade
-);
-
 create table if not exists notification_context
 (
     id uuid not null
@@ -96,6 +94,22 @@ create table if not exists notification_context
     description_i18n_id uuid
         constraint notification_context_description_i18n_id_fk
             references i18n
+            on update cascade on delete cascade
+);
+
+create table if not exists notification_channel_event
+(
+    id                              uuid         not null
+        constraint notification_channel_event_pk
+            primary key,
+    notification_channel_id         uuid         not null
+        constraint notification_channel_event_notification_channel_id_fk
+            references notification_channel
+            on update cascade on delete cascade,
+    event_code                      varchar(255) not null,
+    notification_context_id uuid         not null
+        constraint notification_channel_event_notification_context_id_fk
+            references notification_context
             on update cascade on delete cascade
 );
 
@@ -201,7 +215,7 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$ IMMUTABLE LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION history_notification_task_insert_notification_schema_on_hisotry_insert()
+CREATE OR REPLACE FUNCTION history_notification_task_insert_schema_on_hisotry_insert()
 RETURNS TRIGGER AS $$
 DECLARE
     v_twin_owner_business_account_id uuid;
@@ -237,7 +251,7 @@ DROP TRIGGER IF EXISTS trigger_insert_history_notification ON history;
 CREATE TRIGGER trigger_insert_history_notification
     AFTER INSERT ON history
     FOR EACH ROW
-    EXECUTE FUNCTION history_notification_task_insert_notification_schema_on_hisotry_insert();
+    EXECUTE FUNCTION history_notification_task_insert_schema_on_hisotry_insert();
 END $$;
 
 -- Update tier triggers to include notification_schema_id
@@ -265,6 +279,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Drop old trigger first (before dropping the function it depends on)
+DROP TRIGGER IF EXISTS tiers_domain_business_account_tier_id_update_trigger ON domain_business_account;
+
 -- Drop old function and create new one with renamed function
 DROP FUNCTION IF EXISTS public.tiers_update_business_account_properties_on_self_tier_id_change();
 
@@ -285,7 +302,6 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Update trigger to use new function name
-DROP TRIGGER IF EXISTS tiers_domain_business_account_tier_id_update_trigger ON domain_business_account;
 CREATE TRIGGER tiers_domain_business_account_tier_id_update_trigger
     AFTER UPDATE OF tier_id ON domain_business_account
     FOR EACH ROW

@@ -25,7 +25,7 @@ public class NotificationContextCollectorEntity implements EasyLoggable {
     private UUID id;
 
     @Column(name = "notification_context_id")
-    private UUID NotificationContextId;
+    private UUID notificationContextId;
 
     @Column(name = "context_collector_featurer_id")
     private Integer contextCollectorFeaturerId;

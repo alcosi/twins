@@ -26,16 +26,16 @@ public class NotificationChannelEventEntity implements EasyLoggable {
     @Column(name = "event_code")
     private String eventCode;
 
-    @Column(name = "history_notification_context_id")
-    private UUID historyNotificationContextId;
+    @Column(name = "notification_context_id")
+    private UUID notificationContextId;
 
     @ManyToOne
     @JoinColumn(name = "notification_channel_id", insertable = false, updatable = false)
     private NotificationChannelEntity notificationChannel;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "history_notification_context_id", insertable = false, updatable = false)
-    private NotificationContextEntity historyNotificationContext;
+    @JoinColumn(name = "notification_context_id", insertable = false, updatable = false)
+    private NotificationContextEntity notificationContext;
 
     public String easyLog(Level level) {
         return switch (level) {

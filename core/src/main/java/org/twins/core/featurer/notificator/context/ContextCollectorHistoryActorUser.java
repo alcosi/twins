@@ -8,7 +8,7 @@ import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.Properties;
 
-@FeaturerType(id = FeaturerTwins.ID_4904,
+@FeaturerType(id = FeaturerTwins.ID_4905,
         name = "Context collector history actor user",
         description = "")
 @Slf4j
