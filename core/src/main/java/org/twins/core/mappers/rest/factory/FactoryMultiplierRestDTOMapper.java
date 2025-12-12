@@ -11,6 +11,7 @@ import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
+import org.twins.core.service.factory.FactoryMultiplierService;
 import org.twins.core.service.factory.TwinFactoryService;
 
 import java.util.Collection;
@@ -30,6 +31,7 @@ public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFact
 
     @MapperModePointerBinding(modes = FeaturerMode.FactoryMultiplier2FeaturerMode.class)
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final FactoryMultiplierService factoryMultiplierService;
 
     @Override
     public void map(TwinFactoryMultiplierEntity src, FactoryMultiplierDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -61,6 +63,7 @@ public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFact
         }
         if (mapperContext.hasModeButNot(FeaturerMode.FactoryMultiplier2FeaturerMode.HIDE)) {
             dst.setMultiplierFeaturerId(src.getMultiplierFeaturerId());
+            factoryMultiplierService.loadMultiplier(src);
             featurerRestDTOMapper.postpone(src.getMultiplierFeaturer(), mapperContext.forkOnPoint(FeaturerMode.FactoryMultiplier2FeaturerMode.SHORT));
         }
     }
@@ -70,6 +73,9 @@ public class FactoryMultiplierRestDTOMapper extends RestSimpleDTOMapper<TwinFact
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasMode(FactoryMultiplierFiltersCountMode.SHOW)) {
             twinFactoryService.countFactoryMultiplierFilters(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(FeaturerMode.FactoryMultiplier2FeaturerMode.HIDE)) {
+            factoryMultiplierService.loadMultipliers(srcCollection);
         }
     }
 }

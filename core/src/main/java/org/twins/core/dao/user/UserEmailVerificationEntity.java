@@ -45,6 +45,8 @@ public class UserEmailVerificationEntity implements EasyLoggable {
     @JoinColumn(name = "identity_provider_id", insertable = false, updatable = false)
     private IdentityProviderEntity identityProvider;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private UserEntity user;

@@ -84,6 +84,8 @@ public class DataListOptionEntity implements EasyLoggable {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "data_list_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private DataListEntity dataList;
 
     @EqualsAndHashCode.Exclude

@@ -2,6 +2,8 @@ package org.twins.core.dao.i18n;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.Locale;
 import java.util.UUID;
@@ -17,6 +19,8 @@ public class I18nTranslationStyleEntity {
     @Column(name = "i18n_id")
     private UUID i18nId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "i18n_id", insertable = false, updatable = false)
     private I18nEntity i18n;

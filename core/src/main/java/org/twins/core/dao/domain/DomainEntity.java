@@ -8,7 +8,6 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
@@ -22,7 +21,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
 import org.twins.core.enums.domain.DomainStatus;
 import org.twins.core.enums.domain.DomainType;
-import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -123,9 +121,9 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "identity_provider_id")
     private UUID identityProviderId;
 
-    @FeaturerList(type = UserGroupManager.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_group_manager_featurer_id", insertable = false, updatable = false)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity userGroupManagerFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
@@ -175,26 +173,31 @@ public class DomainEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_class_schema_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassSchemaEntity twinClassSchema;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionSchemaEntity permissionSchema;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "business_account_template_twin_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinEntity businessAccountTemplateTwin;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "default_tier_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TierEntity defaultTier;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_user_template_twin_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinEntity domainUserTemplateTwin;
 
     // needed for specification
@@ -206,6 +209,7 @@ public class DomainEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private DomainTypeEntity domainTypeEntity;
 
     public String easyLog(Level level) {

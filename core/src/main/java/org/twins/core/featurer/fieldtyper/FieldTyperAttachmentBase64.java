@@ -6,6 +6,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.tika.Tika;
 import org.apache.tika.config.TikaConfig;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.file.FileData;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.annotations.Featurer;
@@ -16,7 +17,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.cambium.common.file.FileData;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorAttachment;
@@ -95,7 +95,7 @@ public class FieldTyperAttachmentBase64 extends FieldTyperAttachment<FieldValueA
             return fieldValue;
         try {
             StorageEntity storage = getStorage(properties);
-            Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
+            Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
             var bytes = fileService.getFileBytes(attachment.getStorageFileKey(), storage.getStoragerParams());
             fieldValue.setName(attachment.getTitle());
             fieldValue.setBase64Content("data:" + tika.detect(bytes) + ";base64," + Base64.encodeBase64String(bytes));
