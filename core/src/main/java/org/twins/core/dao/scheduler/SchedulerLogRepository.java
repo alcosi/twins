@@ -8,6 +8,6 @@ import java.util.UUID;
 
 public interface SchedulerLogRepository extends JpaRepository<SchedulerLogEntity, UUID>, JpaSpecificationExecutor<SchedulerLogEntity> {
 
-    long countAllByCreatedAtAfter(Timestamp createdAt);
-    void deleteAllByCreatedAtAfter(Timestamp createdAt);
+    long countAllByCreatedAtBefore(Timestamp createdAt);
+    void deleteAllByCreatedAtBefore(Timestamp createdAt);
 }

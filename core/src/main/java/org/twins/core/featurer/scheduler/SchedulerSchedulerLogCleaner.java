@@ -33,12 +33,12 @@ public class SchedulerSchedulerLogCleaner extends SchedulerCleaner {
     }
 
     @Override
-    protected void deleteAllByCreatedAtAfter(Timestamp createdAfter) {
-        schedulerLogRepository.deleteAllByCreatedAtAfter(createdAfter);
+    protected void deleteAllByCreatedAtBefore(Timestamp createdBefore) {
+        schedulerLogRepository.deleteAllByCreatedAtBefore(createdBefore);
     }
 
     @Override
-    protected long countAllByCreatedAtAfter(Timestamp createdAfter) {
-        return schedulerLogRepository.countAllByCreatedAtAfter(createdAfter);
+    protected long countAllByCreatedAtBefore(Timestamp createdBefore) {
+        return schedulerLogRepository.countAllByCreatedAtBefore(createdBefore);
     }
 }

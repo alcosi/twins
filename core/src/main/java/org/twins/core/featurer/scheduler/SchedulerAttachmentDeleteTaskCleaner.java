@@ -25,21 +25,21 @@ public class SchedulerAttachmentDeleteTaskCleaner extends SchedulerCleaner {
 
     @Override
     protected void deleteAll() {
-        attachmentDeleteTaskRepository.deleteAll();
+        attachmentDeleteTaskRepository.deleteAllByStatusIn(List.of(AttachmentDeleteTaskStatus.DONE));
     }
 
     @Override
     protected long countAll() {
-        return attachmentDeleteTaskRepository.count();
+        return attachmentDeleteTaskRepository.countAllByStatusIn(List.of(AttachmentDeleteTaskStatus.DONE));
     }
 
     @Override
-    protected void deleteAllByCreatedAtAfter(Timestamp createdAfter) {
-        attachmentDeleteTaskRepository.deleteAllByStatusInAndCreatedAtAfter(List.of(AttachmentDeleteTaskStatus.DONE), createdAfter);
+    protected void deleteAllByCreatedAtBefore(Timestamp createdBefore) {
+        attachmentDeleteTaskRepository.deleteAllByStatusInAndCreatedAtBefore(List.of(AttachmentDeleteTaskStatus.DONE), createdBefore);
     }
 
     @Override
-    protected long countAllByCreatedAtAfter(Timestamp createdAfter) {
-        return attachmentDeleteTaskRepository.countAllByStatusInAndCreatedAtAfter(List.of(AttachmentDeleteTaskStatus.DONE), createdAfter);
+    protected long countAllByCreatedAtBefore(Timestamp createdBefore) {
+        return attachmentDeleteTaskRepository.countAllByStatusInAndCreatedAtBefore(List.of(AttachmentDeleteTaskStatus.DONE), createdBefore);
     }
 }

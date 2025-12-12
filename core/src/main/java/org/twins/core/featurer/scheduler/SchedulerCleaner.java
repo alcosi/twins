@@ -54,16 +54,16 @@ public abstract class SchedulerCleaner extends Scheduler {
 
     private long deleteRecordsAfterInterval(Duration interval) {
         Timestamp createdAfter = Timestamp.valueOf(LocalDateTime.now().minus(interval));
-        long count = countAllByCreatedAtAfter(createdAfter);
+        long count = countAllByCreatedAtBefore(createdAfter);
 
         log.info("Deleting {} records from database", count);
-        deleteAllByCreatedAtAfter(createdAfter);
+        deleteAllByCreatedAtBefore(createdAfter);
 
         return count;
     }
 
     protected abstract void deleteAll();
     protected abstract long countAll();
-    protected abstract void deleteAllByCreatedAtAfter(Timestamp createdAfter);
-    protected abstract long countAllByCreatedAtAfter(Timestamp createdAfter);
+    protected abstract void deleteAllByCreatedAtBefore(Timestamp createdBefore);
+    protected abstract long countAllByCreatedAtBefore(Timestamp createdBefore);
 }

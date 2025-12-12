@@ -32,12 +32,12 @@ public class SchedulerTwinArchiveCleaner extends SchedulerCleaner {
     }
 
     @Override
-    protected void deleteAllByCreatedAtAfter(Timestamp createdAfter) {
-        twinArchiveRepository.deleteAllByCreatedAtAfter(createdAfter);
+    protected void deleteAllByCreatedAtBefore(Timestamp createdBefore) {
+        twinArchiveRepository.deleteAllByCreatedAtBefore(createdBefore);
     }
 
     @Override
-    protected long countAllByCreatedAtAfter(Timestamp createdAfter) {
-        return twinArchiveRepository.count();
+    protected long countAllByCreatedAtBefore(Timestamp createdBefore) {
+        return twinArchiveRepository.countAllByCreatedAtBefore(createdBefore);
     }
 }

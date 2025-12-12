@@ -15,6 +15,8 @@ public interface AttachmentDeleteTaskRepository extends CrudRepository<Attachmen
     List<AttachmentDeleteTaskEntity> findByStatusIn(List<AttachmentDeleteTaskStatus> statuses);
     List<AttachmentDeleteTaskEntity> findByStatusIn(List<AttachmentDeleteTaskStatus> statuses, Pageable pageable);
 
-    void deleteAllByStatusInAndCreatedAtAfter(List<AttachmentDeleteTaskStatus> needStartStatuses, Timestamp createdAfter);
-    long countAllByStatusInAndCreatedAtAfter(List<AttachmentDeleteTaskStatus> needStartStatuses, Timestamp createdAfter);
+    void deleteAllByStatusIn(List<AttachmentDeleteTaskStatus> statuses);
+    long countAllByStatusIn(List<AttachmentDeleteTaskStatus> statuses);
+    void deleteAllByStatusInAndCreatedAtBefore(List<AttachmentDeleteTaskStatus> needStartStatuses, Timestamp createdAt);
+    long countAllByStatusInAndCreatedAtBefore(List<AttachmentDeleteTaskStatus> needStartStatuses, Timestamp createdAt);
 }
