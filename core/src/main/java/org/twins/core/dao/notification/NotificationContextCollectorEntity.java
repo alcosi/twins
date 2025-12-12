@@ -14,18 +14,18 @@ import java.util.HashMap;
 import java.util.UUID;
 
 @Entity
-@Table(name = "history_notification_context_collector")
+@Table(name = "notification_context_collector")
 @DynamicUpdate
 @Data
 @FieldNameConstants
 @Accessors(chain = true)
-public class HistoryNotificationContextCollectorEntity implements EasyLoggable {
+public class NotificationContextCollectorEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
 
-    @Column(name = "history_notification_context_id")
-    private UUID historyNotificationContextId;
+    @Column(name = "notification_context_id")
+    private UUID NotificationContextId;
 
     @Column(name = "context_collector_featurer_id")
     private Integer contextCollectorFeaturerId;
@@ -35,15 +35,15 @@ public class HistoryNotificationContextCollectorEntity implements EasyLoggable {
     private HashMap<String, String> contextCollectorParams;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "history_notification_context_id", insertable = false, updatable = false)
-    private HistoryNotificationContextEntity historyNotificationContext;
+    @JoinColumn(name = "notification_context_id", insertable = false, updatable = false)
+    private NotificationContextEntity historyNotificationContext;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "context_collector_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity contextCollectorFeaturer;
 
     public String easyLog(Level level) {
-        return "historyNotificationContextCollector[id:" + id + "]";
+        return "notificationContextCollector[id:" + id + "]";
     }
 }
 

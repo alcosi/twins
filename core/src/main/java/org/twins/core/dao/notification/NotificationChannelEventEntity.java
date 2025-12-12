@@ -35,7 +35,7 @@ public class NotificationChannelEventEntity implements EasyLoggable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "history_notification_context_id", insertable = false, updatable = false)
-    private HistoryNotificationContextEntity historyNotificationContext;
+    private NotificationContextEntity historyNotificationContext;
 
     public String easyLog(Level level) {
         return switch (level) {

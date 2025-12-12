@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.notification.*;
-import org.twins.core.enums.HistoryNotificationStatus;
+import org.twins.core.enums.HistoryNotificationTaskStatus;
 import org.twins.core.featurer.notificator.context.ContextCollector;
 import org.twins.core.featurer.notificator.notifier.Notifier;
 import org.twins.core.featurer.notificator.recipient.RecipientResolver;
@@ -71,18 +71,18 @@ public class HistoryNotificationTask implements Runnable {
             }
 
             historyNotificationEntity
-                    .setStatusId(HistoryNotificationStatus.SENT)
+                    .setStatusId(HistoryNotificationTaskStatus.SENT)
                     .setStatusDetails(STR."\{recipientsCount} recipients were notified")
                     .setDoneAt(Timestamp.from(Instant.now()));
         } catch (ServiceException e) {
             log.error(e.log());
             historyNotificationEntity
-                    .setStatusId(HistoryNotificationStatus.FAILED)
+                    .setStatusId(HistoryNotificationTaskStatus.FAILED)
                     .setStatusDetails(e.log());
         } catch (Throwable e) {
             log.error("Exception: ", e);
             historyNotificationEntity
-                    .setStatusId(HistoryNotificationStatus.FAILED)
+                    .setStatusId(HistoryNotificationTaskStatus.FAILED)
                     .setStatusDetails(e.getMessage());
         } finally {
             historyNotificationTaskRepository.save(historyNotificationEntity);
@@ -97,7 +97,7 @@ public class HistoryNotificationTask implements Runnable {
 
     public Map<String, String> collectHistoryContext(UUID contextId, HistoryEntity history) throws ServiceException {
         Map<String, String> context = new HashMap<>();
-        for (HistoryNotificationContextCollectorEntity contextCollector : historyNotificationContextService.getContextCollectors(contextId)) {
+        for (NotificationContextCollectorEntity contextCollector : historyNotificationContextService.getContextCollectors(contextId)) {
             ContextCollector collector = featurerService.getFeaturer(contextCollector.getContextCollectorFeaturer(), ContextCollector.class);
             context = collector.collectData(history, context, contextCollector.getContextCollectorParams());
         }

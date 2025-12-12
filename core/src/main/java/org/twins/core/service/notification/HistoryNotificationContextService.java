@@ -8,10 +8,10 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.notification.HistoryNotificationContextCollectorEntity;
-import org.twins.core.dao.notification.HistoryNotificationContextCollectorRepository;
-import org.twins.core.dao.notification.HistoryNotificationContextEntity;
-import org.twins.core.dao.notification.HistoryNotificationContextRepository;
+import org.twins.core.dao.notification.NotificationContextCollectorEntity;
+import org.twins.core.dao.notification.NotificationContextCollectorRepository;
+import org.twins.core.dao.notification.NotificationContextEntity;
+import org.twins.core.dao.notification.NotificationContextRepository;
 
 import java.util.Set;
 import java.util.UUID;
@@ -21,33 +21,33 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class HistoryNotificationContextService extends EntitySecureFindServiceImpl<HistoryNotificationContextEntity> {
+public class HistoryNotificationContextService extends EntitySecureFindServiceImpl<NotificationContextEntity> {
 
-    private final HistoryNotificationContextRepository historyNotificationContextRepository;
-    private final HistoryNotificationContextCollectorRepository historyNotificationContextCollectorRepository;
+    private final NotificationContextRepository notificationContextRepository;
+    private final NotificationContextCollectorRepository notificationContextCollectorRepository;
 
     @Override
-    public CrudRepository<HistoryNotificationContextEntity, UUID> entityRepository() {
-        return historyNotificationContextRepository;
+    public CrudRepository<NotificationContextEntity, UUID> entityRepository() {
+        return notificationContextRepository;
     }
 
     @Override
-    public Function<HistoryNotificationContextEntity, UUID> entityGetIdFunction() {
-        return HistoryNotificationContextEntity::getId;
+    public Function<NotificationContextEntity, UUID> entityGetIdFunction() {
+        return NotificationContextEntity::getId;
     }
 
     @Override
-    public boolean isEntityReadDenied(HistoryNotificationContextEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+    public boolean isEntityReadDenied(NotificationContextEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         return false;
     }
 
     @Override
-    public boolean validateEntity(HistoryNotificationContextEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+    public boolean validateEntity(NotificationContextEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
     }
 
-    public Set<HistoryNotificationContextCollectorEntity> getContextCollectors(UUID contextId) {
+    public Set<NotificationContextCollectorEntity> getContextCollectors(UUID contextId) {
         //todo perhaps this can be cached
-        return historyNotificationContextCollectorRepository.findByHistoryNotificationContextId(contextId);
+        return notificationContextCollectorRepository.findByNotificationContextId(contextId);
     }
 }

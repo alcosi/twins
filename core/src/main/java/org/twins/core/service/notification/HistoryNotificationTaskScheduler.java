@@ -10,7 +10,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.notification.HistoryNotificationTaskRepository;
-import org.twins.core.enums.HistoryNotificationStatus;
+import org.twins.core.enums.HistoryNotificationTaskStatus;
 
 import java.util.List;
 
@@ -30,12 +30,12 @@ public class HistoryNotificationTaskScheduler {
             LoggerUtils.logController("historyNotificationScheduler$");
             log.debug("Loading history notifications from database");
             //todo after merging TWINS-611 add batch limit support
-            var collectedTasks = historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationStatus.NEED_START));
+            var collectedTasks = historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationTaskStatus.NEED_START));
             if (CollectionUtils.isEmpty(collectedTasks)) {
                 log.debug("No notification tasks");
                 return;
             }
-            collectedTasks.forEach(task -> task.setStatusId(HistoryNotificationStatus.IN_PROGRESS));
+            collectedTasks.forEach(task -> task.setStatusId(HistoryNotificationTaskStatus.IN_PROGRESS));
             var savedTasks = historyNotificationTaskRepository.saveAll(collectedTasks);
 
             log.info("{} history notifications should be processed", collectedTasks.size());

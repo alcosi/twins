@@ -30,7 +30,7 @@ public class NotifierAlcosiNotificationManager extends Notifier {
     @Override
     protected void notify(Set<UUID> recipientIds, Map<String, String> context, String eventCode, Properties properties) throws ServiceException {
         String businessAccountKey = "COMPANY_ID";
-        fillBaseDataMap(context, eventCode);
+        context.put("EVENT_ID", eventCode);
 
         String hostDomainBaseUriValue = getHostDomainBaseUri(properties);
 
@@ -44,10 +44,6 @@ public class NotifierAlcosiNotificationManager extends Notifier {
                 .build();
 
         receiverServiceFutureStub.sendNotification(notificationCommand);
-    }
-
-    private void fillBaseDataMap(Map<String, String> contextMap, String eventCode) {
-        contextMap.put("EVENT_ID", eventCode);
     }
 
     protected String getHostDomainBaseUri(Properties properties) throws ServiceException {

@@ -13,12 +13,12 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "history_notification_context")
+@Table(name = "notification_context")
 @DynamicUpdate
 @Data
 @FieldNameConstants
 @Accessors(chain = true)
-public class HistoryNotificationContextEntity implements EasyLoggable {
+public class NotificationContextEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -40,10 +40,10 @@ public class HistoryNotificationContextEntity implements EasyLoggable {
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     private I18nEntity descriptionI18n;
 
-    @OneToMany(mappedBy = "historyNotificationContext", fetch = FetchType.LAZY)
-    private List<HistoryNotificationContextCollectorEntity> contextCollectors = new ArrayList<>();
+    @OneToMany(mappedBy = "notificationContext", fetch = FetchType.LAZY)
+    private List<NotificationContextCollectorEntity> contextCollectors = new ArrayList<>();
 
     public String easyLog(Level level) {
-        return "historyNotificationContext[id:" + id + "]";
+        return "notificationContext[id:" + id + "]";
     }
 }

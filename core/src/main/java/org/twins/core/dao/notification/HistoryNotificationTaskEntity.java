@@ -7,7 +7,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.DynamicUpdate;
 import org.twins.core.dao.history.HistoryEntity;
-import org.twins.core.enums.HistoryNotificationStatus;
+import org.twins.core.enums.HistoryNotificationTaskStatus;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -30,7 +30,7 @@ public class HistoryNotificationTaskEntity implements EasyLoggable {
 
     @Column(name = "history_notification_task_status_id")
     @Enumerated(EnumType.STRING)
-    private HistoryNotificationStatus statusId;
+    private HistoryNotificationTaskStatus statusId;
 
     @Column(name = "status_details")
     private String statusDetails;
