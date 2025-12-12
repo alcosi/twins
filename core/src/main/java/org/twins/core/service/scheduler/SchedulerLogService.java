@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
@@ -17,7 +18,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -61,17 +61,20 @@ public class SchedulerLogService extends EntitySecureFindServiceImpl<SchedulerLo
             return;
         }
 
-        List<SchedulerLogEntity> needToLoad = entities.stream().filter((entity) -> entity.getScheduler() == null).toList();
+        KitGrouped<SchedulerLogEntity, UUID, UUID> needToLoad = new KitGrouped<>(entities, SchedulerLogEntity::getId, SchedulerLogEntity::getSchedulerId);
+        for (var entity : entities) {
+            if (entity.getScheduler() == null) {
+                needToLoad.add(entity);
+            }
+        }
 
         if (needToLoad.isEmpty()) {
             return;
         }
 
-        Kit<SchedulerLogEntity, UUID> schedulerLogs = new Kit<>(needToLoad, SchedulerLogEntity::getSchedulerId);
-        List<SchedulerEntity> schedulers = schedulerRepository.findAllById(needToLoad.stream().map(SchedulerLogEntity::getSchedulerId).collect(Collectors.toSet()));
-
+        Kit<SchedulerEntity, UUID> schedulers = new Kit<>(schedulerRepository.findAllById(needToLoad.getIdSet()), SchedulerEntity::getId);
         for (var scheduler : schedulers) {
-            schedulerLogs.get(scheduler.getId()).setScheduler(scheduler);
+            needToLoad.getGrouped(scheduler.getId()).forEach(log -> log.setScheduler(scheduler));
         }
     }
 }
