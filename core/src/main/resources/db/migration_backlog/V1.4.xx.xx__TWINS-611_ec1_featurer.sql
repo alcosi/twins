@@ -1,3 +1,7 @@
+insert into featurer_type(id, name, description)
+values (47, 'Scheduler', 'Services for scheduling tasks')
+on conflict do nothing;
+
 insert into featurer(id, featurer_type_id, class, name, description, deprecated)
 values (4701, 47, 'org.twins.core.featurer.scheduler.SchedulerAttachmentDeleteTaskRunner', 'SchedulerAttachmentDeleteTaskRunner', 'Scheduler for clearing external file storages after twin/attachment deletion', false),
        (4702, 47, 'org.twins.core.featurer.scheduler.SchedulerTwinArchiveCleaner', 'SchedulerTwinArchiveCleaner', 'Scheduler for clearing twin archive table', false),

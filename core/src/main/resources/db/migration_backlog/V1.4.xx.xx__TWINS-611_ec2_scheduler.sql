@@ -39,4 +39,5 @@ values
     (uuid_generate_v4(), null, 4704, ''::hstore, true, true, null, 500, 'Scheduler for executing draft erases', now(), now()),
     (uuid_generate_v4(), null, 4705, ''::hstore, true, true, null, 500, 'Scheduler for executing draft commits', now(), now()),
     (uuid_generate_v4(), null, 4706, ''::hstore, true, true, '0 0 0 * * *', null, 'Scheduler for cleaning scheduler log table', now(), now()),
-    (uuid_generate_v4(), null, 4707, ''::hstore, true, true, '0 0 0 * * *', null, 'Scheduler for cleaning attachment delete task table', now(), now());
+    (uuid_generate_v4(), null, 4707, ''::hstore, true, true, '0 0 0 * * *', null, 'Scheduler for cleaning attachment delete task table', now(), now())
+on conflict do nothing;
