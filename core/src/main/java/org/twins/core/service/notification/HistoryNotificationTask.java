@@ -45,8 +45,8 @@ public class HistoryNotificationTask implements Runnable {
             HistoryEntity history = historyNotificationEntity.getHistory();
             LoggerUtils.logSession(history.getHistoryBatchId());
             LoggerUtils.logController("historyNotificationTask");
-            LoggerUtils.logPrefix("HISTORY[" + historyNotificationEntity.getId() + "]:");
-            log.info("Performing async twin change run: {}", historyNotificationEntity.logDetailed());
+            LoggerUtils.logPrefix(STR."HISTORY[\{historyNotificationEntity.getId()}]:");
+            log.info("Performing history notification task: {}", historyNotificationEntity.logDetailed());
             List<HistoryNotificationSchemaMapEntity> configs = historyNotificationSchemaMapEntityRepository.findByHistoryTypeIdAndNotificationSchemaId(history.getHistoryType().name(), historyNotificationEntity.getNotificationSchemaId());
             KitGroupedObj<HistoryNotificationSchemaMapEntity, UUID, UUID, NotificationChannelEventEntity> notificationConfigsGroupedByChannelEvent = new KitGroupedObj<>(
                     configs,
@@ -72,7 +72,7 @@ public class HistoryNotificationTask implements Runnable {
 
             historyNotificationEntity
                     .setStatusId(HistoryNotificationStatus.SENT)
-                    .setStatusDetails(recipientsCount + " recipients were notified")
+                    .setStatusDetails(STR."\{recipientsCount} recipients were notified")
                     .setDoneAt(Timestamp.from(Instant.now()));
         } catch (ServiceException e) {
             log.error(e.log());
@@ -97,7 +97,7 @@ public class HistoryNotificationTask implements Runnable {
 
     public Map<String, String> collectHistoryContext(UUID contextId, HistoryEntity history) throws ServiceException {
         Map<String, String> context = new HashMap<>();
-        for (HistoryNotificationContextCollectorEntity contextCollector : historyNotificationContextService.getCollectorContextCollection(contextId)) {
+        for (HistoryNotificationContextCollectorEntity contextCollector : historyNotificationContextService.getContextCollectors(contextId)) {
             ContextCollector collector = featurerService.getFeaturer(contextCollector.getContextCollectorFeaturer(), ContextCollector.class);
             context = collector.collectData(history, context, contextCollector.getContextCollectorParams());
         }

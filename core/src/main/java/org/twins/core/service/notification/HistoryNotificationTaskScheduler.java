@@ -9,7 +9,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.notification.HistoryNotificationTaskEntity;
 import org.twins.core.dao.notification.HistoryNotificationTaskRepository;
 import org.twins.core.enums.HistoryNotificationStatus;
 
@@ -30,19 +29,20 @@ public class HistoryNotificationTaskScheduler {
             LoggerUtils.logSession();
             LoggerUtils.logController("historyNotificationScheduler$");
             log.debug("Loading history notifications from database");
-            List<HistoryNotificationTaskEntity> taskList = historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationStatus.NEED_START));
-            if (CollectionUtils.isEmpty(taskList)) {
+            //todo after merging TWINS-611 add batch limit support
+            var collectedTasks = historyNotificationTaskRepository.findByStatusIdIn(List.of(HistoryNotificationStatus.NEED_START));
+            if (CollectionUtils.isEmpty(collectedTasks)) {
                 log.debug("No notification tasks");
                 return;
             }
-            log.info("{} history notifications should be processed", taskList.size());
-            for (var task : taskList) {
+            collectedTasks.forEach(task -> task.setStatusId(HistoryNotificationStatus.IN_PROGRESS));
+            var savedTasks = historyNotificationTaskRepository.saveAll(collectedTasks);
+
+            log.info("{} history notifications should be processed", collectedTasks.size());
+            for (var task : savedTasks) {
                 try {
-                    log.info("Running history notification[{}] from status[{}]", task.getId(), task.getStatusId());
-                    task.setStatusId(HistoryNotificationStatus.IN_PROGRESS);
-                    historyNotificationTaskRepository.save(task);
-                    HistoryNotificationTask draftCommitTask = applicationContext.getBean(HistoryNotificationTask.class, task);
-                    taskExecutor.execute(draftCommitTask);
+                    HistoryNotificationTask historyNotificationTask = applicationContext.getBean(HistoryNotificationTask.class, task);
+                    taskExecutor.execute(historyNotificationTask);
                 } catch (Exception e) {
                     log.error("Exception ex: {}", e.getMessage(), e);
                 }

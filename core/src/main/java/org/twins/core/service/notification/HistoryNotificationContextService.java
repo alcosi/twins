@@ -8,7 +8,10 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.notification.*;
+import org.twins.core.dao.notification.HistoryNotificationContextCollectorEntity;
+import org.twins.core.dao.notification.HistoryNotificationContextCollectorRepository;
+import org.twins.core.dao.notification.HistoryNotificationContextEntity;
+import org.twins.core.dao.notification.HistoryNotificationContextRepository;
 
 import java.util.Set;
 import java.util.UUID;
@@ -43,7 +46,8 @@ public class HistoryNotificationContextService extends EntitySecureFindServiceIm
         return true;
     }
 
-    public Set<HistoryNotificationContextCollectorEntity> getCollectorContextCollection(UUID contextId) {
+    public Set<HistoryNotificationContextCollectorEntity> getContextCollectors(UUID contextId) {
+        //todo perhaps this can be cached
         return historyNotificationContextCollectorRepository.findByHistoryNotificationContextId(contextId);
     }
 }
