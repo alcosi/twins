@@ -14,6 +14,12 @@ insert into featurer(id, featurer_type_id, class, name, description) values (490
 insert into featurer(id, featurer_type_id, class, name, description) values (4904, 49, '', '', '') on conflict (id) do nothing;
 insert into featurer(id, featurer_type_id, class, name, description) values (4905, 49, '', '', '') on conflict (id) do nothing;
 
+INSERT INTO i18n_type (id, name) VALUES ('notificationContextName', 'Notification context name') on conflict on constraint i18n_type_pk do nothing ;
+INSERT INTO i18n_type (id, name) VALUES ('notificationContextDescription', 'Notification context description') on conflict on constraint i18n_type_pk do nothing ;
+INSERT INTO i18n_type (id, name) VALUES ('notificationSchemaName', 'Notification schema name') on conflict on constraint i18n_type_pk do nothing ;
+INSERT INTO i18n_type (id, name) VALUES ('notificationSchemaDescription', 'Notification schema description') on conflict on constraint i18n_type_pk do nothing ;
+
+
 create table if not exists history_notification_task_status
 (
     id varchar(100) not null
@@ -116,7 +122,9 @@ create table if not exists notification_channel_event
 
 create table if not exists notification_context_collector
 (
-    id                              uuid not null,
+    id                              uuid not null
+        constraint notification_context_collector_pk
+            primary key,
     notification_context_id uuid not null
         constraint notification_context_collector_context_id_fk
             references notification_context
