@@ -386,18 +386,10 @@ DROP TRIGGER IF EXISTS tier_after_update_trigger ON tier;
 CREATE TRIGGER tier_after_update_trigger
     AFTER UPDATE ON tier
     FOR EACH ROW
-    WHEN (
-        OLD.permission_schema_id IS DISTINCT FROM NEW.permission_schema_id OR
-        OLD.twinflow_schema_id IS DISTINCT FROM NEW.twinflow_schema_id OR
-        OLD.twin_class_schema_id IS DISTINCT FROM NEW.twin_class_schema_id OR
-        OLD.notification_schema_id IS DISTINCT FROM NEW.notification_schema_id OR
-        OLD.custom IS DISTINCT FROM NEW.custom
-        )
 EXECUTE FUNCTION tier_after_update_wrapper();
 
 DROP TRIGGER IF EXISTS domain_business_account_after_update_trigger ON domain_business_account;
 CREATE TRIGGER domain_business_account_after_update_trigger
     AFTER UPDATE OF tier_id ON domain_business_account
     FOR EACH ROW
-    WHEN (OLD.tier_id IS DISTINCT FROM NEW.tier_id)
 EXECUTE FUNCTION domain_business_account_after_update_wrapper();

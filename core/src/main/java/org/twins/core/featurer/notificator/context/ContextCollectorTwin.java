@@ -1,10 +1,11 @@
 package org.twins.core.featurer.notificator.context;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.FeaturerTwins;
@@ -12,7 +13,8 @@ import org.twins.core.featurer.FeaturerTwins;
 import java.util.Map;
 import java.util.Properties;
 
-@FeaturerType(id = FeaturerTwins.ID_4902,
+@Component
+@Featurer(id = FeaturerTwins.ID_4904,
         name = "Context collector twin",
         description = "Collect form twin (id, name, description)")
 @Slf4j

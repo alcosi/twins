@@ -110,14 +110,14 @@ public class HistoryNotificationTask implements Runnable {
     }
 
     public Set<UUID> recipientResolve(HistoryNotificationRecipientEntity notificationRecipient, HistoryEntity history) throws ServiceException {
-        RecipientResolver recipientResolver = featurerService.getFeaturer(notificationRecipient.getRecipientResolverFeaturer(), RecipientResolver.class);
+        RecipientResolver recipientResolver = featurerService.getFeaturer(notificationRecipient.getRecipientResolverFeaturerId(), RecipientResolver.class);
         return recipientResolver.resolve(history, notificationRecipient.getRecipientResolverParams());
     }
 
     public Map<String, String> collectHistoryContext(UUID contextId, HistoryEntity history) throws ServiceException {
         Map<String, String> context = new HashMap<>();
         for (NotificationContextCollectorEntity contextCollector : notificationContextService.getContextCollectors(contextId)) {
-            ContextCollector collector = featurerService.getFeaturer(contextCollector.getContextCollectorFeaturer(), ContextCollector.class);
+            ContextCollector collector = featurerService.getFeaturer(contextCollector.getContextCollectorFeaturerId(), ContextCollector.class);
             context = collector.collectData(history, context, contextCollector.getContextCollectorParams());
         }
         return context;

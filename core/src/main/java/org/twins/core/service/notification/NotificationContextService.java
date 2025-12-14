@@ -8,6 +8,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.notification.NotificationContextCollectorEntity;
 import org.twins.core.dao.notification.NotificationContextCollectorRepository;
 import org.twins.core.dao.notification.NotificationContextEntity;
@@ -46,6 +47,7 @@ public class NotificationContextService extends EntitySecureFindServiceImpl<Noti
         return true;
     }
 
+    @Transactional(readOnly = true)
     public Set<NotificationContextCollectorEntity> getContextCollectors(UUID contextId) {
         //todo perhaps this can be cached
         return notificationContextCollectorRepository.findAllByNotificationContextId(contextId);

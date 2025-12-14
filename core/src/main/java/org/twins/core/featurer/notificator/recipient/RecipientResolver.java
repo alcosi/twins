@@ -6,6 +6,7 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.twins.core.dao.history.HistoryEntity;
+import org.twins.core.dao.history.context.HistoryContextUserChange;
 import org.twins.core.enums.history.HistoryType;
 import org.twins.core.featurer.FeaturerTwins;
 
@@ -21,16 +22,16 @@ import java.util.UUID;
 @Slf4j
 public abstract class RecipientResolver extends FeaturerTwins {
 
-    @FeaturerParam(name = "Exclude creator", description = "", order = 1, optional = true, defaultValue = "true")
+    @FeaturerParam(name = "Exclude twin creator", description = "", order = 1, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeCreator = new FeaturerParamBoolean("excludeCreator");
 
-    @FeaturerParam(name = "Exclude old assignee", description = "", order = 2, optional = true, defaultValue = "true")
+    @FeaturerParam(name = "Exclude old twin assignee", description = "", order = 2, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeOldAssignee = new FeaturerParamBoolean("excludeOldAssignee");
 
-    @FeaturerParam(name = "Exclude new assignee", description = "", order = 3, optional = true, defaultValue = "true")
+    @FeaturerParam(name = "Exclude new twin assignee", description = "", order = 3, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeNewAssignee = new FeaturerParamBoolean("excludeNewAssignee");
 
-    @FeaturerParam(name = "Exclude actor", description = "User who is an author of history record", order = 4, optional = true, defaultValue = "true")
+    @FeaturerParam(name = "Exclude history actor", description = "User who is an author of history record", order = 4, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeActor = new FeaturerParamBoolean("excludeActor");
 
     public Set<UUID> resolve(HistoryEntity history, HashMap<String, String> recipientParams) throws ServiceException {
@@ -40,13 +41,15 @@ public abstract class RecipientResolver extends FeaturerTwins {
             users.remove(history.getTwin().getCreatedByUserId());
         }
         if (history.getHistoryType().equals(HistoryType.assigneeChanged) && excludeOldAssignee.extract(properties)) {
-            String oldAssignee = history.getContext().getTemplateVars().get("fromValue"); //todo impl throws (HistoryContextUserChange)
+            HistoryContextUserChange contextUser = (HistoryContextUserChange) history.getContext();
+            String oldAssignee = contextUser.getFromUser().getUserId();
             if (!oldAssignee.isBlank()) {
                 users.remove(UUID.fromString(oldAssignee));
             }
         }
         if (history.getHistoryType().equals(HistoryType.assigneeChanged) && excludeNewAssignee.extract(properties)) {
-            String newAssignee = history.getContext().getTemplateVars().get("toValue");
+            HistoryContextUserChange contextUser = (HistoryContextUserChange) history.getContext();
+            String newAssignee = contextUser.getToUser().getUserId();
             if (!newAssignee.isBlank()) {
                 users.remove(UUID.fromString(newAssignee));
             }
@@ -54,7 +57,6 @@ public abstract class RecipientResolver extends FeaturerTwins {
         if (excludeActor.extract(properties)) {
             users.remove(history.getActorUserId());
         }
-        //todo security risk: extra filter users by domain and business_account
         return users;
     }
 
