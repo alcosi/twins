@@ -199,120 +199,197 @@ create table if not exists history_notification_task
     done_at timestamp
 );
 
-CREATE OR REPLACE FUNCTION notification_schema_detect(domainid uuid, businessaccountid uuid) RETURNS uuid AS $$
+CREATE OR REPLACE FUNCTION notification_schema_detect(
+    p_domain_id uuid,
+    p_business_account_id uuid
+) RETURNS uuid AS $$
 DECLARE
-    schemaId UUID;
+    v_schema_id UUID;
 BEGIN
-    -- twin in BA
-    IF businessAccountId IS NOT NULL THEN
-        SELECT notification_schema_id INTO schemaId
+    IF p_business_account_id IS NOT NULL THEN
+        SELECT notification_schema_id INTO v_schema_id
         FROM domain_business_account
-        WHERE domain_id = domainId AND business_account_id = businessAccountId;
-        IF FOUND AND schemaId IS NOT NULL THEN
-            RETURN schemaId;
+        WHERE domain_id = p_domain_id
+          AND business_account_id = p_business_account_id;
+
+        IF FOUND AND v_schema_id IS NOT NULL THEN
+            RETURN v_schema_id;
         END IF;
     END IF;
 
-    -- return domain schema, if twin not in BA
-    SELECT notification_schema_id INTO schemaId FROM domain WHERE id = domainId;
-    RETURN schemaId;
+    SELECT notification_schema_id INTO v_schema_id
+    FROM domain
+    WHERE id = p_domain_id;
+
+    RETURN v_schema_id;
 EXCEPTION WHEN OTHERS THEN
     RETURN NULL;
 END;
-$$ IMMUTABLE LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION history_notification_task_insert_schema_on_history_insert()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION get_twin_context(
+    p_twin_id uuid
+) RETURNS TABLE (
+                    owner_business_account_id uuid,
+                    domain_id uuid
+                ) AS $$
+BEGIN
+    RETURN QUERY
+        SELECT
+            t.owner_business_account_id,
+            tc.domain_id
+        FROM twin t
+                 JOIN twin_class tc ON t.twin_class_id = tc.id
+        WHERE t.id = p_twin_id;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+CREATE OR REPLACE FUNCTION create_history_notification_task(
+    p_history_id uuid,
+    p_twin_id uuid
+) RETURNS void AS $$
 DECLARE
-    v_twin_owner_business_account_id uuid;
-    v_twin_class_domain_id uuid;
+    v_context RECORD;
     v_notification_schema_id uuid;
 BEGIN
-    SELECT t.owner_business_account_id, tc.domain_id
-    INTO v_twin_owner_business_account_id, v_twin_class_domain_id
-    FROM twin t
-    JOIN twin_class tc ON t.twin_class_id = tc.id
-    WHERE t.id = NEW.twin_id;
+    SELECT * INTO v_context
+    FROM get_twin_context(p_twin_id);
 
-    -- Do not create task if twin class domain_id is empty
-    IF v_twin_class_domain_id IS NULL THEN
-        RETURN NEW;
+    IF v_context.domain_id IS NULL THEN
+        RETURN;
     END IF;
 
-    -- Detect notification schema
-    v_notification_schema_id := notification_schema_detect(v_twin_class_domain_id, v_twin_owner_business_account_id);
+    v_notification_schema_id := notification_schema_detect(
+            v_context.domain_id,
+            v_context.owner_business_account_id
+                                );
 
-    -- Insert into history_notification_task only if schema is detected
     IF v_notification_schema_id IS NOT NULL THEN
-        INSERT INTO history_notification_task (id, history_id, notification_schema_id)
-        VALUES (gen_random_uuid(), NEW.id, v_notification_schema_id);
+        INSERT INTO history_notification_task (
+            id,
+            history_id,
+            notification_schema_id
+        ) VALUES (
+                     gen_random_uuid(),
+                     p_history_id,
+                     v_notification_schema_id
+                 );
     END IF;
-
-    RETURN NEW;
-EXCEPTION WHEN unique_violation THEN
-    RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-DO $$
+CREATE OR REPLACE FUNCTION update_ba_properties_on_tier_change(
+    p_tier_id uuid
+) RETURNS void AS $$
 BEGIN
-DROP TRIGGER IF EXISTS trigger_insert_history_notification ON history;
-CREATE TRIGGER trigger_insert_history_notification
-    AFTER INSERT ON history
-    FOR EACH ROW
-    EXECUTE FUNCTION history_notification_task_insert_schema_on_history_insert();
-END $$;
-
--- Update tier triggers to include notification_schema_id
-CREATE OR REPLACE FUNCTION tiers_update_business_account_properties_on_tier_change() RETURNS TRIGGER AS $$
-BEGIN
-    IF NEW.custom THEN
-        RETURN NULL; --if custom changed to true then return. Tier properties will apply to BA, only if this tier selected on BA create or update
-    END IF;
-
-    IF OLD.permission_schema_id IS DISTINCT FROM NEW.permission_schema_id OR
-       OLD.twinflow_schema_id IS DISTINCT FROM NEW.twinflow_schema_id OR
-       OLD.twin_class_schema_id IS DISTINCT FROM NEW.twin_class_schema_id OR
-       OLD.notification_schema_id IS DISTINCT FROM NEW.notification_schema_id OR
-       OLD.custom IS DISTINCT FROM NEW.custom THEN --if custom changed to false - apply proprties to all domain BA
-
-        UPDATE domain_business_account ba
-        SET permission_schema_id = NEW.permission_schema_id,
-            twinflow_schema_id = NEW.twinflow_schema_id,
-            twin_class_schema_id = NEW.twin_class_schema_id,
-            notification_schema_id = NEW.notification_schema_id
-        WHERE tier_id = NEW.id and NEW.domain_id = domain_id;
-    END IF;
-
-    RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
-
--- Drop old trigger first (before dropping the function it depends on)
-DROP TRIGGER IF EXISTS tiers_domain_business_account_tier_id_update_trigger ON domain_business_account;
-
--- Drop old function and create new one with renamed function
-DROP FUNCTION IF EXISTS public.tiers_update_business_account_properties_on_self_tier_id_change();
-
-CREATE OR REPLACE FUNCTION domain_business_account_on_tier_id_change()
-    RETURNS TRIGGER AS $$
-BEGIN
-    UPDATE domain_business_account
+    UPDATE domain_business_account ba
     SET
         permission_schema_id = t.permission_schema_id,
         twinflow_schema_id = t.twinflow_schema_id,
         twin_class_schema_id = t.twin_class_schema_id,
         notification_schema_id = t.notification_schema_id
-    FROM (SELECT permission_schema_id, twinflow_schema_id, twin_class_schema_id, notification_schema_id FROM tier WHERE id = NEW.tier_id) AS t
-    WHERE domain_business_account.id = NEW.id;
+    FROM tier t
+    WHERE ba.tier_id = p_tier_id
+      AND t.id = p_tier_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION update_all_ba_for_tier(
+    p_tier_id uuid,
+    p_domain_id uuid,
+    p_permission_schema_id uuid,
+    p_twinflow_schema_id uuid,
+    p_twin_class_schema_id uuid,
+    p_notification_schema_id uuid,
+    p_custom boolean
+) RETURNS void AS $$
+BEGIN
+    IF p_custom THEN
+        RETURN;
+    END IF;
+
+    UPDATE domain_business_account ba
+    SET
+        permission_schema_id = p_permission_schema_id,
+        twinflow_schema_id = p_twinflow_schema_id,
+        twin_class_schema_id = p_twin_class_schema_id,
+        notification_schema_id = p_notification_schema_id
+    WHERE ba.tier_id = p_tier_id
+      AND ba.domain_id = p_domain_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION history_after_insert_wrapper()
+    RETURNS TRIGGER AS $$
+BEGIN
+    PERFORM create_history_notification_task(NEW.id, NEW.twin_id);
+    RETURN NEW;
+EXCEPTION
+    WHEN unique_violation THEN
+        RETURN NEW;
+    WHEN OTHERS THEN
+        RAISE WARNING 'Error in history_after_insert_wrapper: %', SQLERRM;
+        RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION tier_after_update_wrapper()
+    RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.permission_schema_id IS DISTINCT FROM NEW.permission_schema_id OR
+       OLD.twinflow_schema_id IS DISTINCT FROM NEW.twinflow_schema_id OR
+       OLD.twin_class_schema_id IS DISTINCT FROM NEW.twin_class_schema_id OR
+       OLD.notification_schema_id IS DISTINCT FROM NEW.notification_schema_id OR
+       (OLD.custom IS DISTINCT FROM NEW.custom AND NOT NEW.custom) THEN
+
+        PERFORM update_all_ba_for_tier(
+                NEW.id,
+                NEW.domain_id,
+                NEW.permission_schema_id,
+                NEW.twinflow_schema_id,
+                NEW.twin_class_schema_id,
+                NEW.notification_schema_id,
+                NEW.custom
+                );
+    END IF;
 
     RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
--- Update trigger to use new function name
-CREATE TRIGGER tiers_domain_business_account_tier_id_update_trigger
+CREATE OR REPLACE FUNCTION domain_business_account_after_update_wrapper()
+    RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.tier_id IS DISTINCT FROM NEW.tier_id THEN
+        PERFORM update_ba_properties_on_tier_change(NEW.tier_id);
+    END IF;
+
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS history_after_insert_trigger ON history;
+CREATE TRIGGER history_after_insert_trigger
+    AFTER INSERT ON history
+    FOR EACH ROW
+EXECUTE FUNCTION history_after_insert_wrapper();
+
+DROP TRIGGER IF EXISTS tier_after_update_trigger ON tier;
+CREATE TRIGGER tier_after_update_trigger
+    AFTER UPDATE ON tier
+    FOR EACH ROW
+    WHEN (
+        OLD.permission_schema_id IS DISTINCT FROM NEW.permission_schema_id OR
+        OLD.twinflow_schema_id IS DISTINCT FROM NEW.twinflow_schema_id OR
+        OLD.twin_class_schema_id IS DISTINCT FROM NEW.twin_class_schema_id OR
+        OLD.notification_schema_id IS DISTINCT FROM NEW.notification_schema_id OR
+        OLD.custom IS DISTINCT FROM NEW.custom
+        )
+EXECUTE FUNCTION tier_after_update_wrapper();
+
+DROP TRIGGER IF EXISTS domain_business_account_after_update_trigger ON domain_business_account;
+CREATE TRIGGER domain_business_account_after_update_trigger
     AFTER UPDATE OF tier_id ON domain_business_account
     FOR EACH ROW
     WHEN (OLD.tier_id IS DISTINCT FROM NEW.tier_id)
-    EXECUTE FUNCTION domain_business_account_on_tier_id_change();
+EXECUTE FUNCTION domain_business_account_after_update_wrapper();
