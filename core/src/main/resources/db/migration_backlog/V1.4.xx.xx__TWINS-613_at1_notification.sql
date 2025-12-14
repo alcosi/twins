@@ -14,18 +14,18 @@ insert into featurer(id, featurer_type_id, class, name, description) values (490
 insert into featurer(id, featurer_type_id, class, name, description) values (4904, 49, '', '', '') on conflict (id) do nothing;
 insert into featurer(id, featurer_type_id, class, name, description) values (4905, 49, '', '', '') on conflict (id) do nothing;
 
-create table if not exists history_notification_task_staus
+create table if not exists history_notification_task_status
 (
     id varchar(100) not null
-        constraint history_notification_task_staus_pk
+        constraint history_notification_task_status_pk
             primary key
 );
 
-INSERT INTO history_notification_task_staus (id) VALUES ('NEED_START') on conflict on constraint history_notification_task_staus_pk do nothing ;
-INSERT INTO history_notification_task_staus (id) VALUES ('IN_PROGRESS') on conflict on constraint history_notification_task_staus_pk do nothing ;
-INSERT INTO history_notification_task_staus (id) VALUES ('SENT') on conflict on constraint history_notification_task_staus_pk do nothing ;
-INSERT INTO history_notification_task_staus (id) VALUES ('SKIPPED') on conflict on constraint history_notification_task_staus_pk do nothing ;
-INSERT INTO history_notification_task_staus (id) VALUES ('FAILED') on conflict on constraint history_notification_task_staus_pk do nothing ;
+INSERT INTO history_notification_task_status (id) VALUES ('NEED_START') on conflict on constraint history_notification_task_status_pk do nothing ;
+INSERT INTO history_notification_task_status (id) VALUES ('IN_PROGRESS') on conflict on constraint history_notification_task_status_pk do nothing ;
+INSERT INTO history_notification_task_status (id) VALUES ('SENT') on conflict on constraint history_notification_task_status_pk do nothing ;
+INSERT INTO history_notification_task_status (id) VALUES ('SKIPPED') on conflict on constraint history_notification_task_status_pk do nothing ;
+INSERT INTO history_notification_task_status (id) VALUES ('FAILED') on conflict on constraint history_notification_task_status_pk do nothing ;
 
 create table if not exists history_notification_recipient
 (
@@ -191,8 +191,8 @@ create table if not exists history_notification_task
             references notification_schema
             on update cascade on delete cascade,
     history_notification_task_status_id varchar(100) default 'NEED_START'::character varying not null
-        constraint history_notification_task_history_notification_task_staus_id_fk
-            references history_notification_task_staus
+        constraint history_notification_task_notification_task_status_id_fk
+            references history_notification_task_status
             on update cascade on delete cascade,
     status_details varchar,
     created_at timestamp    default CURRENT_TIMESTAMP             not null,
