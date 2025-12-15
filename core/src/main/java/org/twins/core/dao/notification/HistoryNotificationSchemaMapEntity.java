@@ -63,7 +63,7 @@ public class HistoryNotificationSchemaMapEntity implements EasyLoggable {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "notification_channel_event_id", insertable = false, updatable = false)
     private NotificationChannelEventEntity notificationChannelEvent;
 

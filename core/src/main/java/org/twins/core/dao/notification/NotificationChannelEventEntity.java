@@ -33,13 +33,13 @@ public class NotificationChannelEventEntity implements EasyLoggable {
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "notification_channel_id", insertable = false, updatable = false)
     private NotificationChannelEntity notificationChannel;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "notification_context_id", insertable = false, updatable = false)
     private NotificationContextEntity notificationContext;
 
