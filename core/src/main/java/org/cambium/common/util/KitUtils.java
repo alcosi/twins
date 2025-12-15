@@ -15,7 +15,10 @@ public class KitUtils {
         return kit != null && kit.isNotEmpty();
     }
 
-    public static <E, K, GK, GE> KitGrouped<E, K, GK> createNeedLoadGrouped(Collection<E> srcCollection, Function<? super E, ? extends K> functionGetId, Function<? super E, ? extends GK> functionGetGroupingId, Function<? super E, ? extends GE> functionGetGroupingObject) {
+    public static <E, K, GK, GE> KitGrouped<E, K, GK> createNeedLoadGrouped(
+            Collection<E> srcCollection, Function<? super E, ? extends K> functionGetId,
+            Function<? super E, ? extends GK> functionGetGroupingId,
+            Function<? super E, ? extends GE> functionGetGroupingObject) {
         KitGrouped<E, K, GK> needLoad = new KitGrouped<>(functionGetId, functionGetGroupingId);
         for (var item : srcCollection) {
             if (functionGetGroupingObject.apply(item) == null && functionGetId.apply(item) != null)
