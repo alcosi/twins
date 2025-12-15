@@ -11,24 +11,23 @@ import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.twins.core.featurer.notificator.recipient.RecipientResolver;
-import org.twins.core.featurer.storager.Storager;
 
 import java.util.HashMap;
 import java.util.UUID;
 
 @Entity
-@Table(name = "history_notification_recipient")
+@Table(name = "history_notification_recipient_collector")
 @DynamicUpdate
 @Data
 @FieldNameConstants
 @Accessors(chain = true)
-public class HistoryNotificationRecipientEntity implements EasyLoggable {
+public class HistoryNotificationRecipientCollectorEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
 
-    @Column(name = "domain_id")
-    private UUID domainId;
+    @Column(name = "history_notification_context_recipient_id")
+    private UUID historyNotificationContextRecipientId;
 
     @Column(name = "recipient_resolver_featurer_id")
     private Integer recipientResolverFeaturerId;
@@ -42,7 +41,11 @@ public class HistoryNotificationRecipientEntity implements EasyLoggable {
     @JoinColumn(name = "recipient_resolver_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity recipientResolverFeaturer;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "history_notification_context_recipient_id", insertable = false, updatable = false)
+    private HistoryNotificationContextRecipientEntity historyNotificationContextRecipientEntity;
+
     public String easyLog(Level level) {
-        return "historyNotificationRecipient[id:" + id + "]";
+        return "historyNotificationRecipientCollector[id:" + id + "]";
     }
 }

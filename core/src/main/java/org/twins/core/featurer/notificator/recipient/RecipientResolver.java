@@ -25,17 +25,32 @@ public abstract class RecipientResolver extends FeaturerTwins {
     @FeaturerParam(name = "Exclude twin creator", order = 1, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeCreator = new FeaturerParamBoolean("excludeCreator");
 
+    @FeaturerParam(name = "Include twin creator", order = 1, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean includeCreator = new FeaturerParamBoolean("includeCreator");
+
     @FeaturerParam(name = "Exclude twin assignee", order = 5, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeAssignee = new FeaturerParamBoolean("excludeAssignee");
+
+    @FeaturerParam(name = "Include twin assignee", order = 5, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean includeAssignee = new FeaturerParamBoolean("includeAssignee");
 
     @FeaturerParam(name = "Exclude old twin assignee", order = 2, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeOldAssignee = new FeaturerParamBoolean("excludeOldAssignee");
 
+    @FeaturerParam(name = "Include old twin assignee", order = 2, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean includeOldAssignee = new FeaturerParamBoolean("includeOldAssignee");
+
     @FeaturerParam(name = "Exclude new twin assignee", order = 3, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeNewAssignee = new FeaturerParamBoolean("excludeNewAssignee");
 
+    @FeaturerParam(name = "Include new twin assignee", order = 2, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean includeNewAssignee = new FeaturerParamBoolean("includeNewAssignee");
+
     @FeaturerParam(name = "Exclude history actor", order = 4, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeActor = new FeaturerParamBoolean("excludeActor");
+
+    @FeaturerParam(name = "Include history actor", order = 2, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean includeActor = new FeaturerParamBoolean("includeActor");
 
     public Set<UUID> resolve(HistoryEntity history, HashMap<String, String> recipientParams) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, recipientParams, new HashMap<>());
@@ -53,7 +68,7 @@ public abstract class RecipientResolver extends FeaturerTwins {
     private static void resolveCreator(HistoryEntity history, Properties properties, Set<UUID> users) {
         if (excludeCreator.extract(properties)) {
             users.remove(history.getTwin().getCreatedByUserId());
-        } else {
+        } else if (includeCreator.extract(properties)) {
             users.add(history.getTwin().getCreatedByUserId());
         }
     }
@@ -61,7 +76,7 @@ public abstract class RecipientResolver extends FeaturerTwins {
     private static void resolveActor(HistoryEntity history, Properties properties, Set<UUID> users) {
         if (excludeActor.extract(properties)) {
             users.remove(history.getActorUserId());
-        } else {
+        } else if (includeActor.extract(properties)) {
             users.add(history.getActorUserId());
         }
     }
@@ -72,7 +87,7 @@ public abstract class RecipientResolver extends FeaturerTwins {
             return;
         if (excludeAssignee.extract(properties)) {
             users.remove(assignerUserId);
-        } else {
+        } else if (includeAssignee.extract(properties)) {
             users.add(assignerUserId);
         }
     }
@@ -85,7 +100,7 @@ public abstract class RecipientResolver extends FeaturerTwins {
                 if (userId != null) {
                     users.remove(UUID.fromString(userId));
                 }
-            } else {
+            } else if (includeOldAssignee.extract(properties)) {
                 HistoryContextUserChange oldAssignee = (HistoryContextUserChange) history.getContext();
                 String userId = oldAssignee.getFromUser().getUserId();
                 if (userId != null) {
@@ -103,7 +118,7 @@ public abstract class RecipientResolver extends FeaturerTwins {
                 if (userId != null) {
                     users.remove(UUID.fromString(userId));
                 }
-            } else {
+            } else if (includeNewAssignee.extract(properties)) {
                 HistoryContextUserChange newAssignee = (HistoryContextUserChange) history.getContext();
                 String userId = newAssignee.getToUser().getUserId();
                 if (userId != null) {

@@ -31,8 +31,8 @@ public class HistoryNotificationSchemaMapEntity implements EasyLoggable {
     @Column(name = "notification_schema_id")
     private UUID notificationSchemaId;
 
-    @Column(name = "history_notification_recipient_id")
-    private UUID historyNotificationRecipientId;
+    @Column(name = "history_notification_context_recipient_id")
+    private UUID historyNotificationContextRecipientId;
 
     @Column(name = "notification_channel_event_id")
     private UUID notificationChannelEventId;
@@ -50,8 +50,8 @@ public class HistoryNotificationSchemaMapEntity implements EasyLoggable {
     private TwinClassEntity twinClass;
 
     @ManyToOne
-    @JoinColumn(name = "history_notification_recipient_id", insertable = false, updatable = false)
-    private HistoryNotificationRecipientEntity historyNotificationRecipient;
+    @JoinColumn(name = "history_notification_context_recipient_id", insertable = false, updatable = false)
+    private HistoryNotificationContextRecipientEntity historyNotificationRecipient;
 
     @ManyToOne
     @JoinColumn(name = "notification_channel_event_id", insertable = false, updatable = false)

@@ -15,6 +15,7 @@ import org.twins.core.enums.HistoryNotificationTaskStatus;
 import org.twins.core.featurer.notificator.context.ContextCollector;
 import org.twins.core.featurer.notificator.notifier.Notifier;
 import org.twins.core.featurer.notificator.recipient.RecipientResolver;
+import org.twins.core.service.history.HistoryRecipientService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -35,6 +36,8 @@ public class HistoryNotificationTask implements Runnable {
     private NotificationContextService notificationContextService;
     
     private final Map<UUID, Map<String, String>> contextCache = new HashMap<>();
+    @Autowired
+    private HistoryRecipientService historyRecipientService;
 
     public HistoryNotificationTask(HistoryNotificationTaskEntity historyNotificationEntity) {
         this.historyNotificationEntity = historyNotificationEntity;
@@ -69,7 +72,7 @@ public class HistoryNotificationTask implements Runnable {
             for (var entry : notificationConfigsGroupedByChannelEvent.getGroupedMap().entrySet()) {
                 var recipientIds = new HashSet<UUID>();
                 for (var config : entry.getValue()) {
-                    recipientIds.addAll(recipientResolve(config.getHistoryNotificationRecipient(), history));
+                    recipientIds.addAll(recipientResolve(config.getHistoryNotificationRecipient().getId(), history));
                 }
                 if (recipientIds.isEmpty())
                     continue;
@@ -109,9 +112,13 @@ public class HistoryNotificationTask implements Runnable {
         }
     }
 
-    public Set<UUID> recipientResolve(HistoryNotificationRecipientEntity notificationRecipient, HistoryEntity history) throws ServiceException {
-        RecipientResolver recipientResolver = featurerService.getFeaturer(notificationRecipient.getRecipientResolverFeaturerId(), RecipientResolver.class);
-        return recipientResolver.resolve(history, notificationRecipient.getRecipientResolverParams());
+    public Set<UUID> recipientResolve(UUID recipientId, HistoryEntity history) throws ServiceException {
+        Set<UUID> recipientIds = new HashSet<>();
+        for (HistoryNotificationRecipientCollectorEntity recipientCollector : historyRecipientService.getRecipientCollectors(recipientId)) {
+            RecipientResolver recipientResolver = featurerService.getFeaturer(recipientCollector.getRecipientResolverFeaturerId(), RecipientResolver.class);
+            recipientIds = recipientResolver.resolve(history, recipientCollector.getRecipientResolverParams());
+        }
+        return recipientIds;
     }
 
     public Map<String, String> collectHistoryContext(UUID contextId, HistoryEntity history) throws ServiceException {

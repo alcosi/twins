@@ -79,7 +79,7 @@ public class NotifierAlcosiNotificationManager extends Notifier {
                         .usePlaintext()
                         .build();
 
-                return ReceiverServiceGrpc.newFutureStub(channel);
+                return ReceiverServiceGrpc.newBlockingStub(channel);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to create gRPC stub for URI: " + uri, e);
             }
