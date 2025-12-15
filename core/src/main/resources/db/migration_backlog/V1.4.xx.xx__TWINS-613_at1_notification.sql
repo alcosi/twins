@@ -19,8 +19,8 @@ INSERT INTO i18n_type (id, name) VALUES ('notificationContextName', 'Notificatio
 INSERT INTO i18n_type (id, name) VALUES ('notificationContextDescription', 'Notification context description') on conflict on constraint i18n_type_pk do nothing ;
 INSERT INTO i18n_type (id, name) VALUES ('notificationSchemaName', 'Notification schema name') on conflict on constraint i18n_type_pk do nothing ;
 INSERT INTO i18n_type (id, name) VALUES ('notificationSchemaDescription', 'Notification schema description') on conflict on constraint i18n_type_pk do nothing ;
-INSERT INTO i18n_type (id, name) VALUES ('contextRecipientName', 'Context recipient name') on conflict on constraint i18n_type_pk do nothing ;
-INSERT INTO i18n_type (id, name) VALUES ('contextRecipientDescription', 'Context recipient description') on conflict on constraint i18n_type_pk do nothing ;
+INSERT INTO i18n_type (id, name) VALUES ('recipientName', 'Recipient name') on conflict on constraint i18n_type_pk do nothing ;
+INSERT INTO i18n_type (id, name) VALUES ('recipientDescription', 'Recipient description') on conflict on constraint i18n_type_pk do nothing ;
 
 
 create table if not exists history_notification_task_status
@@ -36,21 +36,21 @@ INSERT INTO history_notification_task_status (id) VALUES ('SENT') on conflict on
 INSERT INTO history_notification_task_status (id) VALUES ('SKIPPED') on conflict on constraint history_notification_task_status_pk do nothing ;
 INSERT INTO history_notification_task_status (id) VALUES ('FAILED') on conflict on constraint history_notification_task_status_pk do nothing ;
 
-create table if not exists history_notification_context_recipient
+create table if not exists history_notification_recipient
 (
     id                             uuid    not null
-        constraint history_notification_context_recipient_pk
+        constraint history_notification_recipient_pk
             primary key,
     domain_id                      uuid    not null
-        constraint history_notification_context_recipient_domain_id_fk
+        constraint history_notification_recipient_domain_id_fk
             references domain
             on update cascade on delete cascade,
     name_i18n_id uuid not null
-        constraint history_notification_context_recipient_name_i18n_id_fk
+        constraint history_notification_recipient_name_i18n_id_fk
             references i18n
             on update cascade on delete cascade,
     description_i18n_id uuid
-        constraint history_notification_context_recipient_description_i18n_id_fk
+        constraint history_notification_recipient_description_i18n_id_fk
             references i18n
             on update cascade on delete cascade
 );
@@ -60,9 +60,9 @@ create table if not exists history_notification_recipient_collector
     id                              uuid not null
         constraint history_notification_recipient_collector_pk
             primary key,
-    history_notification_context_recipient_id uuid not null
+    history_notification_recipient_id uuid not null
         constraint history_notification_recipient_collector_recipient_id_fk
-            references history_notification_context_recipient
+            references history_notification_recipient
             on update cascade on delete cascade,
     recipient_resolver_featurer_id integer not null
         constraint history_notification_recipient_featurer_id_fk
@@ -175,16 +175,16 @@ create table if not exists history_notification_schema_map
         constraint history_notification_schema_map_notification_schema_id_fk
             references notification_schema
             on update cascade on delete cascade,
-    history_notification_context_recipient_id uuid         not null
-        constraint history_notification_schema_map_context_recipient_id_fk
-            references history_notification_context_recipient
+    history_notification_recipient_id uuid         not null
+        constraint history_notification_schema_map_recipient_id_fk
+            references history_notification_recipient
             on update cascade on delete cascade,
     notification_channel_event_id     uuid         not null
         constraint history_notification_schema_map_channel_event_id_fk
             references notification_channel_event
             on update cascade on delete cascade,
     constraint history_notification_schema_map_uq
-        unique (history_type_id, notification_schema_id, history_notification_context_recipient_id,
+        unique (history_type_id, notification_schema_id, history_notification_recipient_id,
                 notification_channel_event_id)
 );
 
@@ -256,7 +256,7 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION get_twin_context(
+CREATE OR REPLACE FUNCTION twin_context_get(
     p_twin_id uuid
 ) RETURNS TABLE (
                     owner_business_account_id uuid,
@@ -273,7 +273,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE;
 
-CREATE OR REPLACE FUNCTION create_history_notification_task(
+CREATE OR REPLACE FUNCTION history_notification_task_create(
     p_history_id uuid,
     p_twin_id uuid
 ) RETURNS void AS $$
@@ -282,7 +282,7 @@ DECLARE
     v_notification_schema_id uuid;
 BEGIN
     SELECT * INTO v_context
-    FROM get_twin_context(p_twin_id);
+    FROM twin_context_get(p_twin_id);
 
     IF v_context.domain_id IS NULL THEN
         RETURN;
@@ -307,7 +307,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION update_ba_properties_on_tier_change(
+CREATE OR REPLACE FUNCTION business_account_properties_update_on_tier_change(
     p_tier_id uuid
 ) RETURNS void AS $$
 BEGIN
@@ -323,7 +323,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION update_all_ba_for_tier(
+CREATE OR REPLACE FUNCTION business_account_update_all(
     p_tier_id uuid,
     p_domain_id uuid,
     p_permission_schema_id uuid,
@@ -351,7 +351,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION history_after_insert_wrapper()
     RETURNS TRIGGER AS $$
 BEGIN
-    PERFORM create_history_notification_task(NEW.id, NEW.twin_id);
+    PERFORM history_notification_task_create(NEW.id, NEW.twin_id);
     RETURN NEW;
 EXCEPTION
     WHEN unique_violation THEN
@@ -371,7 +371,7 @@ BEGIN
        OLD.notification_schema_id IS DISTINCT FROM NEW.notification_schema_id OR
        (OLD.custom IS DISTINCT FROM NEW.custom AND NOT NEW.custom) THEN
 
-        PERFORM update_all_ba_for_tier(
+        PERFORM business_account_update_all(
                 NEW.id,
                 NEW.domain_id,
                 NEW.permission_schema_id,
@@ -390,7 +390,7 @@ CREATE OR REPLACE FUNCTION domain_business_account_after_update_wrapper()
     RETURNS TRIGGER AS $$
 BEGIN
     IF OLD.tier_id IS DISTINCT FROM NEW.tier_id THEN
-        PERFORM update_ba_properties_on_tier_change(NEW.tier_id);
+        PERFORM business_account_properties_update_on_tier_change(NEW.tier_id);
     END IF;
 
     RETURN NULL;

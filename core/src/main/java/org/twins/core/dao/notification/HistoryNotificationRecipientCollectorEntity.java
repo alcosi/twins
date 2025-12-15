@@ -6,11 +6,9 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
-import org.twins.core.featurer.notificator.recipient.RecipientResolver;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -26,8 +24,8 @@ public class HistoryNotificationRecipientCollectorEntity implements EasyLoggable
     @GeneratedValue(generator = "uuid")
     private UUID id;
 
-    @Column(name = "history_notification_context_recipient_id")
-    private UUID historyNotificationContextRecipientId;
+    @Column(name = "history_notification_recipient_id")
+    private UUID historyNotificationRecipientId;
 
     @Column(name = "recipient_resolver_featurer_id")
     private Integer recipientResolverFeaturerId;
@@ -36,14 +34,12 @@ public class HistoryNotificationRecipientCollectorEntity implements EasyLoggable
     @Column(name = "recipient_resolver_params", columnDefinition = "hstore")
     private HashMap<String, String> recipientResolverParams;
 
-    @FeaturerList(type = RecipientResolver.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "recipient_resolver_featurer_id", insertable = false, updatable = false)
+    @Transient
     private FeaturerEntity recipientResolverFeaturer;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "history_notification_context_recipient_id", insertable = false, updatable = false)
-    private HistoryNotificationContextRecipientEntity historyNotificationContextRecipientEntity;
+    @JoinColumn(name = "history_notification_recipient_id", insertable = false, updatable = false)
+    private HistoryNotificationRecipientEntity historyNotificationRecipientEntity;
 
     public String easyLog(Level level) {
         return "historyNotificationRecipientCollector[id:" + id + "]";

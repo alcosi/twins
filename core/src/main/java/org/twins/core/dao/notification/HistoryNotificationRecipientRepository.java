@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface HistoryNotificationContextRecipientRepository extends CrudRepository<HistoryNotificationContextRecipientEntity, UUID>, JpaSpecificationExecutor<HistoryNotificationContextRecipientEntity> {
+public interface HistoryNotificationRecipientRepository extends CrudRepository<HistoryNotificationRecipientEntity, UUID>, JpaSpecificationExecutor<HistoryNotificationRecipientEntity> {
 
 }
 

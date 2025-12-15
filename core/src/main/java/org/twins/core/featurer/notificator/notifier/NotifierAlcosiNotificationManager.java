@@ -41,7 +41,7 @@ public class NotifierAlcosiNotificationManager extends Notifier {
 
         String hostDomainBaseUriValue = getHostDomainBaseUri(properties);
 
-        ReceiverServiceGrpc.ReceiverServiceFutureStub receiverServiceFutureStub = getOrCreateStub(hostDomainBaseUriValue);
+        ReceiverServiceGrpc.ReceiverServiceBlockingStub receiverServiceFutureStub = getOrCreateStub(hostDomainBaseUriValue);
 
         Receiver.SendNotificationCommand notificationCommand = Receiver.SendNotificationCommand.newBuilder()
                 .addAllUsersIds(recipientIds.stream().map(UUID::toString).collect(Collectors.toList()))
@@ -63,8 +63,8 @@ public class NotifierAlcosiNotificationManager extends Notifier {
     }
 
     @SuppressWarnings("unchecked")
-    protected ReceiverServiceGrpc.ReceiverServiceFutureStub getOrCreateStub(String hostDomainBaseUri) {
-        return (ReceiverServiceGrpc.ReceiverServiceFutureStub) stubCache.computeIfAbsent(hostDomainBaseUri, uri -> {
+    protected ReceiverServiceGrpc.ReceiverServiceBlockingStub getOrCreateStub(String hostDomainBaseUri) {
+        return (ReceiverServiceGrpc.ReceiverServiceBlockingStub) stubCache.computeIfAbsent(hostDomainBaseUri, uri -> {
             try {
                 String target;
                 if (uri.startsWith("http://") || uri.startsWith("https://")) {

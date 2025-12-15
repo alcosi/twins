@@ -13,9 +13,9 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_4704,
-        name = "Stub Recipient Resolver",
+        name = "Base Recipient Resolver",
         description = "")
-public class RecipientResolverStub extends RecipientResolver {
+public class RecipientResolverBase extends RecipientResolver {
 
     @Override
     protected Set<UUID> resolve(HistoryEntity history, Properties properties) throws ServiceException {

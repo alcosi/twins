@@ -19,34 +19,34 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class HistoryRecipientService extends EntitySecureFindServiceImpl<HistoryNotificationContextRecipientEntity> {
+public class HistoryRecipientService extends EntitySecureFindServiceImpl<HistoryNotificationRecipientEntity> {
 
-    private final HistoryNotificationContextRecipientRepository repository;
+    private final HistoryNotificationRecipientRepository repository;
     private final HistoryNotificationRecipientCollectorRepository historyNotificationRecipientCollectorRepository;
 
     @Override
-    public CrudRepository<HistoryNotificationContextRecipientEntity, UUID> entityRepository() {
+    public CrudRepository<HistoryNotificationRecipientEntity, UUID> entityRepository() {
         return repository;
     }
 
     @Override
-    public Function<HistoryNotificationContextRecipientEntity, UUID> entityGetIdFunction() {
-        return HistoryNotificationContextRecipientEntity::getId;
+    public Function<HistoryNotificationRecipientEntity, UUID> entityGetIdFunction() {
+        return HistoryNotificationRecipientEntity::getId;
     }
 
     @Override
-    public boolean isEntityReadDenied(HistoryNotificationContextRecipientEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+    public boolean isEntityReadDenied(HistoryNotificationRecipientEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         return false;
     }
 
     @Override
-    public boolean validateEntity(HistoryNotificationContextRecipientEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+    public boolean validateEntity(HistoryNotificationRecipientEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
     }
 
     @Transactional(readOnly = true)
     public Set<HistoryNotificationRecipientCollectorEntity> getRecipientCollectors(UUID recipientId) {
         //todo perhaps this can be cached
-        return historyNotificationRecipientCollectorRepository.findAllByHistoryNotificationContextRecipientId(recipientId);
+        return historyNotificationRecipientCollectorRepository.findAllByHistoryNotificationRecipientId(recipientId);
     }
 }

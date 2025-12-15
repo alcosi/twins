@@ -2,6 +2,8 @@ package org.twins.core.dao.notification;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -29,10 +31,14 @@ public class NotificationChannelEventEntity implements EasyLoggable {
     @Column(name = "notification_context_id")
     private UUID notificationContextId;
 
-    @ManyToOne
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "notification_channel_id", insertable = false, updatable = false)
     private NotificationChannelEntity notificationChannel;
 
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "notification_context_id", insertable = false, updatable = false)
     private NotificationContextEntity notificationContext;
