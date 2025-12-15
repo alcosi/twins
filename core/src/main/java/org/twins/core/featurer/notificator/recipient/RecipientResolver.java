@@ -22,43 +22,94 @@ import java.util.UUID;
 @Slf4j
 public abstract class RecipientResolver extends FeaturerTwins {
 
-    @FeaturerParam(name = "Exclude twin creator", description = "", order = 1, optional = true, defaultValue = "true")
+    @FeaturerParam(name = "Exclude twin creator", order = 1, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeCreator = new FeaturerParamBoolean("excludeCreator");
 
-    @FeaturerParam(name = "Exclude old twin assignee", description = "", order = 2, optional = true, defaultValue = "true")
+    @FeaturerParam(name = "Exclude twin assignee", order = 5, optional = true, defaultValue = "true")
+    public static final FeaturerParamBoolean excludeAssignee = new FeaturerParamBoolean("excludeAssignee");
+
+    @FeaturerParam(name = "Exclude old twin assignee", order = 2, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeOldAssignee = new FeaturerParamBoolean("excludeOldAssignee");
 
-    @FeaturerParam(name = "Exclude new twin assignee", description = "", order = 3, optional = true, defaultValue = "true")
+    @FeaturerParam(name = "Exclude new twin assignee", order = 3, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeNewAssignee = new FeaturerParamBoolean("excludeNewAssignee");
 
-    @FeaturerParam(name = "Exclude history actor", description = "User who is an author of history record", order = 4, optional = true, defaultValue = "true")
+    @FeaturerParam(name = "Exclude history actor", order = 4, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeActor = new FeaturerParamBoolean("excludeActor");
 
     public Set<UUID> resolve(HistoryEntity history, HashMap<String, String> recipientParams) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, recipientParams, new HashMap<>());
         Set<UUID> users = resolve(history, properties);
-        if (excludeCreator.extract(properties)) {
-            users.remove(history.getTwin().getCreatedByUserId());
-        }
-        if (history.getHistoryType().equals(HistoryType.assigneeChanged) && excludeOldAssignee.extract(properties)) {
-            HistoryContextUserChange contextUser = (HistoryContextUserChange) history.getContext();
-            String oldAssignee = contextUser.getFromUser().getUserId();
-            if (!oldAssignee.isBlank()) {
-                users.remove(UUID.fromString(oldAssignee));
-            }
-        }
-        if (history.getHistoryType().equals(HistoryType.assigneeChanged) && excludeNewAssignee.extract(properties)) {
-            HistoryContextUserChange contextUser = (HistoryContextUserChange) history.getContext();
-            String newAssignee = contextUser.getToUser().getUserId();
-            if (!newAssignee.isBlank()) {
-                users.remove(UUID.fromString(newAssignee));
-            }
-        }
-        if (excludeActor.extract(properties)) {
-            users.remove(history.getActorUserId());
-        }
+        resolveCreator(history, properties, users);
+        resolveActor(history, properties, users);
+        resolveAssignee(history, properties, users);
+        resolveOldAssignee(history, properties, users);
+        resolveNewAssignee(history, properties, users);
         return users;
     }
 
     protected abstract Set<UUID> resolve(HistoryEntity history, Properties properties) throws ServiceException;
+
+    private static void resolveCreator(HistoryEntity history, Properties properties, Set<UUID> users) {
+        if (excludeCreator.extract(properties)) {
+            users.remove(history.getTwin().getCreatedByUserId());
+        } else {
+            users.add(history.getTwin().getCreatedByUserId());
+        }
+    }
+
+    private static void resolveActor(HistoryEntity history, Properties properties, Set<UUID> users) {
+        if (excludeActor.extract(properties)) {
+            users.remove(history.getActorUserId());
+        } else {
+            users.add(history.getActorUserId());
+        }
+    }
+
+    private static void resolveAssignee(HistoryEntity history, Properties properties, Set<UUID> users) {
+        UUID assignerUserId = history.getTwin().getAssignerUserId();
+        if (assignerUserId == null)
+            return;
+        if (excludeAssignee.extract(properties)) {
+            users.remove(assignerUserId);
+        } else {
+            users.add(assignerUserId);
+        }
+    }
+
+    private static void resolveOldAssignee(HistoryEntity history, Properties properties, Set<UUID> users) {
+        if (history.getHistoryType().equals(HistoryType.assigneeChanged)) {
+            if (excludeOldAssignee.extract(properties)) {
+                HistoryContextUserChange oldAssignee = (HistoryContextUserChange) history.getContext();
+                String userId = oldAssignee.getFromUser().getUserId();
+                if (userId != null) {
+                    users.remove(UUID.fromString(userId));
+                }
+            } else {
+                HistoryContextUserChange oldAssignee = (HistoryContextUserChange) history.getContext();
+                String userId = oldAssignee.getFromUser().getUserId();
+                if (userId != null) {
+                    users.add(UUID.fromString(userId));
+                }
+            }
+        }
+    }
+
+    private static void resolveNewAssignee(HistoryEntity history, Properties properties, Set<UUID> users) {
+        if (history.getHistoryType().equals(HistoryType.assigneeChanged)) {
+            if (excludeNewAssignee.extract(properties)) {
+                HistoryContextUserChange newAssignee = (HistoryContextUserChange) history.getContext();
+                String userId = newAssignee.getToUser().getUserId();
+                if (userId != null) {
+                    users.remove(UUID.fromString(userId));
+                }
+            } else {
+                HistoryContextUserChange newAssignee = (HistoryContextUserChange) history.getContext();
+                String userId = newAssignee.getToUser().getUserId();
+                if (userId != null) {
+                    users.add(UUID.fromString(userId));
+                }
+            }
+        }
+    }
 }
