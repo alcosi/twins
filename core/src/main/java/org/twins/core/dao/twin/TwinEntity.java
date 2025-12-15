@@ -9,6 +9,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
@@ -41,6 +42,7 @@ import java.util.UUID;
 @Data
 @Table(name = "twin")
 @FieldNameConstants
+@DynamicUpdate
 public class TwinEntity implements Cloneable, EasyLoggable {
     @Id
     private UUID id;
