@@ -3,6 +3,8 @@ package org.twins.core.dao.notification;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -35,6 +37,8 @@ public class HistoryNotificationRecipientCollectorEntity implements EasyLoggable
     private HashMap<String, String> recipientResolverParams;
 
     @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity recipientResolverFeaturer;
 
     @ManyToOne(fetch = FetchType.LAZY)
