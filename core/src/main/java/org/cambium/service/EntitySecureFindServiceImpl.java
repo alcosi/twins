@@ -5,10 +5,8 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.ChangesHelperMulti;
-import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.UuidUtils;
+import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -356,5 +354,25 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         }
 
         setFunction.accept(dbEntity, (R) updateValue);
+    }
+
+    public <E, K> void load(Collection<E> srcCollection,
+                                     Function<? super E, ? extends K> functionGetId,
+                                     Function<? super E, UUID> functionGetGroupingId,
+                                     Function<? super E, T> functionGetGroupingEntity,
+                                     BiConsumer<E, T> functionSetGroupingEntity) throws ServiceException {
+        if (srcCollection.isEmpty()) {
+            return;
+        }
+        KitGrouped<E, K, UUID> needLoad = KitUtils.createNeedLoadGrouped(srcCollection, functionGetId, functionGetGroupingId, functionGetGroupingEntity);
+        if (KitUtils.isEmpty(needLoad)) {
+            return;
+        }
+        Kit<T, UUID> loaded = findEntitiesSafe(needLoad.getGroupedKeySet());
+        UUID key;
+        for (var item : needLoad) {
+            key = functionGetGroupingId.apply(item);
+            functionSetGroupingEntity.accept(item, loaded.get(key));
+        }
     }
 }
