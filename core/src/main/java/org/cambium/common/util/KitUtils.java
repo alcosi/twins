@@ -21,7 +21,7 @@ public class KitUtils {
             Function<? super E, ? extends GE> functionGetGroupingObject) {
         KitGrouped<E, K, GK> needLoad = new KitGrouped<>(functionGetId, functionGetGroupingId);
         for (var item : srcCollection) {
-            if (functionGetGroupingObject.apply(item) == null && functionGetId.apply(item) != null)
+            if (functionGetGroupingObject.apply(item) == null && functionGetGroupingId.apply(item) != null)
                 needLoad.add(item);
         }
         return needLoad;
