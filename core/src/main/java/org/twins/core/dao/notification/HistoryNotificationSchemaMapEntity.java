@@ -7,9 +7,13 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.DynamicUpdate;
 import org.twins.core.dao.history.HistoryTypeEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.validator.ContainsTwinValidatorSet;
+import org.twins.core.dao.validator.TwinValidatorEntity;
+import org.twins.core.dao.validator.TwinValidatorSetEntity;
 
 import java.util.UUID;
 
@@ -19,7 +23,7 @@ import java.util.UUID;
 @Data
 @FieldNameConstants
 @Accessors(chain = true)
-public class HistoryNotificationSchemaMapEntity implements EasyLoggable {
+public class HistoryNotificationSchemaMapEntity implements EasyLoggable, ContainsTwinValidatorSet {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -29,6 +33,12 @@ public class HistoryNotificationSchemaMapEntity implements EasyLoggable {
 
     @Column(name = "twin_class_id")
     private UUID twinClassId;
+
+    @Column(name = "twin_validator_set_id")
+    private UUID twinValidatorSetId;
+
+    @Column(name = "twin_validator_set_invert")
+    private Boolean twinValidatorSetInvert;
 
     @Column(name = "notification_schema_id")
     private UUID notificationSchemaId;
@@ -42,6 +52,13 @@ public class HistoryNotificationSchemaMapEntity implements EasyLoggable {
     @ManyToOne
     @JoinColumn(name = "history_type_id", insertable = false, updatable = false)
     private HistoryTypeEntity historyType;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinValidatorEntity, UUID> twinValidatorKit;
+
+    @Transient
+    private TwinValidatorSetEntity twinValidatorSet;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

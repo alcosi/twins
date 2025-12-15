@@ -1,6 +1,7 @@
 package org.twins.core.service.notification;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.util.CollectionUtils;
@@ -11,9 +12,14 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.notification.*;
+import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
+import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
 import org.twins.core.featurer.notificator.notifier.Notifier;
+import org.twins.core.featurer.notificator.recipient.RecipientResolver;
+import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.history.HistoryRecipientService;
+import org.twins.core.service.validator.TwinValidatorService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -32,10 +38,12 @@ public class HistoryNotificationTask implements Runnable {
     private FeaturerService featurerService;
     @Autowired
     private NotificationContextService notificationContextService;
-    
-    private final Map<UUID, Map<String, String>> contextCache = new HashMap<>();
     @Autowired
     private HistoryRecipientService historyRecipientService;
+    @Autowired
+    private TwinValidatorService twinValidatorService;
+
+    private final Map<UUID, Map<String, String>> contextCache = new HashMap<>();
 
     public HistoryNotificationTask(HistoryNotificationTaskEntity historyNotificationEntity) {
         this.historyNotificationEntity = historyNotificationEntity;
@@ -70,7 +78,26 @@ public class HistoryNotificationTask implements Runnable {
             for (var entry : notificationConfigsGroupedByChannelEvent.getGroupedMap().entrySet()) {
                 var recipientIds = new HashSet<UUID>();
                 for (var config : entry.getValue()) {
-                    recipientIds.addAll(historyRecipientService.recipientResolve(config.getHistoryNotificationRecipient().getId(), history));
+                    boolean isValid = true;
+                    twinValidatorService.loadValidators(config);
+                    List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(config.getTwinValidatorKit().getList());
+                    sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
+                    for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
+                        if (!twinValidatorEntity.isActive()) {
+                            log.info(twinValidatorEntity.logShort() + " from " + config.logShort() + " is inactive");
+                            continue;
+                        }
+                        TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturerId(), TwinValidator.class);
+                        ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), history.getTwin(), twinValidatorEntity.isInvert());
+                        if (!validationResult.isValid()) {
+                            log.error(validationResult.getMessage());
+                            isValid = false;
+                            break;
+                        }
+                    }
+                    if (isValid) {
+                        recipientIds.addAll(historyRecipientService.recipientResolve(config.getHistoryNotificationRecipient().getId(), history));
+                    }
                 }
                 if (recipientIds.isEmpty())
                     continue;
@@ -81,6 +108,7 @@ public class HistoryNotificationTask implements Runnable {
                 Notifier notifier = featurerService.getFeaturer(notificationChannel.getNotifierFeaturerId(), Notifier.class);
                 notifier.notify(recipientIds, context, channelEvent.getEventCode(), notificationChannel.getNotifierParams());
             }
+
             if (recipientsCount == 0) {
                 throw new NotificationSkippedException("No recipients were found for " + history.logNormal());
             }

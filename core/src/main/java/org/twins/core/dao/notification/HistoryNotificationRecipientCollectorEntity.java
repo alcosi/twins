@@ -41,7 +41,7 @@ public class HistoryNotificationRecipientCollectorEntity implements EasyLoggable
     @ToString.Exclude
     private FeaturerEntity recipientResolverFeaturer;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "history_notification_recipient_id", insertable = false, updatable = false)
     private HistoryNotificationRecipientEntity historyNotificationRecipientEntity;
 
