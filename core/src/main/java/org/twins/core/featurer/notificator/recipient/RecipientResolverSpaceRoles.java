@@ -20,7 +20,7 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_4703,
         name = "Space Role–based Recipient Resolver",
         description = "Resolves recipient users based on their roles within a specific space (for example, task participants)")
-public class RecipientResolverSpaceRoles extends RecipientResolver {
+public class RecipientResolverSpaceRoles extends RecipientResolverExclude {
 
     @FeaturerParam(name = "Space role ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet spaceRoleIds = new FeaturerParamUUIDSetUserId("spaceRoleIds");

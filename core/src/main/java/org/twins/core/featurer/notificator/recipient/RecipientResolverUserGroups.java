@@ -20,7 +20,7 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_4702,
         name = "User Group–based Recipient Resolver",
         description = "Resolves recipient users based on their membership in specified user groups within a business account.")
-public class RecipientResolverUserGroups extends RecipientResolver {
+public class RecipientResolverUserGroups extends RecipientResolverExclude {
 
     @FeaturerParam(name = "User group ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet userGroupIds = new FeaturerParamUUIDSetUserId("userGroupIds");

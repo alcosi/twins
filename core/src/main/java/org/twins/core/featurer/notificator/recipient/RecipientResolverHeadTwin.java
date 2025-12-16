@@ -21,7 +21,7 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_4705,
         name = "Head twin–based Recipient Resolver",
         description = "Resolves recipient users from head twin)")
-public class RecipientResolverHeadTwin extends RecipientResolver {
+public class RecipientResolverHeadTwin extends RecipientResolverExclude {
 
     @FeaturerParam(name = "Include twin creator", order = 1, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean includeCreator = new FeaturerParamBoolean("includeCreator");

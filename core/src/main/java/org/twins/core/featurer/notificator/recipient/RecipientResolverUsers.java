@@ -21,7 +21,7 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_4701,
         name = "User Recipient Resolver",
         description = "")
-public class RecipientResolverUsers extends RecipientResolver {
+public class RecipientResolverUsers extends RecipientResolverExclude {
 
     @FeaturerParam(name = "User ids", description = "", order = 1, optional = true)
     public static final FeaturerParamUUIDSet userIds = new FeaturerParamUUIDSetUserId("userIds");
