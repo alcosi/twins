@@ -57,23 +57,7 @@ public class HistoryNotificationTask implements Runnable {
                 throw new NotificationSkippedException("Twin is out of domain");
             }
 
-            HistoryType historyType = history.getHistoryType();
-            List<HistoryNotificationSchemaMapEntity> configs = null;
-            if (HistoryType.fieldChanged.equals(historyType)) {
-                configs = historyNotificationSchemaMapEntityRepository.findByHistoryTypeIdAndTwinClassIdAndTwinClassFieldIdAndNotificationSchemaId(
-                        historyType.name(),
-                        history.getTwin().getTwinClassId(),
-                        history.getTwinClassFieldId(),
-                        historyNotificationEntity.getNotificationSchemaId()
-                );
-            }
-            if (CollectionUtils.isEmpty(configs)) {
-                configs = historyNotificationSchemaMapEntityRepository.findByHistoryTypeIdAndTwinClassIdAndNotificationSchemaId(
-                        historyType.name(),
-                        history.getTwin().getTwinClassId(),
-                        historyNotificationEntity.getNotificationSchemaId()
-                );
-            }
+            List<HistoryNotificationSchemaMapEntity> configs = getConfigs(history);
             if (CollectionUtils.isEmpty(configs)) {
                 throw new NotificationSkippedException("No configs found for " + history.logNormal());
             }
@@ -128,6 +112,27 @@ public class HistoryNotificationTask implements Runnable {
             historyNotificationTaskRepository.save(historyNotificationEntity);
             LoggerUtils.cleanMDC();
         }
+    }
+
+    private List<HistoryNotificationSchemaMapEntity> getConfigs(HistoryEntity history) {
+        List<HistoryNotificationSchemaMapEntity> configs = null;
+        HistoryType historyType = history.getHistoryType();
+        if (HistoryType.fieldChanged.equals(historyType)) {
+            configs = historyNotificationSchemaMapEntityRepository.findByHistoryTypeIdAndTwinClassIdAndTwinClassFieldIdAndNotificationSchemaId(
+                    historyType.name(),
+                    history.getTwin().getTwinClassId(),
+                    history.getTwinClassFieldId(),
+                    historyNotificationEntity.getNotificationSchemaId()
+            );
+        }
+        if (CollectionUtils.isEmpty(configs)) {
+            configs = historyNotificationSchemaMapEntityRepository.findByHistoryTypeIdAndTwinClassIdAndNotificationSchemaId(
+                    historyType.name(),
+                    history.getTwin().getTwinClassId(),
+                    historyNotificationEntity.getNotificationSchemaId()
+            );
+        }
+        return configs;
     }
 
     private Map<String, String> getContext(UUID contextId, HistoryEntity history) throws ServiceException {
