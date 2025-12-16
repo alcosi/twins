@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.notification.NotificationSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
@@ -61,6 +62,9 @@ public class TierEntity implements EasyLoggable {
     @Column(name = "updated_at")
     private Timestamp updatedAt;
 
+    @Column(name = "notification_schema_id")
+    private UUID notificationSchemaId;
+
     //Performance safe because tier is not used in operations
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -79,6 +83,11 @@ public class TierEntity implements EasyLoggable {
     @ManyToOne
     @JoinColumn(name = "twin_class_schema_id", insertable = false, updatable = false)
     private TwinClassSchemaEntity twinClassSchema;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @EqualsAndHashCode.Exclude
+    @JoinColumn(name = "notification_schema_id", insertable = false, updatable = false)
+    private NotificationSchemaEntity notificationSchema;
 
     @Override
     public String easyLog(Level level) {

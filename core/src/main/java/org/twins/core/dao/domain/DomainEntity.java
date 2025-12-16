@@ -14,6 +14,7 @@ import org.hibernate.annotations.Type;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.LocaleConverter;
 import org.twins.core.dao.idp.IdentityProviderEntity;
+import org.twins.core.dao.notification.NotificationSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.resource.StorageEntity;
@@ -121,6 +122,9 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "identity_provider_id")
     private UUID identityProviderId;
 
+    @Column(name = "notification_schema_id")
+    private UUID notificationSchemaId;
+
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -199,6 +203,11 @@ public class DomainEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TwinEntity domainUserTemplateTwin;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "notification_schema_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private NotificationSchemaEntity notificationSchema;
 
     // needed for specification
     @Deprecated

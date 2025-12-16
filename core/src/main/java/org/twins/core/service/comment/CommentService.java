@@ -34,10 +34,12 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DBUService;
+import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserGroupService;
+import org.twins.core.domain.TwinChangesCollector;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -56,6 +58,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     private final AuthService authService;
     private final EntitySmartService entitySmartService;
     private final AttachmentService attachmentService;
+    private final HistoryService historyService;
     private final TwinService twinService;
     private final PermissionService permissionService;
     private final TwinCommentRepository commentRepository;
@@ -77,6 +80,13 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         TwinEntity twinEntity = twinService.findEntitySafe(comment.getTwinId());
         comment.setTwin(twinEntity);
         saveSafe(comment);
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        if (twinChangesCollector.isHistoryCollectorEnabled()) {
+            twinChangesCollector
+                    .getHistoryCollector(twinEntity)
+                    .add(historyService.commentCreate(comment));
+        }
+        historyService.saveHistory(twinChangesCollector.getHistoryCollector());
         if (CollectionUtils.isEmpty(attachmentList))
             return comment;
         addCommentIdInAttachments(comment.getId(), attachmentList);

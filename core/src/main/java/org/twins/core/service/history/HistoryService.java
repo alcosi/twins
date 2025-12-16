@@ -217,6 +217,11 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .shotAttachment(attachmentEntity));
     }
 
+    public HistoryItem<HistoryContextComment> commentCreate(org.twins.core.dao.comment.TwinCommentEntity commentEntity) {
+        return new HistoryItem<>(HistoryType.commentCreate, new HistoryContextComment()
+                .shotComment(commentEntity));
+    }
+
     public HistoryItem<HistoryContextAttachmentChange> attachmentUpdate(TwinAttachmentEntity attachmentEntity) {
         HistoryContextAttachmentChange context = new HistoryContextAttachmentChange();
         context.shotAttachment(attachmentEntity);
