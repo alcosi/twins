@@ -23,13 +23,13 @@ public class ContextCollectorHistoryTwinStatus extends ContextCollector {
     @FeaturerParam(name = "Collect src status", description = "", order = 1, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean collectSrcStatus = new FeaturerParamBoolean("collectSrcStatus");
 
-    @FeaturerParam(name = "Collect src status", description = "", order = 1, optional = true, defaultValue = "false")
-    public static final FeaturerParamBoolean collectDstStatus = new FeaturerParamBoolean("collectDstStatus");
-
     @FeaturerParam(name = "Collect src status name", description = "", order = 2, optional = true, defaultValue = "TWIN_SRC_STATUS_NAME")
     public static final FeaturerParamString collectSrcStatusKey = new FeaturerParamString("collectSrcStatusKey");
 
-    @FeaturerParam(name = "Collect src status name", description = "", order = 2, optional = true, defaultValue = "TWIN_DST_STATUS_NAME")
+    @FeaturerParam(name = "Collect dst status", description = "", order = 3, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean collectDstStatus = new FeaturerParamBoolean("collectDstStatus");
+
+    @FeaturerParam(name = "Collect src status name", description = "", order = 4, optional = true, defaultValue = "TWIN_DST_STATUS_NAME")
     public static final FeaturerParamString collectDstStatusKey = new FeaturerParamString("collectDstStatusKey");
 
     @Override

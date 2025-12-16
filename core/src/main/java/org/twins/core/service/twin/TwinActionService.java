@@ -41,6 +41,8 @@ public class TwinActionService {
     @Lazy
     final TwinValidatorService twinValidatorService;
     @Lazy
+    final TwinValidatorSetService twinValidatorSetService;
+    @Lazy
     final PermissionService permissionService;
     @Lazy
     final FeaturerService featurerService;
@@ -66,23 +68,7 @@ public class TwinActionService {
                 continue;
             }
             for (TwinActionValidatorRuleEntity twinActionValidatorRuleEntity : twinEntity.getTwinClass().getActionsProtectedByValidatorRules().getGrouped(twinAction)) {
-                boolean isValid = true;
-                twinValidatorService.loadValidators(twinActionValidatorRuleEntity);
-                List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(twinActionValidatorRuleEntity.getTwinValidatorKit().getList());
-                sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
-                for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
-                    if (!twinValidatorEntity.isActive()) {
-                        log.info(twinValidatorEntity.logShort() + " from " + twinActionValidatorRuleEntity.logShort() + " is inactive");
-                        continue;
-                    }
-                    TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturerId(), TwinValidator.class);
-                    ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
-                    if (!validationResult.isValid()) {
-                        log.error(validationResult.getMessage());
-                        isValid = false;
-                        break;
-                    }
-                }
+                boolean isValid = twinValidatorSetService.isValid(twinEntity, twinActionValidatorRuleEntity);
                 if (isValid) {
                     twinEntity.getActions().add(twinAction);
                     break;

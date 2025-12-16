@@ -21,6 +21,7 @@ import org.twins.core.dao.validator.TwinValidatorSetRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.validator.TwinValidatorService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -34,6 +35,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
     @Lazy
     private final AuthService authService;
     private final FeaturerService featurerService;
+    private final TwinValidatorService twinValidatorService;
 
     @Override
     public CrudRepository<TwinValidatorSetEntity, UUID> entityRepository() {
@@ -79,8 +81,11 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
             validatorRule.setTwinValidatorSet(twinValidatorSetEntitiesKit.get(validatorRule.getTwinValidatorSetId()));
     }
 
-    public boolean isValid(TwinEntity twinEntity, ContainsTwinValidatorSet validatorContainer) throws ServiceException {
-        List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validatorContainer.getTwinValidatorKit().getList());
+    public <T extends ContainsTwinValidatorSet> boolean isValid(TwinEntity twinEntity, T validatorContainer) throws ServiceException {
+        twinValidatorService.loadValidators(validatorContainer);
+        if (validatorContainer.getTwinValidatorKit() == null)
+            return true;
+        List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validatorContainer.getTwinValidatorKit().getList()); //todo
         sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
         boolean validationResultOfSet = true;
         for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
@@ -89,8 +94,8 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
                 continue;
             }
 
-            TwinValidator transitionValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturerId(), TwinValidator.class);
-            ValidationResult validationResult = transitionValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
+            TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturerId(), TwinValidator.class);
+            ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
             validationResultOfSet = validationResult.isValid();
             if (!validationResultOfSet) {
                 log.info("{} from {} is not valid. {}", twinValidatorEntity.logNormal(), validatorContainer.logNormal(), validationResult.getMessage());

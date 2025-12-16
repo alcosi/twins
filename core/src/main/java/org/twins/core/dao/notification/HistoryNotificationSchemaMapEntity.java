@@ -54,10 +54,13 @@ public class HistoryNotificationSchemaMapEntity implements EasyLoggable, Contain
     private HistoryTypeEntity historyType;
 
     @Transient
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Kit<TwinValidatorEntity, UUID> twinValidatorKit;
 
     @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private TwinValidatorSetEntity twinValidatorSet;
 
     @ToString.Exclude

@@ -66,7 +66,7 @@ create table if not exists history_notification_recipient_collector
             references history_notification_recipient
             on update cascade on delete cascade,
     recipient_resolver_featurer_id integer not null
-        constraint history_notification_recipient_featurer_id_fk
+        constraint history_notification_recipient_collector_featurer_id_fk
             references featurer
             on update cascade on delete cascade,
     recipient_resolver_params      hstore
@@ -101,7 +101,7 @@ create table if not exists notification_channel
             references domain
             on update cascade on delete cascade,
     notifier_featurer_id integer not null
-        constraint notification_channel_featurer_id_fk
+        constraint notification_channel_notifier_featurer_id_fk
             references featurer
             on update cascade on delete cascade,
     notifier_params hstore
@@ -185,11 +185,11 @@ create table if not exists history_notification_schema_map
             references notification_channel_event
             on update cascade on delete cascade,
     twin_validator_set_id uuid
-        constraint twin_action_validator_twin_validator_set_id_fk
+        constraint history_notification_schema_map_twin_validator_set_id_fk
             references twin_validator_set,
     twin_validator_set_invert boolean default false not null,
     constraint history_notification_schema_map_uq
-        unique (history_type_id, notification_schema_id, history_notification_recipient_id,
+        unique (history_type_id, notification_schema_id, twin_class_id, history_notification_recipient_id,
                 twin_validator_set_id, twin_validator_set_invert, notification_schema_id,
                 history_notification_recipient_id, notification_channel_event_id)
 );
