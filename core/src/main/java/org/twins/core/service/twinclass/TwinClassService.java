@@ -869,16 +869,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public void loadFreeze(Collection<TwinClassEntity> twinClassCollection) throws ServiceException {
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getTwinClassFreezeId);
-        for (TwinClassEntity twinClass : twinClassCollection) {
-            if (twinClass.getTwinClassFreezeId() != null && twinClass.getTwinClassFreeze() == null)
-                needLoad.add(twinClass);
-        }
-        if (KitUtils.isEmpty(needLoad))
-            return;
-        Kit<TwinClassFreezeEntity, UUID> items = twinClassFreezeService.findEntitiesSafe(needLoad.getGroupedKeySet());
-        for (var twinClass : needLoad)
-            twinClass.setTwinClassFreeze(items.get(twinClass.getTwinClassFreezeId()));
+        twinClassFreezeService.load(twinClassCollection,
+                TwinClassEntity::getId,
+                TwinClassEntity::getTwinClassFreezeId,
+                TwinClassEntity::getTwinClassFreeze,
+                TwinClassEntity::setTwinClassFreeze);
     }
 
     public void loadSegments(TwinClassEntity src) {

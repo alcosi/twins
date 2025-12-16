@@ -4,6 +4,7 @@ import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Range;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.math.LongRange;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LTreeUtils;
 import org.cambium.common.util.Ternary;
@@ -16,7 +17,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.DataTimeRange;
-import org.cambium.common.math.LongRange;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
 
 import java.sql.Timestamp;
@@ -485,6 +485,13 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                 case ONLY_NOT -> cb.isFalse(getFieldPath(root, JoinType.INNER, fieldPath));
                 default -> cb.conjunction();
             };
+        };
+    }
+
+    public static <T> Specification<T> checkIntegerIn(final Set<Integer> ids, boolean not, final String field) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(ids)) return cb.conjunction();
+            return not ? cb.not(root.get(field).in(ids)) : root.get(field).in(ids);
         };
     }
 }
