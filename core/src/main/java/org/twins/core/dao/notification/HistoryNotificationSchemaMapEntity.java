@@ -34,6 +34,9 @@ public class HistoryNotificationSchemaMapEntity implements EasyLoggable, Contain
     @Column(name = "twin_class_id")
     private UUID twinClassId;
 
+    @Column(name = "twin_class_field_id")
+    private UUID twinClassFieldId;
+
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;
 

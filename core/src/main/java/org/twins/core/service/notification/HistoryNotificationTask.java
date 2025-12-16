@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.notification.*;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
+import org.twins.core.enums.history.HistoryType;
 import org.twins.core.featurer.notificator.notifier.Notifier;
 import org.twins.core.service.history.HistoryRecipientService;
 import org.twins.core.service.twin.TwinValidatorSetService;
@@ -55,11 +56,24 @@ public class HistoryNotificationTask implements Runnable {
             if (history.getTwin().getTwinClass().getDomainId() == null) {
                 throw new NotificationSkippedException("Twin is out of domain");
             }
-            List<HistoryNotificationSchemaMapEntity> configs = historyNotificationSchemaMapEntityRepository.findByHistoryTypeIdAndTwinClassIdAndNotificationSchemaId(
-                    history.getHistoryType().name(),
-                    history.getTwin().getTwinClassId(),
-                    historyNotificationEntity.getNotificationSchemaId()
-            );
+
+            HistoryType historyType = history.getHistoryType();
+            List<HistoryNotificationSchemaMapEntity> configs = null;
+            if (HistoryType.fieldChanged.equals(historyType)) {
+                configs = historyNotificationSchemaMapEntityRepository.findByHistoryTypeIdAndTwinClassIdAndTwinClassFieldIdAndNotificationSchemaId(
+                        historyType.name(),
+                        history.getTwin().getTwinClassId(),
+                        history.getTwinClassFieldId(),
+                        historyNotificationEntity.getNotificationSchemaId()
+                );
+            }
+            if (CollectionUtils.isEmpty(configs)) {
+                configs = historyNotificationSchemaMapEntityRepository.findByHistoryTypeIdAndTwinClassIdAndNotificationSchemaId(
+                        historyType.name(),
+                        history.getTwin().getTwinClassId(),
+                        historyNotificationEntity.getNotificationSchemaId()
+                );
+            }
             if (CollectionUtils.isEmpty(configs)) {
                 throw new NotificationSkippedException("No configs found for " + history.logNormal());
             }

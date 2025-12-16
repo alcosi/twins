@@ -1,3 +1,6 @@
+-- new history_type
+INSERT INTO history_type VALUES ('commentCreate', 'Comment ''${comment.text}'' was added', 'softEnabled') on conflict on constraint history_type_pkey do nothing;
+
 -- insert new featurer type
 INSERT INTO featurer_type (id, name, description) VALUES (47, 'Recipient resolver', '') on conflict on constraint featurer_type_pk do nothing ;
 INSERT INTO featurer_type (id, name, description) VALUES (48, 'Notifier', '') on conflict on constraint featurer_type_pk do nothing ;
@@ -166,7 +169,10 @@ create table if not exists history_notification_schema_map
     twin_class_id            uuid         not null
         constraint history_notification_schema_map_twin_class_id_id_fk
             references twin_class
-
+            on update cascade on delete cascade,
+    twin_class_field_id uuid
+        constraint history_notification_schema_map_twin_class_field_id_fk
+            references twin_class_field
             on update cascade on delete cascade,
     history_type_id                   varchar(255) not null
         constraint history_notification_schema_map_history_type_id_fk
@@ -189,10 +195,10 @@ create table if not exists history_notification_schema_map
             references twin_validator_set,
     twin_validator_set_invert boolean default false not null,
     constraint history_notification_schema_map_uq
-        unique (history_type_id, notification_schema_id, twin_class_id, history_notification_recipient_id,
-                twin_validator_set_id, twin_validator_set_invert, notification_schema_id,
-                history_notification_recipient_id, notification_channel_event_id)
-);
+    unique (history_type_id, notification_schema_id, twin_class_id, twin_class_field_id, history_notification_recipient_id,
+            twin_validator_set_id, twin_validator_set_invert, notification_schema_id,
+            history_notification_recipient_id, notification_channel_event_id)
+    );
 
 alter table domain_business_account
     add if not exists notification_schema_id uuid

@@ -9,6 +9,7 @@ import java.util.UUID;
 
 @Repository
 public interface HistoryNotificationSchemaMapRepository extends CrudRepository<HistoryNotificationSchemaMapEntity, UUID>, JpaSpecificationExecutor<HistoryNotificationSchemaMapEntity> {
+    List<HistoryNotificationSchemaMapEntity> findByHistoryTypeIdAndTwinClassIdAndTwinClassFieldIdAndNotificationSchemaId(String historyTypeId, UUID twinClassId, UUID schemaId, UUID notificationSchemaId);
     List<HistoryNotificationSchemaMapEntity> findByHistoryTypeIdAndTwinClassIdAndNotificationSchemaId(String historyTypeId, UUID twinClassId, UUID schemaId);
 }
 
