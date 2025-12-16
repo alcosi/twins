@@ -8,6 +8,7 @@ insert into featurer(id, featurer_type_id, class, name, description) values (470
 insert into featurer(id, featurer_type_id, class, name, description) values (4702, 47, '', '', '') on conflict (id) do nothing;
 insert into featurer(id, featurer_type_id, class, name, description) values (4703, 47, '', '', '') on conflict (id) do nothing;
 insert into featurer(id, featurer_type_id, class, name, description) values (4704, 47, '', '', '') on conflict (id) do nothing;
+insert into featurer(id, featurer_type_id, class, name, description) values (4705, 47, '', '', '') on conflict (id) do nothing;
 insert into featurer(id, featurer_type_id, class, name, description) values (4801, 48, '', '', '') on conflict (id) do nothing;
 insert into featurer(id, featurer_type_id, class, name, description) values (4901, 49, '', '', '') on conflict (id) do nothing;
 insert into featurer(id, featurer_type_id, class, name, description) values (4902, 49, '', '', '') on conflict (id) do nothing;

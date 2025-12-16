@@ -25,16 +25,16 @@ public abstract class RecipientResolver extends FeaturerTwins {
     @FeaturerParam(name = "Exclude twin creator", order = 1, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeCreator = new FeaturerParamBoolean("excludeCreator");
 
-    @FeaturerParam(name = "Exclude twin assignee", order = 5, optional = true, defaultValue = "true")
+    @FeaturerParam(name = "Exclude twin assignee", order = 2, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeAssignee = new FeaturerParamBoolean("excludeAssignee");
 
-    @FeaturerParam(name = "Exclude old twin assignee", order = 2, optional = true, defaultValue = "true")
+    @FeaturerParam(name = "Exclude old twin assignee", order = 3, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeOldAssignee = new FeaturerParamBoolean("excludeOldAssignee");
 
-    @FeaturerParam(name = "Exclude new twin assignee", order = 3, optional = true, defaultValue = "true")
+    @FeaturerParam(name = "Exclude new twin assignee", order = 4, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeNewAssignee = new FeaturerParamBoolean("excludeNewAssignee");
 
-    @FeaturerParam(name = "Exclude history actor", order = 4, optional = true, defaultValue = "true")
+    @FeaturerParam(name = "Exclude history actor", order = 5, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean excludeActor = new FeaturerParamBoolean("excludeActor");
 
     public Set<UUID> resolve(HistoryEntity history, HashMap<String, String> recipientParams) throws ServiceException {

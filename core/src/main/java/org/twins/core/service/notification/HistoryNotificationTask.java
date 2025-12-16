@@ -80,20 +80,8 @@ public class HistoryNotificationTask implements Runnable {
                 for (var config : entry.getValue()) {
                     boolean isValid = true;
                     twinValidatorService.loadValidators(config);
-                    List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(config.getTwinValidatorKit().getList());
-                    sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
-                    for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
-                        if (!twinValidatorEntity.isActive()) {
-                            log.info(twinValidatorEntity.logShort() + " from " + config.logShort() + " is inactive");
-                            continue;
-                        }
-                        TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturerId(), TwinValidator.class);
-                        ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), history.getTwin(), twinValidatorEntity.isInvert());
-                        if (!validationResult.isValid()) {
-                            log.error(validationResult.getMessage());
-                            isValid = false;
-                            break;
-                        }
+                    if (config.getTwinValidatorKit() != null) {
+                        isValid = checkValid(config, history, isValid);
                     }
                     if (isValid) {
                         recipientIds.addAll(historyRecipientService.recipientResolve(config.getHistoryNotificationRecipient().getId(), history));
@@ -136,6 +124,25 @@ public class HistoryNotificationTask implements Runnable {
             historyNotificationTaskRepository.save(historyNotificationEntity);
             LoggerUtils.cleanMDC();
         }
+    }
+
+    private boolean checkValid(HistoryNotificationSchemaMapEntity config, HistoryEntity history, boolean isValid) throws ServiceException {
+        List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(config.getTwinValidatorKit().getList());
+        sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
+        for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
+            if (!twinValidatorEntity.isActive()) {
+                log.info(twinValidatorEntity.logShort() + " from " + config.logShort() + " is inactive");
+                continue;
+            }
+            TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturerId(), TwinValidator.class);
+            ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), history.getTwin(), twinValidatorEntity.isInvert());
+            if (!validationResult.isValid()) {
+                log.error(validationResult.getMessage());
+                isValid = false;
+                break;
+            }
+        }
+        return isValid;
     }
 
     private Map<String, String> getContext(UUID contextId, HistoryEntity history) throws ServiceException {
