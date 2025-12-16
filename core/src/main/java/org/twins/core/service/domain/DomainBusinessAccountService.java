@@ -22,6 +22,7 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountRepository;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.enums.domain.DomainType;
 import org.twins.core.domain.search.DomainBusinessAccountSearch;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -30,12 +31,16 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.permission.PermissionSchemaService;
 import org.twins.core.service.space.SpaceRoleService;
 import org.twins.core.service.twin.TwinAliasService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
 import org.twins.core.service.user.UserGroupService;
+import org.twins.core.service.history.HistoryService;
+import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.dao.twin.TwinEntity;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -61,6 +66,8 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
     private final BusinessAccountService businessAccountService;
     @Lazy
     private final PermissionService permissionService;
+    @Lazy
+    private final PermissionSchemaService permissionSchemaService;
     private final TwinClassService twinClassService;
     private final TwinflowService twinflowService;
     @Lazy
@@ -72,6 +79,8 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
     @Lazy
     private final DataListService dataListService;
     private final UserGroupService userGroupService;
+    @Lazy
+    private final HistoryService historyService;
 
     @Override
     public CrudRepository<DomainBusinessAccountEntity, UUID> entityRepository() {
@@ -137,7 +146,9 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
     public void updateDomainBusinessAccount(DomainBusinessAccountEntity updateEntity, String name) throws ServiceException {
         DomainBusinessAccountEntity dbEntity = getDomainBusinessAccountEntitySafe(updateEntity.getDomainId(), updateEntity.getBusinessAccountId());
         ChangesHelper changesHelper = new ChangesHelper();
-        if (changesHelper.isChanged(DomainBusinessAccountEntity.Fields.permissionSchemaId, dbEntity.getPermissionSchemaId(), updateEntity.getPermissionSchemaId())) {
+        UUID oldPermissionSchemaId = dbEntity.getPermissionSchemaId();
+        boolean permissionSchemaChanged = changesHelper.isChanged(DomainBusinessAccountEntity.Fields.permissionSchemaId, dbEntity.getPermissionSchemaId(), updateEntity.getPermissionSchemaId());
+        if (permissionSchemaChanged) {
             dbEntity.setPermissionSchemaId(permissionService.checkPermissionSchemaAllowed(updateEntity.getDomainId(), updateEntity.getBusinessAccountId(), updateEntity.getPermissionSchemaId()));
         }
         if (changesHelper.isChanged(DomainBusinessAccountEntity.Fields.twinClassSchemaId, dbEntity.getTwinClassSchemaId(), updateEntity.getTwinClassSchemaId())) {
@@ -156,6 +167,23 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
         if (changesHelper.hasChanges()) {
             dbEntity = domainBusinessAccountRepository.save(dbEntity);
             log.info("{} was updated: {}", dbEntity.logNormal(), changesHelper.collectForLog());
+            recordChangePermissionSchemaInHistory(updateEntity, permissionSchemaChanged, oldPermissionSchemaId, dbEntity);
+        }
+    }
+
+    private void recordChangePermissionSchemaInHistory(DomainBusinessAccountEntity updateEntity, boolean permissionSchemaChanged, UUID oldPermissionSchemaId, DomainBusinessAccountEntity dbEntity) throws ServiceException {
+        if (permissionSchemaChanged) {
+            TwinEntity businessAccountTwin = twinService.findEntitySafe(updateEntity.getBusinessAccountId());
+            PermissionSchemaEntity fromPermissionSchema = oldPermissionSchemaId != null ? permissionSchemaService.findEntitySafe(oldPermissionSchemaId) : null;
+            PermissionSchemaEntity toPermissionSchema = dbEntity.getPermissionSchemaId() != null ? permissionSchemaService.findEntitySafe(dbEntity.getPermissionSchemaId()) : null;
+
+            TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+            if (twinChangesCollector.isHistoryCollectorEnabled()) {
+                twinChangesCollector
+                        .getHistoryCollector(businessAccountTwin)
+                        .add(historyService.permissionSchemaChanged(fromPermissionSchema, toPermissionSchema));
+            }
+            historyService.saveHistory(twinChangesCollector.getHistoryCollector());
         }
     }
 

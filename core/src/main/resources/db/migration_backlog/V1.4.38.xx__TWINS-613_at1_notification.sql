@@ -1,5 +1,6 @@
 -- new history_type
 INSERT INTO history_type VALUES ('commentCreate', 'Comment ''${comment.text}'' was added', 'softEnabled') on conflict on constraint history_type_pkey do nothing;
+INSERT INTO history_type VALUES ('permissionSchemaChanged', 'Permission schema changed from ''${fromPermissionSchema.name}'' to ''${toPermissionSchema.name}''', 'softEnabled') ON CONFLICT ON CONSTRAINT history_type_pkey DO NOTHING;
 
 -- insert new featurer type
 INSERT INTO featurer_type (id, name, description) VALUES (47, 'Recipient resolver', '') on conflict on constraint featurer_type_pk do nothing ;
@@ -18,6 +19,8 @@ insert into featurer(id, featurer_type_id, class, name, description) values (490
 insert into featurer(id, featurer_type_id, class, name, description) values (4903, 49, '', '', '') on conflict (id) do nothing;
 insert into featurer(id, featurer_type_id, class, name, description) values (4904, 49, '', '', '') on conflict (id) do nothing;
 insert into featurer(id, featurer_type_id, class, name, description) values (4905, 49, '', '', '') on conflict (id) do nothing;
+insert into featurer(id, featurer_type_id, class, name, description) values (4906, 49, '', '', '') on conflict (id) do nothing;
+insert into featurer(id, featurer_type_id, class, name, description) values (1617, 16, '', '', '') on conflict (id) do nothing;
 
 INSERT INTO i18n_type (id, name) VALUES ('notificationContextName', 'Notification context name') on conflict on constraint i18n_type_pk do nothing ;
 INSERT INTO i18n_type (id, name) VALUES ('notificationContextDescription', 'Notification context description') on conflict on constraint i18n_type_pk do nothing ;
