@@ -199,8 +199,7 @@ create table if not exists history_notification_schema_map
     twin_validator_set_invert boolean default false not null,
     constraint history_notification_schema_map_uq
     unique (history_type_id, notification_schema_id, twin_class_id, twin_class_field_id, history_notification_recipient_id,
-            twin_validator_set_id, twin_validator_set_invert, notification_schema_id,
-            history_notification_recipient_id, notification_channel_event_id)
+            twin_validator_set_id, twin_validator_set_invert, notification_channel_event_id)
     );
 
 alter table domain_business_account
