@@ -338,7 +338,7 @@ public class FeaturerService {
         Properties properties = extractProperties(featurer, featurerParams, new HashMap<>());
         basicParamsValidation(featurerId, properties);
         featurer.extraParamsValidation(properties);
-        return featurerRepository.getById(featurerId);
+        return featurerRepository.findById(featurerId).get();
     }
 
     public void basicParamsValidation(Integer featurerId, Properties properties) throws ServiceException {
@@ -351,7 +351,7 @@ public class FeaturerService {
     }
 
     public FeaturerEntity getFeaturerEntity(Integer featurerId) {
-        return featurerRepository.getById(featurerId);
+        return featurerRepository.findById(featurerId).get();
     }
 
     public Kit<FeaturerEntity, Integer> findEntitiesSafe(Set<Integer> ids) {
