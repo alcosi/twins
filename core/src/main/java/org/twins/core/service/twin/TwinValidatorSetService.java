@@ -79,6 +79,8 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
 
     public <T extends ContainsTwinValidatorSet> boolean isValid(TwinEntity twinEntity, T validatorContainer) throws ServiceException {
         loadTwinValidatorSet(validatorContainer);
+        if (validatorContainer.getTwinValidatorSet() == null)
+            return true;
         twinValidatorService.loadValidators(validatorContainer);
         if (validatorContainer.getTwinValidatorKit() == null)
             return !validatorContainer.getTwinValidatorSet().isInvert();
