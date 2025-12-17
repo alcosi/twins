@@ -21,7 +21,7 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_4701,
         name = "User Recipient Resolver",
         description = "")
-public class RecipientResolverUsers extends RecipientResolverExclude {
+public class RecipientResolverUsersBase extends RecipientResolver {
 
     @FeaturerParam(name = "User ids", description = "", order = 1, optional = true)
     public static final FeaturerParamUUIDSet userIds = new FeaturerParamUUIDSetUserId("userIds");
@@ -35,11 +35,13 @@ public class RecipientResolverUsers extends RecipientResolverExclude {
     private UserService userService;
 
     @Override
-    protected Set<UUID> resolve(HistoryEntity history, Properties properties) throws ServiceException {
-        return userService.filterUsersByBusinessAccountAndDomain(
-                userIds.extract(properties),
-                history.getTwin().getOwnerBusinessAccountId(),
-                authService.getApiUser().getDomainId()
+    protected void resolve(HistoryEntity history, Set<UUID> recipientIds, Properties properties) throws ServiceException {
+        recipientIds.addAll(
+                userService.filterUsersByBusinessAccountAndDomain(
+                        userIds.extract(properties),
+                        history.getTwin().getOwnerBusinessAccountId(),
+                        authService.getApiUser().getDomainId()
+                )
         );
     }
 }

@@ -20,7 +20,7 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_4703,
         name = "Space Role–based Recipient Resolver",
         description = "Resolves recipient users based on their roles within a specific space (for example, task participants)")
-public class RecipientResolverSpaceRoles extends RecipientResolverExclude {
+public class RecipientResolverSpaceRoles extends RecipientResolver {
 
     @FeaturerParam(name = "Space role ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet spaceRoleIds = new FeaturerParamUUIDSetUserId("spaceRoleIds");
@@ -30,7 +30,7 @@ public class RecipientResolverSpaceRoles extends RecipientResolverExclude {
     private SpaceRoleUserService spaceRoleUserService;
 
     @Override
-    protected Set<UUID> resolve(HistoryEntity history, Properties properties) throws ServiceException {
-        return spaceRoleUserService.getUsers(history.getTwin().getId(), spaceRoleIds.extract(properties));
+    protected void resolve(HistoryEntity history, Set<UUID> recipientIds, Properties properties) throws ServiceException {
+        recipientIds.addAll(spaceRoleUserService.getUsers(history.getTwin().getId(), spaceRoleIds.extract(properties)));
     }
 }

@@ -16,9 +16,7 @@ import org.twins.core.dao.notification.HistoryNotificationRecipientEntity;
 import org.twins.core.dao.notification.HistoryNotificationRecipientRepository;
 import org.twins.core.featurer.notificator.recipient.RecipientResolver;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -57,9 +55,13 @@ public class HistoryRecipientService extends EntitySecureFindServiceImpl<History
 
     public Set<UUID> recipientResolve(UUID recipientId, HistoryEntity history) throws ServiceException {
         Set<UUID> recipientIds = new HashSet<>();
-        for (HistoryNotificationRecipientCollectorEntity recipientCollector : getRecipientCollectors(recipientId)) {
+
+        List<HistoryNotificationRecipientCollectorEntity> collectors = new ArrayList<>(getRecipientCollectors(recipientId));
+        collectors.sort(Comparator.comparingInt(HistoryNotificationRecipientCollectorEntity::getOrder));
+
+        for (HistoryNotificationRecipientCollectorEntity recipientCollector : collectors) {
             RecipientResolver recipientResolver = featurerService.getFeaturer(recipientCollector.getRecipientResolverFeaturerId(), RecipientResolver.class);
-            recipientIds = recipientResolver.resolve(history, recipientCollector.getRecipientResolverParams());
+            recipientResolver.resolve(history, recipientIds, recipientCollector.getRecipientResolverParams());
         }
         return recipientIds;
     }
