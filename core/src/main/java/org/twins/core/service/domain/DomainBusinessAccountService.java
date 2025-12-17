@@ -146,9 +146,7 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
     public void updateDomainBusinessAccount(DomainBusinessAccountEntity updateEntity, String name) throws ServiceException {
         DomainBusinessAccountEntity dbEntity = getDomainBusinessAccountEntitySafe(updateEntity.getDomainId(), updateEntity.getBusinessAccountId());
         ChangesHelper changesHelper = new ChangesHelper();
-        UUID oldPermissionSchemaId = dbEntity.getPermissionSchemaId();
-        boolean permissionSchemaChanged = changesHelper.isChanged(DomainBusinessAccountEntity.Fields.permissionSchemaId, dbEntity.getPermissionSchemaId(), updateEntity.getPermissionSchemaId());
-        if (permissionSchemaChanged) {
+        if (changesHelper.isChanged(DomainBusinessAccountEntity.Fields.permissionSchemaId, dbEntity.getPermissionSchemaId(), updateEntity.getPermissionSchemaId())) {
             dbEntity.setPermissionSchemaId(permissionService.checkPermissionSchemaAllowed(updateEntity.getDomainId(), updateEntity.getBusinessAccountId(), updateEntity.getPermissionSchemaId()));
         }
         if (changesHelper.isChanged(DomainBusinessAccountEntity.Fields.twinClassSchemaId, dbEntity.getTwinClassSchemaId(), updateEntity.getTwinClassSchemaId())) {
@@ -167,23 +165,6 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
         if (changesHelper.hasChanges()) {
             dbEntity = domainBusinessAccountRepository.save(dbEntity);
             log.info("{} was updated: {}", dbEntity.logNormal(), changesHelper.collectForLog());
-            recordChangePermissionSchemaInHistory(updateEntity, permissionSchemaChanged, oldPermissionSchemaId, dbEntity);
-        }
-    }
-
-    private void recordChangePermissionSchemaInHistory(DomainBusinessAccountEntity updateEntity, boolean permissionSchemaChanged, UUID oldPermissionSchemaId, DomainBusinessAccountEntity dbEntity) throws ServiceException {
-        if (permissionSchemaChanged) {
-            TwinEntity businessAccountTwin = twinService.findEntitySafe(updateEntity.getBusinessAccountId());
-            PermissionSchemaEntity fromPermissionSchema = oldPermissionSchemaId != null ? permissionSchemaService.findEntitySafe(oldPermissionSchemaId) : null;
-            PermissionSchemaEntity toPermissionSchema = dbEntity.getPermissionSchemaId() != null ? permissionSchemaService.findEntitySafe(dbEntity.getPermissionSchemaId()) : null;
-
-            TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-            if (twinChangesCollector.isHistoryCollectorEnabled()) {
-                twinChangesCollector
-                        .getHistoryCollector(businessAccountTwin)
-                        .add(historyService.permissionSchemaChanged(fromPermissionSchema, toPermissionSchema));
-            }
-            historyService.saveHistory(twinChangesCollector.getHistoryCollector());
         }
     }
 

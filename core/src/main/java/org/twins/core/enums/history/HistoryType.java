@@ -27,7 +27,6 @@ public enum HistoryType {
     attachmentDelete("attachmentDelete"),
     attachmentUpdate("attachmentUpdate"),
     commentCreate("commentCreate"),
-    permissionSchemaChanged("permissionSchemaChanged"),
     linkCreated("linkCreated"), // 2 history records will be created
     linkUpdated("linkUpdated"), // 3 history records will be created
     linkDeleted("linkDeleted"), // 2 history records will be created
