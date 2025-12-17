@@ -11,17 +11,15 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldSearchEntity;
 import org.twins.core.domain.factory.FactoryItem;
-import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldSearchId;
 import org.twins.core.service.twinclass.TwinClassFieldSearchService;
 
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
+
+import static org.twins.core.featurer.classfield.finder.FieldFinder.PARAM_CURRENT_TWIN_CLASS_ID;
 
 @Component
 @RequiredArgsConstructor
@@ -29,7 +27,7 @@ import java.util.UUID;
         name = "Factory context twin fields by search id are filled",
         description = "")
 @Slf4j
-public class ConditionerFactoryContextTwinFieldsFilledBySearchId extends Conditioner {
+public class ConditionerFactoryItemTwinFieldsFilledBySearchId extends Conditioner {
 
     @FeaturerParam(name = "Search id")
     public static final FeaturerParamUUID searchId = new FeaturerParamUUIDTwinsTwinClassFieldSearchId("searchId");
@@ -38,14 +36,17 @@ public class ConditionerFactoryContextTwinFieldsFilledBySearchId extends Conditi
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        TwinClassFieldSearch search = new TwinClassFieldSearch().setConfiguredSearch(twinClassFieldSearchService.findEntitySafe(searchId.extract(properties)));
-        List<TwinClassFieldEntity> requiredFields = twinClassFieldSearchService.findTwinClassField(search);
+        TwinEntity twin = factoryItem.getOutput().getTwinEntity();
+
+        Map<String, String> params = new HashMap<>();
+        params.put(PARAM_CURRENT_TWIN_CLASS_ID, twin.getTwinClassId().toString());
+
+        List<TwinClassFieldEntity> requiredFields = twinClassFieldSearchService.findTwinClassField(searchId.extract(properties), params, null, null).getList();
 
         if (CollectionUtils.isEmpty(requiredFields)) {
             return true;
         }
 
-        TwinEntity twin = factoryItem.getOutput().getTwinEntity();
         Kit<FieldValue, UUID> fieldValuesKit = twin.getFieldValuesKit();
 
         for (TwinClassFieldEntity field : requiredFields) {

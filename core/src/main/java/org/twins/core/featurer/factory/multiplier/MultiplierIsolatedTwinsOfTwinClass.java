@@ -41,14 +41,12 @@ public class MultiplierIsolatedTwinsOfTwinClass extends Multiplier {
 
         List<TwinEntity> twins = twinSearchService.findTwins(search);
 
-        for (FactoryItem inputFactoryItem : inputFactoryItemList) {
-            for (TwinEntity twinEntity : twins) {
-                TwinUpdate twinUpdate = new TwinUpdate();
-                twinUpdate
-                        .setDbTwinEntity(twinEntity) // original twin
-                        .setTwinEntity(twinEntity.clone()); // collecting updated in new twin
-                ret.add(new FactoryItem().setOutput(twinUpdate).setContextFactoryItemList(List.of(inputFactoryItem)));
-            }
+        for (TwinEntity twinEntity : twins) {
+            TwinUpdate twinUpdate = new TwinUpdate();
+            twinUpdate
+                    .setDbTwinEntity(twinEntity) // original twin
+                    .setTwinEntity(twinEntity.clone()); // collecting updated in new twin
+            ret.add(new FactoryItem().setOutput(twinUpdate).setContextFactoryItemList(inputFactoryItemList));
         }
 
         return ret;
