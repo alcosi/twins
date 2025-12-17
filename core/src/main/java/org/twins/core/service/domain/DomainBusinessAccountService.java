@@ -22,7 +22,6 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountRepository;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.enums.domain.DomainType;
 import org.twins.core.domain.search.DomainBusinessAccountSearch;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -39,8 +38,6 @@ import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.history.HistoryService;
-import org.twins.core.domain.TwinChangesCollector;
-import org.twins.core.dao.twin.TwinEntity;
 
 import java.sql.Timestamp;
 import java.time.Instant;
