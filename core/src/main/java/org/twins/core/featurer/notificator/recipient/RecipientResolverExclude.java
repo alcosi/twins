@@ -83,6 +83,8 @@ public abstract class RecipientResolverExclude extends RecipientResolver {
         if (history.getHistoryType().equals(HistoryType.assigneeChanged)) {
             if (excludeNewAssignee.extract(properties)) {
                 HistoryContextUserChange newAssignee = (HistoryContextUserChange) history.getContext();
+                if (newAssignee.getToUser() == null)
+                    return;//skip when do unassign
                 String userId = newAssignee.getToUser().getUserId();
                 if (userId != null) {
                     users.remove(UUID.fromString(userId));

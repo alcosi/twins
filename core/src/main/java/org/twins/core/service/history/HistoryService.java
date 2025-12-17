@@ -222,6 +222,12 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .shotComment(commentEntity));
     }
 
+    public HistoryItem<HistoryContextPermissionSchemaChange> permissionSchemaChanged(org.twins.core.dao.permission.PermissionSchemaEntity fromPermissionSchema, org.twins.core.dao.permission.PermissionSchemaEntity toPermissionSchema) {
+        return new HistoryItem<>(HistoryType.permissionSchemaChanged, new HistoryContextPermissionSchemaChange()
+                .shotFromPermissionSchema(fromPermissionSchema)
+                .shotToPermissionSchema(toPermissionSchema));
+    }
+
     public HistoryItem<HistoryContextAttachmentChange> attachmentUpdate(TwinAttachmentEntity attachmentEntity) {
         HistoryContextAttachmentChange context = new HistoryContextAttachmentChange();
         context.shotAttachment(attachmentEntity);

@@ -35,11 +35,4 @@ public class FactoryPipelineStepSpecification extends CommonSpecification<TwinFa
             return predicate;
         };
     }
-
-    public static Specification<TwinFactoryPipelineStepEntity> checkIntegerIn(final Collection<Integer> ids, boolean not, final String field) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(ids)) return cb.conjunction();
-            return not ? cb.not(root.get(field).in(ids)) : root.get(field).in(ids);
-        };
-    }
 }

@@ -19,6 +19,7 @@ import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import org.twins.core.dao.validator.TwinValidatorSetRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.validator.TwinValidatorService;
@@ -59,9 +60,13 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
 
     public <T extends ContainsTwinValidatorSet> TwinValidatorSetEntity loadTwinValidatorSet(T entity) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
+        return loadTwinValidatorSet(entity, apiUser.getDomainId());
+    }
+
+    public <T extends ContainsTwinValidatorSet> TwinValidatorSetEntity loadTwinValidatorSet(T entity, UUID domainId) throws ServiceException {
         if (entity.getTwinValidatorSet() != null)
             return entity.getTwinValidatorSet();
-        entity.setTwinValidatorSet(twinValidatorSetRepository.findAllByIdAndDomainId(entity.getTwinValidatorSetId(), apiUser.getDomainId()));
+        entity.setTwinValidatorSet(twinValidatorSetRepository.findAllByIdAndDomainId(entity.getTwinValidatorSetId(), domainId));
         return entity.getTwinValidatorSet();
     }
 
@@ -82,6 +87,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
     }
 
     public <T extends ContainsTwinValidatorSet> boolean isValid(TwinEntity twinEntity, T validatorContainer) throws ServiceException {
+        loadTwinValidatorSet(twinEntity, validatorContainer);
         twinValidatorService.loadValidators(validatorContainer);
         if (validatorContainer.getTwinValidatorKit() == null)
             return true;
@@ -103,6 +109,22 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
             }
         }
         return validatorContainer.getTwinValidatorSet().isInvert() != validationResultOfSet;
+    }
+
+    private <T extends ContainsTwinValidatorSet> void loadTwinValidatorSet(TwinEntity twinEntity, T validatorContainer) throws ServiceException {
+        UUID domainId = null;
+        if (twinEntity.getTwinClass() != null) {
+            domainId = twinEntity.getTwinClass().getDomainId();
+        }
+        if (domainId == null) {
+            try {
+                loadTwinValidatorSet(validatorContainer);
+            } catch (Exception e) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_VALIDATOR_INCORRECT);
+            }
+        } else {
+            loadTwinValidatorSet(validatorContainer, domainId);
+        }
     }
 
     public void loadTwinValidator(TwinValidatorEntity src) {
