@@ -20,7 +20,7 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_4702,
         name = "User Group–based Recipient Resolver",
         description = "Resolves recipient users based on their membership in specified user groups within a business account.")
-public class RecipientResolverUserGroups extends RecipientResolverExclude {
+public class RecipientResolverUserGroups extends RecipientResolver {
 
     @FeaturerParam(name = "User group ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet userGroupIds = new FeaturerParamUUIDSetUserId("userGroupIds");
@@ -30,7 +30,13 @@ public class RecipientResolverUserGroups extends RecipientResolverExclude {
     private UserGroupService userGroupService;
 
     @Override
-    protected Set<UUID> resolve(HistoryEntity history, Properties properties) throws ServiceException {
-        return userGroupService.getUsersForGroups(history.getTwin().getTwinClass().getDomainId(), history.getTwin().getOwnerBusinessAccountId(), userGroupIds.extract(properties));
+    protected void resolve(HistoryEntity history, Set<UUID> recipientIds, Properties properties) throws ServiceException {
+        recipientIds.addAll(
+                userGroupService.getUsersForGroups(
+                        history.getTwin().getTwinClass().getDomainId(),
+                        history.getTwin().getOwnerBusinessAccountId(),
+                        userGroupIds.extract(properties)
+                )
+        );
     }
 }

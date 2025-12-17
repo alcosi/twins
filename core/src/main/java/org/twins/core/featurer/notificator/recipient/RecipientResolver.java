@@ -17,12 +17,12 @@ import java.util.UUID;
         description = "")
 @Slf4j
 public abstract class RecipientResolver extends FeaturerTwins {
-    public Set<UUID> resolve(HistoryEntity history, HashMap<String, String> recipientParams) throws ServiceException {
+    public void resolve(HistoryEntity history, Set<UUID> recipientIds, HashMap<String, String> recipientParams) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, recipientParams, new HashMap<>());
-        return resolve(history, properties);
+        resolve(history, recipientIds, properties);
     }
 
-    protected abstract Set<UUID> resolve(HistoryEntity history, Properties properties) throws ServiceException;
+    protected abstract void resolve(HistoryEntity history, Set<UUID> recipientIds, Properties properties) throws ServiceException;
 
 
 }
