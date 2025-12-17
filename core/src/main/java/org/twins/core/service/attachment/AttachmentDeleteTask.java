@@ -53,6 +53,7 @@ public class AttachmentDeleteTask implements Runnable {
             attachmentDeleteTaskEntity.setStatus(AttachmentDeleteTaskStatus.FAILED);
         } finally {
             LoggerUtils.cleanMDC();
+            authService.removeThreadLocalApiUser();
             attachmentDeleteTaskRepository.save(attachmentDeleteTaskEntity);
         }
     }
