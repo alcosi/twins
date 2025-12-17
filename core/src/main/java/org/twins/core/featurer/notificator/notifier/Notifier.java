@@ -16,7 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
         description = "")
 @Slf4j
 public abstract class Notifier extends FeaturerTwins {
-
     @FeaturerParam(name = "Ignore nullify values", description = "", order = 1, defaultValue = "true")
     public static final FeaturerParamBoolean ignoreNullifyValues = new FeaturerParamBoolean("ignoreNullifyValues");
 
@@ -24,17 +23,17 @@ public abstract class Notifier extends FeaturerTwins {
 
     public void notify(Set<UUID> recipientIds, Map<String, String> context, String eventCode, HashMap<String, String> notifierParams) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, notifierParams, new HashMap<>());
-        validateContext(context, properties);
+        validateContext(context, ignoreNullifyValues.extract(properties));
         notify(recipientIds, context, eventCode, properties);
     }
 
-    protected void validateContext(Map<String, String> context, Properties properties) throws ServiceException {
+    protected void validateContext(Map<String, String> context, boolean ignoreNullifyValues) throws ServiceException {
         for (Map.Entry<String, String> entry : context.entrySet()) {
-            Boolean paramIgnoreNullifyValues = ignoreNullifyValues.extract(properties);
             if (entry.getValue() == null) {
-                if (!paramIgnoreNullifyValues)
+                if (ignoreNullifyValues)
+                    context.remove(entry.getKey());
+                else
                     throw new ServiceException(ErrorCodeTwins.NOTIFICATION_CONTEXT_COLLECTOR_ERROR, "Entry in contect with key[" + entry.getKey() + "] has null value");
-                context.remove(entry.getKey());
             }
         }
     }
