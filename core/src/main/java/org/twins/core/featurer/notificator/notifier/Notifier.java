@@ -16,21 +16,21 @@ import java.util.concurrent.ConcurrentHashMap;
         description = "")
 @Slf4j
 public abstract class Notifier extends FeaturerTwins {
-    @FeaturerParam(name = "Throw exception if null values", description = "", order = 1, defaultValue = "true")
-    public static final FeaturerParamBoolean throwExceptionByNullValues = new FeaturerParamBoolean("throwExceptionByValues");
+    @FeaturerParam(name = "Throw exception on null values", description = "", order = 1, defaultValue = "true")
+    public static final FeaturerParamBoolean throwExceptionONNullValues = new FeaturerParamBoolean("throwExceptionONNullValues");
 
     protected final Map<String, Object> stubCache = new ConcurrentHashMap<>();
 
     public void notify(Set<UUID> recipientIds, Map<String, String> context, String eventCode, HashMap<String, String> notifierParams) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, notifierParams, new HashMap<>());
-        validateContext(context, throwExceptionByNullValues.extract(properties));
+        validateContext(context, throwExceptionONNullValues.extract(properties));
         notify(recipientIds, context, eventCode, properties);
     }
 
-    protected void validateContext(Map<String, String> context, boolean throwExceptionByNullValues) throws ServiceException {
+    protected void validateContext(Map<String, String> context, boolean throwExceptionONNullValues) throws ServiceException {
         for (Map.Entry<String, String> entry : context.entrySet()) {
             if (entry.getValue() == null) {
-                if (throwExceptionByNullValues)
+                if (throwExceptionONNullValues)
                     throw new ServiceException(ErrorCodeTwins.NOTIFICATION_CONTEXT_COLLECTOR_ERROR, "Entry in contect with key[" + entry.getKey() + "] has null value");
                 context.remove(entry.getKey());
             }
