@@ -64,6 +64,7 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
         if (search.isInactiveSearch())
             return Collections.emptyList();
         Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
+        spec = addSorting(search, null, spec);
         return twinClassFieldRepository.findAll(spec);
     }
 
