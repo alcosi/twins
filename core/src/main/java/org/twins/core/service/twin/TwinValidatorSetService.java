@@ -57,12 +57,8 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
         return true;
     }
 
-    public <T extends ContainsTwinValidatorSet> TwinValidatorSetEntity loadTwinValidatorSet(T entity) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (entity.getTwinValidatorSet() != null)
-            return entity.getTwinValidatorSet();
-        entity.setTwinValidatorSet(twinValidatorSetRepository.findAllByIdAndDomainId(entity.getTwinValidatorSetId(), apiUser.getDomainId()));
-        return entity.getTwinValidatorSet();
+    public <T extends ContainsTwinValidatorSet> void loadTwinValidatorSet(T entity) throws ServiceException {
+        loadTwinValidatorSet(Collections.singletonList(entity));
     }
 
     public <T extends ContainsTwinValidatorSet> void loadTwinValidatorSet(Collection<T> implementedValidatorRules) throws ServiceException {
@@ -82,9 +78,10 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
     }
 
     public <T extends ContainsTwinValidatorSet> boolean isValid(TwinEntity twinEntity, T validatorContainer) throws ServiceException {
+        loadTwinValidatorSet(validatorContainer);
         twinValidatorService.loadValidators(validatorContainer);
         if (validatorContainer.getTwinValidatorKit() == null)
-            return true;
+            return !validatorContainer.getTwinValidatorSet().isInvert();
         List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validatorContainer.getTwinValidatorKit().getList()); //todo
         sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
         boolean validationResultOfSet = true;

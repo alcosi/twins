@@ -30,12 +30,14 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.permission.PermissionSchemaService;
 import org.twins.core.service.space.SpaceRoleService;
 import org.twins.core.service.twin.TwinAliasService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
 import org.twins.core.service.user.UserGroupService;
+import org.twins.core.service.history.HistoryService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -61,6 +63,8 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
     private final BusinessAccountService businessAccountService;
     @Lazy
     private final PermissionService permissionService;
+    @Lazy
+    private final PermissionSchemaService permissionSchemaService;
     private final TwinClassService twinClassService;
     private final TwinflowService twinflowService;
     @Lazy
@@ -72,6 +76,8 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
     @Lazy
     private final DataListService dataListService;
     private final UserGroupService userGroupService;
+    @Lazy
+    private final HistoryService historyService;
 
     @Override
     public CrudRepository<DomainBusinessAccountEntity, UUID> entityRepository() {

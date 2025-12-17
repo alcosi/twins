@@ -14,6 +14,7 @@ import org.twins.core.dao.notification.*;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
 import org.twins.core.enums.history.HistoryType;
 import org.twins.core.featurer.notificator.notifier.Notifier;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryRecipientService;
 import org.twins.core.service.twin.TwinValidatorSetService;
 
@@ -38,6 +39,8 @@ public class HistoryNotificationTask implements Runnable {
     private HistoryRecipientService historyRecipientService;
     @Autowired
     private TwinValidatorSetService twinValidatorSetService;
+    @Autowired
+    private AuthService authService;
 
     private final Map<UUID, Map<String, String>> contextCache = new HashMap<>();
 
@@ -56,7 +59,8 @@ public class HistoryNotificationTask implements Runnable {
             if (history.getTwin().getTwinClass().getDomainId() == null) {
                 throw new NotificationSkippedException("Twin is out of domain");
             }
-
+            var twin = history.getTwin();
+            authService.setThreadLocalApiUser(twin.getTwinClass().getDomainId(), twin.getOwnerBusinessAccountId(), twin.getCreatedByUserId()); //todo not sure that it's correct to use creator
             List<HistoryNotificationSchemaMapEntity> configs = getConfigs(history);
             if (CollectionUtils.isEmpty(configs)) {
                 throw new NotificationSkippedException("No configs found for " + history.logNormal());
@@ -109,8 +113,9 @@ public class HistoryNotificationTask implements Runnable {
                     .setStatusId(HistoryNotificationTaskStatus.FAILED)
                     .setStatusDetails(e.getMessage());
         } finally {
-            historyNotificationTaskRepository.save(historyNotificationEntity);
+            authService.removeThreadLocalApiUser();
             LoggerUtils.cleanMDC();
+            historyNotificationTaskRepository.save(historyNotificationEntity);
         }
     }
 

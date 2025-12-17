@@ -23,10 +23,10 @@ import java.util.UUID;
         description = "Resolves recipient users from head twin)")
 public class RecipientResolverHeadTwin extends RecipientResolverExclude {
 
-    @FeaturerParam(name = "Include twin creator", order = 1, optional = true, defaultValue = "false")
+    @FeaturerParam(name = "Include twin creator", order = 2, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean includeCreator = new FeaturerParamBoolean("includeCreator");
 
-    @FeaturerParam(name = "Include twin assignee", order = 2, optional = true, defaultValue = "false")
+    @FeaturerParam(name = "Include twin assignee", order = 3, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean includeAssignee = new FeaturerParamBoolean("includeAssignee");
 
     @Lazy
