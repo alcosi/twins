@@ -76,7 +76,11 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
                 if (entity.getMarkerDataListOption() == null)
                     entity.setMarkerDataListOption(dataListService.findDataListOption(entity.getMarkerDataListOptionId()));
             default:
-                if (!entity.getTwin().getTwinClass().getMarkerDataListId().equals(entity.getMarkerDataListOption().getDataListId()))
+                UUID expectedDataListId = entity.getTwin().getTwinClass().getMarkerDataListId() != null
+                        ? entity.getTwin().getTwinClass().getMarkerDataListId()
+                        : entity.getTwin().getTwinClass().getInheritedMarkerDataListId();
+
+                if (!expectedDataListId.equals(entity.getMarkerDataListOption().getDataListId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect twinMarker dataListOptionId[" + entity.getMarkerDataListOptionId() + "]");
         }
         return true;
@@ -155,7 +159,7 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
         // it's not possible to delete it in such way, because we need to write history
         // twinMarkerRepository.deleteByTwinIdAndMarkerDataListOptionIdIn(twinEntity.getId(), markersDelete);
         List<TwinMarkerEntity> markers = twinMarkerRepository.findByTwinIdAndMarkerDataListOptionIdIn(twinEntity.getId(), markersDelete);
-        if(markers.size() != markersDelete.size()) {
+        if (markers.size() != markersDelete.size()) {
             log.warn("Mismatch markers for deletion with existing for twin(id: {}) : markers (optionIDs: {}) and markersDelete (optionIDs: {}).",
                     twinEntity.getId(),
                     markers.stream().map(TwinMarkerEntity::getMarkerDataListOptionId).collect(Collectors.toSet()),
@@ -163,7 +167,7 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
         }
         //todo add history
         for (TwinMarkerEntity marker : markers)
-                twinChangesCollector.delete(marker);
+            twinChangesCollector.delete(marker);
 
     }
 

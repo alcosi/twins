@@ -71,7 +71,11 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
                 if (entity.getTagDataListOption() == null)
                     entity.setTagDataListOption(dataListService.findDataListOption(entity.getTagDataListOptionId())); // Why there is a side effect in validate function ?!
             default:
-                if (!entity.getTwin().getTwinClass().getTagDataListId().equals(entity.getTagDataListOption().getDataListId()))
+                UUID expectedTagDataListId = entity.getTwin().getTwinClass().getTagDataListId() != null
+                        ? entity.getTwin().getTwinClass().getTagDataListId()
+                        : entity.getTwin().getTwinClass().getInheritedTagDataListId();
+
+                if (!expectedTagDataListId.equals(entity.getTagDataListOption().getDataListId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect twinTag dataListOptionId[" + entity.getTagDataListOptionId() + "]");
         }
         return true;
