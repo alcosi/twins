@@ -38,7 +38,7 @@ public class TransitionTriggerRestDTOMapper extends RestSimpleDTOMapper<Twinflow
                     .setTwinflowTransitionId(src.getTwinflowTransitionId())
                     .setTransitionTriggerFeaturerId(src.getTransitionTriggerFeaturerId())
                     .setTransitionTriggerParams(src.getTransitionTriggerParams())
-                    .setActive(src.isActive());
+                    .setActive(src.getIsActive());
             case SHORT -> dst
                     .setId(src.getId())
                     .setTwinflowTransitionId(src.getTwinflowTransitionId())

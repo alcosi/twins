@@ -425,8 +425,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 dbTriggerEntity.setTransitionTriggerFeaturerId(trigger.getTransitionTriggerFeaturerId());
             if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.transitionTriggerParams, dbTriggerEntity.getTransitionTriggerParams(), trigger.getTransitionTriggerParams()))
                 dbTriggerEntity.setTransitionTriggerParams(trigger.getTransitionTriggerParams());
-            if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.isActive, dbTriggerEntity.isActive(), trigger.isActive()))
-                dbTriggerEntity.setActive(trigger.isActive());
+            if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.isActive, dbTriggerEntity.getIsActive(), trigger.getIsActive()))
+                dbTriggerEntity.setIsActive(trigger.getIsActive());
             if (changesHelper.hasChanges())
                 saveList.add(dbTriggerEntity);
         }
@@ -936,7 +936,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             //todo run status input/output triggers
             for (TwinEntity targetTwin : transitionContext.getTargetTwinList().values())
                 for (TwinflowTransitionTriggerEntity triggerEntity : transitionEntity.getTriggersKit()) {
-                    if (!triggerEntity.isActive()) {
+                    if (!triggerEntity.getIsActive()) {
                         log.info("{} will not be triggered, since it is inactive", triggerEntity.logDetailed());
                         continue;
                     }

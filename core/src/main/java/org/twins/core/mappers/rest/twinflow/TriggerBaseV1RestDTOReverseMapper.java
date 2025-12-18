@@ -17,6 +17,6 @@ public class TriggerBaseV1RestDTOReverseMapper extends RestSimpleDTOMapper<Trigg
                 .setOrder(src.getOrder())
                 .setTransitionTriggerFeaturerId(src.getTriggerFeaturerId())
                 .setTransitionTriggerParams(src.getTriggerParams())
-                .setActive(src.getActive());
+                .setIsActive(src.getActive());
     }
 }

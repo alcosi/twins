@@ -51,7 +51,7 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicClon
     private TwinflowTransitionEntity twinflowTransition;
 
     @Column(name = "active")
-    private boolean isActive;
+    private Boolean isActive;
 
     public String easyLog(EasyLoggable.Level level) {
         return switch (level) {
@@ -71,6 +71,6 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicClon
                 .setTransitionTriggerFeaturerId(transitionTriggerFeaturerId)
                 .setTransitionTriggerFeaturer(transitionTriggerFeaturer)
                 .setTransitionTriggerParams(transitionTriggerParams)
-                .setActive(isActive);
+                .setIsActive(isActive);
     }
 }
