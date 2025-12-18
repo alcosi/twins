@@ -18,6 +18,7 @@ import org.twins.core.featurer.notificator.recipient.RecipientResolver;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -48,22 +49,29 @@ public class HistoryRecipientService extends EntitySecureFindServiceImpl<History
         return true;
     }
 
-    public Set<HistoryNotificationRecipientCollectorEntity> getRecipientCollectors(UUID recipientId, boolean exclude) {
+    public Set<HistoryNotificationRecipientCollectorEntity> getRecipientCollectors(UUID recipientId) {
         //todo perhaps this can be cached
-        return historyNotificationRecipientCollectorRepository.findAllByHistoryNotificationRecipientIdAndExclude(recipientId, exclude);
+        return historyNotificationRecipientCollectorRepository.findAllByHistoryNotificationRecipientId(recipientId);
     }
 
     public Set<UUID> recipientResolve(UUID recipientId, HistoryEntity history) throws ServiceException {
-        Set<UUID> include = resolveRecipients(recipientId, history, false);
-        Set<UUID> exclude = resolveRecipients(recipientId, history, true);
+        Set<HistoryNotificationRecipientCollectorEntity> collectors = getRecipientCollectors(recipientId);
+
+        Map<Boolean, List<HistoryNotificationRecipientCollectorEntity>> partitioned = collectors.stream()
+                        .collect(Collectors.partitioningBy(HistoryNotificationRecipientCollectorEntity::getExclude));
+
+        List<HistoryNotificationRecipientCollectorEntity> includeCollectors = partitioned.get(false);
+        List<HistoryNotificationRecipientCollectorEntity> excludeCollectors = partitioned.get(true);
+
+        Set<UUID> include = resolveRecipients(history, includeCollectors);
+        Set<UUID> exclude = resolveRecipients(history, excludeCollectors);
+
         include.removeAll(exclude);
         return include;
     }
 
-    private Set<UUID> resolveRecipients(UUID recipientId, HistoryEntity history, boolean exclude) throws ServiceException {
+    private Set<UUID> resolveRecipients(HistoryEntity history, List<HistoryNotificationRecipientCollectorEntity> collectors) throws ServiceException {
         Set<UUID> result = new HashSet<>();
-        Set<HistoryNotificationRecipientCollectorEntity> collectors = getRecipientCollectors(recipientId, exclude);
-
         for (HistoryNotificationRecipientCollectorEntity collector : collectors) {
             RecipientResolver resolver = featurerService.getFeaturer(collector.getRecipientResolverFeaturerId(), RecipientResolver.class);
             resolver.resolve(history, result, collector.getRecipientResolverParams());

@@ -9,6 +9,6 @@ import java.util.UUID;
 
 @Repository
 public interface HistoryNotificationRecipientCollectorRepository extends CrudRepository<HistoryNotificationRecipientCollectorEntity, UUID>, JpaSpecificationExecutor<HistoryNotificationRecipientCollectorEntity> {
-    Set<HistoryNotificationRecipientCollectorEntity> findAllByHistoryNotificationRecipientIdAndExclude(UUID recipientId, boolean exclude);
+    Set<HistoryNotificationRecipientCollectorEntity> findAllByHistoryNotificationRecipientId(UUID recipientId);
 }
 
