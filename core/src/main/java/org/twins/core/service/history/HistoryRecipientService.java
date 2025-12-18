@@ -55,14 +55,14 @@ public class HistoryRecipientService extends EntitySecureFindServiceImpl<History
 
     public Set<UUID> recipientResolve(UUID recipientId, HistoryEntity history) throws ServiceException {
         Set<UUID> recipientIds = new HashSet<>();
-
         List<HistoryNotificationRecipientCollectorEntity> collectors = new ArrayList<>(getRecipientCollectors(recipientId));
-        collectors.sort(Comparator.comparingInt(HistoryNotificationRecipientCollectorEntity::getOrder));
+        collectors.sort(Comparator.comparing(HistoryNotificationRecipientCollectorEntity::isExclude));
 
         for (HistoryNotificationRecipientCollectorEntity recipientCollector : collectors) {
             RecipientResolver recipientResolver = featurerService.getFeaturer(recipientCollector.getRecipientResolverFeaturerId(), RecipientResolver.class);
             recipientResolver.resolve(history, recipientIds, recipientCollector.getRecipientResolverParams());
         }
+
         return recipientIds;
     }
 }
