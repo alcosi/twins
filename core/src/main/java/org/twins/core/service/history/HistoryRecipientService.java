@@ -48,21 +48,26 @@ public class HistoryRecipientService extends EntitySecureFindServiceImpl<History
         return true;
     }
 
-    public Set<HistoryNotificationRecipientCollectorEntity> getRecipientCollectors(UUID recipientId) {
+    public Set<HistoryNotificationRecipientCollectorEntity> getRecipientCollectors(UUID recipientId, boolean exclude) {
         //todo perhaps this can be cached
-        return historyNotificationRecipientCollectorRepository.findAllByHistoryNotificationRecipientId(recipientId);
+        return historyNotificationRecipientCollectorRepository.findAllByHistoryNotificationRecipientIdAndExclude(recipientId, exclude);
     }
 
     public Set<UUID> recipientResolve(UUID recipientId, HistoryEntity history) throws ServiceException {
-        Set<UUID> recipientIds = new HashSet<>();
-        List<HistoryNotificationRecipientCollectorEntity> collectors = new ArrayList<>(getRecipientCollectors(recipientId));
-        collectors.sort(Comparator.comparing(HistoryNotificationRecipientCollectorEntity::getExclude));
+        Set<UUID> include = resolveRecipients(recipientId, history, false);
+        Set<UUID> exclude = resolveRecipients(recipientId, history, true);
+        include.removeAll(exclude);
+        return include;
+    }
 
-        for (HistoryNotificationRecipientCollectorEntity recipientCollector : collectors) {
-            RecipientResolver recipientResolver = featurerService.getFeaturer(recipientCollector.getRecipientResolverFeaturerId(), RecipientResolver.class);
-            recipientResolver.resolve(history, recipientIds, recipientCollector.getRecipientResolverParams());
+    private Set<UUID> resolveRecipients(UUID recipientId, HistoryEntity history, boolean exclude) throws ServiceException {
+        Set<UUID> result = new HashSet<>();
+        Set<HistoryNotificationRecipientCollectorEntity> collectors = getRecipientCollectors(recipientId, exclude);
+
+        for (HistoryNotificationRecipientCollectorEntity collector : collectors) {
+            RecipientResolver resolver = featurerService.getFeaturer(collector.getRecipientResolverFeaturerId(), RecipientResolver.class);
+            resolver.resolve(history, result, collector.getRecipientResolverParams());
         }
-
-        return recipientIds;
+        return result;
     }
 }
