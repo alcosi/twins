@@ -49,7 +49,7 @@ public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<T
     @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_class_field_attribute_id", insertable = false, updatable = false, nullable = false)
-    private TwinClassFieldAttributeEntity twinClassFieldAttributeEntity;
+    private TwinClassFieldAttributeEntity twinClassFieldAttribute;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -72,7 +72,7 @@ public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<T
                 .setNoteMsg(noteMsg)
                 .setNoteMsgContext(noteMsgContext)
                 .setChangedAt(changedAt)
-                .setTwinClassFieldAttributeEntity(twinClassFieldAttributeEntity)
+                .setTwinClassFieldAttribute(twinClassFieldAttribute)
                 .setTwin(twin);
     }
 }
