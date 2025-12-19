@@ -109,6 +109,9 @@ public class TwinActionService {
                 for (var action : TwinAction.values()) {
                     if (twinClassEntity.getActionsProtectedByPermission().get(action) != null)
                         continue; // protectedByPermission is already detected
+                    if (groupedByActionThenByClass.get(action) == null) {
+                        continue; // protectedByPermission is not configured to any class
+                    }
                     for (var extendsClassId : twinClassEntity.getExtendedClassIdSet()) { // set order is important
                         var actionPermission = groupedByActionThenByClass.get(action).get(extendsClassId);
                         if (actionPermission != null) {
@@ -131,6 +134,9 @@ public class TwinActionService {
                 for (var action : TwinAction.values()) {
                     if (twinClassEntity.getActionsProtectedByValidatorRules().getGrouped(action) != null)
                         continue; // protectedByValidator is already detected
+                    if (groupedByActionThenByClass.get(action) == null) {
+                        continue; // protectedByValidator is not configured to any class
+                    }
                     for (var extendsClassId : twinClassEntity.getExtendedClassIdSet()) { // set order is important
                         var actionPermission = groupedByActionThenByClass.get(action).get(extendsClassId);
                         if (actionPermission != null) {
