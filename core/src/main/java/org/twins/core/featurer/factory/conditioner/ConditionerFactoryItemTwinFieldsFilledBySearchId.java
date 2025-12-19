@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -41,7 +42,7 @@ public class ConditionerFactoryItemTwinFieldsFilledBySearchId extends Conditione
         Map<String, String> params = new HashMap<>();
         params.put(PARAM_CURRENT_TWIN_CLASS_ID, twin.getTwinClassId().toString());
 
-        List<TwinClassFieldEntity> requiredFields = twinClassFieldSearchService.findTwinClassField(searchId.extract(properties), params, null, null).getList();
+        List<TwinClassFieldEntity> requiredFields = twinClassFieldSearchService.findTwinClassField(searchId.extract(properties), params, null, SimplePagination.ALL).getList();
 
         if (CollectionUtils.isEmpty(requiredFields)) {
             return true;
