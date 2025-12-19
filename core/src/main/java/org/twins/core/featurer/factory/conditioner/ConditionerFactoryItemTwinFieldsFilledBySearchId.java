@@ -56,7 +56,7 @@ public class ConditionerFactoryItemTwinFieldsFilledBySearchId extends Conditione
 
         if (CollectionUtils.isEmpty(fieldValuesKit)) {
             log.warn("no field values found");
-            return true;
+            return false;
         }
 
         for (TwinClassFieldEntity field : requiredFields) {
