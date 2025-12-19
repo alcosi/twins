@@ -276,12 +276,13 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinflowTransitionEntity createTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+    public TwinflowTransitionEntity createTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, I18nEntity nameI18n, I18nEntity descriptionI18n, I18nEntity messageI18n) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         TwinflowTransitionAliasEntity twinflowTransitionAlias = creatAliasIfNeeded(twinflowTransitionEntity.getTwinflowTransitionAlias());
         twinflowTransitionEntity
                 .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWINFLOW_TRANSITION_NAME, nameI18n).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWINFLOW_TRANSITION_DESCRIPTION, descriptionI18n).getId())
+                .setMessageI18NId(i18nService.createI18nAndTranslations(I18nType.TWINFLOW_TRANSITION_MESSAGE, messageI18n).getId())
                 .setCreatedByUserId(apiUser.getUserId())
                 .setTwinflowTransitionAliasId(twinflowTransitionAlias.getId())
                 .setTwinflowTransitionAlias(twinflowTransitionAlias);
@@ -311,12 +312,13 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinflowTransitionEntity updateTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+    public TwinflowTransitionEntity updateTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, I18nEntity nameI18n, I18nEntity descriptionI18n, I18nEntity messageI18n) throws ServiceException {
         TwinflowTransitionEntity dbTwinflowTransitionEntity = findEntitySafe(twinflowTransitionEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
         updateTransitionAlias(dbTwinflowTransitionEntity, twinflowTransitionEntity.getTwinflowTransitionAlias(), changesHelper);
         updateTransitionName(dbTwinflowTransitionEntity, nameI18n, changesHelper);
         updateTransitionDescription(dbTwinflowTransitionEntity, descriptionI18n, changesHelper);
+        updateTransitionMessage(dbTwinflowTransitionEntity, messageI18n, changesHelper);
         updateTransitionInBuildFactory(dbTwinflowTransitionEntity, twinflowTransitionEntity.getInbuiltTwinFactoryId(), changesHelper);
         updateTransitionDraftingFactory(dbTwinflowTransitionEntity, twinflowTransitionEntity.getDraftingTwinFactoryId(), changesHelper);
         updateTransitionPermission(dbTwinflowTransitionEntity, twinflowTransitionEntity.getPermissionId(), changesHelper);
@@ -454,6 +456,15 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             dbTwinflowTransitionEntity.setDescriptionI18NId(descriptionI18n.getId());
     }
 
+    public void updateTransitionMessage(TwinflowTransitionEntity dbTwinflowTransitionEntity, I18nEntity messageI18n, ChangesHelper changesHelper) throws ServiceException {
+        if (messageI18n == null)
+            return;
+        if (dbTwinflowTransitionEntity.getMessageI18NId() != null)
+            messageI18n.setId(dbTwinflowTransitionEntity.getMessageI18NId());
+        i18nService.saveTranslations(I18nType.TWINFLOW_MESSAGE, messageI18n);
+        if (changesHelper.isChanged(TwinflowTransitionEntity.Fields.messageI18NId, dbTwinflowTransitionEntity.getMessageI18NId(), messageI18n.getId()))
+            dbTwinflowTransitionEntity.setMessageI18NId(messageI18n.getId());
+    }
 
     public void updateTransitionName(TwinflowTransitionEntity dbTwinflowTransitionEntity, I18nEntity nameI18n, ChangesHelper changesHelper) throws ServiceException {
         if (nameI18n == null)

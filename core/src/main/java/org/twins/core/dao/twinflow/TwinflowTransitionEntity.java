@@ -39,6 +39,9 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @Column(name = "description_i18n_id")
     private UUID descriptionI18NId;
 
+    @Column(name = "message_i18n_id")
+    private UUID messageI18NId;
+
     @Column(name = "src_twin_status_id")
     private UUID srcTwinStatusId;
 

@@ -58,10 +58,11 @@ public class TransitionUpdateController extends ApiController {
         try {
             I18nEntity nameI18n = i18NSaveRestDTOReverseMapper.convert(request.getNameI18n());
             I18nEntity descriptionsI18n = i18NSaveRestDTOReverseMapper.convert(request.getDescriptionI18n());
+            I18nEntity messageI18n = i18NSaveRestDTOReverseMapper.convert(request.getMessageI18n());
 
             TwinflowTransitionEntity twinflowTransitionEntity = transitionUpdateRestDTOReverseMapper.convert(request);
             twinflowTransitionEntity.setId(transitionId);
-            twinflowTransitionEntity = twinflowTransitionService.updateTwinflowTransition(twinflowTransitionEntity, nameI18n, descriptionsI18n);
+            twinflowTransitionEntity = twinflowTransitionService.updateTwinflowTransition(twinflowTransitionEntity, nameI18n, descriptionsI18n, messageI18n);
             rs
                     .setTransition(transitionBaseV2RestDTOMapper.convert(twinflowTransitionEntity, mapperContext));
         } catch (ServiceException se) {

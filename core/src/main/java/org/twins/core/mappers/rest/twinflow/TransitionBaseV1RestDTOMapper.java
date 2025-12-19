@@ -23,7 +23,6 @@ import org.twins.core.service.permission.Permissions;
 @MapperModeBinding(modes = TransitionMode.class)
 public class TransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionEntity, TwinflowTransitionBaseDTOv1> {
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
-    private final I18nService i18nService;
     private final PermissionService permissionService;
 
     @Override
@@ -37,6 +36,7 @@ public class TransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
                         .setDstTwinStatusId(src.getDstTwinStatusId())
                         .setName(I18nCacheHolder.addId(src.getNameI18NId()))
                         .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
+                        .setMessage(I18nCacheHolder.addId(src.getMessageI18NId()))
                         .setAllowComment(src.isAllowComment())
                         .setAllowAttachments(src.isAllowAttachment())
                         .setAllowLinks(src.isAllowLinks())
