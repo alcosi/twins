@@ -19,6 +19,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.twins.core.dto.rest.featurer.storager.filehandler.*;
+import org.twins.core.enums.featurer.storager.Format;
 import org.twins.core.enums.featurer.storager.StorageType;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.storager.AddedFileKey;
@@ -32,11 +33,11 @@ import java.util.stream.Collectors;
 
 import static org.cambium.common.util.UrlUtils.toURI;
 
-
+@Deprecated
 @Component
 @RequiredArgsConstructor
 @Featurer(id = FeaturerTwins.ID_2906,
-        name = "StoragerFileHandlerController",
+        name = "StoragerAlcosiFileHandler",
         description = "Service to save or delete files via file-handler service"
 )
 @Slf4j
@@ -158,7 +159,7 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
                 var fileBytes = sizeLimitedStream.readAllBytes();
 
                 if (shouldResize(mimeType)) {
-                    var url = baseUrl + "/api/resize/save/synced";
+                    var url = STR."\{baseUrl}/api/resize/save/synced";
                     var tasksParams = resizeTasks.extract(properties);
                     var tasks = new ArrayList<ResizeTaskDTO>();
 
@@ -167,13 +168,14 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
                             tasks.add(new ResizeTaskDTO(
                                     Integer.parseInt(taskParams.get("width")),
                                     Integer.parseInt(taskParams.get("height")),
-                                    taskParams.get("type"),
-                                    getMimeSubType(mimeType),
+                                    STR."Resize from \{getMimeSubType(mimeType)} to \{taskParams.get("format")}",
+                                    Format.valueOf(taskParams.get("format").toUpperCase()),
                                     fileId,
                                     Boolean.parseBoolean(taskParams.get("keepAspectRatio"))
                             ));
                         }
 
+                        // maybe delete this?
                         if (tasks.size() != tasks.stream().map(ResizeTaskDTO::type).distinct().count()) {
                             log.info("Type field in tasks params is not unique");
                             throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS);
@@ -185,7 +187,6 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
 
                     var rqBody = new FileHandlerResizeSaveRqDTO(
                             fileId,
-                            fileName,
                             ORIGINAL_TYPE,
                             fileBytes,
                             tasks,
@@ -197,6 +198,7 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
                     var resp = restTemplate.exchange(url, HttpMethod.POST, req,  new ParameterizedTypeReference<List<FileHandlerResizeSaveRsDTO>>() {});
 
                     if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
+                        log.error("RS STATUS CODE: {}\nRS BODY:{}", resp.getStatusCode(), resp.getBody());
                         throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
                     }
 
@@ -217,12 +219,13 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
 
                     return new AddedFileKey(prepareObjectLink(objectLink, properties), sizeLimitedStream.bytesRead(), modifications);
                 } else {
-                    var url = baseUrl + "/api/save/synced";
-                    var rqBody = new FileHandlerSaveRqDTO(fileId, fileName, ORIGINAL_TYPE, fileBytes, StorageType.S3, storageDir);
+                    var url = STR."\{baseUrl}/api/save/synced";
+                    var rqBody = new FileHandlerSaveRqDTO(fileId, ORIGINAL_TYPE, fileBytes, StorageType.S3, storageDir);
                     var req = new HttpEntity<>(rqBody);
                     var resp = restTemplate.exchange(url, HttpMethod.POST, req, FileHandlerResizeSaveRsDTO.class);
 
                     if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
+                        log.error("RS STATUS CODE: {}\nRS BODY:{}", resp.getStatusCode(), resp.getBody());
                         throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
                     }
 
