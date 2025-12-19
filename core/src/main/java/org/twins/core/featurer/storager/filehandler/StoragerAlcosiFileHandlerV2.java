@@ -1,9 +1,10 @@
 package org.twins.core.featurer.storager.filehandler;
 
-import io.github.breninsul.io.service.stream.inputStream.CountedLimitedSizeInputStream;
 import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tika.io.TikaInputStream;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -13,10 +14,15 @@ import org.cambium.featurer.params.FeaturerParamListOfMaps;
 import org.cambium.featurer.params.FeaturerParamMap;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.twins.core.dto.rest.featurer.storager.filehandler.*;
 import org.twins.core.enums.featurer.storager.Format;
@@ -25,7 +31,9 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.StoragerAbstractChecked;
 
+import javax.naming.LimitExceededException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.time.Duration;
 import java.util.*;
@@ -33,15 +41,14 @@ import java.util.stream.Collectors;
 
 import static org.cambium.common.util.UrlUtils.toURI;
 
-@Deprecated
 @Component
 @RequiredArgsConstructor
-@Featurer(id = FeaturerTwins.ID_2906,
-        name = "StoragerAlcosiFileHandler",
-        description = "Service to save or delete files via file-handler service"
+@Featurer(id = FeaturerTwins.ID_2907,
+        name = "StoragerAlcosiFileHandlerV2",
+        description = "Service to save or delete files via file-handler service (api with multipart)"
 )
 @Slf4j
-public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
+public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
 
     @FeaturerParam(
             name = "fileHandlerUri", description = "URI of file handler",
@@ -112,7 +119,7 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
     public void deleteFile(String fileKey, HashMap<String, String> params) throws ServiceException {
         try {
             var properties = extractProperties(params, false);
-            var url = fileHandlerUri.extract(properties) + "/api/delete/synced";
+            var url = STR."\{fileHandlerUri.extract(properties)}/api/delete/synced";
             var dirs = extractDirsToDelete(fileKey, properties);
             var request = new HttpEntity<>(new FileHandlerDeleteRqDTO(List.of(dirs), StorageType.S3), new HttpHeaders());
             var resp = restTemplate.exchange(url, HttpMethod.POST, request, Void.class);
@@ -147,16 +154,16 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
     protected AddedFileKey addFileInternal(String fileKey, InputStream fileStream, String mimeType, HashMap<String, String> params) throws ServiceException {
         try {
             Integer fileSizeLimit = getFileSizeLimit(params);
-            CountedLimitedSizeInputStream sizeLimitedStream = new CountedLimitedSizeInputStream(fileStream, fileSizeLimit, 0);
+            TikaInputStream tikaStream = TikaInputStream.get(fileStream);
 
-            try (sizeLimitedStream) {
+            try (tikaStream) {
                 var properties = extractProperties(params, false);
                 var baseUrl = fileHandlerUri.extract(properties);
                 var fileKeyElems = Arrays.stream(fileKey.split("/")).collect(Collectors.toList());
                 var fileName = fileKeyElems.removeLast();
                 var fileId = Arrays.stream(fileName.split("\\.")).toList().getFirst();
                 var storageDir = String.join("/", fileKeyElems);
-                var fileBytes = sizeLimitedStream.readAllBytes();
+                var fileSize = getFileSize(tikaStream, fileSizeLimit);
 
                 if (shouldResize(mimeType)) {
                     var url = STR."\{baseUrl}/api/resize/save/synced";
@@ -175,27 +182,25 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
                             ));
                         }
 
-                        // maybe delete this?
-                        if (tasks.size() != tasks.stream().map(ResizeTaskDTO::type).distinct().count()) {
-                            log.info("Type field in tasks params is not unique");
-                            throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS);
-                        }
+//                        if (tasks.size() != tasks.stream().map(ResizeTaskDTO::type).distinct().count()) {
+//                            log.info("Type field in tasks params is not unique");
+//                            throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS);
+//                        }
                     } catch (Throwable t) {
                         log.info("Unable to create resize tasks. Check tasks params: {}\n{}", tasksParams, t.getMessage(), t);
                         throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS);
                     }
 
-                    var rqBody = new FileHandlerResizeSaveRqDTO(
+                    var rqData = new FileHandlerResizeSaveDataPart(
                             fileId,
                             ORIGINAL_TYPE,
-                            fileBytes,
                             tasks,
                             StorageType.S3,
                             storageDir,
                             true
                     );
-                    var req = new HttpEntity<>(rqBody);
-                    var resp = restTemplate.exchange(url, HttpMethod.POST, req,  new ParameterizedTypeReference<List<FileHandlerResizeSaveRsDTO>>() {});
+
+                    var resp = restTemplate.exchange(url, HttpMethod.POST, prepareMultipartRq(rqData, tikaStream, fileName, fileSize), new ParameterizedTypeReference<List<FileHandlerResizeSaveRsDTO>>() {});
 
                     if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
                         log.error("RS STATUS CODE: {}\nRS BODY:{}", resp.getStatusCode(), resp.getBody());
@@ -217,19 +222,19 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
                         }
                     }
 
-                    return new AddedFileKey(prepareObjectLink(objectLink, properties), sizeLimitedStream.bytesRead(), modifications);
+                    return new AddedFileKey(prepareObjectLink(objectLink, properties), fileSize, modifications);
                 } else {
                     var url = STR."\{baseUrl}/api/save/synced";
-                    var rqBody = new FileHandlerSaveRqDTO(fileId, ORIGINAL_TYPE, fileBytes, StorageType.S3, storageDir);
-                    var req = new HttpEntity<>(rqBody);
-                    var resp = restTemplate.exchange(url, HttpMethod.POST, req, FileHandlerResizeSaveRsDTO.class);
+                    var rqData = new FileHandlerSaveDataPart(fileId, ORIGINAL_TYPE, StorageType.S3, storageDir);
+
+                    var resp = restTemplate.exchange(url, HttpMethod.POST, prepareMultipartRq(rqData, fileStream, fileName, fileSize), FileHandlerResizeSaveRsDTO.class);
 
                     if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
                         log.error("RS STATUS CODE: {}\nRS BODY:{}", resp.getStatusCode(), resp.getBody());
                         throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
                     }
 
-                    return new AddedFileKey(prepareObjectLink(resp.getBody().objectLink(), properties), sizeLimitedStream.bytesRead(), Collections.emptyList());
+                    return new AddedFileKey(prepareObjectLink(resp.getBody().objectLink(), properties), fileSize, Collections.emptyList());
                 }
             }
         } catch (Throwable t) {
@@ -284,4 +289,57 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
             return dirs;
         }
     }
+
+    private HttpEntity<MultiValueMap<String, Object>> prepareMultipartRq(Object rqData, InputStream fileStream, String fileName, Long fileSize) {
+        var body = new LinkedMultiValueMap<String, Object>();
+
+        body.add("data", prepareDataPart(rqData));
+        body.add("file", prepareFilePart(fileStream, fileName, fileSize));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+        return new HttpEntity<>(body, headers);
+    }
+
+    private HttpEntity<?> prepareDataPart(Object rqData) {
+        var dataHeaders = new HttpHeaders();
+        dataHeaders.setContentType(MediaType.APPLICATION_JSON);
+
+        return new HttpEntity<>(rqData, dataHeaders);
+    }
+
+    @SneakyThrows
+    private HttpEntity<Resource> prepareFilePart(InputStream fileStream, String fileName, Long fileSize) {
+        var fileHeaders = new HttpHeaders();
+        fileHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+        var fileResource = new InputStreamResource(fileStream) {
+            @Override
+            public String getFilename() {
+                return fileName;
+            }
+
+            @Override
+            public long contentLength() {
+                return fileSize;
+            }
+        };
+
+        return new HttpEntity<>(fileResource, fileHeaders);
+    }
+
+    @SneakyThrows
+    private long getFileSize(InputStream inputStream, Integer fileSizeLimit) {
+        inputStream.mark(Integer.MAX_VALUE);
+        long size = inputStream.transferTo(OutputStream.nullOutputStream());
+        inputStream.reset();
+
+        if (size > fileSizeLimit && fileSizeLimit != -1) {
+            throw new LimitExceededException(STR."File size [\{size}] is exceeding the size limit [\{fileSizeLimit}]");
+        }
+
+        return size;
+    }
 }
+
