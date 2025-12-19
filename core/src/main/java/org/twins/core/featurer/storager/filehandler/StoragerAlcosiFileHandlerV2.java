@@ -176,7 +176,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                                     Integer.parseInt(taskParams.get("width")),
                                     Integer.parseInt(taskParams.get("height")),
                                     taskParams.get("type"),
-                                    Format.valueOf(taskParams.get(("format") == null ? getMimeSubType(mimeType) : taskParams.get("format")).toUpperCase()),
+                                    Format.valueOf((taskParams.get("format") == null ? getMimeSubType(mimeType) : taskParams.get("format")).toUpperCase()),
                                     fileId,
                                     Boolean.parseBoolean(taskParams.get("keepAspectRatio"))
                             ));
