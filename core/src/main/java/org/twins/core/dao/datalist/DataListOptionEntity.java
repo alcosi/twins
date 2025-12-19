@@ -29,7 +29,7 @@ public class DataListOptionEntity implements EasyLoggable {
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            this.id = UUID.nameUUIDFromBytes((dataListId + option + optionI18NId + businessAccountId + externalId).getBytes());
+            this.id = UUID.nameUUIDFromBytes((dataListId + option + optionI18nId + businessAccountId + externalId).getBytes());
         }
     }
 
@@ -43,7 +43,10 @@ public class DataListOptionEntity implements EasyLoggable {
     private String option;
 
     @Column(name = "option_i18n_id")
-    private UUID optionI18NId;
+    private UUID optionI18nId;
+
+    @Column(name = "description_i18n_id")
+    private UUID descriptionI18nId;
 
     @Column(name = "icon")
     private String icon;

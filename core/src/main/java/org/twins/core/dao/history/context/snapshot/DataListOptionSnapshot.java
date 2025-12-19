@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.StringUtils;
-import org.twins.core.service.i18n.I18nService;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.service.i18n.I18nService;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -24,7 +24,7 @@ public class DataListOptionSnapshot {
         return new DataListOptionSnapshot()
                 .setId(dataListOptionEntity.getId())
                 .setOption(dataListOptionEntity.getOption())
-                .setOptionI18n(i18nService.translateToLocale(dataListOptionEntity.getOptionI18NId()))
+                .setOptionI18n(i18nService.translateToLocale(dataListOptionEntity.getOptionI18nId()))
                 .setDataListId(dataListOptionEntity.getDataListId());
     }
 
