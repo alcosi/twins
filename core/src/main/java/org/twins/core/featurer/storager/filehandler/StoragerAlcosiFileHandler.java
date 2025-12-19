@@ -168,11 +168,16 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
                             tasks.add(new ResizeTaskDTO(
                                     Integer.parseInt(taskParams.get("width")),
                                     Integer.parseInt(taskParams.get("height")),
-                                    STR."Resize from \{getMimeSubType(mimeType)} to \{taskParams.get("format") == null ? getMimeSubType(mimeType) : taskParams.get("format")}",
+                                    taskParams.get("type"),
                                     Format.valueOf(taskParams.get(("format") == null ? getMimeSubType(mimeType) : taskParams.get("format")).toUpperCase()),
                                     fileId,
                                     Boolean.parseBoolean(taskParams.get("keepAspectRatio"))
                             ));
+                        }
+
+                        if (tasks.size() != tasks.stream().map(ResizeTaskDTO::type).distinct().count()) {
+                            log.info("Type field in tasks params is not unique");
+                            throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS);
                         }
                     } catch (Throwable t) {
                         log.info("Unable to create resize tasks. Check tasks params: {}\n{}", tasksParams, t.getMessage(), t);
