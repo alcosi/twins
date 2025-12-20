@@ -1,5 +1,7 @@
 package org.twins.core.service.face;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ErrorCodeCommon;
@@ -17,6 +19,7 @@ import java.util.UUID;
 @Component
 @RequestScope
 @RequiredArgsConstructor
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 public class RequestTwinPointers {
     private final TwinService twinService;
     @Getter

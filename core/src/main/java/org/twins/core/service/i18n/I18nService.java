@@ -1,6 +1,8 @@
 package org.twins.core.service.i18n;
 
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,7 @@ import java.util.stream.StreamSupport;
 
 @Component
 @Slf4j
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
     private final I18nRepository i18nRepository;

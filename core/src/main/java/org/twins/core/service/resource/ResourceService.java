@@ -1,5 +1,7 @@
 package org.twins.core.service.resource;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
@@ -24,6 +26,7 @@ import java.util.UUID;
 import java.util.function.Function;
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity> {
     protected final FeaturerService featurerService;

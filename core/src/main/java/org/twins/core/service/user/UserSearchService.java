@@ -1,5 +1,7 @@
 package org.twins.core.service.user;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
@@ -42,6 +44,7 @@ import static org.twins.core.dao.user.UserSpecification.*;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEntity> {
     private final AuthService authService;

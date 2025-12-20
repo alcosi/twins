@@ -1,5 +1,7 @@
 package org.twins.core.service.permission;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
-import org.twins.core.enums.domain.DomainType;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
-import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.dao.permission.*;
 import org.twins.core.dao.space.*;
 import org.twins.core.dao.twin.TwinEntity;
@@ -32,8 +32,10 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.enums.twin.TwinRole;
 import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
+import org.twins.core.enums.domain.DomainType;
+import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.twin.TwinRole;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
@@ -54,6 +56,7 @@ import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArr
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class PermissionService extends TwinsEntitySecureFindService<PermissionEntity> {
 

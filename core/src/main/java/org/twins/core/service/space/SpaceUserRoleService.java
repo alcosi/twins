@@ -1,5 +1,7 @@
 package org.twins.core.service.space;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -36,6 +38,7 @@ import static org.twins.core.dao.specifications.space.SpaceRoleUserSpecification
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class SpaceUserRoleService {
     final EntitySmartService entitySmartService;
