@@ -7,6 +7,8 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
@@ -15,4 +17,7 @@ import java.util.List;
 public class TwinBatchSaveRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "twin list")
     public List<TwinDTOv2> twinList;
+
+    @Schema(description = "Invalid twin field id list")
+    public Map<UUID, Map<UUID, String>> invalidTwinFieldErrors;
 }

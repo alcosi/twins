@@ -7,12 +7,12 @@ import java.util.UUID;
 
 @Getter
 public class TwinFieldValidationException extends ServiceException {
-    private Map<UUID, String> invalidFieldIds;
+    private final UUID twinId;
+    private final Map<UUID, String> invalidFields;
 
-    public TwinFieldValidationException(ErrorCode serviceError, Map<UUID, String> invalidFieldIds) {
+    public TwinFieldValidationException(ErrorCode serviceError, UUID twinId, Map<UUID, String> invalidFields) {
         super(serviceError);
-        this.invalidFieldIds = invalidFieldIds;
+        this.twinId = twinId;
+        this.invalidFields = invalidFields;
     }
-
-
 }
