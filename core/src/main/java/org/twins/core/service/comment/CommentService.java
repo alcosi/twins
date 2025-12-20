@@ -1,5 +1,7 @@
 package org.twins.core.service.comment;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -21,15 +23,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
-import org.twins.core.enums.comment.TwinCommentAction;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.comment.TwinCommentRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
+import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
 import org.twins.core.domain.search.CommentSearch;
+import org.twins.core.enums.comment.TwinCommentAction;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
@@ -39,7 +42,6 @@ import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserGroupService;
-import org.twins.core.domain.TwinChangesCollector;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -51,6 +53,7 @@ import static org.twins.core.dao.specifications.comment.CommentSpecification.*;
 
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @Lazy
 @RequiredArgsConstructor

@@ -1,5 +1,7 @@
 package org.twins.core.service.attachment;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCodeCommon;
@@ -14,7 +16,6 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.enums.action.TwinAction;
 import org.twins.core.dao.attachment.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -22,6 +23,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.attachment.AttachmentQuotas;
+import org.twins.core.enums.action.TwinAction;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperAttachment;
@@ -44,6 +46,7 @@ import static org.twins.core.enums.attachment.problem.AttachmentGlobalCreateDele
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<TwinAttachmentRestrictionEntity> {
     private final TwinAttachmentRestrictionRepository restrictionRepository;

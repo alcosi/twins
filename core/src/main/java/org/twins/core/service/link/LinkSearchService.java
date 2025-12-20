@@ -1,5 +1,7 @@
 package org.twins.core.service.link;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -11,10 +13,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkRepository;
-import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.enums.link.LinkType;
 import org.twins.core.domain.search.LinkSearch;
+import org.twins.core.enums.link.LinkStrength;
+import org.twins.core.enums.link.LinkType;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.Collection;
@@ -29,6 +31,7 @@ import static org.twins.core.dao.specifications.link.LinkSpecification.*;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class LinkSearchService {
     private final LinkRepository linkRepository;

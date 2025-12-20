@@ -1,5 +1,7 @@
 package org.twins.core.service.twin;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -56,6 +58,7 @@ import static org.springframework.data.jpa.domain.Specification.where;
 import static org.twins.core.dao.specifications.twin.TwinSpecification.*;
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @RequiredArgsConstructor
 public class TwinSearchService {

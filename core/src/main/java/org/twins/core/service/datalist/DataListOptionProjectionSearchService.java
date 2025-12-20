@@ -23,6 +23,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class DataListOptionProjectionSearchService {
     private final DataListOptionProjectionRepository dataListOptionProjectionRepository;

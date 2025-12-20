@@ -1,5 +1,7 @@
 package org.twins.core.service.face;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
@@ -15,6 +17,7 @@ import java.util.function.ToIntFunction;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 public abstract class FaceVariantsService<T extends FaceVariantEntity> extends EntitySecureFindServiceImpl<T> {
     @Autowired
     private FaceTwinPointerValidatorRuleService faceTwinPointerValidatorRuleService;

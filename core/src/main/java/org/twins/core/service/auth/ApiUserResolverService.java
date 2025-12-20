@@ -1,5 +1,7 @@
 package org.twins.core.service.auth;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,7 @@ import java.util.UUID;
 import static org.twins.core.domain.ApiUser.NOT_SPECIFIED;
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 @Slf4j
 public class ApiUserResolverService {

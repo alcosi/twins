@@ -1,5 +1,7 @@
 package org.twins.core.service.permission;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -11,8 +13,8 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.domain.DomainEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.permission.PermissionGrantAssigneePropagationEntity;
 import org.twins.core.dao.permission.PermissionGrantAssigneePropagationRepository;
 import org.twins.core.service.auth.AuthService;
@@ -28,6 +30,7 @@ import java.util.function.Function;
 @Slf4j
 @Service
 @Lazy
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @AllArgsConstructor
 public class PermissionGrantAssigneePropagationService extends EntitySecureFindServiceImpl<PermissionGrantAssigneePropagationEntity> {
     @Getter

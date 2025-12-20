@@ -1,5 +1,7 @@
 package org.twins.core.service.twin;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
@@ -31,6 +33,7 @@ import java.util.function.Function;
 
 @Service
 @Lazy
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TwinFieldAttributeService extends EntitySecureFindServiceImpl<TwinFieldAttributeEntity> {
     private final TwinFieldAttributeRepository twinFieldAttributeRepository;

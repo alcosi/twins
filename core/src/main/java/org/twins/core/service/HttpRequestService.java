@@ -1,6 +1,7 @@
 package org.twins.core.service;
 
-
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 public class HttpRequestService extends SessionLocaleResolver {
     public static final String HEADER_LOCALE = "Locale";
     public static final String HEADER_USER_ID = "UserId";
