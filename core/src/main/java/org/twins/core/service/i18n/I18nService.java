@@ -236,7 +236,7 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
         } else {
             Map<UUID, String> result = new HashMap<>();
             Locale locale = resolveCurrentUserLocale();
-            i18nTranslationRepository.findByI18nIdInAndLocale(idsToLoad, locale).forEach(t -> result.put(t.getI18nId(), t.getTranslation()));
+            i18nTranslationRepository.findByI18nIdInAndLocale(idsToLoad, locale).forEach(t -> result.put(t.i18nId(), t.translation()));
             if (idsToLoad.size() != result.size()) {
                 idsToLoad.stream().filter(id -> !result.containsKey(id)).forEach(id -> result.put(id, ""));
             }
