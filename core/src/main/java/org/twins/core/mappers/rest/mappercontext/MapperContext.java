@@ -385,7 +385,7 @@ public class MapperContext {
     }
 
     public MapperModeMap isolateModes() {
-        return new MapperModeMap(this.modes);
+        return new MapperModeMap();
     }
 
     public MapperContext cloneIgnoreRelatedObjects() {
