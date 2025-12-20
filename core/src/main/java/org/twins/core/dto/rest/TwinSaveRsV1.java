@@ -19,7 +19,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class TwinSaveRsV1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "Invalid twin field id list")
-    private Map<UUID, String> invalidTwinFieldErrors;
+    public Map<UUID, String> invalidTwinFieldErrors;
 
     @Schema(description = "twin")
     public TwinDTOv2 twin;

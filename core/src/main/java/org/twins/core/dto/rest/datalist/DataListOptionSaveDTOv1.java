@@ -20,6 +20,9 @@ public class DataListOptionSaveDTOv1 {
     @Schema(description = "option")
     public I18nSaveDTOv1 optionI18n;
 
+    @Schema(description = "description")
+    public I18nSaveDTOv1 descriptionI18n;
+
     @Schema(description = "attributes map")
     public Map<String, String> attributesMap;
 

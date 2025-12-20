@@ -25,7 +25,6 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.i18n.I18nTranslationLight;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListOptionCreate;
@@ -108,11 +107,13 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 dataListOptionCreates
                         .stream().map(DataListOptionCreate::getNameI18n)
                         .toList());
+        //todo save description
         for (DataListOptionCreate dataListOptionCreate : dataListOptionCreates) {
             DataListEntity dataList = dataListsKit.get(dataListOptionCreate.getDataListId());
             loadDataListAttributeAccessors(dataList);
             DataListOptionEntity dataListOption = new DataListOptionEntity()
-                    .setOptionI18NId(dataListOptionCreate.getNameI18n().getId())
+                    .setOptionI18nId(dataListOptionCreate.getNameI18n().getId())
+                    .setDescriptionI18nId(dataListOptionCreate.getDescriptionI18n() != null ? dataListOptionCreate.getDescriptionI18n().getId() : null)
                     .setDataListId(dataListOptionCreate.getDataListId())
                     .setIcon(dataListOptionCreate.getIcon())
                     .setStatus(DataListStatus.active)
@@ -174,6 +175,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
 
             ChangesHelper changesHelper = new ChangesHelper();
             updateDataListOptionName(update.getNameI18n(), dbOption, changesHelper);
+            updateDataListOptionDescription(update.getDescriptionI18n(), dbOption, changesHelper);
             updateAttributes(dbDataList, dbOption, update.getAttributes(), changesHelper);
             updateEntityFieldByValue(update.getIcon(), dbOption, DataListOptionEntity::getIcon,
                     DataListOptionEntity::setIcon, DataListOptionEntity.Fields.icon, changesHelper);
@@ -226,12 +228,23 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     private void updateDataListOptionName(I18nEntity nameI18n, DataListOptionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
         if (nameI18n == null)
             return;
-        if (dbEntity.getOptionI18NId() != null)
-            nameI18n.setId(dbEntity.getOptionI18NId());
-        i18nService.saveTranslations(I18nType.DATA_LIST_NAME, nameI18n);
+        if (dbEntity.getOptionI18nId() != null)
+            nameI18n.setId(dbEntity.getOptionI18nId());
+        i18nService.saveTranslations(I18nType.DATA_LIST_OPTION_VALUE, nameI18n);
         //todo changesHelper for i18n doesn't work
-        if (changesHelper.isChanged(DataListEntity.Fields.nameI18nId, dbEntity.getOptionI18NId(), nameI18n.getId()))
-            dbEntity.setOptionI18NId(nameI18n.getId());
+        if (changesHelper.isChanged(DataListOptionEntity.Fields.optionI18nId, dbEntity.getOptionI18nId(), nameI18n.getId()))
+            dbEntity.setOptionI18nId(nameI18n.getId());
+    }
+
+    private void updateDataListOptionDescription(I18nEntity descriptionI18n, DataListOptionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
+        if (descriptionI18n == null)
+            return;
+        if (dbEntity.getDescriptionI18nId() != null)
+            descriptionI18n.setId(dbEntity.getDescriptionI18nId());
+        i18nService.saveTranslations(I18nType.DATA_LIST_OPTION_DESCRIPTION, descriptionI18n);
+        //todo changesHelper for i18n doesn't work
+        if (changesHelper.isChanged(DataListOptionEntity.Fields.descriptionI18nId, dbEntity.getDescriptionI18nId(), descriptionI18n.getId()))
+            dbEntity.setDescriptionI18nId(descriptionI18n.getId());
     }
 
     private void updateDataListOptionAttribute(String newAttr, String fieldName, DataListOptionEntity dbEntity, Function<DataListOptionEntity, String> getAttr, BiConsumer<DataListOptionEntity, String> setAttr, ChangesHelper changesHelper) {
@@ -319,7 +332,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                             .setCustom(true)
                             .setExternalId(missed)
                             .setStatus(DataListStatus.active)
-                            .setOptionI18NId(i18nId);
+                            .setOptionI18nId(i18nId);
 
                     optionsForSave.add(option);
 

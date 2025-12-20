@@ -413,18 +413,20 @@ public class TwinClassEntity implements EasyLoggable {
 
     public Set<UUID> getExtendedClassIdSet() {
         if (null == extendedClassIdSet && null != getExtendsHierarchyTree()) {
-            extendedClassIdSet = new HashSet<>();
-            for (String hierarchyItem : convertUuidFromLtreeFormat(getExtendsHierarchyTree()).split("\\."))
-                extendedClassIdSet.add(UUID.fromString(hierarchyItem));
+            extendedClassIdSet = new LinkedHashSet<>();
+            var hierarchyIds = convertUuidFromLtreeFormat(getExtendsHierarchyTree()).split("\\.");
+            for (int i = hierarchyIds.length - 1; i >= 0; i--) //reverse direction, directly extends - first
+                extendedClassIdSet.add(UUID.fromString(hierarchyIds[i]));
         }
         return extendedClassIdSet;
     }
 
     public Set<UUID> getHeadHierarchyClassIdSet() {
         if (null == headHierarchyClassIdSet && null != getHeadHierarchyTree()) {
-            headHierarchyClassIdSet = new HashSet<>();
-            for (String hierarchyItem : convertUuidFromLtreeFormat(getHeadHierarchyTree()).split("\\."))
-                headHierarchyClassIdSet.add(UUID.fromString(hierarchyItem));
+            headHierarchyClassIdSet = new LinkedHashSet<>();
+            var hierarchyIds = convertUuidFromLtreeFormat(getHeadHierarchyTree()).split("\\.");
+            for (int i = hierarchyIds.length - 1; i >= 0; i--) //reverse direction, directly extends - first
+                headHierarchyClassIdSet.add(UUID.fromString(hierarchyIds[i]));
         }
         return headHierarchyClassIdSet;
     }

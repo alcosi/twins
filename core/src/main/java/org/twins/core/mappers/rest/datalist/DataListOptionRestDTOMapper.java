@@ -13,7 +13,6 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.BusinessAccountMode;
 import org.twins.core.mappers.rest.mappercontext.modes.DataListMode;
 import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
-import org.twins.core.service.i18n.I18nService;
 
 import java.util.Hashtable;
 
@@ -33,7 +32,8 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
             case DETAILED ->
                 dst
                         .setId(src.getId())
-                        .setName(src.getOptionI18NId() != null ? I18nCacheHolder.addId(src.getOptionI18NId()) : src.getOption())
+                        .setName(src.getOptionI18nId() != null ? I18nCacheHolder.addId(src.getOptionI18nId()) : src.getOption())
+                        .setDescription(I18nCacheHolder.addId(src.getDescriptionI18nId()))
                         .setIcon(src.getIcon())
                         .setAttributes(getAttributes(src))
                         .setStatus(src.getStatus())
@@ -46,7 +46,8 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
             case SHORT ->
                 dst
                         .setId(src.getId())
-                        .setName(src.getOptionI18NId() != null ? I18nCacheHolder.addId(src.getOptionI18NId()) : src.getOption());
+                        .setName(src.getOptionI18nId() != null ? I18nCacheHolder.addId(src.getOptionI18nId()) : src.getOption())
+                        .setDescription(I18nCacheHolder.addId(src.getDescriptionI18nId()));
         }
         if (mapperContext.hasModeButNot(DataListMode.DataListOption2DataListMode.HIDE)) {
             dst.setDataListId(src.getDataListId());

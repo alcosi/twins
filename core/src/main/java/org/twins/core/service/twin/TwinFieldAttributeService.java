@@ -3,6 +3,7 @@ package org.twins.core.service.twin;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -151,13 +152,25 @@ public class TwinFieldAttributeService extends EntitySecureFindServiceImpl<TwinF
             if (updatePermissionId != null && !permissionService.currentUserHasPermission(updatePermissionId)) {
                 throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "cannot update % without permission[%]", dbAttributeEntity.getTwinClassFieldAttributeEntity(), updatePermissionId.toString());
             }
+            if (twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.twinId, dbAttributeEntity.getTwinId(), attributeEntity.getTwinId())) {
+                throw new ServiceException(ErrorCodeCommon.FORBIDDEN, "cannot update twin id for twin field attribute[" + dbAttributeEntity.getId() +"]");
+            }
 
-            twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.twinId, dbAttributeEntity.getTwinId(), attributeEntity.getTwinId());
-            twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.twinClassFieldId, dbAttributeEntity.getTwinClassFieldId(), attributeEntity.getTwinClassFieldId());
-            twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.twinClassFieldAttributeId, dbAttributeEntity.getTwinClassFieldAttributeId(), attributeEntity.getTwinClassFieldAttributeId());
-            twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.noteMsg, dbAttributeEntity.getNoteMsg(), attributeEntity.getNoteMsg());
-            twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.noteMsgContext, dbAttributeEntity.getNoteMsgContext(), attributeEntity.getNoteMsgContext());
-            twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.changedAt, dbAttributeEntity.getChangedAt(), Timestamp.valueOf(LocalDateTime.now()));
+            if (twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.twinClassFieldId, dbAttributeEntity.getTwinClassFieldId(), attributeEntity.getTwinClassFieldId())) {
+                throw new ServiceException(ErrorCodeCommon.FORBIDDEN, "cannot update twin class field id for twin field attribute[" + dbAttributeEntity.getId() +"]");
+            }
+            if (twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.twinClassFieldAttributeId, dbAttributeEntity.getTwinClassFieldAttributeId(), attributeEntity.getTwinClassFieldAttributeId())) {
+                dbAttributeEntity.setTwinClassFieldAttributeId(attributeEntity.getTwinClassFieldAttributeId());
+            }
+            if (twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.noteMsg, dbAttributeEntity.getNoteMsg(), attributeEntity.getNoteMsg())) {
+                dbAttributeEntity.setNoteMsg(attributeEntity.getNoteMsg());
+            }
+            if (twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.noteMsgContext, dbAttributeEntity.getNoteMsgContext(), attributeEntity.getNoteMsgContext())) {
+                dbAttributeEntity.setNoteMsgContext(attributeEntity.getNoteMsgContext());
+            }
+            if (twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.changedAt, dbAttributeEntity.getChangedAt(), Timestamp.valueOf(LocalDateTime.now()))) {
+                dbAttributeEntity.setChangedAt(Timestamp.valueOf(LocalDateTime.now()));
+            }
         }
     }
 }

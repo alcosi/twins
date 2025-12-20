@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -15,6 +16,7 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldSearchId;
+import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldSearchService;
 
 import java.util.*;
@@ -33,6 +35,7 @@ public class ConditionerFactoryItemTwinFieldsFilledBySearchId extends Conditione
     public static final FeaturerParamUUID searchId = new FeaturerParamUUIDTwinsTwinClassFieldSearchId("searchId");
 
     private final TwinClassFieldSearchService twinClassFieldSearchService;
+    private final TwinService twinService;
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
@@ -41,21 +44,30 @@ public class ConditionerFactoryItemTwinFieldsFilledBySearchId extends Conditione
         Map<String, String> params = new HashMap<>();
         params.put(PARAM_CURRENT_TWIN_CLASS_ID, twin.getTwinClassId().toString());
 
-        List<TwinClassFieldEntity> requiredFields = twinClassFieldSearchService.findTwinClassField(searchId.extract(properties), params, null, null).getList();
+        List<TwinClassFieldEntity> requiredFields = twinClassFieldSearchService.findTwinClassField(searchId.extract(properties), params, null, SimplePagination.ALL).getList();
 
         if (CollectionUtils.isEmpty(requiredFields)) {
             return true;
         }
 
+        twinService.loadFieldsValues(twin);
+
         Kit<FieldValue, UUID> fieldValuesKit = twin.getFieldValuesKit();
 
+        if (CollectionUtils.isEmpty(fieldValuesKit)) {
+            log.warn("no field values found");
+            return false;
+        }
+
         for (TwinClassFieldEntity field : requiredFields) {
-            FieldValue fieldValue = fieldValuesKit.get(field.getId());
+            if (field.getRequired() || field.getExternalProperties().get("requiredOnAnyMarketplace").equalsIgnoreCase("true")) {
+                FieldValue fieldValue = fieldValuesKit.get(field.getId());
 
-            if (fieldValue == null || fieldValue.isEmpty()) {
-                return false;
+                if (fieldValue == null || fieldValue.isEmpty()) {
+                    return false;
+                }
+
             }
-
         }
         return true;
     }
