@@ -93,7 +93,7 @@ public class TwinFieldAttributeService extends EntitySecureFindServiceImpl<TwinF
             if (createPermissionId != null && !permissionService.currentUserHasPermission(createPermissionId)) {
                 throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "cannot create % without permission[%]", twinFieldAttribute.getTwinClassFieldAttribute().logNormal(), createPermissionId.toString());
             }
-            //todo check uniq logic in code or DB
+            //upset (if uniq flag is true) logic is implemented in db level (see twin_field_attribute_upsert_trigger)
             twinChangesCollector.add(twinFieldAttribute);
         }
     }
