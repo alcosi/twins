@@ -1,5 +1,13 @@
-CREATE OR REPLACE FUNCTION twin_field_attribute_upsert_trigger()
-    RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION twin_field_attribute_before_insert_wrapper()
+    RETURNS TRIGGER language plpgsql AS $$
+BEGIN
+    RETURN twin_field_attribute_insert_extended(NEW);
+END;
+$$;
+
+
+CREATE OR REPLACE FUNCTION twin_field_attribute_insert_extended(NEW twin_field_attribute)
+    RETURNS twin_field_attribute AS $$
 DECLARE
     is_uniq boolean;
     existing_id uuid;
@@ -42,7 +50,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER twin_field_attribute_insert_trigger
+
+CREATE OR REPLACE TRIGGER twin_field_attribute_before_insert_trigger
     BEFORE INSERT ON twin_field_attribute
     FOR EACH ROW
-EXECUTE FUNCTION twin_field_attribute_upsert_trigger();
+EXECUTE FUNCTION twin_field_attribute_before_insert_wrapper();
