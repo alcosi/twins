@@ -193,6 +193,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
 
                     var rqData = new FileHandlerResizeSaveDataPart(
                             fileId,
+                            fileName,
                             ORIGINAL_TYPE,
                             tasks,
                             StorageType.S3,
@@ -225,7 +226,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                     return new AddedFileKey(prepareObjectLink(objectLink, properties), fileSize, modifications);
                 } else {
                     var url = STR."\{baseUrl}/api/save/synced";
-                    var rqData = new FileHandlerSaveDataPart(fileId, ORIGINAL_TYPE, StorageType.S3, storageDir);
+                    var rqData = new FileHandlerSaveDataPart(fileId, fileName, ORIGINAL_TYPE, StorageType.S3, storageDir);
 
                     var resp = restTemplate.exchange(url, HttpMethod.POST, prepareMultipartRq(rqData, fileStream, fileName, fileSize), FileHandlerResizeSaveRsDTO.class);
 

@@ -4,4 +4,4 @@ import org.twins.core.enums.featurer.storager.StorageType;
 
 import java.util.List;
 
-public record FileHandlerResizeSaveDataPart(String id, String type, List<ResizeTaskDTO> tasks, StorageType storageType, String storageDir, boolean saveOriginal) {}
+public record FileHandlerResizeSaveDataPart(String id, String fileName, String type, List<ResizeTaskDTO> tasks, StorageType storageType, String storageDir, boolean saveOriginal) {}

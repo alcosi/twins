@@ -186,6 +186,7 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
 
                     var rqBody = new FileHandlerResizeSaveRqDTO(
                             fileId,
+                            fileName,
                             ORIGINAL_TYPE,
                             fileBytes,
                             tasks,
@@ -219,7 +220,7 @@ public class StoragerAlcosiFileHandler extends StoragerAbstractChecked {
                     return new AddedFileKey(prepareObjectLink(objectLink, properties), sizeLimitedStream.bytesRead(), modifications);
                 } else {
                     var url = STR."\{baseUrl}/api/save/synced";
-                    var rqBody = new FileHandlerSaveRqDTO(fileId, ORIGINAL_TYPE, fileBytes, StorageType.S3, storageDir);
+                    var rqBody = new FileHandlerSaveRqDTO(fileId, fileName, ORIGINAL_TYPE, fileBytes, StorageType.S3, storageDir);
                     var req = new HttpEntity<>(rqBody);
                     var resp = restTemplate.exchange(url, HttpMethod.POST, req, FileHandlerResizeSaveRsDTO.class);
 
