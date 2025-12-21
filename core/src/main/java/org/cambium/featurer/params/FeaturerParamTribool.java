@@ -19,7 +19,8 @@ public class FeaturerParamTribool extends FeaturerParam<Boolean> {
 
     @Override
     public Boolean extract(Properties properties) {
-        return Boolean.parseBoolean((String) properties.get(key));
+        String value = properties.getProperty(key);
+        return value.equals("null") ? null : Boolean.valueOf(value);
     }
 
     @Override
