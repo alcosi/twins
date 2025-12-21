@@ -20,7 +20,7 @@ public class FeaturerParamTribool extends FeaturerParam<Boolean> {
     @Override
     public Boolean extract(Properties properties) {
         String value = properties.getProperty(key);
-        return value == null ? null : Boolean.valueOf(value);
+        return value.equals("null") ? null : Boolean.valueOf(value);
     }
 
     @Override
