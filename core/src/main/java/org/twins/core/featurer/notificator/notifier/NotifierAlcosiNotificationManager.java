@@ -1,6 +1,6 @@
 package org.twins.core.featurer.notificator.notifier;
 
-import alcosi.notification_manager.v1.Receiver;
+import alcosi.notification_manager.v1.AlcosiReceiver;
 import alcosi.notification_manager.v1.ReceiverServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -43,7 +43,7 @@ public class NotifierAlcosiNotificationManager extends Notifier {
 
         ReceiverServiceGrpc.ReceiverServiceBlockingStub receiverServiceFutureStub = getOrCreateStub(hostDomainBaseUriValue);
 
-        Receiver.SendNotificationCommand notificationCommand = Receiver.SendNotificationCommand.newBuilder()
+        AlcosiReceiver.SendNotificationCommand notificationCommand = AlcosiReceiver.SendNotificationCommand.newBuilder()
                 .addAllUsersIds(recipientIds.stream().map(UUID::toString).collect(Collectors.toList()))
                 .putFilters(businessAccountKey, context.get(businessAccountKey))
                 .setEventId(eventCode)

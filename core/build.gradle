@@ -15,7 +15,6 @@ plugins {
     id 'net.nemerosa.versioning' version '3.1.0'
     id 'com.bmuschko.docker-remote-api' version '9.3.4'
     id 'com.google.protobuf' version '0.9.5'
-    id 'idea'
 }
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
@@ -214,15 +213,6 @@ protobuf {
     generateProtoTasks {
         all()*.plugins {
             grpc {}
-        }
-    }
-}
-
-sourceSets {
-    main {
-        java {
-            srcDirs 'build/generated/source/proto/main/java'
-            srcDirs 'build/generated/source/proto/main/grpc'
         }
     }
 }
