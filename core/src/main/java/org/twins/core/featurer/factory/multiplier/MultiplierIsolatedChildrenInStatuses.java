@@ -58,6 +58,7 @@ public class MultiplierIsolatedChildrenInStatuses extends Multiplier {
             search
                     .setTwinIdExcludeList(factoryContext.getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()));
         search
+                .addOwnerBusinessAccountId(factoryContext.getRunLimitedByOwnerBusinessAccount())
                 .addHeadTwinId(inputTwinIds)
                 .addStatusId(statusIds.extract(properties), false);
         KitGrouped<TwinEntity, UUID, UUID> relatedTwinsKit = new KitGrouped<>(twinSearchService.findTwins(search), TwinEntity::getId, TwinEntity::getHeadTwinId);
