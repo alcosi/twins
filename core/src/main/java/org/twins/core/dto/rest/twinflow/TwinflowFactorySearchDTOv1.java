@@ -25,10 +25,10 @@ public class TwinflowFactorySearchDTOv1 {
     public Set<UUID> twinflowIdExcludeSet;
 
     @Schema(description = "twin factory id set")
-    public Set<UUID> twinFactoryIdSet;
+    public Set<UUID> factoryIdSet;
 
     @Schema(description = "twin factory id exclude set")
-    public Set<UUID> twinFactoryIdExcludeSet;
+    public Set<UUID> factoryIdExcludeSet;
 
     @Schema(description = "factory launcher set")
     public Set<String> factoryLauncherSet;
