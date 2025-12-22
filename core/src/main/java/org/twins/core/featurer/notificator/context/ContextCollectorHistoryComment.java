@@ -3,12 +3,10 @@ package org.twins.core.featurer.notificator.context;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.history.context.HistoryContextComment;
-import org.twins.core.dao.history.context.HistoryContextStatusChange;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.Map;
