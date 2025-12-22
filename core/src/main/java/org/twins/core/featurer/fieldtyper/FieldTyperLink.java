@@ -108,6 +108,7 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
         }
         if (FieldValueChangeHelper.isSingleValueAdd(newTwinLinks, storedLinksMap)) {
             TwinLinkEntity twinLinkEntity = newTwinLinks.get(0);
+            twinLinkEntity.getLink().setCreateElseUpdate(twin.isCreateElseUpdate());
             twinChangesCollector.add(twinLinkEntity);
             twinChangesCollector.getHistoryCollector().add(historyService.linkCreated(twinLinkEntity));
             return;
@@ -147,6 +148,7 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
         }
         // here we have storedLinksMap either empty, either with out-of-dated elements
         for (TwinLinkEntity twinLinkEntity : newTwinLinks) {
+            twinLinkEntity.getLink().setCreateElseUpdate(twin.isCreateElseUpdate());
             if (storedLinksMap == null) {  // no links remains in storageLinks
                 twinChangesCollector.add(twinLinkEntity);
                 twinChangesCollector.getHistoryCollector().add(historyService.linkCreated(twinLinkEntity));

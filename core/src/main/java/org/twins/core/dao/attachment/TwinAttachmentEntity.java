@@ -127,16 +127,24 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
     private StorageEntity storage;
 
     @Transient
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<TwinAttachmentAction> attachmentActions;
 
     @Transient
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private FileData attachmentFile;
 
     @Transient
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private boolean fileChanged = false;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private boolean createElseUpdate = false;
 
     @Transient
     @EqualsAndHashCode.Exclude

@@ -13,6 +13,7 @@ import org.hibernate.annotations.Type;
 import org.twins.core.dao.history.context.HistoryContext;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.history.HistoryType;
 
 import java.sql.Timestamp;
@@ -54,6 +55,9 @@ public class HistoryEntity implements EasyLoggable {
 
     @Column(name = "snapshot_message")
     private String snapshotMessage;
+
+    @Column(name = "create_else_update")
+    private Boolean createElseUpdate;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

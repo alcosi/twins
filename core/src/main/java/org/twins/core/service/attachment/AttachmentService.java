@@ -63,8 +63,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     private final AuthService authService;
     @Lazy
     private final TwinService twinService;
-    @Lazy
-    private final DomainService domainService;
     private final AttachmentActionService attachmentActionService;
     private final FeaturerService featurerService;
     private final StorageService storageService;
@@ -224,7 +222,8 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_CAN_NOT_BE_RELINKED);
             attachmentEntity
                     .setTwinId(twinEntity.getId())
-                    .setTwin(twinEntity);
+                    .setTwin(twinEntity)
+                    .setCreateElseUpdate(twinEntity.isCreateElseUpdate());
         }
     }
 
@@ -411,7 +410,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 saveFile(attachmentEntity, dbAttachmentEntity.getId());
                 dbAttachmentEntity.setStorageFileKey(attachmentEntity.getStorageFileKey());
                 historyItem.getContext().setNewStorageFileKey(attachmentEntity.getStorageFileKey());
-
             }
             if (KitUtils.isNotEmpty(attachmentEntity.getModifications())) {
                 updateAttachmentModifications(attachmentEntity, dbAttachmentEntity, twinChangesCollector);

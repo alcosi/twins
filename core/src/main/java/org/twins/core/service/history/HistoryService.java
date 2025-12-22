@@ -130,6 +130,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         HistoryEntity historyEntity = new HistoryEntity()
                 .setTwin(twinEntity)
                 .setTwinId(twinEntity.getId())
+                .setCreateElseUpdate(twinEntity.isCreateElseUpdate())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setActorUser(actor)
                 .setActorUserId(actor.getId())
@@ -146,7 +147,11 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 historyEntity.setTwinClassFieldId(context.getField().getId());
                 if (historyEntity.getHistoryType() == HistoryType.fieldChanged) //we will use more detailed type
                     if (StringUtils.isEmpty(context.templateFromValue()))
-                        historyEntity.setHistoryType(HistoryType.fieldCreated);
+                        if (twinEntity.isCreateElseUpdate()) {
+                            historyEntity.setHistoryType(HistoryType.fieldCreatedOnCreate);
+                        } else {
+                            historyEntity.setHistoryType(HistoryType.fieldChanged);
+                        }
                     else if (StringUtils.isEmpty(context.templateToValue()))
                         historyEntity.setHistoryType(HistoryType.fieldDeleted);
             } else if (context instanceof IHistoryContextLink linkChange) {
@@ -216,8 +221,13 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     }
 
     public HistoryItem<HistoryContextAttachment> attachmentCreate(TwinAttachmentEntity attachmentEntity) {
-        return new HistoryItem<>(HistoryType.attachmentCreate, new HistoryContextAttachment()
-                .shotAttachment(attachmentEntity));
+        if (attachmentEntity.isCreateElseUpdate()) {
+            return new HistoryItem<>(HistoryType.attachmentCreateOnCreate, new HistoryContextAttachment()
+                    .shotAttachment(attachmentEntity));
+        } else {
+            return new HistoryItem<>(HistoryType.attachmentCreate, new HistoryContextAttachment()
+                    .shotAttachment(attachmentEntity));
+        }
     }
 
     public HistoryItem<HistoryContextComment> commentCreate(org.twins.core.dao.comment.TwinCommentEntity commentEntity) {
@@ -347,7 +357,11 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setTwinLinkId(twinLinkId)
                 .shotLink(linkEntity, forward, i18nService)
                 .shotDstTwin(dstTwinEntity);
-        return new HistoryItem<>(HistoryType.linkCreated, context);
+        if (linkEntity.isCreateElseUpdate()) {
+            return new HistoryItem<>(HistoryType.linkCreatedOnCreate, context);
+        } else {
+            return new HistoryItem<>(HistoryType.linkCreated, context);
+        }
     }
 
     public HistoryItem<HistoryContextLink> linkDeleted(UUID twinLinkId, LinkEntity linkEntity, TwinEntity dstTwinEntity, boolean forward) {
