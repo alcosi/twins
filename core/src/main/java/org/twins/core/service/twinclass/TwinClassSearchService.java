@@ -121,6 +121,8 @@ public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClas
                         .and(checkUuidIn(twinClassSearch.getMarkerDatalistIdExcludeList(), true, false, TwinClassEntity.Fields.markerDataListId))
                         .and(checkUuidIn(twinClassSearch.getTagDatalistIdList(), false, false, TwinClassEntity.Fields.tagDataListId))
                         .and(checkUuidIn(twinClassSearch.getTagDatalistIdExcludeList(), true, false, TwinClassEntity.Fields.tagDataListId))
+                        .and(checkUuidIn(twinClassSearch.getFreezeIdList(), false, false, TwinClassEntity.Fields.twinClassFreezeId))
+                        .and(checkUuidIn(twinClassSearch.getFreezeIdExcludeList(), true, false, TwinClassEntity.Fields.twinClassFreezeId))
                         .and(checkTernary(twinClassSearch.getAbstractt(), TwinClassEntity.Fields.abstractt))
                         .and(checkTernary(twinClassSearch.getPermissionSchemaSpace(), TwinClassEntity.Fields.permissionSchemaSpace))
                         .and(checkTernary(twinClassSearch.getTwinflowSchemaSpace(), TwinClassEntity.Fields.twinflowSchemaSpace))

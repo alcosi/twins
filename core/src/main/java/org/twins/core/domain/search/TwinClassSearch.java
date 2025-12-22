@@ -37,6 +37,8 @@ public class TwinClassSearch {
     private Set<UUID> markerDatalistIdExcludeList;
     private Set<UUID> tagDatalistIdList;
     private Set<UUID> tagDatalistIdExcludeList;
+    private Set<UUID> freezeIdList;
+    private Set<UUID> freezeIdExcludeList;
     private Ternary abstractt;
     private Ternary twinflowSchemaSpace;
     private Ternary twinClassSchemaSpace;
