@@ -7,5 +7,6 @@ public enum TwinflowTransitionType {
     STATUS_CHANGE,
     OPERATION,
     MARKETING,
-    STATUS_CHANGE_MARKETING;
+    STATUS_CHANGE_MARKETING,
+    OPERATION_DISABLE;
 }
