@@ -40,8 +40,7 @@ public class PermissionGrantUserGroupSearchService {
     }
 
     private Specification<PermissionGrantUserGroupEntity> createPermissionGrantUserGroupSearchSpecification(PermissionGrantUserGroupSearch search, UUID domainId) {
-        return Specification.where(
-                checkDomainId(domainId)
+        return checkDomainId(domainId)
                         .and(checkUuidIn(search.getIdList(), false, false, PermissionGrantUserGroupEntity.Fields.id))
                         .and(checkUuidIn(search.getIdExcludeList(), true, false, PermissionGrantUserGroupEntity.Fields.id))
                         .and(checkUuidIn(search.getPermissionSchemaIdList(), false, false, PermissionGrantUserGroupEntity.Fields.permissionSchemaId))
@@ -51,8 +50,7 @@ public class PermissionGrantUserGroupSearchService {
                         .and(checkUuidIn(search.getUserGroupIdList(), false, false, PermissionGrantUserGroupEntity.Fields.userGroupId))
                         .and(checkUuidIn(search.getUserGroupIdExcludeList(), true, false, PermissionGrantUserGroupEntity.Fields.userGroupId))
                         .and(checkUuidIn(search.getGrantedByUserIdList(), false, false, PermissionGrantUserGroupEntity.Fields.grantedByUserId))
-                        .and(checkUuidIn(search.getGrantedByUserIdExcludeList(), true, true, PermissionGrantUserGroupEntity.Fields.grantedByUserId))
-        );
+                        .and(checkUuidIn(search.getGrantedByUserIdExcludeList(), true, true, PermissionGrantUserGroupEntity.Fields.grantedByUserId));
     }
 
 }
