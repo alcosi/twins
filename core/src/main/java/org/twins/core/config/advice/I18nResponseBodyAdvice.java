@@ -11,10 +11,11 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.service.i18n.I18nService;
 
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
 
 @ControllerAdvice
 public class I18nResponseBodyAdvice implements ResponseBodyAdvice<Object> {
@@ -43,7 +44,7 @@ public class I18nResponseBodyAdvice implements ResponseBodyAdvice<Object> {
         var allContexts = I18nCacheHolder.getContexts();
         if (!idsToLoad.isEmpty() && I18nCacheHolder.getTranslations().isEmpty()) {
             Map<UUID, String> translations = i18nService.translateToLocale(idsToLoad);
-            Map<String, String> translationsWithContexts = new Hashtable<>();
+            Map<String, String> translationsWithContexts = new HashMap<>();
 
             for (var entry : translations.entrySet()) {
                 UUID i18nId = entry.getKey();
