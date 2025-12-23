@@ -120,20 +120,19 @@ public class HistoryNotificationTask implements Runnable {
     }
 
     private List<HistoryNotificationSchemaMapEntity> getConfigs(HistoryEntity history) {
-        List<HistoryNotificationSchemaMapEntity> configs = null;
+        List<HistoryNotificationSchemaMapEntity> configs;
         HistoryType historyType = history.getHistoryType();
-        if (HistoryType.fieldChanged.equals(historyType)) {
+        if (history.getTwinClassFieldId() == null) {
+            configs = historyNotificationSchemaMapEntityRepository.findByHistoryTypeIdAndTwinClassIdAndNotificationSchemaId(
+                    historyType.name(),
+                    history.getTwin().getTwinClassId(),
+                    historyNotificationEntity.getNotificationSchemaId()
+            );
+        } else {
             configs = historyNotificationSchemaMapEntityRepository.findByHistoryTypeIdAndTwinClassIdAndTwinClassFieldIdAndNotificationSchemaId(
                     historyType.name(),
                     history.getTwin().getTwinClassId(),
                     history.getTwinClassFieldId(),
-                    historyNotificationEntity.getNotificationSchemaId()
-            );
-        }
-        if (CollectionUtils.isEmpty(configs)) {
-            configs = historyNotificationSchemaMapEntityRepository.findByHistoryTypeIdAndTwinClassIdAndNotificationSchemaId(
-                    historyType.name(),
-                    history.getTwin().getTwinClassId(),
                     historyNotificationEntity.getNotificationSchemaId()
             );
         }

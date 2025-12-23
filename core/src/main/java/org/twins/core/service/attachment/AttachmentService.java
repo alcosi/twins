@@ -63,8 +63,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     private final AuthService authService;
     @Lazy
     private final TwinService twinService;
-    @Lazy
-    private final DomainService domainService;
     private final AttachmentActionService attachmentActionService;
     private final FeaturerService featurerService;
     private final StorageService storageService;
@@ -411,7 +409,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 saveFile(attachmentEntity, dbAttachmentEntity.getId());
                 dbAttachmentEntity.setStorageFileKey(attachmentEntity.getStorageFileKey());
                 historyItem.getContext().setNewStorageFileKey(attachmentEntity.getStorageFileKey());
-
             }
             if (KitUtils.isNotEmpty(attachmentEntity.getModifications())) {
                 updateAttachmentModifications(attachmentEntity, dbAttachmentEntity, twinChangesCollector);

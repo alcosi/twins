@@ -124,19 +124,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinFieldAttributeService twinFieldAttributeService;
     private final UserService userService;
     @Autowired
-    private TwinFactoryService twinFactoryService;
-    @Autowired
-    private TwinClassFieldRepository twinClassFieldRepository;
-    @Autowired
-    private FieldStorageService fieldStorageService;
-    @Autowired
     private TwinflowFactoryService twinflowFactoryService;
-    private final FaceTwinPointerService faceTwinPointerService;
     @Autowired
     private I18nService i18nService;
-    @Autowired
-    private TwinSearchService twinSearchService;
-
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
         Map<UUID, List<TwinEntity>> ret = new HashMap<>();
@@ -397,6 +387,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_IS_ABSTRACT, "Cannot create twin of abstract twin class: " + twinEntity.getTwinClass().logShort());
         }
         setHeadSafe(twinEntity);
+        twinEntity.setCreateElseUpdate(true);
         if (twinCreate.isCheckCreatePermission())
             checkCreatePermission(twinEntity, authService.getApiUser());
         createTwinEntity(twinCreate, twinChangesCollector);
@@ -444,6 +435,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
         if (twinEntity.getId() == null)
             twinEntity.setId(UUID.randomUUID()); // this id is necessary for fields and links. Because entity is not stored currently
+        twinEntity.setCreateElseUpdate(true);
         if (twinCreate.isSketchMode()) {
             setInitSketchStatus(twinEntity);
         } else if (twinEntity.getTwinStatusId() == null) {
