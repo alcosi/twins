@@ -303,11 +303,6 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @ToString.Exclude
     private TwinflowEntity twinflow;
 
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private boolean createElseUpdate = false;
-
     /*
      we have to use TwinClassFieldId as key, not Id. because of case when we load not missing fields
      */
