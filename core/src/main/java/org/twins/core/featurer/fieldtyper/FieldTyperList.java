@@ -186,7 +186,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
 
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldSearchList search) throws ServiceException {
-        return Specification.where(TwinSpecification.checkFieldList(search));
+        return TwinSpecification.checkFieldList(search);
     }
 
     public UUID getDataListId(Properties properties) throws ServiceException {

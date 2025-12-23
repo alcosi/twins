@@ -54,7 +54,6 @@ import java.util.stream.Collectors;
 import static org.cambium.common.util.MapUtils.narrowMapOfSets;
 import static org.cambium.common.util.PaginationUtils.sortType;
 import static org.cambium.common.util.SetUtils.narrowSet;
-import static org.springframework.data.jpa.domain.Specification.where;
 import static org.twins.core.dao.specifications.twin.TwinSpecification.*;
 
 @Service
@@ -86,7 +85,7 @@ public class TwinSearchService {
         UUID businessAccountId = apiUser.getBusinessAccountId();
         UUID userId = apiUser.getUser().getId();
         //todo create filter by basicSearch.getExtendsTwinClassIdList()
-        Specification<TwinEntity> specification = where(createTwinEntityBasicSearchSpecification(basicSearch, userId));
+        Specification<TwinEntity> specification = createTwinEntityBasicSearchSpecification(basicSearch, userId);
 
         if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL) || !basicSearch.isCheckViewPermission()) {
             specification = specification
@@ -202,7 +201,7 @@ public class TwinSearchService {
     }
 
     public Long count(List<BasicSearch> basicSearches) throws ServiceException {
-        Specification<TwinEntity> spec = where(null);
+        Specification<TwinEntity> spec = (root, query, builder) -> builder.disjunction();
         for (BasicSearch basicSearch : basicSearches)
             spec = spec.or(createTwinEntitySearchSpecification(basicSearch));
         return count(spec);

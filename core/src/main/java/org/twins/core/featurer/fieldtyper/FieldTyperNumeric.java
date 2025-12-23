@@ -107,6 +107,6 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
 
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldSearchNumeric search) throws ServiceException {
-        return Specification.where(TwinSpecification.checkFieldNumeric(search));
+        return TwinSpecification.checkFieldNumeric(search);
     }
 }

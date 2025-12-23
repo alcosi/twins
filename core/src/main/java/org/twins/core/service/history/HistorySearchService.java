@@ -36,8 +36,7 @@ public class HistorySearchService {
     }
 
     private Specification<HistoryEntity> createHisotrySearchSpecification(HistorySearch search) {
-        return Specification.where(
-                checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdList(), search.isIncludeDirectChildren(), false)
+        return checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdList(), search.isIncludeDirectChildren(), false)
                 .and(checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdExcludeList(), false, true))
                 .and(checkUuidIn(search.getIdList(), false, false, HistoryEntity.Fields.id))
                 .and(checkUuidIn(search.getIdExcludeList(), true, false, HistoryEntity.Fields.id))
@@ -45,8 +44,7 @@ public class HistorySearchService {
                 .and(checkUuidIn(search.getActorUserIdExcludeList(), true, false, HistoryEntity.Fields.actorUserId))
                 .and(checkType(search.getTypeList(), false))
                 .and(checkType(search.getTypeExcludeList(), true))
-                .and(createdAtBetween(search.getCreatedAt()))
-        );
+                .and(createdAtBetween(search.getCreatedAt()));
     }
 
 }

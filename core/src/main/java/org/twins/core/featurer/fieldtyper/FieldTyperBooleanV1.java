@@ -83,7 +83,7 @@ public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolea
         Boolean isRequired = fieldEntity.getRequired();
 
         return isRequired
-                ? Specification.where(TwinSpecification.checkFieldBoolean(twinFieldSearchBoolean))
-                : Specification.where(TwinSpecification.checkFieldBooleanWithPhantoms(twinFieldSearchBoolean, defaultValue.extract(properties)));
+                ? TwinSpecification.checkFieldBoolean(twinFieldSearchBoolean)
+                : TwinSpecification.checkFieldBooleanWithPhantoms(twinFieldSearchBoolean, defaultValue.extract(properties));
     }
 }

@@ -47,7 +47,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
-import static org.springframework.data.jpa.domain.Specification.where;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.domain.DomainBusinessAccountSpecification.*;
 
@@ -204,8 +203,7 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
 
     public Specification<DomainBusinessAccountEntity> createDomainBusinessAccountEntitySearchSpecification(DomainBusinessAccountSearch domainBusinessAccountSearch) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
-        return where(
-                checkUuid(DomainBusinessAccountEntity.Fields.domainId, domainId)
+        return checkUuid(DomainBusinessAccountEntity.Fields.domainId, domainId)
                         .and(checkBusinessAccountFieldLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameLikeList(), false))
                         .and(checkBusinessAccountFieldNotLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameNotLikeList(), true))
                         .and(checkUuidIn(domainBusinessAccountSearch.getPermissionSchemaIdList(), false, false, DomainBusinessAccountEntity.Fields.permissionSchemaId))
@@ -215,7 +213,6 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
                         .and(checkUuidIn(domainBusinessAccountSearch.getTwinClassSchemaIdList(), false, false, DomainBusinessAccountEntity.Fields.twinClassSchemaId))
                         .and(checkUuidIn(domainBusinessAccountSearch.getTwinClassSchemaIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.twinClassSchemaId))
                         .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdList(), false, false, DomainBusinessAccountEntity.Fields.businessAccountId))
-                        .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, false, DomainBusinessAccountEntity.Fields.businessAccountId))
-        );
+                        .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, false, DomainBusinessAccountEntity.Fields.businessAccountId));
     }
 }

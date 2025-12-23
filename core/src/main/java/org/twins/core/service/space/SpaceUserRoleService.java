@@ -33,7 +33,6 @@ import org.twins.core.service.user.UserService;
 
 import java.util.*;
 
-import static org.springframework.data.jpa.domain.Specification.where;
 import static org.twins.core.dao.specifications.space.SpaceRoleUserSpecification.*;
 
 @Slf4j
@@ -55,7 +54,7 @@ public class SpaceUserRoleService {
 
     public PaginationResult<UserRefSpaceRole> getAllUsersRefRolesBySpaceIdMap(TwinEntity twinEntity, SimplePagination pagination) throws ServiceException {
         Page<SpaceRoleUserEntity> spaceRoleUserEntities = spaceRoleUserRepository.findAll(
-                where(checkUuid(SpaceRoleUserEntity.Fields.twinId, twinEntity.getId(), false)), PaginationUtils.pageableOffset(pagination)
+                checkUuid(SpaceRoleUserEntity.Fields.twinId, twinEntity.getId(), false), PaginationUtils.pageableOffset(pagination)
         );
         return createUserRoleMap(spaceRoleUserEntities, pagination);
     }
@@ -78,12 +77,11 @@ public class SpaceUserRoleService {
 
     public PaginationResult<UserRefSpaceRole> getUsersRefRolesMap(SpaceRoleUserSearch search, UUID twinId, SimplePagination pagination) throws ServiceException {
         TwinEntity twinEntity = twinService.findEntitySafe(twinId);
-        Specification<SpaceRoleUserEntity> spec = where(
+        Specification<SpaceRoleUserEntity> spec =
                 checkUuid(SpaceRoleUserEntity.Fields.twinId, twinEntity.getId(), false)
                         .and(checkUserNameLikeWithPattern(search.getUserNameLike()))
                         .and(checkUuidIn(search.getSpaceRolesIdList(), false, false, SpaceRoleUserEntity.Fields.spaceRoleId))
-                        .and(checkUserInGroups(search.getUserGroupIdList(), false))
-        );
+                        .and(checkUserInGroups(search.getUserGroupIdList(), false));
         Page<SpaceRoleUserEntity> spaceRoleUserEntities = spaceRoleUserRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return createUserRoleMap(spaceRoleUserEntities, pagination);
     }
