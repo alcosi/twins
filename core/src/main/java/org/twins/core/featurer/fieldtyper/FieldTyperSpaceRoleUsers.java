@@ -129,6 +129,6 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
 
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldSearchSpaceRoleUser search) {
-        return Specification.where(TwinSpecification.checkSpaceRoleUser(search));
+        return TwinSpecification.checkSpaceRoleUser(search);
     }
 }

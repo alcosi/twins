@@ -36,7 +36,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static org.cambium.common.util.SetUtils.narrowSet;
-import static org.springframework.data.jpa.domain.Specification.where;
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.twinclass.TwinClassSpecification.*;
 
@@ -92,7 +91,7 @@ public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClas
         HierarchySearch extendsHierarchyParentsForTwinClassSearch =
                 java.util.Objects.requireNonNullElse(twinClassSearch.getExtendsHierarchyParentsForTwinClassSearch(), HierarchySearch.EMPTY);
 
-        return where(
+        return
                 checkOwnerTypeIn(twinClassSearch.getOwnerTypeList(), false)
                         .and(checkUuid(authService.getApiUser().getDomainId(), false, false, TwinClassEntity.Fields.domainId))
                         .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeExcludeList(), true))
@@ -138,8 +137,7 @@ public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClas
                         .and(checkUuidIn(twinClassSearch.getEditPermissionIdList(), false, false, TwinClassEntity.Fields.editPermissionId))
                         .and(checkUuidIn(twinClassSearch.getEditPermissionIdExcludeList(), true, false, TwinClassEntity.Fields.editPermissionId))
                         .and(checkUuidIn(twinClassSearch.getDeletePermissionIdList(), false, false, TwinClassEntity.Fields.deletePermissionId))
-                        .and(checkUuidIn(twinClassSearch.getDeletePermissionIdExcludeList(), true, false, TwinClassEntity.Fields.deletePermissionId))
-        );
+                        .and(checkUuidIn(twinClassSearch.getDeletePermissionIdExcludeList(), true, false, TwinClassEntity.Fields.deletePermissionId));
     }
 
     protected void narrowSearch(TwinClassSearch mainSearch, TwinClassSearch narrowSearch) {

@@ -128,6 +128,11 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @ToString.Exclude
     private FaceEntity breadCrumbsFace;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private boolean createElseUpdate = false;
+
 //    @ManyToOne(fetch = FetchType.EAGER)
 //    @JoinColumn(name = "head_twin_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = true)
 //    private TwinEntity headTwin;

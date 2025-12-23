@@ -67,7 +67,7 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
 
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldSearchText search) {
-        return Specification.where(TwinSpecification.checkFieldText(search, TwinEntity.Fields.fieldsSimple, TwinFieldSimpleEntity.Fields.value));
+        return TwinSpecification.checkFieldText(search, TwinEntity.Fields.fieldsSimple, TwinFieldSimpleEntity.Fields.value);
     }
 
     private void checkForUniqueness(TwinEntity twin, FieldValueText value) throws ServiceException {
