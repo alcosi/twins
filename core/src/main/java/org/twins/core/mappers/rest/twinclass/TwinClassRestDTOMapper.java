@@ -9,6 +9,7 @@ import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
@@ -110,8 +111,8 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                         .setMarkersDataListId(src.getMarkerDataListId())
                         .setTagsDataListId(src.getTagDataListId())
                         .setTwinClassFreezeId(src.getTwinClassFreezeId())
-                        .setName(i18nService.translateToLocale(src.getNameI18NId()))
-                        .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
+                        .setName(I18nCacheHolder.addId(src.getNameI18NId()))
+                        .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
                         .setIconDark(resourceService.getResourceUri(src.getIconDarkResource()))
                         .setIconLight(resourceService.getResourceUri(src.getIconLightResource()))
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
@@ -150,8 +151,8 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                         .setMarkersDataListId(src.getMarkerDataListId())
                         .setTagsDataListId(src.getTagDataListId())
                         .setTwinClassFreezeId(src.getTwinClassFreezeId())
-                        .setName(i18nService.translateToLocale(src.getNameI18NId()))
-                        .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
+                        .setName(I18nCacheHolder.addId(src.getNameI18NId()))
+                        .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
                         .setIconDark(resourceService.getResourceUri(src.getIconDarkResource()))
                         .setIconLight(resourceService.getResourceUri(src.getIconLightResource()))
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())

@@ -1,5 +1,7 @@
 package org.twins.core.service.history;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -18,10 +20,12 @@ import org.twins.core.featurer.notificator.recipient.RecipientResolver;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @Lazy
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class HistoryRecipientService extends EntitySecureFindServiceImpl<HistoryNotificationRecipientEntity> {
     private final HistoryNotificationRecipientRepository repository;
@@ -54,15 +58,27 @@ public class HistoryRecipientService extends EntitySecureFindServiceImpl<History
     }
 
     public Set<UUID> recipientResolve(UUID recipientId, HistoryEntity history) throws ServiceException {
-        Set<UUID> recipientIds = new HashSet<>();
+        Set<HistoryNotificationRecipientCollectorEntity> collectors = getRecipientCollectors(recipientId);
 
-        List<HistoryNotificationRecipientCollectorEntity> collectors = new ArrayList<>(getRecipientCollectors(recipientId));
-        collectors.sort(Comparator.comparingInt(HistoryNotificationRecipientCollectorEntity::getOrder));
+        Map<Boolean, List<HistoryNotificationRecipientCollectorEntity>> partitioned = collectors.stream()
+                        .collect(Collectors.partitioningBy(HistoryNotificationRecipientCollectorEntity::getExclude));
 
-        for (HistoryNotificationRecipientCollectorEntity recipientCollector : collectors) {
-            RecipientResolver recipientResolver = featurerService.getFeaturer(recipientCollector.getRecipientResolverFeaturerId(), RecipientResolver.class);
-            recipientResolver.resolve(history, recipientIds, recipientCollector.getRecipientResolverParams());
+        List<HistoryNotificationRecipientCollectorEntity> includeCollectors = partitioned.get(false);
+        List<HistoryNotificationRecipientCollectorEntity> excludeCollectors = partitioned.get(true);
+
+        Set<UUID> include = resolveRecipient(history, includeCollectors);
+        Set<UUID> exclude = resolveRecipient(history, excludeCollectors);
+
+        include.removeAll(exclude);
+        return include;
+    }
+
+    private Set<UUID> resolveRecipient(HistoryEntity history, List<HistoryNotificationRecipientCollectorEntity> collectors) throws ServiceException {
+        Set<UUID> result = new HashSet<>();
+        for (HistoryNotificationRecipientCollectorEntity collector : collectors) {
+            RecipientResolver resolver = featurerService.getFeaturer(collector.getRecipientResolverFeaturerId(), RecipientResolver.class);
+            resolver.resolve(history, result, collector.getRecipientResolverParams());
         }
-        return recipientIds;
+        return result;
     }
 }

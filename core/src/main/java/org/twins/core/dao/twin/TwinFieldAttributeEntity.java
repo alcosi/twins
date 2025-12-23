@@ -23,8 +23,14 @@ import java.util.UUID;
 @Table(name = "twin_field_attribute")
 public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<TwinFieldAttributeEntity> {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UUID.randomUUID();
+        }
+    }
 
     @Column(name = "twin_id")
     private UUID twinId;
@@ -49,7 +55,7 @@ public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<T
     @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_class_field_attribute_id", insertable = false, updatable = false, nullable = false)
-    private TwinClassFieldAttributeEntity twinClassFieldAttributeEntity;
+    private TwinClassFieldAttributeEntity twinClassFieldAttribute;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -72,7 +78,7 @@ public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<T
                 .setNoteMsg(noteMsg)
                 .setNoteMsgContext(noteMsgContext)
                 .setChangedAt(changedAt)
-                .setTwinClassFieldAttributeEntity(twinClassFieldAttributeEntity)
+                .setTwinClassFieldAttribute(twinClassFieldAttribute)
                 .setTwin(twin);
     }
 }

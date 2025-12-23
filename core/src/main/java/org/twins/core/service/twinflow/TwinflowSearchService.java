@@ -1,5 +1,7 @@
 package org.twins.core.service.twinflow;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -25,6 +27,7 @@ import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.c
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TwinflowSearchService {
     private final TwinflowRepository twinflowRepository;

@@ -1,5 +1,7 @@
 package org.twins.core.service.domain;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -22,22 +24,22 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountRepository;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.enums.domain.DomainType;
 import org.twins.core.domain.search.DomainBusinessAccountSearch;
+import org.twins.core.enums.domain.DomainType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
-import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.permission.PermissionSchemaService;
+import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.space.SpaceRoleService;
 import org.twins.core.service.twin.TwinAliasService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
 import org.twins.core.service.user.UserGroupService;
-import org.twins.core.service.history.HistoryService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -51,6 +53,7 @@ import static org.twins.core.dao.specifications.domain.DomainBusinessAccountSpec
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @AllArgsConstructor
 public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<DomainBusinessAccountEntity> {

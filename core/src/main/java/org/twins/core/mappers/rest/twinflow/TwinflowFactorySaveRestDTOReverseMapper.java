@@ -15,7 +15,7 @@ public class TwinflowFactorySaveRestDTOReverseMapper extends RestSimpleDTOMapper
     public void map(TwinflowFactorySaveDTOv1 src, TwinflowFactoryEntity dst, MapperContext mapperContext) throws Exception {
         dst
                 .setTwinflowId(src.getTwinflowId())
-                .setTwinFactoryId(src.getTwinFactoryId())
+                .setTwinFactoryId(src.getFactoryId())
                 .setTwinFactoryLauncher(src.getTwinFactoryLauncherId());
     }
 }

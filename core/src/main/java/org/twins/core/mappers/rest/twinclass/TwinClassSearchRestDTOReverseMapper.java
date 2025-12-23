@@ -45,6 +45,8 @@ public class TwinClassSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
                 .setMarkerDatalistIdExcludeList(src.getMarkerDatalistIdExcludeList())
                 .setTagDatalistIdList(src.getTagDatalistIdList())
                 .setTagDatalistIdExcludeList(src.getTagDatalistIdExcludeList())
+                .setFreezeIdList(src.getFreezeIdList())
+                .setFreezeIdExcludeList(src.getFreezeIdExcludeList())
                 .setAbstractt(src.getAbstractt())
                 .setSegment(src.getSegment())
                 .setHasSegments(src.getHasSegments())

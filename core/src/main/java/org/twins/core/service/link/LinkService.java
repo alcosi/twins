@@ -1,5 +1,7 @@
 package org.twins.core.service.link;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -20,17 +22,17 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.enums.EntityRelinkOperationStrategy;
-import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkRepository;
-import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.dao.twin.TwinLinkRepository;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.LinkUpdate;
+import org.twins.core.enums.EntityRelinkOperationStrategy;
+import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.enums.link.LinkType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
@@ -45,6 +47,7 @@ import java.util.function.Function;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
 public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {

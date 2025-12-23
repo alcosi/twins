@@ -67,6 +67,12 @@ public class TwinClassSearchDTOv1 {
     @Schema(description = "tag data list id exclude list")
     public Set<UUID> tagDatalistIdExcludeList;
 
+    @Schema(description = "freeze id list")
+    public Set<UUID> freezeIdList;
+
+    @Schema(description = "freeze id exclude list")
+    public Set<UUID> freezeIdExcludeList;
+
     @Schema(description = "twin class is abstract", example = DTOExamples.TERNARY)
     public Ternary abstractt;
 

@@ -1,5 +1,7 @@
 package org.twins.core.service.twinflow;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -19,7 +21,10 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowFactoryEntity;
 import org.twins.core.dao.twinflow.TwinflowFactoryRepository;
 import org.twins.core.domain.TwinChangesCollector;
-import org.twins.core.domain.factory.*;
+import org.twins.core.domain.factory.FactoryBranchId;
+import org.twins.core.domain.factory.FactoryContext;
+import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryResultUncommited;
 import org.twins.core.domain.twinoperation.TwinSave;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.enums.factory.FactoryLauncher;
@@ -35,6 +40,7 @@ import java.util.stream.StreamSupport;
 @Slf4j
 @Service
 @Lazy
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TwinflowFactoryService extends EntitySecureFindServiceImpl<TwinflowFactoryEntity> {
 

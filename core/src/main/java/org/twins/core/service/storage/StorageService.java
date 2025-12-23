@@ -1,5 +1,7 @@
 package org.twins.core.service.storage;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.MapUtils;
@@ -23,9 +25,8 @@ import org.twins.core.service.twinclass.TwinClassFieldService;
 import java.util.*;
 import java.util.function.Function;
 
-import static org.twins.core.service.SystemEntityService.TWIN_ATTACHMENT_EXTERNAL_URI_STORAGER_ID;
-
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class StorageService extends EntitySecureFindServiceImpl<StorageEntity> {
     protected final StorageRepository repository;

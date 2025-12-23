@@ -24,11 +24,7 @@ import org.twins.core.dao.projection.ProjectionTypeGroupEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.twinclass.TwinClassFreezeEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
-import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
+import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -120,6 +116,11 @@ public class MapperContext {
     public MapperContext removeMode(MapperMode mapperMode) {
         modes.remove(mapperMode);
         return this;
+    }
+
+    public MapperContext setModes(MapperModeCollection mapperModeCollection) {
+        modes.clear(); // let's clean them! this will delete forked modes during fork on collection
+        return setModes(mapperModeCollection.getConfiguredModes());
     }
 
     public MapperContext setModes(MapperMode... mapperModes) {
@@ -421,7 +422,7 @@ public class MapperContext {
             if (pointedMode == null)
                 continue;
             else if (pointedMode instanceof MapperModeCollection modeCollection) {
-                fork.setModes(modeCollection.getConfiguredModes()); // we will override duplicates
+                fork.setModes(modeCollection); // we will override duplicates
             } else {
                 fork.removeMode(mapperModePointer); //this will protect us from stackoverflow
                 fork.setMode(pointedMode);
@@ -475,7 +476,7 @@ public class MapperContext {
     public MapperContext fork(MapperModeCollection mapperModeCollection) {
         MapperContext cloneMapperContext = fork();
         mapperModeCollection = getModeOrUse(mapperModeCollection);
-        cloneMapperContext.setModes(mapperModeCollection.getConfiguredModes());
+        cloneMapperContext.setModes(mapperModeCollection);
         return cloneMapperContext;
     }
 

@@ -19,8 +19,11 @@ public abstract class FieldTyperBoolean<D extends FieldDescriptor, T extends Fie
         if (twinChangesCollector.collectIfChanged(twinFieldBooleanEntity, "field[" + twinFieldBooleanEntity.getTwinClassField().getKey() + "]", twinFieldBooleanEntity.getValue(), newValue)) {
             if (twinChangesCollector.isHistoryCollectorEnabled())
                 twinChangesCollector.getHistoryCollector(twinFieldBooleanEntity.getTwin()).add(
-                        historyService.fieldChangeSimple(twinFieldBooleanEntity.getTwinClassField(), String.valueOf(twinFieldBooleanEntity.getValue()), String.valueOf(newValue)));
-
+                        historyService.fieldChangeSimple(
+                                twinFieldBooleanEntity.getTwinClassField(),
+                                twinFieldBooleanEntity.getValue() != null ? twinFieldBooleanEntity.getValue().toString() : null,
+                                newValue != null ? newValue.toString() : null)
+                );
             twinFieldBooleanEntity.setValue(newValue);
         }
     }

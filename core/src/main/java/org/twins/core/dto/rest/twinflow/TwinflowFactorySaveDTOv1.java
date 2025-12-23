@@ -3,8 +3,8 @@ package org.twins.core.dto.rest.twinflow;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.enums.factory.FactoryLauncher;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.enums.factory.FactoryLauncher;
 
 import java.util.UUID;
 
@@ -21,5 +21,5 @@ public class TwinflowFactorySaveDTOv1 {
     public FactoryLauncher twinFactoryLauncherId;
 
     @Schema(example = DTOExamples.FACTORY_ID)
-    public UUID twinFactoryId;
+    public UUID factoryId;
 }

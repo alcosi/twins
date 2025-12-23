@@ -1,5 +1,7 @@
 package org.twins.core.service.draft;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -13,6 +15,7 @@ import static org.twins.core.domain.draft.DraftCounters.Counter.*;
 import static org.twins.core.domain.draft.DraftCounters.CounterGroup.*;
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @RequiredArgsConstructor
 public class DraftNormalizeService {

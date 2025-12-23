@@ -68,6 +68,7 @@ public class MultiplierIsolatedByLink extends Multiplier {
             }
             BasicSearch search = new BasicSearch();
             search
+                    .addOwnerBusinessAccountId(factoryContext.getRunLimitedByOwnerBusinessAccount())
                     .addLinkDstTwinsId(linkId.extract(properties), List.of(inputTwin.getId()), false, true)
                     .addStatusId(statusIds.extract(properties), excludeStatuses.extract(properties));
             List<TwinEntity> relativesTwinEntityList = twinSearchService.findTwins(search);

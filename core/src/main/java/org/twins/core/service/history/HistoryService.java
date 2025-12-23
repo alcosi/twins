@@ -1,5 +1,7 @@
 package org.twins.core.service.history;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -18,13 +20,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.enums.action.TwinAction;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.history.HistoryRepository;
-import org.twins.core.enums.history.HistoryType;
 import org.twins.core.dao.history.HistoryTypeDomainTemplateRepository;
 import org.twins.core.dao.history.context.*;
 import org.twins.core.dao.history.context.snapshot.FieldSnapshot;
@@ -36,6 +36,8 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.enums.action.TwinAction;
+import org.twins.core.enums.history.HistoryType;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinActionService;
@@ -47,6 +49,7 @@ import java.util.*;
 import java.util.function.Function;
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @Lazy
 @RequiredArgsConstructor
@@ -143,7 +146,11 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 historyEntity.setTwinClassFieldId(context.getField().getId());
                 if (historyEntity.getHistoryType() == HistoryType.fieldChanged) //we will use more detailed type
                     if (StringUtils.isEmpty(context.templateFromValue()))
-                        historyEntity.setHistoryType(HistoryType.fieldCreated);
+                        if (twinEntity.isCreateElseUpdate()) {
+                            historyEntity.setHistoryType(HistoryType.fieldCreatedOnCreate);
+                        } else {
+                            historyEntity.setHistoryType(HistoryType.fieldChanged);
+                        }
                     else if (StringUtils.isEmpty(context.templateToValue()))
                         historyEntity.setHistoryType(HistoryType.fieldDeleted);
             } else if (context instanceof IHistoryContextLink linkChange) {
@@ -213,8 +220,13 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     }
 
     public HistoryItem<HistoryContextAttachment> attachmentCreate(TwinAttachmentEntity attachmentEntity) {
-        return new HistoryItem<>(HistoryType.attachmentCreate, new HistoryContextAttachment()
-                .shotAttachment(attachmentEntity));
+        if (attachmentEntity.getTwin().isCreateElseUpdate()) {
+            return new HistoryItem<>(HistoryType.attachmentCreateOnCreate, new HistoryContextAttachment()
+                    .shotAttachment(attachmentEntity));
+        } else {
+            return new HistoryItem<>(HistoryType.attachmentCreate, new HistoryContextAttachment()
+                    .shotAttachment(attachmentEntity));
+        }
     }
 
     public HistoryItem<HistoryContextComment> commentCreate(org.twins.core.dao.comment.TwinCommentEntity commentEntity) {
@@ -344,7 +356,11 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setTwinLinkId(twinLinkId)
                 .shotLink(linkEntity, forward, i18nService)
                 .shotDstTwin(dstTwinEntity);
-        return new HistoryItem<>(HistoryType.linkCreated, context);
+        if (dstTwinEntity.isCreateElseUpdate()) {
+            return new HistoryItem<>(HistoryType.linkCreatedOnCreate, context);
+        } else {
+            return new HistoryItem<>(HistoryType.linkCreated, context);
+        }
     }
 
     public HistoryItem<HistoryContextLink> linkDeleted(UUID twinLinkId, LinkEntity linkEntity, TwinEntity dstTwinEntity, boolean forward) {

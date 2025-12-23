@@ -1,5 +1,7 @@
 package org.twins.core.service.factory;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ import java.util.function.Function;
 @Slf4j
 @Service
 @Lazy
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @AllArgsConstructor
 public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactoryEraserEntity> {
     @Getter

@@ -1,5 +1,7 @@
 package org.twins.core.service.twinflow;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -13,12 +15,14 @@ import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerRepository;
 import org.twins.core.domain.search.TransitionTriggerSearch;
 
-import static org.twins.core.dao.specifications.CommonSpecification.*;
+import static org.twins.core.dao.specifications.CommonSpecification.checkTernary;
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.twinflow.TransitionTriggerSpecification.checkIntegerIn;
 
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TransitionTriggerSearchService {
     private final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
