@@ -33,6 +33,7 @@ import javax.naming.LimitExceededException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ConnectException;
+import java.net.SocketException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.*;
@@ -354,7 +355,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                         responseType
                 );
             } catch (ResourceAccessException e) {
-                if (e.getCause() instanceof ConnectException) {
+                if (e.getCause() instanceof ConnectException || e.getCause() instanceof SocketException) {
                     log.warn("Attempt {}/{} failed: {}", attempt, maxRetries, e.getMessage());
 
                     if (attempt == maxRetries) {
