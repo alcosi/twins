@@ -105,11 +105,6 @@ public class LinkEntity implements EasyLoggable {
     @ToString.Exclude
     private FeaturerEntity linkerFeaturer;
 
-    @Transient
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private boolean createElseUpdate = false;
-
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "linker_params", columnDefinition = "hstore")
     private HashMap<String, String> linkerParams;

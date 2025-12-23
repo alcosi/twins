@@ -75,7 +75,6 @@ public class FieldTyperAttachmentBase64 extends FieldTyperAttachment<FieldValueA
                 .setCreatedByUser(apiUser.getUser())
                 .setTwinId(twin.getId())
                 .setTwin(twin)
-                .setCreateElseUpdate(twin.isCreateElseUpdate())
                 .setTwinClassFieldId(value.getTwinClassField().getId())
                 .setTitle(value.getName())
                 .setSize(domainFile.fileSize())

@@ -13,7 +13,6 @@ import org.hibernate.annotations.Type;
 import org.twins.core.dao.history.context.HistoryContext;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.history.HistoryType;
 
 import java.sql.Timestamp;

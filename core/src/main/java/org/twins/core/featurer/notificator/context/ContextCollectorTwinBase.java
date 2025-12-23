@@ -51,8 +51,7 @@ public abstract class ContextCollectorTwinBase extends ContextCollector {
             context.put(collectDescriptionKey.extract(properties), twin.getDescription());
         }
         if (collectBusinessAccount.extract(properties)) {
-            UUID businessAccountId = twin.getOwnerBusinessAccountId() == null ? history.getTwin().getOwnerBusinessAccountId() : twin.getOwnerBusinessAccountId();
-            context.put(collectBusinessAccountKey.extract(properties), businessAccountId.toString());
+            context.put(collectBusinessAccountKey.extract(properties),  twin.getOwnerBusinessAccountId().toString());
         }
         return context;
     }

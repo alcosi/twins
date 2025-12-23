@@ -142,11 +142,6 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
     private boolean fileChanged = false;
 
     @Transient
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private boolean createElseUpdate = false;
-
-    @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinAttachmentModificationEntity, String> modifications;
 

@@ -187,7 +187,6 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         prepareTwinLinks(srcTwinEntity, linksEntityList);
         processAlreadyExisted(linksEntityList);
         for (TwinLinkEntity twinLinkEntity : linksEntityList) {
-            twinLinkEntity.getLink().setCreateElseUpdate(srcTwinEntity.isCreateElseUpdate());
             twinChangesCollector.getHistoryCollector().add(historyService.linkCreated(twinLinkEntity));
             twinChangesCollector.add(twinLinkEntity);
         }

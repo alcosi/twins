@@ -222,8 +222,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_CAN_NOT_BE_RELINKED);
             attachmentEntity
                     .setTwinId(twinEntity.getId())
-                    .setTwin(twinEntity)
-                    .setCreateElseUpdate(twinEntity.isCreateElseUpdate());
+                    .setTwin(twinEntity);
         }
     }
 

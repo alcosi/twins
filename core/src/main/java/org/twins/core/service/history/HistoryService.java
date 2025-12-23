@@ -221,7 +221,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     }
 
     public HistoryItem<HistoryContextAttachment> attachmentCreate(TwinAttachmentEntity attachmentEntity) {
-        if (attachmentEntity.isCreateElseUpdate()) {
+        if (attachmentEntity.getTwin().isCreateElseUpdate()) {
             return new HistoryItem<>(HistoryType.attachmentCreateOnCreate, new HistoryContextAttachment()
                     .shotAttachment(attachmentEntity));
         } else {
@@ -357,7 +357,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setTwinLinkId(twinLinkId)
                 .shotLink(linkEntity, forward, i18nService)
                 .shotDstTwin(dstTwinEntity);
-        if (linkEntity.isCreateElseUpdate()) {
+        if (dstTwinEntity.isCreateElseUpdate()) {
             return new HistoryItem<>(HistoryType.linkCreatedOnCreate, context);
         } else {
             return new HistoryItem<>(HistoryType.linkCreated, context);
