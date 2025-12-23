@@ -16,13 +16,11 @@ import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.twins.core.dto.rest.featurer.storager.filehandler.*;
 import org.twins.core.enums.featurer.storager.Format;
@@ -34,6 +32,7 @@ import org.twins.core.featurer.storager.StoragerAbstractChecked;
 import javax.naming.LimitExceededException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.*;
@@ -201,7 +200,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                             true
                     );
 
-                    var resp = restTemplate.exchange(url, HttpMethod.POST, prepareMultipartRq(rqData, tikaStream, fileName, fileSize), new ParameterizedTypeReference<List<FileHandlerResizeSaveRsDTO>>() {});
+                    var resp = sendWithRetry(url, rqData, tikaStream, fileName, fileSize, new ParameterizedTypeReference<List<FileHandlerResizeSaveRsDTO>>() {});
 
                     if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
                         log.error("RS STATUS CODE: {}\nRS BODY:{}", resp.getStatusCode(), resp.getBody());
@@ -228,7 +227,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                     var url = STR."\{baseUrl}/api/save/synced";
                     var rqData = new FileHandlerSaveDataPart(fileId, fileName, ORIGINAL_TYPE, StorageType.S3, storageDir);
 
-                    var resp = restTemplate.exchange(url, HttpMethod.POST, prepareMultipartRq(rqData, fileStream, fileName, fileSize), FileHandlerResizeSaveRsDTO.class);
+                    var resp = sendWithRetry(url, rqData, tikaStream, fileName, fileSize, new ParameterizedTypeReference<FileHandlerResizeSaveRsDTO>() {});
 
                     if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
                         log.error("RS STATUS CODE: {}\nRS BODY:{}", resp.getStatusCode(), resp.getBody());
@@ -341,6 +340,40 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         }
 
         return size;
+    }
+
+    private <T> ResponseEntity<T> sendWithRetry(String url, Object rqData, InputStream tikaStream, String fileName, long fileSize, ParameterizedTypeReference<T> responseType) {
+        var maxRetries = 3;
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                return restTemplate.exchange(
+                        url,
+                        HttpMethod.POST,
+                        prepareMultipartRq(rqData, tikaStream, fileName, fileSize),
+                        responseType
+                );
+            } catch (ResourceAccessException e) {
+                if (e.getCause() instanceof ConnectException) {
+                    log.warn("Attempt {}/{} failed: {}", attempt, maxRetries, e.getMessage());
+
+                    if (attempt == maxRetries) {
+                        throw e;
+                    }
+
+                    try {
+                        Thread.sleep(500L * attempt);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw e;
+                    }
+                } else {
+                    throw e;
+                }
+            }
+        }
+
+        return null;
     }
 }
 
