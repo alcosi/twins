@@ -63,14 +63,9 @@ public class I18nCacheHolder {
         i18nContexts.remove();
     }
 
-    public static class I18nContextCache extends Hashtable<UUID, Set<Map<String, String>>>{
+    public static class I18nContextCache extends HashMap<UUID, Set<Map<String, String>>>{
         public void putContext(UUID i18nId, Map<String, String> context) {
-            var i18nContexts = get(i18nId);
-            if (i18nContexts == null) {
-                i18nContexts = new HashSet<>();
-                put(i18nId, i18nContexts);
-            }
-            i18nContexts.add(context);
+            computeIfAbsent(i18nId, k -> new HashSet<>()).add(context);
         }
     }
 }
