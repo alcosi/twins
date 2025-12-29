@@ -14,21 +14,20 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.specifications.twin.TwinFieldAttributeSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldAttributeEntity;
 import org.twins.core.dao.twin.TwinFieldAttributeRepository;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.domain.TwinField;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.twinclass.TwinClassFieldAttributeService;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Service
@@ -152,6 +151,35 @@ public class TwinFieldAttributeService extends EntitySecureFindServiceImpl<TwinF
         }
     }
 
+    public void loadFieldAttributes(TwinField twinField) {
+        loadFieldAttributes(Collections.singletonList(twinField));
+    }
+
+    public void loadFieldAttributes(Collection<TwinField> twinFields) {
+        Map<UUID, Set<UUID>> filter = new HashMap<>();
+        Map<UUID, Map<UUID, TwinField>> needLoad = new HashMap<>();
+        for (var twinField : twinFields) {
+            if (twinField.getAttributes() == null) {
+                needLoad.computeIfAbsent(twinField.getTwinId(), l -> new HashMap<>()).put(twinField.getTwinClassFieldId(), twinField);
+                filter.computeIfAbsent(twinField.getTwinId(), l -> new HashSet<>()).add(twinField.getTwinClassFieldId());
+                twinField.setAttributes(new KitGrouped<>(TwinFieldAttributeEntity::getId, TwinFieldAttributeEntity::getTwinClassFieldAttributeId));
+            }
+        }
+        if (needLoad.isEmpty())
+            return;
+
+        List<TwinFieldAttributeEntity> attributes =
+                twinFieldAttributeRepository.findAll(
+                        TwinFieldAttributeSpecification.byTwinIdAndFieldIds(filter)
+                );
+        for (var attribute : attributes) {
+            needLoad
+                    .get(attribute.getTwinId())
+                    .get(attribute.getTwinClassFieldId())
+                    .getAttributes().add(attribute);
+        }
+    }
+
     public void deleteAttributes(List<TwinFieldAttributeEntity> entities, TwinChangesCollector twinChangesCollector) throws ServiceException {
         for (TwinFieldAttributeEntity twinFieldAttributeEntity : entities) {
             UUID deletePermissionId = twinFieldAttributeEntity.getTwinClassFieldAttribute().getDeletePermissionId();
@@ -176,11 +204,11 @@ public class TwinFieldAttributeService extends EntitySecureFindServiceImpl<TwinF
                 throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "cannot update % without permission[%]", dbAttributeEntity.getTwinClassFieldAttribute(), updatePermissionId.toString());
             }
             if (twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.twinId, dbAttributeEntity.getTwinId(), attributeEntity.getTwinId())) {
-                throw new ServiceException(ErrorCodeCommon.FORBIDDEN, "cannot update twin id for twin field attribute[" + dbAttributeEntity.getId() +"]");
+                throw new ServiceException(ErrorCodeCommon.FORBIDDEN, "cannot update twin id for twin field attribute[" + dbAttributeEntity.getId() + "]");
             }
 
             if (twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.twinClassFieldId, dbAttributeEntity.getTwinClassFieldId(), attributeEntity.getTwinClassFieldId())) {
-                throw new ServiceException(ErrorCodeCommon.FORBIDDEN, "cannot update twin class field id for twin field attribute[" + dbAttributeEntity.getId() +"]");
+                throw new ServiceException(ErrorCodeCommon.FORBIDDEN, "cannot update twin class field id for twin field attribute[" + dbAttributeEntity.getId() + "]");
             }
             if (twinChangesCollector.collectIfChanged(dbAttributeEntity, TwinFieldAttributeEntity.Fields.twinClassFieldAttributeId, dbAttributeEntity.getTwinClassFieldAttributeId(), attributeEntity.getTwinClassFieldAttributeId())) {
                 dbAttributeEntity.setTwinClassFieldAttributeId(attributeEntity.getTwinClassFieldAttributeId());
