@@ -19,6 +19,6 @@ public class TwinFieldAttributeRestDTOMapper extends RestSimpleDTOMapper<TwinFie
                 .setNoteMsg(src.getNoteMsg() != null ? src.getNoteMsg() : I18nCacheHolder.addId(src.getTwinClassFieldAttribute().getNoteMsgI18nId(), src.getNoteMsgContext()))
                 .setContext(src.getNoteMsgContext())
                 .setTwinClassFieldAttributeId(src.getTwinClassFieldAttributeId())
-                .setChangedAt(src.getChangedAt().toLocalDateTime());
+                .setChangedAt(src.getChangedAt() != null ? src.getChangedAt().toLocalDateTime() : null);
     }
 }

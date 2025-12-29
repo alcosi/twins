@@ -48,7 +48,7 @@ public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<T
     @Column(name = "note_msg_context", columnDefinition = "hstore")
     private HashMap<String, String> noteMsgContext;
 
-    @Column(name = "changedAt")
+    @Column(name = "changed_at")
     private Timestamp changedAt;
 
     @EqualsAndHashCode.Exclude
