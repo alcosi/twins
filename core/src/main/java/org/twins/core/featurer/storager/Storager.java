@@ -16,6 +16,7 @@ import org.twins.core.service.auth.AuthService;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -227,9 +228,19 @@ public abstract class Storager extends FeaturerTwins {
                 .proxy(ProxySelector.getDefault())
                 .connectTimeout(timeoutDuration)
                 .build();
-        HttpResponse<InputStream> response = httpClient
-                .send(request, HttpResponse.BodyHandlers.ofInputStream());
-        return response;
+        int maxAttempts = 3;
+        for (int i = 1; i <= maxAttempts; i++) {
+            try {
+                return httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+            } catch (ConnectException e) {
+                log.error("Failed to connect to {} (attempt {}/{}): {}", uri, i, maxAttempts, e.getMessage());
+                if (i == maxAttempts) {
+                    throw e;
+                }
+                Thread.sleep(500);
+            }
+        }
+        throw new IOException("Failed to send request after " + maxAttempts + " attempts");
     }
 
     @NotNull
