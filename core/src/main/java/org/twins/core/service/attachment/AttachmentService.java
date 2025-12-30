@@ -160,6 +160,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 }
             });
         } catch (Throwable t) {
+            log.error("ERROR before foreach: ", t);
             throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Unable to add attachments");
         }
     }
