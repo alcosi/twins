@@ -104,7 +104,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             loadTwins(attachments);
             storageService.loadStorages(attachments);
 
-            attachments.parallelStream().forEach(attachmentEntity -> {
+            attachments.forEach(attachmentEntity -> {
                 UUID uuid = UUID.randomUUID();
                 LoggerUtils.logSession(uuid);
                 LoggerUtils.logController("addAttachments$");
