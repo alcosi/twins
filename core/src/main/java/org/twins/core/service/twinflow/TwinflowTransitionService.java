@@ -230,6 +230,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 continue;
             if (twinEntity.getValidTransitionsKit() != null)
                 continue;
+            if (twinEntity.getTwinClass().getTwinClassFreezeId() != null)
+                continue;
             needLoad.put(twinEntity.getId(), twinEntity);
         }
         if (MapUtils.isEmpty(needLoad))
