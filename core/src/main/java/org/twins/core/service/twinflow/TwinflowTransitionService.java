@@ -230,8 +230,10 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 continue;
             if (twinEntity.getValidTransitionsKit() != null)
                 continue;
-            if (twinEntity.getTwinClass().getTwinClassFreezeId() != null)
+            if (twinEntity.getTwinClass().getTwinClassFreezeId() != null) {
+                log.warn("class of twin [" + twinEntity.logNormal() + "] has freeze");
                 continue;
+            }
             needLoad.put(twinEntity.getId(), twinEntity);
         }
         if (MapUtils.isEmpty(needLoad))
@@ -521,6 +523,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
 
     public TransitionContext createTransitionContext(TwinEntity twinEntity, UUID transitionId) throws ServiceException {
+        if (twinEntity.getTwinClass().getTwinClassFreezeId() != null)
+            throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Not twinflow can be detected for [" + twinEntity.logDetailed() + "] because his twin class has freeze");
         twinflowService.loadTwinflow(twinEntity);
         if (twinEntity.getTwinflow() == null)
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Not twinflow can be detected for " + twinEntity.logDetailed());
