@@ -37,7 +37,6 @@ import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.Storager;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.storage.StorageService;
@@ -46,7 +45,6 @@ import org.twins.core.service.twin.TwinService;
 
 import java.io.InputStream;
 import java.util.*;
-import java.util.concurrent.StructuredTaskScope;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -106,72 +104,61 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             loadTwins(attachments);
             storageService.loadStorages(attachments);
 
-            try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
-                // todo somehow rewrite thread-local logic for api user to use scoped values
-                attachments.forEach(attachmentEntity -> scope.fork(() -> {
-                    UUID uuid = UUID.randomUUID();
-                    LoggerUtils.logSession(uuid);
-                    LoggerUtils.logController("addAttachments$");
-                    LoggerUtils.logPrefix(STR."ADD_ATTACHMENT[\{uuid}]:");
+            attachments.parallelStream().forEach(attachmentEntity -> {
+                UUID uuid = UUID.randomUUID();
+                LoggerUtils.logSession(uuid);
+                LoggerUtils.logController("addAttachments$");
+                LoggerUtils.logPrefix(STR."ADD_ATTACHMENT[\{uuid}]:");
 
-                    try {
-                        // ThreadLocal context
-                        authService.setThreadLocalApiUser(domainId, businessAccountId, userId);
+                try {
+                    authService.setThreadLocalApiUser(domainId, businessAccountId, userId);
 
-                        twinActionService.checkAllowed(
-                                attachmentEntity.getTwin(),
-                                TwinAction.ATTACHMENT_ADD
+                    twinActionService.checkAllowed(
+                            attachmentEntity.getTwin(),
+                            TwinAction.ATTACHMENT_ADD
+                    );
+
+                    saveFile(attachmentEntity, uuid);
+
+                    attachmentEntity
+                            .setId(uuid)
+                            .setCreatedByUserId(userId)
+                            .setCreatedByUser(user);
+
+                    if (StringUtils.isEmpty(attachmentEntity.getStorageFileKey())) {
+                        throw new ServiceException(
+                                ErrorCodeTwins.ATTACHMENTS_NOT_VALID,
+                                "storageFileKey is empty"
                         );
-
-                        saveFile(attachmentEntity, uuid);
-
-                        attachmentEntity
-                                .setId(uuid)
-                                .setCreatedByUserId(userId)
-                                .setCreatedByUser(user);
-
-                        if (StringUtils.isEmpty(attachmentEntity.getStorageFileKey())) {
-                            throw new ServiceException(
-                                    ErrorCodeTwins.ATTACHMENTS_NOT_VALID,
-                                    "storageFileKey is empty"
-                            );
-                        }
-
-                        twinChangesCollector.add(attachmentEntity);
-
-                        if (twinChangesCollector.isHistoryCollectorEnabled()) {
-                            twinChangesCollector
-                                    .getHistoryCollector(attachmentEntity.getTwin())
-                                    .add(historyService.attachmentCreate(attachmentEntity));
-                        }
-
-                        if (!CollectionUtils.isEmpty(attachmentEntity.getModifications())) {
-                            attachmentEntity.getModifications().forEach(mod -> {
-                                if (mod.getTwinAttachmentId() == null) {
-                                    mod.setTwinAttachment(attachmentEntity);
-                                    mod.setTwinAttachmentId(uuid);
-                                }
-                            });
-
-                            twinChangesCollector.addAll(attachmentEntity.getModifications());
-                        }
-
-                    } catch (Throwable t) {
-                        log.error("Unable to add attachment {}: {}", attachmentEntity.logNormal(), t.getMessage(), t);
-                        throw t;
-                    } finally {
-                        authService.removeThreadLocalApiUser();
-                        LoggerUtils.cleanMDC();
                     }
 
-                    return null;
-                }));
+                    twinChangesCollector.add(attachmentEntity);
 
-                scope.join().throwIfFailed(cause -> {
-                    log.error("One or more attachments failed. First error:", cause);
-                    return new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID);
-                });
-            }
+                    if (twinChangesCollector.isHistoryCollectorEnabled()) {
+                        twinChangesCollector
+                                .getHistoryCollector(attachmentEntity.getTwin())
+                                .add(historyService.attachmentCreate(attachmentEntity));
+                    }
+
+                    if (!CollectionUtils.isEmpty(attachmentEntity.getModifications())) {
+                        attachmentEntity.getModifications().forEach(mod -> {
+                            if (mod.getTwinAttachmentId() == null) {
+                                mod.setTwinAttachment(attachmentEntity);
+                                mod.setTwinAttachmentId(uuid);
+                            }
+                        });
+
+                        twinChangesCollector.addAll(attachmentEntity.getModifications());
+                    }
+
+                } catch (ServiceException e) {
+                    log.error("Unable to add attachment {}: {}", attachmentEntity.logNormal(), e.getMessage(), e);
+                    throw new RuntimeException(e); // parallelStream требует unchecked
+                } finally {
+                    authService.removeThreadLocalApiUser();
+                    LoggerUtils.cleanMDC();
+                }
+            });
         } catch (Throwable t) {
             throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Unable to add attachments");
         }
