@@ -27,6 +27,9 @@ public class TwinflowTransitionBaseDTOv1 {
     @Schema(description = "description")
     public String description;
 
+    @Schema(description = "message")
+    public String message;
+
     @Schema(description = "alias", example = DTOExamples.TWINFLOW_TRANSITION_ALIAS)
     public String alias;
 
