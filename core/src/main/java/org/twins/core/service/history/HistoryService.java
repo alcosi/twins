@@ -175,8 +175,6 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return actor;
     }
 
-
-
     public void fillSnapshotMessage(HistoryEntity historyEntity) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         String snapshotTemplate = getSnapshotMessageTemplate(historyEntity.getHistoryType(), apiUser.isDomainSpecified() ? apiUser.getDomain().getId() : null);

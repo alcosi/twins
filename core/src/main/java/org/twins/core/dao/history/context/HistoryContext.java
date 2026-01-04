@@ -65,6 +65,10 @@ import java.util.HashMap;
         @JsonSubTypes.Type(
                 name = HistoryContextComment.DISCRIMINATOR,
                 value = HistoryContextComment.class
+        ),
+        @JsonSubTypes.Type(
+                name = HistoryContextSpaceRoleUserChange.DISCRIMINATOR,
+                value = HistoryContextSpaceRoleUserChange.class
         )
 })
 @JsonIgnoreProperties(ignoreUnknown = true)
