@@ -21,6 +21,9 @@ class RestTemplateConfig {
     @RequiredArgsConstructor
     @Service
     public static class LogRequestResponseFilter implements ClientHttpRequestInterceptor {
+
+        private final static int MAX_SIZE = 2000;
+
         @Override
         public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
             UUID id = UUID.randomUUID();
@@ -39,7 +42,19 @@ class RestTemplateConfig {
                     append("=Headers     : {}\n").
                     append("=Request body: {}\n").
                     append("==========================request end================================================");
-            log.info(sb.toString(), id.toString(), request.getURI(), request.getMethod(), request.getHeaders(), new String(body, StandardCharsets.UTF_8));
+
+            String requestBody;
+            String contentType = request.getHeaders().getContentType() != null
+                    ? request.getHeaders().getContentType().toString()
+                    : "";
+
+            if (contentType.toLowerCase().contains("multipart/")) {
+                requestBody = new String(body, StandardCharsets.UTF_8).substring(0, MAX_SIZE) + "...\nMultipart body is too big to log";
+            } else {
+                requestBody = new String(body, StandardCharsets.UTF_8);
+            }
+
+            log.info(sb.toString(), id.toString(), request.getURI(), request.getMethod(), request.getHeaders(), requestBody);
         }
 
         private void traceResponse(UUID id, ClientHttpResponse response, HttpRequest request) throws IOException {
