@@ -133,12 +133,12 @@ public class LoggingFilter extends OncePerRequestFilter {
                 return new byte[0];
             }
             List<Part> parts = new ArrayList<Part>(request.getParts());
-            var loggedParts = parts.stream().map(part -> part.getName() + ":" + extractPartBoby(part, characterEncoding)).toList();
+            var loggedParts = parts.stream().map(part -> part.getName() + ":" + extractPartBody(part, characterEncoding)).toList();
             return String.join(";\n", loggedParts).getBytes(characterEncoding);
         }
 
         @SneakyThrows
-        private String extractPartBoby(Part part, String characterEncoding) {
+        private String extractPartBody(Part part, String characterEncoding) {
             if (!isJsonOrTextOrNull(part.getContentType())) {
                 return "<File. Size:" + getSize(part) + ">";
             }
