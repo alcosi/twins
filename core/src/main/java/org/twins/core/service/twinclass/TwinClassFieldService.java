@@ -32,6 +32,7 @@ import org.twins.core.domain.search.TwinSort;
 import org.twins.core.domain.twinclass.TwinClassFieldSave;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperLink;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
@@ -412,6 +413,10 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             if (field.getTwinSorterFeaturerId() != null) {
                 featurerService.checkValid(field.getTwinSorterFeaturerId(), field.getTwinSorterParams(), TwinSorter.class);
                 featurerService.prepareForStore(field.getTwinSorterFeaturerId(), field.getTwinSorterParams());
+            } else {
+                field
+                        .setTwinSorterFeaturerId(FeaturerTwins.ID_4101)
+                        .setTwinSorterParams(null);
             }
 
             if (field.getSystem() == null) {
