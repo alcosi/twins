@@ -29,6 +29,7 @@ import org.twins.core.dao.history.HistoryTypeDomainTemplateRepository;
 import org.twins.core.dao.history.context.*;
 import org.twins.core.dao.history.context.snapshot.FieldSnapshot;
 import org.twins.core.dao.link.LinkEntity;
+import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -377,6 +378,22 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .shotFromTwin(fromTwinEntity)
                 .shotToTwin(toTwinEntity);
         return new HistoryItem<>(HistoryType.linkUpdated, context);
+    }
+
+    public HistoryItem<HistoryContextSpaceRoleUserChange> spaceRoleUserAdd(TwinClassFieldEntity twinClassFieldEntity, UUID roleId, List<UUID> userIdList) {
+        HistoryContextSpaceRoleUserChange context = new HistoryContextSpaceRoleUserChange()
+                .setRoleId(roleId)
+                .setTargetedUserIds(userIdList);
+        context.shotField(twinClassFieldEntity, i18nService);
+        return new HistoryItem<>(HistoryType.spaceRoleUserAdded, context);
+    }
+
+    public HistoryItem<HistoryContextSpaceRoleUserChange> spaceRoleUserDelete(TwinClassFieldEntity twinClassFieldEntity, UUID roleId, List<UUID> userIdList) {
+        HistoryContextSpaceRoleUserChange context = new HistoryContextSpaceRoleUserChange()
+                .setRoleId(roleId)
+                .setTargetedUserIds(userIdList);
+        context.shotField(twinClassFieldEntity, i18nService);
+        return new HistoryItem<>(HistoryType.spaceRoleUserRemoved, context);
     }
 
     /**
