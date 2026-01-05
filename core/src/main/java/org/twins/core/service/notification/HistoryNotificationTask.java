@@ -61,7 +61,7 @@ public class HistoryNotificationTask implements Runnable {
             HistoryEntity history = historyNotificationEntity.getHistory();
             LoggerUtils.logSession(history.getHistoryBatchId());
             LoggerUtils.logController("historyNotificationTask");
-            LoggerUtils.logPrefix(STR."HISTORY[\{historyNotificationEntity.getId()}]:");
+            LoggerUtils.logPrefix("HISTORY[" + historyNotificationEntity.getId() + "]:");
             log.info("Performing history notification task: {}", historyNotificationEntity.logDetailed());
             if (history.getTwin().getTwinClass().getDomainId() == null) {
                 throw new NotificationSkippedException("Twin is out of domain");
@@ -107,7 +107,7 @@ public class HistoryNotificationTask implements Runnable {
             }
 
             if (skippedDuplicatesCount > 0) {
-                throw new NotificationSkippedException(STR."Notification for batch \{history.getHistoryBatchId()} skipped due to uniqueInBatch flag");
+                throw new NotificationSkippedException("Notification for batch " + history.getHistoryBatchId() + " skipped due to uniqueInBatch flag");
             }
 
             if (recipientsCount == 0) {
