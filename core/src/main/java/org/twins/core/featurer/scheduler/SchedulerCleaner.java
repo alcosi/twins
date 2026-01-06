@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamDuration;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -21,9 +22,10 @@ public abstract class SchedulerCleaner extends Scheduler {
     )
     public static final FeaturerParamDuration intervalParam = new FeaturerParamDuration("interval");
 
+    @Transactional
     protected String processTasks(Properties properties) {
         try {
-            LoggerUtils.logController("schedulerCleaner$");
+            LoggerUtils.logController(getLogSource() + "$");
             long size = countAll();
 
             if (size == 0) {

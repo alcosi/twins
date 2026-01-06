@@ -6,6 +6,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
@@ -27,9 +28,10 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
         this.taskExecutor = taskExecutor;
     }
 
+    @Transactional
     protected String processTasks(Properties properties) {
         try {
-            LoggerUtils.logController("schedulerTaskRunner$");
+            LoggerUtils.logController(getLogSource() + "$");
 
             var collectedEntities = collectTasks(batchSizeParam.extract(properties));
 

@@ -212,7 +212,7 @@ public class ApplicationConfig {
         var taskScheduler = new SimpleAsyncTaskScheduler();
 
         taskScheduler.setVirtualThreads(true);
-        taskScheduler.setConcurrencyLimit(schedulerList.size() * 10);
+        taskScheduler.setConcurrencyLimit(schedulerList.size() * 3);
         taskScheduler.setThreadNamePrefix("task-scheduler-vt-");
 
         return taskScheduler;

@@ -6,6 +6,7 @@ import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.util.StringUtils;
 import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.scheduler.SchedulerLogEntity;
 import org.twins.core.dao.scheduler.SchedulerLogRepository;
@@ -31,7 +32,8 @@ public abstract class Scheduler extends FeaturerTwins {
             LoggerUtils.logSession();
             SchedulerLogEntity schedulerLog = new SchedulerLogEntity();
             long startTime = System.currentTimeMillis();
-            String result = processTasks(properties);
+            // using getBean here to prevent errors with Spring proxy (processTasks with @Transactional)
+            String result = applicationContext.getBean(this.getClass()).processTasks(properties);
 
             if (!result.isEmpty() && schedulerEntity.getLogEnabled()) {
                 schedulerLog
@@ -42,6 +44,10 @@ public abstract class Scheduler extends FeaturerTwins {
                 schedulerLogRepo.save(schedulerLog);
             }
         };
+    }
+
+    protected final String getLogSource() {
+        return StringUtils.uncapitalize(this.getClass().getSimpleName());
     }
 
     protected abstract String processTasks(Properties properties);
