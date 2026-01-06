@@ -51,7 +51,7 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
     public static final FeaturerParamInt decimalPlaces = new FeaturerParamInt("decimalPlaces");
     @FeaturerParam(name = "Extra thousand separators", description = "Extra thousand separators. Must not be equal to decimal separator.", order = 4, optional = true)
     public static final FeaturerParamStringSet extraThousandSeparatorSet = new FeaturerParamStringSet("extraThousandSeparatorSet");
-    @FeaturerParam(name = "Extra decimal separator", description = "Extra decimal separator. Must not be equal to thousand separator.", order = 5, optional = true)
+    @FeaturerParam(name = "Extra decimal separators", description = "Extra decimal separators. Must not be equal to thousand separator.", order = 5, optional = true)
     public static final FeaturerParamStringSet extraDecimalSeparatorSet = new FeaturerParamStringSet("extraDecimalSeparatorSet");
     @FeaturerParam(name = "Round", description = "Round a number to the required number of decimal places", order = 9, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean round = new FeaturerParamBoolean("round");
