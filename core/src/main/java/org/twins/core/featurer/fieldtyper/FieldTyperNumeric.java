@@ -6,9 +6,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamDouble;
-import org.cambium.featurer.params.FeaturerParamInt;
-import org.cambium.featurer.params.FeaturerParamString;
+import org.cambium.featurer.params.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
@@ -24,7 +22,10 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.text.DecimalFormat;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import static org.cambium.common.util.MathUtils.EXPONENTIAL_FORM_REGEXP;
@@ -48,6 +49,12 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
     public static final FeaturerParamString decimalSeparator = new FeaturerParamString("decimalSeparator");
     @FeaturerParam(name = "Decimal places", description = "Number of decimal places.", order = 6)
     public static final FeaturerParamInt decimalPlaces = new FeaturerParamInt("decimalPlaces");
+    @FeaturerParam(name = "Extra thousand separators", description = "Extra thousand separators. Must not be equal to decimal separator.", order = 4, optional = true)
+    public static final FeaturerParamStringSet extraThousandSeparatorSet = new FeaturerParamStringSet("extraThousandSeparatorSet");
+    @FeaturerParam(name = "Extra decimal separator", description = "Extra decimal separator. Must not be equal to thousand separator.", order = 5, optional = true)
+    public static final FeaturerParamStringSet extraDecimalSeparatorSet = new FeaturerParamStringSet("extraDecimalSeparatorSet");
+    @FeaturerParam(name = "Round", description = "Round a number to the required number of decimal places", order = 9, optional = true, defaultValue = "true")
+    public static final FeaturerParamBoolean round = new FeaturerParamBoolean("round");
 
     @Override
     public FieldDescriptorNumeric getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -57,7 +64,10 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
                 .step(step.extract(properties))
                 .thousandSeparator(thousandSeparator.extract(properties))
                 .decimalSeparator(decimalSeparator.extract(properties))
-                .decimalPlaces(decimalPlaces.extract(properties));
+                .decimalPlaces(decimalPlaces.extract(properties))
+                .round(round.extract(properties))
+                .extraThousandSeparators(extraThousandSeparatorSet.extract(properties))
+                .extraDecimalSeparators(extraDecimalSeparatorSet.extract(properties));
     }
 
     @Override
@@ -67,7 +77,11 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
         Double stepValue = step.extract(properties);
         String thousandSeparatorValue = thousandSeparator.extract(properties);
         String decimalSeparatorValue = decimalSeparator.extract(properties);
+        Set<String> extraThousandSeparators = extraThousandSeparatorSet.extract(properties) != null ? extraThousandSeparatorSet.extract(properties) : Collections.emptySet();
+        Set<String> extraDecimalSeparators = extraDecimalSeparatorSet.extract(properties) != null ? extraDecimalSeparatorSet.extract(properties) : Collections.emptySet();
         Integer decimalPlacesValue = decimalPlaces.extract(properties);
+        Boolean roundValue = round.extract(properties);
+
         String finalValue;
         try {
             finalValue = value.getValue();
@@ -76,16 +90,59 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
                     DecimalFormat df = new DecimalFormat("#.############");
                     finalValue = df.format(Double.parseDouble(finalValue));
                 }
-                finalValue.replaceAll(Pattern.quote(thousandSeparatorValue), "")
-                        .replaceAll(Pattern.quote(decimalSeparatorValue), ".");
-                String[] parts = finalValue.split("\\.");
-                if ((null != decimalPlacesValue && parts.length > 1 && parts[1].length() > decimalPlacesValue)) {
-                    log.error("FieldTyperNumeric: value[" + value.getValue() + "] has more decimal places then parametrized");
+
+                // Combine main decimal separator with extra ones for counting
+                Set<String> allDecimalSeparators = new HashSet<>();
+                allDecimalSeparators.add(decimalSeparatorValue);
+                allDecimalSeparators.addAll(extraDecimalSeparators);
+
+                int decimalSeparatorCount = 0;
+                for (String decimalSep : allDecimalSeparators) {
+                    decimalSeparatorCount += StringUtils.countMatches(finalValue, decimalSep);
+                }
+                if (decimalSeparatorCount > 1) {
+                    log.error("FieldTyperNumeric: value[" + value.getValue() + "] has multiple decimal separators");
                     throw new Exception();
                 }
+
+                // Combine main thousand separator with extra ones for removal
+                Set<String> allThousandSeparators = new HashSet<>();
+                allThousandSeparators.add(thousandSeparatorValue);
+                allThousandSeparators.addAll(extraThousandSeparators);
+
+                // Remove all thousand separators
+                for (String thousandSep : allThousandSeparators) {
+                    finalValue = finalValue.replaceAll(Pattern.quote(thousandSep), "");
+                }
+
+                // Replace all decimal separators with dot
+                for (String decimalSep : allDecimalSeparators) {
+                    finalValue = finalValue.replaceAll(Pattern.quote(decimalSep), ".");
+                }
+
+                String[] parts = finalValue.split("\\.");
+                String integerPart = parts[0];
+                String decimalPart = parts.length > 1 ? parts[1] : "";
+
+                if (decimalPart.length() > decimalPlacesValue) {
+                    if (Boolean.FALSE.equals(roundValue)) {
+                        log.error("FieldTyperNumeric: value[" + value.getValue() + "] has more decimal places then parametrized");
+                        throw new Exception();
+                    }
+                    decimalPart = decimalPart.substring(0, decimalPlacesValue);
+                } else if (decimalPart.length() < decimalPlacesValue) {
+                    decimalPart = StringUtils.rightPad(decimalPart, decimalPlacesValue, '0');
+                }
+
+                if (decimalPlacesValue > 0) {
+                    finalValue = integerPart + "." + decimalPart;
+                } else {
+                    finalValue = integerPart;
+                }
+
                 double doubleValue = Double.parseDouble(finalValue);
-                if ((null != minValue && doubleValue < minValue) || (null != maxValue && doubleValue > maxValue)) {
-                    log.error("FieldTyperNumeric: value[" + value.getValue() + "] is less minimum value or greater then max value");
+                if ((minValue != null && doubleValue < minValue) || (maxValue != null && doubleValue > maxValue)) {
+                    log.error("FieldTyperNumeric: value[" + value.getValue() + "] is out of range");
                     throw new Exception();
                 }
             } // else value setting null
@@ -94,10 +151,12 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
                     twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) +
                             " value[" + value.getValue() + "] is not numeric format or does not match the field settings[" +
                             " min:" + minValue + " max:" + maxValue + " step:" + stepValue + " decPlaces:" + decimalPlacesValue +
-                            " decSeparator:" + decimalSeparatorValue + " thouSeparator:" + thousandSeparatorValue + "].");
+                            " thousandSep:" + thousandSeparatorValue + " extraThousandSep:" + extraThousandSeparators +
+                            " decimalSep:" + decimalSeparatorValue + " extraDecimalSep:" + extraDecimalSeparators + "].");
         }
         detectValueChange(twinFieldEntity, twinChangesCollector, finalValue);
     }
+
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
