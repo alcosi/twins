@@ -15,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @Featurer(
-        id = FeaturerTwins.ID_4707,
+        id = FeaturerTwins.ID_5007,
         name = "SchedulerAttachmentDeleteTaskCleaner",
         description = "Scheduler for cleaning attachment delete task table"
 )

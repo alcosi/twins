@@ -9,7 +9,7 @@ import org.twins.core.dao.attachment.AttachmentDeleteTaskEntity;
 import org.twins.core.dao.attachment.AttachmentDeleteTaskRepository;
 import org.twins.core.enums.attachment.AttachmentDeleteTaskStatus;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.attachment.AttachmentDeleteTask;
+import org.twins.core.featurer.scheduler.tasks.AttachmentDeleteTask;
 
 import java.util.Collection;
 import java.util.List;
@@ -19,7 +19,7 @@ import java.util.stream.StreamSupport;
 @Service
 @Slf4j
 @Featurer(
-        id = FeaturerTwins.ID_4701,
+        id = FeaturerTwins.ID_5001,
         name = "SchedulerAttachmentDeleteTaskRunner",
         description = "Scheduler for clearing external file storages after twin/attachment deletion"
 )

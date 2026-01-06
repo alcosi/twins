@@ -13,7 +13,7 @@ import java.sql.Timestamp;
 @Service
 @Slf4j
 @Featurer(
-        id = FeaturerTwins.ID_4702,
+        id = FeaturerTwins.ID_5002,
         name = "SchedulerTwinArchiveCleaner",
         description = "Scheduler for clearing twin archive table"
 )

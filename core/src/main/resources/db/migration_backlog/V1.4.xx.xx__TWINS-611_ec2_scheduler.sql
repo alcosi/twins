@@ -36,11 +36,12 @@ create index if not exists scheduler_log_scheduler_id_index
 
 insert into scheduler(id, domain_id, scheduler_featurer_id, scheduler_params, active, log_enabled, cron, fixed_rate, description, created_at, updated_at)
 values
-    (uuid_generate_v4(), null, 4701, null, true, true, null, 2000, 'Scheduler for clearing external file storages after twin/attachment deletion', now(), now()),
-    (uuid_generate_v4(), null, 4702, null, true, true, '0 0 0 * * *', null, 'Scheduler for clearing twin archive table', now(), now()),
-    (uuid_generate_v4(), null, 4703, null, true, true, null, 2000, 'Scheduler for executing twin changes', now(), now()),
-    (uuid_generate_v4(), null, 4704, null, true, true, null, 500, 'Scheduler for executing draft erases', now(), now()),
-    (uuid_generate_v4(), null, 4705, null, true, true, null, 500, 'Scheduler for executing draft commits', now(), now()),
-    (uuid_generate_v4(), null, 4706, null, true, true, '0 0 0 * * *', null, 'Scheduler for cleaning scheduler log table', now(), now()),
-    (uuid_generate_v4(), null, 4707, null, true, true, '0 0 0 * * *', null, 'Scheduler for cleaning attachment delete task table', now(), now())
+    (uuid_generate_v4(), null, 5001, null, true, true, null, 2000, 'Scheduler for clearing external file storages after twin/attachment deletion', now(), now()),
+    (uuid_generate_v4(), null, 5002, null, true, true, '0 0 0 * * *', null, 'Scheduler for clearing twin archive table', now(), now()),
+    (uuid_generate_v4(), null, 5003, null, true, true, null, 2000, 'Scheduler for executing twin changes', now(), now()),
+    (uuid_generate_v4(), null, 5004, null, true, true, null, 500, 'Scheduler for executing draft erases', now(), now()),
+    (uuid_generate_v4(), null, 5005, null, true, true, null, 500, 'Scheduler for executing draft commits', now(), now()),
+    (uuid_generate_v4(), null, 5006, null, true, true, '0 0 0 * * *', null, 'Scheduler for cleaning scheduler log table', now(), now()),
+    (uuid_generate_v4(), null, 5007, null, true, true, '0 0 0 * * *', null, 'Scheduler for cleaning attachment delete task table', now(), now()),
+    (uuid_generate_v4(), null, 5008, null, true, true, null, 500, 'Scheduler for cleaning attachment delete task table', now(), now())
 on conflict do nothing;

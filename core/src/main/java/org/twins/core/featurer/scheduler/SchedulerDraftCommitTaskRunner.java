@@ -9,7 +9,7 @@ import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.draft.DraftRepository;
 import org.twins.core.enums.draft.DraftStatus;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.draft.DraftCommitTask;
+import org.twins.core.featurer.scheduler.tasks.DraftCommitTask;
 
 import java.util.Collection;
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.concurrent.Executor;
 @Service
 @Slf4j
 @Featurer(
-        id = FeaturerTwins.ID_4705,
+        id = FeaturerTwins.ID_5005,
         name = "SchedulerDraftCommitTaskRunner",
         description = "Scheduler for executing draft commits"
 )

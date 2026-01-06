@@ -9,7 +9,7 @@ import org.twins.core.dao.TwinChangeTaskStatus;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
 import org.twins.core.dao.twin.TwinChangeTaskRepository;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.twin.TwinChangeTask;
+import org.twins.core.featurer.scheduler.tasks.TwinChangeTask;
 
 import java.util.Collection;
 import java.util.List;
@@ -19,7 +19,7 @@ import java.util.stream.StreamSupport;
 @Service
 @Slf4j
 @Featurer(
-        id = FeaturerTwins.ID_4703,
+        id = FeaturerTwins.ID_5003,
         name = "SchedulerTwinChangeTaskRunner",
         description = "Scheduler for executing twin changes"
 )

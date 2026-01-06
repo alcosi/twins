@@ -13,7 +13,7 @@ import java.sql.Timestamp;
 @Service
 @Slf4j
 @Featurer(
-        id = FeaturerTwins.ID_4706,
+        id = FeaturerTwins.ID_5006,
         name = "SchedulerSchedulerLogCleaner",
         description = "Scheduler for cleaning scheduler log table"
 )

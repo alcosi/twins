@@ -1,5 +1,7 @@
 package org.twins.core.featurer.scheduler;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.util.LoggerUtils;
@@ -14,8 +16,9 @@ import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.Properties;
 
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @FeaturerType(
-        id = FeaturerTwins.TYPE_47,
+        id = FeaturerTwins.TYPE_50,
         name = "Scheduler",
         description = "Services for scheduling tasks")
 @Slf4j
