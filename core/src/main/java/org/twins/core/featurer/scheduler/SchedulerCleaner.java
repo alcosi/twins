@@ -23,9 +23,9 @@ public abstract class SchedulerCleaner extends Scheduler {
     public static final FeaturerParamDuration intervalParam = new FeaturerParamDuration("interval");
 
     @Transactional
-    protected String processTasks(Properties properties) {
+    protected String processTask(Properties properties) {
         try {
-            LoggerUtils.logController(getLogSource() + "$");
+            LoggerUtils.logController(getLogSource());
             long size = countAll();
 
             if (size == 0) {

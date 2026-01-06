@@ -32,8 +32,8 @@ public abstract class Scheduler extends FeaturerTwins {
             LoggerUtils.logSession();
             SchedulerLogEntity schedulerLog = new SchedulerLogEntity();
             long startTime = System.currentTimeMillis();
-            // using getBean here to prevent errors with Spring proxy (processTasks with @Transactional)
-            String result = applicationContext.getBean(this.getClass()).processTasks(properties);
+            // using getBean here to prevent errors with Spring proxy (processTask with @Transactional)
+            String result = applicationContext.getBean(this.getClass()).processTask(properties);
 
             if (!result.isEmpty() && schedulerEntity.getLogEnabled()) {
                 schedulerLog
@@ -47,8 +47,8 @@ public abstract class Scheduler extends FeaturerTwins {
     }
 
     protected final String getLogSource() {
-        return StringUtils.uncapitalize(this.getClass().getSimpleName());
+        return StringUtils.uncapitalize(this.getClass().getSimpleName()) + "$";
     }
 
-    protected abstract String processTasks(Properties properties);
+    protected abstract String processTask(Properties properties);
 }

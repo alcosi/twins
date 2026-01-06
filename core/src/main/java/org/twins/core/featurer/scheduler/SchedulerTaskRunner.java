@@ -27,9 +27,9 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
         this.taskExecutor = taskExecutor;
     }
 
-    protected String processTasks(Properties properties) {
+    protected String processTask(Properties properties) {
         try {
-            LoggerUtils.logController(getLogSource() + "$");
+            LoggerUtils.logController(getLogSource());
 
             var collectedEntities = collectTasks(batchSizeParam.extract(properties));
 
