@@ -3,6 +3,7 @@ package org.twins.core.dao.eraseflow;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -38,8 +39,9 @@ public class EraseflowLinkCascadeEntity implements EasyLoggable {
     @Column(name = "description")
     private String description;
 
-    @ManyToOne
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
     @JoinColumn(name = "eraseflow_id", insertable = false, updatable = false, nullable = false)
     private EraseflowEntity eraseflow;
 

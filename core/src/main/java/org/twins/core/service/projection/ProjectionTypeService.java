@@ -1,8 +1,11 @@
 package org.twins.core.service.projection;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
@@ -19,12 +22,16 @@ import org.twins.core.service.twinclass.TwinClassService;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 @Service
 @Lazy
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class ProjectionTypeService extends EntitySecureFindServiceImpl<ProjectionTypeEntity> {
     private final ProjectionTypeRepository projectionTypeRepository;
@@ -113,4 +120,25 @@ public class ProjectionTypeService extends EntitySecureFindServiceImpl<Projectio
         return allEntities;
     }
 
+    public KitGrouped<ProjectionTypeEntity, UUID, UUID> findAndGroupByTwinClassId(Set<UUID> groupIds) throws ServiceException {
+        List<ProjectionTypeEntity> projections = projectionTypeRepository.findByProjectionTypeGroupIdIn(groupIds);
+
+        if (projections.isEmpty()) {
+            return KitGrouped.EMPTY;
+        }
+
+        UUID domainId = authService.getApiUser().getDomainId();
+
+        List<ProjectionTypeEntity> filteredProjections = projections.stream().filter(projection -> domainId.equals(projection.getDomainId())).toList();
+
+        if (filteredProjections.isEmpty()) {
+            return KitGrouped.EMPTY;
+        }
+
+        return new KitGrouped<>(
+                filteredProjections,
+                ProjectionTypeEntity::getId,
+                ProjectionTypeEntity::getMembershipTwinClassId
+        );
+    }
 }

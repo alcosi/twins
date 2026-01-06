@@ -7,9 +7,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerParamType;
@@ -28,6 +30,8 @@ import org.twins.core.domain.search.FeaturerSearch;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.cambium.featurer.dao.specifications.FeaturerSpecification.checkIntegerIn;
@@ -45,6 +49,7 @@ public class FeaturerService {
     final FeaturerInjectionRepository injectionRepository;
     List<Featurer> featurerList;
     Hashtable<Integer, Featurer> featurerMap = new Hashtable<>();
+    Kit<FeaturerEntity, Integer> featurerEntityKit = new Kit<>(FeaturerEntity::getId);
     Hashtable<Integer, Map<String, FeaturerParam>> featurerParamsAnnotationsMap = new Hashtable<>();
     Hashtable<Integer, Map<String, org.cambium.featurer.params.FeaturerParam<?>>> featurerParamsMap = new Hashtable<>();
 
@@ -64,7 +69,6 @@ public class FeaturerService {
     private void syncFeaturers() {
         log.info("syncFeaturers: started");
         List<FeaturerTypeEntity> featurerTypeEntityList = new ArrayList<>();
-        List<FeaturerEntity> featurerEntityList = new ArrayList<>();
         List<FeaturerParamEntity> featurerParamEntityList = new ArrayList<>();
         for (Featurer featurer : featurerList) {
             try {
@@ -86,7 +90,7 @@ public class FeaturerService {
                 Deprecated deprecatedAnnotation = featurerClass.getAnnotation(Deprecated.class);
                 if (deprecatedAnnotation != null)
                     featurerEntity.setDeprecated(true);
-                featurerEntityList.add(featurerEntity);
+                featurerEntityKit.add(featurerEntity);
                 featurerMap.put(featurerAnnotation.id(), featurer);
                 syncFeaturersParams(featurerClass, featurerParamEntityList);
             } catch (Exception e) {
@@ -94,9 +98,9 @@ public class FeaturerService {
             }
         }
         featurerTypeRepository.saveAll(featurerTypeEntityList);
-        featurerRepository.saveAll(featurerEntityList);
+        featurerRepository.saveAll(featurerEntityKit.getCollection());
         //truncating old params
-        featurerParamRepository.deleteAllByFeaturerIdIn(featurerEntityList.stream().map(FeaturerEntity::getId).toList());
+        featurerParamRepository.deleteAllByFeaturerIdIn(featurerEntityKit.getIdSet());
         featurerParamRepository.saveAll(featurerParamEntityList);
         log.info("syncFeaturers: ended");
     }
@@ -166,6 +170,7 @@ public class FeaturerService {
         }
     }
 
+    @Deprecated
     public <T extends Featurer> T getFeaturer(FeaturerEntity featurerEntity, Class<T> featurerType) throws ServiceException {
         if (featurerEntity == null)
             throw new ServiceException(ErrorCodeCommon.FEATURER_IS_NULL);
@@ -333,7 +338,7 @@ public class FeaturerService {
         Properties properties = extractProperties(featurer, featurerParams, new HashMap<>());
         basicParamsValidation(featurerId, properties);
         featurer.extraParamsValidation(properties);
-        return featurerRepository.getById(featurerId);
+        return featurerRepository.findById(featurerId).get();
     }
 
     public void basicParamsValidation(Integer featurerId, Properties properties) throws ServiceException {
@@ -346,11 +351,35 @@ public class FeaturerService {
     }
 
     public FeaturerEntity getFeaturerEntity(Integer featurerId) {
-        return featurerRepository.getById(featurerId);
+        return featurerRepository.findById(featurerId).get();
     }
 
-    public List<FeaturerEntity> findByIdIn(Set<Integer> ids) {
-        return featurerRepository.findByIdIn(ids);
+    public Kit<FeaturerEntity, Integer> findEntitiesSafe(Set<Integer> ids) {
+        Kit<FeaturerEntity, Integer> ret = new Kit<>(FeaturerEntity::getId);
+        for (var id : ids) {
+            ret.add(featurerEntityKit.get(id));
+        }
+        return ret;
+    }
+
+    public <E, K> void loadFeaturers(Collection<E> srcCollection,
+                                     Function<? super E, ? extends K> functionGetId,
+                                     Function<? super E, Integer> functionGetFeaturerId,
+                                     Function<? super E, FeaturerEntity> functionGetFeaturerEntity,
+                                     BiConsumer<E, FeaturerEntity> functionSetFeaturerEntity) {
+        if (srcCollection.isEmpty()) {
+            return;
+        }
+        KitGrouped<E, K, Integer> needLoad = KitUtils.createNeedLoadGrouped(srcCollection, functionGetId, functionGetFeaturerId, functionGetFeaturerEntity);
+        if (KitUtils.isEmpty(needLoad)) {
+            return;
+        }
+        Kit<FeaturerEntity, Integer> featurers = findEntitiesSafe(needLoad.getGroupedKeySet());
+        int featurerId = 0;
+        for (var item : needLoad) {
+            featurerId = functionGetFeaturerId.apply(item);
+            functionSetFeaturerEntity.accept(item, featurers.get(featurerId));
+        }
     }
 
     public HashMap<String, String> prepareForStore(Integer featurerId, HashMap<String, String> featurerParams) throws ServiceException {

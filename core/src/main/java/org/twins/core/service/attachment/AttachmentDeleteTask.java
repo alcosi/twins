@@ -42,7 +42,7 @@ public class AttachmentDeleteTask implements Runnable {
             LoggerUtils.logPrefix(STR."ATTACHMENT_DELETE_TASK[\{attachmentDeleteTaskEntity.getId()}]:");
             authService.setThreadLocalApiUser(attachmentDeleteTaskEntity.getDomainId(), attachmentDeleteTaskEntity.getTwinOwnerBusinessAccountId(), attachmentDeleteTaskEntity.getTwinCreatedByUserId());
             StorageEntity storage = attachmentDeleteTaskEntity.getStorage();
-            Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
+            Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
             fileService.tryDeleteFile(attachmentDeleteTaskEntity.getStorageFileKey(), storage.getStoragerParams());
             attachmentDeleteTaskEntity.setStatus(AttachmentDeleteTaskStatus.DONE);
         } catch (ServiceException e) {
@@ -53,6 +53,7 @@ public class AttachmentDeleteTask implements Runnable {
             attachmentDeleteTaskEntity.setStatus(AttachmentDeleteTaskStatus.FAILED);
         } finally {
             LoggerUtils.cleanMDC();
+            authService.removeThreadLocalApiUser();
             attachmentDeleteTaskRepository.save(attachmentDeleteTaskEntity);
         }
     }

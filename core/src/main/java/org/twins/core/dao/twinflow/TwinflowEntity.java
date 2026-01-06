@@ -53,13 +53,15 @@ public class TwinflowEntity implements EasyLoggable {
     @Column(name = "initial_sketch_twin_status_id")
     private UUID initialSketchTwinStatusId;
 
-    @ManyToOne
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
 
-    @ManyToOne
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUser;
 
@@ -77,35 +79,40 @@ public class TwinflowEntity implements EasyLoggable {
     @ToString.Exclude
     private I18nEntity descriptionI18n;
 
-    @ManyToOne
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
     @JoinColumn(name = "initial_twin_status_id", insertable = false, updatable = false, nullable = false)
     private TwinStatusEntity initialTwinStatus;
 
-    @ManyToOne
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
     @JoinColumn(name = "initial_sketch_twin_status_id", insertable = false, updatable = false, nullable = false)
     private TwinStatusEntity initialSketchTwinStatus;
 
     //    needed for specification
     @Deprecated
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "twinflow_id", referencedColumnName = "id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twinflow_id", referencedColumnName = "id", insertable = false, updatable = false)
     private Collection<TwinflowSchemaMapEntity> schemaMappings;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinflowTransitionEntity, UUID> transitionsKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinflowFactoryEntity, FactoryLauncher> factoriesKit;
 
     // only for manual load (needed only for deletion)
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private EraseflowEntity eraseflow;
 
     @Override

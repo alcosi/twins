@@ -1,5 +1,7 @@
 package org.twins.core.service.twin;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
@@ -26,6 +28,7 @@ import java.util.Collections;
 import java.util.UUID;
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @Lazy
 @RequiredArgsConstructor
@@ -51,8 +54,8 @@ public class TwinHeadService {
         } else {
             basicSearch.addTwinClassExtendsHierarchyContainsId(headTwinClassEntity.getId());
         }
-        if (twinClassEntity.getHeadHunterFeaturer() != null) {//headhunter should not be empty if head twin is specified and head class is not USER and BA
-            HeadHunter headHunter = featurerService.getFeaturer(twinClassEntity.getHeadHunterFeaturer(), HeadHunter.class);
+        if (twinClassEntity.getHeadHunterFeaturerId() != null) {//headhunter should not be empty if head twin is specified and head class is not USER and BA
+            HeadHunter headHunter = featurerService.getFeaturer(twinClassEntity.getHeadHunterFeaturerId(), HeadHunter.class);
             headHunter.expandValidHeadSearch(twinClassEntity.getHeadHunterParams(), twinClassEntity, basicSearch);
         }
         //todo add checkSegmentUniq logic, to exclude heads with segments
@@ -112,9 +115,9 @@ public class TwinHeadService {
         for (TwinEntity twinEntity : needLoad.getList()) {
             Kit<TwinClassEntity, UUID> creatableChildTwinClasses = new Kit<>(TwinClassEntity::getId);
             for (TwinClassEntity childTwinClassEntity : twinEntity.getTwinClass().getHeadHierarchyChildClassKit().getList()) {
-                if (childTwinClassEntity.getHeadHunterFeaturer() == null)
+                if (childTwinClassEntity.getHeadHunterFeaturerId() == null)
                     continue;
-                HeadHunter headHunter = featurerService.getFeaturer(childTwinClassEntity.getHeadHunterFeaturer(), HeadHunter.class);
+                HeadHunter headHunter = featurerService.getFeaturer(childTwinClassEntity.getHeadHunterFeaturerId(), HeadHunter.class);
                 if (headHunter.isCreatableChildClass(childTwinClassEntity.getHeadHunterParams(), twinEntity, childTwinClassEntity)) {
                     //todo check permission
                     creatableChildTwinClasses.add(childTwinClassEntity);

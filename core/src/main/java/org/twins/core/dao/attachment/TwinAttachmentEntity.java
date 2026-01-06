@@ -3,6 +3,7 @@ package org.twins.core.dao.attachment;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -85,41 +86,58 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
 
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinEntity twin;
 
     @ManyToOne
     @JoinColumn(name = "twinflow_transition_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinflowTransitionEntity twinflowTransition;
 
     @ManyToOne
     @JoinColumn(name = "view_permission_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionEntity viewPermission;
 
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity createdByUser;
 
     @ManyToOne
     @JoinColumn(name = "twin_comment_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinCommentEntity comment;
 
     @ManyToOne
     @JoinColumn(name = "twin_class_field_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassFieldEntity twinClassField;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "storage_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private StorageEntity storage;
 
     @Transient
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<TwinAttachmentAction> attachmentActions;
 
     @Transient
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private FileData attachmentFile;
 
     @Transient
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private boolean fileChanged = false;
 

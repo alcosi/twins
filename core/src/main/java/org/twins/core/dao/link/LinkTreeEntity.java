@@ -2,6 +2,8 @@ package org.twins.core.dao.link;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -32,10 +34,14 @@ public class LinkTreeEntity {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "root_twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClassByRootTwinClassId;

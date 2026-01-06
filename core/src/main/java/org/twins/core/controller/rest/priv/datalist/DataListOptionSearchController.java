@@ -44,7 +44,7 @@ public class DataListOptionSearchController extends ApiController {
 
     private final DataListOptionSearchDTOReverseMapper dataListOptionSearchDTOReverseMapper;
     private final DataListOptionSearchService dataListOptionSearchService;
-    private final DataListOptionRestDTOMapper DataListOptionRestDTOMapper;
+    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListOptionSearchListV1", summary = "Return a list of all data list option for the current domain")
@@ -63,7 +63,7 @@ public class DataListOptionSearchController extends ApiController {
             PaginationResult<DataListOptionEntity> dataListOptionList = dataListOptionSearchService
                     .findDataListOptionForDomain(dataListOptionSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setOptions(DataListOptionRestDTOMapper.convertCollection(dataListOptionList.getList(), mapperContext))
+                    .setOptions(dataListOptionRestDTOMapper.convertCollection(dataListOptionList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(dataListOptionList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {

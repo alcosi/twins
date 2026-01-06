@@ -1,5 +1,7 @@
 package org.twins.core.service.twinclass;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -18,7 +20,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.projection.ProjectionEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.FieldProjectionSearch;
@@ -41,6 +42,7 @@ import static org.twins.core.dao.specifications.twinclass.TwinClassFieldSpecific
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<TwinClassFieldSearchEntity> {
 
@@ -65,6 +67,7 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
         if (search.isInactiveSearch())
             return Collections.emptyList();
         Specification<TwinClassFieldEntity> spec = createTwinClassFieldSearchSpecification(search);
+        spec = addSorting(search, null, spec);
         return twinClassFieldRepository.findAll(spec);
     }
 
@@ -99,8 +102,10 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
                 joinAndSearchByI18NField(TwinClassFieldEntity.Fields.nameI18n, search.getNameI18nNotLikeList(), apiUser.getLocale(), true, true),
                 joinAndSearchByI18NField(TwinClassFieldEntity.Fields.descriptionI18n, search.getDescriptionI18nLikeList(), apiUser.getLocale(), true, false),
                 joinAndSearchByI18NField(TwinClassFieldEntity.Fields.descriptionI18n, search.getDescriptionI18nNotLikeList(), apiUser.getLocale(), true, true),
-                checkFieldTyperIdIn(search.getFieldTyperIdList(), false, false),
-                checkFieldTyperIdIn(search.getFieldTyperIdExcludeList(), true, true),
+                checkIntegerIn(search.getFieldTyperIdList(), false, TwinClassFieldEntity.Fields.fieldTyperFeaturerId),
+                checkIntegerIn(search.getFieldTyperIdExcludeList(), true, TwinClassFieldEntity.Fields.fieldTyperFeaturerId),
+                checkIntegerIn(search.getTwinSorterIdList(), false, TwinClassFieldEntity.Fields.twinSorterFeaturerId),
+                checkIntegerIn(search.getTwinSorterIdExcludeList(), true, TwinClassFieldEntity.Fields.twinSorterFeaturerId),
                 checkUuidIn(search.getViewPermissionIdList(), false, false, TwinClassFieldEntity.Fields.viewPermissionId),
                 checkUuidIn(search.getViewPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.viewPermissionId),
                 checkUuidIn(search.getViewPermissionIdList(), false, false, TwinClassFieldEntity.Fields.editPermissionId),
@@ -109,11 +114,11 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
                 checkTernary(search.getSystem(), TwinClassFieldEntity.Fields.system),
                 checkTernary(search.getDependentField(), TwinClassFieldEntity.Fields.dependentField),
                 checkTernary(search.getHasDependentFields(), TwinClassFieldEntity.Fields.hasDependentFields),
+                checkTernary(search.getProjectionField(), TwinClassFieldEntity.Fields.projectionField),
+                checkTernary(search.getHasProjectionFields(), TwinClassFieldEntity.Fields.hasProjectedFields),
                 checkFieldLikeIn(search.getExternalIdLikeList(), false, true, TwinClassFieldEntity.Fields.externalId),
                 checkFieldLikeIn(search.getExternalIdNotLikeList(), true, true, TwinClassFieldEntity.Fields.externalId),
                 checkFieldLongRange(search.getOrderRange(), TwinClassFieldEntity.Fields.order),
-                checkTernary(search.getProjectionField(), TwinClassFieldEntity.Fields.projectionField),
-                checkTernary(search.getHasProjectionFields(), TwinClassFieldEntity.Fields.hasProjectedFields),
                 checkProjections(search));
 
     }

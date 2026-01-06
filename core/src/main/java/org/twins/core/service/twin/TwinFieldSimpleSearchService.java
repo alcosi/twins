@@ -1,5 +1,7 @@
 package org.twins.core.service.twin;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -12,7 +14,6 @@ import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleNoRelationsProjection;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ import java.util.function.Function;
 @Lazy
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TwinFieldSimpleSearchService extends EntitySecureFindServiceImpl<TwinFieldSimpleEntity> {
 

@@ -7,9 +7,9 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 
 import java.util.UUID;
 
@@ -52,16 +52,20 @@ public class UserGroupEntity implements EasyLoggable {
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     private I18nEntity descriptionI18N;
 
-    @ManyToOne
+    @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @ManyToOne
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;
 
-    @ManyToOne
+    @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @ManyToOne
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
     private BusinessAccountEntity businessAccount;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "user_group_type_id", insertable = false, updatable = false)
     private UserGroupTypeEntity userGroupType;

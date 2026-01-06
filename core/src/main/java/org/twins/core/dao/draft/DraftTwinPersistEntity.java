@@ -2,6 +2,8 @@ package org.twins.core.dao.draft;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -68,22 +70,32 @@ public class DraftTwinPersistEntity {
     @Column(name = "conflict_description")
     private String conflictDescription;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "draft_id", insertable = false, updatable = false)
     private DraftEntity draft;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER, optional = true)
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false)
     private TwinClassEntity twinClass;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER, optional = true)
     @JoinColumn(name = "twin_status_id", insertable = false, updatable = false)
     private TwinStatusEntity twinStatus;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER, optional = true)
     @JoinColumn(name = "assigner_user_id", insertable = false, updatable = false)
     private UserEntity assigneeUser;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER, optional = true)
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false)
     private UserEntity createdByUser;

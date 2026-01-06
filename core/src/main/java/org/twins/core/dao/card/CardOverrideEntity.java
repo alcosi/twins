@@ -2,6 +2,8 @@ package org.twins.core.dao.card;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.twins.core.dao.Channel;
 
 import java.util.UUID;
@@ -35,6 +37,8 @@ public class CardOverrideEntity {
 
     @ManyToOne
     @JoinColumn(name = "override_card_id", insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private CardEntity overrideCard;
 
 //    @ManyToOne
@@ -43,5 +47,7 @@ public class CardOverrideEntity {
 
     @ManyToOne
     @JoinColumn(name = "card_layout_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private CardLayoutEntity cardLayout;
 }

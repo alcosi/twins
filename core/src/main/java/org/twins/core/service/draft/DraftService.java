@@ -1,5 +1,7 @@
 package org.twins.core.service.draft;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,20 +19,23 @@ import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 import org.twins.core.dao.draft.*;
 import org.twins.core.dao.eraseflow.EraseflowEntity;
 import org.twins.core.dao.eraseflow.EraseflowLinkCascadeEntity;
-import org.twins.core.enums.factory.FactoryEraserAction;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.DetachedTwinChangesCollector;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.draft.DraftCollector;
-import org.twins.core.enums.draft.DraftStatus;
-import org.twins.core.enums.draft.DraftTwinEraseReason;
-import org.twins.core.enums.draft.DraftTwinEraseStatus;
-import org.twins.core.domain.factory.*;
+import org.twins.core.domain.factory.EraseAction;
+import org.twins.core.domain.factory.FactoryBranchId;
+import org.twins.core.domain.factory.FactoryContext;
+import org.twins.core.domain.factory.FactoryResultUncommited;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.enums.draft.DraftStatus;
+import org.twins.core.enums.draft.DraftTwinEraseReason;
+import org.twins.core.enums.draft.DraftTwinEraseStatus;
+import org.twins.core.enums.factory.FactoryEraserAction;
 import org.twins.core.enums.factory.FactoryLauncher;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
@@ -47,6 +52,7 @@ import java.util.function.Function;
 
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @Lazy
 @RequiredArgsConstructor

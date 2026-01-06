@@ -2,6 +2,8 @@ package org.twins.core.dao.permission;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -36,18 +38,26 @@ public class PermissionGrantSpaceRoleEntity implements EasyLoggable{
     @Column(name = "granted_at")
     private Timestamp grantedAt;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false, nullable = false)
     private PermissionSchemaEntity permissionSchema;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "permission_id", insertable = false, updatable = false, nullable = false)
     private PermissionEntity permission;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "space_role_id", insertable = false, updatable = false, nullable = false)
     private SpaceRoleEntity spaceRole;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "granted_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity grantedByUser;

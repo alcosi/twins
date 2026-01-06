@@ -1,5 +1,7 @@
 package org.twins.core.service.widget;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -17,6 +19,7 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class WidgetService {
     final WidgetRepository widgetRepository;
@@ -34,7 +37,7 @@ public class WidgetService {
         WidgetEntity widgetEntity;
         while (iter.hasNext()) {
             widgetEntity = iter.next();
-            WidgetAccessor widgetAccessor = featurerService.getFeaturer(widgetEntity.widgetAccessorFeaturer(), WidgetAccessor.class);
+            WidgetAccessor widgetAccessor = featurerService.getFeaturer(widgetEntity.widgetAccessorFeaturerId(), WidgetAccessor.class);
             if (!widgetAccessor.isAvailableForClass(widgetEntity.widgetAccessorParams(), twinClassEntity))
                 iter.remove();
         }

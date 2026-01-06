@@ -51,6 +51,7 @@ public class MultiplierIsolatedRelativesByHead extends Multiplier {
             }
             BasicSearch search = new BasicSearch();
             search
+                    .addOwnerBusinessAccountId(factoryContext.getRunLimitedByOwnerBusinessAccount())
                     .addTwinClassId(inputTwin.getTwinClassId(), false)
                     .addHeadTwinId(inputTwin.getHeadTwinId())
                     .addStatusId(statusIds.extract(properties), false);

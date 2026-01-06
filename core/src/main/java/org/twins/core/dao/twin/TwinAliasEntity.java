@@ -3,6 +3,8 @@ package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.twins.core.enums.twin.TwinAliasType;
 
@@ -44,6 +46,8 @@ public class TwinAliasEntity {
     @Column(name = "archived")
     private boolean archived;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = true)
     private TwinEntity twin;

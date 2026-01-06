@@ -1,5 +1,7 @@
 package org.twins.core.service.factory;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -15,11 +17,11 @@ import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.domain.search.FactoryConditionSearch;
 
 import static org.twins.core.dao.specifications.CommonSpecification.*;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.factory.FactoryConditionSpecification.checkFieldConditionerFeaturerIdIn;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class FactoryConditionSearchService {
     private final TwinFactoryConditionRepository twinFactoryConditionRepository;

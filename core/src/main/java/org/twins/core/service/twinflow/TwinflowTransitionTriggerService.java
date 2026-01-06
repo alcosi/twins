@@ -1,5 +1,7 @@
 package org.twins.core.service.twinflow;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -16,12 +18,15 @@ import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerRepository;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.function.Function;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImpl<TwinflowTransitionTriggerEntity> {
     private final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
@@ -63,7 +68,7 @@ public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImp
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinflowTransitionTriggerEntity createTransitionTrigger(TwinflowTransitionTriggerEntity transitionTrigger) throws ServiceException {
-        return saveSafe(transitionTrigger.setActive(true));
+        return saveSafe(transitionTrigger.setIsActive(true));
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -100,8 +105,20 @@ public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImp
     }
 
     private void updateActive(TwinflowTransitionTriggerEntity dbEntity, TwinflowTransitionTriggerEntity updateEntity, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.isActive, dbEntity.isActive(), updateEntity.isActive()))
+        if (!changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.isActive, dbEntity.getIsActive(), updateEntity.getIsActive()))
             return;
-        dbEntity.setActive(updateEntity.isActive());
+        dbEntity.setIsActive(updateEntity.getIsActive());
+    }
+
+    public void loadTrigger(TwinflowTransitionTriggerEntity src) {
+        loadTriggers(Collections.singleton(src));
+    }
+
+    public void loadTriggers(Collection<TwinflowTransitionTriggerEntity> srcCollection) {
+        featurerService.loadFeaturers(srcCollection,
+                TwinflowTransitionTriggerEntity::getId,
+                TwinflowTransitionTriggerEntity::getTransitionTriggerFeaturerId,
+                TwinflowTransitionTriggerEntity::getTransitionTriggerFeaturer,
+                TwinflowTransitionTriggerEntity::setTransitionTriggerFeaturer);
     }
 }

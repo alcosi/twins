@@ -2,6 +2,8 @@ package org.twins.core.dao.user;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -35,18 +37,26 @@ public class UserGroupMapType3Entity implements EasyLoggable, UserGroupMap {
     @Column(name = "added_by_user_id")
     private UUID addedByUserId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "user_group_id", insertable = false, updatable = false, nullable = false)
     private UserGroupEntity userGroup;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private UserEntity user;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "added_by_user_id", insertable = false, updatable = false)
     private UserEntity addedByUser;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;

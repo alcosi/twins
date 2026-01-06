@@ -13,6 +13,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Properties;
@@ -28,6 +29,9 @@ public class TwinValidatorTwinOfTwinClass extends TwinValidator {
     @FeaturerParam(name = "Class ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet classIds = new FeaturerParamUUIDSetTwinsClassId("classIds");
 
+    @FeaturerParam(name = "Status ids", description = "", order = 2, optional = true)
+    public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
+
     @Lazy
     @Autowired
     TwinSearchService twinSearchService;
@@ -35,9 +39,11 @@ public class TwinValidatorTwinOfTwinClass extends TwinValidator {
     @Override
     protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
         Set<UUID> classIdSet = classIds.extract(properties);
+        Set<UUID> statusIdSet = statusIds.extract(properties);
         BasicSearch search = new BasicSearch();
         search
-                .addTwinClassId(classIdSet, false);
+                .addTwinClassId(classIdSet, false)
+                .addStatusId(statusIdSet, false);
 
         long count = twinSearchService.count(search);
 

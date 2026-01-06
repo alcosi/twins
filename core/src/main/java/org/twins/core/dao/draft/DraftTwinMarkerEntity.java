@@ -2,6 +2,8 @@ package org.twins.core.dao.draft;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.util.UUID;
@@ -32,6 +34,8 @@ public class DraftTwinMarkerEntity {
     @Column(name = "marker_data_list_option_id")
     private UUID markerDataListOptionId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "draft_id", insertable = false, updatable = false)
     private DraftEntity draft;

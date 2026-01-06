@@ -18,7 +18,7 @@ public class TriggerBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowTran
                         .setOrder(src.getOrder())
                         .setTriggerFeaturerId(src.getTransitionTriggerFeaturerId())
                         .setTriggerParams(src.getTransitionTriggerParams())
-                        .setActive(src.isActive());
+                        .setActive(src.getIsActive());
     }
 
     @Override

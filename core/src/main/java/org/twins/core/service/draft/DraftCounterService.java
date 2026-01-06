@@ -1,5 +1,7 @@
 package org.twins.core.service.draft;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import static org.twins.core.domain.draft.DraftCounters.Counter.*;
 import static org.twins.core.domain.draft.DraftCounters.CounterGroup.*;
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class DraftCounterService {
     private final DraftTwinTagRepository draftTwinTagRepository;

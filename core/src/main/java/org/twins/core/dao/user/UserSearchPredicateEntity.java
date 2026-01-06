@@ -24,7 +24,7 @@ public class UserSearchPredicateEntity implements EasyLoggable {
     private UUID userSearchId;
 
     @Column(name = "user_finder_featurer_id")
-    private int userFinderFeaturerId;
+    private Integer userFinderFeaturerId;
 
     @ManyToOne
     @ToString.Exclude

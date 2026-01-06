@@ -14,6 +14,7 @@ plugins {
     id 'org.springframework.boot' version '3.5.3'
     id 'net.nemerosa.versioning' version '3.1.0'
     id 'com.bmuschko.docker-remote-api' version '9.3.4'
+    id 'com.google.protobuf' version '0.9.5'
 }
 
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
@@ -129,6 +130,10 @@ dependencies {
     implementation 'com.alcosi:alcosi-identity-server-communication-error-parser:1.00-RELEASE'
     implementation 'org.openjdk.jol:jol-core:0.17'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    runtimeOnly 'io.grpc:grpc-netty-shaded:1.76.0'
+    implementation 'io.grpc:grpc-protobuf:1.76.0'
+    implementation 'io.grpc:grpc-stub:1.76.0'
+    implementation 'com.google.protobuf:protobuf-java:4.32.1'
 }
 
 configurations {
@@ -194,4 +199,20 @@ task generateInitRelatedObjectsDTO(type: GenerateInitRelatedObjectsTask) {
 task generateTypeScriptDTOsTask(type: GenerateTypeScriptDTOsTask) {
     description = 'Convert DTOs to typescript'
     group = 'code generation'
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.25.5"
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.76.0'
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+    }
 }

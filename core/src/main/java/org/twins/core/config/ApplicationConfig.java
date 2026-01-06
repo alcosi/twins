@@ -63,7 +63,10 @@ public class ApplicationConfig {
 
     @Bean
     public RestTemplate restTemplate(RestTemplateConfig.LogRequestResponseFilter filter) {
-        final RestTemplate restTemplate = new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory()));
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(60000); // 1 min for connection setup
+        factory.setReadTimeout(60000); // 1 min for reading data
+        final RestTemplate restTemplate = new RestTemplate(new BufferingClientHttpRequestFactory(factory));
         restTemplate.getInterceptors().add(filter);
         return restTemplate;
     }
@@ -183,6 +186,17 @@ public class ApplicationConfig {
         executor.setCorePoolSize(5); //todo move to settings
         executor.setMaxPoolSize(10);
         executor.setThreadNamePrefix("twinChangeTaskExecutor-");
+        if (taskDecorator != null) executor.setTaskDecorator(taskDecorator);
+        executor.initialize();
+        return executor;
+    }
+
+    @Bean
+    public TaskExecutor historyNotificationTaskExecutor(@Autowired(required = false) TaskDecorator taskDecorator) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5); //todo move to settings
+        executor.setMaxPoolSize(10);
+        executor.setThreadNamePrefix("historyNotificationTaskExecutor-");
         if (taskDecorator != null) executor.setTaskDecorator(taskDecorator);
         executor.initialize();
         return executor;

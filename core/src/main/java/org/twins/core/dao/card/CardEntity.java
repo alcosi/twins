@@ -2,6 +2,8 @@ package org.twins.core.dao.card;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 import java.util.UUID;
@@ -29,6 +31,8 @@ public class CardEntity {
 
     @ManyToOne
     @JoinColumn(name = "card_layout_id", insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private CardLayoutEntity cardLayout;
 
 //    @ManyToOne

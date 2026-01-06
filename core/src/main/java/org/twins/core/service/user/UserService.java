@@ -1,5 +1,7 @@
 package org.twins.core.service.user;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -12,8 +14,8 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
-import org.twins.core.enums.user.UserStatus;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.enums.user.UserStatus;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
@@ -21,6 +23,7 @@ import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -28,6 +31,7 @@ import java.util.function.Function;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
 public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
@@ -182,6 +186,10 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
 
     public List<UUID> getUsersOutOfDomainAndBusinessAccount(Set<UUID> userIds, UUID businessAccountId, UUID domainId) {
         return userRepository.getUsersOutOfDomainAndBusinessAccount(userIds, businessAccountId, domainId);
+    }
+
+    public Set<UUID> filterUsersByBusinessAccountAndDomain(Collection<UUID> userIds, UUID businessAccountId, UUID domainId) {
+        return userRepository.findUserIdByBusinessAccountIdAndDomainIdFiltered(businessAccountId, domainId, userIds);
     }
 
     public UserEntity findByEmail(String email) {

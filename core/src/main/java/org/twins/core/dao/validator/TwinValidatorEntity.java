@@ -4,17 +4,15 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
-import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
-import org.twins.core.featurer.twin.validator.TwinValidator;
 
 import java.util.HashMap;
-import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -33,9 +31,9 @@ public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggab
     @Column(name = "twin_validator_featurer_id")
     private Integer twinValidatorFeaturerId;
 
-    @FeaturerList(type = TwinValidator.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "twin_validator_featurer_id", insertable = false, updatable = false)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity twinValidatorFeaturer;
 
     @Type(PostgreSQLHStoreType.class)

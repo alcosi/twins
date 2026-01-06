@@ -1,5 +1,7 @@
 package org.twins.core.service.factory;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -9,18 +11,17 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.MapUtils;
+import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.factory.*;
+import org.twins.core.dao.factory.TwinFactoryConditionEntity;
+import org.twins.core.dao.factory.TwinFactoryConditionRepository;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -29,10 +30,12 @@ import java.util.stream.StreamSupport;
 @Slf4j
 @Service
 @Lazy
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @AllArgsConstructor
 public class FactoryConditionService extends EntitySecureFindServiceImpl<TwinFactoryConditionEntity> {
 
     private final TwinFactoryConditionRepository repository;
+    private final FeaturerService featurerService;
 
     @Override
     public Function<TwinFactoryConditionEntity, UUID> entityGetIdFunction() {
@@ -48,7 +51,7 @@ public class FactoryConditionService extends EntitySecureFindServiceImpl<TwinFac
     public boolean validateEntity(TwinFactoryConditionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entity.getTwinFactoryConditionSetId() == null)
             return logErrorAndReturnFalse(entity.logNormal() + " empty twinFactoryConditionSetId");
-        if (entity.getConditionerFeaturer() == null)
+        if (entity.getConditionerFeaturerId() == null)
             return logErrorAndReturnFalse(entity.logNormal() + " empty сonditionerFeaturer");
         return true;
     }
@@ -106,11 +109,11 @@ public class FactoryConditionService extends EntitySecureFindServiceImpl<TwinFac
                     TwinFactoryConditionEntity.Fields.description, changesHelper);
 
             updateEntityFieldByEntity(twinFactoryConditionEntity, dbFactoryConditionEntity,
-                    TwinFactoryConditionEntity::isActive, TwinFactoryConditionEntity::setActive,
+                    TwinFactoryConditionEntity::getActive, TwinFactoryConditionEntity::setActive,
                     TwinFactoryConditionEntity.Fields.active, changesHelper);
 
             updateEntityFieldByEntity(twinFactoryConditionEntity, dbFactoryConditionEntity,
-                    TwinFactoryConditionEntity::isInvert, TwinFactoryConditionEntity::setInvert,
+                    TwinFactoryConditionEntity::getInvert, TwinFactoryConditionEntity::setInvert,
                     TwinFactoryConditionEntity.Fields.invert, changesHelper);
 
             updateConditionerParams(dbFactoryConditionEntity, twinFactoryConditionEntity.getConditionerParams(), changesHelper);
@@ -127,5 +130,17 @@ public class FactoryConditionService extends EntitySecureFindServiceImpl<TwinFac
             dbEntity
                     .setConditionerParams(newConditionerParams);
         }
+    }
+
+    public void loadConditioner(TwinFactoryConditionEntity src) {
+        loadConditioners(Collections.singleton(src));
+    }
+
+    public void loadConditioners(Collection<TwinFactoryConditionEntity> srcCollection) {
+        featurerService.loadFeaturers(srcCollection,
+                TwinFactoryConditionEntity::getId,
+                TwinFactoryConditionEntity::getConditionerFeaturerId,
+                TwinFactoryConditionEntity::getConditionerFeaturer,
+                TwinFactoryConditionEntity::setConditionerFeaturer);
     }
 }

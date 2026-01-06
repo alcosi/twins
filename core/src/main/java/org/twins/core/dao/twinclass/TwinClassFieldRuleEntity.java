@@ -61,10 +61,12 @@ public class TwinClassFieldRuleEntity implements EasyLoggable {
 
 
     @Transient
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Kit<TwinClassFieldConditionEntity, UUID> conditionKit;
 
     @Transient
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Kit<TwinClassFieldEntity, UUID> fieldKit;
 

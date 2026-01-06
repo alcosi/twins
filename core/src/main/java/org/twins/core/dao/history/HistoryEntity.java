@@ -3,6 +3,8 @@ package org.twins.core.dao.history;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -53,10 +55,14 @@ public class HistoryEntity implements EasyLoggable {
     @Column(name = "snapshot_message")
     private String snapshotMessage;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity twin;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "actor_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity actorUser;

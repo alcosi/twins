@@ -21,6 +21,9 @@ public class DataListOptionDTOv1 {
     @Schema(description = "name", example = "Bharat")
     public String name;
 
+    @Schema(description = "description", example = "Bharat")
+    public String description;
+
     @Schema(description = "icon", example = "Icon path")
     public String icon;
 

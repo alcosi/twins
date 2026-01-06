@@ -48,7 +48,7 @@ public class TwinflowFactoryEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinflowFactory[" + id + "]";
-            default -> "twinflowFactory[id:" + id + ", twinflowId:" + twinflowId + ", twinFactoryId:" + twinFactoryId + "]";
+            default -> "twinflowFactory[id:" + id + ", twinflowId:" + twinflowId + ", twinFactoryId:" + twinFactoryId + ", twinFactoryLauncher:" + twinFactoryLauncher + "]";
         };
     }
 }

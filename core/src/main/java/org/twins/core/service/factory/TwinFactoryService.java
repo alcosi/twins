@@ -1,5 +1,7 @@
 package org.twins.core.service.factory;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -54,6 +56,7 @@ import static org.cambium.common.util.RowUtils.mapUuidInt;
 
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @RequiredArgsConstructor
 public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryEntity> {
@@ -220,7 +223,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 log.info("Skipping: no input of twinClass[" + factoryMultiplierEntity.getInputTwinClassId() + "]");
                 continue;
             }
-            Multiplier multiplier = featurerService.getFeaturer(factoryMultiplierEntity.getMultiplierFeaturer(), Multiplier.class);
+            Multiplier multiplier = featurerService.getFeaturer(factoryMultiplierEntity.getMultiplierFeaturerId(), Multiplier.class);
             log.info("Running multiplier[" + multiplier.getClass().getSimpleName() + "] with params: " + factoryMultiplierEntity.getMultiplierParams());
             List<FactoryItem> multiplierOutput = multiplier.multiply(factoryMultiplierEntity, multiplierInput, factoryContext);
             log.info("Result:" + multiplierOutput.size() + " factoryItems");
@@ -335,7 +338,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                     log.info(stepOrder + pipelineStepEntity.logNormal() + " was skipped)");
                     continue;
                 }
-                Filler filler = featurerService.getFeaturer(pipelineStepEntity.getFillerFeaturer(), Filler.class);
+                Filler filler = featurerService.getFeaturer(pipelineStepEntity.getFillerFeaturerId(), Filler.class);
                 logMsg = stepOrder + pipelineStepEntity.logNormal();
                 try {
                     filler.fill(pipelineStepEntity.getFillerParams(), pipelineInput, factoryPipelineEntity.getTemplateTwin(), logMsg);
@@ -460,9 +463,9 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             return true;
         List<TwinFactoryConditionEntity> conditionEntityList = twinFactoryConditionRepository.findByTwinFactoryConditionSetIdAndActiveTrue(conditionSetId);
         for (TwinFactoryConditionEntity conditionEntity : conditionEntityList) {
-            Conditioner conditioner = featurerService.getFeaturer(conditionEntity.getConditionerFeaturer(), Conditioner.class);
+            Conditioner conditioner = featurerService.getFeaturer(conditionEntity.getConditionerFeaturerId(), Conditioner.class);
             boolean conditionerResult = conditioner.check(conditionEntity, factoryItem);
-            if (conditionEntity.isInvert())
+            if (conditionEntity.getInvert())
                 conditionerResult = !conditionerResult;
             if (!conditionerResult) // no need to check other conditions if one of it is already false
                 return false;

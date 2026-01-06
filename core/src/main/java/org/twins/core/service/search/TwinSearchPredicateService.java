@@ -1,5 +1,7 @@
 package org.twins.core.service.search;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
@@ -8,12 +10,18 @@ import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.search.*;
+import org.twins.core.dao.search.TwinSearchEntity;
+import org.twins.core.dao.search.TwinSearchPredicateEntity;
+import org.twins.core.dao.search.TwinSearchPredicateRepository;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TwinSearchPredicateService extends EntitySecureFindServiceImpl<TwinSearchPredicateEntity> {
 

@@ -11,7 +11,6 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
@@ -38,7 +37,6 @@ import org.twins.core.enums.attachment.TwinAttachmentAction;
 import org.twins.core.enums.comment.TwinCommentAction;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
-import org.twins.core.featurer.headhunter.HeadHunter;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -152,9 +150,9 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "assignee_required")
     private Boolean assigneeRequired;
 
-    @FeaturerList(type = HeadHunter.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "head_hunter_featurer_id", insertable = false, updatable = false)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity headHunterFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
@@ -172,6 +170,12 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Column(name = "inherited_bread_crumbs_face_id", insertable = false, updatable = false)
     private UUID inheritedBreadCrumbsFaceId;
+
+    @Column(name = "inherited_marker_data_list_id", insertable = false, updatable = false)
+    private UUID inheritedMarkerDataListId;
+
+    @Column(name = "inherited_tag_data_list_id", insertable = false, updatable = false)
+    private UUID inheritedTagDataListId;
 
     @Column(name = "general_attachment_restriction_id")
     private UUID generalAttachmentRestrictionId;
@@ -244,142 +248,185 @@ public class TwinClassEntity implements EasyLoggable {
     @ToString.Exclude
     private FaceEntity inheritedBreadCrumbsFace;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inherited_marker_data_list_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DataListEntity inheritedMarkerDataList;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inherited_tag_data_list_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DataListEntity inheritedTagDataList;
+
 //    @ManyToOne
 //    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
 //    private UserEntity createdByUser;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<UUID> extendedClassIdSet;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<UUID> headHierarchyClassIdSet;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinClassEntity, UUID> headHierarchyChildClassKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinClassEntity, UUID> extendsHierarchyChildClassKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinflowEntity, UUID> twinflowKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinClassFieldEntity, UUID> twinClassFieldKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<TwinFieldStorage> fieldStorageSet;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinStatusEntity, UUID> twinStatusKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<LinkEntity, UUID> linksKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinActionPermissionEntity, TwinAction> actionsProtectedByPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private KitGrouped<TwinActionValidatorRuleEntity, UUID, TwinAction> actionsProtectedByValidatorRules;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinCommentActionAlienPermissionEntity, TwinCommentAction> commentAlienActionsProtectedByPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private KitGrouped<TwinCommentActionAlienValidatorRuleEntity, UUID, TwinCommentAction> commentAlienActionsProtectedByValidatorRules;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinCommentActionSelfEntity, TwinCommentAction> commentSelfActionsRestriction;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinAttachmentActionAlienPermissionEntity, TwinAttachmentAction> attachmentAlienActionsProtectedByPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private KitGrouped<TwinAttachmentActionAlienValidatorRuleEntity, UUID, TwinAttachmentAction> attachmentAlienActionsProtectedByValidatorRules;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private KitGrouped<TwinAttachmentActionSelfValidatorRuleEntity, UUID, TwinAttachmentAction> attachmentSelfActionsRestriction;
 
     //TODO m.b. move to Twinflow entity? services logic
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinflowTransitionEntity, UUID> transitionsKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassFreezeEntity twinClassFreeze;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionEntity viewPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionEntity createPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionEntity editPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionEntity deletePermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassEntity headTwinClass;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassEntity extendsTwinClass;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private DataListEntity markerDataList;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private DataListEntity tagDataList;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinAttachmentRestrictionEntity generalAttachmentRestriction;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinClassEntity, UUID> segmentTwinsClassKit;
 
 
     public Set<UUID> getExtendedClassIdSet() {
         if (null == extendedClassIdSet && null != getExtendsHierarchyTree()) {
-            extendedClassIdSet = new HashSet<>();
-            for (String hierarchyItem : convertUuidFromLtreeFormat(getExtendsHierarchyTree()).split("\\."))
-                extendedClassIdSet.add(UUID.fromString(hierarchyItem));
+            extendedClassIdSet = new LinkedHashSet<>();
+            var hierarchyIds = convertUuidFromLtreeFormat(getExtendsHierarchyTree()).split("\\.");
+            for (int i = hierarchyIds.length - 1; i >= 0; i--) //reverse direction, directly extends - first
+                extendedClassIdSet.add(UUID.fromString(hierarchyIds[i]));
         }
         return extendedClassIdSet;
     }
 
     public Set<UUID> getHeadHierarchyClassIdSet() {
         if (null == headHierarchyClassIdSet && null != getHeadHierarchyTree()) {
-            headHierarchyClassIdSet = new HashSet<>();
-            for (String hierarchyItem : convertUuidFromLtreeFormat(getHeadHierarchyTree()).split("\\."))
-                headHierarchyClassIdSet.add(UUID.fromString(hierarchyItem));
+            headHierarchyClassIdSet = new LinkedHashSet<>();
+            var hierarchyIds = convertUuidFromLtreeFormat(getHeadHierarchyTree()).split("\\.");
+            for (int i = hierarchyIds.length - 1; i >= 0; i--) //reverse direction, directly extends - first
+                headHierarchyClassIdSet.add(UUID.fromString(hierarchyIds[i]));
         }
         return headHierarchyClassIdSet;
     }

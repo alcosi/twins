@@ -1,5 +1,7 @@
 package org.twins.core.service.history;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -20,6 +22,7 @@ import static org.twins.core.dao.specifications.history.HistorySpecification.*;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class HistorySearchService {
 
@@ -33,8 +36,7 @@ public class HistorySearchService {
     }
 
     private Specification<HistoryEntity> createHisotrySearchSpecification(HistorySearch search) {
-        return Specification.where(
-                checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdList(), search.isIncludeDirectChildren(), false)
+        return checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdList(), search.isIncludeDirectChildren(), false)
                 .and(checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdExcludeList(), false, true))
                 .and(checkUuidIn(search.getIdList(), false, false, HistoryEntity.Fields.id))
                 .and(checkUuidIn(search.getIdExcludeList(), true, false, HistoryEntity.Fields.id))
@@ -42,8 +44,7 @@ public class HistorySearchService {
                 .and(checkUuidIn(search.getActorUserIdExcludeList(), true, false, HistoryEntity.Fields.actorUserId))
                 .and(checkType(search.getTypeList(), false))
                 .and(checkType(search.getTypeExcludeList(), true))
-                .and(createdAtBetween(search.getCreatedAt()))
-        );
+                .and(createdAtBetween(search.getCreatedAt()));
     }
 
 }

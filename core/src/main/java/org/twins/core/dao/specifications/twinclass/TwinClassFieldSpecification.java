@@ -36,8 +36,10 @@ public class TwinClassFieldSpecification extends CommonSpecification<TwinClassFi
             Collection<UUID> projectionTypeIdList
     ) {
         return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(srcIdList) && CollectionUtils.isEmpty(dstIdList) && CollectionUtils.isEmpty(projectionTypeIdList))
+            if (CollectionUtils.isEmpty(srcIdList) && CollectionUtils.isEmpty(dstIdList) &&
+                    CollectionUtils.isEmpty(projectionTypeIdList)) {
                 return cb.conjunction();
+            }
 
             Join<TwinClassFieldEntity, ProjectionEntity> projectionJoin = root.join(associationPath, JoinType.INNER);
 
@@ -46,12 +48,23 @@ public class TwinClassFieldSpecification extends CommonSpecification<TwinClassFi
             if (!CollectionUtils.isEmpty(srcIdList)) {
                 predicates.add(projectionJoin.get(ProjectionEntity.Fields.srcTwinClassFieldId).in(srcIdList));
             }
+
             if (!CollectionUtils.isEmpty(dstIdList)) {
                 predicates.add(projectionJoin.get(ProjectionEntity.Fields.dstTwinClassFieldId).in(dstIdList));
             }
+
             if (!CollectionUtils.isEmpty(projectionTypeIdList)) {
-                predicates.add(projectionJoin.get(ProjectionEntity.Fields.projectionTypeId).in(projectionTypeIdList));
+                List<Predicate> typePredicates = new ArrayList<>();
+                for (UUID typeId : projectionTypeIdList) {
+                    typePredicates.add(cb.equal(
+                            projectionJoin.get(ProjectionEntity.Fields.projectionTypeId),
+                            typeId
+                    ));
+                }
+                predicates.add(cb.or(typePredicates.toArray(new Predicate[0])));
             }
+
+            query.distinct(true);
 
             return cb.and(predicates.toArray(new Predicate[0]));
         };

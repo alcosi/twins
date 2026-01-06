@@ -62,7 +62,6 @@ public class TwinClassFieldConditionEntity implements EasyLoggable {
     @Column(name = "condition_evaluator_params", columnDefinition = "hstore")
     private HashMap<String, String> conditionEvaluatorParams;
 
-
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -70,6 +69,8 @@ public class TwinClassFieldConditionEntity implements EasyLoggable {
     private TwinClassFieldRuleEntity twinClassFieldRule;
 
     @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private TwinClassFieldEntity baseTwinClassField;
 
     @Override

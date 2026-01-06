@@ -19,17 +19,23 @@ public enum HistoryType {
     externalIdChanged("externalIdChanged"),
 
     fieldCreated("fieldCreated"),
+    fieldCreatedOnCreate("fieldCreatedOnCreate"),
     fieldChanged("fieldChanged"),
     fieldDeleted("fieldDeleted"),
     markerChanged("markerChanged"),
     tagChanged("tagChanged"),
     attachmentCreate("attachmentCreate"),
+    attachmentCreateOnCreate("attachmentCreateOnCreate"),
     attachmentDelete("attachmentDelete"),
     attachmentUpdate("attachmentUpdate"),
+    commentCreate("commentCreate"),
     linkCreated("linkCreated"), // 2 history records will be created
+    linkCreatedOnCreate("linkCreatedOnCreate"), // 2 history records will be created
     linkUpdated("linkUpdated"), // 3 history records will be created
     linkDeleted("linkDeleted"), // 2 history records will be created
     twinDeleted("twinDeleted"),
+    spaceRoleUserAdded("spaceRoleUserAdded"),
+    spaceRoleUserRemoved("spaceRoleUserRemoved"),
     unknown("unknown");
 
     final String id;

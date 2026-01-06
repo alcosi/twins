@@ -3,6 +3,7 @@ package org.twins.core.dao.validator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -35,8 +36,11 @@ public class TwinflowTransitionValidatorRuleEntity implements ContainsTwinValida
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinValidatorEntity, UUID> twinValidatorKit;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
     private TwinValidatorSetEntity twinValidatorSet;

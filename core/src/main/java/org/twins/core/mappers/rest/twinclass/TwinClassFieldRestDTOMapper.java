@@ -92,7 +92,9 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setProjectionField(src.getProjectionField());
                 if (mapperContext.hasModeButNot(FeaturerMode.TwinClassField2FeaturerMode.HIDE)) {
                     dst.setFieldTyperFeaturerId(src.getFieldTyperFeaturerId());
+                    dst.setTwinSorterFeaturerId(src.getTwinSorterFeaturerId());
                     featurerRestDTOMapper.postpone(featurerService.getFeaturerEntity(src.getFieldTyperFeaturerId()), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
+                    featurerRestDTOMapper.postpone(featurerService.getFeaturerEntity(src.getTwinSorterFeaturerId()), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
                 }
                 if (mapperContext.hasModeButNot(PermissionMode.TwinClassField2PermissionMode.HIDE)) {
                     dst

@@ -3,12 +3,11 @@ package org.twins.core.dao.widget;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
-import org.twins.core.featurer.widget.accessor.WidgetAccessor;
-import org.twins.core.featurer.widget.datagrabber.DataGrabber;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -32,19 +31,19 @@ public class WidgetEntity {
     private String description;
 
     @Column(name = "widget_data_grabber_featurer_id")
-    private int widgetDataGrabberFeaturerId;
+    private Integer widgetDataGrabberFeaturerId;
 
     @Column(name = "widget_accessor_featurer_id")
-    private int widgetAccessorFeaturerId;
+    private Integer widgetAccessorFeaturerId;
 
-    @FeaturerList(type = DataGrabber.class)
-    @ManyToOne
-    @JoinColumn(name = "widget_data_grabber_featurer_id", insertable = false, updatable = false, nullable = false)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity widgetDataGrabberFeaturer;
 
-    @FeaturerList(type = WidgetAccessor.class)
-    @ManyToOne
-    @JoinColumn(name = "widget_accessor_featurer_id", insertable = false, updatable = false, nullable = false)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity widgetAccessorFeaturer;
 
     @Type(PostgreSQLHStoreType.class)

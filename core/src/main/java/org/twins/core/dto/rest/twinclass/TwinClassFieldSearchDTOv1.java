@@ -60,6 +60,12 @@ public class TwinClassFieldSearchDTOv1 {
     @Schema(description = "field typer id exclude list")
     public Set<Integer> fieldTyperIdExcludeList;
 
+    @Schema(description = "field sorter id list")
+    public Set<Integer> twinSorterIdList;
+
+    @Schema(description = "field sorter id exclude list")
+    public Set<Integer> twinSorterIdExcludeList;
+
     @Schema(description = "view permission id list")
     public Set<UUID> viewPermissionIdList;
 
@@ -74,6 +80,9 @@ public class TwinClassFieldSearchDTOv1 {
 
     @Schema(description = "required", example = DTOExamples.TERNARY)
     public Ternary required;
+
+    @Schema(description = "system", example = DTOExamples.TERNARY)
+    public Ternary system;
 
     @Schema(description = "frontend validation error i18n like list")
     public Set<String> feValidationErrorI18nLikeList;

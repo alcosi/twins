@@ -19,6 +19,8 @@ services:
       JAVA_OPTS: "
       -Djdk.internal.httpclient.debug=true
       "
+      LOG_RQRS_LEVEL: "OFF"
+      LOG_RQRS_SHORT_LEVEL: "INFO"
     volumes:
       - ./logs:/opt/twins/logs
     ports:

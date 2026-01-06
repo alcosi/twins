@@ -2,6 +2,8 @@ package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -32,10 +34,14 @@ public class TwinFieldSimpleNonIndexedEntity implements EasyLoggable {
     @Column(name = "twin_class_field_id")
     private UUID twinClassFieldId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity twin;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_class_field_id", insertable = false, updatable = false, nullable = false)
     private TwinClassFieldEntity twinClassField;

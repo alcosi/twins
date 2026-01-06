@@ -2,6 +2,8 @@ package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -37,18 +39,26 @@ public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, EasyLogg
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "src_twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity srcTwin;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "dst_twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity dstTwin;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "link_id", insertable = false, updatable = false, nullable = false)
     private LinkEntity link;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUser;

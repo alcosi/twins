@@ -1,5 +1,7 @@
 package org.twins.core.service.projection;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
 public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEntity> {
@@ -151,5 +154,17 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
 
     public void deleteProjections(Set<UUID> projectionIds) {
         entityRepository().deleteAllById(projectionIds);
+    }
+
+    public void loadProjectorFeaturer(ProjectionEntity entity) {
+        loadProjectorFeaturer(List.of(entity));
+    }
+
+    public void loadProjectorFeaturer(Collection<ProjectionEntity> entities) {
+        featurerService.loadFeaturers(entities,
+                ProjectionEntity::getId,
+                ProjectionEntity::getFieldProjectorFeaturerId,
+                ProjectionEntity::getFieldProjectorFeaturer,
+                ProjectionEntity::setFieldProjectorFeaturer);
     }
 }

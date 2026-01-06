@@ -32,7 +32,7 @@ public class TwinflowFactoryRestDTOMapperV1 extends RestSimpleDTOMapper<Twinflow
                     .setId(src.getId())
                     .setTwinflowId(src.getTwinflowId())
                     .setTwinFactoryLauncherId(src.getTwinFactoryLauncher())
-                    .setTwinFactoryId(src.getTwinFactoryId());
+                    .setFactoryId(src.getTwinFactoryId());
         }
 
         if (mapperContext.hasModeButNot(TwinflowMode.TwinflowFactory2TwinflowMode.HIDE)) {
@@ -41,7 +41,7 @@ public class TwinflowFactoryRestDTOMapperV1 extends RestSimpleDTOMapper<Twinflow
         }
 
         if (mapperContext.hasModeButNot(FactoryMode.TwinflowFactory2FactoryMode.HIDE)) {
-            dst.setTwinFactoryId(src.getTwinFactoryId());
+            dst.setFactoryId(src.getTwinFactoryId());
             factoryRestDTOMapperV2.postpone(src.getTwinFactory(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FactoryMode.TwinflowFactory2FactoryMode.SHORT)));
         }
     }

@@ -1,5 +1,7 @@
 package org.twins.core.service.attachment;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
@@ -31,6 +33,7 @@ import java.util.*;
 @Lazy
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class AttachmentActionService {
     private final AuthService authService;
@@ -86,7 +89,7 @@ public class AttachmentActionService {
                         log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL), twinAttachmentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                         continue;
                     }
-                    TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
+                    TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturerId(), TwinValidator.class);
                     ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
                     if (!validationResult.isValid()) {
                         log.error(validationResult.getMessage());
@@ -124,7 +127,7 @@ public class AttachmentActionService {
                         log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.logNormal(), twinAttachmentActionSelfValidatorRuleEntity.logNormal());
                         continue;
                     }
-                    TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
+                    TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturerId(), TwinValidator.class);
                     ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twin, twinValidatorEntity.isInvert());
                     if (validationResult.isValid()) {
                         log.error(validationResult.getMessage());

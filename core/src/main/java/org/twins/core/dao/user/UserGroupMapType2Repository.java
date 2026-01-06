@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -18,4 +19,7 @@ public interface UserGroupMapType2Repository extends CrudRepository<UserGroupMap
     List<UserGroupMapType2Entity> findByUserIdInAndBusinessAccountId(Collection<UUID> userIds, UUID businessAccountId);
 
     boolean existsByUserIdAndUserGroupIdAndBusinessAccountId(UUID userId, UUID userGroupId, UUID businessAccountId);
+
+    @Query("select distinct ugm.userId from UserGroupMapType2Entity ugm where ugm.businessAccountId = :businessAccountId and ugm.userGroupId in :groupIds")
+    Set<UUID> findUserIdsByBusinessAccountIdAndUserGroupIds(UUID businessAccountId, Collection<UUID> groupIds);
 }

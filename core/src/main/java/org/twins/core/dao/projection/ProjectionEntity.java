@@ -8,6 +8,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -48,25 +49,40 @@ public class ProjectionEntity implements EasyLoggable {
     @Column(name = "field_projector_params", columnDefinition = "hstore")
     private HashMap<String, String> fieldProjectorParams;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_twin_pointer_id", insertable = false, updatable = false)
     private TwinPointerEntity srcTwinPointer;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_twin_class_field_id", insertable = false, updatable = false)
     private TwinClassFieldEntity srcTwinClassField;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dst_twin_class_field_id", insertable = false, updatable = false)
     private TwinClassFieldEntity dstTwinClassField;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dst_twin_class_id", insertable = false, updatable = false)
     private TwinClassEntity dstTwinClass;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "projection_type_id", insertable = false, updatable = false)
     private ProjectionTypeEntity ProjectionType;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FeaturerEntity fieldProjectorFeaturer;
 
     @Override
     public String easyLog(Level level) {

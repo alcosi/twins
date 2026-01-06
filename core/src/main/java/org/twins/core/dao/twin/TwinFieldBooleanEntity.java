@@ -2,13 +2,13 @@ package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
-import java.util.Arrays;
 import java.util.UUID;
 
 @Entity
@@ -36,10 +36,14 @@ public class TwinFieldBooleanEntity implements EasyLoggable {
     @Column(name = "value")
     private Boolean value;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity twin;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_class_field_id", insertable = false, updatable = false, nullable = false)
     private TwinClassFieldEntity twinClassField;

@@ -18,8 +18,8 @@ public class TwinflowFactorySearchRestDTOReverseMapper extends RestSimpleDTOMapp
                 .setIdExcludeSet(src.getIdExcludeSet())
                 .setTwinflowIdSet(src.getTwinflowIdSet())
                 .setTwinflowIdExcludeSet(src.getTwinflowIdExcludeSet())
-                .setTwinFactoryIdSet(src.getTwinFactoryIdSet())
-                .setTwinFactoryIdExcludeSet(src.getTwinFactoryIdExcludeSet())
+                .setTwinFactoryIdSet(src.getFactoryIdSet())
+                .setTwinFactoryIdExcludeSet(src.getFactoryIdExcludeSet())
                 .setFactoryLauncherSet(src.getFactoryLauncherSet())
                 .setFactoryLauncherExcludeSet(src.getFactoryLauncherExcludeSet());
     }

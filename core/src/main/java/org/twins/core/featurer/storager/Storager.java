@@ -3,6 +3,10 @@ package org.twins.core.featurer.storager;
 import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerType;
@@ -18,9 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ProxySelector;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Optional;
@@ -44,6 +45,8 @@ public abstract class Storager extends FeaturerTwins {
             exampleValues = {"/", "https://twins.app/api", "/proxied-api"}
     )
     public static final FeaturerParamString selfHostDomainBaseUri = new FeaturerParamString("selfHostDomainBaseUri");
+
+    private static OkHttpClient httpClient;
 
     @Autowired
     protected AuthService authService;
@@ -158,7 +161,7 @@ public abstract class Storager extends FeaturerTwins {
      */
     @SneakyThrows
     public AddedFileKey addExternalUrlFile(UUID fileId, String externalUrl, HashMap<String, String> params) throws ServiceException {
-        return addFile(fileId, getInputStreamHttpResponse(toURI(externalUrl), params).body(), params);
+        return addFile(fileId, getInputStreamHttpResponse(toURI(externalUrl), params).body().byteStream(), params);
     }
 
     /**
@@ -210,26 +213,59 @@ public abstract class Storager extends FeaturerTwins {
      *
      * @param uri    the target URI for the HTTP request
      * @param params a HashMap containing additional parameters necessary for the request
-     * @return an HttpResponse object containing the InputStream of the response body
+     * @return a Response object containing the InputStream of the response body
      * @throws ServiceException     if there is an error during property extraction
      * @throws IOException          if an I/O error occurs while sending or receiving the HTTP request
-     * @throws InterruptedException if the operation is interrupted during execution
      */
-    protected HttpResponse<InputStream> getInputStreamHttpResponse(URI uri, HashMap<String, String> params) throws ServiceException, IOException, InterruptedException {
+    protected Response getInputStreamHttpResponse(URI uri, HashMap<String, String> params) throws ServiceException, IOException {
         Duration timeoutDuration = getDownloadExternalFileConnectionTimeout(params);
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(uri)
-                .GET()
-                .timeout(timeoutDuration)
+
+        if (httpClient == null) {
+            httpClient = new OkHttpClient.Builder()
+                    .proxySelector(ProxySelector.getDefault())
+                    .connectTimeout(timeoutDuration)
+                    .readTimeout(timeoutDuration)
+                    .build();
+        }
+
+        Request request = new Request.Builder()
+                .url(uri.toURL())
+                .get()
                 .build();
-        HttpClient httpClient = HttpClient
-                .newBuilder()
-                .proxy(ProxySelector.getDefault())
-                .connectTimeout(timeoutDuration)
-                .build();
-        HttpResponse<InputStream> response = httpClient
-                .send(request, HttpResponse.BodyHandlers.ofInputStream());
-        return response;
+
+        int maxRetries = 3;
+        IOException lastException = null;
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                Response response = httpClient.newCall(request).execute();
+
+                if (!response.isSuccessful()) {
+                    response.close();
+                    throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Failed to retrieve the file: HTTP Status " + response.code());
+                }
+
+                if (response.body() == null) {
+                    response.close();
+                    throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Failed to retrieve the file, response body is NULL");
+                }
+
+                return response;
+            } catch (IOException e) {
+                lastException = e;
+                log.warn("Attempt {}/{} failed for URI {}: {}", attempt, maxRetries, uri, e.getMessage());
+                if (attempt < maxRetries) {
+                    try {
+                        Thread.sleep(500L * attempt);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new IOException("Retry interrupted", ie);
+                    }
+                }
+            }
+        }
+
+        throw lastException;
     }
 
     @NotNull

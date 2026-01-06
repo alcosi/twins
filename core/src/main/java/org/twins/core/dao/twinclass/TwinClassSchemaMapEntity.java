@@ -2,6 +2,8 @@ package org.twins.core.dao.twinclass;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.UUID;
 
@@ -19,10 +21,14 @@ public class TwinClassSchemaMapEntity {
     @Column(name = "twin_class_id")
     private UUID twinClassId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_class_schema_id", insertable = false, updatable = false, nullable = false)
     private TwinClassSchemaEntity twinClassSchema;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;

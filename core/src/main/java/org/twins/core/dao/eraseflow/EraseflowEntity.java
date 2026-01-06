@@ -49,13 +49,15 @@ public class EraseflowEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @ManyToOne
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
 
-    @ManyToOne
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUser;
 
@@ -75,6 +77,7 @@ public class EraseflowEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<EraseflowLinkCascadeEntity, UUID> cascadeLinkKit;
 
     @Override

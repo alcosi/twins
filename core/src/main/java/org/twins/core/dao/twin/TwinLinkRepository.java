@@ -33,6 +33,8 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
 
     boolean existsBySrcTwinIdAndLinkId(UUID srcTwinId, UUID linkId);
 
+    boolean existsByDstTwinIdAndLinkId(UUID srcTwinId, UUID linkId);
+
     <T> T findBySrcTwinIdAndDstTwinIdAndLinkId(UUID srcTwinId, UUID dstTwinId, UUID linkId, Class<T> type);
 
     @Query(value = "select distinct srcTwinId from TwinLinkEntity where linkId = :linkId")

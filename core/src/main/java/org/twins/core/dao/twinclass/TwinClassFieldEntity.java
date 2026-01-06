@@ -105,6 +105,8 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Column(name = "has_projected_fields")
     private Boolean hasProjectedFields;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
@@ -139,6 +141,7 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Deprecated
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_twin_class_field_id", insertable = false, updatable = false)
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Collection<ProjectionEntity> projectionsBySrc;
 
@@ -146,14 +149,17 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Deprecated
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "dst_twin_class_field_id", insertable = false, updatable = false)
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Collection<ProjectionEntity> projectionsByDst;
 
     @Transient
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private TwinFieldStorage fieldStorage;
 
     @Transient
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Kit<TwinClassFieldRuleEntity, UUID> ruleKit;
 

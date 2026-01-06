@@ -8,13 +8,11 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.featurer.storager.Storager;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -36,7 +34,7 @@ public class StorageEntity implements EasyLoggable {
     private UUID domainId;
 
     @Column(name = "storager_featurer_id")
-    private Long storageFeaturerId;
+    private Integer storageFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "storager_params", columnDefinition = "hstore")
@@ -53,9 +51,9 @@ public class StorageEntity implements EasyLoggable {
     @Column(name = "updated_at")
     private Timestamp updatedAt;
 
-    @FeaturerList(type = Storager.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "storager_featurer_id", insertable = false, updatable = false)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity storageFeaturer;
 
     @EqualsAndHashCode.Exclude

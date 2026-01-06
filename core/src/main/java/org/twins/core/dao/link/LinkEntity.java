@@ -8,7 +8,6 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
@@ -17,7 +16,6 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.enums.link.LinkType;
-import org.twins.core.featurer.linker.Linker;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -68,16 +66,21 @@ public class LinkEntity implements EasyLoggable {
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
 //    private DomainEntity domain;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "src_twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity srcTwinClass;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "dst_twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity dstTwinClass;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity createdByUser;
 
     @Deprecated //for specification only
@@ -97,9 +100,9 @@ public class LinkEntity implements EasyLoggable {
     @Column(name = "linker_featurer_id")
     private Integer linkerFeaturerId;
 
-    @FeaturerList(type = Linker.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "linker_featurer_id", insertable = false, updatable = false)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity linkerFeaturer;
 
     @Type(PostgreSQLHStoreType.class)

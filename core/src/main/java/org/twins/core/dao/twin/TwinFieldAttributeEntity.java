@@ -4,6 +4,7 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -22,8 +23,14 @@ import java.util.UUID;
 @Table(name = "twin_field_attribute")
 public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<TwinFieldAttributeEntity> {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UUID.randomUUID();
+        }
+    }
 
     @Column(name = "twin_id")
     private UUID twinId;
@@ -41,14 +48,17 @@ public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<T
     @Column(name = "note_msg_context", columnDefinition = "hstore")
     private HashMap<String, String> noteMsgContext;
 
-    @Column(name = "changedAt")
+    @Column(name = "changed_at")
     private Timestamp changedAt;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_class_field_attribute_id", insertable = false, updatable = false, nullable = false)
-    @EqualsAndHashCode.Exclude
-    private TwinClassFieldAttributeEntity twinClassFieldAttributeEntity;
+    private TwinClassFieldAttributeEntity twinClassFieldAttribute;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity twin;
@@ -68,7 +78,7 @@ public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<T
                 .setNoteMsg(noteMsg)
                 .setNoteMsgContext(noteMsgContext)
                 .setChangedAt(changedAt)
-                .setTwinClassFieldAttributeEntity(twinClassFieldAttributeEntity)
+                .setTwinClassFieldAttribute(twinClassFieldAttribute)
                 .setTwin(twin);
     }
 }

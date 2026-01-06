@@ -1,6 +1,8 @@
 package org.twins.core.service.domain;
 
 import com.google.common.collect.Streams;
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -21,12 +23,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.*;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.resource.StorageEntity;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.attachment.AttachmentQuotas;
 import org.twins.core.enums.domain.DomainStatus;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
@@ -43,6 +44,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
 public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
@@ -364,5 +366,17 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
             domain.setResourcesStorage(storages.get(domain.getResourcesStorageId()));
             domain.setAttachmentsStorage(storages.get(domain.getAttachmentsStorageId()));
         });
+    }
+
+    public void loadUserGroupManager(DomainEntity src) {
+        loadUserGroupManagers(Collections.singletonList(src));
+    }
+
+    public void loadUserGroupManagers(Collection<DomainEntity> srcCollection) {
+        featurerService.loadFeaturers(srcCollection,
+                DomainEntity::getId,
+                DomainEntity::getUserGroupManagerFeaturerId,
+                DomainEntity::getUserGroupManagerFeaturer,
+                DomainEntity::setUserGroupManagerFeaturer);
     }
 }

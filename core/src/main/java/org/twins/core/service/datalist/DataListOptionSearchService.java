@@ -93,7 +93,7 @@ public class DataListOptionSearchService {
                     checkUuidIn(search.getBusinessAccountIdExcludeList(), true, true, DataListOptionEntity.Fields.businessAccountId)
             );
         } else {
-            return Specification.where((root, query, cb) -> root.get(DataListOptionEntity.Fields.businessAccountId).isNull());
+            return (root, query, cb) -> root.get(DataListOptionEntity.Fields.businessAccountId).isNull();
         }
     }
 

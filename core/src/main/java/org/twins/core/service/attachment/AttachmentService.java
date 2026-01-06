@@ -1,5 +1,7 @@
 package org.twins.core.service.attachment;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -50,6 +52,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmentEntity> {
     private final TwinAttachmentRepository twinAttachmentRepository;
@@ -60,8 +63,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     private final AuthService authService;
     @Lazy
     private final TwinService twinService;
-    @Lazy
-    private final DomainService domainService;
     private final AttachmentActionService attachmentActionService;
     private final FeaturerService featurerService;
     private final StorageService storageService;
@@ -179,7 +180,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     protected void saveFile(TwinAttachmentEntity attachmentEntity, UUID uuid) throws ServiceException {
         //Not just link, have to add file to storage
         StorageEntity storage = attachmentEntity.getStorage();
-        Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
+        Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
         AddedFileKey addedFileKey;
         if (attachmentEntity.getAttachmentFile() != null) {
             addedFileKey = fileService.addFile(uuid, attachmentEntity.getAttachmentFile().content(), storage.getStoragerParams());
@@ -346,7 +347,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             return;
         log.info(attachement.logDetailed() + " will be deleted");
         entitySmartService.deleteAndLog(attachmentId, twinAttachmentRepository);
-        deleteFile(attachement);
         historyService.saveHistory(attachement.getTwin(), HistoryType.attachmentDelete, new HistoryContextAttachment()
                 .shotAttachment(attachement));
     }
@@ -409,7 +409,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 saveFile(attachmentEntity, dbAttachmentEntity.getId());
                 dbAttachmentEntity.setStorageFileKey(attachmentEntity.getStorageFileKey());
                 historyItem.getContext().setNewStorageFileKey(attachmentEntity.getStorageFileKey());
-
             }
             if (KitUtils.isNotEmpty(attachmentEntity.getModifications())) {
                 updateAttachmentModifications(attachmentEntity, dbAttachmentEntity, twinChangesCollector);
@@ -486,7 +485,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             twinChangesCollector.delete(attachmentEntity);
             if (twinChangesCollector.isHistoryCollectorEnabled())
                 twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentDelete(attachmentEntity));
-            deleteFile(attachmentEntity);
         }
     }
 
@@ -550,7 +548,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     public InputStreamResponse getAttachmentFile(UUID attachmentId) throws ServiceException {
         var attachment = findEntitySafe(attachmentId);
         StorageEntity storage = attachment.getStorage();
-        Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
+        Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
         var stream = fileService.getFileAsStream(attachment.getStorageFileKey(), storage.getStoragerParams());
         return stream;
     }
@@ -566,8 +564,8 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         StorageEntity oldStorage = attachement.getStorage();
         StorageEntity newStorage = storageService.findEntitySafe(newStorageId);
 
-        Storager oldStorager = featurerService.getFeaturer(oldStorage.getStorageFeaturer(), Storager.class);
-        Storager newStorager = featurerService.getFeaturer(newStorage.getStorageFeaturer(), Storager.class);
+        Storager oldStorager = featurerService.getFeaturer(oldStorage.getStorageFeaturerId(), Storager.class);
+        Storager newStorager = featurerService.getFeaturer(newStorage.getStorageFeaturerId(), Storager.class);
         InputStream fileStream = oldStorager.getFileAsStream(attachement.getStorageFileKey(), oldStorage.getStoragerParams()).getContentStream();
         AddedFileKey addedFileKey = newStorager.addFile(newAttachementId, fileStream, newStorage.getStoragerParams());
         TwinAttachmentEntity newAttachement = attachement.clone();
@@ -584,7 +582,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
     public String getAttachmentUri(TwinAttachmentEntity attachment) throws ServiceException {
         if (attachment != null) {
-            var featurer = featurerService.getFeaturer(attachment.getStorage().getStorageFeaturer(), Storager.class);
+            var featurer = featurerService.getFeaturer(attachment.getStorage().getStorageFeaturerId(), Storager.class);
             return featurer.getFileUri(attachment.getId(), attachment.getStorageFileKey(), attachment.getStorage().getStoragerParams()).toString();
         }
         return null;
@@ -592,7 +590,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
     protected void deleteFile(TwinAttachmentEntity attachment) throws ServiceException {
         StorageEntity storage = attachment.getStorage();
-        Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
+        Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
         fileService.tryDeleteFile(attachment.getStorageFileKey(), storage.getStoragerParams());
     }
 

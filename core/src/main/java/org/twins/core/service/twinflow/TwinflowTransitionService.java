@@ -1,5 +1,7 @@
 package org.twins.core.service.twinflow;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -27,11 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.draft.DraftEntity;
-import org.twins.core.enums.factory.FactoryLauncher;
-import org.twins.core.enums.twinclass.OwnerType;
-import org.twins.core.enums.draft.DraftStatus;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -40,17 +38,20 @@ import org.twins.core.dao.twinflow.*;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleRepository;
-import org.twins.core.service.validator.TwinValidatorService;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.draft.DraftCollector;
-import org.twins.core.enums.twinflow.TwinflowTransitionType;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.search.TransitionAliasSearch;
 import org.twins.core.domain.search.TransitionSearch;
 import org.twins.core.domain.transition.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.enums.draft.DraftStatus;
+import org.twins.core.enums.factory.FactoryLauncher;
+import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.twinclass.OwnerType;
+import org.twins.core.enums.twinflow.TwinflowTransitionType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 import org.twins.core.service.TwinChangesService;
@@ -67,6 +68,7 @@ import org.twins.core.service.twin.TwinValidatorSetService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
+import org.twins.core.service.validator.TwinValidatorService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -77,6 +79,7 @@ import static org.twins.core.dao.specifications.twinflow.TransitionAliasSpecific
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TwinflowTransitionService extends EntitySecureFindServiceImpl<TwinflowTransitionEntity> {
 
@@ -227,6 +230,11 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 continue;
             if (twinEntity.getValidTransitionsKit() != null)
                 continue;
+            if (twinEntity.getTwinClass().getTwinClassFreezeId() != null) {
+                log.warn("No transitions permitted for {}. Cause class is frozen", twinEntity.logNormal());
+                twinEntity.setValidTransitionsKit(Kit.EMPTY);
+                continue;
+            }
             needLoad.put(twinEntity.getId(), twinEntity);
         }
         if (MapUtils.isEmpty(needLoad))
@@ -425,8 +433,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 dbTriggerEntity.setTransitionTriggerFeaturerId(trigger.getTransitionTriggerFeaturerId());
             if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.transitionTriggerParams, dbTriggerEntity.getTransitionTriggerParams(), trigger.getTransitionTriggerParams()))
                 dbTriggerEntity.setTransitionTriggerParams(trigger.getTransitionTriggerParams());
-            if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.isActive, dbTriggerEntity.isActive(), trigger.isActive()))
-                dbTriggerEntity.setActive(trigger.isActive());
+            if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.isActive, dbTriggerEntity.getIsActive(), trigger.getIsActive()))
+                dbTriggerEntity.setIsActive(trigger.getIsActive());
             if (changesHelper.hasChanges())
                 saveList.add(dbTriggerEntity);
         }
@@ -516,6 +524,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
 
     public TransitionContext createTransitionContext(TwinEntity twinEntity, UUID transitionId) throws ServiceException {
+        if (twinEntity.getTwinClass().getTwinClassFreezeId() != null)
+            throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_DENIED, "Transition[{}] can not be performed for {} because class is frozen", transitionId.toString(), twinEntity.logNormal());
         twinflowService.loadTwinflow(twinEntity);
         if (twinEntity.getTwinflow() == null)
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Not twinflow can be detected for " + twinEntity.logDetailed());
@@ -936,13 +946,13 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             //todo run status input/output triggers
             for (TwinEntity targetTwin : transitionContext.getTargetTwinList().values())
                 for (TwinflowTransitionTriggerEntity triggerEntity : transitionEntity.getTriggersKit()) {
-                    if (!triggerEntity.isActive()) {
+                    if (!triggerEntity.getIsActive()) {
                         log.info("{} will not be triggered, since it is inactive", triggerEntity.logDetailed());
                         continue;
                     }
                     log.info("{} will be triggered", triggerEntity.logDetailed());
                     //todo run it by TransitionTriggerTask (async)
-                    TransitionTrigger transitionTrigger = featurerService.getFeaturer(triggerEntity.getTransitionTriggerFeaturer(), TransitionTrigger.class);
+                    TransitionTrigger transitionTrigger = featurerService.getFeaturer(triggerEntity.getTransitionTriggerFeaturerId(), TransitionTrigger.class);
                     transitionTrigger.run(triggerEntity.getTransitionTriggerParams(), targetTwin, transitionEntity.getSrcTwinStatus(), transitionEntity.getDstTwinStatus());
                 }
         }

@@ -1,5 +1,7 @@
 package org.twins.core.service.twinclass;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -68,6 +70,7 @@ import static org.twins.core.dao.twinclass.TwinClassEntity.convertUuidFromLtreeF
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
 public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEntity> {
@@ -856,18 +859,12 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         loadHeadHunter(Collections.singletonList(twinClassEntity));
     }
 
-    public void loadHeadHunter(Collection<TwinClassEntity> twinClassCollection) {
-        Map<Integer, TwinClassEntity> needLoad = new HashMap<>();
-        for (TwinClassEntity twinClass : twinClassCollection) {
-            if (twinClass.getHeadHunterFeaturer() == null && twinClass.getHeadHunterFeaturerId() != null)
-                needLoad.put(twinClass.getHeadHunterFeaturerId(), twinClass);
-        }
-        if (MapUtils.isEmpty(needLoad))
-            return;
-        List<FeaturerEntity> featurerList = featurerService.findByIdIn(needLoad.keySet());
-        for (Map.Entry<Integer, TwinClassEntity> map : needLoad.entrySet()) {
-            map.getValue().setHeadHunterFeaturer(featurerList.get(map.getKey()));
-        }
+    public void loadHeadHunter(Collection<TwinClassEntity> collection) {
+        featurerService.loadFeaturers(collection,
+                TwinClassEntity::getId,
+                TwinClassEntity::getHeadHunterFeaturerId,
+                TwinClassEntity::getHeadHunterFeaturer,
+                TwinClassEntity::setHeadHunterFeaturer);
     }
 
     public void loadFreeze(TwinClassEntity src) throws ServiceException {
@@ -875,16 +872,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public void loadFreeze(Collection<TwinClassEntity> twinClassCollection) throws ServiceException {
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getTwinClassFreezeId);
-        for (TwinClassEntity twinClass : twinClassCollection) {
-            if (twinClass.getTwinClassFreezeId() != null && twinClass.getTwinClassFreeze() == null)
-                needLoad.add(twinClass);
-        }
-        if (KitUtils.isEmpty(needLoad))
-            return;
-        Kit<TwinClassFreezeEntity, UUID> items = twinClassFreezeService.findEntitiesSafe(needLoad.getGroupedKeySet());
-        for (var twinClass : needLoad)
-            twinClass.setTwinClassFreeze(items.get(twinClass.getTwinClassFreezeId()));
+        twinClassFreezeService.load(twinClassCollection,
+                TwinClassEntity::getId,
+                TwinClassEntity::getTwinClassFreezeId,
+                TwinClassEntity::getTwinClassFreeze,
+                TwinClassEntity::setTwinClassFreeze);
     }
 
     public void loadSegments(TwinClassEntity src) {

@@ -2,6 +2,8 @@ package org.twins.core.dao.link;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.UUID;
 
@@ -22,10 +24,14 @@ public class LinkTreeNodeEntity {
     @Column(name = "link_id")
     private UUID linkId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "link_tree_id", insertable = false, updatable = false, nullable = false)
     private LinkTreeEntity linkTree;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "link_id", insertable = false, updatable = false, nullable = false)
     private LinkEntity link;

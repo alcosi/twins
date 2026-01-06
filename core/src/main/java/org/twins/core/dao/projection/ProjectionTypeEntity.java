@@ -3,6 +3,7 @@ package org.twins.core.dao.projection;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -34,14 +35,16 @@ public class ProjectionTypeEntity implements EasyLoggable {
     @Column(name = "membership_twin_class_id")
     private UUID membershipTwinClassId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "projection_type_group_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = false)
-    @EqualsAndHashCode.Exclude
     private ProjectionTypeGroupEntity projectionTypeGroup;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "membership_twin_class_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = false)
-    @EqualsAndHashCode.Exclude
     private TwinClassEntity membershipTwinClass;
 
     @Override

@@ -3,6 +3,8 @@ package org.twins.core.dao.card;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.widget.WidgetEntity;
@@ -43,13 +45,19 @@ public class CardWidgetEntity {
 
     @ManyToOne
     @JoinColumn(name = "card_id", insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private CardEntity card;
 
     @ManyToOne
     @JoinColumn(name = "card_layout_position_id", insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private CardLayoutPositionEntity cardLayoutPosition;
 
     @ManyToOne
     @JoinColumn(name = "widget_id", insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private WidgetEntity widget;
 }

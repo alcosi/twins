@@ -8,10 +8,8 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
-import org.twins.core.featurer.factory.multiplier.Multiplier;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -55,9 +53,9 @@ public class TwinFactoryPipelineStepEntity implements EasyLoggable {
     @Column(name = "filler_params", columnDefinition = "hstore")
     private HashMap<String, String> fillerParams;
 
-    @FeaturerList(type = Multiplier.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "filler_featurer_id", insertable = false, updatable = false)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity fillerFeaturer;
 
     @EqualsAndHashCode.Exclude

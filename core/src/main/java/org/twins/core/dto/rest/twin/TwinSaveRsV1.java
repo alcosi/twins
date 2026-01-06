@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest;
+package org.twins.core.dto.rest.twin;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.twin.TwinDTOv2;
+import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 
 import java.util.Map;
 import java.util.UUID;
@@ -19,7 +19,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class TwinSaveRsV1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "Invalid twin field id list")
-    private Map<UUID, String> invalidTwinFieldErrors;
+    public Map<UUID, String> invalidTwinFieldErrors;
 
     @Schema(description = "twin")
     public TwinDTOv2 twin;

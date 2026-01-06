@@ -1,5 +1,7 @@
 package org.twins.core.service.resource;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
@@ -24,6 +26,7 @@ import java.util.UUID;
 import java.util.function.Function;
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity> {
     protected final FeaturerService featurerService;
@@ -42,7 +45,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
     public InputStreamResponse getResourceFile(UUID resourceId) throws ServiceException {
         var resource = findEntitySafe(resourceId);
         StorageEntity storage = resource.getStorage();
-        Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
+        Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
         var stream = fileService.getFileAsStream(resource.getStorageFileKey(), storage.getStoragerParams());
         return stream;
     }
@@ -61,7 +64,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
         UUID resourceId = UUID.randomUUID();
         ApiUser apiUser = authService.getApiUser();
         StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getResourcesStorageId());
-        Storager storager = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
+        Storager storager = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
         AddedFileKey addedFileKey = storager.addExternalUrlFile(resourceId, externalResourceUri, storage.getStoragerParams());
         return createResource(storage, originalFileName, resourceId, addedFileKey);
     }
@@ -92,7 +95,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
         UUID resourceId = UUID.randomUUID();
         ApiUser apiUser = authService.getApiUser();
         StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getResourcesStorageId());
-        Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
+        Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
         AddedFileKey addedFileKey = fileService.addFile(resourceId, inputStream, storage.getStoragerParams());
         return createResource(storage, originalFileName, resourceId, addedFileKey);
     }
@@ -124,7 +127,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
     public void deleteResource(UUID resourceId) throws ServiceException {
         var resource = findEntitySafe(resourceId);
         StorageEntity storage = resource.getStorage();
-        Storager storager = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
+        Storager storager = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
         storager.tryDeleteFile(resource.getStorageFileKey(), storage.getStoragerParams());
         entitySmartService.deleteAndLog(resource.getId(), resourceRepository);
     }
@@ -147,8 +150,8 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
         StorageEntity oldStorage = resource.getStorage();
         StorageEntity newStorage = storageService.findEntitySafe(newStorageId);
 
-        Storager oldStorager = featurerService.getFeaturer(oldStorage.getStorageFeaturer(), Storager.class);
-        Storager newStorager = featurerService.getFeaturer(newStorage.getStorageFeaturer(), Storager.class);
+        Storager oldStorager = featurerService.getFeaturer(oldStorage.getStorageFeaturerId(), Storager.class);
+        Storager newStorager = featurerService.getFeaturer(newStorage.getStorageFeaturerId(), Storager.class);
         InputStreamResponse fileStream = oldStorager.getFileAsStream(resource.getStorageFileKey(), oldStorage.getStoragerParams());
         AddedFileKey addedFileKey = newStorager.addFile(newResourceId, fileStream.getContentStream(), newStorage.getStoragerParams());
         ResourceEntity newResource = new ResourceEntity()
@@ -168,7 +171,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
 
     public String getResourceUri(ResourceEntity resourceEntity) throws ServiceException {
         if (resourceEntity != null) {
-            var featurer = featurerService.getFeaturer(resourceEntity.getStorage().getStorageFeaturer(), Storager.class);
+            var featurer = featurerService.getFeaturer(resourceEntity.getStorage().getStorageFeaturerId(), Storager.class);
             return featurer.getFileUri(resourceEntity.getId(), resourceEntity.getStorageFileKey(), resourceEntity.getStorage().getStoragerParams()).toString();
         }
         return null;

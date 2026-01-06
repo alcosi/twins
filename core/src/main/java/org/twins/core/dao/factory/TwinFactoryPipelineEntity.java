@@ -80,10 +80,14 @@ public class TwinFactoryPipelineEntity implements EasyLoggable {
     @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
     private TwinFactoryConditionSetEntity conditionSet;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "output_twin_status_id", insertable = false, updatable = false)
     private TwinStatusEntity outputTwinStatus;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "template_twin_id", insertable = false, updatable = false, nullable = true)
     private TwinEntity templateTwin;

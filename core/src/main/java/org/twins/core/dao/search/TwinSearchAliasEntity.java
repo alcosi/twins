@@ -29,7 +29,7 @@ public class TwinSearchAliasEntity implements EasyLoggable {
     private String alias;
 
     @Column(name = "twin_search_detector_featurer_id")
-    private int twinSearchDetectorFeaturerId;
+    private Integer twinSearchDetectorFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "twin_search_detector_params", columnDefinition = "hstore")

@@ -46,7 +46,7 @@ public class UserGroupManagerImpl extends UserGroupManager {
                     log.warn("Incorrect enterUserGroupId[" + enterUserGroupId + "]");
                     continue;
                 }
-                Slugger slugger = featurerService.getFeaturer(userGroup.getUserGroupType().getSluggerFeaturer(), Slugger.class);
+                Slugger slugger = featurerService.getFeaturer(userGroup.getUserGroupType().getSluggerFeaturerId(), Slugger.class);
                 slugger.enterGroup(userGroup, user);
             }
         }
@@ -58,7 +58,7 @@ public class UserGroupManagerImpl extends UserGroupManager {
                     log.warn("Incorrect exitUserGroupId[" + exitUserGroupId + "]");
                     continue;
                 }
-                Slugger slugger = featurerService.getFeaturer(userGroup.getUserGroupType().getSluggerFeaturer(), Slugger.class);
+                Slugger slugger = featurerService.getFeaturer(userGroup.getUserGroupType().getSluggerFeaturerId(), Slugger.class);
                 slugger.exitGroup(userGroup, user);
             }
         }

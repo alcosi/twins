@@ -1,5 +1,7 @@
 package org.twins.core.service.twinclass;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
@@ -25,6 +27,7 @@ import java.util.function.Function;
 
 @Slf4j
 @Component
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<TwinClassFieldRuleMapEntity> {
     private final TwinClassFieldRuleMapRepository twinClassFieldRuleMapRepository;

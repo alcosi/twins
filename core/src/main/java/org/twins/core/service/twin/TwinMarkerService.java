@@ -1,5 +1,7 @@
 package org.twins.core.service.twin;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -22,8 +24,8 @@ import org.twins.core.dao.twin.TwinMarkerEntity;
 import org.twins.core.dao.twin.TwinMarkerRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.EntityRelinkOperation;
-import org.twins.core.enums.EntityRelinkOperationStrategy;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.enums.EntityRelinkOperationStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListOptionService;
@@ -37,6 +39,7 @@ import java.util.stream.Collectors;
 @Lazy
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEntity> {
     final AuthService authService;
@@ -76,7 +79,11 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
                 if (entity.getMarkerDataListOption() == null)
                     entity.setMarkerDataListOption(dataListService.findDataListOption(entity.getMarkerDataListOptionId()));
             default:
-                if (!entity.getTwin().getTwinClass().getMarkerDataListId().equals(entity.getMarkerDataListOption().getDataListId()))
+                UUID expectedDataListId = entity.getTwin().getTwinClass().getMarkerDataListId() != null
+                        ? entity.getTwin().getTwinClass().getMarkerDataListId()
+                        : entity.getTwin().getTwinClass().getInheritedMarkerDataListId();
+
+                if (!expectedDataListId.equals(entity.getMarkerDataListOption().getDataListId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect twinMarker dataListOptionId[" + entity.getMarkerDataListOptionId() + "]");
         }
         return true;
@@ -155,7 +162,7 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
         // it's not possible to delete it in such way, because we need to write history
         // twinMarkerRepository.deleteByTwinIdAndMarkerDataListOptionIdIn(twinEntity.getId(), markersDelete);
         List<TwinMarkerEntity> markers = twinMarkerRepository.findByTwinIdAndMarkerDataListOptionIdIn(twinEntity.getId(), markersDelete);
-        if(markers.size() != markersDelete.size()) {
+        if (markers.size() != markersDelete.size()) {
             log.warn("Mismatch markers for deletion with existing for twin(id: {}) : markers (optionIDs: {}) and markersDelete (optionIDs: {}).",
                     twinEntity.getId(),
                     markers.stream().map(TwinMarkerEntity::getMarkerDataListOptionId).collect(Collectors.toSet()),
@@ -163,7 +170,7 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
         }
         //todo add history
         for (TwinMarkerEntity marker : markers)
-                twinChangesCollector.delete(marker);
+            twinChangesCollector.delete(marker);
 
     }
 

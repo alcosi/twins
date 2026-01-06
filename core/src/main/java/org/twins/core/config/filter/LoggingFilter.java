@@ -53,9 +53,10 @@ public class LoggingFilter extends OncePerRequestFilter {
                 String id = request.getAttribute(REQUEST_LOG_ID) + "";
                 logRequest(request, id, multipartContent);
                 logResponse(request, response, id, time);
-                LoggerUtils.cleanMDC();
             } catch (Throwable t) {
                 log.error("RqRs error !", t);
+            } finally {
+                LoggerUtils.cleanMDC();
             }
 
         }
@@ -132,12 +133,12 @@ public class LoggingFilter extends OncePerRequestFilter {
                 return new byte[0];
             }
             List<Part> parts = new ArrayList<Part>(request.getParts());
-            var loggedParts = parts.stream().map(part -> part.getName() + ":" + extractPartBoby(part, characterEncoding)).toList();
+            var loggedParts = parts.stream().map(part -> part.getName() + ":" + extractPartBody(part, characterEncoding)).toList();
             return String.join(";\n", loggedParts).getBytes(characterEncoding);
         }
 
         @SneakyThrows
-        private String extractPartBoby(Part part, String characterEncoding) {
+        private String extractPartBody(Part part, String characterEncoding) {
             if (!isJsonOrTextOrNull(part.getContentType())) {
                 return "<File. Size:" + getSize(part) + ">";
             }
@@ -211,7 +212,7 @@ public class LoggingFilter extends OncePerRequestFilter {
 
 
     static {
-        log.setLevel(Level.TRACE);
+        // log.setLevel(Level.TRACE);
     }
 
 
@@ -231,8 +232,8 @@ public class LoggingFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         logController(request);
+        logSessionId(request);
         if (isLoggable(request)) {
-            logSessionId(request);
             doFilterWrapped(wrapRequest(request), wrapResponse(response), filterChain);
         } else {
             filterChain.doFilter(request, response);

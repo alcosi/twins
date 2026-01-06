@@ -1,5 +1,7 @@
 package org.twins.core.service.twin;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
 @Lazy
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
     final TwinTagRepository twinTagRepository;
@@ -71,7 +74,11 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
                 if (entity.getTagDataListOption() == null)
                     entity.setTagDataListOption(dataListService.findDataListOption(entity.getTagDataListOptionId())); // Why there is a side effect in validate function ?!
             default:
-                if (!entity.getTwin().getTwinClass().getTagDataListId().equals(entity.getTagDataListOption().getDataListId()))
+                UUID expectedTagDataListId = entity.getTwin().getTwinClass().getTagDataListId() != null
+                        ? entity.getTwin().getTwinClass().getTagDataListId()
+                        : entity.getTwin().getTwinClass().getInheritedTagDataListId();
+
+                if (!expectedTagDataListId.equals(entity.getTagDataListOption().getDataListId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect twinTag dataListOptionId[" + entity.getTagDataListOptionId() + "]");
         }
         return true;

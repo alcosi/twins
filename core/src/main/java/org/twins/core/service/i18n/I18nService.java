@@ -1,6 +1,8 @@
 package org.twins.core.service.i18n;
 
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,7 @@ import java.util.stream.StreamSupport;
 
 @Component
 @Slf4j
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
     private final I18nRepository i18nRepository;
@@ -233,7 +236,7 @@ public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
         } else {
             Map<UUID, String> result = new HashMap<>();
             Locale locale = resolveCurrentUserLocale();
-            i18nTranslationRepository.findByI18nIdInAndLocale(idsToLoad, locale).forEach(t -> result.put(t.getI18nId(), t.getTranslation()));
+            i18nTranslationRepository.findByI18nIdInAndLocale(idsToLoad, locale).forEach(t -> result.put(t.i18nId(), t.translation()));
             if (idsToLoad.size() != result.size()) {
                 idsToLoad.stream().filter(id -> !result.containsKey(id)).forEach(id -> result.put(id, ""));
             }

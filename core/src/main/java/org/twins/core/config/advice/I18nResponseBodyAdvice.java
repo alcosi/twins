@@ -1,6 +1,6 @@
 package org.twins.core.config.advice;
 
-import org.cambium.common.util.MapUtils;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.MethodParameter;
@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
 
 @ControllerAdvice
 public class I18nResponseBodyAdvice implements ResponseBodyAdvice<Object> {
@@ -40,21 +41,25 @@ public class I18nResponseBodyAdvice implements ResponseBodyAdvice<Object> {
                                   @NotNull org.springframework.http.server.ServerHttpResponse response) {
 
         Set<UUID> idsToLoad = I18nCacheHolder.getIdsToLoad();
-        Map<UUID, Map<String, String>> contexts = I18nCacheHolder.getContexts();
+        var allContexts = I18nCacheHolder.getContexts();
         if (!idsToLoad.isEmpty() && I18nCacheHolder.getTranslations().isEmpty()) {
             Map<UUID, String> translations = i18nService.translateToLocale(idsToLoad);
+            Map<String, String> translationsWithContexts = new HashMap<>();
 
-            for (Map.Entry<UUID, Map<String, String>> entry : contexts.entrySet()) {
+            for (var entry : translations.entrySet()) {
                 UUID i18nId = entry.getKey();
-                Map<String, String> context = entry.getValue();
-                String translation = translations.get(i18nId);
-
-                if (StringUtils.isNotBlank(translation) && MapUtils.isNotEmpty(context)) {
-                    translations.put(i18nId, StringUtils.replaceVariables(translation, context));
+                String translation = entry.getValue();
+                var contexts = allContexts.get(i18nId);
+                if (CollectionUtils.isEmpty(contexts)) {
+                    translationsWithContexts.put(I18nCacheHolder.generateKey(i18nId, null), translation);
+                } else {
+                    for (var context : contexts) {
+                        translationsWithContexts.put(I18nCacheHolder.generateKey(i18nId, context), StringUtils.replaceVariables(translation, context));
+                    }
                 }
             }
 
-            I18nCacheHolder.setTranslations(translations);
+            I18nCacheHolder.setTranslations(translationsWithContexts);
         }
 
         return body;

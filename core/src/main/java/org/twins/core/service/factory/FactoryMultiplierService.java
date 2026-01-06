@@ -1,5 +1,7 @@
 package org.twins.core.service.factory;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -23,12 +25,15 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.function.Function;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @AllArgsConstructor
 public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFactoryMultiplierEntity> {
@@ -125,5 +130,18 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
             dbMultiplierEntity
                     .setMultiplierParams(newFeaturerParams);
         }
+    }
+
+    public void loadMultiplier(TwinFactoryMultiplierEntity src) {
+        loadMultipliers(Collections.singleton(src) );
+    }
+
+    public void loadMultipliers(Collection<TwinFactoryMultiplierEntity> srcCollection) {
+        featurerService.loadFeaturers(srcCollection,
+                TwinFactoryMultiplierEntity::getId,
+                TwinFactoryMultiplierEntity::getMultiplierFeaturerId,
+                TwinFactoryMultiplierEntity::getMultiplierFeaturer,
+                TwinFactoryMultiplierEntity::setMultiplierFeaturer
+        );
     }
 }

@@ -44,14 +44,18 @@ public class UncaughtExceptionFilter extends OncePerRequestFilter {
         return rs;
     }
 
-    protected Exception resolveRootException(Exception e) {
-        if (e instanceof ServletException && e.getCause() != null) {
-            e = (Exception) e.getCause();
+    protected Exception resolveRootException(Throwable e) {
+        if (e instanceof ServletException && e.getCause() != null && e.getCause() instanceof Exception) {
+            e = e.getCause();
         }
-        if (e instanceof UndeclaredThrowableException && e.getCause() != null) {
-            e = (Exception) e.getCause();
+        if (e instanceof UndeclaredThrowableException && e.getCause() != null && e.getCause() instanceof Exception) {
+            e = e.getCause();
         }
-        return e;
+        if (e instanceof Exception) {
+            return (Exception) e;
+        } else {
+            return new RuntimeException(e);
+        }
     }
 
     protected void writeResponseIfNotNull(HttpServletResponse response, ResponseEntity rs) throws IOException {

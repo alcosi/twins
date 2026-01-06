@@ -33,6 +33,8 @@ public class TwinClassFieldSearch {
     private Set<String> externalIdNotLikeList;
     private Set<Integer> fieldTyperIdList;
     private Set<Integer> fieldTyperIdExcludeList;
+    private Set<Integer> twinSorterIdList;
+    private Set<Integer> twinSorterIdExcludeList;
     private LongRange orderRange;
     private Set<UUID> viewPermissionIdList;
     private Set<UUID> viewPermissionIdExcludeList;
@@ -111,6 +113,8 @@ public class TwinClassFieldSearch {
             Pair.of(TwinClassFieldSearch::getExternalIdNotLikeList, TwinClassFieldSearch::setExternalIdNotLikeList),
             Pair.of(TwinClassFieldSearch::getFieldTyperIdList, TwinClassFieldSearch::setFieldTyperIdList),
             Pair.of(TwinClassFieldSearch::getFieldTyperIdExcludeList, TwinClassFieldSearch::setFieldTyperIdExcludeList),
+            Pair.of(TwinClassFieldSearch::getTwinSorterIdList, TwinClassFieldSearch::setTwinSorterIdList),
+            Pair.of(TwinClassFieldSearch::getTwinSorterIdExcludeList, TwinClassFieldSearch::setTwinSorterIdExcludeList),
             Pair.of(TwinClassFieldSearch::getViewPermissionIdList, TwinClassFieldSearch::setViewPermissionIdList),
             Pair.of(TwinClassFieldSearch::getViewPermissionIdExcludeList, TwinClassFieldSearch::setViewPermissionIdExcludeList),
             Pair.of(TwinClassFieldSearch::getEditPermissionIdList, TwinClassFieldSearch::setEditPermissionIdList),
@@ -118,6 +122,11 @@ public class TwinClassFieldSearch {
     );
 
     public static final ImmutableList<Pair<Function<TwinClassFieldSearch, Ternary>, BiConsumer<TwinClassFieldSearch, Ternary>>> TERNARY_FIELD = ImmutableList.of(
-            Pair.of(TwinClassFieldSearch::getRequired, TwinClassFieldSearch::setRequired)
+            Pair.of(TwinClassFieldSearch::getRequired, TwinClassFieldSearch::setRequired),
+            Pair.of(TwinClassFieldSearch::getSystem, TwinClassFieldSearch::setSystem),
+            Pair.of(TwinClassFieldSearch::getProjectionField, TwinClassFieldSearch::setProjectionField),
+            Pair.of(TwinClassFieldSearch::getHasProjectionFields, TwinClassFieldSearch::setHasProjectionFields),
+            Pair.of(TwinClassFieldSearch::getHasDependentFields, TwinClassFieldSearch::setHasDependentFields),
+            Pair.of(TwinClassFieldSearch::getDependentField, TwinClassFieldSearch::setDependentField)
     );
 }

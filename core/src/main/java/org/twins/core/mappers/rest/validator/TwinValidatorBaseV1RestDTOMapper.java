@@ -50,13 +50,15 @@ public class TwinValidatorBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinVa
                         .setTwinValidatorSetId(src.getTwinValidatorSetId());
                 break;
         }
-        if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.HIDE))
+        if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.HIDE)) {
+            twinValidatorSetService.loadTwinValidatorSet(src);
             dst
-                    .setTwinValidatorSet(twinValidatorSetBaseV1RestDTOMapper.convert(
-                            twinValidatorSetService.loadTwinValidatorSet(src), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.SHORT))))
+                    .setTwinValidatorSet(twinValidatorSetBaseV1RestDTOMapper.convert(src.getTwinValidatorSet(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.SHORT))))
                     .setTwinValidatorSetId(src.getTwinValidatorSetId());
+        }
         if (mapperContext.hasModeButNot(FeaturerMode.TwinValidator2FeaturerMode.HIDE)) {
             dst.setValidatorFeaturerId(src.getTwinValidatorFeaturerId());
+            twinValidatorSetService.loadTwinValidator(src);
             featurerRestDTOMapper.postpone(src.getTwinValidatorFeaturer(), mapperContext.forkOnPoint(FeaturerMode.TwinValidator2FeaturerMode.SHORT));
         }
     }
@@ -65,6 +67,9 @@ public class TwinValidatorBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinVa
     public void beforeCollectionConversion(Collection<TwinValidatorEntity> srcCollection, MapperContext mapperContext) throws ServiceException {
         if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.HIDE))
             twinValidatorSetService.loadTwinValidatorSet(srcCollection);
+        if (mapperContext.hasModeButNot(FeaturerMode.TwinValidator2FeaturerMode.HIDE)) {
+            twinValidatorSetService.loadTwinValidators(srcCollection);
+        }
     }
 
     @Override

@@ -21,14 +21,12 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.attachment.AttachmentAddRsDTOv1;
 import org.twins.core.dto.rest.attachment.AttachmentCreateRqDTOv1;
 import org.twins.core.mappers.rest.attachment.AttachmentCreateRestDTOReverseMapper;
 import org.twins.core.service.attachment.AttachmentService;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
 
@@ -40,7 +38,6 @@ import java.util.*;
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.ATTACHMENT_MANAGE, Permissions.ATTACHMENT_CREATE})
 public class AttachmentAddController extends ApiController {
-    private final AuthService authService;
     private final AttachmentService attachmentService;
     private final TwinService twinService;
     private final AttachmentCreateRestDTOReverseMapper attachmentCreateRestDTOReverseMapper;
@@ -87,7 +84,6 @@ public class AttachmentAddController extends ApiController {
     protected ResponseEntity<? extends Response> createAttachment(UUID twinId, AttachmentCreateRqDTOv1 request, Map<String, MultipartFile> filesMap) {
         AttachmentAddRsDTOv1 rs = new AttachmentAddRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
             attachmentCreateRestDTOReverseMapper.preProcessAttachments(request.attachments, filesMap);
             rs.setAttachmentIdList(attachmentService.addAttachments(
                             attachmentCreateRestDTOReverseMapper.convertCollection(request.getAttachments()), twinService.findEntitySafe(twinId))

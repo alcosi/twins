@@ -12,6 +12,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.exception.TwinBatchFieldValidationException;
 import org.cambium.common.exception.TwinFieldValidationException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -36,11 +37,11 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.enums.factory.FactoryLauncher;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.enums.factory.FactoryLauncher;
 import org.twins.core.enums.history.HistoryType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
@@ -78,6 +79,7 @@ import static org.twins.core.featurer.fieldtyper.FieldTyperList.LIST_SPLITTER;
 @Lazy
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
@@ -122,19 +124,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinFieldAttributeService twinFieldAttributeService;
     private final UserService userService;
     @Autowired
-    private TwinFactoryService twinFactoryService;
-    @Autowired
-    private TwinClassFieldRepository twinClassFieldRepository;
-    @Autowired
-    private FieldStorageService fieldStorageService;
-    @Autowired
     private TwinflowFactoryService twinflowFactoryService;
-    private final FaceTwinPointerService faceTwinPointerService;
     @Autowired
     private I18nService i18nService;
-    @Autowired
-    private TwinSearchService twinSearchService;
-
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
         Map<UUID, List<TwinEntity>> ret = new HashMap<>();
@@ -395,6 +387,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_IS_ABSTRACT, "Cannot create twin of abstract twin class: " + twinEntity.getTwinClass().logShort());
         }
         setHeadSafe(twinEntity);
+        twinEntity.setCreateElseUpdate(true);
         if (twinCreate.isCheckCreatePermission())
             checkCreatePermission(twinEntity, authService.getApiUser());
         createTwinEntity(twinCreate, twinChangesCollector);
@@ -442,6 +435,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
         if (twinEntity.getId() == null)
             twinEntity.setId(UUID.randomUUID()); // this id is necessary for fields and links. Because entity is not stored currently
+        twinEntity.setCreateElseUpdate(true);
         if (twinCreate.isSketchMode()) {
             setInitSketchStatus(twinEntity);
         } else if (twinEntity.getTwinStatusId() == null) {
@@ -643,12 +637,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void updateTwin(TwinUpdate twinUpdate) throws ServiceException {
-        updateTwin(List.of(twinUpdate));
+        updateTwin(List.of(twinUpdate), false);
     }
 
-    public List<TwinEntity> updateTwin(List<TwinUpdate> twinUpdates) throws ServiceException {
+    public List<TwinEntity> updateTwin(List<TwinUpdate> twinUpdates, boolean validateAll) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-
+        TwinBatchFieldValidationException batchFieldValidationException = null;
         for (TwinUpdate twinUpdate : twinUpdates) {
             if (!twinUpdate.isChanged()) continue;
 
@@ -658,7 +652,19 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     twinUpdate.getDbTwinEntity(),
                     twinChangesCollector.getHistoryCollector(twinUpdate.getDbTwinEntity()));
 
-            updateTwin(twinUpdate, twinChangesCollector, changesRecorder);
+            try {
+                updateTwin(twinUpdate, twinChangesCollector, changesRecorder);
+            } catch (TwinFieldValidationException validationException) {
+                if (batchFieldValidationException == null)
+                    batchFieldValidationException = new TwinBatchFieldValidationException(ErrorCodeTwins.TWIN_FIELD_VALUE_INCORRECT);
+                batchFieldValidationException.addInvalidFields(validationException.getTwinId(), validationException.getInvalidFields());
+                if (!validateAll || twinUpdates.size() == 1) {
+                    break;
+                }
+            }
+        }
+        if (batchFieldValidationException != null) {
+            throw batchFieldValidationException;
         }
         twinChangesService.applyChanges(twinChangesCollector);
 
@@ -1560,7 +1566,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
         }
         if (!invalidFieldIds.isEmpty()) {
-            throw new TwinFieldValidationException(ErrorCodeTwins.TWIN_FIELD_VALUE_INCORRECT, invalidFieldIds);
+            throw new TwinFieldValidationException(ErrorCodeTwins.TWIN_FIELD_VALUE_INCORRECT, twinEntity.getId(), invalidFieldIds);
         }
     }
 
