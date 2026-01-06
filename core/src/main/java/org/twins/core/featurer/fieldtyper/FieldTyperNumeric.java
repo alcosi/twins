@@ -22,10 +22,7 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.text.DecimalFormat;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static org.cambium.common.util.MathUtils.EXPONENTIAL_FORM_REGEXP;
@@ -77,8 +74,8 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
         Double stepValue = step.extract(properties);
         String thousandSeparatorValue = thousandSeparator.extract(properties);
         String decimalSeparatorValue = decimalSeparator.extract(properties);
-        Set<String> extraThousandSeparators = extraThousandSeparatorSet.extract(properties) != null ? extraThousandSeparatorSet.extract(properties) : Collections.emptySet();
-        Set<String> extraDecimalSeparators = extraDecimalSeparatorSet.extract(properties) != null ? extraDecimalSeparatorSet.extract(properties) : Collections.emptySet();
+        Set<String> extraThousandSeparators = Optional.ofNullable(extraThousandSeparatorSet.extract(properties)).orElse(Collections.emptySet());
+        Set<String> extraDecimalSeparators = Optional.ofNullable(extraDecimalSeparatorSet.extract(properties)).orElse(Collections.emptySet());
         Integer decimalPlacesValue = decimalPlaces.extract(properties);
         Boolean roundValue = round.extract(properties);
 
