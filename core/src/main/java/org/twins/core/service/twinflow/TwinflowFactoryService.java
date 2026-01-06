@@ -82,8 +82,14 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
                     return logErrorAndReturnFalse(entity.logNormal() + " empty factoryLauncher");
                 }
 
-                if (twinflowFactoryRepository.existsByTwinflowIdAndTwinFactoryLauncher(entity.getTwinflowId(), entity.getTwinFactoryLauncher())) {
+                // for save
+                if (entity.getId() == null && twinflowFactoryRepository.existsByTwinflowIdAndTwinFactoryLauncher(entity.getTwinflowId(), entity.getTwinFactoryLauncher())) {
                     return logErrorAndReturnFalse(entity.logNormal() + " already exists");
+                }
+
+                // for update
+                if (entity.getId() != null && twinflowFactoryRepository.existsByTwinflowIdAndTwinFactoryLauncherAndIdNot(entity.getTwinflowId(), entity.getTwinFactoryLauncher(), entity.getId())) {
+                    return logErrorAndReturnFalse(entity.logNormal() + " conflicts with existing record");
                 }
 
                 if (entity.getTwinflow() == null || !entity.getTwinflow().getId().equals(entity.getTwinflowId())) {
