@@ -77,7 +77,7 @@ public class SchedulerService extends EntitySecureFindServiceImpl<SchedulerEntit
         }
 
         Kit<SchedulerEntity, Integer> schedulers = new Kit<>(needToLoad, SchedulerEntity::getFeaturerId);
-        List<FeaturerEntity> featurers = featurerService.findByIdIn(needToLoad.stream().map(SchedulerEntity::getFeaturerId).collect(Collectors.toSet()));
+        Kit<FeaturerEntity, Integer> featurers = featurerService.findEntitiesSafe(needToLoad.stream().map(SchedulerEntity::getFeaturerId).collect(Collectors.toSet()));
 
         for (var featurer : featurers) {
             schedulers.get(featurer.getId()).setFeaturer(featurer);
