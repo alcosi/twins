@@ -78,10 +78,10 @@
     <logger name="org.springframework" level="INFO" additivity="false">
         <appender-ref ref="ASYNC-FILE"/>
     </logger>
-    <logger name="RqRsLogger" level="INFO" additivity="false">
+    <logger name="RqRsLogger" level="${LOG_RQRS_LEVEL:-INFO}" additivity="false">
         <appender-ref ref="ASYNC-RQ-RS-FILE"/>
     </logger>
-    <logger name="RqRsLoggerShort" level="INFO" additivity="false">
+    <logger name="RqRsLoggerShort" level="${LOG_RQRS_SHORT_LEVEL:-INFO}" additivity="false">
         <appender-ref ref="ASYNC-FILE"/>
     </logger>
     <logger name="org.twins.core.mappers.rest.mappercontext.MapperContext" level="DEBUG" additivity="false">

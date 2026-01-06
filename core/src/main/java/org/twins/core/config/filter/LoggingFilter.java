@@ -212,7 +212,7 @@ public class LoggingFilter extends OncePerRequestFilter {
 
 
     static {
-        log.setLevel(Level.TRACE);
+        // log.setLevel(Level.TRACE);
     }
 
 
