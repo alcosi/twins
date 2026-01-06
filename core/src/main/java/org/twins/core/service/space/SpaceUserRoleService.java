@@ -18,6 +18,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.history.context.HistoryContextSpaceRoleUserChange;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.twin.TwinEntity;
@@ -26,6 +27,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.space.SpaceRoleUserSearch;
 import org.twins.core.domain.space.UserRefSpaceRole;
+import org.twins.core.enums.history.HistoryType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
@@ -34,6 +36,8 @@ import org.twins.core.service.user.UserService;
 import java.util.*;
 
 import static org.twins.core.dao.specifications.space.SpaceRoleUserSpecification.*;
+
+import org.twins.core.service.history.HistoryService;
 
 @Slf4j
 @Service
@@ -45,6 +49,7 @@ public class SpaceUserRoleService {
     final AuthService authService;
     final TwinService twinService;
     final UserService userService;
+    final HistoryService historyService;
 
     // twinId is equivalent of spaceId
 
@@ -185,17 +190,32 @@ public class SpaceUserRoleService {
                     .setCreatedByUserId(authService.getApiUser().getUserId())
             );
         }
-        if (CollectionUtils.isNotEmpty(listToAdd))
+        if (CollectionUtils.isNotEmpty(listToAdd)) {
             entitySmartService.saveAllAndLog(listToAdd, spaceRoleUserRepository);
+            List<UUID> userIdList = new ArrayList<>();
+            for (SpaceRoleUserEntity entity : listToAdd) {
+                userIdList.add(entity.getUserId());
+            }
+            HistoryContextSpaceRoleUserChange context = new HistoryContextSpaceRoleUserChange()
+                    .setRoleId(roleId)
+                    .setTargetedUserIds(userIdList);
+            historyService.saveHistory(twinService.findEntitySafe(spaceId), HistoryType.spaceRoleUserAdded, context);
+        }
     }
 
-    public void deleteUsersFromSpaceRole(UUID spaceId, UUID roleId, Set<UUID> deleteUserList) {
+    public void deleteUsersFromSpaceRole(UUID spaceId, UUID roleId, Set<UUID> deleteUserList) throws ServiceException {
         if (CollectionUtils.isEmpty(deleteUserList))
             return;
         spaceRoleUserRepository.deleteBySpaceIdAndSpaceRoleIdAndUserIdIn(spaceId, roleId, deleteUserList);
+        List<UUID> userIdList = new ArrayList<>();
         for (UUID userId : deleteUserList) {
             log.info("user[{}] perhaps was deleted by space[{}}] and role[{}}]", userId, spaceId, roleId);
+            userIdList.add(userId);
         }
+        HistoryContextSpaceRoleUserChange context = new HistoryContextSpaceRoleUserChange()
+                .setRoleId(roleId)
+                .setTargetedUserIds(userIdList);
+        historyService.saveHistory(twinService.findEntitySafe(spaceId), HistoryType.spaceRoleUserRemoved, context);
     }
 
     @Getter
