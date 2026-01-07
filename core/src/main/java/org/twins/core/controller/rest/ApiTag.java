@@ -30,4 +30,5 @@ public class ApiTag {
     public static final String AUTH = "auth";
     public static final String STATISTIC = "statistic";
     public static final String PROJECTION = "projection";
+    public static final String HISTORY_NOTIFICATION = "historyNotification";
 }

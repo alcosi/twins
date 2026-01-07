@@ -10,6 +10,7 @@ import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.DynamicUpdate;
 import org.twins.core.dao.i18n.I18nEntity;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
@@ -31,6 +32,12 @@ public class HistoryNotificationRecipientEntity implements EasyLoggable {
 
     @Column(name = "description_i18n_id")
     private UUID descriptionI18nId;
+
+    @Column(name = "created_at")
+    private Timestamp createdAt;
+
+    @Column(name = "created_by_user_id")
+    private UUID createdByUserId;
 
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
