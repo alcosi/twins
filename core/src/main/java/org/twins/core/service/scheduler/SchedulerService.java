@@ -34,7 +34,7 @@ public class SchedulerService extends EntitySecureFindServiceImpl<SchedulerEntit
     private final FeaturerService featurerService;
     @Qualifier("virtualThreadTaskScheduler")
     private final TaskScheduler taskScheduler;
-    private final Map<UUID, ScheduledFuture<?>> scheduledTasks = new HashMap<>();
+    private final Map<UUID, ScheduledFuture<?>> scheduledTasks = new HashMap<>();   // todo make it concurrent when scheduler api is written
 
     @Override
     public CrudRepository<SchedulerEntity, UUID> entityRepository() {
@@ -156,8 +156,8 @@ public class SchedulerService extends EntitySecureFindServiceImpl<SchedulerEntit
     }
 
     public void restartOne(UUID schedulerId, boolean force) throws ServiceException {
-        startOne(schedulerId);
         stopOne(schedulerId, force);
+        startOne(schedulerId);
     }
 
     private void scheduleTask(Runnable runnable, SchedulerEntity schedulerConfig) throws ServiceException {
