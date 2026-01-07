@@ -27,6 +27,14 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
         this.taskExecutor = taskExecutor;
     }
 
+    /*
+        possible race condition between collectTasks & setStatusAndSave with low fixed rate. should not happen for our load but...
+        if it's happening:
+        use batchSize param
+        OR
+        create new method with these 2 inside and mark it @Transactional. also use for update psql
+        FOR UPDATE SKIP LOCKED mechanism in collectTasks, this will help (at least I hope so)
+     */
     protected String processTask(Properties properties) {
         try {
             LoggerUtils.logController(getLogSource());
