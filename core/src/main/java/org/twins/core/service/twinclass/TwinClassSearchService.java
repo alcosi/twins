@@ -1,5 +1,7 @@
 package org.twins.core.service.twinclass;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -34,13 +36,13 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static org.cambium.common.util.SetUtils.narrowSet;
-import static org.springframework.data.jpa.domain.Specification.where;
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.twinclass.TwinClassSpecification.*;
 
 @Slf4j
 @Service
 @Lazy
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClassSearchEntity> {
     private final TwinClassRepository twinClassRepository;
@@ -89,7 +91,7 @@ public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClas
         HierarchySearch extendsHierarchyParentsForTwinClassSearch =
                 java.util.Objects.requireNonNullElse(twinClassSearch.getExtendsHierarchyParentsForTwinClassSearch(), HierarchySearch.EMPTY);
 
-        return where(
+        return
                 checkOwnerTypeIn(twinClassSearch.getOwnerTypeList(), false)
                         .and(checkUuid(authService.getApiUser().getDomainId(), false, false, TwinClassEntity.Fields.domainId))
                         .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeExcludeList(), true))
@@ -118,6 +120,8 @@ public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClas
                         .and(checkUuidIn(twinClassSearch.getMarkerDatalistIdExcludeList(), true, false, TwinClassEntity.Fields.markerDataListId))
                         .and(checkUuidIn(twinClassSearch.getTagDatalistIdList(), false, false, TwinClassEntity.Fields.tagDataListId))
                         .and(checkUuidIn(twinClassSearch.getTagDatalistIdExcludeList(), true, false, TwinClassEntity.Fields.tagDataListId))
+                        .and(checkUuidIn(twinClassSearch.getFreezeIdList(), false, false, TwinClassEntity.Fields.twinClassFreezeId))
+                        .and(checkUuidIn(twinClassSearch.getFreezeIdExcludeList(), true, false, TwinClassEntity.Fields.twinClassFreezeId))
                         .and(checkTernary(twinClassSearch.getAbstractt(), TwinClassEntity.Fields.abstractt))
                         .and(checkTernary(twinClassSearch.getPermissionSchemaSpace(), TwinClassEntity.Fields.permissionSchemaSpace))
                         .and(checkTernary(twinClassSearch.getTwinflowSchemaSpace(), TwinClassEntity.Fields.twinflowSchemaSpace))
@@ -133,8 +137,7 @@ public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClas
                         .and(checkUuidIn(twinClassSearch.getEditPermissionIdList(), false, false, TwinClassEntity.Fields.editPermissionId))
                         .and(checkUuidIn(twinClassSearch.getEditPermissionIdExcludeList(), true, false, TwinClassEntity.Fields.editPermissionId))
                         .and(checkUuidIn(twinClassSearch.getDeletePermissionIdList(), false, false, TwinClassEntity.Fields.deletePermissionId))
-                        .and(checkUuidIn(twinClassSearch.getDeletePermissionIdExcludeList(), true, false, TwinClassEntity.Fields.deletePermissionId))
-        );
+                        .and(checkUuidIn(twinClassSearch.getDeletePermissionIdExcludeList(), true, false, TwinClassEntity.Fields.deletePermissionId));
     }
 
     protected void narrowSearch(TwinClassSearch mainSearch, TwinClassSearch narrowSearch) {

@@ -16,9 +16,9 @@ public class TwinFieldAttributeRestDTOMapper extends RestSimpleDTOMapper<TwinFie
     public void map(TwinFieldAttributeEntity src, TwinFieldAttributeDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
                 .setId(src.getId())
-                .setNoteMsg(src.getNoteMsg() != null ? src.getNoteMsg() : I18nCacheHolder.addId(src.getTwinClassFieldAttributeEntity().getNoteMsgI18nId(), src.getNoteMsgContext()))
+                .setNoteMsg(src.getNoteMsg() != null ? src.getNoteMsg() : I18nCacheHolder.addId(src.getTwinClassFieldAttribute().getNoteMsgI18nId(), src.getNoteMsgContext()))
                 .setContext(src.getNoteMsgContext())
                 .setTwinClassFieldAttributeId(src.getTwinClassFieldAttributeId())
-                .setChangedAt(src.getChangedAt().toLocalDateTime());
+                .setChangedAt(src.getChangedAt() != null ? src.getChangedAt().toLocalDateTime() : null);
     }
 }

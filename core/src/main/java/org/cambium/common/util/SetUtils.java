@@ -21,4 +21,9 @@ public class SetUtils {
         }
         return crossSet.isEmpty() ? mainSet : crossSet;
     }
+
+    public static <T> Set<T>  safeAdd(Set<T> set, T element) {
+        if (set != null && element != null) set.add(element);
+        return set;
+    }
 }

@@ -84,7 +84,7 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
 
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldSearchDate search) {
-        return Specification.where(TwinSpecification.checkFieldDate(search));
+        return TwinSpecification.checkFieldDate(search);
     }
 
     private LocalDateTime parseDateTime(String value, Properties properties) throws ServiceException {

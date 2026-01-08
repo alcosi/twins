@@ -31,6 +31,9 @@ public class NotificationChannelEventEntity implements EasyLoggable {
     @Column(name = "notification_context_id")
     private UUID notificationContextId;
 
+    @Column(name = "unique_in_batch")
+    private boolean uniqueInBatch = false;
+
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.EAGER)

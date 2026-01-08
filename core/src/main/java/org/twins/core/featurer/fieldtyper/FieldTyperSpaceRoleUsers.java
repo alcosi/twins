@@ -65,7 +65,6 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
         if (!value.getTwinClassField().getTwinClass().getPermissionSchemaSpace()) {
             return;
         }
-        //todo add history support
         UUID userFilterId = userFilterUUID.extract(properties); //todo not implemented yet
         ApiUser apiUser = authService.getApiUser();
         UUID roleId = spaceRoleId.extract(properties);
@@ -88,10 +87,14 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
                 );
             }
             twinChangesCollector.addAll(listToAdd);
+            if (twinChangesCollector.isHistoryCollectorEnabled())
+                twinChangesCollector.getHistoryCollector(twin).add(historyService.spaceRoleUserAdd(value.getTwinClassField(), roleId, listToAdd.stream().map(SpaceRoleUserEntity::getUserId).toList()));
         }
         if (CollectionUtils.isNotEmpty(spaceRoleUserChanges.getDeleteUsers())) {
             List<SpaceRoleUserEntity> userForDelete = spaceUserRoleService.findAllByTwinIdAndRoleIdAndUserIds(twin.getId(), roleId, spaceRoleUserChanges.getDeleteUsers());
             twinChangesCollector.deleteAll(userForDelete);
+            if (twinChangesCollector.isHistoryCollectorEnabled())
+                twinChangesCollector.getHistoryCollector(twin).add(historyService.spaceRoleUserDelete(value.getTwinClassField(), roleId, userForDelete.stream().map(SpaceRoleUserEntity::getUserId).toList()));
         }
     }
 
@@ -129,6 +132,6 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
 
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldSearchSpaceRoleUser search) {
-        return Specification.where(TwinSpecification.checkSpaceRoleUser(search));
+        return TwinSpecification.checkSpaceRoleUser(search);
     }
 }

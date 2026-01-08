@@ -23,8 +23,14 @@ import java.util.UUID;
 @Table(name = "twin_field_attribute")
 public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<TwinFieldAttributeEntity> {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UUID.randomUUID();
+        }
+    }
 
     @Column(name = "twin_id")
     private UUID twinId;
@@ -42,14 +48,14 @@ public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<T
     @Column(name = "note_msg_context", columnDefinition = "hstore")
     private HashMap<String, String> noteMsgContext;
 
-    @Column(name = "changedAt")
+    @Column(name = "changed_at")
     private Timestamp changedAt;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_class_field_attribute_id", insertable = false, updatable = false, nullable = false)
-    private TwinClassFieldAttributeEntity twinClassFieldAttributeEntity;
+    private TwinClassFieldAttributeEntity twinClassFieldAttribute;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -72,7 +78,7 @@ public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<T
                 .setNoteMsg(noteMsg)
                 .setNoteMsgContext(noteMsgContext)
                 .setChangedAt(changedAt)
-                .setTwinClassFieldAttributeEntity(twinClassFieldAttributeEntity)
+                .setTwinClassFieldAttribute(twinClassFieldAttribute)
                 .setTwin(twin);
     }
 }

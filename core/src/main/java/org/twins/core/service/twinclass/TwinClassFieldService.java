@@ -1,5 +1,7 @@
 package org.twins.core.service.twinclass;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -30,6 +32,7 @@ import org.twins.core.domain.search.TwinSort;
 import org.twins.core.domain.twinclass.TwinClassFieldSave;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperLink;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
@@ -46,6 +49,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
 public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClassFieldEntity> {
@@ -409,6 +413,10 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             if (field.getTwinSorterFeaturerId() != null) {
                 featurerService.checkValid(field.getTwinSorterFeaturerId(), field.getTwinSorterParams(), TwinSorter.class);
                 featurerService.prepareForStore(field.getTwinSorterFeaturerId(), field.getTwinSorterParams());
+            } else {
+                field
+                        .setTwinSorterFeaturerId(FeaturerTwins.ID_4101)
+                        .setTwinSorterParams(null);
             }
 
             if (field.getSystem() == null) {

@@ -11,19 +11,20 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.datalist.*;
 import org.twins.core.dao.projection.ProjectionTypeEntity;
 import org.twins.core.dao.projection.ProjectionTypeRepository;
 import org.twins.core.domain.search.ProjectionTypeSearch;
 
 import java.util.List;
 
-import static org.twins.core.dao.specifications.CommonSpecification.*;
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeIn;
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 
 // Log calls that took more than 2 seconds
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class ProjectionTypeSearchService {
     private final ProjectionTypeRepository projectionTypeRepository;

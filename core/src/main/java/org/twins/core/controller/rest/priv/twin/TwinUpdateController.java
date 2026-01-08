@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.exception.TwinBatchFieldValidationException;
 import org.cambium.common.exception.TwinFieldValidationException;
 import org.cambium.common.kit.Kit;
 import org.cambium.service.EntitySmartService;
@@ -30,7 +31,6 @@ import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.TwinSaveRsV1;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapper;
@@ -191,13 +191,13 @@ public class TwinUpdateController extends ApiController {
                 twinUpdates.add(twinUpdate);
             }
 
-            List<TwinEntity> twinEntities = twinService.updateTwin(twinUpdates);
+            List<TwinEntity> twinEntities = twinService.updateTwin(twinUpdates, true);
 
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(twinEntities, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
 
-        } catch (TwinFieldValidationException ve) {
+        } catch (TwinBatchFieldValidationException ve) {
             return createErrorRs(ve, rs, null);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

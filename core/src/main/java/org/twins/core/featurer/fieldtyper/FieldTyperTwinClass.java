@@ -136,6 +136,6 @@ public class FieldTyperTwinClass extends FieldTyper<FieldDescriptorTwinClassList
 
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldSearchTwinClassList search) {
-        return Specification.where(TwinSpecification.checkFieldTwinClassList(search));
+        return TwinSpecification.checkFieldTwinClassList(search);
     }
 }

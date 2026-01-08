@@ -35,6 +35,7 @@ public class FactoryContext {
     // we had to limit items scope for this factory with items filtered for pipeline
     private Map<FactoryBranchId, Set<FactoryItem>> pipelineScopes = new HashMap<>();
     Map<UUID, UUID> afterCommitFactories = new HashMap<>();
+    private UUID runLimitedByOwnerBusinessAccount; //this will help to protect from multi business_account run
 
     public FactoryContext(FactoryLauncher factoryLauncher, FactoryBranchId rootFactoryBranchId) {
         this.factoryLauncher = factoryLauncher;
@@ -43,13 +44,13 @@ public class FactoryContext {
 
     private EntityCUD<TwinAttachmentEntity> attachmentCUD;
 
-    public FactoryContext addInputTwin(TwinEntity twinEntity) {
+    public FactoryContext addInputTwin(TwinEntity twinEntity) throws ServiceException {
         inputTwinList = CollectionUtils.safeAdd(inputTwinList, twinEntity);
         createFactoryInputItemAndAdd(twinEntity);
         return this;
     }
 
-    public FactoryContext setInputTwinList(Collection<TwinEntity> inputTwinList) {
+    public FactoryContext setInputTwinList(Collection<TwinEntity> inputTwinList) throws ServiceException {
         this.inputTwinList = inputTwinList;
         for (TwinEntity twinEntity : inputTwinList)
             createFactoryInputItemAndAdd(twinEntity);
@@ -68,7 +69,7 @@ public class FactoryContext {
         return factoryItemList;
     }
 
-    private void createFactoryInputItemAndAdd(TwinEntity inputTwin) {
+    private void createFactoryInputItemAndAdd(TwinEntity inputTwin) throws ServiceException {
         TwinUpdate twinUpdate = new TwinUpdate();
         twinUpdate
                 .setDbTwinEntity(inputTwin)
@@ -90,7 +91,7 @@ public class FactoryContext {
         add(factoryItem);
     }
 
-    public void add(FactoryItem factoryItem) {
+    public void add(FactoryItem factoryItem) throws ServiceException {
         if (factoryItem.getOutput() instanceof TwinUpdate twinUpdate && factoryItemsUniq.containsKey(twinUpdate.getTwinEntity().getId())) {
             factoryItem = factoryItemsUniq.get(twinUpdate.getTwinEntity().getId()); // we will use already existed factory item, but not new one
             log.warn("Repeated factory item load. Factory context already has {}. ContextFactoryItemList from new item will be skipped", factoryItem);
@@ -98,6 +99,11 @@ public class FactoryContext {
             factoryItem.setFactoryBranchId(currentFactoryBranchId != null ? currentFactoryBranchId : rootFactoryBranchId);
             factoryItemList.add(factoryItem);
             if (factoryItem.getOutput() instanceof TwinUpdate twinUpdate) {
+                if (runLimitedByOwnerBusinessAccount == null) {
+                    runLimitedByOwnerBusinessAccount = twinUpdate.getDbTwinEntity().getOwnerBusinessAccountId();
+                } else if (!runLimitedByOwnerBusinessAccount.equals(twinUpdate.getDbTwinEntity().getOwnerBusinessAccountId())) {
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_INPUT_INCORRECT, "Twins from different business accounts can't be processed in one run");
+                }
                 factoryItemsUniq.put(twinUpdate.getTwinEntity().getId(), factoryItem);
             } else if (factoryItem.getOutput() instanceof TwinCreate twinCreate && factoryItem.getOutput().getTwinEntity().getId() != null) {
                 factoryItemsUniq.put(twinCreate.getTwinEntity().getId(), factoryItem);
@@ -121,7 +127,7 @@ public class FactoryContext {
         return "FactoryContext[" + currentFactoryBranchId + "]";
     }
 
-    public void addAll(List<FactoryItem> multiplierOutput) {
+    public void addAll(List<FactoryItem> multiplierOutput) throws ServiceException {
         for (FactoryItem factoryItem : multiplierOutput) {
             add(factoryItem);
         }

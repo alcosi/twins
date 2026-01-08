@@ -1,17 +1,20 @@
 package org.twins.core.service.twinclass;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.twinclass.*;
+import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldRuleMapEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldRuleRepository;
 import org.twins.core.domain.twinclass.TwinClassFieldConditionTree;
 import org.twins.core.domain.twinclass.TwinClassFieldRuleSave;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -24,6 +27,7 @@ import static org.twins.core.service.twinclass.TwinClassFieldConditionService.MA
 
 @Slf4j
 @Component
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinClassFieldRuleEntity> {
     private static int FIELD_OVERWRITER_STUB_ID = FeaturerTwins.ID_4601; // "no overwriter" stub featurer

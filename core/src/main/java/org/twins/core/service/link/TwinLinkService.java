@@ -1,5 +1,7 @@
 package org.twins.core.service.link;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +52,7 @@ import static org.twins.core.dao.specifications.link.TwinLinkSpecification.check
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
 public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity> {
@@ -279,9 +282,8 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
 
     public List<TwinLinkEntity> findTwinBackwardLinksAndLinkStrengthIds(Collection<UUID> twinIds, List<LinkStrength> strengthIds) throws ServiceException {
         List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findAll(
-                Specification.where(checkStrength(strengthIds)
+                checkStrength(strengthIds)
                         .and(checkUuidIn(twinIds, false, false, TwinLinkEntity.Fields.dstTwinId))
-                )
         );
         return filterDenied(twinLinkEntityList);
     }

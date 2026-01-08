@@ -32,8 +32,8 @@ public class HistoryNotificationRecipientCollectorEntity implements EasyLoggable
     @Column(name = "recipient_resolver_featurer_id")
     private Integer recipientResolverFeaturerId;
 
-    @Column(name = "`order`")
-    private Integer order;
+    @Column(name = "exclude")
+    private Boolean exclude;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "recipient_resolver_params", columnDefinition = "hstore")

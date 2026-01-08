@@ -30,7 +30,7 @@ import org.twins.core.dto.rest.twin.TwinRsDTOv2;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapperV4;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
@@ -50,8 +50,8 @@ public class TwinFieldSaveController extends ApiController {
     private final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
     private final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
-    private final TwinFieldRestDTOMapper twinFieldRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
+    private final TwinFieldRestDTOMapperV4 twinFieldRestDTOMapperV4;
 
 
     @ParametersApiUserHeaders
@@ -70,7 +70,7 @@ public class TwinFieldSaveController extends ApiController {
         try {
             TwinField twinField = twinService.wrapField(twinId, fieldKey);
             twinService.updateField(twinField, twinFieldValueRestDTOReverseMapper.convert(request.value));
-            rs.field(twinFieldRestDTOMapper.convert(twinField));
+            rs.field(twinFieldRestDTOMapperV4.convert(twinField));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -97,7 +97,7 @@ public class TwinFieldSaveController extends ApiController {
             twinService.updateField(twinField, twinFieldValueRestDTOReverseMapperV2.convert(
                     twinFieldValueRestDTOReverseMapperV2.createByTwinIdAndFieldKey(twinId, fieldKey, fieldValue)
             ));
-            rs.field(twinFieldRestDTOMapper.convert(twinField));
+            rs.field(twinFieldRestDTOMapperV4.convert(twinField));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

@@ -24,7 +24,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.TwinSaveRsV1;
+import org.twins.core.dto.rest.twin.TwinSaveRsV1;
 import org.twins.core.dto.rest.twin.TwinUpdateRqDTOv1;
 import org.twins.core.mappers.rest.twin.TwinUpdateRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;

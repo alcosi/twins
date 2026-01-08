@@ -103,6 +103,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     FACTORY_MULTIPLIER_ERROR(11003, "twin factory multiplier error"),
     FACTORY_RESULT_LOCKED(11004, "twin factory result was locked by eraser"),
     FACTORY_TASK_INCORRECT(11005, "twin factory run task is incorrect"),
+    FACTORY_INPUT_INCORRECT(11006, "incorrect factory input"),
     TWIN_STATUS_INCORRECT(11101, "twin status is incorrect"),
     TWIN_STATUS_TWIN_CLASS_NOT_SPECIFIED(11102, "twin status class is not specified"),
     TWIN_STATUS_KEY_INCORRECT(11103, "twin status key incorrect"),

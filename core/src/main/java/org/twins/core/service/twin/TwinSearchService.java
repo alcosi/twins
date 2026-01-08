@@ -1,5 +1,7 @@
 package org.twins.core.service.twin;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -52,10 +54,10 @@ import java.util.stream.Collectors;
 import static org.cambium.common.util.MapUtils.narrowMapOfSets;
 import static org.cambium.common.util.PaginationUtils.sortType;
 import static org.cambium.common.util.SetUtils.narrowSet;
-import static org.springframework.data.jpa.domain.Specification.where;
 import static org.twins.core.dao.specifications.twin.TwinSpecification.*;
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @RequiredArgsConstructor
 public class TwinSearchService {
@@ -83,7 +85,7 @@ public class TwinSearchService {
         UUID businessAccountId = apiUser.getBusinessAccountId();
         UUID userId = apiUser.getUser().getId();
         //todo create filter by basicSearch.getExtendsTwinClassIdList()
-        Specification<TwinEntity> specification = where(createTwinEntityBasicSearchSpecification(basicSearch, userId));
+        Specification<TwinEntity> specification = createTwinEntityBasicSearchSpecification(basicSearch, userId);
 
         if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL) || !basicSearch.isCheckViewPermission()) {
             specification = specification
@@ -199,7 +201,7 @@ public class TwinSearchService {
     }
 
     public Long count(List<BasicSearch> basicSearches) throws ServiceException {
-        Specification<TwinEntity> spec = where(null);
+        Specification<TwinEntity> spec = (root, query, builder) -> builder.disjunction();
         for (BasicSearch basicSearch : basicSearches)
             spec = spec.or(createTwinEntitySearchSpecification(basicSearch));
         return count(spec);
