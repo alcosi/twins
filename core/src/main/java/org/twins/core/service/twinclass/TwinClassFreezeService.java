@@ -5,16 +5,33 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassFreezeEntity;
 import org.twins.core.dao.twinclass.TwinClassFreezeRepository;
+import org.twins.core.domain.twinclass.TwinClassFreezeCreate;
+import org.twins.core.domain.twinclass.TwinClassFreezeUpdate;
+import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.twin.TwinStatusService;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -23,6 +40,9 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class TwinClassFreezeService extends EntitySecureFindServiceImpl<TwinClassFreezeEntity> {
     private final TwinClassFreezeRepository repository;
+    private final TwinStatusService twinStatusService;
+    private final I18nService i18nService;
+
     @Override
     public CrudRepository<TwinClassFreezeEntity, UUID> entityRepository() {
         return repository;
@@ -40,6 +60,97 @@ public class TwinClassFreezeService extends EntitySecureFindServiceImpl<TwinClas
 
     @Override
     public boolean validateEntity(TwinClassFreezeEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entity.getKey() == null) {
+            return logErrorAndReturnFalse(entity.logNormal() + " empty key");
+        }
+        if (entity.getTwinStatusId() == null) {
+            return logErrorAndReturnFalse(entity.logNormal() + " empty twinStatusId");
+        }
+
+        switch (entityValidateMode) {
+            case beforeSave:
+                if (entity.getTwinStatus() == null || !entity.getTwinStatus().getId().equals(entity.getTwinStatusId())) {
+                    entity.setTwinStatus(twinStatusService.findEntitySafe(entity.getTwinStatusId()));
+                }
+        }
         return true;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinClassFreezeEntity> createTwinClassFreezeList(List<TwinClassFreezeCreate> freezeCreates) throws ServiceException {
+        if (CollectionUtils.isEmpty(freezeCreates)) {
+            return Collections.emptyList();
+        }
+
+        i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FREEZE_NAME, freezeCreates.stream().map(TwinClassFreezeCreate::getName).toList());
+        i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FREEZE_DESCRIPTION, freezeCreates.stream().map(TwinClassFreezeCreate::getDescription).toList());
+
+        List<TwinClassFreezeEntity> twinClassFreezeEntities = new ArrayList<>();
+
+        for (TwinClassFreezeCreate freezeCreate : freezeCreates) {
+            TwinClassFreezeEntity twinClassFreezeEntity = new TwinClassFreezeEntity();
+            twinClassFreezeEntity
+                    .setKey(freezeCreate.getKey())
+                    .setTwinStatusId(freezeCreate.getStatusId())
+                    .setNameI18NId(freezeCreate.getName() != null ? freezeCreate.getName().getId() : null)
+                    .setDescriptionI18NId(freezeCreate.getDescription() != null ? freezeCreate.getDescription().getId() : null);
+            twinClassFreezeEntities.add(twinClassFreezeEntity);
+        }
+        validateEntitiesAndThrow(twinClassFreezeEntities, EntitySmartService.EntityValidateMode.beforeSave);
+
+        return StreamSupport.stream(entityRepository().saveAll(twinClassFreezeEntities).spliterator(), false).toList();
+    }
+
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinClassFreezeEntity> updateTwinClassFreezeList(List<TwinClassFreezeUpdate> freezeUpdates) throws ServiceException {
+        if (CollectionUtils.isEmpty(freezeUpdates)) {
+            return Collections.emptyList();
+        }
+
+        Kit<TwinClassFreezeEntity, UUID> dbFreezeEntitiesKit = findEntitiesSafe(
+                freezeUpdates.stream()
+                        .map(TwinClassFreezeUpdate::getId)
+                        .collect(Collectors.toList())
+        );
+
+        ChangesHelperMulti<TwinClassFreezeEntity> changes = new ChangesHelperMulti<>();
+        List<TwinClassFreezeEntity> allEntities = dbFreezeEntitiesKit.getList();
+
+        for (TwinClassFreezeUpdate freezeUpdate : freezeUpdates) {
+            TwinClassFreezeEntity dbTwinClassFreezeEntity = dbFreezeEntitiesKit.get(freezeUpdate.getId());
+            ChangesHelper changesHelper = new ChangesHelper();
+
+            updateTwinClassFreezeName(freezeUpdate.getName(), dbTwinClassFreezeEntity, changesHelper);
+            updateTwinClassFreezeDescription(freezeUpdate.getDescription(), dbTwinClassFreezeEntity, changesHelper);
+            updateEntityFieldByValue(freezeUpdate.getKey(), dbTwinClassFreezeEntity, TwinClassFreezeEntity::getKey, TwinClassFreezeEntity::setKey, TwinClassFreezeEntity.Fields.key, changesHelper);
+            updateEntityFieldByValue(freezeUpdate.getStatusId(), dbTwinClassFreezeEntity, TwinClassFreezeEntity::getTwinStatusId, TwinClassFreezeEntity::setTwinStatusId, TwinClassFreezeEntity.Fields.twinStatusId, changesHelper);
+
+            changes.add(dbTwinClassFreezeEntity, changesHelper);
+        }
+
+        updateSafe(changes);
+
+        return allEntities;
+    }
+
+    private void updateTwinClassFreezeName(I18nEntity nameI18n, TwinClassFreezeEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
+        if (nameI18n == null)
+            return;
+        if (dbEntity.getNameI18NId() != null)
+            nameI18n.setId(dbEntity.getNameI18NId());
+        i18nService.saveTranslations(I18nType.TWIN_CLASS_FREEZE_NAME, nameI18n);
+        if (changesHelper.isChanged(TwinClassFreezeEntity.Fields.nameI18NId, dbEntity.getNameI18NId(), nameI18n.getId()))
+            dbEntity.setNameI18NId(nameI18n.getId());
+    }
+
+    private void updateTwinClassFreezeDescription(I18nEntity descriptionI18n, TwinClassFreezeEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
+        if (descriptionI18n == null)
+            return;
+        if (dbEntity.getDescriptionI18NId() != null)
+            descriptionI18n.setId(dbEntity.getDescriptionI18NId());
+        i18nService.saveTranslations(I18nType.TWIN_CLASS_FREEZE_DESCRIPTION, descriptionI18n);
+        if (changesHelper.isChanged(DataListOptionEntity.Fields.descriptionI18nId, dbEntity.getDescriptionI18NId(), descriptionI18n.getId()))
+            dbEntity.setDescriptionI18NId(descriptionI18n.getId());
     }
 }
