@@ -5,6 +5,7 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -84,9 +85,7 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
             recipientsToSave.add(recipientEntity);
         }
 
-        return StreamSupport
-                .stream(entityRepository().saveAll(recipientsToSave).spliterator(), false)
-                .toList();
+        return StreamSupport.stream(saveSafe(recipientsToSave).spliterator(), false).toList();
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -98,24 +97,22 @@ public class HistoryNotificationRecipientService extends EntitySecureFindService
         ChangesHelperMulti<HistoryNotificationRecipientEntity> changes = new ChangesHelperMulti<>();
         List<HistoryNotificationRecipientEntity> allEntities = new ArrayList<>(recipients.size());
 
-        List<HistoryNotificationRecipientEntity> entities = new ArrayList<>();
+        Kit<HistoryNotificationRecipientEntity, UUID> entitiesKit = findEntitiesSafe(recipients.stream().map(HistoryNotificationRecipientUpdate::getId).toList());
 
         for (HistoryNotificationRecipientUpdate recipient : recipients) {
-            HistoryNotificationRecipientEntity dbHistoryNotificationRecipient = findEntitySafe(recipient.getId());
-            allEntities.add(dbHistoryNotificationRecipient);
+            HistoryNotificationRecipientEntity entity = entitiesKit.get(recipient.getId());
+            allEntities.add(entity);
 
             ChangesHelper changesHelper = new ChangesHelper();
-            updateHistoryNotificationRecipientName(recipient.getNameI18n(), dbHistoryNotificationRecipient, changesHelper);
-            updateHistoryNotificationRecipientDescription(recipient.getDescriptionI18n(), dbHistoryNotificationRecipient, changesHelper);
+            updateHistoryNotificationRecipientName(recipient.getNameI18n(), entity, changesHelper);
+            updateHistoryNotificationRecipientDescription(recipient.getDescriptionI18n(), entity, changesHelper);
 
-            changes.add(dbHistoryNotificationRecipient, changesHelper);
+            changes.add(entity, changesHelper);
         }
 
         updateSafe(changes);
 
-        return StreamSupport
-                .stream(entityRepository().saveAll(entities).spliterator(), false)
-                .toList();
+        return allEntities;
     }
 
     private void updateHistoryNotificationRecipientName(I18nEntity nameI18n, HistoryNotificationRecipientEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {

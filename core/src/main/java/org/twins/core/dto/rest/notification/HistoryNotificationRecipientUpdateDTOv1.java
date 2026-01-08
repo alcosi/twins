@@ -9,8 +9,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = false)
-@Schema(name = "HistoryNotificationRecipientUpdateDTOv1")
+@EqualsAndHashCode(callSuper = true)
+@Schema(name = "HistoryNotificationRecipientUpdateV1")
 public class HistoryNotificationRecipientUpdateDTOv1 extends HistoryNotificationRecipientSaveDTOv1 {
     @Schema(description = "history notification recipient id")
     public UUID id;

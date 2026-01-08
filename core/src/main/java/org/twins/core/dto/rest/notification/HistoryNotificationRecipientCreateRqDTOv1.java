@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@Schema(name = "HistoryNotificationRecipientCreateRqDTOv1")
+@Schema(name = "HistoryNotificationRecipientCreateRqV1")
 public class HistoryNotificationRecipientCreateRqDTOv1 extends Request {
     @Schema(description = "history notification recipients")
     public List<HistoryNotificationRecipientCreateDTOv1> recipients;

@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = false)
-@Schema(name = "HistoryNotificationRecipientCreateDTOv1")
+@EqualsAndHashCode(callSuper = true)
+@Schema(name = "HistoryNotificationRecipientCreateV1")
 public class HistoryNotificationRecipientCreateDTOv1 extends HistoryNotificationRecipientSaveDTOv1 {
 }
