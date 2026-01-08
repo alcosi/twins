@@ -36,7 +36,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_UPDATE})
+@ProtectedBy({Permissions.TWIN_CLASS_FREEZE_MANAGE, Permissions.TWIN_CLASS_FREEZE_UPDATE})
 public class TwinClassFreezeUpdateController extends ApiController {
     private final TwinClassFreezeService twinClassFreezeService;
     private final TwinClassFreezeUpdateRestDTOReverseMapper twinClassFreezeUpdateRestDTOReverseMapper;

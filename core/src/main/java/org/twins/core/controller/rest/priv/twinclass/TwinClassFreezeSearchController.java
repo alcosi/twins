@@ -37,7 +37,7 @@ import org.twins.core.service.twinclass.TwinClassFreezeSearchService;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_VIEW})
+@ProtectedBy({Permissions.TWIN_CLASS_FREEZE_MANAGE, Permissions.TWIN_CLASS_VIEW})
 public class TwinClassFreezeSearchController extends ApiController {
     private final TwinClassFreezeDTOMapper twinClassFreezeDTOMapper;
     private final TwinClassFreezeSearchService twinClassFreezeSearchService;
