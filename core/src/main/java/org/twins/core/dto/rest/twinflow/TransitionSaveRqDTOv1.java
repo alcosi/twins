@@ -22,9 +22,6 @@ public class TransitionSaveRqDTOv1 extends Request {
     @Schema(description = "I18n description", example = "")
     public I18nSaveDTOv1 descriptionI18n;
 
-    @Schema(description = "I18n message", example = "")
-    public I18nSaveDTOv1 messageI18n;
-
     @Schema(description = "[optional] src status id. if null - from any status transition", example = DTOExamples.TWIN_STATUS_ID)
     public UUID srcStatusId;
 
