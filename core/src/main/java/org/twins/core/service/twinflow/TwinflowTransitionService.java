@@ -462,7 +462,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             dbTwinflowTransitionEntity.setDescriptionI18NId(descriptionI18n.getId());
     }
 
-
     public void updateTransitionName(TwinflowTransitionEntity dbTwinflowTransitionEntity, I18nEntity nameI18n, ChangesHelper changesHelper) throws ServiceException {
         if (nameI18n == null)
             return;
@@ -590,7 +589,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (transition.getSrcTwinStatusId() != null && !twinEntity.getTwinStatusId().equals(transition.getSrcTwinStatusId()))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be performed for " + twinEntity.logDetailed()
                     + ". Given transition is valid only from status[" + transition.getSrcTwinStatusId() + "]");
-        if (isMarketing(transition))
+        if (checkUnavailableTransitionTypes(transition))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be performed for " + twinEntity.logDetailed()
                     + ". Prohibition of execution of marketing transition[" + transition.getTwinflowTransitionTypeId() + "]");
     }
@@ -609,9 +608,10 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     + " Given transition is valid only from status[" + transition.getSrcTwinStatusId() + "]");
     }
 
-    public static boolean isMarketing(TwinflowTransitionEntity transition) {
+    public static boolean checkUnavailableTransitionTypes(TwinflowTransitionEntity transition) {
         return transition.getTwinflowTransitionTypeId() == TwinflowTransitionType.MARKETING
-                || transition.getTwinflowTransitionTypeId() == TwinflowTransitionType.STATUS_CHANGE_MARKETING;
+                || transition.getTwinflowTransitionTypeId() == TwinflowTransitionType.STATUS_CHANGE_MARKETING
+                || transition.getTwinflowTransitionTypeId() == TwinflowTransitionType.OPERATION_DISABLE;
     }
 
     public TransitionContext createTransitionContext(TwinEntity twinEntity, String transitionAlias) throws ServiceException {
