@@ -43,7 +43,9 @@ public enum I18nType  {
     FACE_ELEMENT("faceElement", "Face element", Category.TEXT),
     ERROR("error","Error", Category.TEXT),
     NOTIFICATION_EMAIL_SUBJECT("notificationEmailSubject","notification email subject", Category.TEXT),
-    NOTIFICATION_EMAIL_BODY("notificationEmailBody","notification email body", Category.TEXT);
+    NOTIFICATION_EMAIL_BODY("notificationEmailBody","notification email body", Category.TEXT),
+    RECIPIENT_NAME("recipientName", "recipient name", Category.TEXT),
+    RECIPIENT_DESCRIPTION("recipientDescription", "recipient description", Category.TEXT);
 
     private final String id;
     private final String description;
