@@ -27,6 +27,7 @@ import org.twins.core.mappers.rest.history.HistoryDTOMapperV1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.notification.HistoryNotificationRecipientDTOMapperV1;
 import org.twins.core.mappers.rest.notification.HistoryNotificationRecipientUpdateDTOReverseMapper;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.notification.HistoryNotificationRecipientService;
 import org.twins.core.service.permission.Permissions;
 
@@ -41,6 +42,7 @@ public class HistoryNotificationRecipientUpdateController extends ApiController 
     private final HistoryNotificationRecipientUpdateDTOReverseMapper historyNotificationRecipientUpdateDTOReverseMapper;
     private final HistoryNotificationRecipientDTOMapperV1 historyNotificationRecipientDTOMapperV1;
     private final HistoryNotificationRecipientService historyNotificationRecipientService;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "historyNotificationRecipientUpdateV1", summary = "Update history notification recipient")
@@ -50,15 +52,16 @@ public class HistoryNotificationRecipientUpdateController extends ApiController 
                     @Schema(implementation = HistoryNotificationRecipientListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/history_notification_recipient/v1")
-    public ResponseEntity<?> historyNotificationRecipientV1(
-            @MapperContextBinding(roots = HistoryDTOMapperV1.class, response = HistoryNotificationRecipientListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+    public ResponseEntity<?> historyNotificationRecipientUpdateV1(
+            @MapperContextBinding(roots = HistoryNotificationRecipientDTOMapperV1.class, response = HistoryNotificationRecipientListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody HistoryNotificationRecipientUpdateRqDTOv1 request) {
         HistoryNotificationRecipientListRsDTOv1 rs = new HistoryNotificationRecipientListRsDTOv1();
         try {
-            List<HistoryNotificationRecipientUpdate> historyNotificationRecipientEntityList = historyNotificationRecipientUpdateDTOReverseMapper.convertCollection(request.getRecipients());
-            List<HistoryNotificationRecipientEntity> historyNotificationRecipientList = historyNotificationRecipientService.updateHistoryNotificationRecipients(historyNotificationRecipientEntityList);
+            List<HistoryNotificationRecipientUpdate> updateList = historyNotificationRecipientUpdateDTOReverseMapper.convertCollection(request.getRecipients());
+            List<HistoryNotificationRecipientEntity> historyNotificationRecipientList = historyNotificationRecipientService.updateHistoryNotificationRecipients(updateList);
             rs
-                    .setRecipients(historyNotificationRecipientDTOMapperV1.convertCollection(historyNotificationRecipientList, mapperContext));
+                    .setRecipients(historyNotificationRecipientDTOMapperV1.convertCollection(historyNotificationRecipientList, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

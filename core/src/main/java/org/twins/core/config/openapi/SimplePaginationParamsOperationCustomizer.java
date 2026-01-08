@@ -37,11 +37,6 @@ public class SimplePaginationParamsOperationCustomizer implements OperationCusto
                         .in("query")
                         .schema(new Schema<>().type("boolean")._default(paginationParams.sortAsc())));
 
-                parameters.add(new Parameter()
-                        .name(SimplePagination.SORT_FIELD)
-                        .in("query")
-                        .schema(new Schema<>().type("string")._default(paginationParams.sortField())));
-
                 if (null == operation.getParameters()) operation.setParameters(new ArrayList<>());
                 operation.getParameters().addAll(parameters);
                 break;
