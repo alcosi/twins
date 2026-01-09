@@ -12,7 +12,7 @@ import java.util.List;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinClassFreezeCreateRsV1")
-public class TwinClassFreezeRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+public class TwinClassFreezeListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "twin class freeze list")
     public List<TwinClassFreezeDTOv1> twinClassFreezes;
 }

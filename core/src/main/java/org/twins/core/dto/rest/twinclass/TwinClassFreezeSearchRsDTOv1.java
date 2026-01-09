@@ -10,7 +10,7 @@ import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinClassFreezeSearchRsV1")
-public class TwinClassFreezeSearchRsDTOv1 extends TwinClassFreezeRsDTOv1 {
+public class TwinClassFreezeSearchRsDTOv1 extends TwinClassFreezeListRsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 }

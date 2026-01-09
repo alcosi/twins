@@ -21,7 +21,7 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twinclass.TwinClassFreezeEntity;
-import org.twins.core.dto.rest.twinclass.TwinClassFreezeRsDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassFreezeListRsDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFreezeUpdateRqDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -32,7 +32,7 @@ import org.twins.core.service.twinclass.TwinClassFreezeService;
 
 import java.util.List;
 
-@Tag(description = "", name = ApiTag.PROJECTION)
+@Tag(description = "", name = ApiTag.TWIN_CLASS)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -48,13 +48,13 @@ public class TwinClassFreezeUpdateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin class freezes data", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinClassFreezeRsDTOv1.class))}),
+                    @Schema(implementation = TwinClassFreezeListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin_class_freeze/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinClassFreezeUpdateV1(
-            @MapperContextBinding(roots = TwinClassFreezeDTOMapper.class, response = TwinClassFreezeRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinClassFreezeDTOMapper.class, response = TwinClassFreezeListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody TwinClassFreezeUpdateRqDTOv1 request) {
-        TwinClassFreezeRsDTOv1 rs = new TwinClassFreezeRsDTOv1();
+        TwinClassFreezeListRsDTOv1 rs = new TwinClassFreezeListRsDTOv1();
         try {
             List<TwinClassFreezeEntity> twinClassFreezeEntityList = twinClassFreezeService.updateTwinClassFreezeList(twinClassFreezeUpdateRestDTOReverseMapper.convertCollection(request.getTwinClassFreezes()));
             rs

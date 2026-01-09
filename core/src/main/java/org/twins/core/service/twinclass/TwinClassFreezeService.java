@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -121,8 +122,8 @@ public class TwinClassFreezeService extends EntitySecureFindServiceImpl<TwinClas
             TwinClassFreezeEntity dbTwinClassFreezeEntity = dbFreezeEntitiesKit.get(freezeUpdate.getId());
             ChangesHelper changesHelper = new ChangesHelper();
 
-            updateTwinClassFreezeName(freezeUpdate.getName(), dbTwinClassFreezeEntity, changesHelper);
-            updateTwinClassFreezeDescription(freezeUpdate.getDescription(), dbTwinClassFreezeEntity, changesHelper);
+            i18nService.updateI18nFieldForEntity(freezeUpdate.getName(), I18nType.TWIN_CLASS_FREEZE_NAME, dbTwinClassFreezeEntity, TwinClassFreezeEntity::getNameI18NId, TwinClassFreezeEntity::setNameI18NId, TwinClassFreezeEntity.Fields.nameI18NId, changesHelper);
+            i18nService.updateI18nFieldForEntity(freezeUpdate.getDescription(), I18nType.TWIN_CLASS_FREEZE_DESCRIPTION, dbTwinClassFreezeEntity, TwinClassFreezeEntity::getDescriptionI18NId, TwinClassFreezeEntity::setDescriptionI18NId, TwinClassFreezeEntity.Fields.descriptionI18NId, changesHelper);
             updateEntityFieldByValue(freezeUpdate.getKey(), dbTwinClassFreezeEntity, TwinClassFreezeEntity::getKey, TwinClassFreezeEntity::setKey, TwinClassFreezeEntity.Fields.key, changesHelper);
             updateEntityFieldByValue(freezeUpdate.getStatusId(), dbTwinClassFreezeEntity, TwinClassFreezeEntity::getTwinStatusId, TwinClassFreezeEntity::setTwinStatusId, TwinClassFreezeEntity.Fields.twinStatusId, changesHelper);
 
@@ -134,23 +135,4 @@ public class TwinClassFreezeService extends EntitySecureFindServiceImpl<TwinClas
         return allEntities;
     }
 
-    private void updateTwinClassFreezeName(I18nEntity nameI18n, TwinClassFreezeEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
-        if (nameI18n == null)
-            return;
-        if (dbEntity.getNameI18NId() != null)
-            nameI18n.setId(dbEntity.getNameI18NId());
-        i18nService.saveTranslations(I18nType.TWIN_CLASS_FREEZE_NAME, nameI18n);
-        if (changesHelper.isChanged(TwinClassFreezeEntity.Fields.nameI18NId, dbEntity.getNameI18NId(), nameI18n.getId()))
-            dbEntity.setNameI18NId(nameI18n.getId());
-    }
-
-    private void updateTwinClassFreezeDescription(I18nEntity descriptionI18n, TwinClassFreezeEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
-        if (descriptionI18n == null)
-            return;
-        if (dbEntity.getDescriptionI18NId() != null)
-            descriptionI18n.setId(dbEntity.getDescriptionI18NId());
-        i18nService.saveTranslations(I18nType.TWIN_CLASS_FREEZE_DESCRIPTION, descriptionI18n);
-        if (changesHelper.isChanged(DataListOptionEntity.Fields.descriptionI18nId, dbEntity.getDescriptionI18NId(), descriptionI18n.getId()))
-            dbEntity.setDescriptionI18NId(descriptionI18n.getId());
-    }
 }
