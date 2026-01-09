@@ -258,29 +258,9 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         ChangesHelper changesHelper = new ChangesHelper();
         updatePermissionKey(updateEntity, dbEntity, changesHelper);
         updatePermissionGroupId(updateEntity, dbEntity, changesHelper);
-        updatePermissionName(nameI18n, dbEntity, changesHelper);
-        updatePermissionDescription(descriptionI18n, dbEntity, changesHelper);
+        i18nService.updateI18nFieldForEntity(nameI18n, I18nType.PERMISSION_NAME, dbEntity, PermissionEntity::getNameI18NId, PermissionEntity::setNameI18NId, PermissionEntity.Fields.nameI18NId, changesHelper);
+        i18nService.updateI18nFieldForEntity(descriptionI18n, I18nType.PERMISSION_DESCRIPTION, dbEntity, PermissionEntity::getDescriptionI18NId, PermissionEntity::setDescriptionI18NId, PermissionEntity.Fields.descriptionI18NId, changesHelper);
         return updateSafe(dbEntity, changesHelper);
-    }
-
-    private void updatePermissionDescription(I18nEntity descriptionI18n, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
-        if (descriptionI18n == null)
-            return;
-        if (dbEntity.getDescriptionI18NId() != null)
-            descriptionI18n.setId(dbEntity.getDescriptionI18NId());
-        i18nService.saveTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n);
-        if (changesHelper.isChanged(PermissionEntity.Fields.descriptionI18NId, dbEntity.getDescriptionI18NId(), descriptionI18n.getId()))
-            dbEntity.setDescriptionI18NId(descriptionI18n.getId());
-    }
-
-    private void updatePermissionName(I18nEntity nameI18n, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
-        if (nameI18n == null)
-            return;
-        if (dbEntity.getNameI18NId() != null)
-            nameI18n.setId(dbEntity.getNameI18NId());
-        i18nService.saveTranslations(I18nType.PERMISSION_NAME, nameI18n);
-        if (changesHelper.isChanged(PermissionEntity.Fields.nameI18NId, dbEntity.getNameI18NId(), nameI18n.getId()))
-            dbEntity.setNameI18NId(nameI18n.getId());
     }
 
     private void updatePermissionGroupId(PermissionEntity updateEntity, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {

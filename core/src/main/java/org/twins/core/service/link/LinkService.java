@@ -142,8 +142,8 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         //for future old classes kit nullify
         linkUpdate.setDstTwinClass(dbLinkEntity.getDstTwinClass());
         linkUpdate.setSrcTwinClass(dbLinkEntity.getSrcTwinClass());
-        updateLinkForwardName(dbLinkEntity, forwardNameI18n, changesHelper);
-        updateLinkBackwardName(dbLinkEntity, backwardNameI18n, changesHelper);
+        i18nService.updateI18nFieldForEntity(forwardNameI18n, I18nType.LINK_FORWARD_NAME, dbLinkEntity, LinkEntity::getForwardNameI18NId, LinkEntity::setForwardNameI18NId, LinkEntity.Fields.forwardNameI18NId, changesHelper);
+        i18nService.updateI18nFieldForEntity(backwardNameI18n, I18nType.LINK_BACKWARD_NAME, dbLinkEntity, LinkEntity::getBackwardNameI18NId, LinkEntity::setBackwardNameI18NId, LinkEntity.Fields.backwardNameI18NId, changesHelper);
         updateLinkSrcTwinClassId(dbLinkEntity, linkUpdate.getSrcTwinClassUpdate(), changesHelper);
         updateLinkDstTwinClassId(dbLinkEntity, linkUpdate.getDstTwinClassUpdate(), changesHelper);
         updateLinkType(dbLinkEntity, linkUpdate.getType(), changesHelper);
@@ -163,26 +163,6 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
             CacheUtils.evictCache(cacheManager,CACHE_LINK, dbLinkEntity.getId());
         }
         return dbLinkEntity;
-    }
-
-    public void updateLinkForwardName(LinkEntity dbLinkEntity, I18nEntity forwardNameI18n, ChangesHelper changesHelper) throws ServiceException {
-        if (forwardNameI18n == null)
-            return;
-        if (dbLinkEntity.getForwardNameI18NId() != null)
-            forwardNameI18n.setId(dbLinkEntity.getForwardNameI18NId());
-        i18nService.saveTranslations(I18nType.LINK_FORWARD_NAME, forwardNameI18n);
-        if (changesHelper.isChanged(LinkEntity.Fields.forwardNameI18NId, dbLinkEntity.getForwardNameI18NId(), forwardNameI18n.getId()))
-            dbLinkEntity.setForwardNameI18NId(forwardNameI18n.getId());
-    }
-
-    public void updateLinkBackwardName(LinkEntity dbLinkEntity, I18nEntity backwardNameI18n, ChangesHelper changesHelper) throws ServiceException {
-        if (backwardNameI18n == null)
-            return;
-        if (dbLinkEntity.getBackwardNameI18NId() != null)
-            backwardNameI18n.setId(dbLinkEntity.getBackwardNameI18NId());
-        i18nService.saveTranslations(I18nType.LINK_FORWARD_NAME, backwardNameI18n);
-        if (changesHelper.isChanged(LinkEntity.Fields.backwardNameI18NId, dbLinkEntity.getBackwardNameI18NId(), backwardNameI18n.getId()))
-            dbLinkEntity.setBackwardNameI18NId(backwardNameI18n.getId());
     }
 
     public void updateLinkDstTwinClassId(LinkEntity dbLinkEntity, EntityRelinkOperation linkDstClassChangeOperation, ChangesHelper changesHelper) throws ServiceException {

@@ -174,19 +174,14 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
             loadDataListAttributeAccessors(dbDataList);
 
             ChangesHelper changesHelper = new ChangesHelper();
-            updateDataListOptionName(update.getNameI18n(), dbOption, changesHelper);
-            updateDataListOptionDescription(update.getDescriptionI18n(), dbOption, changesHelper);
+            i18nService.updateI18nFieldForEntity(update.getNameI18n(), I18nType.DATA_LIST_OPTION_VALUE, dbOption, DataListOptionEntity::getOptionI18nId, DataListOptionEntity::setOptionI18nId, DataListOptionEntity.Fields.optionI18nId, changesHelper);
+            i18nService.updateI18nFieldForEntity(update.getDescriptionI18n(), I18nType.DATA_LIST_OPTION_DESCRIPTION, dbOption, DataListOptionEntity::getDescriptionI18nId, DataListOptionEntity::setDescriptionI18nId, DataListOptionEntity.Fields.descriptionI18nId, changesHelper);
             updateAttributes(dbDataList, dbOption, update.getAttributes(), changesHelper);
-            updateEntityFieldByValue(update.getIcon(), dbOption, DataListOptionEntity::getIcon,
-                    DataListOptionEntity::setIcon, DataListOptionEntity.Fields.icon, changesHelper);
-            updateEntityFieldByValue(update.getStatus(), dbOption, DataListOptionEntity::getStatus,
-                    DataListOptionEntity::setStatus, DataListOptionEntity.Fields.status, changesHelper);
-            updateEntityFieldByValue(update.getExternalId(), dbOption, DataListOptionEntity::getExternalId,
-                    DataListOptionEntity::setExternalId, DataListOptionEntity.Fields.externalId, changesHelper);
-            updateEntityFieldByValue(update.getBackgroundColor(), dbOption, DataListOptionEntity::getBackgroundColor,
-                    DataListOptionEntity::setBackgroundColor, DataListOptionEntity.Fields.backgroundColor, changesHelper);
-            updateEntityFieldByValue(update.getFontColor(), dbOption, DataListOptionEntity::getFontColor,
-                    DataListOptionEntity::setFontColor, DataListOptionEntity.Fields.fontColor, changesHelper);
+            updateEntityFieldByValue(update.getIcon(), dbOption, DataListOptionEntity::getIcon, DataListOptionEntity::setIcon, DataListOptionEntity.Fields.icon, changesHelper);
+            updateEntityFieldByValue(update.getStatus(), dbOption, DataListOptionEntity::getStatus, DataListOptionEntity::setStatus, DataListOptionEntity.Fields.status, changesHelper);
+            updateEntityFieldByValue(update.getExternalId(), dbOption, DataListOptionEntity::getExternalId, DataListOptionEntity::setExternalId, DataListOptionEntity.Fields.externalId, changesHelper);
+            updateEntityFieldByValue(update.getBackgroundColor(), dbOption, DataListOptionEntity::getBackgroundColor, DataListOptionEntity::setBackgroundColor, DataListOptionEntity.Fields.backgroundColor, changesHelper);
+            updateEntityFieldByValue(update.getFontColor(), dbOption, DataListOptionEntity::getFontColor, DataListOptionEntity::setFontColor, DataListOptionEntity.Fields.fontColor, changesHelper);
 
             changes.add(dbOption, changesHelper);
         }
@@ -223,28 +218,6 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         if (StringUtils.isNotEmpty(dataListEntity.getAttribute4key()))
             attributes.put(dataListEntity.getAttribute4key(), new DataListOptionEntity.AttributeAccessor(DataListOptionEntity::getAttribute4value, DataListOptionEntity::setAttribute4value));
         dataListEntity.setAttributes(attributes);
-    }
-
-    private void updateDataListOptionName(I18nEntity nameI18n, DataListOptionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
-        if (nameI18n == null)
-            return;
-        if (dbEntity.getOptionI18nId() != null)
-            nameI18n.setId(dbEntity.getOptionI18nId());
-        i18nService.saveTranslations(I18nType.DATA_LIST_OPTION_VALUE, nameI18n);
-        //todo changesHelper for i18n doesn't work
-        if (changesHelper.isChanged(DataListOptionEntity.Fields.optionI18nId, dbEntity.getOptionI18nId(), nameI18n.getId()))
-            dbEntity.setOptionI18nId(nameI18n.getId());
-    }
-
-    private void updateDataListOptionDescription(I18nEntity descriptionI18n, DataListOptionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
-        if (descriptionI18n == null)
-            return;
-        if (dbEntity.getDescriptionI18nId() != null)
-            descriptionI18n.setId(dbEntity.getDescriptionI18nId());
-        i18nService.saveTranslations(I18nType.DATA_LIST_OPTION_DESCRIPTION, descriptionI18n);
-        //todo changesHelper for i18n doesn't work
-        if (changesHelper.isChanged(DataListOptionEntity.Fields.descriptionI18nId, dbEntity.getDescriptionI18nId(), descriptionI18n.getId()))
-            dbEntity.setDescriptionI18nId(descriptionI18n.getId());
     }
 
     private void updateDataListOptionAttribute(String newAttr, String fieldName, DataListOptionEntity dbEntity, Function<DataListOptionEntity, String> getAttr, BiConsumer<DataListOptionEntity, String> setAttr, ChangesHelper changesHelper) {
