@@ -6,11 +6,14 @@ import org.twins.core.dto.rest.datalist.DataListOptionSearchDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
+import java.util.Set;
+
 @Component
 public class DataListOptionSearchDTOReverseMapper extends RestSimpleDTOMapper<DataListOptionSearchDTOv1, DataListOptionSearch> {
 
     @Override
     public void map(DataListOptionSearchDTOv1 src, DataListOptionSearch dst, MapperContext mapperContext) {
+        // Сначала обрабатываем стандартные поля
         dst
                 .setIdList(src.getIdList())
                 .setIdExcludeList(src.getIdExcludeList())
@@ -30,12 +33,25 @@ public class DataListOptionSearchDTOReverseMapper extends RestSimpleDTOMapper<Da
                 .setDataListSubsetKeyExcludeList(src.getDataListSubsetKeyExcludeList())
                 .setStatusIdList(src.getStatusIdList())
                 .setStatusIdExcludeList(src.getStatusIdExcludeList())
-                .setExternalIdLikeList(src.getExternalIdLikeList())
-                .setExternalIdNotLikeList(src.getExternalIdNotLikeList())
-                .setExternalIdList(src.getExternalIdList())
-                .setExternalIdExcludeList(src.getExternalIdExcludeList())
                 .setValidForTwinClassFieldIdList(src.getValidForTwinClassFieldIdList())
-                .setCustom(src.getCustom())
-        ;
+                .setCustom(src.getCustom());
+
+        handleExternalIdMapping(src, dst);
+    }
+
+    // using deprecated like fields only if main one doesn't exist
+    private void handleExternalIdMapping(DataListOptionSearchDTOv1 src, DataListOptionSearch dst) {
+        Set<String> externalIdList = src.getExternalIdList();
+        Set<String> externalIdExcludeList = src.getExternalIdExcludeList();
+
+        boolean hasStandardExternalId = externalIdList != null && !externalIdList.isEmpty() || externalIdExcludeList != null && !externalIdExcludeList.isEmpty();
+
+        if (hasStandardExternalId) {
+            dst.setExternalIdList(externalIdList);
+            dst.setExternalIdExcludeList(externalIdExcludeList);
+        } else {
+            dst.setExternalIdList(src.getExternalIdLikeList());
+            dst.setExternalIdExcludeList(src.getExternalIdNotLikeList());
+        }
     }
 }
