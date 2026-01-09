@@ -12,6 +12,8 @@ import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.DomainRepository;
 import org.twins.core.dao.domain.DomainTypeEntity;
 import org.twins.core.dao.domain.TierRepository;
+import org.twins.core.dao.notification.NotificationSchemaEntity;
+import org.twins.core.dao.notification.NotificationSchemaRepository;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
@@ -62,6 +64,8 @@ public abstract class DomainInitiator extends FeaturerTwins {
     @Autowired
     PermissionSchemaRepository permissionSchemaRepository;
     @Autowired
+    NotificationSchemaRepository notificationSchemaRepository;
+    @Autowired
     TierRepository tierRepository;
     @Lazy
     @Autowired
@@ -111,6 +115,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setTwinflowSchemaId(createDefaultTwinflowSchema(domainEntity))
                 .setTwinClassSchemaId(createDefaultTwinClassSchema(domainEntity))
                 .setPermissionSchemaId(createDefaultPermissionsSchema(domainEntity))
+                .setNotificationSchemaId(createDefaultNotificationSchema(domainEntity))
                 .setDomainUserTemplateTwinId(createDomainUserTemplateTwin(domainEntity));
     }
 
@@ -216,5 +221,15 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setCreatedByUserId(systemEntityService.getUserIdSystem());
         permissionSchema = entitySmartService.save(permissionSchema, permissionSchemaRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         return permissionSchema.getId();
+    }
+
+    @Transactional
+    protected UUID createDefaultNotificationSchema(DomainEntity domainEntity) throws ServiceException {
+        String notificationSchemaName = "Default domain notification schema";
+        NotificationSchemaEntity notificationSchema = new NotificationSchemaEntity()
+                .setDomainId(domainEntity.getId())
+                .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.NOTIFICATION_SCHEMA_NAME, notificationSchemaName).getId());
+        notificationSchema = entitySmartService.save(notificationSchema, notificationSchemaRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        return notificationSchema.getId();
     }
 }

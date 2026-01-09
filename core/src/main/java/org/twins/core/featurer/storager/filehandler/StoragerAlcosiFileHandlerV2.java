@@ -32,8 +32,6 @@ import org.twins.core.featurer.storager.StoragerAbstractChecked;
 import javax.naming.LimitExceededException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.ConnectException;
-import java.net.SocketException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.*;
@@ -355,20 +353,16 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                         responseType
                 );
             } catch (ResourceAccessException e) {
-                if (e.getCause() instanceof ConnectException || e.getCause() instanceof SocketException) {
-                    log.warn("Attempt {}/{} failed: {}", attempt, maxRetries, e.getMessage());
+                log.warn("Attempt {}/{} failed: {}", attempt, maxRetries, e.getMessage());
 
-                    if (attempt == maxRetries) {
-                        throw e;
-                    }
+                if (attempt == maxRetries) {
+                    throw e;
+                }
 
-                    try {
-                        Thread.sleep(500L * attempt);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        throw e;
-                    }
-                } else {
+                try {
+                    Thread.sleep(500L * attempt);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
                     throw e;
                 }
             }
