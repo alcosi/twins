@@ -21,7 +21,6 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListAttribute;
@@ -149,13 +148,13 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         i18nService.updateI18nFieldForEntity(dataListUpdate.getNameI18n(), I18nType.DATA_LIST_NAME, dbDataListEntity, DataListEntity::getNameI18nId, DataListEntity::setNameI18nId, DataListEntity.Fields.nameI18nId, changesHelper);
         i18nService.updateI18nFieldForEntity(dataListUpdate.getDescriptionI18n(), I18nType.DATA_LIST_DESCRIPTION, dbDataListEntity, DataListEntity::getDescriptionI18NId, DataListEntity::setDescriptionI18NId, DataListEntity.Fields.descriptionI18NId, changesHelper);
         updateDataListAttributeKey(dataListUpdate.getAttribute1(), DataListEntity.Fields.attribute1key, dbDataListEntity, DataListEntity::getAttribute1key, DataListEntity::setAttribute1key, changesHelper);
-        i18nService.updateI18nFieldForEntity(Optional.ofNullable(dataListUpdate.getAttribute1()).map(DataListAttribute::getAttributeI18n).orElse(null), I18nType.DATA_LIST_OPTION_VALUE, dbDataListEntity, DataListEntity::getAttribute1nameI18nId, DataListEntity::setAttribute1nameI18nId, DataListEntity.Fields.attribute1nameI18nId, changesHelper);
+        updateDataListAttributeI18n(dataListUpdate.getAttribute1(), DataListEntity.Fields.attribute1nameI18nId, dbDataListEntity, DataListEntity::getAttribute1nameI18nId, DataListEntity::setAttribute1nameI18nId, changesHelper);
         updateDataListAttributeKey(dataListUpdate.getAttribute2(), DataListEntity.Fields.attribute2key, dbDataListEntity, DataListEntity::getAttribute2key, DataListEntity::setAttribute2key, changesHelper);
-        i18nService.updateI18nFieldForEntity(Optional.ofNullable(dataListUpdate.getAttribute2()).map(DataListAttribute::getAttributeI18n).orElse(null), I18nType.DATA_LIST_OPTION_VALUE, dbDataListEntity, DataListEntity::getAttribute2nameI18nId, DataListEntity::setAttribute2nameI18nId, DataListEntity.Fields.attribute2nameI18nId, changesHelper);
+        updateDataListAttributeI18n(dataListUpdate.getAttribute2(), DataListEntity.Fields.attribute2nameI18nId, dbDataListEntity, DataListEntity::getAttribute2nameI18nId, DataListEntity::setAttribute2nameI18nId, changesHelper);
         updateDataListAttributeKey(dataListUpdate.getAttribute3(), DataListEntity.Fields.attribute3key, dbDataListEntity, DataListEntity::getAttribute3key, DataListEntity::setAttribute3key, changesHelper);
-        i18nService.updateI18nFieldForEntity(Optional.ofNullable(dataListUpdate.getAttribute3()).map(DataListAttribute::getAttributeI18n).orElse(null), I18nType.DATA_LIST_OPTION_VALUE, dbDataListEntity, DataListEntity::getAttribute3nameI18nId, DataListEntity::setAttribute3nameI18nId, DataListEntity.Fields.attribute3nameI18nId, changesHelper);
+        updateDataListAttributeI18n(dataListUpdate.getAttribute3(), DataListEntity.Fields.attribute3nameI18nId, dbDataListEntity, DataListEntity::getAttribute3nameI18nId, DataListEntity::setAttribute3nameI18nId, changesHelper);
         updateDataListAttributeKey(dataListUpdate.getAttribute4(), DataListEntity.Fields.attribute4key, dbDataListEntity, DataListEntity::getAttribute4key, DataListEntity::setAttribute4key, changesHelper);
-        i18nService.updateI18nFieldForEntity(Optional.ofNullable(dataListUpdate.getAttribute4()).map(DataListAttribute::getAttributeI18n).orElse(null), I18nType.DATA_LIST_OPTION_VALUE, dbDataListEntity, DataListEntity::getAttribute4nameI18nId, DataListEntity::setAttribute4nameI18nId, DataListEntity.Fields.attribute4nameI18nId, changesHelper);
+        updateDataListAttributeI18n(dataListUpdate.getAttribute4(), DataListEntity.Fields.attribute4nameI18nId, dbDataListEntity, DataListEntity::getAttribute4nameI18nId, DataListEntity::setAttribute4nameI18nId, changesHelper);
         updateExternalId(dbDataListEntity, dataListUpdate.getExternalId(), changesHelper);
         updateEntityFieldByValue(dataListUpdate.getDefaultOptionId(), dbDataListEntity, DataListEntity::getDefaultDataListOptionId, DataListEntity::setDefaultDataListOptionId, DataListEntity.Fields.defaultDataListOptionId, changesHelper);
         dbDataListEntity.setUpdatedAt(Timestamp.from(Instant.now()));
@@ -184,15 +183,11 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         setAttributeKey.accept(dbEntity, attribute.getKey());
     }
 
-//    private void updateDataListAttribute1I18n(I18nEntity attribute1I18n, DataListEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
-//        if (attribute1I18n == null)
-//            return;
-//        if (dbEntity.getAttribute1nameI18nId() != null)
-//            attribute1I18n.setId(dbEntity.getAttribute1nameI18nId());
-//        i18nService.saveTranslations(I18nType.DATA_LIST_OPTION_VALUE, attribute1I18n);
-//        if (changesHelper.isChanged(DataListEntity.Fields.attribute1nameI18nId, dbEntity.getAttribute1nameI18nId(), attribute1I18n.getId()))
-//            dbEntity.setAttribute1nameI18nId(attribute1I18n.getId());
-//    }
+    private void updateDataListAttributeI18n(DataListAttribute attribute, String fieldName, DataListEntity dbDataListEntity, Function<DataListEntity, UUID> getAttribute, BiConsumer<DataListEntity, UUID> setAttribute, ChangesHelper changesHelper) throws ServiceException {
+        if (attribute == null || attribute.getAttributeI18n() == null)
+            return;
+        i18nService.updateI18nFieldForEntity(attribute.getAttributeI18n(), I18nType.DATA_LIST_OPTION_VALUE, dbDataListEntity, getAttribute, setAttribute, fieldName, changesHelper);
+    }
 
     //todo cache it
     public void loadDataListOptions(DataListEntity dataListEntity) throws ServiceException {
