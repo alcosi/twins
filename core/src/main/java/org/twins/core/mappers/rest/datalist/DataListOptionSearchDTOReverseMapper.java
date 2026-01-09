@@ -13,7 +13,6 @@ public class DataListOptionSearchDTOReverseMapper extends RestSimpleDTOMapper<Da
 
     @Override
     public void map(DataListOptionSearchDTOv1 src, DataListOptionSearch dst, MapperContext mapperContext) {
-        // Сначала обрабатываем стандартные поля
         dst
                 .setIdList(src.getIdList())
                 .setIdExcludeList(src.getIdExcludeList())
