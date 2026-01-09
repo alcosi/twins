@@ -270,8 +270,8 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     public TwinflowEntity updateTwinflow(TwinflowEntity twinflowEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         TwinflowEntity dbTwinflowEntity = findEntitySafe(twinflowEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
-        updateTwinflowName(dbTwinflowEntity, nameI18n, changesHelper);
-        updateTwinflowDescription(dbTwinflowEntity, descriptionI18n, changesHelper);
+        i18nService.updateI18nFieldForEntity(nameI18n, I18nType.TWINFLOW_NAME, dbTwinflowEntity, TwinflowEntity::getNameI18NId, TwinflowEntity::setNameI18NId, TwinflowEntity.Fields.nameI18NId, changesHelper);
+        i18nService.updateI18nFieldForEntity(descriptionI18n, I18nType.TWINFLOW_DESCRIPTION, dbTwinflowEntity, TwinflowEntity::getDescriptionI18NId, TwinflowEntity::setDescriptionI18NId, TwinflowEntity.Fields.descriptionI18NId, changesHelper);
         updateTwinflowInitStatus(dbTwinflowEntity, twinflowEntity.getInitialTwinStatusId(), changesHelper);
         dbTwinflowEntity = updateSafe(dbTwinflowEntity, changesHelper);
         if (changesHelper.hasChanges()) {
@@ -282,27 +282,6 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
             CacheUtils.evictCache(cacheManager, cacheEvictCollector);
         }
         return dbTwinflowEntity;
-    }
-
-    public void updateTwinflowDescription(TwinflowEntity dbTwinflowEntity, I18nEntity descriptionI18n, ChangesHelper changesHelper) throws ServiceException {
-        if (descriptionI18n == null)
-            return;
-        if (dbTwinflowEntity.getDescriptionI18NId() != null)
-            descriptionI18n.setId(dbTwinflowEntity.getDescriptionI18NId());
-        i18nService.saveTranslations(I18nType.TWINFLOW_DESCRIPTION, descriptionI18n);
-        if (changesHelper.isChanged(TwinflowEntity.Fields.descriptionI18NId, dbTwinflowEntity.getDescriptionI18NId(), descriptionI18n.getId()))
-            dbTwinflowEntity.setDescriptionI18NId(descriptionI18n.getId());
-    }
-
-
-    public void updateTwinflowName(TwinflowEntity dbTwinflowEntity, I18nEntity nameI18n, ChangesHelper changesHelper) throws ServiceException {
-        if (nameI18n == null)
-            return;
-        if (dbTwinflowEntity.getNameI18NId() != null)
-            nameI18n.setId(dbTwinflowEntity.getNameI18NId());
-        i18nService.saveTranslations(I18nType.TWINFLOW_NAME, nameI18n);
-        if (changesHelper.isChanged(TwinflowEntity.Fields.nameI18NId, dbTwinflowEntity.getNameI18NId(), nameI18n.getId()))
-            dbTwinflowEntity.setNameI18NId(nameI18n.getId());
     }
 
     public void updateTwinflowInitStatus(TwinflowEntity dbTwinflowEntity, UUID initStatusId, ChangesHelper changesHelper) throws ServiceException {

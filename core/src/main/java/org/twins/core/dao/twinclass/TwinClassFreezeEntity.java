@@ -15,8 +15,8 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
-@Table(name = "twin_class_freeze")
 @FieldNameConstants
+@Table(name = "twin_class_freeze")
 public class TwinClassFreezeEntity implements EasyLoggable {
     @Id
     private UUID id;
