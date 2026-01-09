@@ -1,4 +1,4 @@
-package org.twins.core.service.twin;
+package org.twins.core.featurer.scheduler.tasks;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;

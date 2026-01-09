@@ -4,6 +4,7 @@ import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Range;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.math.IntegerRange;
 import org.cambium.common.math.LongRange;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LTreeUtils;
@@ -17,6 +18,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.DataTimeRange;
+import org.cambium.common.math.LongRange;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
 
 import java.sql.Timestamp;
@@ -492,6 +494,28 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(ids)) return cb.conjunction();
             return not ? cb.not(root.get(field).in(ids)) : root.get(field).in(ids);
+        };
+    }
+
+    public static <T> Specification<T> checkFieldIntegerRange(
+            final IntegerRange range,
+            final String... fieldPath) {
+        return (root, query, cb) -> {
+            if (range == null || (range.getFrom() == null && range.getTo() == null)) {
+                return cb.conjunction();
+            }
+
+            List<Predicate> predicates = new ArrayList<>();
+            Path<Integer> field = getFieldPath(root, JoinType.INNER, fieldPath);
+
+            if (range.getFrom() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(field, range.getFrom()));
+            }
+            if (range.getTo() != null) {
+                predicates.add(cb.lessThanOrEqualTo(field, range.getTo()));
+            }
+
+            return cb.and(predicates.toArray(Predicate[]::new));
         };
     }
 }

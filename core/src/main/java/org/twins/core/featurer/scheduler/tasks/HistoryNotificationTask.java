@@ -1,5 +1,7 @@
-package org.twins.core.service.notification;
+package org.twins.core.featurer.scheduler.tasks;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.KitGroupedObj;
@@ -16,10 +18,9 @@ import org.twins.core.enums.history.HistoryType;
 import org.twins.core.featurer.notificator.notifier.Notifier;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryRecipientService;
+import org.twins.core.service.notification.NotificationContextService;
 import org.twins.core.service.twin.TwinValidatorSetService;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
