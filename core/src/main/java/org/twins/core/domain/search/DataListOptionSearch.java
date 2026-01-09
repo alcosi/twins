@@ -24,8 +24,6 @@ public class DataListOptionSearch {
     private Set<String> optionNotLikeList;
     private Set<String> optionI18nLikeList;
     private Set<String> optionI18nNotLikeList;
-    private Set<String> externalIdLikeList;
-    private Set<String> externalIdNotLikeList;
     private Set<String> externalIdList;
     private Set<String> externalIdExcludeList;
     private Set<UUID> businessAccountIdList;
@@ -60,14 +58,6 @@ public class DataListOptionSearch {
             externalIdExcludeList = CollectionUtils.safeAdd(externalIdExcludeList, externalId);
         else
             externalIdList = CollectionUtils.safeAdd(externalIdList, externalId);
-        return this;
-    }
-
-    public DataListOptionSearch addExternalIdLike(String externalId, boolean exclude) {
-        if (exclude)
-            externalIdNotLikeList = CollectionUtils.safeAdd(externalIdNotLikeList, externalId);
-        else
-            externalIdLikeList = CollectionUtils.safeAdd(externalIdLikeList, externalId);
         return this;
     }
 
