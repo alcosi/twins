@@ -79,6 +79,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     private final TwinClassSchemaRepository twinClassSchemaRepository;
     private final TwinClassSchemaMapRepository twinClassSchemaMapRepository;
     private final TwinClassFieldService twinClassFieldService;
+    @Lazy
     private final TwinClassFreezeService twinClassFreezeService;
     private final EntitySmartService entitySmartService;
     private final I18nService i18nService;
