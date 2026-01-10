@@ -1604,4 +1604,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
+    public boolean existsByTwinClassId(UUID twinClassId) {
+        return twinRepository.existsByTwinClassId(twinClassId);
+    }
 }
