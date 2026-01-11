@@ -9,16 +9,11 @@ import org.twins.core.dto.rest.notification.HistoryNotificationRecipientSaveDTOv
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.service.auth.AuthService;
-
-import java.sql.Timestamp;
-import java.time.Instant;
 
 @Component
 @RequiredArgsConstructor
 public class HistoryNotificationRecipientSaveDTOReverseMapper extends RestSimpleDTOMapper<HistoryNotificationRecipientSaveDTOv1, HistoryNotificationRecipientSave> {
     private final I18nSaveRestDTOReverseMapper i18nSaveRestDTOReverseMapper;
-    private final AuthService authService;
 
     @Override
     public void map(HistoryNotificationRecipientSaveDTOv1 src, HistoryNotificationRecipientSave dst, MapperContext mapperContext) throws Exception {
@@ -30,8 +25,6 @@ public class HistoryNotificationRecipientSaveDTOReverseMapper extends RestSimple
                 .setHistoryNotificationRecipient(
                 new HistoryNotificationRecipientEntity()
                         .setNameI18n(nameI18N)
-                        .setDescriptionI18n(descriptionI18N)
-                        .setCreatedByUserId(authService.getApiUser().getUserId())
-                        .setCreatedAt(Timestamp.from(Instant.now())));
+                        .setDescriptionI18n(descriptionI18N));
     }
 }

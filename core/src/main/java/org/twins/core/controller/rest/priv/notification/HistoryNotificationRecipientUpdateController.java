@@ -23,7 +23,6 @@ import org.twins.core.dao.notification.HistoryNotificationRecipientEntity;
 import org.twins.core.dto.rest.notification.HistoryNotificationRecipientListRsDTOv1;
 import org.twins.core.domain.notification.HistoryNotificationRecipientUpdate;
 import org.twins.core.dto.rest.notification.HistoryNotificationRecipientUpdateRqDTOv1;
-import org.twins.core.mappers.rest.history.HistoryDTOMapperV1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.notification.HistoryNotificationRecipientDTOMapperV1;
 import org.twins.core.mappers.rest.notification.HistoryNotificationRecipientUpdateDTOReverseMapper;

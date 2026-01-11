@@ -15,12 +15,16 @@ import java.util.UUID;
 public class HistoryNotificationRecipientDTOv1 {
     @Schema(description = "id")
     public UUID id;
+
     @Schema(description = "name")
     public String name;
+
     @Schema(description = "description")
     public String description;
+
     @Schema(description = "createdByUserId")
     public UUID createdByUserId;
+
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at")
     public LocalDateTime createdAt;
