@@ -231,6 +231,7 @@ public enum RelationTwinMode implements MapperModeCollection {
             DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE,
             DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE,
             TwinLinkMode.Twin2TwinLinkMode.DETAILED,
+            TwinByHeadMode.LAVENDER,
             LinkMode.TwinLink2LinkMode.DETAILED,
             TransitionMode.HIDE);
 
