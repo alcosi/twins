@@ -127,7 +127,7 @@ dependencies {
     implementation 'io.github.breninsul:spring-input-stream-response-converter:1.1.4'
     implementation 'io.minio:minio:8.5.17'
     implementation 'org.jasypt:jasypt:1.9.3'
-    implementation 'com.alcosi:alcosi-identity-server-communication-error-parser:1.00-RELEASE'
+    implementation 'com.alcosi:alcosi-identity-server-communication-error-parser:1.01-RELEASE'
     implementation 'org.openjdk.jol:jol-core:0.17'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     runtimeOnly 'io.grpc:grpc-netty-shaded:1.76.0'
