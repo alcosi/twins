@@ -3,6 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.util.Ternary;
 
 import java.util.Set;
 import java.util.UUID;
@@ -17,5 +18,5 @@ public class HistoryNotificationRecipientCollectorSearch {
     public Set<UUID> recipientIdExcludeList;
     public Set<Integer> recipientResolverFeaturerIdList;
     public Set<Integer> recipientResolverFeaturerIdExcludeList;
-    public Boolean exclude;
+    public Ternary exclude;
 }

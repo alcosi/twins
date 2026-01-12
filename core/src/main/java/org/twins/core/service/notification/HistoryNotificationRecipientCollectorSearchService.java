@@ -20,6 +20,7 @@ import org.twins.core.service.auth.AuthService;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
 import static org.twins.core.dao.specifications.CommonSpecification.checkIntegerIn;
+import static org.twins.core.dao.specifications.CommonSpecification.checkTernary;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
@@ -45,7 +46,8 @@ public class HistoryNotificationRecipientCollectorSearchService {
                 checkUuidIn(search.getRecipientIdList(), false, false, HistoryNotificationRecipientCollectorEntity.Fields.historyNotificationRecipientId),
                 checkUuidIn(search.getRecipientIdExcludeList(), true, false, HistoryNotificationRecipientCollectorEntity.Fields.historyNotificationRecipientId),
                 checkIntegerIn(search.getRecipientResolverFeaturerIdList(), false, HistoryNotificationRecipientCollectorEntity.Fields.recipientResolverFeaturerId),
-                checkIntegerIn(search.getRecipientResolverFeaturerIdExcludeList(), true, HistoryNotificationRecipientCollectorEntity.Fields.recipientResolverFeaturerId)
+                checkIntegerIn(search.getRecipientResolverFeaturerIdExcludeList(), true, HistoryNotificationRecipientCollectorEntity.Fields.recipientResolverFeaturerId),
+                checkTernary(search.getExclude(), HistoryNotificationRecipientCollectorEntity.Fields.exclude)
                 );
     }
 }

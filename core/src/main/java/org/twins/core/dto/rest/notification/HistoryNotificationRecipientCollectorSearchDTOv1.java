@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.LongRangeDTOv1;
+import org.cambium.common.util.Ternary;
 
 import java.util.Set;
 import java.util.UUID;
@@ -33,5 +33,5 @@ public class HistoryNotificationRecipientCollectorSearchDTOv1 {
     public Set<Integer> recipientResolverFeaturerIdExcludeList;
 
     @Schema(description = "exclude")
-    public Boolean exclude;
+    public Ternary exclude;
 }
