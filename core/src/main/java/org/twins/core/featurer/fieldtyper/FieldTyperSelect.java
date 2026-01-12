@@ -53,7 +53,7 @@ public class FieldTyperSelect extends FieldTyperList {
         var longListThresholdValue = longListThreshold.extract(properties);
         if (longListThresholdValue > 0) {
             if (longListThresholdValue > 100) {
-                log.warn("Long list threshold value is too big (more then 100). It will be ignored.");
+                log.warn("{}: long list threshold value is too big [{}]. 100 will be used instead.", twinClassFieldEntity.logShort(), longListThresholdValue);
                 longListThresholdValue = 100;
             }
             var listSize = dataListService.countByDataListId(listId);
