@@ -482,7 +482,7 @@ CREATE INDEX IF NOT EXISTS idx_twin_comment_created_by_user_id ON twin_comment(c
 CREATE INDEX IF NOT EXISTS idx_twin_comment_action_alien_permission_permission_id ON twin_comment_action_alien_permission(permission_id);
 
 --twin_comment_action_alien_validator_rule
-CREATE INDEX IF NOT EXISTS idx_comment_action_alien_validator_rule_twin_validator_set_id ON twin_comment_action_alien_validator_rule(twin_validator_set_id);
+CREATE INDEX IF NOT EXISTS idx_twin_comment_action_alien_validator_rule_twin_validator_set_id ON twin_comment_action_alien_validator_rule(twin_validator_set_id);
 
 -- twin_comment_action_self
 CREATE INDEX IF NOT EXISTS idx_twin_comment_action_self_restrict_twin_comment_action_id ON twin_comment_action_self(restrict_twin_comment_action_id);
