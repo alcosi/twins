@@ -1,5 +1,5 @@
 -- business_account
-CREATE INDEXIF NOT EXISTS idx_business_account_owner_user_group_id ON public.business_account(owner_user_group_id);
+CREATE INDEX IF NOT EXISTS idx_business_account_owner_user_group_id ON public.business_account(owner_user_group_id);
 
 -- card
 CREATE INDEX IF NOT EXISTS idx_card_card_layout_id ON public.card(card_layout_id);
