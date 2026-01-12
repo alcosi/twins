@@ -397,11 +397,11 @@ CREATE INDEX IF NOT EXISTS idx_twin_action_permission_permission_id ON twin_acti
 -- twin_action_validator_rule
 CREATE INDEX IF NOT EXISTS idx_twin_action_validator_twin_validator_set_id ON twin_action_validator_rule(twin_validator_set_id);
 
--- win_alias
+-- twin_alias
 CREATE INDEX IF NOT EXISTS idx_twin_alias_twin_id ON twin_alias(twin_id);
 
 -- twin_attachment
-CREATE INDEX IF NOT EXISTS idx_attachment_fieldclass ON twin_attachment(twin_class_field_id);
+CREATE INDEX IF NOT EXISTS idx_attachment_twin_class_field_id ON twin_attachment(twin_class_field_id);
 CREATE INDEX IF NOT EXISTS idx_twin_attachment_view_permission_id ON twin_attachment(view_permission_id);
 CREATE INDEX IF NOT EXISTS idx_twin_attachment_storage_id ON twin_attachment(storage_id);
 CREATE INDEX IF NOT EXISTS idx_twin_attachment_twin_comment_id ON twin_attachment(twin_comment_id);
@@ -424,10 +424,10 @@ CREATE INDEX IF NOT EXISTS idx_twin_change_task_twin_factory_launcher_id ON twin
 CREATE INDEX IF NOT EXISTS idx_twin_class_comment_attachment_restriction_id ON twin_class(comment_attachment_restriction_id);
 CREATE INDEX IF NOT EXISTS idx_twin_class_general_attachment_restriction_id ON twin_class(general_attachment_restriction_id);
 CREATE INDEX IF NOT EXISTS idx_twin_class_twin_class_freeze_id ON twin_class(twin_class_freeze_id);
-CREATE INDEX IF NOT EXISTS idx_twinclass_create_permission_id ON twin_class(create_permission_id);
-CREATE INDEX IF NOT EXISTS idx_twinclass_delete_permission_id ON twin_class(delete_permission_id);
-CREATE INDEX IF NOT EXISTS idx_twinclass_edit_permission_id ON twin_class(edit_permission_id);
-CREATE INDEX IF NOT EXISTS idx_twinclass_view_permission_id ON twin_class(view_permission_id);
+CREATE INDEX IF NOT EXISTS idx_twin_class_create_permission_id ON twin_class(create_permission_id);
+CREATE INDEX IF NOT EXISTS idx_twin_class_delete_permission_id ON twin_class(delete_permission_id);
+CREATE INDEX IF NOT EXISTS idx_twin_class_edit_permission_id ON twin_class(edit_permission_id);
+CREATE INDEX IF NOT EXISTS idx_twin_class_view_permission_id ON twin_class(view_permission_id);
 CREATE INDEX IF NOT EXISTS idx_twin_class_description_i18n_id ON twin_class(description_i18n_id);
 CREATE INDEX IF NOT EXISTS idx_twin_class_head_hunter_featurer_id ON twin_class(head_hunter_featurer_id);
 CREATE INDEX IF NOT EXISTS idx_twin_class_icon_dark_resource_id ON twin_class(icon_dark_resource_id);
@@ -462,13 +462,14 @@ CREATE INDEX IF NOT EXISTS idx_twin_class_freeze_name_i18n_id ON twin_class_free
 CREATE INDEX IF NOT EXISTS idx_twin_class_freeze_twin_status_id ON twin_class_freeze(twin_status_id);
 
 -- twin_class_owner_type
-CREATE INDEX IF NOT EXISTS idx_description_i18n ON twin_class_owner_type(description_i18n_id);
-CREATE INDEX IF NOT EXISTS idx_name_i18n ON twin_class_owner_type(name_i18n_id);
+CREATE INDEX IF NOT EXISTS idx_twin_class_owner_description_i18n_id ON twin_class_owner_type(description_i18n_id);
+CREATE INDEX IF NOT EXISTS idx_twin_class_owner_name_i18n_id ON twin_class_owner_type(name_i18n_id);
 
 -- twin_class_schema
 CREATE INDEX IF NOT EXISTS idx_twin_class_schema_created_by_user_id ON twin_class_schema(created_by_user_id);
 
 -- twin_class_schema_map
+CREATE UNIQUE INDEX IF NOT EXISTS uidx_twin_class_schema_map_composite ON twin_class_schema_map(twin_class_schema_id, twin_class_id);
 CREATE INDEX IF NOT EXISTS idx_twin_class_schema_map_twin_class_id ON twin_class_schema_map(twin_class_id);
 
 -- twin_class_search
