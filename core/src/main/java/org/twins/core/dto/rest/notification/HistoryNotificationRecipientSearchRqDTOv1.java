@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.Request;
 @Schema(name = "HistoryNotificationRecipientSearchRqV1")
 public class HistoryNotificationRecipientSearchRqDTOv1 extends Request {
     @Schema
-    public HistoryNotificationRecipientSearchDTOv1 recipient;
+    public HistoryNotificationRecipientSearchDTOv1 search;
 }

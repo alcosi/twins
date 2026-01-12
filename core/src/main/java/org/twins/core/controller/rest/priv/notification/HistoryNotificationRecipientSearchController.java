@@ -47,7 +47,7 @@ public class HistoryNotificationRecipientSearchController extends ApiController 
     private final HistoryNotificationRecipientDTOMapperV1 historyNotificationRecipientDTOMapperV1;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "historyNotificationRecipientSearchListV1", summary = "Return a list of all history notification recipient for the current domain")
+    @Operation(operationId = "historyNotificationRecipientSearchV1", summary = "Return a list of all history notification recipient for the current domain")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
@@ -61,7 +61,7 @@ public class HistoryNotificationRecipientSearchController extends ApiController 
         HistoryNotificationRecipientSearchRsDTOv1 rs = new HistoryNotificationRecipientSearchRsDTOv1();
         try {
             PaginationResult<HistoryNotificationRecipientEntity> historyNotificationRecipientList = historyNotificationRecipientSearchService
-                    .findHistoryNotificationRecipientForDomain(historyNotificationRecipientSearchDTOReverseMapper.convert(request.getRecipient()), pagination);
+                    .findHistoryNotificationRecipientForDomain(historyNotificationRecipientSearchDTOReverseMapper.convert(request.getSearch()), pagination);
             rs
                     .setPagination(paginationMapper.convert(historyNotificationRecipientList))
                     .setRecipients(historyNotificationRecipientDTOMapperV1.convertCollection(historyNotificationRecipientList.getList(), mapperContext))
