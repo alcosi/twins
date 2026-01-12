@@ -401,7 +401,7 @@ CREATE INDEX IF NOT EXISTS idx_twin_action_validator_twin_validator_set_id ON tw
 CREATE INDEX IF NOT EXISTS idx_twin_alias_twin_id ON twin_alias(twin_id);
 
 -- twin_attachment
-CREATE INDEX IF NOT EXISTS idx_attachment_twin_class_field_id ON twin_attachment(twin_class_field_id);
+CREATE INDEX IF NOT EXISTS idx_twin_attachment_twin_class_field_id ON twin_attachment(twin_class_field_id);
 CREATE INDEX IF NOT EXISTS idx_twin_attachment_view_permission_id ON twin_attachment(view_permission_id);
 CREATE INDEX IF NOT EXISTS idx_twin_attachment_storage_id ON twin_attachment(storage_id);
 CREATE INDEX IF NOT EXISTS idx_twin_attachment_twin_comment_id ON twin_attachment(twin_comment_id);
