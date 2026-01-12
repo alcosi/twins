@@ -53,6 +53,11 @@ public class TwinClassFreezeDTOMapper extends RestSimpleDTOMapper<TwinClassFreez
     }
 
     @Override
+    public boolean hideMode(MapperContext mapperContext) {
+        return mapperContext.hasModeOrEmpty(TwinClassFreezeMode.HIDE);
+    }
+
+    @Override
     public String getObjectCacheId(TwinClassFreezeEntity src) {
         return src.getId().toString();
     }
