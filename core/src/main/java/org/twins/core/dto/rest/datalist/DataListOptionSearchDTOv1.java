@@ -71,9 +71,11 @@ public class DataListOptionSearchDTOv1 extends Request {
     @Schema(description = "data list option status id exclude list")
     public Set<DataListStatus> statusIdExcludeList;
 
+    @Deprecated
     @Schema(description = "external id like list")
     public Set<String> externalIdLikeList;
 
+    @Deprecated
     @Schema(description = "external id not like list")
     public Set<String> externalIdNotLikeList;
 

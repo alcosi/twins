@@ -7,8 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.*;
 
 @Repository
-public interface TwinClassFreezeRepository extends CrudRepository<TwinClassFreezeEntity, UUID>, JpaSpecificationExecutor<TwinClassEntity> {
-
+public interface TwinClassFreezeRepository extends CrudRepository<TwinClassFreezeEntity, UUID>, JpaSpecificationExecutor<TwinClassFreezeEntity> {
     List<TwinClassFreezeEntity> findAllByIdIn(Collection<UUID> ids);
-
 }

@@ -176,6 +176,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     IDP_SWITCH_ACTIVE_BUSINESS_ACCOUNT_NOT_SUPPORTED(12724, "active account switch is not supported"),
     IDP_INTERNAL_SERVER_ERROR(12725, "internal server error", HttpStatus.INTERNAL_SERVER_ERROR),
     IDP_EMPTY_CLIENT_ID_OR_SECRET(12726, "empty clientId or secret", HttpStatus.UNAUTHORIZED),
+    IDP_INVALID_CLIENT_CREDENTIALS(12727, "Invalid client credentials", HttpStatus.FORBIDDEN),
     ACT_AS_USER_INCORRECT(12801, "act as user authentication error", HttpStatus.UNAUTHORIZED),
     ACT_AS_USER_NONCE_IS_NOT_UNIQ(12801, "act as user authentication error", HttpStatus.UNAUTHORIZED),
     NOTIFICATION_CONFIGURATION_ERROR(12901, "something wrong with notification configuration"),

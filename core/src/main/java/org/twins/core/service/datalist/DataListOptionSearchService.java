@@ -79,8 +79,6 @@ public class DataListOptionSearchService {
                 checkDataListSubset(search.getDataListSubsetIdExcludeList(), true),
                 checkDataListSubsetKey(search.getDataListSubsetKeyList(), false, true),
                 checkDataListSubsetKey(search.getDataListSubsetKeyExcludeList(), true, true),
-                checkFieldLikeIn(search.getExternalIdLikeList(), false, true, DataListOptionEntity.Fields.externalId),
-                checkFieldLikeIn(search.getExternalIdNotLikeList(), true, true, DataListOptionEntity.Fields.externalId),
                 checkFieldIn(search.getExternalIdList(), false, true, false, DataListOptionEntity.Fields.externalId),
                 checkFieldIn(search.getExternalIdExcludeList(), true, true, false, DataListOptionEntity.Fields.externalId),
                 checkTernary(search.getCustom(), DataListOptionEntity.Fields.custom));
