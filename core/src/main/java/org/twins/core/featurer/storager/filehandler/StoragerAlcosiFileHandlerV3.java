@@ -41,12 +41,12 @@ import static org.cambium.common.util.UrlUtils.toURI;
 
 @Component
 @RequiredArgsConstructor
-@Featurer(id = FeaturerTwins.ID_2907,
-        name = "StoragerAlcosiFileHandlerV2",
-        description = "Service to save or delete files via file-handler service (api with multipart)"
+@Featurer(id = FeaturerTwins.ID_2908,
+        name = "StoragerAlcosiFileHandlerV3",
+        description = "Service to save or delete files via file-handler service (async api with multipart)"
 )
 @Slf4j
-public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
+public class StoragerAlcosiFileHandlerV3 extends StoragerAbstractChecked {
 
     @FeaturerParam(
             name = "fileHandlerUri", description = "URI of file handler",
@@ -164,7 +164,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                 var fileSize = getFileSize(tikaStream, fileSizeLimit);
 
                 if (shouldResize(mimeType)) {
-                    var url = STR."\{baseUrl}/api/resize/save/synced";
+                    var url = STR."\{baseUrl}/api/resize/async/save/synced";
                     var tasksParams = resizeTasks.extract(properties);
                     var tasks = new ArrayList<ResizeTaskDTO>();
 
