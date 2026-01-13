@@ -5,19 +5,23 @@ import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import files.logging.HttpRegexJsonBodyMasking;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
 public class JsonUtils {
     protected final String[] fieldNames;
-    protected final HttpRegexJsonBodyMasking masker = new HttpRegexJsonBodyMasking(Arrays.asList(fieldNames)) {{
-        maskedBody = "*******";
-    }};
+    protected final HttpRegexJsonBodyMasking masker;
+
+    public JsonUtils(String[] fieldNames) {
+        this.fieldNames = fieldNames;
+        this.masker = new HttpRegexJsonBodyMasking(fieldNames == null ? Collections.emptyList() : Arrays.asList(fieldNames)) {{
+            maskedBody = "*******";
+        }};
+    }
 
     private static final ObjectMapper DEFAULT_MAPPER = new ObjectMapper();
     private static final ObjectMapper LENIENT_MAPPER = new ObjectMapper()
