@@ -134,6 +134,7 @@ dependencies {
     implementation 'io.grpc:grpc-protobuf:1.76.0'
     implementation 'io.grpc:grpc-stub:1.76.0'
     implementation 'com.google.protobuf:protobuf-java:4.32.1'
+    implementation("com.google.re2j:re2j:1.7")
 }
 
 configurations {

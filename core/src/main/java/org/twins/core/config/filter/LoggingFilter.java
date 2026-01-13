@@ -1,6 +1,5 @@
 package org.twins.core.config.filter;
 
-import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -43,6 +42,7 @@ public class LoggingFilter extends OncePerRequestFilter {
     public static final Random RANDOM = new Random();
 
     public static class LogInternalService {
+        protected final JsonUtils jsonUtils = new JsonUtils(new String[]{"fullName", "accessToken", "refreshToken", "username", "password", "email", "firstName", "lastName"});
 
 
         public void afterRequest(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response, Long time, byte[] multipartContent) {
@@ -84,7 +84,7 @@ public class LoggingFilter extends OncePerRequestFilter {
         private void logContent(byte[] content, String contentType, String contentEncoding, String prfx, String rqId, int logShortThreshold) {
             try {
                 String message = new String(content, contentEncoding);
-                message = JsonUtils.mask(new String[]{"fullName", "accessToken", "refreshToken", "username", "password", "email", "firstName", "lastName"}, message);
+                message = jsonUtils.mask(message);
                 log.info("{}_BODY: {}", prfx, message);
                 if (message.length() > MAX_BODY_LIMIT && message.indexOf("openapi") > 0) { // swagger output is too big
                     logShort.info("{}_BODY: <content> is longer then 2000 symbols. Please see other log file", prfx);
