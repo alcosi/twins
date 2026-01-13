@@ -136,7 +136,7 @@ CREATE INDEX IF NOT EXISTS idx_eraseflow_link_cascade_cascade_deletion_factory_i
 CREATE INDEX IF NOT EXISTS idx_eraseflow_link_cascade_created_by_user_id ON eraseflow_link_cascade(created_by_user_id);
 
 -- error
-CREATE INDEXLY IF NOT EXISTS idx_error_client_msg_i18n_id ON error(client_msg_i18n_id);
+CREATE INDEX IF NOT EXISTS idx_error_client_msg_i18n_id ON error(client_msg_i18n_id);
 
 -- face
 CREATE INDEX IF NOT EXISTS idx_face_created_by_user_id ON face(created_by_user_id);
