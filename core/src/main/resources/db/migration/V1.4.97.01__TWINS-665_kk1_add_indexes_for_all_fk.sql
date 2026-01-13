@@ -560,7 +560,7 @@ CREATE INDEX IF NOT EXISTS idx_twinflow_transition_drafting_twin_factory_id ON t
 CREATE INDEX IF NOT EXISTS idx_twinflow_transition_validator_twin_validator_set_id ON twinflow_transition_validator_rule(twin_validator_set_id);
 
 -- user
-CREATE INDEX IF NOT EXISTS idx_user_user_status_id ON user(user_status_id);
+CREATE INDEX IF NOT EXISTS idx_user_user_status_id ON "user"(user_status_id);
 
 -- user_email_verification
 CREATE INDEX IF NOT EXISTS idx_user_email_verification_identity_provider_id ON user_email_verification(identity_provider_id);

@@ -135,7 +135,7 @@ public class TwinActionService {
             for (TwinClassEntity twinClassEntity : needLoadByValidators) {
                 twinClassEntity.setActionsProtectedByValidatorRules(new KitGrouped<>(TwinActionValidatorRuleEntity::getId, TwinActionValidatorRuleEntity::getTwinAction));
                 for (var action : TwinAction.values()) {
-                    if (twinClassEntity.getActionsProtectedByValidatorRules().getGrouped(action) != null)
+                    if (CollectionUtils.isNotEmpty(twinClassEntity.getActionsProtectedByValidatorRules().getGrouped(action)))
                         continue; // protectedByValidator is already detected
                     if (groupedByActionThenByClass.get(action) == null) {
                         continue; // protectedByValidator is not configured to any class
