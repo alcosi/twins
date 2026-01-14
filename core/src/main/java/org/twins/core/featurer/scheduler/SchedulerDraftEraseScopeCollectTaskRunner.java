@@ -39,7 +39,7 @@ public class SchedulerDraftEraseScopeCollectTaskRunner extends SchedulerTaskRunn
 
     @Override
     protected Collection<DraftEntity> setStatusAndSave(Collection<DraftEntity> collectedEntities) {
-        collectedEntities.forEach(entity -> entity.setStatus(DraftStatus.COMMIT_IN_PROGRESS));
+        collectedEntities.forEach(entity -> entity.setStatus(DraftStatus.ERASE_SCOPE_COLLECT_IN_PROGRESS));
         return draftRepository.saveAll(collectedEntities);
     }
 
