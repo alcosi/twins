@@ -1,7 +1,6 @@
 package org.twins.core.featurer.scheduler;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.scheduler.SchedulerLogRepository;
@@ -11,7 +10,6 @@ import java.sql.Timestamp;
 
 @RequiredArgsConstructor
 @Service
-@Slf4j
 @Featurer(
         id = FeaturerTwins.ID_5006,
         name = "SchedulerSchedulerLogCleaner",

@@ -1,6 +1,5 @@
 package org.twins.core.featurer.scheduler;
 
-import lombok.extern.slf4j.Slf4j;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,7 +17,6 @@ import java.util.concurrent.Executor;
 import java.util.stream.StreamSupport;
 
 @Service
-@Slf4j
 @Featurer(
         id = FeaturerTwins.ID_5008,
         name = "SchedulerHistoryNotificationTaskRunner",

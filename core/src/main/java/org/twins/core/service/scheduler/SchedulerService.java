@@ -175,7 +175,8 @@ public class SchedulerService extends EntitySecureFindServiceImpl<SchedulerEntit
         } else if (schedulerConfig.getFixedRate() != null) {
             future = taskScheduler.scheduleAtFixedRate(
                     runnable,
-                    Duration.ofMillis(schedulerConfig.getFixedRate()));
+                    Duration.ofMillis(schedulerConfig.getFixedRate())
+            );
         } else {
             throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS);
         }

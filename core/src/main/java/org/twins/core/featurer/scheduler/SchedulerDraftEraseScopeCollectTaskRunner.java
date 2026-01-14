@@ -1,6 +1,5 @@
 package org.twins.core.featurer.scheduler;
 
-import lombok.extern.slf4j.Slf4j;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.PageRequest;
@@ -16,7 +15,6 @@ import java.util.List;
 import java.util.concurrent.Executor;
 
 @Service
-@Slf4j
 @Featurer(
         id = FeaturerTwins.ID_5004,
         name = "SchedulerDraftEraseScopeCollectTaskRunner",

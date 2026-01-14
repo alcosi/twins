@@ -1,7 +1,6 @@
 package org.twins.core.featurer.scheduler;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.attachment.AttachmentDeleteTaskRepository;
@@ -13,7 +12,6 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 @Featurer(
         id = FeaturerTwins.ID_5007,
         name = "SchedulerAttachmentDeleteTaskCleaner",
