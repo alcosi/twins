@@ -47,21 +47,21 @@ public class HistoryNotificationRecipientCollectorSearchController extends ApiCo
     private final HistoryNotificationRecipientCollectorDTOMapperV1 historyNotificationRecipientCollectorDTOMapperV1;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "historyNotificationRecipientCollectorSearchListV1", summary = "Return a list of all history notification recipient collector for the current domain")
+    @Operation(operationId = "historyNotificationRecipientCollectorSearchV1", summary = "Return a list of all history notification recipient collector for the current domain")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = HistoryNotificationRecipientCollectorSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/history_notification_recipient_collector/search/v1")
-    public ResponseEntity<?> historyNotificationRecipientCollectorSearchListV1(
+    public ResponseEntity<?> historyNotificationRecipientCollectorSearchV1(
             @MapperContextBinding(roots = HistoryNotificationRecipientCollectorDTOMapperV1.class, response = HistoryNotificationRecipientCollectorSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody HistoryNotificationRecipientCollectorSearchRqDTOv1 request,
             @SimplePaginationParams SimplePagination pagination) {
         HistoryNotificationRecipientCollectorSearchRsDTOv1 rs = new HistoryNotificationRecipientCollectorSearchRsDTOv1();
         try {
             PaginationResult<HistoryNotificationRecipientCollectorEntity> historyNotificationRecipientCollectorList = historyNotificationRecipientCollectorSearchService
-                    .findHistoryNotificationRecipientForDomain(historyNotificationRecipientCollectorSearchDTOReverseMapper.convert(request.getCollector()), pagination);
+                    .findHistoryNotificationRecipientCollectors(historyNotificationRecipientCollectorSearchDTOReverseMapper.convert(request.getSearch()), pagination);
             rs
                     .setPagination(paginationMapper.convert(historyNotificationRecipientCollectorList))
                     .setRecipientCollectors(historyNotificationRecipientCollectorDTOMapperV1.convertCollection(historyNotificationRecipientCollectorList.getList(), mapperContext))

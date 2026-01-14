@@ -31,7 +31,7 @@ public class HistoryNotificationRecipientCollectorSearchService {
     private final AuthService authService;
     private final HistoryNotificationRecipientCollectorRepository recipientCollectorRepository;
 
-    public PaginationResult<HistoryNotificationRecipientCollectorEntity> findHistoryNotificationRecipientForDomain(HistoryNotificationRecipientCollectorSearch search, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<HistoryNotificationRecipientCollectorEntity> findHistoryNotificationRecipientCollectors(HistoryNotificationRecipientCollectorSearch search, SimplePagination pagination) throws ServiceException {
         Specification<HistoryNotificationRecipientCollectorEntity> spec = createDataListOptionSearchSpecification(search);
         Page<HistoryNotificationRecipientCollectorEntity> ret = recipientCollectorRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
