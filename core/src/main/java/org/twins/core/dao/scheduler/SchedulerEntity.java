@@ -73,11 +73,11 @@ public class SchedulerEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT ->
-                    STR."scheduler[id:\{id}]";
+                    "scheduler[id:" + id + "]";
             case NORMAL ->
-                    STR."scheduler[id:\{id}, featurerId:\{featurerId}, description:\{description}, active:\{active}]";
+                    "scheduler[id:" + id + ", featurerId:" + featurerId + ", description:" + description + ", active:" + active + "]";
             case DETAILED ->
-                    STR."scheduler[id:\{id}, featurerId:\{featurerId}, description:\{description}, active:\{active}, logEnabled:\{logEnabled}, cron:\{cron}, fixedRate:\{fixedRate}, params:\{schedulerParams.entrySet().stream().filter(it -> it.getValue() != null).map(Map.Entry::getKey).collect(Collectors.joining(","))}]";
+                    "scheduler[id:" + id + ", featurerId:" + featurerId + ", description:" + description + ", active:" + active + ", logEnabled:" + logEnabled + ", cron:" + cron + ", fixedRate:" + fixedRate + ", params:" + schedulerParams.entrySet().stream().filter(it -> it.getValue() != null).map(Map.Entry::getKey).collect(Collectors.joining(",")) + "]";
         };
     }
 }

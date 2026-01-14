@@ -59,11 +59,11 @@ public abstract class SchedulerTaskRunner<T extends Runnable, E extends EasyLogg
                 }
             }
 
-            return STR."\{savedEntities.size()} task(s) from db was processed";
+            return savedEntities.size() + " task(s) from db was processed";
         } catch (Exception e) {
             log.error("Exception: ", e);
 
-            return STR."Processing tasks failed with exception: \{e}";
+            return "Processing tasks failed with exception: " + e;
         } finally {
             LoggerUtils.cleanMDC();
         }

@@ -64,9 +64,9 @@ public class TwinChangeTaskEntity implements EasyLoggable {
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case NORMAL -> STR."twinChangeTask[id:\{id}, twinId:\{twinId}, factoryId:\{twinFactoryId}, statusId:\{statusId}]";
-            case DETAILED -> STR."twinChangeTask[id:\{id}, twinId:\{twinId}, factoryId:\{twinFactoryId}, userId:\{createdByUserId}, businessAccountId:\{businessAccountId}]";
-            default -> STR."twinChangeTask[id:\{id}]";
+            case NORMAL -> "twinChangeTask[id:" + id + ", twinId:" + twinId + ", factoryId:" + twinFactoryId + ", statusId:" + statusId + "]";
+            case DETAILED -> "twinChangeTask[id:" + id + ", twinId:" + twinId + ", factoryId:" + twinFactoryId + ", userId:" + createdByUserId + ", businessAccountId:" + businessAccountId + "]";
+            default -> "twinChangeTask[id:" + id + "]";
         };
     }
 }

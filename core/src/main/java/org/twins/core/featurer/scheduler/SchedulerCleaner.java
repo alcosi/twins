@@ -38,11 +38,11 @@ public abstract class SchedulerCleaner extends Scheduler {
                     ? deleteAllRecords(size)
                     : deleteRecordsAfterInterval(interval);
 
-            return STR."\{deletedCount} task(s) from db was deleted";
+            return deletedCount + " task(s) from db was deleted";
         } catch (Exception e) {
             log.error("Exception: ", e);
 
-            return STR."Processing tasks failed with exception: \{e}";
+            return "Processing tasks failed with exception: " + e;
         } finally {
             LoggerUtils.cleanMDC();
         }

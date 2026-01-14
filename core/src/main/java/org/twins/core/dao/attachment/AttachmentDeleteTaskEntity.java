@@ -61,9 +61,9 @@ public class AttachmentDeleteTaskEntity implements EasyLoggable {
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case NORMAL -> STR."attachmentDeleteTask[id:\{id}, twinAttachmentId:\{twinAttachmentId}, storageId:\{storageId}, status:\{status}]";
-            case DETAILED -> STR."attachmentDeleteTask[id:\{id}, twinAttachmentId:\{twinAttachmentId}, twinId:\{twinId}, domainId:\{domainId}, twinOwnerBusinessAccountId:\{twinOwnerBusinessAccountId}, twinCreatedByUserId:\{twinCreatedByUserId}, storageId:\{storageId}, storageFileKey:\{storageFileKey}, createdAt:\{createdAt}]";
-            default -> STR."attachmentDeleteTask[id:\{id}]";
+            case NORMAL -> "attachmentDeleteTask[id:" + id + ", twinAttachmentId:" + twinAttachmentId + ", storageId:" + storageId + ", status:" + status + "]";
+            case DETAILED -> "attachmentDeleteTask[id:" + id + ", twinAttachmentId:" + twinAttachmentId + ", twinId:" + twinId + ", domainId:" + domainId + ", twinOwnerBusinessAccountId:" + twinOwnerBusinessAccountId + ", twinCreatedByUserId:" + twinCreatedByUserId + ", storageId:" + storageId + ", storageFileKey:" + storageFileKey + ", createdAt:" + createdAt + "]";
+            default -> "attachmentDeleteTask[id:" + id + "]";
         };
     }
 }

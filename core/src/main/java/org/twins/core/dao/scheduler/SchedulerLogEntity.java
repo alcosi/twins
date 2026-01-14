@@ -45,11 +45,11 @@ public class SchedulerLogEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT ->
-                    STR."schedulerLog[id:\{id}]";
+                    "schedulerLog[id:" + id + "]";
             case NORMAL ->
-                    STR."schedulerLog[id:\{id}, schedulerId:\{schedulerId}, result:\{result}]";
+                    "schedulerLog[id:" + id + ", schedulerId:" + schedulerId + ", result:" + result + "]";
             case DETAILED ->
-                    STR."schedulerLog[id:\{id}, schedulerId:\{schedulerId}, result:\{result}, createdAt:\{createdAt}, executionTime:\{executionTime}]";
+                    "schedulerLog[id:" + id + ", schedulerId:" + schedulerId + ", result:" + result + ", createdAt:" + createdAt + ", executionTime:" + executionTime + "]";
         };
     }
 }
