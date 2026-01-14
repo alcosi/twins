@@ -1,5 +1,6 @@
 package org.twins.core.dao.i18n;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -14,9 +15,14 @@ import java.util.UUID;
 @Table(name = "i18n_translation_style")
 public class I18nTranslationStyleEntity {
     @Id
-    @UuidGenerator(style = UuidGenerator.Style.TIME)
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UuidCreator.getTimeOrderedEpoch();
+        }
+    }
 
     @Column(name = "i18n_id")
     private UUID i18nId;

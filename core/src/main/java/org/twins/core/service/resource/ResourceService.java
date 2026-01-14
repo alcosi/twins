@@ -62,7 +62,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
      */
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
     public ResourceEntity addResource(String originalFileName, String externalResourceUri) throws ServiceException {
-        UUID resourceId = UuidCreator.getTimeOrdered();
+        UUID resourceId = UuidCreator.getTimeOrderedEpoch();
         ApiUser apiUser = authService.getApiUser();
         StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getResourcesStorageId());
         Storager storager = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
@@ -93,7 +93,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
      */
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
     public ResourceEntity addResource(String originalFileName, InputStream inputStream) throws ServiceException {
-        UUID resourceId = UuidCreator.getTimeOrdered();
+        UUID resourceId = UuidCreator.getTimeOrderedEpoch();
         ApiUser apiUser = authService.getApiUser();
         StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getResourcesStorageId());
         Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
@@ -143,7 +143,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
      */
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
     public ResourceEntity transferResource(UUID resourceId, UUID newStorageId) throws ServiceException {
-        UUID newResourceId = UuidCreator.getTimeOrdered();
+        UUID newResourceId = UuidCreator.getTimeOrderedEpoch();
 
         var resource = findEntitySafe(resourceId);
         if (resource.getStorageId().equals(newStorageId))

@@ -50,7 +50,7 @@ public class DomainUserInitiatorB2B extends DomainUserInitiator {
         super.postInit(properties, domainUserEntity);
         if (autoCreateBusinessAccount.extract(properties)) {
             //perhaps we need to grant for current user some permissions (DOMAIN_BUSINESS_ACCOUNT_CREATE))
-            UUID newBusinessAccountId = UuidCreator.getTimeOrdered();
+            UUID newBusinessAccountId = UuidCreator.getTimeOrderedEpoch();
             BusinessAccountEntity businessAccount = businessAccountService
                     .addBusinessAccount(newBusinessAccountId, "New company", EntitySmartService.SaveMode.ifPresentThrowsElseCreate);
             domainBusinessAccountService.addBusinessAccount(businessAccount, null, false);

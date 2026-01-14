@@ -1,5 +1,6 @@
 package org.twins.core.dao.twin;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -20,9 +21,14 @@ import java.util.UUID;
 @Table(name = "twin_status_transition_trigger")
 public class TwinStatusTransitionTriggerEntity implements EasyLoggable {
     @Id
-    @UuidGenerator(style = UuidGenerator.Style.TIME)
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UuidCreator.getTimeOrderedEpoch();
+        }
+    }
 
     @Column(name = "twin_status_id")
     private UUID twinStatusId;

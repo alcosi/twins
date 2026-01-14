@@ -1,5 +1,6 @@
 package org.twins.core.dao.notification;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,8 +21,14 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class NotificationContextEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UuidCreator.getTimeOrderedEpoch();
+        }
+    }
 
     @Column(name = "domain_id")
     private UUID domainId;

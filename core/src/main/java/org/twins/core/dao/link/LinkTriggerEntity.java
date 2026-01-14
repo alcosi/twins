@@ -1,5 +1,6 @@
 package org.twins.core.dao.link;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -17,9 +18,14 @@ import java.util.UUID;
 @Table(name = "link_trigger")
 public class LinkTriggerEntity {
     @Id
-    @UuidGenerator(style = UuidGenerator.Style.TIME)
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UuidCreator.getTimeOrderedEpoch();
+        }
+    }
 
     @Column(name = "link_id")
     private UUID linkId;

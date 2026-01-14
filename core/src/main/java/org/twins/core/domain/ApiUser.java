@@ -49,7 +49,7 @@ public class ApiUser {
     public static final UUID NOT_SPECIFIED = UuidUtils.NULLIFY_MARKER;
 
     @Getter
-    private final UUID requestId = UuidCreator.getTimeOrdered();
+    private final UUID requestId = UuidCreator.getTimeOrderedEpoch();
 
     public Set<UUID> getPermissions() {
         if (user != null && user.getPermissions() != null)

@@ -25,7 +25,7 @@ public class TwinClassFreezeEntity implements EasyLoggable {
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            this.id = UuidCreator.getTimeOrdered();
+            this.id = UuidCreator.getTimeOrderedEpoch();
         }
     }
 

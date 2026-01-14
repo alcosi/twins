@@ -110,7 +110,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
                 // todo somehow rewrite thread-local logic for api user to use scoped values
                 attachments.forEach(attachmentEntity -> scope.fork(() -> {
-                    UUID uuid = UuidCreator.getTimeOrdered();
+                    UUID uuid = UuidCreator.getTimeOrderedEpoch();
                     LoggerUtils.logSession(uuid);
                     LoggerUtils.logController("addAttachments$");
                     LoggerUtils.logPrefix(STR."ADD_ATTACHMENT[\{uuid}]:");
@@ -557,7 +557,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
     public TwinAttachmentEntity transferAttachment(UUID attachmentId, UUID newStorageId) throws ServiceException {
-        UUID newAttachementId = UuidCreator.getTimeOrdered();
+        UUID newAttachementId = UuidCreator.getTimeOrderedEpoch();
 
         var attachement = findEntitySafe(attachmentId);
         if (attachement.getStorageId().equals(newStorageId))

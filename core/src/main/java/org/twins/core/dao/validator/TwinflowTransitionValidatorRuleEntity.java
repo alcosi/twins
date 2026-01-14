@@ -1,5 +1,6 @@
 package org.twins.core.dao.validator;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,9 +20,14 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class TwinflowTransitionValidatorRuleEntity implements ContainsTwinValidatorSet {
     @Id
-    @UuidGenerator(style = UuidGenerator.Style.TIME)
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UuidCreator.getTimeOrderedEpoch();
+        }
+    }
 
     @Column(name = "twinflow_transition_id")
     private UUID twinflowTransitionId;

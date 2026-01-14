@@ -1,5 +1,6 @@
 package org.twins.core.dao.user;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,9 +22,14 @@ import java.util.UUID;
 @FieldNameConstants
 public class UserGroupEntity implements EasyLoggable {
     @Id
-    @UuidGenerator(style = UuidGenerator.Style.TIME)
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UuidCreator.getTimeOrderedEpoch();
+        }
+    }
 
     @Column(name = "domain_id")
     private UUID domainId;

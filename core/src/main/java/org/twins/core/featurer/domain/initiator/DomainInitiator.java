@@ -123,7 +123,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
 
 
     protected UUID createDomainUserTemplateTwin(DomainEntity domainEntity) throws ServiceException {
-        UUID twinClassId = UuidCreator.getTimeOrdered();
+        UUID twinClassId = UuidCreator.getTimeOrderedEpoch();
         TwinClassEntity twinClassEntity = new TwinClassEntity()
                 .setId(twinClassId)
                 .setDomainId(domainEntity.getId())

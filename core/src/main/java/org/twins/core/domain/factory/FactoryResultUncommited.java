@@ -27,7 +27,7 @@ public class FactoryResultUncommited {
     public FactoryResultUncommited addOperation(TwinOperation twinOperation) throws ServiceException {
         if (twinOperation instanceof TwinCreate) {
             if (twinOperation.getTwinEntity().getId() == null) {
-                twinOperation.getTwinEntity().setId(UuidCreator.getTimeOrdered());
+                twinOperation.getTwinEntity().setId(UuidCreator.getTimeOrderedEpoch());
             }
             creates.add((TwinCreate) twinOperation);
         } else if (twinOperation instanceof TwinUpdate) {

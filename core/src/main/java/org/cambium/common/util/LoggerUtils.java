@@ -35,7 +35,7 @@ public class LoggerUtils {
     }
 
     public static void logSession() {
-        logSession(UuidCreator.getTimeOrdered().toString().replace("-", "").toUpperCase());
+        logSession(UuidCreator.getTimeOrderedEpoch().toString().replace("-", "").toUpperCase());
     }
 
 

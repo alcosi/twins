@@ -435,7 +435,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public void createTwinEntity(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
         if (twinEntity.getId() == null)
-            twinEntity.setId(UuidCreator.getTimeOrdered()); // this id is necessary for fields and links. Because entity is not stored currently
+            twinEntity.setId(UuidCreator.getTimeOrderedEpoch()); // this id is necessary for fields and links. Because entity is not stored currently
         twinEntity.setCreateElseUpdate(true);
         if (twinCreate.isSketchMode()) {
             setInitSketchStatus(twinEntity);
@@ -1085,7 +1085,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public TwinEntity duplicateTwin(TwinEntity srcTwin, UUID newTwinId) throws ServiceException {
         if (newTwinId == null)
-            newTwinId = UuidCreator.getTimeOrdered();
+            newTwinId = UuidCreator.getTimeOrderedEpoch();
         TwinEntity duplicateEntity = fillDuplicate(srcTwin, newTwinId);
         duplicateEntity = createTwin(duplicateEntity);
         cloneTwinFieldListAndSave(srcTwin, duplicateEntity);

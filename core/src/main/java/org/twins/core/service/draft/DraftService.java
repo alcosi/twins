@@ -126,7 +126,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         ApiUser apiUser = authService.getApiUser();
         return new DraftCollector(
                 new DraftEntity()
-                        .setId(UuidCreator.getTimeOrdered())
+                        .setId(UuidCreator.getTimeOrderedEpoch())
                         .setCreatedAt(Timestamp.from(Instant.now()))
                         .setCreatedByUser(authService.getApiUser().getUser())
                         .setCreatedByUserId(authService.getApiUser().getUserId())

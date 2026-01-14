@@ -1,5 +1,6 @@
 package org.twins.core.dao.twinclass;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,9 +14,14 @@ import java.util.UUID;
 @Table(name = "twin_class_schema_map")
 public class TwinClassSchemaMapEntity {
     @Id
-    @UuidGenerator(style = UuidGenerator.Style.TIME)
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UuidCreator.getTimeOrderedEpoch();
+        }
+    }
 
     @Column(name = "twin_class_schema_id")
     private UUID twinClassSchemaId;

@@ -27,7 +27,7 @@ class RestTemplateConfig {
 
         @Override
         public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
-            UUID id = UuidCreator.getTimeOrdered();
+            UUID id = UuidCreator.getTimeOrderedEpoch();
             traceRequest(id, request, body);
             ClientHttpResponse response = execution.execute(request, body);
             traceResponse(id, response, request);

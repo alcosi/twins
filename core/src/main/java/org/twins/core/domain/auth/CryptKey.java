@@ -29,7 +29,7 @@ public class CryptKey {
     }
 
     public synchronized void flush() throws NoSuchAlgorithmException {
-        id = UuidCreator.getTimeOrdered();
+        id = UuidCreator.getTimeOrderedEpoch();
         keyPair = CryptUtils.generateRsaKeyPair();
         expires = LocalDateTime.now().plusMinutes(10);
         nonceSet.clear();

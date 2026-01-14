@@ -1,5 +1,6 @@
 package org.twins.core.dao.history;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,9 +18,14 @@ import java.util.UUID;
 @Table(name = "history_type_domain_template")
 public class HistoryTypeDomainTemplateEntity implements EasyLoggable {
     @Id
-    @UuidGenerator(style = UuidGenerator.Style.TIME)
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UuidCreator.getTimeOrderedEpoch();
+        }
+    }
 
     @Column(name = "history_type_id")
     @Convert(converter = HistoryTypeConverter.class)

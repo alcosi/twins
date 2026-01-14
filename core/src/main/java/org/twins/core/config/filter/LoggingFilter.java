@@ -276,7 +276,7 @@ public class LoggingFilter extends OncePerRequestFilter {
     }
 
     private void logSessionId(HttpServletRequest request) {
-        String sessionid = Optional.ofNullable(request.getHeader("Authorization")).map(String::toUpperCase).orElseGet(() -> UuidCreator.getTimeOrdered().toString().replace("-", "").toUpperCase());
+        String sessionid = Optional.ofNullable(request.getHeader("Authorization")).map(String::toUpperCase).orElseGet(() -> UuidCreator.getTimeOrderedEpoch().toString().replace("-", "").toUpperCase());
         RequestAttributes attrs = RequestContextHolder.getRequestAttributes();
         if (attrs != null) {
             attrs.setAttribute("SESSION_ID", sessionid, RequestAttributes.SCOPE_REQUEST);

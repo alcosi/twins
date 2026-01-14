@@ -1,5 +1,6 @@
 package org.twins.core.dao.datalist;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,8 +21,14 @@ import java.util.UUID;
 @Table(name = "data_list_option_projection")
 public class DataListOptionProjectionEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UuidCreator.getTimeOrderedEpoch();
+        }
+    }
 
     @Column(name = "projection_type_id")
     private UUID projectionTypeId;

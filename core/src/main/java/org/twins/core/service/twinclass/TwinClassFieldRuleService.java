@@ -96,7 +96,7 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
                 rule.setFieldOverwriterFeaturerId(FIELD_OVERWRITER_STUB_ID);
             }
             if (rule.getId() == null) {
-                rule.setId(UuidCreator.getTimeOrdered());
+                rule.setId(UuidCreator.getTimeOrderedEpoch());
             }
 
             if (ruleSave.getTwinClassFieldConditionTrees() != null) {

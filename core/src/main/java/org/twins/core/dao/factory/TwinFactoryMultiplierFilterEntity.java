@@ -1,5 +1,6 @@
 package org.twins.core.dao.factory;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,10 +19,15 @@ import java.util.UUID;
 @Entity
 @Table(name = "twin_factory_multiplier_filter")
 public class TwinFactoryMultiplierFilterEntity implements EasyLoggable {
-    @UuidGenerator(style = UuidGenerator.Style.TIME)
-    @GeneratedValue(generator = "uuid")
     @Id
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UuidCreator.getTimeOrderedEpoch();
+        }
+    }
 
     @Column(name = "input_twin_class_id")
     private UUID inputTwinClassId;

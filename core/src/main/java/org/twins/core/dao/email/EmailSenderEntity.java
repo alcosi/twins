@@ -1,5 +1,6 @@
 package org.twins.core.dao.email;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -22,9 +23,14 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class EmailSenderEntity implements EasyLoggable {
     @Id
-    @UuidGenerator(style = UuidGenerator.Style.TIME)
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UuidCreator.getTimeOrderedEpoch();
+        }
+    }
 
     @Column(name = "domain_id")
     private UUID domainId;

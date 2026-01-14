@@ -1,5 +1,6 @@
 package org.twins.core.dao.draft;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -24,9 +25,14 @@ import java.util.UUID;
 @DynamicUpdate
 public class DraftHistoryEntity implements EasyLoggable {
     @Id
-    @UuidGenerator(style = UuidGenerator.Style.TIME)
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UuidCreator.getTimeOrderedEpoch();
+        }
+    }
 
     @Column(name = "draft_id")
     private UUID draftId;

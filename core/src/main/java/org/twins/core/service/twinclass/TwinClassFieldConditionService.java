@@ -129,7 +129,7 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
         }
 
         TwinClassFieldConditionEntity entity = new TwinClassFieldConditionEntity()
-                .setId(UuidCreator.getTimeOrdered())
+                .setId(UuidCreator.getTimeOrderedEpoch())
                 .setTwinClassFieldRuleId(node.getTwinClassFieldRuleId())
                 .setBaseTwinClassFieldId(node.getBaseTwinClassFieldId())
                 .setConditionOrder(node.getConditionOrder())

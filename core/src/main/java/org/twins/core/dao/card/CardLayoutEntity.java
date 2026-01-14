@@ -1,5 +1,6 @@
 package org.twins.core.dao.card;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
@@ -12,9 +13,14 @@ import java.util.UUID;
 @Table(name = "card_layout")
 public class CardLayoutEntity {
     @Id
-    @UuidGenerator(style = UuidGenerator.Style.TIME)
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UuidCreator.getTimeOrderedEpoch();
+        }
+    }
 
     @Column(name = "channel_id")
     @Enumerated(EnumType.STRING)

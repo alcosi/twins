@@ -37,7 +37,7 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            this.id = UuidCreator.getTimeOrdered();
+            this.id = UuidCreator.getTimeOrderedEpoch();
         }
     }
 

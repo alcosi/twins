@@ -1,5 +1,6 @@
 package org.twins.core.dao.notification;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -23,8 +24,14 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class HistoryNotificationRecipientCollectorEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UuidCreator.getTimeOrderedEpoch();
+        }
+    }
 
     @Column(name = "history_notification_recipient_id")
     private UUID historyNotificationRecipientId;

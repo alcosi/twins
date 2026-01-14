@@ -298,7 +298,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 List<I18nTranslationLight> translationsToSave = new ArrayList<>();
 
                 for (var missed : missedList) {
-                    UUID i18nId = UuidCreator.getTimeOrdered();
+                    UUID i18nId = UuidCreator.getTimeOrderedEpoch();
 
                     DataListOptionEntity option = incompleteOptionKit.get(missed)
                             .setBusinessAccountId(businessAccountId)

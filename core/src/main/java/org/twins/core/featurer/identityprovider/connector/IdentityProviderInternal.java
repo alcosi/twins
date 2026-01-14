@@ -77,7 +77,7 @@ public class IdentityProviderInternal extends IdentityProviderConnector {
     public EmailVerificationHolder signupByEmailInitiate(Properties properties, AuthSignup authSignup) throws ServiceException {
         identityProviderInternalService.signupByEmailInitiate(authSignup);
         return new EmailVerificationByTwins()
-                .setIdpUserActivateCode(UuidCreator.getTimeOrdered().toString());
+                .setIdpUserActivateCode(UuidCreator.getTimeOrderedEpoch().toString());
     }
 
     @Override

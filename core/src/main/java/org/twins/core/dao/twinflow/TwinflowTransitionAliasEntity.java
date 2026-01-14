@@ -1,5 +1,6 @@
 package org.twins.core.dao.twinflow;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -16,9 +17,14 @@ import java.util.UUID;
 @Table(name = "twinflow_transition_alias")
 public class TwinflowTransitionAliasEntity implements EasyLoggable {
     @Id
-    @UuidGenerator(style = UuidGenerator.Style.TIME)
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UuidCreator.getTimeOrderedEpoch();
+        }
+    }
 
     @Column(name = "domain_id")
     private UUID domainId;

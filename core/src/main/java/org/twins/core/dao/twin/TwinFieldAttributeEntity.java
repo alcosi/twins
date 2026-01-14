@@ -29,7 +29,7 @@ public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<T
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            this.id = UuidCreator.getTimeOrdered();
+            this.id = UuidCreator.getTimeOrderedEpoch();
         }
     }
 

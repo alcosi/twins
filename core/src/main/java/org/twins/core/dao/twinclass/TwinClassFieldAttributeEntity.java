@@ -1,5 +1,6 @@
 package org.twins.core.dao.twinclass;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -15,8 +16,14 @@ import java.util.UUID;
 @Table(name = "twin_class_field_attribute")
 public class TwinClassFieldAttributeEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UuidCreator.getTimeOrderedEpoch();
+        }
+    }
 
     @Column(name = "twin_class_id")
     private UUID twinClassId;

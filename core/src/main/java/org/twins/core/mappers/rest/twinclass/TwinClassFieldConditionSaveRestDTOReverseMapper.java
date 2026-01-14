@@ -16,7 +16,7 @@ public class TwinClassFieldConditionSaveRestDTOReverseMapper extends RestSimpleD
         if (src == null || dst == null)
             return;
         dst
-                .setId(UuidCreator.getTimeOrdered())
+                .setId(UuidCreator.getTimeOrderedEpoch())
                 .setBaseTwinClassFieldId(src.getBaseTwinClassFieldId())
                 .setConditionOrder(src.getConditionOrder())
                 .setParentTwinClassFieldConditionId(src.getParentTwinClassFieldConditionId())
