@@ -11,6 +11,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTwin;
 import org.twins.core.service.SystemEntityService;
 
 import java.util.ArrayList;
@@ -44,7 +45,7 @@ public class TwinSorterTwinField extends TwinSorter {
 
     @Override
     public boolean checkCompatibleSorter(FieldTyper fieldTyper) throws ServiceException {
-        return true;
+        return fieldTyper.getStorageType().equals(TwinFieldStorageTwin.class);
     }
 
     private String getTwinEntityField(UUID fieldId) {
