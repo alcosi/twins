@@ -55,6 +55,7 @@ public abstract class SchedulerCleaner extends Scheduler {
         return totalCount;
     }
 
+    // maybe use 1 db request
     private long deleteRecordsAfterInterval(Duration interval) {
         Timestamp createdAfter = Timestamp.valueOf(LocalDateTime.now().minus(interval));
         long count = countAllByCreatedAtBefore(createdAfter);

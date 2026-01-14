@@ -37,11 +37,12 @@ create index if not exists scheduler_log_scheduler_id_index
 insert into scheduler(id, domain_id, scheduler_featurer_id, scheduler_params, active, log_enabled, cron, fixed_rate, description, created_at, updated_at)
 values
     (uuid_generate_v4(), null, 5001, null, true, true, null, 2000, 'Scheduler for clearing external file storages after twin/attachment deletion', now(), now()),
-    (uuid_generate_v4(), null, 5002, null, true, true, '0 0 0 * * *', null, 'Scheduler for clearing twin archive table', now(), now()),
+    (uuid_generate_v4(), null, 5002, null, true, true, '1 0 0 * * *', null, 'Scheduler for clearing twin archive table', now(), now()),
     (uuid_generate_v4(), null, 5003, null, true, true, null, 2000, 'Scheduler for executing twin changes', now(), now()),
     (uuid_generate_v4(), null, 5004, null, true, true, null, 500, 'Scheduler for executing draft erases', now(), now()),
     (uuid_generate_v4(), null, 5005, null, true, true, null, 500, 'Scheduler for executing draft commits', now(), now()),
-    (uuid_generate_v4(), null, 5006, null, true, true, '0 0 0 * * *', null, 'Scheduler for cleaning scheduler log table', now(), now()),
-    (uuid_generate_v4(), null, 5007, null, true, true, '0 0 0 * * *', null, 'Scheduler for cleaning attachment delete task table', now(), now()),
-    (uuid_generate_v4(), null, 5008, null, true, true, null, 500, 'Scheduler for cleaning attachment delete task table', now(), now())
+    (uuid_generate_v4(), null, 5006, null, true, true, '2 0 0 * * *', null, 'Scheduler for cleaning scheduler log table', now(), now()),
+    (uuid_generate_v4(), null, 5007, null, true, true, '3 0 0 * * *', null, 'Scheduler for cleaning attachment delete task table', now(), now()),
+    (uuid_generate_v4(), null, 5008, null, true, true, null, 500, 'Scheduler for history notifications sending', now(), now()),
+    (uuid_generate_v4(), null, 5009, null, true, true, '4 0 0 * * *', null, 'Scheduler for cleaning history notification task table', now(), now())
 on conflict do nothing;

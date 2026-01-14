@@ -10,5 +10,6 @@ values (5001, 50, 'org.twins.core.featurer.scheduler.SchedulerAttachmentDeleteTa
        (5005, 50, 'org.twins.core.featurer.scheduler.SchedulerDraftCommitTaskRunner', 'SchedulerDraftCommitTaskRunner', 'Scheduler for executing draft commits', false),
        (5006, 50, 'org.twins.core.featurer.scheduler.SchedulerSchedulerLogCleaner', 'SchedulerSchedulerLogCleaner', 'Scheduler for cleaning scheduler log table', false),
        (5007, 50, 'org.twins.core.featurer.scheduler.SchedulerAttachmentDeleteTaskCleaner', 'SchedulerAttachmentDeleteTaskCleaner', 'Scheduler for cleaning attachment delete task table', false),
-       (5008, 50, 'org.twins.core.featurer.scheduler.SchedulerHistoryNotificationTaskRunner', 'SchedulerHistoryNotificationTaskRunner', 'Scheduler for history notifications sending', false)
+       (5008, 50, 'org.twins.core.featurer.scheduler.SchedulerHistoryNotificationTaskRunner', 'SchedulerHistoryNotificationTaskRunner', 'Scheduler for history notifications sending', false),
+       (5009, 50, 'org.twins.core.featurer.scheduler.SchedulerHistoryNotificationTaskCleaner', 'SchedulerHistoryNotificationTaskCleaner', 'Scheduler for cleaning history notification task table', false)
 on conflict do nothing;
