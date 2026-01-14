@@ -216,7 +216,7 @@ public class TwinActionService {
                 // Check if the action is protected by validators
                 if (KitUtils.isNotEmpty(twinClassEntity.getActionsProtectedByValidatorRules())) {
                     List<TwinActionValidatorRuleEntity> validatorRules = twinClassEntity.getActionsProtectedByValidatorRules().getGrouped(twinAction);
-                    if (validatorRules != null && !validatorRules.isEmpty()) {
+                    if (CollectionUtils.isNotEmpty(validatorRules)) {
                         for (TwinActionValidatorRuleEntity actionValidatorRuleEntity : validatorRules) {
                             if (!actionValidatorRuleEntity.isActive()) {
                                 log.info(actionValidatorRuleEntity.logShort() + " is inactive");
