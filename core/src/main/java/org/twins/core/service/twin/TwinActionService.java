@@ -187,80 +187,75 @@ public class TwinActionService {
                 List<TwinEntity> twinsNeedsValidatorCheck = new ArrayList<>();
 
                 // Check if the action is protected by permissions
-                if (KitUtils.isNotEmpty(twinClassEntity.getActionsProtectedByPermission())) {
-                    TwinActionPermissionEntity classActionPermissionEntity = twinClassEntity.getActionsProtectedByPermission().get(twinAction);
-                    if (classActionPermissionEntity != null) {
-                        // Convert entities into permission check keys
-                        Map<PermissionService.PermissionDetectKey, List<TwinEntity>> permissionDetectKeys = permissionService.convertToDetectKeys(entry.getValue());
-                        // Loop through permission check keys and verify permission
-                        for (Map.Entry<PermissionService.PermissionDetectKey, List<TwinEntity>> samePermissionGroupEntry : permissionDetectKeys.entrySet()) {
-                            // If the permission is denied for an action, mark the action as forbidden for those entities
-                            if (!permissionService.hasPermission(samePermissionGroupEntry.getKey(), classActionPermissionEntity.getPermissionId())) {
-                                for (TwinEntity twinEntity : samePermissionGroupEntry.getValue()) {
-                                    twinsActionsForbiddenByPermissions.computeIfAbsent(twinEntity.getId(), k -> new HashSet<>());
-                                    twinsActionsForbiddenByPermissions.get(twinEntity.getId()).add(twinAction);
-                                }
-                            } else {
-                                twinsNeedsValidatorCheck.addAll(samePermissionGroupEntry.getValue()); // If permission is granted, add to validator check list
+                TwinActionPermissionEntity classActionPermissionEntity = KitUtils.getOrNull(twinClassEntity.getActionsProtectedByPermission(), twinAction);
+                if (classActionPermissionEntity != null) {
+                    // Convert entities into permission check keys
+                    Map<PermissionService.PermissionDetectKey, List<TwinEntity>> permissionDetectKeys = permissionService.convertToDetectKeys(entry.getValue());
+                    // Loop through permission check keys and verify permission
+                    for (Map.Entry<PermissionService.PermissionDetectKey, List<TwinEntity>> samePermissionGroupEntry : permissionDetectKeys.entrySet()) {
+                        // If the permission is denied for an action, mark the action as forbidden for those entities
+                        if (!permissionService.hasPermission(samePermissionGroupEntry.getKey(), classActionPermissionEntity.getPermissionId())) {
+                            for (TwinEntity twinEntity : samePermissionGroupEntry.getValue()) {
+                                twinsActionsForbiddenByPermissions.computeIfAbsent(twinEntity.getId(), k -> new HashSet<>());
+                                twinsActionsForbiddenByPermissions.get(twinEntity.getId()).add(twinAction);
                             }
+                        } else {
+                            twinsNeedsValidatorCheck.addAll(samePermissionGroupEntry.getValue()); // If permission is granted, add to validator check list
                         }
-                    } else {
-                        // Action is not protected by permission, all twins need validator check
-                        twinsNeedsValidatorCheck.addAll(entry.getValue());
                     }
                 } else {
-                    // No permissions configured, all twins need validator check
+                    // Action is not protected by permission, all twins need validator check
                     twinsNeedsValidatorCheck.addAll(entry.getValue());
                 }
 
                 // Check if the action is protected by validators
-                if (KitUtils.isNotEmpty(twinClassEntity.getActionsProtectedByValidatorRules())) {
+                if (KitUtils.isNotEmpty(twinClassEntity.getActionsProtectedByValidatorRules()) && !twinsNeedsValidatorCheck.isEmpty()) {
                     List<TwinActionValidatorRuleEntity> validatorRules = twinClassEntity.getActionsProtectedByValidatorRules().getGrouped(twinAction);
-                    if (CollectionUtils.isNotEmpty(validatorRules)) {
-                        for (TwinActionValidatorRuleEntity actionValidatorRuleEntity : validatorRules) {
-                            if (!actionValidatorRuleEntity.isActive()) {
-                                log.info(actionValidatorRuleEntity.logShort() + " is inactive");
+                    if (CollectionUtils.isEmpty(validatorRules))
+                        continue;
+                    for (TwinActionValidatorRuleEntity actionValidatorRuleEntity : validatorRules) {
+                        if (!actionValidatorRuleEntity.isActive()) {
+                            log.info(actionValidatorRuleEntity.logShort() + " is inactive");
+                            continue;
+                        }
+                        // Map for checked and valid twin for current action <twin.id:uuid, valid: boolean>
+                        Map<UUID, Boolean> twinByTwinValidatorsIsValid = new HashMap<>();
+                        // Check each validator for the action
+                        twinValidatorService.loadValidators(actionValidatorRuleEntity);
+                        List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(actionValidatorRuleEntity.getTwinValidatorKit().getList());
+                        sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
+                        for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
+                            if (!twinValidatorEntity.isActive()) {
+                                log.info(twinValidatorEntity.logShort() + " from " + actionValidatorRuleEntity.logShort() + " is inactive");
                                 continue;
                             }
-                            // Map for checked and valid twin for current action <twin.id:uuid, valid: boolean>
-                            Map<UUID, Boolean> twinByTwinValidatorsIsValid = new HashMap<>();
-                            // Check each validator for the action
-                            twinValidatorService.loadValidators(actionValidatorRuleEntity);
-                            List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(actionValidatorRuleEntity.getTwinValidatorKit().getList());
-                            sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
-                            for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
-                                if (!twinValidatorEntity.isActive()) {
-                                    log.info(twinValidatorEntity.logShort() + " from " + actionValidatorRuleEntity.logShort() + " is inactive");
+                            // Retrieve the validator and check its validity for the entities
+                            TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturerId(), TwinValidator.class);
+                            TwinValidator.CollectionValidationResult collectionValidationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinsNeedsValidatorCheck, twinValidatorEntity.isInvert());
+                            // Process the validation result for each entity
+                            for (TwinEntity twinEntity : twinsNeedsValidatorCheck) {
+                                ValidationResult validationResult = collectionValidationResult.getTwinsResults().get(twinEntity.getId());
+                                if (validationResult == null) {
+                                    log.warn(twinValidatorEntity.logShort() + " from " + actionValidatorRuleEntity.logShort() + " validation result should not be null");
                                     continue;
                                 }
-                                // Retrieve the validator and check its validity for the entities
-                                TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturerId(), TwinValidator.class);
-                                TwinValidator.CollectionValidationResult collectionValidationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinsNeedsValidatorCheck, twinValidatorEntity.isInvert());
-                                // Process the validation result for each entity
-                                for (TwinEntity twinEntity : twinsNeedsValidatorCheck) {
-                                    ValidationResult validationResult = collectionValidationResult.getTwinsResults().get(twinEntity.getId());
-                                    if (validationResult == null) {
-                                        log.warn(twinValidatorEntity.logShort() + " from " + actionValidatorRuleEntity.logShort() + " validation result should not be null");
-                                        continue;
-                                    }
-                                    // compute map twin.id - valid \ invalid
-                                    twinByTwinValidatorsIsValid.computeIfPresent(twinEntity.getId(), (k, v) -> v && validationResult.isValid());
-                                    twinByTwinValidatorsIsValid.putIfAbsent(twinEntity.getId(), validationResult.isValid());
-                                }
+                                // compute map twin.id - valid \ invalid
+                                twinByTwinValidatorsIsValid.computeIfPresent(twinEntity.getId(), (k, v) -> v && validationResult.isValid());
+                                twinByTwinValidatorsIsValid.putIfAbsent(twinEntity.getId(), validationResult.isValid());
                             }
-                            // Check which entities passed the validator checks and update forbidden actions
-                            List<TwinEntity> nextLoopTwins = new ArrayList<>();
-                            for (TwinEntity twinEntity : twinsNeedsValidatorCheck) {
-                                twinsActionsForbiddenByValidators.computeIfAbsent(twinEntity.getId(), k -> new HashSet<>());
-                                if (!twinByTwinValidatorsIsValid.get(twinEntity.getId())) {
-                                    nextLoopTwins.add(twinEntity); // If validation failed, add to next loop
-                                    twinsActionsForbiddenByValidators.get(twinEntity.getId()).add(twinAction); // If validation not passed, add forbidden action
-                                } else {
-                                    twinsActionsForbiddenByValidators.get(twinEntity.getId()).remove(twinAction); // If validation passed, remove forbidden action
-                                }
-                            }
-                            twinsNeedsValidatorCheck = nextLoopTwins; // Update list for next validator check
                         }
+                        // Check which entities passed the validator checks and update forbidden actions
+                        List<TwinEntity> nextLoopTwins = new ArrayList<>();
+                        for (TwinEntity twinEntity : twinsNeedsValidatorCheck) {
+                            twinsActionsForbiddenByValidators.computeIfAbsent(twinEntity.getId(), k -> new HashSet<>());
+                            if (!twinByTwinValidatorsIsValid.get(twinEntity.getId())) {
+                                nextLoopTwins.add(twinEntity); // If validation failed, add to next loop
+                                twinsActionsForbiddenByValidators.get(twinEntity.getId()).add(twinAction); // If validation not passed, add forbidden action
+                            } else {
+                                twinsActionsForbiddenByValidators.get(twinEntity.getId()).remove(twinAction); // If validation passed, remove forbidden action
+                            }
+                        }
+                        twinsNeedsValidatorCheck = nextLoopTwins; // Update list for next validator check
                     }
                 }
             }
