@@ -11,6 +11,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -22,6 +23,7 @@ import java.util.UUID;
 @FieldNameConstants
 public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggable {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

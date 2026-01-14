@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;
 
@@ -19,8 +20,8 @@ import java.util.UUID;
         columnNames = {"twin_attachment_id", "modification_type"}
 ))
 public class TwinAttachmentModificationEntity implements PublicCloneable<TwinAttachmentModificationEntity>, EasyLoggable {
-
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     @Column(name = "id")
     private UUID id;

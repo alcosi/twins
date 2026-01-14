@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class IdentityProviderInternalTokenEntity implements EasyLoggable {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

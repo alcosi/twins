@@ -1,5 +1,6 @@
 package org.twins.core.domain.factory;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.exception.ErrorCodeCommon;
@@ -26,7 +27,7 @@ public class FactoryResultUncommited {
     public FactoryResultUncommited addOperation(TwinOperation twinOperation) throws ServiceException {
         if (twinOperation instanceof TwinCreate) {
             if (twinOperation.getTwinEntity().getId() == null) {
-                twinOperation.getTwinEntity().setId(UUID.randomUUID());
+                twinOperation.getTwinEntity().setId(UuidCreator.getTimeOrdered());
             }
             creates.add((TwinCreate) twinOperation);
         } else if (twinOperation instanceof TwinUpdate) {

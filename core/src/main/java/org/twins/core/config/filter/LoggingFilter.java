@@ -1,6 +1,7 @@
 package org.twins.core.config.filter;
 
 import ch.qos.logback.classic.Logger;
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -275,7 +276,7 @@ public class LoggingFilter extends OncePerRequestFilter {
     }
 
     private void logSessionId(HttpServletRequest request) {
-        String sessionid = Optional.ofNullable(request.getHeader("Authorization")).map(String::toUpperCase).orElseGet(() -> UUID.randomUUID().toString().replace("-", "").toUpperCase());
+        String sessionid = Optional.ofNullable(request.getHeader("Authorization")).map(String::toUpperCase).orElseGet(() -> UuidCreator.getTimeOrdered().toString().replace("-", "").toUpperCase());
         RequestAttributes attrs = RequestContextHolder.getRequestAttributes();
         if (attrs != null) {
             attrs.setAttribute("SESSION_ID", sessionid, RequestAttributes.SCOPE_REQUEST);

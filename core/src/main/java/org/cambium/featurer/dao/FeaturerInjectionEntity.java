@@ -4,6 +4,7 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Table(name = "featurer_injection")
 public class FeaturerInjectionEntity {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

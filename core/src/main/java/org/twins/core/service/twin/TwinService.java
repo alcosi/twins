@@ -1,5 +1,6 @@
 package org.twins.core.service.twin;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import jakarta.validation.constraints.NotNull;
@@ -434,7 +435,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public void createTwinEntity(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
         if (twinEntity.getId() == null)
-            twinEntity.setId(UUID.randomUUID()); // this id is necessary for fields and links. Because entity is not stored currently
+            twinEntity.setId(UuidCreator.getTimeOrdered()); // this id is necessary for fields and links. Because entity is not stored currently
         twinEntity.setCreateElseUpdate(true);
         if (twinCreate.isSketchMode()) {
             setInitSketchStatus(twinEntity);
@@ -1084,7 +1085,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public TwinEntity duplicateTwin(TwinEntity srcTwin, UUID newTwinId) throws ServiceException {
         if (newTwinId == null)
-            newTwinId = UUID.randomUUID();
+            newTwinId = UuidCreator.getTimeOrdered();
         TwinEntity duplicateEntity = fillDuplicate(srcTwin, newTwinId);
         duplicateEntity = createTwin(duplicateEntity);
         cloneTwinFieldListAndSave(srcTwin, duplicateEntity);

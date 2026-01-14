@@ -1,5 +1,6 @@
 package org.twins.core.domain;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -48,7 +49,7 @@ public class ApiUser {
     public static final UUID NOT_SPECIFIED = UuidUtils.NULLIFY_MARKER;
 
     @Getter
-    private final UUID requestId = UUID.randomUUID();
+    private final UUID requestId = UuidCreator.getTimeOrdered();
 
     public Set<UUID> getPermissions() {
         if (user != null && user.getPermissions() != null)

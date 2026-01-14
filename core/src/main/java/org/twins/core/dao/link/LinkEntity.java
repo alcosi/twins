@@ -11,6 +11,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -28,6 +29,7 @@ import java.util.UUID;
 @Table(name = "link")
 public class LinkEntity implements EasyLoggable {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

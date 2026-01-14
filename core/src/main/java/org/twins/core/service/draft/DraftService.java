@@ -1,5 +1,6 @@
 package org.twins.core.service.draft;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import jakarta.persistence.EntityManager;
@@ -125,7 +126,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         ApiUser apiUser = authService.getApiUser();
         return new DraftCollector(
                 new DraftEntity()
-                        .setId(UUID.randomUUID())
+                        .setId(UuidCreator.getTimeOrdered())
                         .setCreatedAt(Timestamp.from(Instant.now()))
                         .setCreatedByUser(authService.getApiUser().getUser())
                         .setCreatedByUserId(authService.getApiUser().getUserId())

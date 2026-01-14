@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;
 
@@ -18,6 +19,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class TwinflowTransitionValidatorRuleEntity implements ContainsTwinValidatorSet {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

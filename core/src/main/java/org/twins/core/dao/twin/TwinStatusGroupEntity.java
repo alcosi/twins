@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.dao.domain.DomainEntity;
 
 import java.util.UUID;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Table(name = "twin_status_group")
 public class TwinStatusGroupEntity {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

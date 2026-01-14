@@ -1,5 +1,6 @@
 package org.twins.core.service.datalist;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
@@ -297,7 +298,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 List<I18nTranslationLight> translationsToSave = new ArrayList<>();
 
                 for (var missed : missedList) {
-                    UUID i18nId = UUID.randomUUID();
+                    UUID i18nId = UuidCreator.getTimeOrdered();
 
                     DataListOptionEntity option = incompleteOptionKit.get(missed)
                             .setBusinessAccountId(businessAccountId)

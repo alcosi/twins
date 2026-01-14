@@ -3,6 +3,7 @@ package org.twins.core.dao.twinclass;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Table(name = "twin_class_schema")
 public class TwinClassSchemaEntity {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

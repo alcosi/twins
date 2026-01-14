@@ -10,6 +10,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -20,6 +21,7 @@ import java.util.UUID;
 @Data
 @FieldNameConstants
 public class TwinFactoryConditionEntity implements EasyLoggable {
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     @Id
     private UUID id;

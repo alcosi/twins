@@ -11,6 +11,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.LocaleConverter;
 import org.twins.core.dao.idp.IdentityProviderEntity;
@@ -37,6 +38,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class DomainEntity implements EasyLoggable {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

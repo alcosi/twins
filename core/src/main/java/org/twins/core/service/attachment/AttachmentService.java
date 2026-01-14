@@ -1,5 +1,6 @@
 package org.twins.core.service.attachment;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
@@ -109,7 +110,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
                 // todo somehow rewrite thread-local logic for api user to use scoped values
                 attachments.forEach(attachmentEntity -> scope.fork(() -> {
-                    UUID uuid = UUID.randomUUID();
+                    UUID uuid = UuidCreator.getTimeOrdered();
                     LoggerUtils.logSession(uuid);
                     LoggerUtils.logController("addAttachments$");
                     LoggerUtils.logPrefix(STR."ADD_ATTACHMENT[\{uuid}]:");
@@ -556,7 +557,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
     public TwinAttachmentEntity transferAttachment(UUID attachmentId, UUID newStorageId) throws ServiceException {
-        UUID newAttachementId = UUID.randomUUID();
+        UUID newAttachementId = UuidCreator.getTimeOrdered();
 
         var attachement = findEntitySafe(attachmentId);
         if (attachement.getStorageId().equals(newStorageId))

@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;
 
@@ -18,6 +19,7 @@ import java.util.UUID;
 public class TwinFactoryBranchEntity implements EasyLoggable {
     @GeneratedValue(generator = "uuid")
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     private UUID id;
 
     @Column(name = "twin_factory_id")

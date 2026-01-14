@@ -9,6 +9,7 @@ import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -19,6 +20,7 @@ import java.util.UUID;
 @Table(name = "twin_status_transition_trigger")
 public class TwinStatusTransitionTriggerEntity implements EasyLoggable {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

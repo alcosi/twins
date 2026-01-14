@@ -2,6 +2,7 @@ package org.twins.core.dao.action;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.enums.action.TwinAction;
 
 import java.util.UUID;
@@ -11,6 +12,7 @@ import java.util.UUID;
 @Table(name = "twin_action_permission")
 public class TwinActionPermissionEntity {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

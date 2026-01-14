@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
@@ -19,6 +20,7 @@ import java.util.UUID;
 @Table(name = "permission_group")
 public class PermissionGroupEntity implements EasyLoggable {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

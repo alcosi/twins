@@ -1,5 +1,6 @@
 package org.twins.core.service.twinclass;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
@@ -128,7 +129,7 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
         }
 
         TwinClassFieldConditionEntity entity = new TwinClassFieldConditionEntity()
-                .setId(UUID.randomUUID())
+                .setId(UuidCreator.getTimeOrdered())
                 .setTwinClassFieldRuleId(node.getTwinClassFieldRuleId())
                 .setBaseTwinClassFieldId(node.getBaseTwinClassFieldId())
                 .setConditionOrder(node.getConditionOrder())

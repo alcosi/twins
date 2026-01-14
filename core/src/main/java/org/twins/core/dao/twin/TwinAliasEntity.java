@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.enums.twin.TwinAliasType;
 
 import java.sql.Timestamp;
@@ -16,8 +17,8 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_alias")
 public class TwinAliasEntity {
-
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

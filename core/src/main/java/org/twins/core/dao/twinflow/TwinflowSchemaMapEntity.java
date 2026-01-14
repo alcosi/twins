@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.UUID;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @FieldNameConstants
 public class TwinflowSchemaMapEntity {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

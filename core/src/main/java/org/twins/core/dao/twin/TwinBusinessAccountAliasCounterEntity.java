@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Table(name = "twin_business_account_alias_counter")
 public class TwinBusinessAccountAliasCounterEntity {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

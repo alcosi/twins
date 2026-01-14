@@ -12,6 +12,7 @@ import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.dao.domain.DomainEntity;
 
 import java.sql.Timestamp;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 @Table(name = "storage")
 public class StorageEntity implements EasyLoggable {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

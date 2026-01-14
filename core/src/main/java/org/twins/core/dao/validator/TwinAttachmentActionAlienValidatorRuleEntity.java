@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
 
 import java.util.UUID;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @Table(name = "twin_attachment_action_alien_validator_rule")
 public class TwinAttachmentActionAlienValidatorRuleEntity implements ContainsTwinValidatorSet, EasyLoggable {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

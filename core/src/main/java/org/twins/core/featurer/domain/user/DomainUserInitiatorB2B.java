@@ -1,5 +1,6 @@
 package org.twins.core.featurer.domain.user;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -49,7 +50,7 @@ public class DomainUserInitiatorB2B extends DomainUserInitiator {
         super.postInit(properties, domainUserEntity);
         if (autoCreateBusinessAccount.extract(properties)) {
             //perhaps we need to grant for current user some permissions (DOMAIN_BUSINESS_ACCOUNT_CREATE))
-            UUID newBusinessAccountId = UUID.randomUUID();
+            UUID newBusinessAccountId = UuidCreator.getTimeOrdered();
             BusinessAccountEntity businessAccount = businessAccountService
                     .addBusinessAccount(newBusinessAccountId, "New company", EntitySmartService.SaveMode.ifPresentThrowsElseCreate);
             domainBusinessAccountService.addBusinessAccount(businessAccount, null, false);

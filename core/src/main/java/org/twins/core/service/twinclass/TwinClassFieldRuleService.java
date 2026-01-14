@@ -1,5 +1,6 @@
 package org.twins.core.service.twinclass;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
@@ -95,7 +96,7 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
                 rule.setFieldOverwriterFeaturerId(FIELD_OVERWRITER_STUB_ID);
             }
             if (rule.getId() == null) {
-                rule.setId(UUID.randomUUID()); // change to uuidV7
+                rule.setId(UuidCreator.getTimeOrdered());
             }
 
             if (ruleSave.getTwinClassFieldConditionTrees() != null) {

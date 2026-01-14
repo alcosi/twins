@@ -1,5 +1,6 @@
 package org.twins.core.dao.twin;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -25,7 +26,7 @@ public class TwinFieldI18nEntity implements EasyLoggable {
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            this.id = UUID.randomUUID();
+            this.id = UuidCreator.getTimeOrdered();
         }
     }
 

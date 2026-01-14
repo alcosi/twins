@@ -1,5 +1,6 @@
 package org.twins.core.service.factory;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
@@ -328,7 +329,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             log.info("Processing {}", pipelineInput.logDetailed());
             pipelineInput.setFactoryContext(factoryContext); // setting global factory context to be accessible from fillers
             if (pipelineInput.getOutput().getTwinEntity().getId() == null)
-                pipelineInput.getOutput().getTwinEntity().setId(UUID.randomUUID()); //generating id for using in fillers (if some field must be created)
+                pipelineInput.getOutput().getTwinEntity().setId(UuidCreator.getTimeOrdered()); //generating id for using in fillers (if some field must be created)
             String logMsg, stepOrder;
             LoggerUtils.traceTreeLevelDown();
             for (int step = 0; step < pipelineStepEntityList.size(); step++) {

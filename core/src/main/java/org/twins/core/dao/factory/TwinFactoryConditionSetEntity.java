@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Table(name = "twin_factory_condition_set")
 public class TwinFactoryConditionSetEntity implements EasyLoggable {
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     @Id
     private UUID id;

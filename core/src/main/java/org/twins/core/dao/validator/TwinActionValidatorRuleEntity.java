@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.enums.action.TwinAction;
 
 import java.util.Set;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class TwinActionValidatorRuleEntity implements ContainsTwinValidatorSet, EasyLoggable {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

@@ -2,6 +2,7 @@ package org.twins.core.dao.error;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;
 
@@ -10,6 +11,7 @@ import java.util.UUID;
 @Data
 public class ErrorEntity {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

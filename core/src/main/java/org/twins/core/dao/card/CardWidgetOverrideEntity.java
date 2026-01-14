@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.dao.Channel;
 
 import java.util.HashMap;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @Table(name = "card_widget_override")
 public class CardWidgetOverrideEntity {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

@@ -1,5 +1,6 @@
 package org.twins.core.dao.statistic;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -26,7 +27,7 @@ public class TwinStatisticEntity implements EasyLoggable {
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            this.id = UUID.randomUUID();
+            this.id = UuidCreator.getTimeOrdered();
         }
     }
 

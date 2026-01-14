@@ -1,5 +1,6 @@
 package org.twins.core.featurer.identityprovider.connector;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -76,7 +77,7 @@ public class IdentityProviderInternal extends IdentityProviderConnector {
     public EmailVerificationHolder signupByEmailInitiate(Properties properties, AuthSignup authSignup) throws ServiceException {
         identityProviderInternalService.signupByEmailInitiate(authSignup);
         return new EmailVerificationByTwins()
-                .setIdpUserActivateCode(UUID.randomUUID().toString());
+                .setIdpUserActivateCode(UuidCreator.getTimeOrdered().toString());
     }
 
     @Override

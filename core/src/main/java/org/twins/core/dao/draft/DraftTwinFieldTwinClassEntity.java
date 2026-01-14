@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.dao.CUD;
 import org.twins.core.dao.CUDConverter;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -16,8 +17,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "draft_twin_field_twin_class")
 public class DraftTwinFieldTwinClassEntity {
-
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     @Column(name = "id")
     private UUID id;

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Table(name = "twin_work")
 public class TwinWorkEntity {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

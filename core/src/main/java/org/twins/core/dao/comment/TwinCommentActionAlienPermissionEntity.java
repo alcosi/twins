@@ -2,6 +2,7 @@ package org.twins.core.dao.comment;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.enums.comment.TwinCommentAction;
 
 import java.util.UUID;
@@ -11,6 +12,7 @@ import java.util.UUID;
 @Table(name = "twin_comment_action_alien_permission")
 public class TwinCommentActionAlienPermissionEntity {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 

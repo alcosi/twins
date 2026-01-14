@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.dao.i18n.I18nLocaleEntity;
 import org.twins.core.dao.i18n.LocaleConverter;
 
@@ -18,6 +19,7 @@ import java.util.UUID;
 @Table(name = "domain_locale")
 public class DomainLocaleEntity implements EasyLoggable {
     @Id
+    @UuidGenerator(style = UuidGenerator.Style.TIME)
     @GeneratedValue(generator = "uuid")
     private UUID id;
 
