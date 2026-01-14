@@ -91,4 +91,13 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
         return coll == null ||
                 coll.isEmpty();
     }
+
+    @SafeVarargs
+    public static <T> Set<T> getFirstNotEmpty(Set<T>... collections) {
+         for (Set<T> collection : collections) {
+             if (collection != null && !collection.isEmpty())
+                 return collection;
+         }
+         return null;
+    }
 }

@@ -323,8 +323,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         TwinflowTransitionEntity dbTwinflowTransitionEntity = findEntitySafe(twinflowTransitionEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
         updateTransitionAlias(dbTwinflowTransitionEntity, twinflowTransitionEntity.getTwinflowTransitionAlias(), changesHelper);
-        updateTransitionName(dbTwinflowTransitionEntity, nameI18n, changesHelper);
-        updateTransitionDescription(dbTwinflowTransitionEntity, descriptionI18n, changesHelper);
+        i18nService.updateI18nFieldForEntity(nameI18n, I18nType.TWINFLOW_TRANSITION_NAME, dbTwinflowTransitionEntity, TwinflowTransitionEntity::getNameI18NId, TwinflowTransitionEntity::setNameI18NId, TwinflowTransitionEntity.Fields.nameI18NId, changesHelper);
+        i18nService.updateI18nFieldForEntity(descriptionI18n, I18nType.TWINFLOW_TRANSITION_DESCRIPTION, dbTwinflowTransitionEntity, TwinflowTransitionEntity::getDescriptionI18NId, TwinflowTransitionEntity::setDescriptionI18NId, TwinflowTransitionEntity.Fields.descriptionI18NId, changesHelper);
         updateTransitionInBuildFactory(dbTwinflowTransitionEntity, twinflowTransitionEntity.getInbuiltTwinFactoryId(), changesHelper);
         updateTransitionDraftingFactory(dbTwinflowTransitionEntity, twinflowTransitionEntity.getDraftingTwinFactoryId(), changesHelper);
         updateTransitionPermission(dbTwinflowTransitionEntity, twinflowTransitionEntity.getPermissionId(), changesHelper);
@@ -452,26 +452,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         dbTwinflowTransitionEntity.setTwinflowTransitionAlias(twinflowTransitionAliasEntity);
     }
 
-    public void updateTransitionDescription(TwinflowTransitionEntity dbTwinflowTransitionEntity, I18nEntity descriptionI18n, ChangesHelper changesHelper) throws ServiceException {
-        if (descriptionI18n == null)
-            return;
-        if (dbTwinflowTransitionEntity.getDescriptionI18NId() != null)
-            descriptionI18n.setId(dbTwinflowTransitionEntity.getDescriptionI18NId());
-        i18nService.saveTranslations(I18nType.TWINFLOW_DESCRIPTION, descriptionI18n);
-        if (changesHelper.isChanged(TwinflowTransitionEntity.Fields.descriptionI18NId, dbTwinflowTransitionEntity.getDescriptionI18NId(), descriptionI18n.getId()))
-            dbTwinflowTransitionEntity.setDescriptionI18NId(descriptionI18n.getId());
-    }
-
-
-    public void updateTransitionName(TwinflowTransitionEntity dbTwinflowTransitionEntity, I18nEntity nameI18n, ChangesHelper changesHelper) throws ServiceException {
-        if (nameI18n == null)
-            return;
-        if (dbTwinflowTransitionEntity.getNameI18NId() != null)
-            nameI18n.setId(dbTwinflowTransitionEntity.getNameI18NId());
-        i18nService.saveTranslations(I18nType.TWINFLOW_NAME, nameI18n);
-        if (changesHelper.isChanged(TwinflowTransitionEntity.Fields.nameI18NId, dbTwinflowTransitionEntity.getNameI18NId(), nameI18n.getId()))
-            dbTwinflowTransitionEntity.setNameI18NId(nameI18n.getId());
-    }
 
     public void updateTransitionInBuildFactory(TwinflowTransitionEntity dbTwinflowTransitionEntity, UUID factoryId, ChangesHelper changesHelper) throws ServiceException {
         if (!changesHelper.isChanged(TwinflowTransitionEntity.Fields.inbuiltTwinFactoryId, dbTwinflowTransitionEntity.getInbuiltTwinFactoryId(), factoryId))
@@ -590,7 +570,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (transition.getSrcTwinStatusId() != null && !twinEntity.getTwinStatusId().equals(transition.getSrcTwinStatusId()))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be performed for " + twinEntity.logDetailed()
                     + ". Given transition is valid only from status[" + transition.getSrcTwinStatusId() + "]");
-        if (isMarketing(transition))
+        if (checkUnavailableTransitionTypes(transition))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionIdOrAlias + "] can not be performed for " + twinEntity.logDetailed()
                     + ". Prohibition of execution of marketing transition[" + transition.getTwinflowTransitionTypeId() + "]");
     }
@@ -609,9 +589,10 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     + " Given transition is valid only from status[" + transition.getSrcTwinStatusId() + "]");
     }
 
-    public static boolean isMarketing(TwinflowTransitionEntity transition) {
+    public static boolean checkUnavailableTransitionTypes(TwinflowTransitionEntity transition) {
         return transition.getTwinflowTransitionTypeId() == TwinflowTransitionType.MARKETING
-                || transition.getTwinflowTransitionTypeId() == TwinflowTransitionType.STATUS_CHANGE_MARKETING;
+                || transition.getTwinflowTransitionTypeId() == TwinflowTransitionType.STATUS_CHANGE_MARKETING
+                || transition.getTwinflowTransitionTypeId() == TwinflowTransitionType.OPERATION_DISABLE;
     }
 
     public TransitionContext createTransitionContext(TwinEntity twinEntity, String transitionAlias) throws ServiceException {

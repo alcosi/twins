@@ -2,7 +2,6 @@ package org.twins.core.featurer.notificator.context;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.featurer.annotations.Featurer;
-import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.user.UserEntity;

@@ -1,5 +1,6 @@
 package org.twins.core.mappers.rest.datalist;
 
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.dto.rest.datalist.DataListOptionSearchDTOv1;
@@ -30,12 +31,9 @@ public class DataListOptionSearchDTOReverseMapper extends RestSimpleDTOMapper<Da
                 .setDataListSubsetKeyExcludeList(src.getDataListSubsetKeyExcludeList())
                 .setStatusIdList(src.getStatusIdList())
                 .setStatusIdExcludeList(src.getStatusIdExcludeList())
-                .setExternalIdLikeList(src.getExternalIdLikeList())
-                .setExternalIdNotLikeList(src.getExternalIdNotLikeList())
-                .setExternalIdList(src.getExternalIdList())
-                .setExternalIdExcludeList(src.getExternalIdExcludeList())
+                .setExternalIdList(CollectionUtils.getFirstNotEmpty(src.getExternalIdList(), src.getExternalIdLikeList()))
+                .setExternalIdExcludeList(CollectionUtils.getFirstNotEmpty(src.getExternalIdExcludeList(), src.getExternalIdNotLikeList()))
                 .setValidForTwinClassFieldIdList(src.getValidForTwinClassFieldIdList())
-                .setCustom(src.getCustom())
-        ;
+                .setCustom(src.getCustom());
     }
 }

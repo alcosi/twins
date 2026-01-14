@@ -50,9 +50,16 @@ public class FieldTyperSelect extends FieldTyperList {
                 .supportCustom(supportCustom.extract(properties))
                 .multiple(multiple.extract(properties));
         UUID listId = dataListId.extract(properties);
-        int listSize = dataListService.countByDataListId(listId);
-        if (listSize < longListThreshold.extract(properties)) {
-            fieldDescriptorList.options(dataListService.findByDataListId(listId));
+        var longListThresholdValue = longListThreshold.extract(properties);
+        if (longListThresholdValue > 0) {
+            if (longListThresholdValue > 100) {
+                log.warn("{}: long list threshold value is too big [{}]. 100 will be used instead.", twinClassFieldEntity.logShort(), longListThresholdValue);
+                longListThresholdValue = 100;
+            }
+            var listSize = dataListService.countByDataListId(listId);
+            if (listSize < longListThresholdValue) {
+                fieldDescriptorList.options(dataListService.findByDataListId(listId));
+            }
         }
         return fieldDescriptorList;
     }

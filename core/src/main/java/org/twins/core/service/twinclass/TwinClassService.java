@@ -79,6 +79,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     private final TwinClassSchemaRepository twinClassSchemaRepository;
     private final TwinClassSchemaMapRepository twinClassSchemaMapRepository;
     private final TwinClassFieldService twinClassFieldService;
+    @Lazy
     private final TwinClassFreezeService twinClassFreezeService;
     private final EntitySmartService entitySmartService;
     private final I18nService i18nService;
@@ -583,8 +584,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
 
             updateTwinClassFeaturer(dbTwinClassEntity, twinClassUpdate.getTwinClass().getHeadHunterFeaturerId(), twinClassUpdate.getTwinClass().getHeadHunterParams(), changesHelper);
-            updateTwinClassName(dbTwinClassEntity, twinClassUpdate.getNameI18n(), changesHelper);
-            updateTwinClassDescription(dbTwinClassEntity, twinClassUpdate.getDescriptionI18n(), changesHelper);
+            i18nService.updateI18nFieldForEntity(twinClassUpdate.getNameI18n(), I18nType.TWIN_CLASS_NAME, dbTwinClassEntity, TwinClassEntity::getNameI18NId, TwinClassEntity::setNameI18NId, TwinClassEntity.Fields.nameI18NId, changesHelper);
+            i18nService.updateI18nFieldForEntity(twinClassUpdate.getDescriptionI18n(), I18nType.TWIN_CLASS_DESCRIPTION, dbTwinClassEntity, TwinClassEntity::getDescriptionI18NId, TwinClassEntity::setDescriptionI18NId, TwinClassEntity.Fields.descriptionI18NId, changesHelper);
             updateTwinClassHeadTwinClass(dbTwinClassEntity, twinClassUpdate.getHeadTwinClassUpdate(), changesHelper);
             updateTwinClassExtendsTwinClass(dbTwinClassEntity, twinClassUpdate.getExtendsTwinClassUpdate(), changesHelper);
             updateTwinClassMarkerDataList(dbTwinClassEntity, twinClassUpdate.getMarkerDataListUpdate(), changesHelper);
@@ -640,27 +641,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             dbTwinClassEntity
                     .setHeadHunterParams(headHunterParams);
         }
-    }
-
-    public void updateTwinClassDescription(TwinClassEntity dbTwinClassEntity, I18nEntity descriptionI18n, ChangesHelper changesHelper) throws ServiceException {
-        if (descriptionI18n == null)
-            return;
-        if (dbTwinClassEntity.getDescriptionI18NId() != null)
-            descriptionI18n.setId(dbTwinClassEntity.getDescriptionI18NId());
-        i18nService.saveTranslations(I18nType.TWIN_CLASS_DESCRIPTION, descriptionI18n);
-        if (changesHelper.isChanged(TwinClassEntity.Fields.descriptionI18NId, dbTwinClassEntity.getDescriptionI18NId(), descriptionI18n.getId()))
-            dbTwinClassEntity.setDescriptionI18NId(descriptionI18n.getId());
-    }
-
-
-    public void updateTwinClassName(TwinClassEntity dbTwinClassEntity, I18nEntity nameI18n, ChangesHelper changesHelper) throws ServiceException {
-        if (nameI18n == null)
-            return;
-        if (dbTwinClassEntity.getNameI18NId() != null)
-            nameI18n.setId(dbTwinClassEntity.getNameI18NId());
-        i18nService.saveTranslations(I18nType.TWIN_CLASS_NAME, nameI18n);
-        if (changesHelper.isChanged(TwinClassEntity.Fields.nameI18NId, dbTwinClassEntity.getNameI18NId(), nameI18n.getId()))
-            dbTwinClassEntity.setNameI18NId(nameI18n.getId());
     }
 
     public void updateTwinClassTagDataList(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation tagsRelinkOperation, ChangesHelper changesHelper) throws ServiceException {

@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.service.twinclass.TwinClassFieldRuleMapService;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
@@ -22,6 +21,7 @@ import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.twinclass.TwinClassFieldRuleMapService;
 
 import java.util.Collection;
 
@@ -73,6 +73,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setNameI18nId(src.getNameI18nId())
                         .setDescriptionI18nId(src.getDescriptionI18nId())
                         .setFieldTyperFeaturerId(src.getFieldTyperFeaturerId())
+                        .setFieldTyperParams(src.getFieldTyperParams())
                         .setTwinSorterFeaturerId(src.getTwinSorterFeaturerId())
                         .setTwinSorterParams(src.getFieldTyperParams())
                         .setViewPermissionId(src.getViewPermissionId())

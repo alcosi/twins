@@ -48,12 +48,11 @@ class RestTemplateConfig {
                     ? request.getHeaders().getContentType().toString()
                     : "";
 
-            if (contentType.toLowerCase().contains("multipart/")) {
-                requestBody = new String(body, StandardCharsets.UTF_8).substring(0, MAX_SIZE) + "...\nMultipart body is too big to log";
+            if (contentType.toLowerCase().contains("multipart/") && body.length > MAX_SIZE) {
+                requestBody = new String(body, 0, MAX_SIZE, StandardCharsets.UTF_8) + "...\nMultipart body is too big to log";
             } else {
                 requestBody = new String(body, StandardCharsets.UTF_8);
             }
-
             log.info(sb.toString(), id.toString(), request.getURI(), request.getMethod(), request.getHeaders(), requestBody);
         }
 

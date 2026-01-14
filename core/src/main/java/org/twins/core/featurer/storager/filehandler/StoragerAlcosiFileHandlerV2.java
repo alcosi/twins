@@ -56,6 +56,15 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
     )
     public static final FeaturerParamString fileHandlerUri = new FeaturerParamString("fileHandlerUri");
 
+    @FeaturerParam(
+            name = "fileHandlerUploadPath", description = "Upload endpoint",
+            optional = true,
+            defaultValue = "/api/resize/save/synced",
+            exampleValues = {"/api/resize/save/synced", "/api/resize/async/save/synced"}
+    )
+    public static final FeaturerParamString fileHandlerUploadPath = new FeaturerParamString("fileHandlerUploadPath");
+
+
     @FeaturerParam(name = "downloadExternalFileConnectionTimeout",
             description = "If the File is added as external URI, it should be downloaded first.\nSo this params sets timout time in milliseconds for such download request.\n",
             optional = true,
@@ -157,6 +166,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
             try (tikaStream) {
                 var properties = extractProperties(params, false);
                 var baseUrl = fileHandlerUri.extract(properties);
+                var uploadPath = fileHandlerUploadPath.extract(properties);
                 var fileKeyElems = Arrays.stream(fileKey.split("/")).collect(Collectors.toList());
                 var fileName = fileKeyElems.removeLast();
                 var fileId = Arrays.stream(fileName.split("\\.")).toList().getFirst();
@@ -164,7 +174,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                 var fileSize = getFileSize(tikaStream, fileSizeLimit);
 
                 if (shouldResize(mimeType)) {
-                    var url = STR."\{baseUrl}/api/resize/save/synced";
+                    var url = baseUrl + uploadPath;
                     var tasksParams = resizeTasks.extract(properties);
                     var tasks = new ArrayList<ResizeTaskDTO>();
 
@@ -371,4 +381,3 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         return null;
     }
 }
-
