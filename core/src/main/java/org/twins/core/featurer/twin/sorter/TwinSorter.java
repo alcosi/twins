@@ -75,6 +75,15 @@ public abstract class TwinSorter extends FeaturerTwins {
         }
     }
 
+    protected void addNullsPositionOrder(List<Order> orders, CriteriaBuilder cb, Path<TwinEntity> root, String field, Properties properties) {
+        boolean isNullsLast = nullsLast.extract(properties);
+        if (isNullsLast) {
+            orders.add(cb.asc(cb.selectCase().when(cb.isNull(root.get(field)), 1).otherwise(0)));
+        } else {
+            orders.add(cb.desc(cb.selectCase().when(cb.isNull(root.get(field)), 1).otherwise(0)));
+        }
+    }
+
     /**
      * Retrieves an existing JOIN or creates a new LEFT JOIN to the specified field table.
      *
