@@ -3,6 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.util.Ternary;
 
 import java.util.Set;
 import java.util.UUID;
@@ -25,4 +26,5 @@ public class ProjectionSearch {
     private Set<UUID> projectionTypeIdExcludeList;
     private Set<Integer> fieldProjectorIdList;
     private Set<Integer> fieldProjectorIdExcludeList;
+    private Ternary active;
 }

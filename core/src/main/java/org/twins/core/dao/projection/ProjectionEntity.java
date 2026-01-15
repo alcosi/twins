@@ -45,6 +45,9 @@ public class ProjectionEntity implements EasyLoggable {
     @Column(name = "field_projector_featurer_id")
     private Integer fieldProjectorFeaturerId;
 
+    @Column(name = "active")
+    private Boolean active;
+
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "field_projector_params", columnDefinition = "hstore")
     private HashMap<String, String> fieldProjectorParams;

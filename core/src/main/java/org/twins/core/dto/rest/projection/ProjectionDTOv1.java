@@ -20,6 +20,9 @@ public class ProjectionDTOv1 {
     @Schema(description = "an id of src twin, for which current config is pointed")
     public UUID srcPointedTwinId;
 
+    @Schema(description = "is projection active")
+    public Boolean active;
+
     @Schema(description = "src twin class field id")
     @RelatedObject(type = TwinClassFieldDTOv1.class, name = "srcTwinClassField")
     public UUID srcTwinClassFieldId;

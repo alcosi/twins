@@ -18,9 +18,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.projection.ProjectionEntity;
 import org.twins.core.dao.projection.ProjectionRepository;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.projection.ProjectionCreate;
 import org.twins.core.domain.projection.ProjectionUpdate;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinPointerService;
 
 import java.util.*;
@@ -36,6 +38,7 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
     private final ProjectionRepository projectionRepository;
     private final TwinPointerService twinPointerService;
     private final FeaturerService featurerService;
+    private final AuthService authService;
 
     @Override
     public CrudRepository<ProjectionEntity, UUID> entityRepository() {
@@ -49,6 +52,11 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
 
     @Override
     public boolean isEntityReadDenied(ProjectionEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (!entity.getProjectionType().getDomainId().equals(apiUser.getDomainId())) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed for domain[" + apiUser.getDomainId() + "]");
+            return true;
+        }
         return false;
     }
 
@@ -91,7 +99,8 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
                     .setDstTwinClassFieldId(projectionCreate.getDstTwinClassFieldId())
                     .setFieldProjectorFeaturerId(projectionCreate.getFieldProjectorFeaturerId())
                     .setFieldProjectorParams(projectionCreate.getFieldProjectorParams())
-                    .setProjectionTypeId(projectionCreate.getProjectionTypeId());
+                    .setProjectionTypeId(projectionCreate.getProjectionTypeId())
+                    .setActive(projectionCreate.getActive());
 
             validateEntityAndThrow(projectionEntity, EntitySmartService.EntityValidateMode.beforeSave);
             projectionEntities.add(projectionEntity);
@@ -123,6 +132,7 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
             updateEntityFieldByValue(projectionUpdate.getDstTwinClassId(), dbProjectionEntity, ProjectionEntity::getDstTwinClassId, ProjectionEntity::setDstTwinClassId, ProjectionEntity.Fields.dstTwinClassId, changesHelper);
             updateEntityFieldByValue(projectionUpdate.getDstTwinClassFieldId(), dbProjectionEntity, ProjectionEntity::getDstTwinClassFieldId, ProjectionEntity::setDstTwinClassFieldId, ProjectionEntity.Fields.dstTwinClassFieldId, changesHelper);
             updateEntityFieldByValue(projectionUpdate.getProjectionTypeId(), dbProjectionEntity, ProjectionEntity::getProjectionTypeId, ProjectionEntity::setProjectionTypeId, ProjectionEntity.Fields.projectionTypeId, changesHelper);
+            updateEntityFieldByValue(projectionUpdate.getActive(), dbProjectionEntity, ProjectionEntity::getActive, ProjectionEntity::setActive, ProjectionEntity.Fields.active, changesHelper);
             updateFieldProjectorFeaturerId(dbProjectionEntity, projectionUpdate.getFieldProjectorFeaturerId(), projectionUpdate.getFieldProjectorParams(), changesHelper);
 
             changes.add(dbProjectionEntity, changesHelper);
@@ -152,8 +162,8 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
         }
     }
 
-    public void deleteProjections(Set<UUID> projectionIds) {
-        entityRepository().deleteAllById(projectionIds);
+    public void deleteProjections(Set<UUID> projectionIds) throws ServiceException {
+        deleteSafe(projectionIds);
     }
 
     public void loadProjectorFeaturer(ProjectionEntity entity) {
