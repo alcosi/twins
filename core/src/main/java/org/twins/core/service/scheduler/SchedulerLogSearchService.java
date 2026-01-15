@@ -36,8 +36,8 @@ public class SchedulerLogSearchService {
                 checkUuidIn(search.getIdExcludeSet(), true, false, SchedulerLogEntity.Fields.id),
                 checkUuidIn(search.getSchedulerIdSet(), false, false, SchedulerLogEntity.Fields.schedulerId),
                 checkUuidIn(search.getSchedulerIdExcludeSet(), true, false, SchedulerLogEntity.Fields.schedulerId),
-                checkFieldLikeIn(search.getResultSet(), false, false, SchedulerLogEntity.Fields.result),
-                checkFieldLikeIn(search.getResultExcludeSet(), true, true, SchedulerLogEntity.Fields.result),
+                checkFieldLikeIn(search.getResultLikeSet(), false, false, SchedulerLogEntity.Fields.result),
+                checkFieldLikeIn(search.getResultNotLikeSet(), true, true, SchedulerLogEntity.Fields.result),
                 checkFieldLocalDateTimeBetween(search.getCreatedAt(), SchedulerLogEntity.Fields.createdAt),
                 checkFieldLongRange(longRangeMapper.convert(search.getExecutionTimeRange()), SchedulerLogEntity.Fields.executionTime)
         );

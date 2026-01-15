@@ -40,20 +40,20 @@ public class SchedulerSearchDTOv1 {
     @Schema(description = "logEnabled", example = DTOExamples.TERNARY)
     public Ternary logEnabled;
 
-    @Schema(description = "cron set")
-    public Set<String> cronSet;
+    @Schema(description = "cron like set")
+    public Set<String> cronLikeSet;
 
-    @Schema(description = "cron exclude set")
-    public Set<String> cronExcludeSet;
+    @Schema(description = "cron not like set")
+    public Set<String> cronNotLikeSet;
 
     @Schema(description = "fixed rate range")
     public IntegerRangeDTOv1 fixedRateRange;
 
-    @Schema(description = "description set")
-    public Set<String> descriptionSet;
+    @Schema(description = "description like set")
+    public Set<String> descriptionLikeSet;
 
-    @Schema(description = "description exclude set")
-    public Set<String> descriptionExcludeSet;
+    @Schema(description = "description not like set")
+    public Set<String> descriptionNotLikeSet;
 
     @Schema(description = "created at range")
     public DataTimeRangeDTOv1 createdAtRange;

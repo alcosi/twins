@@ -23,8 +23,8 @@ public class SchedulerSearch {
     public Set<String> cronSet;
     public Set<String> cronExcludeSet;
     public IntegerRangeDTOv1 fixedRateRange;
-    public Set<String> descriptionSet;
-    public Set<String> descriptionExcludeSet;
+    public Set<String> descriptionLikeSet;
+    public Set<String> descriptionNotLikeSet;
     public DataTimeRangeDTOv1 createdAtRange;
     public DataTimeRangeDTOv1 updatedAtRange;
 }

@@ -18,8 +18,8 @@ public class SchedulerLogSearchRestDTOReverseMapper extends RestSimpleDTOMapper<
                 .setIdExcludeSet(src.getIdExcludeSet())
                 .setSchedulerIdSet(src.getSchedulerIdSet())
                 .setSchedulerIdExcludeSet(src.getSchedulerIdExcludeSet())
-                .setResultSet(src.getResultSet())
-                .setResultExcludeSet(src.getResultExcludeSet())
+                .setResultLikeSet(src.getResultLikeSet())
+                .setResultNotLikeSet(src.getResultNotLikeSet())
                 .setCreatedAt(src.getCreatedAt())
                 .setExecutionTimeRange(src.getExecutionTimeRange());
     }

@@ -29,11 +29,11 @@ public class SchedulerLogSearchDTOv1 {
     @Schema(description = "created at")
     public DataTimeRange createdAt;
 
-    @Schema(description = "result set")
-    public Set<String> resultSet;
+    @Schema(description = "result like set")
+    public Set<String> resultLikeSet;
 
-    @Schema(description = "result exclude set")
-    public Set<String> resultExcludeSet;
+    @Schema(description = "result not like set")
+    public Set<String> resultNotLikeSet;
 
     @Schema(description = "execution time range")
     public LongRangeDTOv1 executionTimeRange;

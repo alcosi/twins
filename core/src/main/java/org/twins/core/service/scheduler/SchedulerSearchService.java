@@ -45,8 +45,8 @@ public class SchedulerSearchService {
                 checkFieldLikeIn(search.getCronSet(), false, false, SchedulerEntity.Fields.cron),
                 checkFieldLikeIn(search.getCronExcludeSet(), true, true, SchedulerEntity.Fields.cron),
                 checkFieldIntegerRange(integerRangeMapper.convert(search.getFixedRateRange()), SchedulerEntity.Fields.fixedRate),
-                checkFieldLikeIn(search.getDescriptionSet(), false, false, SchedulerEntity.Fields.description),
-                checkFieldLikeIn(search.getDescriptionExcludeSet(), true, true, SchedulerEntity.Fields.description),
+                checkFieldLikeIn(search.getDescriptionLikeSet(), false, false, SchedulerEntity.Fields.description),
+                checkFieldLikeIn(search.getDescriptionNotLikeSet(), true, true, SchedulerEntity.Fields.description),
                 checkFieldLocalDateTimeBetween(dateMapper.convert(search.getCreatedAtRange()), SchedulerEntity.Fields.createdAt),
                 checkFieldLocalDateTimeBetween(dateMapper.convert(search.getUpdatedAtRange()), SchedulerEntity.Fields.updatedAt)
         );

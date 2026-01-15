@@ -16,7 +16,7 @@ public class SchedulerLogSearch {
     public Set<UUID> schedulerIdSet;
     public Set<UUID> schedulerIdExcludeSet;
     public DataTimeRange createdAt;
-    public Set<String> resultSet;
-    public Set<String> resultExcludeSet;
+    public Set<String> resultLikeSet;
+    public Set<String> resultNotLikeSet;
     public LongRangeDTOv1 executionTimeRange;
 }
