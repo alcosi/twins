@@ -1,15 +1,14 @@
 package org.twins.core.dao.draft;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.enums.history.HistoryType;
 import org.twins.core.dao.history.HistoryTypeConverter;
 import org.twins.core.dao.history.context.HistoryContext;
@@ -29,9 +28,7 @@ public class DraftHistoryEntity implements EasyLoggable {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "draft_id")

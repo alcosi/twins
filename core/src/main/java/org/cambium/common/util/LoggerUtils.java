@@ -1,6 +1,5 @@
 package org.cambium.common.util;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
 
@@ -35,7 +34,7 @@ public class LoggerUtils {
     }
 
     public static void logSession() {
-        logSession(UuidCreator.getTimeOrderedEpoch().toString().replace("-", "").toUpperCase());
+        logSession(UuidUtils.generate().toString().replace("-", "").toUpperCase());
     }
 
 

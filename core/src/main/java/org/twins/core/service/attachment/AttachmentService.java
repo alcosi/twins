@@ -1,6 +1,5 @@
 package org.twins.core.service.attachment;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
@@ -13,6 +12,7 @@ import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.common.util.StringUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -110,7 +110,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
                 // todo somehow rewrite thread-local logic for api user to use scoped values
                 attachments.forEach(attachmentEntity -> scope.fork(() -> {
-                    UUID uuid = UuidCreator.getTimeOrderedEpoch();
+                    UUID uuid = UuidUtils.generate();
                     LoggerUtils.logSession(uuid);
                     LoggerUtils.logController("addAttachments$");
                     LoggerUtils.logPrefix(STR."ADD_ATTACHMENT[\{uuid}]:");
@@ -557,7 +557,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
     public TwinAttachmentEntity transferAttachment(UUID attachmentId, UUID newStorageId) throws ServiceException {
-        UUID newAttachementId = UuidCreator.getTimeOrderedEpoch();
+        UUID newAttachementId = UuidUtils.generate();
 
         var attachement = findEntitySafe(attachmentId);
         if (attachement.getStorageId().equals(newStorageId))

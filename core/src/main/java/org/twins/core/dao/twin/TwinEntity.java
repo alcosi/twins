@@ -1,6 +1,5 @@
 package org.twins.core.dao.twin;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,6 +9,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
@@ -50,9 +50,7 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "twin_class_id")
@@ -320,7 +318,7 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Kit<TwinFieldSimpleNonIndexedEntity , UUID> twinFieldSimpleNonIndexedKit;
+    private Kit<TwinFieldSimpleNonIndexedEntity, UUID> twinFieldSimpleNonIndexedKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -439,8 +437,10 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twin[" + id + "]";
-            case NORMAL -> "twin[id:" + id + ", " + (twinClass == null ? "twinClassId:" + twinClassId : twinClass.logNormal()) + "]";
-            default -> "twin[id:" + id + ", " + (twinClass == null ? "twinClassId:" + twinClassId : twinClass.logNormal()) + ", " + (twinStatus == null ? "twinStatusId:" + twinStatusId : twinStatus.logNormal()) + "]";
+            case NORMAL ->
+                    "twin[id:" + id + ", " + (twinClass == null ? "twinClassId:" + twinClassId : twinClass.logNormal()) + "]";
+            default ->
+                    "twin[id:" + id + ", " + (twinClass == null ? "twinClassId:" + twinClassId : twinClass.logNormal()) + ", " + (twinStatus == null ? "twinStatusId:" + twinStatusId : twinStatus.logNormal()) + "]";
         };
 
     }

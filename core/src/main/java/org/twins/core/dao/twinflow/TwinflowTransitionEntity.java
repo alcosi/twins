@@ -1,6 +1,5 @@
 package org.twins.core.dao.twinflow;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,8 +8,8 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
@@ -33,9 +32,7 @@ public class TwinflowTransitionEntity implements EasyLoggable {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "twinflow_id")
@@ -166,8 +163,10 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinflowTransition[" + id + "]";
-            case NORMAL -> "twinflowTransition[id:" + id + ", alias:" + (twinflowTransitionAlias != null ? twinflowTransitionAlias.getAlias() : twinflowTransitionAliasId) +  "]";
-            default -> "twinflowTransition[id:" + id + ", alias:" + (twinflowTransitionAlias != null ? twinflowTransitionAlias.getAlias() : twinflowTransitionAliasId) +  "]";
+            case NORMAL ->
+                    "twinflowTransition[id:" + id + ", alias:" + (twinflowTransitionAlias != null ? twinflowTransitionAlias.getAlias() : twinflowTransitionAliasId) + "]";
+            default ->
+                    "twinflowTransition[id:" + id + ", alias:" + (twinflowTransitionAlias != null ? twinflowTransitionAlias.getAlias() : twinflowTransitionAliasId) + "]";
         };
     }
 }

@@ -1,6 +1,5 @@
 package org.twins.core.dao.resource;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -9,11 +8,11 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.dao.domain.DomainEntity;
 
 import java.sql.Timestamp;
@@ -33,9 +32,7 @@ public class StorageEntity implements EasyLoggable {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "domain_id")
@@ -73,8 +70,7 @@ public class StorageEntity implements EasyLoggable {
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case SHORT ->
-                    "resourceStorage[id:" + id + "]";
+            case SHORT -> "resourceStorage[id:" + id + "]";
             case NORMAL ->
                     "resourceStorage[id:" + id + ", domain:" + domain + ", description:" + description + ", storageFeaturerId:" + storageFeaturerId + "]";
             case DETAILED ->

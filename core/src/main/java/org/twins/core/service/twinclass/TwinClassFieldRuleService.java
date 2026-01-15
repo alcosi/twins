@@ -1,12 +1,12 @@
 package org.twins.core.service.twinclass;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -96,7 +96,7 @@ public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinC
                 rule.setFieldOverwriterFeaturerId(FIELD_OVERWRITER_STUB_ID);
             }
             if (rule.getId() == null) {
-                rule.setId(UuidCreator.getTimeOrderedEpoch());
+                rule.setId(UuidUtils.generate());
             }
 
             if (ruleSave.getTwinClassFieldConditionTrees() != null) {

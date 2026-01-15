@@ -1,6 +1,5 @@
 package org.twins.core.service.draft;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import jakarta.persistence.EntityManager;
@@ -9,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -126,7 +126,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         ApiUser apiUser = authService.getApiUser();
         return new DraftCollector(
                 new DraftEntity()
-                        .setId(UuidCreator.getTimeOrderedEpoch())
+                        .setId(UuidUtils.generate())
                         .setCreatedAt(Timestamp.from(Instant.now()))
                         .setCreatedByUser(authService.getApiUser().getUser())
                         .setCreatedByUserId(authService.getApiUser().getUserId())

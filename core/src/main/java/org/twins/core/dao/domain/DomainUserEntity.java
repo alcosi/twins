@@ -1,6 +1,5 @@
 package org.twins.core.dao.domain;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,7 +8,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
-import org.hibernate.annotations.UuidGenerator;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.i18n.LocaleConverter;
 import org.twins.core.dao.user.UserEntity;
@@ -31,9 +30,7 @@ public class DomainUserEntity implements EasyLoggable {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "domain_id")
@@ -64,7 +61,7 @@ public class DomainUserEntity implements EasyLoggable {
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private UserEntity user;
 
-//    needed for specification
+    //    needed for specification
     @Deprecated
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", referencedColumnName = "domain_id", insertable = false, updatable = false)
@@ -72,7 +69,7 @@ public class DomainUserEntity implements EasyLoggable {
     @ToString.Exclude
     private Set<DomainBusinessAccountEntity> domainBusinessAccountsByDomainId;
 
-//    needed for specification
+    //    needed for specification
     @Deprecated
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)

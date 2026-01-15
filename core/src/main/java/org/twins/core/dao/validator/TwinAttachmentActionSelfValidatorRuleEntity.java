@@ -1,12 +1,11 @@
 
 package org.twins.core.dao.validator;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
 
 import java.util.Set;
@@ -21,9 +20,7 @@ public class TwinAttachmentActionSelfValidatorRuleEntity implements EasyLoggable
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "twin_class_id")

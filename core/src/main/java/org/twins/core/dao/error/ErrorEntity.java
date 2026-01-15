@@ -1,9 +1,8 @@
 package org.twins.core.dao.error;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.UuidGenerator;
+import org.cambium.common.util.UuidUtils;
 
 import java.util.UUID;
 
@@ -16,9 +15,7 @@ public class ErrorEntity {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Basic

@@ -1,6 +1,5 @@
 package org.twins.core.service.twinclass;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +8,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -89,6 +89,10 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
         if (CollectionUtils.isEmpty(conditions))
             return Collections.emptyList();
 
+        for (TwinClassFieldConditionEntity condition : conditions) {
+            condition.setId(UuidUtils.generate());
+        }
+
         return StreamSupport.stream(saveSafe(conditions).spliterator(), false).toList();
     }
 
@@ -129,7 +133,7 @@ public class TwinClassFieldConditionService extends EntitySecureFindServiceImpl<
         }
 
         TwinClassFieldConditionEntity entity = new TwinClassFieldConditionEntity()
-                .setId(UuidCreator.getTimeOrderedEpoch())
+                .setId(UuidUtils.generate())
                 .setTwinClassFieldRuleId(node.getTwinClassFieldRuleId())
                 .setBaseTwinClassFieldId(node.getBaseTwinClassFieldId())
                 .setConditionOrder(node.getConditionOrder())

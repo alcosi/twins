@@ -1,6 +1,5 @@
 package org.twins.core.dao.permission;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,7 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.hibernate.annotations.UuidGenerator;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.user.UserEntity;
 
@@ -20,15 +19,13 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "permission_grant_space_role")
-public class PermissionGrantSpaceRoleEntity implements EasyLoggable{
+public class PermissionGrantSpaceRoleEntity implements EasyLoggable {
     @Id
     private UUID id;
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "permission_schema_id")
@@ -70,5 +67,7 @@ public class PermissionGrantSpaceRoleEntity implements EasyLoggable{
     @JoinColumn(name = "granted_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity grantedByUser;
 
-    public String easyLog(Level level) {return "permissionGrantSpaceRole[id:" + id + "]";}
+    public String easyLog(Level level) {
+        return "permissionGrantSpaceRole[id:" + id + "]";
+    }
 }

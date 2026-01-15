@@ -1,6 +1,6 @@
 package org.twins.core.mappers.rest.twinclass;
 
-import com.github.f4b6a3.uuid.UuidCreator;
+import org.cambium.common.util.UuidUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionCreateDTOv1;
@@ -16,7 +16,6 @@ public class TwinClassFieldConditionSaveRestDTOReverseMapper extends RestSimpleD
         if (src == null || dst == null)
             return;
         dst
-                .setId(UuidCreator.getTimeOrderedEpoch())
                 .setBaseTwinClassFieldId(src.getBaseTwinClassFieldId())
                 .setConditionOrder(src.getConditionOrder())
                 .setParentTwinClassFieldConditionId(src.getParentTwinClassFieldConditionId())

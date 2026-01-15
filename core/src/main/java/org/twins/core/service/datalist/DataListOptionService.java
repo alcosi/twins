@@ -1,6 +1,5 @@
 package org.twins.core.service.datalist;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
@@ -8,10 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.ChangesHelperMulti;
-import org.cambium.common.util.KitUtils;
-import org.cambium.common.util.StringUtils;
+import org.cambium.common.util.*;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -298,7 +294,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 List<I18nTranslationLight> translationsToSave = new ArrayList<>();
 
                 for (var missed : missedList) {
-                    UUID i18nId = UuidCreator.getTimeOrderedEpoch();
+                    UUID i18nId = UuidUtils.generate();
 
                     DataListOptionEntity option = incompleteOptionKit.get(missed)
                             .setBusinessAccountId(businessAccountId)

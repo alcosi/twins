@@ -1,6 +1,5 @@
 package org.twins.core.dao.factory;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,7 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.hibernate.annotations.UuidGenerator;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.enums.factory.FactoryEraserAction;
 
@@ -25,9 +24,7 @@ public class TwinFactoryEraserEntity implements EasyLoggable {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "twin_factory_id")
@@ -75,7 +72,8 @@ public class TwinFactoryEraserEntity implements EasyLoggable {
         return switch (level) {
             case SHORT -> "twinFactoryEraser[" + id + "]";
             case NORMAL -> "twinFactoryEraser[" + id + ", twinFactoryId:" + twinFactoryId + "]";
-            default -> "twinFactoryEraser[id:" + id + ", twinFactoryId:" + twinFactoryId + ", inputTwinClassId:" + inputTwinClassId + ", action:" + eraserAction + "]";
+            default ->
+                    "twinFactoryEraser[id:" + id + ", twinFactoryId:" + twinFactoryId + ", inputTwinClassId:" + inputTwinClassId + ", action:" + eraserAction + "]";
         };
     }
 

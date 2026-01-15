@@ -8,7 +8,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.hibernate.annotations.UuidGenerator;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.notification.NotificationSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
@@ -27,9 +27,7 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "domain_id")
@@ -100,6 +98,6 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
 //    private TwinClassSchemaEntity twinClassSchema;
 
     public String easyLog(Level level) {
-        return "domainBusinessAccount[id:" + id + ", domainId:" + domainId + ", businessAccountId:" + businessAccountId+ "]";
+        return "domainBusinessAccount[id:" + id + ", domainId:" + domainId + ", businessAccountId:" + businessAccountId + "]";
     }
 }

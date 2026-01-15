@@ -1,6 +1,5 @@
 package org.twins.core.domain.auth;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CryptUtils;
@@ -29,7 +28,7 @@ public class CryptKey {
     }
 
     public synchronized void flush() throws NoSuchAlgorithmException {
-        id = UuidCreator.getTimeOrderedEpoch();
+        id = UUID.randomUUID();
         keyPair = CryptUtils.generateRsaKeyPair();
         expires = LocalDateTime.now().plusMinutes(10);
         nonceSet.clear();

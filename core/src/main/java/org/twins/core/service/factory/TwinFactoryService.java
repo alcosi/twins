@@ -1,16 +1,12 @@
 package org.twins.core.service.factory;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.KitUtils;
-import org.cambium.common.util.LoggerUtils;
+import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -329,7 +325,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             log.info("Processing {}", pipelineInput.logDetailed());
             pipelineInput.setFactoryContext(factoryContext); // setting global factory context to be accessible from fillers
             if (pipelineInput.getOutput().getTwinEntity().getId() == null)
-                pipelineInput.getOutput().getTwinEntity().setId(UuidCreator.getTimeOrderedEpoch()); //generating id for using in fillers (if some field must be created)
+                pipelineInput.getOutput().getTwinEntity().setId(UuidUtils.generate()); //generating id for using in fillers (if some field must be created)
             String logMsg, stepOrder;
             LoggerUtils.traceTreeLevelDown();
             for (int step = 0; step < pipelineStepEntityList.size(); step++) {

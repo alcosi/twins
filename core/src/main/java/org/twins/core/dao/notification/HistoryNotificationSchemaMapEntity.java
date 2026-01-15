@@ -1,6 +1,5 @@
 package org.twins.core.dao.notification;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,6 +8,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
 import org.twins.core.dao.history.HistoryTypeEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -30,9 +30,7 @@ public class HistoryNotificationSchemaMapEntity implements EasyLoggable, Contain
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "history_type_id")

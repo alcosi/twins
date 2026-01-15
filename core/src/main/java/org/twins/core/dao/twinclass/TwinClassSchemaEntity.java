@@ -1,10 +1,9 @@
 package org.twins.core.dao.twinclass;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.hibernate.annotations.UuidGenerator;
+import org.cambium.common.util.UuidUtils;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -19,10 +18,9 @@ public class TwinClassSchemaEntity {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
+
     @Column(name = "domain_id")
     private UUID domainId;
 

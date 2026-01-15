@@ -1,6 +1,5 @@
 package org.twins.core.dao.twin;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,7 +8,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
-import org.hibernate.annotations.UuidGenerator;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.user.UserEntity;
 
@@ -27,9 +26,7 @@ public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, EasyLogg
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "src_twin_id")
@@ -75,7 +72,8 @@ public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, EasyLogg
         return switch (level) {
             case SHORT -> "twinLink[" + id + "]";
             case NORMAL -> "twinLink[id:" + id + ", linkId:" + linkId + "]";
-            default -> "twinLink[id:" + id + ", linkId:" + linkId + ", srcTwinId:" + srcTwinId + ", dstTwinId:" + dstTwinId + "]";
+            default ->
+                    "twinLink[id:" + id + ", linkId:" + linkId + ", srcTwinId:" + srcTwinId + ", dstTwinId:" + dstTwinId + "]";
         };
     }
 

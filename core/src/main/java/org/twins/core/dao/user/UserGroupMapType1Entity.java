@@ -1,6 +1,5 @@
 package org.twins.core.dao.user;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,7 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.hibernate.annotations.UuidGenerator;
+import org.cambium.common.util.UuidUtils;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -24,9 +23,7 @@ public class UserGroupMapType1Entity implements EasyLoggable, UserGroupMap {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "user_group_id")
@@ -60,10 +57,10 @@ public class UserGroupMapType1Entity implements EasyLoggable, UserGroupMap {
     private UserEntity addedByUser;
 
 
-    public String easyLog(Level level)  {
+    public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "userGroupMapType1[id:" + id + "]";
-            default ->  "userGroupMapType1[id:" + id + ", userGroupId:" + userGroupId + ", userId:" + userId + "]";
+            default -> "userGroupMapType1[id:" + id + ", userGroupId:" + userGroupId + ", userId:" + userId + "]";
         };
     }
 }

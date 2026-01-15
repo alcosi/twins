@@ -1,6 +1,5 @@
 package org.twins.core.dao.user;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,7 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.hibernate.annotations.UuidGenerator;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.domain.DomainEntity;
 
 import java.sql.Timestamp;
@@ -25,9 +24,7 @@ public class UserGroupActAsUserInvolveEntity implements EasyLoggable {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "domain_id")
@@ -63,10 +60,11 @@ public class UserGroupActAsUserInvolveEntity implements EasyLoggable {
     @JoinColumn(name = "involve_in_user_group_id", insertable = false, updatable = false, nullable = false)
     private UserGroupEntity involveInUserGroup;
 
-    public String easyLog(Level level)  {
+    public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "userGroupActAsUserInvolve[id:" + id + "]";
-            default ->  "userGroupActAsUserInvolve[id:" + id + ", involveInUserGroupId:" + involveInUserGroupId + ", machineUserId:" + machineUserId + ", domainId:" + domainId + "]";
+            default ->
+                    "userGroupActAsUserInvolve[id:" + id + ", involveInUserGroupId:" + involveInUserGroupId + ", machineUserId:" + machineUserId + ", domainId:" + domainId + "]";
         };
     }
 }

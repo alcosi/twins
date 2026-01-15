@@ -1,11 +1,11 @@
 package org.twins.core.service.resource;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -62,7 +62,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
      */
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
     public ResourceEntity addResource(String originalFileName, String externalResourceUri) throws ServiceException {
-        UUID resourceId = UuidCreator.getTimeOrderedEpoch();
+        UUID resourceId = UuidUtils.generate();
         ApiUser apiUser = authService.getApiUser();
         StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getResourcesStorageId());
         Storager storager = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
@@ -93,7 +93,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
      */
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
     public ResourceEntity addResource(String originalFileName, InputStream inputStream) throws ServiceException {
-        UUID resourceId = UuidCreator.getTimeOrderedEpoch();
+        UUID resourceId = UuidUtils.generate();
         ApiUser apiUser = authService.getApiUser();
         StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getResourcesStorageId());
         Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
@@ -143,7 +143,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
      */
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
     public ResourceEntity transferResource(UUID resourceId, UUID newStorageId) throws ServiceException {
-        UUID newResourceId = UuidCreator.getTimeOrderedEpoch();
+        UUID newResourceId = UuidUtils.generate();
 
         var resource = findEntitySafe(resourceId);
         if (resource.getStorageId().equals(newStorageId))

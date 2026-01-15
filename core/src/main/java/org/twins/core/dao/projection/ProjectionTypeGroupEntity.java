@@ -1,10 +1,10 @@
 package org.twins.core.dao.projection;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.util.UuidUtils;
 
 import java.util.UUID;
 
@@ -19,9 +19,7 @@ public class ProjectionTypeGroupEntity {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "domain_id")

@@ -1,6 +1,5 @@
 package org.twins.core.service.auth;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
@@ -208,7 +207,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         UserEntity user = userService.findByEmail(authSignup.getEmail());
         if (user == null) {
             user = new UserEntity()
-                    .setId(UuidCreator.getTimeOrderedEpoch())
+                    .setId(UuidUtils.generate())
                     .setName(authSignup.getFirstName() + " " + authSignup.getLastName())
                     .setUserStatusId(UserStatus.EMAIL_VERIFICATION_REQUIRED);
             userService.addUser(user, EntitySmartService.SaveMode.saveAndThrowOnException);
@@ -217,7 +216,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
         EmailVerificationHolder emailVerificationHolder = identityProviderConnector.signupByEmailInitiate(identityProvider.getIdentityProviderConnectorParams(), authSignup);
         UserEmailVerificationEntity userEmailVerificationEntity = new UserEmailVerificationEntity()
-                .setId(UuidCreator.getTimeOrderedEpoch())
+                .setId(UuidUtils.generate())
                 .setEmail(authSignup.getEmail())
                 .setIdentityProviderId(identityProvider.getId())
                 .setUserId(user.getId())

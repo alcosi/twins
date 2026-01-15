@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.dao.CUD;
 import org.twins.core.dao.CUDConverter;
@@ -23,9 +24,7 @@ public class DraftTwinFieldTwinClassEntity {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "draft_id")

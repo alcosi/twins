@@ -1,6 +1,5 @@
 package org.twins.core.dao.user;
 
-import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,7 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.hibernate.annotations.UuidGenerator;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.domain.DomainEntity;
 
 import java.sql.Timestamp;
@@ -25,9 +24,7 @@ public class UserGroupMapType3Entity implements EasyLoggable, UserGroupMap {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UuidCreator.getTimeOrderedEpoch();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "user_group_id")
@@ -69,10 +66,11 @@ public class UserGroupMapType3Entity implements EasyLoggable, UserGroupMap {
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;
 
-    public String easyLog(Level level)  {
+    public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "userGroupMapType3[id:" + id + "]";
-            default ->  "userGroupMapType3[id:" + id + ", userGroupId:" + userGroupId + ", userId:" + userId + ", domainId:" + domainId + "]";
+            default ->
+                    "userGroupMapType3[id:" + id + ", userGroupId:" + userGroupId + ", userId:" + userId + ", domainId:" + domainId + "]";
         };
     }
 }
