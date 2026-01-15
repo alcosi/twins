@@ -136,6 +136,16 @@ dependencies {
     implementation 'com.google.protobuf:protobuf-java:4.32.1'
     implementation("io.github.breninsul:log4j2-masking-factory:1.0.3")
     implementation 'com.github.f4b6a3:uuid-creator:6.1.1'
+
+    // JUnit 5
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
+
+    // ArchUnit
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.2.1'
+
+    // Assertions
+    testImplementation 'org.assertj:assertj-core:3.24.2'
 }
 
 configurations {
@@ -217,4 +227,8 @@ protobuf {
             grpc {}
         }
     }
+}
+
+test {
+    useJUnitPlatform()
 }
