@@ -50,6 +50,8 @@ public class SchedulerLogRestDTOMapperV1 extends RestSimpleDTOMapper<SchedulerLo
             return;
         }
 
-        schedulerLogService.loadSchedulers(srcCollection);
+        if (mapperContext.hasModeButNot(SchedulerMode.SchedulerLog2SchedulerMode.HIDE)) {
+            schedulerLogService.loadSchedulers(srcCollection);
+        }
     }
 }

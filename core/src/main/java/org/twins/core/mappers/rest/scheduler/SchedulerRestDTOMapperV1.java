@@ -65,12 +65,14 @@ public class SchedulerRestDTOMapperV1 extends RestSimpleDTOMapper<SchedulerEntit
             return;
         }
 
-        featurerService.loadFeaturers(
-                srcCollection,
-                SchedulerEntity::getId,
-                SchedulerEntity::getSchedulerFeaturerId,
-                SchedulerEntity::getSchedulerFeaturer,
-                SchedulerEntity::setSchedulerFeaturer
-        );
+        if (mapperContext.hasModeButNot(FeaturerMode.Scheduler2FeaturerMode.HIDE)) {
+            featurerService.loadFeaturers(
+                    srcCollection,
+                    SchedulerEntity::getId,
+                    SchedulerEntity::getSchedulerFeaturerId,
+                    SchedulerEntity::getSchedulerFeaturer,
+                    SchedulerEntity::setSchedulerFeaturer
+            );
+        }
     }
 }
