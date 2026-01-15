@@ -1,1 +1,1 @@
-INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1619::integer, 16::integer, '', '', '', DEFAULT) on conflict do nothing;
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1619::integer, 16::integer, '', '', '', DEFAULT) on conflict do nothing;
