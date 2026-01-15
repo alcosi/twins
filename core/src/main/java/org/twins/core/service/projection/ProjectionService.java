@@ -100,7 +100,7 @@ public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEnt
                     .setFieldProjectorFeaturerId(projectionCreate.getFieldProjectorFeaturerId())
                     .setFieldProjectorParams(projectionCreate.getFieldProjectorParams())
                     .setProjectionTypeId(projectionCreate.getProjectionTypeId())
-                    .setActive(projectionCreate.getActive());
+                    .setActive(projectionCreate.getActive() != null ? projectionCreate.getActive() : true);
 
             validateEntityAndThrow(projectionEntity, EntitySmartService.EntityValidateMode.beforeSave);
             projectionEntities.add(projectionEntity);
