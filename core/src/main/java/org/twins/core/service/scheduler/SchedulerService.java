@@ -4,9 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,7 +21,6 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -61,29 +58,6 @@ public class SchedulerService extends EntitySecureFindServiceImpl<SchedulerEntit
         super.beforeValidateEntity(entity, entityValidateMode);
     }
 
-    public void loadFeaturer(SchedulerEntity entity) {
-        loadFeaturers(List.of(entity));
-    }
-    
-    public void loadFeaturers(Collection<SchedulerEntity> entities) {
-        if (entities.isEmpty()) {
-            return;
-        }
-
-        List<SchedulerEntity> needToLoad = entities.stream().filter((entity) -> entity.getFeaturer() == null).toList();
-
-        if (needToLoad.isEmpty()) {
-            return;
-        }
-
-        Kit<SchedulerEntity, Integer> schedulers = new Kit<>(needToLoad, SchedulerEntity::getFeaturerId);
-        Kit<FeaturerEntity, Integer> featurers = featurerService.findEntitiesSafe(needToLoad.stream().map(SchedulerEntity::getFeaturerId).collect(Collectors.toSet()));
-
-        for (var featurer : featurers) {
-            schedulers.get(featurer.getId()).setFeaturer(featurer);
-        }
-    }
-
     public void init() {
         try {
             startAll();
@@ -101,13 +75,10 @@ public class SchedulerService extends EntitySecureFindServiceImpl<SchedulerEntit
     public void startAll() throws ServiceException {
         log.info("Starting all schedulers");
 
-        List<SchedulerEntity> activeSchedules = schedulerRepository.findAll().stream()
-                .filter(SchedulerEntity::getActive)
-                .toList();
-
+        List<SchedulerEntity> activeSchedules = schedulerRepository.findAllByActiveTrue();
         for (SchedulerEntity config : activeSchedules) {
-            Properties properties = featurerService.extractProperties(config.getFeaturerId(), config.getSchedulerParams(), new HashMap<>());
-            Scheduler scheduler = featurerService.getFeaturer(config.getFeaturerId(), Scheduler.class);
+            Properties properties = featurerService.extractProperties(config.getSchedulerFeaturerId(), config.getSchedulerParams(), new HashMap<>());
+            Scheduler scheduler = featurerService.getFeaturer(config.getSchedulerFeaturerId(), Scheduler.class);
             Runnable schedulerTask = scheduler.getRunnableForScheduling(properties, config);
 
             scheduleTask(schedulerTask, config);
@@ -137,8 +108,8 @@ public class SchedulerService extends EntitySecureFindServiceImpl<SchedulerEntit
             throw new ServiceException(ErrorCodeTwins.SCHEDULER_IS_NOT_ACTIVE);
         }
 
-        Properties properties = featurerService.extractProperties(config.getFeaturerId(), config.getSchedulerParams(), new HashMap<>());
-        Scheduler scheduler = featurerService.getFeaturer(config.getFeaturerId(), Scheduler.class);
+        Properties properties = featurerService.extractProperties(config.getSchedulerFeaturerId(), config.getSchedulerParams(), new HashMap<>());
+        Scheduler scheduler = featurerService.getFeaturer(config.getSchedulerFeaturerId(), Scheduler.class);
         Runnable schedulerTask = scheduler.getRunnableForScheduling(properties, config);
 
         scheduleTask(schedulerTask, config);

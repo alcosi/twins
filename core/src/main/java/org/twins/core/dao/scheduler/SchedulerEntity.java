@@ -34,7 +34,7 @@ public class SchedulerEntity implements EasyLoggable {
     private UUID domainId;
 
     @Column(name = "scheduler_featurer_id")
-    private Integer featurerId;
+    private Integer schedulerFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "scheduler_params", columnDefinition = "hstore")
@@ -66,7 +66,7 @@ public class SchedulerEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private FeaturerEntity featurer;
+    private FeaturerEntity schedulerFeaturer;
 
 
     @Override
@@ -75,9 +75,9 @@ public class SchedulerEntity implements EasyLoggable {
             case SHORT ->
                     "scheduler[id:" + id + "]";
             case NORMAL ->
-                    "scheduler[id:" + id + ", featurerId:" + featurerId + ", description:" + description + ", active:" + active + "]";
+                    "scheduler[id:" + id + ", schedulerFeaturerId:" + schedulerFeaturerId + ", description:" + description + ", active:" + active + "]";
             case DETAILED ->
-                    "scheduler[id:" + id + ", featurerId:" + featurerId + ", description:" + description + ", active:" + active + ", logEnabled:" + logEnabled + ", cron:" + cron + ", fixedRate:" + fixedRate + ", params:" + schedulerParams.entrySet().stream().filter(it -> it.getValue() != null).map(Map.Entry::getKey).collect(Collectors.joining(",")) + "]";
+                    "scheduler[id:" + id + ", schedulerFeaturerId:" + schedulerFeaturerId + ", description:" + description + ", active:" + active + ", logEnabled:" + logEnabled + ", cron:" + cron + ", fixedRate:" + fixedRate + ", params:" + schedulerParams.entrySet().stream().filter(it -> it.getValue() != null).map(Map.Entry::getKey).collect(Collectors.joining(",")) + "]";
         };
     }
 }

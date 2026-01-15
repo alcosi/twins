@@ -72,7 +72,7 @@ public class SchedulerLogService extends EntitySecureFindServiceImpl<SchedulerLo
             return;
         }
 
-        Kit<SchedulerEntity, UUID> schedulers = new Kit<>(schedulerRepository.findAllById(needToLoad.getIdSet()), SchedulerEntity::getId);
+        Kit<SchedulerEntity, UUID> schedulers = new Kit<>(schedulerRepository.findAllById(needToLoad.getGroupedKeySet()), SchedulerEntity::getId);
         for (var log : needToLoad) {
             log.setScheduler(schedulers.get(log.getSchedulerId()));
         }

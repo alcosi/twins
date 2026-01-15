@@ -24,7 +24,9 @@ public class SchedulerLogRestDTOMapperV1 extends RestSimpleDTOMapper<SchedulerLo
     @Override
     public void map(SchedulerLogEntity src, SchedulerLogDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(SchedulerLogMode.SHORT)) {
-            case SHORT -> dst.setId(src.getId());
+            case SHORT -> dst
+                    .setId(src.getId())
+                    .setSchedulerId(src.getSchedulerId());
             case DETAILED -> dst
                     .setId(src.getId())
                     .setSchedulerId(src.getSchedulerId())
