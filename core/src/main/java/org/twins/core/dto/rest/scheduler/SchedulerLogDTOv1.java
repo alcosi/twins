@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -22,7 +22,7 @@ public class SchedulerLogDTOv1 {
     public UUID schedulerId;
 
     @Schema(example = DTOExamples.INSTANT, description = "created at")
-    public Timestamp createdAt;
+    public LocalDateTime createdAt;
 
     @Schema(example = DTOExamples.DESCRIPTION, description = "scheduler log result")
     public String result;

@@ -7,7 +7,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -45,8 +45,8 @@ public class SchedulerDTOv1 {
     public String description;
 
     @Schema(example = DTOExamples.INSTANT, description = "created at")
-    public Timestamp createdAt;
+    public LocalDateTime createdAt;
 
     @Schema(example = DTOExamples.INSTANT, description = "updated at")
-    public Timestamp updatedAt;
+    public LocalDateTime updatedAt;
 }
