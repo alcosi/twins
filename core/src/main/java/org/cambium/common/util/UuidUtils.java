@@ -1,5 +1,6 @@
 package org.cambium.common.util;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import org.cambium.common.exception.ServiceException;
 import org.twins.core.exception.ErrorCodeTwins;
 
@@ -43,5 +44,13 @@ public class UuidUtils {
 
     public static boolean isNullifyMarker(UUID uuid) {
         return NULLIFY_MARKER.equals(uuid);
+    }
+
+    public static UUID ifNullGenerate(UUID existingId) {
+        return existingId != null ? existingId : UuidCreator.getTimeOrderedEpoch();
+    }
+
+    public static UUID generate() {
+        return UuidCreator.getTimeOrderedEpoch();
     }
 }

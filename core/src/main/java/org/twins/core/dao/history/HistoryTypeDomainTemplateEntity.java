@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.enums.history.HistoryType;
 
 import java.util.UUID;
@@ -16,8 +17,12 @@ import java.util.UUID;
 @Table(name = "history_type_domain_template")
 public class HistoryTypeDomainTemplateEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "history_type_id")
     @Convert(converter = HistoryTypeConverter.class)

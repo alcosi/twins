@@ -1,10 +1,13 @@
 package org.twins.core.dao.draft;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.UuidUtils;
+import org.hibernate.annotations.UuidGenerator;
 import org.twins.core.dao.CUD;
 import org.twins.core.dao.CUDConverter;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -16,11 +19,13 @@ import java.util.UUID;
 @Entity
 @Table(name = "draft_twin_field_twin_class")
 public class DraftTwinFieldTwinClassEntity {
-
     @Id
-    @GeneratedValue(generator = "uuid")
-    @Column(name = "id")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "draft_id")
     private UUID draftId;

@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.UuidUtils;
 
 import java.util.UUID;
 
@@ -14,9 +15,12 @@ import java.util.UUID;
 @Table(name = "draft_twin_tag")
 public class DraftTwinTagEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
-    @Column(name = "id")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "draft_id")
     private UUID draftId;

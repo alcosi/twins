@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.UuidUtils;
 
 import java.util.UUID;
 
@@ -14,8 +15,12 @@ import java.util.UUID;
 @Table(name = "card")
 public class CardEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "logo")
     private String logo;

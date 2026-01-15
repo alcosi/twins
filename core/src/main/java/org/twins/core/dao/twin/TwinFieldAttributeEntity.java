@@ -9,6 +9,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.twinclass.TwinClassFieldAttributeEntity;
 
@@ -27,9 +28,7 @@ public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<T
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UUID.randomUUID();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "twin_id")

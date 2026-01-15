@@ -207,7 +207,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         UserEntity user = userService.findByEmail(authSignup.getEmail());
         if (user == null) {
             user = new UserEntity()
-                    .setId(UUID.randomUUID())
+                    .setId(UuidUtils.generate())
                     .setName(authSignup.getFirstName() + " " + authSignup.getLastName())
                     .setUserStatusId(UserStatus.EMAIL_VERIFICATION_REQUIRED);
             userService.addUser(user, EntitySmartService.SaveMode.saveAndThrowOnException);
@@ -216,7 +216,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
         EmailVerificationHolder emailVerificationHolder = identityProviderConnector.signupByEmailInitiate(identityProvider.getIdentityProviderConnectorParams(), authSignup);
         UserEmailVerificationEntity userEmailVerificationEntity = new UserEmailVerificationEntity()
-                .setId(UUID.randomUUID())
+                .setId(UuidUtils.generate())
                 .setEmail(authSignup.getEmail())
                 .setIdentityProviderId(identityProvider.getId())
                 .setUserId(user.getId())

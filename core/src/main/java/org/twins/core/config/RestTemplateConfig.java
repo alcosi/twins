@@ -2,6 +2,7 @@ package org.twins.core.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.util.UuidUtils;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
@@ -26,7 +27,7 @@ class RestTemplateConfig {
 
         @Override
         public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
-            UUID id = UUID.randomUUID();
+            UUID id = UuidUtils.generate();
             traceRequest(id, request, body);
             ClientHttpResponse response = execution.execute(request, body);
             traceResponse(id, response, request);

@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -20,10 +21,13 @@ import java.util.UUID;
 @FieldNameConstants
 @Table(name = "permission_grant_assignee_propagation")
 public class PermissionGrantAssigneePropagationEntity implements EasyLoggable {
-
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "permission_schema_id")
     private UUID permissionSchemaId;
@@ -77,5 +81,7 @@ public class PermissionGrantAssigneePropagationEntity implements EasyLoggable {
     private UserEntity grantedByUser;
 
     @Override
-    public String easyLog(Level level) {return "permissionGrantAssigneePropagation[id:" + id + "]";}
+    public String easyLog(Level level) {
+        return "permissionGrantAssigneePropagation[id:" + id + "]";
+    }
 }

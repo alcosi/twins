@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.enums.factory.FactoryEraserAction;
 
@@ -19,9 +20,12 @@ import java.util.UUID;
 @Table(name = "twin_factory_eraser")
 public class TwinFactoryEraserEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", nullable = false)
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twin_factory_id")
     private UUID twinFactoryId;
@@ -68,7 +72,8 @@ public class TwinFactoryEraserEntity implements EasyLoggable {
         return switch (level) {
             case SHORT -> "twinFactoryEraser[" + id + "]";
             case NORMAL -> "twinFactoryEraser[" + id + ", twinFactoryId:" + twinFactoryId + "]";
-            default -> "twinFactoryEraser[id:" + id + ", twinFactoryId:" + twinFactoryId + ", inputTwinClassId:" + inputTwinClassId + ", action:" + eraserAction + "]";
+            default ->
+                    "twinFactoryEraser[id:" + id + ", twinFactoryId:" + twinFactoryId + ", inputTwinClassId:" + inputTwinClassId + ", action:" + eraserAction + "]";
         };
     }
 

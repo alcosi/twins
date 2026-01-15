@@ -10,6 +10,7 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.util.JsonUtils;
 import org.cambium.common.util.LoggerUtils;
+import org.cambium.common.util.UuidUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -275,7 +276,7 @@ public class LoggingFilter extends OncePerRequestFilter {
     }
 
     private void logSessionId(HttpServletRequest request) {
-        String sessionid = Optional.ofNullable(request.getHeader("Authorization")).map(String::toUpperCase).orElseGet(() -> UUID.randomUUID().toString().replace("-", "").toUpperCase());
+        String sessionid = Optional.ofNullable(request.getHeader("Authorization")).map(String::toUpperCase).orElseGet(() -> UuidUtils.generate().toString().replace("-", "").toUpperCase());
         RequestAttributes attrs = RequestContextHolder.getRequestAttributes();
         if (attrs != null) {
             attrs.setAttribute("SESSION_ID", sessionid, RequestAttributes.SCOPE_REQUEST);

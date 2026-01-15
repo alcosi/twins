@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 
 import java.util.UUID;
 
@@ -16,9 +17,13 @@ import java.util.UUID;
 @Entity
 @Table(name = "twin_factory_branch")
 public class TwinFactoryBranchEntity implements EasyLoggable {
-    @GeneratedValue(generator = "uuid")
     @Id
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twin_factory_id")
     private UUID twinFactoryId;
@@ -59,7 +64,8 @@ public class TwinFactoryBranchEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinFactoryBranch[" + id + "]";
-            default -> "twinFactoryBranch[id:" + id + ", twinFactoryId:" + twinFactoryId + ", twinFactoryConditionSetId:" + twinFactoryConditionSetId + "]";
+            default ->
+                    "twinFactoryBranch[id:" + id + ", twinFactoryId:" + twinFactoryId + ", twinFactoryConditionSetId:" + twinFactoryConditionSetId + "]";
         };
 
     }

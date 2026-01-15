@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -18,8 +19,12 @@ import java.util.UUID;
 @FieldNameConstants
 public class EraseflowLinkCascadeEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "eraseflow_id")
     private UUID eraseflowId;

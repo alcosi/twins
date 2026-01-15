@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.projection.ProjectionTypeEntity;
 import org.twins.core.dao.user.UserEntity;
 
@@ -20,8 +21,12 @@ import java.util.UUID;
 @Table(name = "data_list_option_projection")
 public class DataListOptionProjectionEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "projection_type_id")
     private UUID projectionTypeId;
@@ -67,7 +72,8 @@ public class DataListOptionProjectionEntity implements EasyLoggable {
         return switch (level) {
             case SHORT -> "dataListOptionProjection[" + id + "]";
             case NORMAL -> "dataListOptionProjection[id:" + id + ", projectionType:" + projectionTypeId + "]";
-            default -> "dataListOptionProjection[id:" + id + ", projectionType:" + projectionTypeId + ", srcOpt:" + srcDataListOptionId + ", dstOpt:" + dstDataListOptionId + "]";
+            default ->
+                    "dataListOptionProjection[id:" + id + ", projectionType:" + projectionTypeId + ", srcOpt:" + srcDataListOptionId + ", dstOpt:" + dstDataListOptionId + "]";
         };
     }
 }

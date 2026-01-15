@@ -8,6 +8,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
@@ -27,8 +28,12 @@ import java.util.stream.Collectors;
 @Table(name = "storage")
 public class StorageEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "domain_id")
     private UUID domainId;
@@ -65,8 +70,7 @@ public class StorageEntity implements EasyLoggable {
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case SHORT ->
-                    "resourceStorage[id:" + id + "]";
+            case SHORT -> "resourceStorage[id:" + id + "]";
             case NORMAL ->
                     "resourceStorage[id:" + id + ", domain:" + domain + ", description:" + description + ", storageFeaturerId:" + storageFeaturerId + "]";
             case DETAILED ->

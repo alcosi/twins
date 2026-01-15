@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -17,9 +18,12 @@ import java.util.UUID;
 @Table(name = "draft_twin_persist")
 public class DraftTwinPersistEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
-    @Column(name = "id")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "draft_id")
     private UUID draftId;
