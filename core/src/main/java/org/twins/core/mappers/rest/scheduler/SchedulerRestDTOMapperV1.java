@@ -39,8 +39,8 @@ public class SchedulerRestDTOMapperV1 extends RestSimpleDTOMapper<SchedulerEntit
                     .setCron(src.getCron())
                     .setFixedRate(src.getFixedRate())
                     .setDescription(src.getDescription())
-                    .setCreatedAt(src.getCreatedAt())
-                    .setUpdatedAt(src.getUpdatedAt());
+                    .setCreatedAt(src.getCreatedAt().toLocalDateTime())
+                    .setUpdatedAt(src.getUpdatedAt().toLocalDateTime());
         }
 
         if (mapperContext.hasModeButNot(FeaturerMode.Scheduler2FeaturerMode.HIDE)) {

@@ -31,7 +31,7 @@ public class SchedulerLogRestDTOMapperV1 extends RestSimpleDTOMapper<SchedulerLo
                     .setId(src.getId())
                     .setSchedulerId(src.getSchedulerId())
                     .setResult(src.getResult())
-                    .setCreatedAt(src.getCreatedAt())
+                    .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                     .setExecutionTime(src.getExecutionTime());
         }
 
