@@ -3,17 +3,24 @@ package org.twins.core.mappers.rest.notification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.notification.HistoryNotificationRecipientCollectorEntity;
 import org.twins.core.dto.rest.notification.HistoryNotificationRecipientCollectorDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.HistoryNotificationRecipientCollectorMode;
+import org.twins.core.service.notification.HistoryNotificationRecipientCollectorService;
 
 @RequiredArgsConstructor
 @MapperModeBinding(modes = HistoryNotificationRecipientCollectorMode.class)
 @Component
 public class HistoryNotificationRecipientCollectorDTOMapperV1 extends RestSimpleDTOMapper<HistoryNotificationRecipientCollectorEntity, HistoryNotificationRecipientCollectorDTOv1> {
     private final HistoryNotificationRecipientDTOMapperV1 historyNotificationRecipientDTOMapperV1;
+    @MapperModePointerBinding(modes = FeaturerMode.HistoryNotificationRecipientCollectorMode2FeaturerMode.class)
+    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final HistoryNotificationRecipientCollectorService historyNotificationRecipientCollectorService;
 
     @Override
     public void map(HistoryNotificationRecipientCollectorEntity src, HistoryNotificationRecipientCollectorDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -32,18 +39,18 @@ public class HistoryNotificationRecipientCollectorDTOMapperV1 extends RestSimple
                             .setExclude(src.getExclude());
         }
 
-        if (mapperContext.hasModeButNot(HistoryNotificationRecipientCollectorMode.HistoryNotificationRecipient2HistoryNotificationRecipientCollectorMode.HIDE)) {
+        if (mapperContext.hasModeButNot(HistoryNotificationRecipientCollectorMode.HistoryNotificationRecipientCollectorMode2HistoryNotificationRecipient.HIDE)) {
             dst.setRecipientId(src.getHistoryNotificationRecipientId());
 
             historyNotificationRecipientDTOMapperV1.postpone(src.getHistoryNotificationRecipientEntity(),
-                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(HistoryNotificationRecipientCollectorMode.HistoryNotificationRecipient2HistoryNotificationRecipientCollectorMode.SHORT)));
+                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(HistoryNotificationRecipientCollectorMode.HistoryNotificationRecipientCollectorMode2HistoryNotificationRecipient.SHORT)));
         }
 
-        if (mapperContext.hasModeButNot(HistoryNotificationRecipientCollectorMode.HistoryNotificationRecipientResolverFeaturer2HistoryNotificationRecipientCollectorMode.HIDE)) {
+        if (mapperContext.hasModeButNot(FeaturerMode.HistoryNotificationRecipientCollectorMode2FeaturerMode.HIDE)) {
             dst.setRecipientResolverFeaturerId(src.getRecipientResolverFeaturerId());
-
-            historyNotificationRecipientDTOMapperV1.postpone(src.getHistoryNotificationRecipientEntity(),
-                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(HistoryNotificationRecipientCollectorMode.HistoryNotificationRecipientResolverFeaturer2HistoryNotificationRecipientCollectorMode.SHORT)));
+            historyNotificationRecipientCollectorService.loadRecipientResolverFeaturer(src);
+            featurerRestDTOMapper.postpone(src.getRecipientResolverFeaturer(),
+                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.HistoryNotificationRecipientCollectorMode2FeaturerMode.SHORT)));
         }
     }
 }
