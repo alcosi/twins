@@ -303,9 +303,9 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel2.getRelatedTwinClassFreezeMap(), twinClassFreezeDTOMapper, mapperContextLevel3, twinClassFreezeMap, TwinClassFreezeEntity::getId);
         if (!mapperContextLevel2.getRelatedClassFieldRuleMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedClassFieldRuleMap(), twinClassFieldRuleRestDTOMapper, mapperContextLevel3, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
-        if (!mapperContext.getRelatedProjectionTypeGroupMap().isEmpty())
+        if (!mapperContextLevel2.getRelatedProjectionTypeGroupMap().isEmpty())
             convertAndPut(mapperContext.getRelatedProjectionTypeGroupMap(), projectionTypeGroupRestDTOMapper, mapperContextLevel3, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
-        if (!mapperContext.getRelatedProjectionTypeMap().isEmpty())
+        if (!mapperContextLevel2.getRelatedProjectionTypeMap().isEmpty())
             convertAndPut(mapperContext.getRelatedProjectionTypeMap(), projectionTypeRestDTOMapper, mapperContextLevel3, projectionTypeMap, ProjectionTypeEntity::getId);
         if (!mapperContextLevel2.getRelatedHistoryNotificationRecipientMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedHistoryNotificationRecipientMap(), historyNotificationRecipientDTOMapper, mapperContextLevel3, historyNotificationRecipientMap, HistoryNotificationRecipientEntity::getId);
@@ -353,7 +353,7 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedFaceMap(), faceRestDTOMapper, mapperContextLevel3, faceMap, FaceEntity::getId);
         if (!mapperContextLevel3.getRelatedCommentMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedCommentMap(), commentRestDTOMapper, mapperContextLevel3, commentMap, TwinCommentEntity::getId);
-        if (!mapperContext.getRelatedI18nMap().isEmpty())
+        if (!mapperContextLevel3.getRelatedI18nMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedI18nMap(), i18nRestDTOMapper, mapperContextLevel3, i18nMap, I18nEntity::getId);
         if (!mapperContextLevel3.getRelatedFeaturerMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedFeaturerMap(), featurerRestDTOMapper, mapperContextLevel3, featurerMap, FeaturerEntity::getId);
@@ -369,9 +369,9 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedTwinClassFreezeMap(), twinClassFreezeDTOMapper, mapperContextLevel3, twinClassFreezeMap, TwinClassFreezeEntity::getId);
         if (!mapperContextLevel3.getRelatedClassFieldRuleMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedClassFieldRuleMap(), twinClassFieldRuleRestDTOMapper, mapperContextLevel3, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
-        if (!mapperContext.getRelatedProjectionTypeGroupMap().isEmpty())
+        if (!mapperContextLevel3.getRelatedProjectionTypeGroupMap().isEmpty())
             convertAndPut(mapperContext.getRelatedProjectionTypeGroupMap(), projectionTypeGroupRestDTOMapper, mapperContextLevel3, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
-        if (!mapperContext.getRelatedProjectionTypeMap().isEmpty())
+        if (!mapperContextLevel3.getRelatedProjectionTypeMap().isEmpty())
             convertAndPut(mapperContext.getRelatedProjectionTypeMap(), projectionTypeRestDTOMapper, mapperContextLevel3, projectionTypeMap, ProjectionTypeEntity::getId);
         if (!mapperContextLevel3.getRelatedHistoryNotificationRecipientMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedHistoryNotificationRecipientMap(), historyNotificationRecipientDTOMapper, mapperContextLevel3, historyNotificationRecipientMap, HistoryNotificationRecipientEntity::getId);
