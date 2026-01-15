@@ -114,6 +114,9 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
             updateEntityFieldByEntity(twinFactoryConditionSetEntity, dbFactoryConditionSetEntity,
                     TwinFactoryConditionSetEntity::getDescription, TwinFactoryConditionSetEntity::setDescription,
                     TwinFactoryConditionSetEntity.Fields.description, changesHelper);
+            updateEntityFieldByEntity(twinFactoryConditionSetEntity, dbFactoryConditionSetEntity,
+                    TwinFactoryConditionSetEntity::getTwinFactoryId, TwinFactoryConditionSetEntity::setTwinFactoryId,
+                    TwinFactoryConditionSetEntity.Fields.twinFactoryId, changesHelper);
 
             dbFactoryConditionSetEntity.setUpdatedAt(Timestamp.from(Instant.now()));
             changes.add(dbFactoryConditionSetEntity, changesHelper);

@@ -24,7 +24,7 @@ import static org.cambium.common.util.DateUtils.convertOrNull;
         ConditionSetInFactoryPipelineStepUsagesCountMode.class,
         ConditionSetInFactoryMultiplierFilterUsagesCountMode.class,
         ConditionSetInFactoryBranchUsagesCountMode.class,
-        ConditionSetInFactoryEraserUsagesCountMode.class})
+        ConditionSetInFactoryEraserUsagesCountMode.class,})
 public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryConditionSetEntity, FactoryConditionSetDTOv1> {
 
     @MapperModePointerBinding(modes = UserMode.FactoryConditionSet2UserMode.class)
@@ -42,11 +42,13 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
                         .setDescription(src.getDescription())
                         .setCreatedByUserId(src.getCreatedByUserId())
                         .setUpdatedAt(convertOrNull(src.getUpdatedAt()))
-                        .setCreatedAt(convertOrNull(src.getCreatedAt()));
+                        .setCreatedAt(convertOrNull(src.getCreatedAt()))
+                        .setTwinFactoryId(src.getTwinFactoryId());
             case SHORT ->
                 dst
                         .setId(src.getId())
-                        .setName(src.getName());
+                        .setName(src.getName())
+                        .setTwinFactoryId(src.getTwinFactoryId());
         }
         if (mapperContext.hasModeButNot(ConditionSetInFactoryPipelineUsagesCountMode.HIDE)) {
             twinFactoryService.countConditionSetInFactoryPipelineUsages(src);
