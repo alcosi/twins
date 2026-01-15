@@ -283,6 +283,17 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         entitySmartService.deleteAndLog(id, entityRepository());
     }
 
+    public void deleteSafe(Collection<UUID> ids) throws ServiceException {
+        if (CollectionUtils.isEmpty(ids)) {
+            return;
+        }
+        Kit<T, UUID> entities = findEntitiesSafe(ids);
+
+        if (entities.isNotEmpty()) {
+            entitySmartService.deleteAllAndLog(entities.getIdSet(), entityRepository());
+        }
+    }
+
     public T validateEntityAndThrow(T entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entityValidateMode == EntitySmartService.EntityValidateMode.none)
             return entity;

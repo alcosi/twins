@@ -2,6 +2,7 @@ package org.twins.core.dao.error;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.cambium.common.util.UuidUtils;
 
 import java.util.UUID;
 
@@ -10,8 +11,12 @@ import java.util.UUID;
 @Data
 public class ErrorEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Basic
     @Column(name = "code_local")

@@ -15,6 +15,7 @@ import org.twins.core.dao.projection.ProjectionEntity;
 import org.twins.core.dao.projection.ProjectionRepository;
 import org.twins.core.domain.search.ProjectionSearch;
 
+import static org.twins.core.dao.specifications.CommonSpecification.checkTernary;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.projection.ProjectionSpecification.checkFieldProjectorIdIn;
 
@@ -45,6 +46,7 @@ public class ProjectionSearchService {
                 checkUuidIn(search.getDstTwinClassFieldIdExcludeList(), true, false, ProjectionEntity.Fields.dstTwinClassFieldId),
                 checkUuidIn(search.getProjectionTypeIdList(), false, false, ProjectionEntity.Fields.projectionTypeId),
                 checkUuidIn(search.getProjectionTypeIdExcludeList(), true, false, ProjectionEntity.Fields.projectionTypeId),
+                checkTernary(search.getActive(), ProjectionEntity.Fields.active),
                 checkFieldProjectorIdIn(search.getFieldProjectorIdList(), false),
                 checkFieldProjectorIdIn(search.getFieldProjectorIdExcludeList(), true)
         );

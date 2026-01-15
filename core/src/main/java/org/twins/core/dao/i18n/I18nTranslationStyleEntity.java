@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.cambium.common.util.UuidUtils;
 
 import java.util.Locale;
 import java.util.UUID;
@@ -13,8 +14,12 @@ import java.util.UUID;
 @Table(name = "i18n_translation_style")
 public class I18nTranslationStyleEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "i18n_id")
     private UUID i18nId;

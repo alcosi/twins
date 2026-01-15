@@ -34,7 +34,7 @@ public class LoggerUtils {
     }
 
     public static void logSession() {
-        logSession(UUID.randomUUID().toString().replace("-", "").toUpperCase());
+        logSession(UuidUtils.generate().toString().replace("-", "").toUpperCase());
     }
 
 

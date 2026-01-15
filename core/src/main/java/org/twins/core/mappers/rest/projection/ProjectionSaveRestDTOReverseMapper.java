@@ -20,6 +20,7 @@ public class ProjectionSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Proj
                 .setDstTwinClassFieldId(src.getDstTwinClassFieldId())
                 .setFieldProjectorFeaturerId(src.getFieldProjectorFeaturerId())
                 .setFieldProjectorParams(src.getFieldProjectorParams())
-                .setProjectionTypeId(src.getProjectionTypeId());
+                .setProjectionTypeId(src.getProjectionTypeId())
+                .setActive(src.getActive());
     }
 }

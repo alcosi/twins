@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.cambium.common.util.UuidUtils;
 
 import java.util.UUID;
 
@@ -12,8 +13,12 @@ import java.util.UUID;
 @Table(name = "card_layout_position")
 public class CardLayoutPositionEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "card_layout_id")
     private UUID cardLayoutId;

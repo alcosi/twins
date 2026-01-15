@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.widget.WidgetEntity;
 
@@ -18,8 +19,12 @@ import java.util.UUID;
 @Table(name = "card_widget")
 public class CardWidgetEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "card_id")
     private UUID cardId;

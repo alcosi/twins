@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 
 import java.sql.Timestamp;
@@ -19,8 +20,12 @@ import java.util.UUID;
 @FieldNameConstants
 public class UserGroupMapType2Entity implements EasyLoggable, UserGroupMap {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "user_group_id")
     private UUID userGroupId;
@@ -61,10 +66,11 @@ public class UserGroupMapType2Entity implements EasyLoggable, UserGroupMap {
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
     private BusinessAccountEntity businessAccount;
 
-    public String easyLog(Level level)  {
+    public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "userGroupMapType2[id:" + id + "]";
-            default ->  "userGroupMapType2[id:" + id + ", userGroupId:" + userGroupId + ", userId:" + userId + ", businessAccountId:" + businessAccountId + "]";
+            default ->
+                    "userGroupMapType2[id:" + id + ", userGroupId:" + userGroupId + ", userId:" + userId + ", businessAccountId:" + businessAccountId + "]";
         };
     }
 }

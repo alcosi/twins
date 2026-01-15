@@ -7,6 +7,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -18,8 +19,12 @@ import java.util.UUID;
 @FieldNameConstants
 public class UserGroupMapType1Entity implements EasyLoggable, UserGroupMap {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "user_group_id")
     private UUID userGroupId;
@@ -52,10 +57,10 @@ public class UserGroupMapType1Entity implements EasyLoggable, UserGroupMap {
     private UserEntity addedByUser;
 
 
-    public String easyLog(Level level)  {
+    public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "userGroupMapType1[id:" + id + "]";
-            default ->  "userGroupMapType1[id:" + id + ", userGroupId:" + userGroupId + ", userId:" + userId + "]";
+            default -> "userGroupMapType1[id:" + id + ", userGroupId:" + userGroupId + ", userId:" + userId + "]";
         };
     }
 }

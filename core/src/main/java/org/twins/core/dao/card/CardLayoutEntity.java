@@ -2,6 +2,7 @@ package org.twins.core.dao.card;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.Channel;
 
 import java.util.UUID;
@@ -11,8 +12,12 @@ import java.util.UUID;
 @Table(name = "card_layout")
 public class CardLayoutEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "channel_id")
     @Enumerated(EnumType.STRING)

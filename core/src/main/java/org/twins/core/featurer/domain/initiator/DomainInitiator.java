@@ -3,6 +3,7 @@ package org.twins.core.featurer.domain.initiator;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.LTreeUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,7 +123,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
 
 
     protected UUID createDomainUserTemplateTwin(DomainEntity domainEntity) throws ServiceException {
-        UUID twinClassId = UUID.randomUUID();
+        UUID twinClassId = UuidUtils.generate();
         TwinClassEntity twinClassEntity = new TwinClassEntity()
                 .setId(twinClassId)
                 .setDomainId(domainEntity.getId())

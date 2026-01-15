@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.i18n.LocaleConverter;
 import org.twins.core.dao.user.UserEntity;
@@ -25,8 +26,12 @@ import java.util.UUID;
 @Table(name = "domain_user")
 public class DomainUserEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "domain_id")
     private UUID domainId;
@@ -56,7 +61,7 @@ public class DomainUserEntity implements EasyLoggable {
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private UserEntity user;
 
-//    needed for specification
+    //    needed for specification
     @Deprecated
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", referencedColumnName = "domain_id", insertable = false, updatable = false)
@@ -64,7 +69,7 @@ public class DomainUserEntity implements EasyLoggable {
     @ToString.Exclude
     private Set<DomainBusinessAccountEntity> domainBusinessAccountsByDomainId;
 
-//    needed for specification
+    //    needed for specification
     @Deprecated
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)

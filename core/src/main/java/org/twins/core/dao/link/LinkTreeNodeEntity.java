@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.cambium.common.util.UuidUtils;
 
 import java.util.UUID;
 
@@ -12,8 +13,12 @@ import java.util.UUID;
 @Table(name = "link_tree_node")
 public class LinkTreeNodeEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "link_tree_id")
     private UUID linkTreeId;

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.Channel;
 
 import java.util.UUID;
@@ -13,8 +14,12 @@ import java.util.UUID;
 @Table(name = "card_override")
 public class CardOverrideEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "override_card_id")
     private UUID overrideCardId;
