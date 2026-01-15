@@ -20,6 +20,7 @@ import java.util.Collection;
 @MapperModeBinding(modes = HistoryNotificationRecipientCollectorMode.class)
 @Component
 public class HistoryNotificationRecipientCollectorDTOMapperV1 extends RestSimpleDTOMapper<HistoryNotificationRecipientCollectorEntity, HistoryNotificationRecipientCollectorDTOv1> {
+    @MapperModePointerBinding(modes = HistoryNotificationRecipientMode.HistoryNotificationRecipientCollector2HistoryNotificationRecipientMode.class)
     private final HistoryNotificationRecipientDTOMapperV1 historyNotificationRecipientDTOMapperV1;
     @MapperModePointerBinding(modes = FeaturerMode.HistoryNotificationRecipientCollector2FeaturerMode.class)
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
