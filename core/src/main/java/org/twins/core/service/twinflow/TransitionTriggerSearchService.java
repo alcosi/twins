@@ -15,9 +15,7 @@ import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerRepository;
 import org.twins.core.domain.search.TransitionTriggerSearch;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkTernary;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.twinflow.TransitionTriggerSpecification.checkIntegerIn;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 
 @Slf4j

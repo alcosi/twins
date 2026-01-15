@@ -1,4 +1,4 @@
-package org.twins.core.service.attachment;
+package org.twins.core.featurer.scheduler.tasks;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,6 @@ public class AttachmentDeleteTask implements Runnable {
     @Autowired
     private AuthService authService;
 
-    @Autowired
     public AttachmentDeleteTask(AttachmentDeleteTaskEntity attachmentDeleteTaskEntity) {
         this.attachmentDeleteTaskEntity = attachmentDeleteTaskEntity;
     }

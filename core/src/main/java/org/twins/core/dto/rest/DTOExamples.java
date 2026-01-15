@@ -133,4 +133,8 @@ public interface DTOExamples {
     String CONDITIONER_FEATURE_ID = "";
     String CONDITIONER_PARAMS_MAP = "";
     String FACTORY_CONDITION_ID = "";
+
+    String CRON = "0 0 10 * * ?";
+    String TIME_IN_MILLIS = "500";
+    String UUID_ID = "be44e826-ce24-4881-a227-f3f72d915a20";
 }

@@ -30,13 +30,17 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 import org.twins.core.config.filter.I18nCacheCleanupFilter;
 import org.twins.core.config.filter.LoggingFilter;
 import org.twins.core.config.filter.UncaughtExceptionFilter;
+import org.twins.core.featurer.scheduler.Scheduler;
 
 import javax.sql.DataSource;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -201,6 +205,17 @@ public class ApplicationConfig {
     @Bean(name = "attachmentDeleteTaskExecutor")
     public Executor attachmentDeleteTaskExecutor() {
         return Executors.newVirtualThreadPerTaskExecutor();
+    }
+
+    @Bean(name = "virtualThreadTaskScheduler")
+    public TaskScheduler virtualThreadTaskScheduler(List<Scheduler> schedulerList) {
+        var taskScheduler = new SimpleAsyncTaskScheduler();
+
+        taskScheduler.setVirtualThreads(true);
+        taskScheduler.setConcurrencyLimit(schedulerList.size() * 3);
+        taskScheduler.setThreadNamePrefix("task-scheduler-vt-");
+
+        return taskScheduler;
     }
 
     @Bean(name = "emailTaskExecutor")

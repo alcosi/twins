@@ -1,0 +1,26 @@
+package org.twins.core.mappers.rest.scheduler;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.twins.core.domain.search.SchedulerLogSearch;
+import org.twins.core.dto.rest.scheduler.SchedulerLogSearchDTOv1;
+import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+
+@Component
+@RequiredArgsConstructor
+public class SchedulerLogSearchRestDTOReverseMapper extends RestSimpleDTOMapper<SchedulerLogSearchDTOv1, SchedulerLogSearch> {
+
+    @Override
+    public void map(SchedulerLogSearchDTOv1 src, SchedulerLogSearch dst, MapperContext mapperContext) throws Exception {
+        dst
+                .setIdSet(src.getIdSet())
+                .setIdExcludeSet(src.getIdExcludeSet())
+                .setSchedulerIdSet(src.getSchedulerIdSet())
+                .setSchedulerIdExcludeSet(src.getSchedulerIdExcludeSet())
+                .setResultLikeSet(src.getResultLikeSet())
+                .setResultNotLikeSet(src.getResultNotLikeSet())
+                .setCreatedAt(src.getCreatedAt())
+                .setExecutionTimeRange(src.getExecutionTimeRange());
+    }
+}
