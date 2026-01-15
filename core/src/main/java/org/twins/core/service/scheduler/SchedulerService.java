@@ -58,6 +58,20 @@ public class SchedulerService extends EntitySecureFindServiceImpl<SchedulerEntit
         super.beforeValidateEntity(entity, entityValidateMode);
     }
 
+    public void loadFeaturer(SchedulerEntity schedulerEntity) {
+        loadFeaturers(List.of(schedulerEntity));
+    }
+
+    public void loadFeaturers(Collection<SchedulerEntity> schedulers) {
+        featurerService.loadFeaturers(
+                schedulers,
+                SchedulerEntity::getId,
+                SchedulerEntity::getSchedulerFeaturerId,
+                SchedulerEntity::getSchedulerFeaturer,
+                SchedulerEntity::setSchedulerFeaturer
+        );
+    }
+
     public void init() {
         try {
             startAll();

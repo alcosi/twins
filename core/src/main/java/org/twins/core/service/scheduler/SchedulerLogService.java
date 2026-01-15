@@ -3,16 +3,12 @@ package org.twins.core.service.scheduler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.scheduler.SchedulerLogEntity;
 import org.twins.core.dao.scheduler.SchedulerLogRepository;
-import org.twins.core.dao.scheduler.SchedulerRepository;
 
 import java.util.Collection;
 import java.util.List;
@@ -25,7 +21,7 @@ import java.util.function.Function;
 public class SchedulerLogService extends EntitySecureFindServiceImpl<SchedulerLogEntity> {
 
     private final SchedulerLogRepository schedulerLogRepository;
-    private final SchedulerRepository schedulerRepository;
+    private final SchedulerService schedulerService;
 
     @Override
     public CrudRepository<SchedulerLogEntity, UUID> entityRepository() {
@@ -52,29 +48,17 @@ public class SchedulerLogService extends EntitySecureFindServiceImpl<SchedulerLo
         super.beforeValidateEntity(entity, entityValidateMode);
     }
 
-    public void loadScheduler(SchedulerLogEntity entity) {
+    public void loadScheduler(SchedulerLogEntity entity) throws ServiceException {
         loadSchedulers(List.of(entity));
     }
 
-    public void loadSchedulers(Collection<SchedulerLogEntity> entities) {
-        if (entities.isEmpty()) {
-            return;
-        }
-
-        KitGrouped<SchedulerLogEntity, UUID, UUID> needToLoad = new KitGrouped<>(entities, SchedulerLogEntity::getId, SchedulerLogEntity::getSchedulerId);
-        for (var entity : entities) {
-            if (entity.getScheduler() == null) {
-                needToLoad.add(entity);
-            }
-        }
-
-        if (needToLoad.isEmpty()) {
-            return;
-        }
-
-        Kit<SchedulerEntity, UUID> schedulers = new Kit<>(schedulerRepository.findAllById(needToLoad.getGroupedKeySet()), SchedulerEntity::getId);
-        for (var log : needToLoad) {
-            log.setScheduler(schedulers.get(log.getSchedulerId()));
-        }
+    public void loadSchedulers(Collection<SchedulerLogEntity> entities) throws ServiceException {
+        schedulerService.load(
+                entities,
+                SchedulerLogEntity::getId,
+                SchedulerLogEntity::getSchedulerId,
+                SchedulerLogEntity::getScheduler,
+                SchedulerLogEntity::setScheduler
+        );
     }
 }

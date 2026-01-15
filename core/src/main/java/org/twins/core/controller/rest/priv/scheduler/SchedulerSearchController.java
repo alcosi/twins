@@ -65,8 +65,8 @@ public class SchedulerSearchController extends ApiController {
             PaginationResult<SchedulerEntity> schedulerList = schedulerSearchService.search(schedulerSearchRestDTOReverseMapper.convert(request.getSearch()), pagination);
 
             rs
-                    .setSchedulers(schedulerRestDTOMapper.convertCollection(schedulerList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(schedulerList))
+                    .setSchedulers(schedulerRestDTOMapper.convertCollection(schedulerList.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

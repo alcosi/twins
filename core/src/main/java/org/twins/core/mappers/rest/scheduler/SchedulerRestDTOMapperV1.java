@@ -1,7 +1,6 @@
 package org.twins.core.mappers.rest.scheduler;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
@@ -12,9 +11,9 @@ import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.SchedulerMode;
+import org.twins.core.service.scheduler.SchedulerService;
 
 import java.util.Collection;
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -23,13 +22,15 @@ public class SchedulerRestDTOMapperV1 extends RestSimpleDTOMapper<SchedulerEntit
 
     @MapperModePointerBinding(modes = FeaturerMode.Scheduler2FeaturerMode.class)
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
-    private final FeaturerService featurerService;
+    private final SchedulerService schedulerService;
 
     @Override
     public void map(SchedulerEntity src, SchedulerDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(SchedulerMode.SHORT)) {
             case SHORT ->  dst
-                    .setId(src.getId());
+                    .setId(src.getId())
+                    .setSchedulerFeaturerId(src.getSchedulerFeaturerId())
+                    .setDescription(src.getDescription());
             case DETAILED ->  dst
                     .setId(src.getId())
                     .setSchedulerFeaturerId(src.getSchedulerFeaturerId())
@@ -44,14 +45,7 @@ public class SchedulerRestDTOMapperV1 extends RestSimpleDTOMapper<SchedulerEntit
         }
 
         if (mapperContext.hasModeButNot(FeaturerMode.Scheduler2FeaturerMode.HIDE)) {
-            // load instead of getFeaturer to prevent extra db calls in convertCollection
-            featurerService.loadFeaturers(
-                    List.of(src),
-                    SchedulerEntity::getId,
-                    SchedulerEntity::getSchedulerFeaturerId,
-                    SchedulerEntity::getSchedulerFeaturer,
-                    SchedulerEntity::setSchedulerFeaturer
-            );
+            schedulerService.loadFeaturer(src);
             dst.setSchedulerFeaturerId(src.getSchedulerFeaturerId());
             featurerRestDTOMapper.postpone(src.getSchedulerFeaturer(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.Scheduler2FeaturerMode.SHORT)));
         }
@@ -66,13 +60,7 @@ public class SchedulerRestDTOMapperV1 extends RestSimpleDTOMapper<SchedulerEntit
         }
 
         if (mapperContext.hasModeButNot(FeaturerMode.Scheduler2FeaturerMode.HIDE)) {
-            featurerService.loadFeaturers(
-                    srcCollection,
-                    SchedulerEntity::getId,
-                    SchedulerEntity::getSchedulerFeaturerId,
-                    SchedulerEntity::getSchedulerFeaturer,
-                    SchedulerEntity::setSchedulerFeaturer
-            );
+            schedulerService.loadFeaturers(srcCollection);
         }
     }
 }
