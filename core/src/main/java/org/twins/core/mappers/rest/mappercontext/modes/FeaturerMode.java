@@ -238,7 +238,7 @@ public enum FeaturerMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum HistoryNotificationRecipientCollectorMode2FeaturerMode implements MapperModePointer<FeaturerMode> {
+    public enum HistoryNotificationRecipientCollector2FeaturerMode implements MapperModePointer<FeaturerMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
