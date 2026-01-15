@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.Ternary;
 
 import java.util.Set;
 import java.util.UUID;
@@ -54,4 +55,7 @@ public class ProjectionSearchDTOv1 {
 
     @Schema(description = "field projector id exclude list")
     public Set<Integer> fieldProjectorIdExcludeList;
+
+    @Schema(description = "projections active")
+    public Ternary active;
 }

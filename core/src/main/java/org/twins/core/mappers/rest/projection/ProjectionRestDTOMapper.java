@@ -49,7 +49,8 @@ public class ProjectionRestDTOMapper extends RestSimpleDTOMapper<ProjectionEntit
                     .setDstTwinClassFieldId(src.getDstTwinClassFieldId())
                     .setFieldProjectorFeaturerId(src.getFieldProjectorFeaturerId())
                     .setFieldProjectorParams(src.getFieldProjectorParams())
-                    .setProjectionTypeId(src.getProjectionTypeId());
+                    .setProjectionTypeId(src.getProjectionTypeId())
+                    .setActive(src.getActive());
 
             case DETAILED -> dst
                     .setId(src.getId())
@@ -57,7 +58,8 @@ public class ProjectionRestDTOMapper extends RestSimpleDTOMapper<ProjectionEntit
                     .setSrcTwinClassFieldId(src.getSrcTwinClassFieldId())
                     .setDstTwinClassId(src.getDstTwinClassId())
                     .setDstTwinClassFieldId(src.getDstTwinClassFieldId())
-                    .setProjectionTypeId(src.getProjectionTypeId());
+                    .setProjectionTypeId(src.getProjectionTypeId())
+                    .setActive(src.getActive());
 
             case SHORT -> dst
                     .setId(src.getId())
