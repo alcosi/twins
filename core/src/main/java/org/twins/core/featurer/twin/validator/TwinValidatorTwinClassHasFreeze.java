@@ -21,7 +21,7 @@ import java.util.UUID;
         name = "Twin class has freeze",
         description = "Validator for checking the freeze of a twin class")
 public class TwinValidatorTwinClassHasFreeze extends TwinValidator {
-    @FeaturerParam(name = "Freeze ids", order = 1, optional = true)
+    @FeaturerParam(name = "Freeze ids", description = "if empty - validator will check any freeze id", order = 1, optional = true)
     public static final FeaturerParamUUIDSet freezeIds = new FeaturerParamUUIDSetTwinClassFreezeId("freezeIds");
     @Override
     protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
