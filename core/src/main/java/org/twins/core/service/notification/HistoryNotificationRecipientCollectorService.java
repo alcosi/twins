@@ -25,6 +25,7 @@ import org.twins.core.featurer.notificator.recipient.RecipientResolver;
 import org.twins.core.mappers.rest.notification.HistoryNotificationRecipientCollectorUpdateDTOReverseMapper;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -141,6 +142,18 @@ public class HistoryNotificationRecipientCollectorService extends EntitySecureFi
             dbHistoryNotificationRecipientCollectorEntity
                     .setRecipientResolverParams(newFeaturerParams);
         }
+    }
+
+    public void loadRecipientResolverFeaturer(HistoryNotificationRecipientCollectorEntity entity) {
+        loadRecipientResolverFeaturer(List.of(entity));
+    }
+
+    public void loadRecipientResolverFeaturer(Collection<HistoryNotificationRecipientCollectorEntity> entities) {
+        featurerService.loadFeaturers(entities,
+                HistoryNotificationRecipientCollectorEntity::getId,
+                HistoryNotificationRecipientCollectorEntity::getRecipientResolverFeaturerId,
+                HistoryNotificationRecipientCollectorEntity::getRecipientResolverFeaturer,
+                HistoryNotificationRecipientCollectorEntity::setRecipientResolverFeaturer);
     }
 
 }
