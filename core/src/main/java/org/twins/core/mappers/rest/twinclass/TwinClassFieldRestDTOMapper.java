@@ -128,7 +128,8 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
             case SHORT:
                 dst
                         .setId(src.getId())
-                        .setKey(src.getKey());
+                        .setKey(src.getKey())
+                        .setName(I18nCacheHolder.addId(src.getNameI18nId()));
                 break;
         }
         if (mapperContext.hasModeButNot(TwinClassMode.TwinClassField2TwinClassMode.HIDE)) {
