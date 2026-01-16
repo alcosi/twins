@@ -178,7 +178,7 @@ public class TwinClassFieldSearchService extends EntitySecureFindServiceImpl<Twi
         DomainEntity domain = authService.getApiUser().getDomain();
         boolean readDenied = entity.getDomainId() != null && !entity.getDomainId().equals(domain.getId());
         if (readDenied) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.logNormal() + " is not allowed in" + domain.logShort());
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logNormal() + " is not allowed in " + domain.logShort());
         }
         return readDenied;
     }
