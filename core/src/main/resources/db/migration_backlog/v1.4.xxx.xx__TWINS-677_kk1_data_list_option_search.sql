@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS data_list_option_search (
     id UUID PRIMARY KEY,
-    domain_id UUID NOT NULL REFERENCES domain(id),
+    domain_id UUID REFERENCES domain(id),
     name VARCHAR,
     data_list_option_sorter_featurer_id INTEGER NOT NULL REFERENCES featurer(id),
     data_list_option_sorter_params HSTORE,
