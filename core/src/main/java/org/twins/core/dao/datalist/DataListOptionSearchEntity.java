@@ -1,4 +1,4 @@
-package org.twins.core.dao.twinclass;
+package org.twins.core.dao.datalist;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.Column;
@@ -17,9 +17,9 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
-@Table(name = "twin_class_field_search")
+@Table(name = "data_list_option_search")
 @FieldNameConstants
-public class TwinClassFieldSearchEntity implements EasyLoggable {
+public class DataListOptionSearchEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -30,24 +30,24 @@ public class TwinClassFieldSearchEntity implements EasyLoggable {
     private String name;
 
     @Column(name = "force_sorting")
-    private boolean forceSorting;
+    private Boolean forceSorting;
 
     @Column(name = "field_sorter_featurer_id")
-    private Integer fieldSorterFeaturerId;
+    private Integer optionSorterFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "field_sorter_params", columnDefinition = "hstore")
-    private HashMap<String, String> fieldSorterParams;
+    private HashMap<String, String> optionSorterParams;
 
     @Override
     public String easyLog(Level level) {
         switch (level) {
             case SHORT:
-                return "twinClassFieldSearchEntity[" + id + "]";
+                return "dataListOptionSearchEntity[" + id + "]";
             case NORMAL:
-                return "twinClassFieldSearchEntity[id" + id + ", name:" + name + "]";
+                return "dataListOptionSearchEntity[id" + id + ", name:" + name + "]";
             default:
-                return "twinClassFieldSearchEntity[id" + id + ", name:" + name + ", featurerId:" + fieldSorterFeaturerId + ", forseSotring:" + forceSorting + "]";
+                return "dataListOptionSearchEntity[id" + id + ", name:" + name + ", featurerId:" + optionSorterFeaturerId + ", forseSotring:" + forceSorting + "]";
         }
     }
 }
