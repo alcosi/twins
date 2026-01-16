@@ -224,10 +224,11 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                         cb.literal(parentPath)
                 );
 
-                // isDescendant = true && childLevel - parentLevel <= maxDepth
+                // isDescendant = true && childLevel - parentLevel <= maxDepth && exclude parent
                 Predicate condition = cb.and(
                         cb.isTrue(isDescendant),
-                        cb.lessThanOrEqualTo(cb.diff(childDepth, parentDepth), maxDepth)
+                        cb.lessThanOrEqualTo(cb.diff(childDepth, parentDepth), maxDepth),
+                        cb.notEqual(root.get(Arrays.toString(fieldPath)), parentPath)
                 );
 
                 predicates.add(condition);
