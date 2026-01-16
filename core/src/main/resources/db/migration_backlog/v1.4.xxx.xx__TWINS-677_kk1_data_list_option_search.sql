@@ -25,3 +25,9 @@ CREATE INDEX IF NOT EXISTS idx_data_list_option_predicate_search_predicate_data_
 
 CREATE INDEX IF NOT EXISTS idx_data_list_option_predicate_finder_featurer_id
     ON data_list_option_predicate(data_list_option_finder_featurer_id);
+
+INSERT INTO featurer_type (id, name, description) VALUES (51::integer, 'OptionFinder'::varchar(40), null::varchar(255)) on conflict do nothing;
+INSERT INTO featurer_type (id, name, description) VALUES (52::integer, 'OptionSorter'::varchar(40), null::varchar(255)) on conflict do nothing;
+
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (5101::integer, 51::integer, '', '', '', DEFAULT) on conflict do nothing;
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (5201::integer, 52::integer, '', '', '', DEFAULT) on conflict do nothing;
