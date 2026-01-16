@@ -5,9 +5,12 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
+import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -46,5 +49,13 @@ public class FieldValueDate extends FieldValue {
     @Override
     public boolean isNullified() {
         return "".equals(dateStr);
+    }
+
+    public boolean isNullifyValue() throws ServiceException {
+        if (UuidUtils.isNullifyMarker(dateStr)) {
+            nullify();
+            return true;
+        }
+        return false;
     }
 }

@@ -6,6 +6,7 @@ import org.apache.commons.validator.GenericValidator;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
@@ -107,9 +108,11 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     }
 
     @Override
-    public ValidationResult validate(Properties properties, TwinEntity twin, FieldValueDate value) {
+    public ValidationResult validate(Properties properties, TwinEntity twin, FieldValueDate value) throws ServiceException {
         String datePattern = pattern.extract(properties);
         ValidationResult result = new ValidationResult(true);
+        if (value.isNullifyValue())
+            return result;
         try {
             String dateValue = value.getDateStr();
             if (StringUtils.isEmpty(dateValue) && !value.getTwinClassField().getRequired())

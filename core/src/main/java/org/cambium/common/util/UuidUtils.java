@@ -46,6 +46,10 @@ public class UuidUtils {
         return NULLIFY_MARKER.equals(uuid);
     }
 
+    public static boolean isNullifyMarker(String stringUuid) throws ServiceException {
+        return NULLIFY_MARKER.equals(fromString(stringUuid));
+    }
+
     public static UUID ifNullGenerate(UUID existingId) {
         return existingId != null ? existingId : UuidCreator.getTimeOrderedEpoch();
     }
