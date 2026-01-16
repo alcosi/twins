@@ -50,12 +50,4 @@ public class FieldValueDate extends FieldValue {
     public boolean isNullified() {
         return "".equals(dateStr);
     }
-
-    public boolean isNullifyValue() throws ServiceException {
-        if (UuidUtils.isNullifyMarker(dateStr)) {
-            nullify();
-            return true;
-        }
-        return false;
-    }
 }

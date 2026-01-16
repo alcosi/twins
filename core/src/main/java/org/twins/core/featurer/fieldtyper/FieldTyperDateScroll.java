@@ -111,8 +111,10 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     public ValidationResult validate(Properties properties, TwinEntity twin, FieldValueDate value) throws ServiceException {
         String datePattern = pattern.extract(properties);
         ValidationResult result = new ValidationResult(true);
-        if (value.isNullifyValue())
+        if (!value.isNullified() && value.getDateStr().equalsIgnoreCase("ffffffff-ffff-ffff-ffff-ffffffffffff")) {
+            value.nullify();
             return result;
+        }
         try {
             String dateValue = value.getDateStr();
             if (StringUtils.isEmpty(dateValue) && !value.getTwinClassField().getRequired())
