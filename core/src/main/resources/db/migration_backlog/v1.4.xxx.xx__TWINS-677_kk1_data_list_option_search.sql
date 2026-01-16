@@ -31,3 +31,5 @@ INSERT INTO featurer_type (id, name, description) VALUES (52::integer, 'OptionSo
 
 INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (5101::integer, 51::integer, '', '', '', DEFAULT) on conflict do nothing;
 INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (5201::integer, 52::integer, '', '', '', DEFAULT) on conflict do nothing;
+
+INSERT INTO data_list_option_search (id, domain_id, name, force_sorting) values ('00000000-0000-0000-0014-000000000005', null, 'Unlimited option search', false) on conflict do nothing ;
