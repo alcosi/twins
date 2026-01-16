@@ -15,6 +15,7 @@ import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.notification.HistoryNotificationRecipientEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
@@ -44,6 +45,7 @@ import org.twins.core.dto.rest.factory.FactoryMultiplierDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.i18n.I18nDTOv1;
+import org.twins.core.dto.rest.notification.HistoryNotificationRecipientDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
@@ -78,6 +80,8 @@ import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.i18n.I18nRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.RelatedObject;
+import org.twins.core.mappers.rest.notification.HistoryNotificationRecipientCollectorDTOMapperV1;
+import org.twins.core.mappers.rest.notification.HistoryNotificationRecipientDTOMapperV1;
 import org.twins.core.mappers.rest.permission.PermissionGroupRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapper;
@@ -138,6 +142,8 @@ public class RelatedObjectsRestDTOConverter {
     private final TwinClassFieldRuleRestDTOMapper twinClassFieldRuleRestDTOMapper;
     private final ProjectionTypeGroupRestDTOMapper projectionTypeGroupRestDTOMapper;
     private final ProjectionTypeRestDTOMapper projectionTypeRestDTOMapper;
+    private final HistoryNotificationRecipientDTOMapperV1 historyNotificationRecipientDTOMapper;
+    private final HistoryNotificationRecipientCollectorDTOMapperV1 historyNotificationRecipientCollectorDTOMapper;
 
     public RelatedObjectsDTOv1 convert(MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())
@@ -173,6 +179,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, TwinClassFieldRuleDTOv1> twinClassFieldRuleMap = new HashMap<>();
         Map<UUID, ProjectionTypeGroupDTOv1> projectionTypeGroupMap = new HashMap<>();
         Map<UUID, ProjectionTypeDTOv1> projectionTypeMap = new HashMap<>();
+        Map<UUID, HistoryNotificationRecipientDTOv1> historyNotificationRecipientMap = new HashMap<>();
 
         MapperContext mapperContextLevel2 = mapperContext.cloneIgnoreRelatedObjects();
         if (!mapperContext.getRelatedTwinClassMap().isEmpty())
@@ -235,6 +242,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContext.getRelatedProjectionTypeGroupMap(), projectionTypeGroupRestDTOMapper, mapperContextLevel2, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
         if (!mapperContext.getRelatedProjectionTypeMap().isEmpty())
             convertAndPut(mapperContext.getRelatedProjectionTypeMap(), projectionTypeRestDTOMapper, mapperContextLevel2, projectionTypeMap, ProjectionTypeEntity::getId);
+        if (!mapperContext.getRelatedHistoryNotificationRecipientMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedHistoryNotificationRecipientMap(), historyNotificationRecipientDTOMapper, mapperContextLevel2, historyNotificationRecipientMap, HistoryNotificationRecipientEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         MapperContext mapperContextLevel3 = mapperContextLevel2.cloneIgnoreRelatedObjects();
@@ -294,10 +303,12 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel2.getRelatedTwinClassFreezeMap(), twinClassFreezeDTOMapper, mapperContextLevel3, twinClassFreezeMap, TwinClassFreezeEntity::getId);
         if (!mapperContextLevel2.getRelatedClassFieldRuleMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedClassFieldRuleMap(), twinClassFieldRuleRestDTOMapper, mapperContextLevel3, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
-        if (!mapperContext.getRelatedProjectionTypeGroupMap().isEmpty())
+        if (!mapperContextLevel2.getRelatedProjectionTypeGroupMap().isEmpty())
             convertAndPut(mapperContext.getRelatedProjectionTypeGroupMap(), projectionTypeGroupRestDTOMapper, mapperContextLevel3, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
-        if (!mapperContext.getRelatedProjectionTypeMap().isEmpty())
+        if (!mapperContextLevel2.getRelatedProjectionTypeMap().isEmpty())
             convertAndPut(mapperContext.getRelatedProjectionTypeMap(), projectionTypeRestDTOMapper, mapperContextLevel3, projectionTypeMap, ProjectionTypeEntity::getId);
+        if (!mapperContextLevel2.getRelatedHistoryNotificationRecipientMap().isEmpty())
+            convertAndPut(mapperContextLevel2.getRelatedHistoryNotificationRecipientMap(), historyNotificationRecipientDTOMapper, mapperContextLevel3, historyNotificationRecipientMap, HistoryNotificationRecipientEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         //this level was added because of dataLists. In case of search twins, twinClass will be detected on level1, twinClass.tagDataList will be detected on level2 and list options for tagDataList will be detected only on level3
@@ -342,7 +353,7 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedFaceMap(), faceRestDTOMapper, mapperContextLevel3, faceMap, FaceEntity::getId);
         if (!mapperContextLevel3.getRelatedCommentMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedCommentMap(), commentRestDTOMapper, mapperContextLevel3, commentMap, TwinCommentEntity::getId);
-        if (!mapperContext.getRelatedI18nMap().isEmpty())
+        if (!mapperContextLevel3.getRelatedI18nMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedI18nMap(), i18nRestDTOMapper, mapperContextLevel3, i18nMap, I18nEntity::getId);
         if (!mapperContextLevel3.getRelatedFeaturerMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedFeaturerMap(), featurerRestDTOMapper, mapperContextLevel3, featurerMap, FeaturerEntity::getId);
@@ -358,10 +369,12 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedTwinClassFreezeMap(), twinClassFreezeDTOMapper, mapperContextLevel3, twinClassFreezeMap, TwinClassFreezeEntity::getId);
         if (!mapperContextLevel3.getRelatedClassFieldRuleMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedClassFieldRuleMap(), twinClassFieldRuleRestDTOMapper, mapperContextLevel3, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
-        if (!mapperContext.getRelatedProjectionTypeGroupMap().isEmpty())
+        if (!mapperContextLevel3.getRelatedProjectionTypeGroupMap().isEmpty())
             convertAndPut(mapperContext.getRelatedProjectionTypeGroupMap(), projectionTypeGroupRestDTOMapper, mapperContextLevel3, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
-        if (!mapperContext.getRelatedProjectionTypeMap().isEmpty())
+        if (!mapperContextLevel3.getRelatedProjectionTypeMap().isEmpty())
             convertAndPut(mapperContext.getRelatedProjectionTypeMap(), projectionTypeRestDTOMapper, mapperContextLevel3, projectionTypeMap, ProjectionTypeEntity::getId);
+        if (!mapperContextLevel3.getRelatedHistoryNotificationRecipientMap().isEmpty())
+            convertAndPut(mapperContextLevel3.getRelatedHistoryNotificationRecipientMap(), historyNotificationRecipientDTOMapper, mapperContextLevel3, historyNotificationRecipientMap, HistoryNotificationRecipientEntity::getId);
 
         ret
                 .setTwinClassMap(twinClassMap.isEmpty() ? null : twinClassMap)
@@ -394,6 +407,7 @@ public class RelatedObjectsRestDTOConverter {
                 .setFieldRuleMap(twinClassFieldRuleMap.isEmpty() ? null : twinClassFieldRuleMap)
                 .setProjectionTypeGroupMap(projectionTypeGroupMap.isEmpty() ? null : projectionTypeGroupMap)
                 .setProjectionTypeMap(projectionTypeMap.isEmpty() ? null : projectionTypeMap)
+                .setHistoryNotificationRecipientMap(historyNotificationRecipientMap.isEmpty() ? null : historyNotificationRecipientMap)
         ;
         return ret;
     }
