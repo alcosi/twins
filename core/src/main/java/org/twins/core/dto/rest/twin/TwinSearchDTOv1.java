@@ -122,6 +122,12 @@ public class TwinSearchDTOv1 {
     @Schema(description = "created at")
     public DataTimeRangeDTOv1 createdAt;
 
+    @Schema(description = "Set of hierarchy paths")
+    public Set<String> hierarchyPathSet;
+
+    @Schema(description = "Max twin children depth")
+    public Integer maxChildrenDepth;
+
 
     public TwinSearchDTOv1 addTwinClassIdListItem(UUID item) {
         this.twinClassIdList = CollectionUtils.safeAdd(this.twinClassIdList, item);

@@ -8,9 +8,9 @@ import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.enums.twin.Touch;
 import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinSearch;
+import org.twins.core.enums.twin.Touch;
 
 import java.util.*;
 
@@ -38,7 +38,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] markersFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.markers, TwinMarkerEntity.Fields.markerDataListOptionId);
         String[] touchFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.touches);
 
-        var commonSpecifications = new Specification[]{
+        var commonSpecifications = new Specification[] {
                 checkTwinLinks(twinSearch, false,twinsEntityFieldPath),
                 checkTwinLinks(twinSearch, true, twinsEntityFieldPath),
                 checkUuidIn(twinSearch.getTwinIdList(), false, false, idFieldPath),
@@ -66,7 +66,8 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkHierarchyContainsAny(twinSearch.getTwinClassExtendsHierarchyContainsIdList(), twinClassExtendsHierarchyTreeFieldPath),
                 checkTouchSearch(userId,false,twinSearch.getTouchList(),touchFieldPath),
                 checkTouchSearch(userId,true,twinSearch.getTouchExcludeList(),touchFieldPath),
-                checkFieldLocalDateTimeBetween(twinSearch.getCreatedAt(), TwinEntity.Fields.createdAt)
+                checkFieldLocalDateTimeBetween(twinSearch.getCreatedAt(), TwinEntity.Fields.createdAt),
+                checkTwinChildrenWithDepth(twinSearch.getHierarchyPaths(), twinSearch.getMaxChildrenDepth(), hierarchyTreeFieldPath)
         };
 
         return Specification.allOf(concatArray(commonSpecifications, getTwinSearchFieldsSpecifications(twinSearch.getFields())));
@@ -188,6 +189,51 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 exclude = cb.conjunction();
 
             return cb.and(include, exclude);
+        };
+    }
+
+    public static <T> Specification<T> checkTwinChildrenWithDepth(Set<String> parentPaths, Integer maxDepth, String... fieldPath) {
+
+        return (root, query, cb) -> {
+            if (maxDepth == null || CollectionUtils.isEmpty(parentPaths)) {
+                return cb.conjunction();
+            }
+
+            List<Predicate> predicates = new ArrayList<>();
+
+            for (String parentPath : parentPaths) {
+                // check for parent-child relation
+                Expression<Boolean> isDescendant = cb.function(
+                        "ltree_isparent",
+                        Boolean.class,
+                        cb.literal(parentPath),
+                        root.get(Arrays.toString(fieldPath))
+                );
+
+                // depth level of child
+                Expression<Integer> childDepth = cb.function(
+                        "nlevel",
+                        Integer.class,
+                        root.get(Arrays.toString(fieldPath))
+                );
+
+                // depth level of parent
+                Expression<Integer> parentDepth = cb.function(
+                        "nlevel",
+                        Integer.class,
+                        cb.literal(parentPath)
+                );
+
+                // isDescendant = true && childLevel - parentLevel <= maxDepth
+                Predicate condition = cb.and(
+                        cb.isTrue(isDescendant),
+                        cb.lessThanOrEqualTo(cb.diff(childDepth, parentDepth), maxDepth)
+                );
+
+                predicates.add(condition);
+            }
+
+            return cb.or(predicates.toArray(new Predicate[0]));
         };
     }
 }

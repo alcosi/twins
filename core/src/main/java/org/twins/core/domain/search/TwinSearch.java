@@ -7,9 +7,9 @@ import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.search.TwinSearchEntity;
-import org.twins.core.enums.twin.Touch;
 import org.twins.core.domain.DataTimeRange;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
+import org.twins.core.enums.twin.Touch;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -59,6 +59,8 @@ public class TwinSearch {
     private List<TwinFieldSearch> fields;
     private DataTimeRange createdAt;
     private TwinSearchEntity configuredSearch;
+    private Set<String> hierarchyPaths;
+    private Integer maxChildrenDepth;
 
     public boolean isEmpty() {
         return CollectionUtils.isEmpty(twinIdList) &&
@@ -98,7 +100,9 @@ public class TwinSearch {
                 CollectionUtils.isEmpty(touchList) &&
                 CollectionUtils.isEmpty(touchExcludeList) &&
                 CollectionUtils.isEmpty(fields) &&
-                createdAt == null;
+                CollectionUtils.isEmpty(hierarchyPaths) &&
+                createdAt == null &&
+                maxChildrenDepth == null;
     }
 
     public TwinSearch addTwinId(UUID twinId, boolean exclude) {
