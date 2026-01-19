@@ -216,14 +216,6 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
                 dataListOptionRepository.findByDataListIdIn(dataListIds);
     }
 
-    public DataListEntity findDataListOptionsSharedInHead(UUID twinClassFieldId, UUID headTwinId) throws ServiceException {
-        TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findEntitySafe(twinClassFieldId);
-        FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
-        if (!(fieldTyper instanceof FieldTyperSharedSelectInHead))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, twinClassFieldEntity.logNormal() + " is not shared in head");
-        return ((FieldTyperSharedSelectInHead) fieldTyper).getDataListWithValidOption(twinClassFieldEntity, headTwinId);
-    }
-
     public DataListOptionEntity findDataListOption(UUID dataListOptionId) throws ServiceException {
         DataListOptionEntity dataListOptionEntity = entitySmartService.findById(dataListOptionId, dataListOptionRepository, EntitySmartService.FindMode.ifEmptyThrows);
         ApiUser apiUser = authService.getApiUser();
@@ -264,6 +256,10 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
 
     public Set<UUID> findOptionIdsByDataListIdAndNotUsedInHead(UUID listId, UUID twinClassFieldId, UUID headTwinId) {
         return dataListOptionRepository.findOptionIdsByDataListIdAndNotUsedInHead(listId, twinClassFieldId, headTwinId);
+    }
+
+    public Set<UUID> findOptionIdsByDataListIdAndNotUsedInHeadExcludingTwin(UUID listId, UUID twinClassFieldId, UUID headTwinId, UUID twinId) {
+        return dataListOptionRepository.findOptionIdsByDataListIdAndNotUsedInHeadExcludingTwin(listId, twinClassFieldId, headTwinId, twinId);
     }
 }
 

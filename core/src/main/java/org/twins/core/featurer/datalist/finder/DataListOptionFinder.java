@@ -16,6 +16,7 @@ import java.util.Properties;
 @Slf4j
 public abstract class DataListOptionFinder extends FeaturerTwins {
     public static final String PARAM_CURRENT_HEAD_TWIN_ID = "headTwinId";
+    public static final String PARAM_CURRENT_TWIN_ID = "twinId";
     public static final String PARAM_CURRENT_TWIN_CLASS_FIELD_ID = "twinClassFieldId";
 
     public void concatSearch(HashMap<String, String> optionFinderParams, DataListOptionSearch optionSearch, Map<String, String> namedParamsMap) throws ServiceException {
