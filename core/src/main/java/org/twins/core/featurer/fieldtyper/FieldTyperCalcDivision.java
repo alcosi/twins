@@ -4,12 +4,8 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageCalcDivision;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
 
 import java.util.Properties;
@@ -20,19 +16,6 @@ public class FieldTyperCalcDivision extends FieldTyperCalcBinaryBase<TwinFieldSt
 
     @FeaturerParam(name = "divisionByZeroResul", description = "Result if division by zero", defaultValue = "<n/a>")
     public static final FeaturerParamString divisionByZeroResul = new FeaturerParamString("divisionByZeroResul");
-
-    @Autowired
-    TwinFieldSimpleRepository twinFieldSimpleRepository;
-
-    @Override
-    public TwinFieldStorageCalcDivision getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
-        return new TwinFieldStorageCalcDivision(
-                twinFieldSimpleRepository,
-                twinClassFieldEntity.getId(),
-                firstFieldId.extract(properties),
-                secondFieldId.extract(properties),
-                divisionByZeroResul.extract(properties));
-    }
 
     @Override
     protected String calculate(Double v1, Double v2, Properties properties) throws ServiceException {
