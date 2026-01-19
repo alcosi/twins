@@ -37,25 +37,20 @@ public class FieldTyperCalcSum extends FieldTyper<FieldDescriptorText, FieldValu
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        List<TwinFieldSimpleEntity> fields = new ArrayList<>();
         Kit<TwinFieldSimpleEntity, UUID> twinFieldSimpleKit = twinField.getTwin().getTwinFieldSimpleKit();
         Set<UUID> extractedTwinFields = fieldIds.extract(properties);
+        double totalSum = 0.0;
         for (UUID twinFieldId : extractedTwinFields) {
             TwinFieldSimpleEntity twinFieldSimple = twinFieldSimpleKit.get(twinFieldId);
             if (twinFieldSimple != null) {
-                fields.add(twinFieldSimple);
-            }
-        }
-
-        double totalSum = 0.0;
-        for (TwinFieldSimpleEntity field : fields) {
-            try {
-                if (field.getValue() != null) {
-                    double val = Double.parseDouble(field.getValue());
-                    totalSum += val;
+                try {
+                    if (twinFieldSimple.getValue() != null) {
+                        double val = Double.parseDouble(twinFieldSimple.getValue());
+                        totalSum += val;
+                    }
+                } catch (NumberFormatException e) {
+                    // ignore
                 }
-            } catch (NumberFormatException e) {
-                // ignore
             }
         }
 

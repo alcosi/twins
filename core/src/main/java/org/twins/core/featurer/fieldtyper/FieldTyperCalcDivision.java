@@ -6,13 +6,12 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
 
 import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1323, name = "Division", description = "First / Second")
-public class FieldTyperCalcDivision extends FieldTyperCalcBinaryBase<TwinFieldStorageSimple> {
+public class FieldTyperCalcDivision extends FieldTyperCalcBinaryBase {
 
     @FeaturerParam(name = "divisionByZeroResul", description = "Result if division by zero", defaultValue = "<n/a>")
     public static final FeaturerParamString divisionByZeroResul = new FeaturerParamString("divisionByZeroResul");

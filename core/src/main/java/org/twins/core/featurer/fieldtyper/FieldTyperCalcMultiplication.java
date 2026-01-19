@@ -6,13 +6,12 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
 
 import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1322, name = "Multiplication", description = "First * Second")
-public class FieldTyperCalcMultiplication extends FieldTyperCalcBinaryBase<TwinFieldStorageSimple> {
+public class FieldTyperCalcMultiplication extends FieldTyperCalcBinaryBase {
 
     @FeaturerParam(name = "replaceZeroWithOne", description = "if some filed value is null or 0, then mulitply on 1")
     public static final FeaturerParamBoolean replaceZeroWithOne = new FeaturerParamBoolean("replaceZeroWithOne");
