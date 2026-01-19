@@ -10,6 +10,7 @@ import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.featurer.fieldtyper.FieldTyperList;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
@@ -36,8 +37,9 @@ public class DataListOptionFinderSharedInHead extends DataListOptionFinder {
         if (fieldTyper.getStorageType() != TwinFieldStorageDatalist.class) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, twinClassFieldEntity.logNormal() + " does not have data list oriented fieldTyper");
         }
-
-        UUID listId = UUID.fromString(twinClassFieldEntity.getFieldTyperParams().get("listUUID"));
+        FieldTyperList fieldTyperList = (FieldTyperList) fieldTyper;
+        Properties fieldTyperProperties = fieldTyper.extractProperties(twinClassFieldEntity.getFieldTyperParams());
+        UUID listId = fieldTyperList.getDataListId(fieldTyperProperties);
 
         Set<UUID> optionIds = dataListService.findOptionIdsByDataListIdAndNotUsedInHead(listId, twinClassFieldId, headTwinId);
 
