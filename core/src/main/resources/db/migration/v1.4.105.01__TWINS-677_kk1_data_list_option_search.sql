@@ -21,10 +21,10 @@ CREATE INDEX IF NOT EXISTS idx_data_list_option_search_sorter_featurer_id
     ON data_list_option_search(data_list_option_sorter_featurer_id);
 
 CREATE INDEX IF NOT EXISTS idx_data_list_option_predicate_search_predicate_data_list_option_search_id
-    ON data_list_option_predicate(data_list_option_search_id);
+    ON data_list_option_search_predicate(data_list_option_search_id);
 
 CREATE INDEX IF NOT EXISTS idx_data_list_option_predicate_finder_featurer_id
-    ON data_list_option_predicate(data_list_option_finder_featurer_id);
+    ON data_list_option_search_predicate(data_list_option_finder_featurer_id);
 
 INSERT INTO featurer_type (id, name, description) VALUES (51::integer, 'OptionFinder'::varchar(40), null::varchar(255)) on conflict do nothing;
 INSERT INTO featurer_type (id, name, description) VALUES (52::integer, 'OptionSorter'::varchar(40), null::varchar(255)) on conflict do nothing;
