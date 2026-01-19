@@ -26,9 +26,6 @@ public class FieldTyperCalcSum extends FieldTyper<FieldDescriptorText, FieldValu
     @FeaturerParam(name = "fieldIds", description = "Fields to sum")
     public static final FeaturerParamUUIDSetTwinsTwinClassFieldId fieldIds = new FeaturerParamUUIDSetTwinsTwinClassFieldId("fieldIds");
 
-    @Autowired
-    TwinFieldSimpleRepository twinFieldSimpleRepository;
-
     @Override
     protected FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         return new FieldDescriptorText();
@@ -48,7 +45,6 @@ public class FieldTyperCalcSum extends FieldTyper<FieldDescriptorText, FieldValu
     @Override
     public TwinFieldStorageCalcFieldsSum getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         return new TwinFieldStorageCalcFieldsSum(
-                twinFieldSimpleRepository,
                 twinClassFieldEntity.getId(),
                 fieldIds.extract(properties));
     }

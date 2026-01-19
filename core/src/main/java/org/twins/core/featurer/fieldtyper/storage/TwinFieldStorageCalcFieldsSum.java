@@ -4,25 +4,31 @@ import org.cambium.common.kit.Kit;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldCalcProjection;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 
 import java.util.*;
 
 public class TwinFieldStorageCalcFieldsSum extends TwinFieldStorageCalc {
-    private final TwinFieldSimpleRepository twinFieldSimpleRepository;
     private final Set<UUID> fieldIds;
 
-    public TwinFieldStorageCalcFieldsSum(TwinFieldSimpleRepository twinFieldSimpleRepository, UUID twinClassFieldId, Set<UUID> fieldIds) {
+    public TwinFieldStorageCalcFieldsSum(UUID twinClassFieldId, Set<UUID> fieldIds) {
         super(twinClassFieldId);
-        this.twinFieldSimpleRepository = twinFieldSimpleRepository;
         this.fieldIds = fieldIds;
     }
 
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) {
-        List<TwinFieldSimpleEntity> fields = twinFieldSimpleRepository.findByTwinIdInAndTwinClassFieldIdIn(twinsKit.getIdSet(), fieldIds);
-        Map<UUID, Double> resultMap = new HashMap<>();
+        List<TwinFieldSimpleEntity> fields = new ArrayList<>();
+        for (TwinEntity twin : twinsKit) {
+            Kit<TwinFieldSimpleEntity, UUID> twinFieldSimpleKit = twin.getTwinFieldSimpleKit();
+            for (UUID fieldId : fieldIds) {
+                TwinFieldSimpleEntity twinFieldSimple = twinFieldSimpleKit.get(fieldId);
+                if (twinFieldSimple != null) {
+                    fields.add(twinFieldSimple);
+                }
+            }
+        }
 
+        Map<UUID, Double> resultMap = new HashMap<>();
         for (TwinFieldSimpleEntity field : fields) {
             try {
                 if (field.getValue() != null) {
@@ -48,7 +54,7 @@ public class TwinFieldStorageCalcFieldsSum extends TwinFieldStorageCalc {
             return true;
         if (o == null || getClass() != o.getClass())
             return false;
-        TwinFieldStorageCalcFieldsSum that = (TwinFieldStorageCalcFieldsSum) o;
-        return Objects.equals(twinClassFieldId, that.twinClassFieldId) && Objects.equals(fieldIds, that.fieldIds);
+        TwinFieldStorageCalc that = (TwinFieldStorageCalc) o;
+        return Objects.equals(twinClassFieldId, that.twinClassFieldId);
     }
 }

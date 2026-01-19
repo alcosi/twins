@@ -10,12 +10,13 @@ import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageCalcDivision;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
 
 import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1323, name = "Division", description = "First / Second")
-public class FieldTyperCalcDivision extends FieldTyperCalcBinaryBase<TwinFieldStorageCalcDivision> {
+public class FieldTyperCalcDivision extends FieldTyperCalcBinaryBase<TwinFieldStorageSimple> {
 
     @FeaturerParam(name = "divisionByZeroResul", description = "Result if division by zero", defaultValue = "<n/a>")
     public static final FeaturerParamString divisionByZeroResul = new FeaturerParamString("divisionByZeroResul");
@@ -31,5 +32,15 @@ public class FieldTyperCalcDivision extends FieldTyperCalcBinaryBase<TwinFieldSt
                 firstFieldId.extract(properties),
                 secondFieldId.extract(properties),
                 divisionByZeroResul.extract(properties));
+    }
+
+    @Override
+    protected String calculate(Double v1, Double v2, Properties properties) throws ServiceException {
+        double d1 = v1 != null ? v1 : 0.0;
+        double d2 = v2 != null ? v2 : 0.0;
+        if (d2 == 0) {
+            return divisionByZeroResul.extract(properties);
+        }
+        return String.valueOf(d1 / d2);
     }
 }
