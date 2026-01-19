@@ -166,7 +166,7 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
         return TwinSpecification.checkFieldNumeric(search);
     }
 
-    public static Double parseDoubleValue(TwinEntity twin, UUID fieldId) throws ServiceException {
+    public static Double parseDoubleValue(TwinEntity twin, UUID fieldId, Double defaultValue) throws ServiceException {
         if (twin.getTwinFieldSimpleKit() != null && twin.getTwinFieldSimpleKit().containsKey(fieldId)) {
             TwinFieldSimpleEntity field = twin.getTwinFieldSimpleKit().get(fieldId);
             try {
@@ -177,6 +177,6 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, field.easyLog(EasyLoggable.Level.NORMAL) + " value[" + field.getValue() + "] can't be parsed to double");
             }
         }
-        return null;
+        return defaultValue;
     }
 }

@@ -28,8 +28,8 @@ public abstract class FieldTyperCalcBinaryBase extends FieldTyper<FieldDescripto
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        Double firstValue = FieldTyperNumeric.parseDoubleValue(twinField.getTwin(), firstFieldId.extract(properties));
-        Double secondValue = FieldTyperNumeric.parseDoubleValue(twinField.getTwin(), secondFieldId.extract(properties));
+        Double firstValue = FieldTyperNumeric.parseDoubleValue(twinField.getTwin(), firstFieldId.extract(properties), 0.0);
+        Double secondValue = FieldTyperNumeric.parseDoubleValue(twinField.getTwin(), secondFieldId.extract(properties), 0.0);
 
         String result = calculate(firstValue, secondValue, properties);
 
