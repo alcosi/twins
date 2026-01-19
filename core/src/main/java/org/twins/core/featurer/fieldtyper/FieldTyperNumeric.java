@@ -165,4 +165,18 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
     public Specification<TwinEntity> searchBy(TwinFieldSearchNumeric search) throws ServiceException {
         return TwinSpecification.checkFieldNumeric(search);
     }
+
+    public static Double parseDoubleValue(TwinEntity twin, UUID fieldId) throws ServiceException {
+        if (twin.getTwinFieldSimpleKit() != null && twin.getTwinFieldSimpleKit().containsKey(fieldId)) {
+            TwinFieldSimpleEntity field = twin.getTwinFieldSimpleKit().get(fieldId);
+            try {
+                if (field.getValue() != null) {
+                    return Double.parseDouble(field.getValue());
+                }
+            } catch (NumberFormatException e) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, field.easyLog(EasyLoggable.Level.NORMAL) + " value[" + field.getValue() + "] can't be parsed to double");
+            }
+        }
+        return null;
+    }
 }

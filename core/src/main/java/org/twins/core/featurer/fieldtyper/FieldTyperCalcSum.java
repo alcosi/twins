@@ -43,14 +43,7 @@ public class FieldTyperCalcSum extends FieldTyper<FieldDescriptorText, FieldValu
         for (UUID twinFieldId : extractedTwinFields) {
             TwinFieldSimpleEntity twinFieldSimple = twinFieldSimpleKit.get(twinFieldId);
             if (twinFieldSimple != null) {
-                try {
-                    if (twinFieldSimple.getValue() != null) {
-                        double val = Double.parseDouble(twinFieldSimple.getValue());
-                        totalSum += val;
-                    }
-                } catch (NumberFormatException e) {
-                    // ignore
-                }
+                FieldTyperNumeric.parseDoubleValue(twinField.getTwin(), twinFieldId);
             }
         }
 
