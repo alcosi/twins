@@ -57,8 +57,31 @@ WITH all_usage AS (
              JOIN twin_factory_multiplier m
                   ON m.id = mf.twin_factory_multiplier_id
     WHERE mf.twin_factory_condition_set_id IS NOT NULL
+),
+unique_usage AS (
+    SELECT DISTINCT condition_set_id, twin_factory_id FROM all_usage
+),
+counts AS (
+    SELECT condition_set_id, COUNT(*) as usage_count
+    FROM unique_usage
+    GROUP BY condition_set_id
 )
-SELECT DISTINCT condition_set_id, twin_factory_id FROM all_usage;
+SELECT u.condition_set_id, u.twin_factory_id, c.usage_count
+FROM unique_usage u
+JOIN counts c ON u.condition_set_id = c.condition_set_id;
+
+DO $$
+DECLARE
+    r RECORD;
+    r_fact RECORD;
+BEGIN
+    FOR r IN SELECT DISTINCT condition_set_id FROM tmp_condition_set_usage WHERE usage_count > 1 LOOP
+        RAISE NOTICE 'Found shared condition_set: id % is used by multiple factories', r.condition_set_id;
+        FOR r_fact IN SELECT twin_factory_id FROM tmp_condition_set_usage WHERE condition_set_id = r.condition_set_id LOOP
+            RAISE NOTICE '  Used by factory: %', r_fact.twin_factory_id;
+        END LOOP;
+    END LOOP;
+END $$;
 
 -- 3. Define a PRIMARY factory for each condition_set
 
@@ -102,91 +125,106 @@ WHERE u.twin_factory_id <> pf.primary_factory_id;
 
 -- 6. Insert clones
 
-INSERT INTO twin_factory_condition_set (
-    id,
-    name,
-    description,
-    domain_id,
-    created_by_user_id,
-    created_at,
-    updated_at,
-    twin_factory_id
-)
-SELECT
-    new_id,
-    name,
-    description,
-    domain_id,
-    created_by_user_id,
-    created_at,
-    updated_at,
-    twin_factory_id
-FROM tmp_condition_set_clone;
+DO $$
+DECLARE
+    r RECORD;
+    r_cond RECORD;
+BEGIN
+    FOR r IN SELECT * FROM tmp_condition_set_clone LOOP
+        RAISE NOTICE 'Cloning condition_set: old_id %, new_id % for twin_factory_id %', r.old_id, r.new_id, r.twin_factory_id;
 
+        INSERT INTO twin_factory_condition_set (
+            id, name, description, domain_id, created_by_user_id, created_at, updated_at, twin_factory_id
+        ) VALUES (
+            r.new_id, r.name, r.description, r.domain_id, r.created_by_user_id, r.created_at, r.updated_at, r.twin_factory_id
+        );
 
--- 6.1 Clone conditions for the new sets
-
-INSERT INTO twin_factory_condition (
-    id,
-    twin_factory_condition_set_id,
-    conditioner_featurer_id,
-    conditioner_params,
-    invert,
-    active,
-    description
-)
-SELECT
-    gen_random_uuid(),
-    c.new_id,
-    tc.conditioner_featurer_id,
-    tc.conditioner_params,
-    tc.invert,
-    tc.active,
-    tc.description
-FROM twin_factory_condition tc
-JOIN tmp_condition_set_clone c ON tc.twin_factory_condition_set_id = c.old_id;
+        -- 6.1 Clone conditions for the new sets
+        FOR r_cond IN
+            INSERT INTO twin_factory_condition (
+                id, twin_factory_condition_set_id, conditioner_featurer_id, conditioner_params, invert, active, description
+            )
+            SELECT
+                gen_random_uuid(),
+                r.new_id,
+                tc.conditioner_featurer_id,
+                tc.conditioner_params,
+                tc.invert,
+                tc.active,
+                tc.description
+            FROM twin_factory_condition tc
+            WHERE tc.twin_factory_condition_set_id = r.old_id
+            RETURNING id
+        LOOP
+            RAISE NOTICE '  Cloned condition: new_id % for new condition_set_id %', r_cond.id, r.new_id;
+        END LOOP;
+    END LOOP;
+END $$;
 
 
 -- 7. Relink ALL links
 
--- pipeline
-UPDATE twin_factory_pipeline p
-SET twin_factory_condition_set_id = c.new_id
-FROM tmp_condition_set_clone c
-WHERE p.twin_factory_condition_set_id = c.old_id
-  AND p.twin_factory_id = c.twin_factory_id;
+DO $$
+DECLARE
+    r RECORD;
+    updated_count INT;
+BEGIN
+    FOR r IN SELECT * FROM tmp_condition_set_clone LOOP
+        -- pipeline
+        UPDATE twin_factory_pipeline p
+        SET twin_factory_condition_set_id = r.new_id
+        WHERE p.twin_factory_condition_set_id = r.old_id
+          AND p.twin_factory_id = r.twin_factory_id;
+        GET DIAGNOSTICS updated_count = ROW_COUNT;
+        IF updated_count > 0 THEN
+            RAISE NOTICE 'Updated twin_factory_pipeline: set condition_set_id % (was %) for % rows', r.new_id, r.old_id, updated_count;
+        END IF;
 
--- pipeline step
-UPDATE twin_factory_pipeline_step ps
-SET twin_factory_condition_set_id = c.new_id
-FROM tmp_condition_set_clone c,
-     twin_factory_pipeline p
-WHERE ps.twin_factory_condition_set_id = c.old_id
-  AND p.id = ps.twin_factory_pipeline_id
-  AND p.twin_factory_id = c.twin_factory_id;
+        -- pipeline step
+        UPDATE twin_factory_pipeline_step ps
+        SET twin_factory_condition_set_id = r.new_id
+        FROM twin_factory_pipeline p
+        WHERE ps.twin_factory_condition_set_id = r.old_id
+          AND p.id = ps.twin_factory_pipeline_id
+          AND p.twin_factory_id = r.twin_factory_id;
+        GET DIAGNOSTICS updated_count = ROW_COUNT;
+        IF updated_count > 0 THEN
+            RAISE NOTICE 'Updated twin_factory_pipeline_step: set condition_set_id % (was %) for % rows', r.new_id, r.old_id, updated_count;
+        END IF;
 
--- branch
-UPDATE twin_factory_branch b
-SET twin_factory_condition_set_id = c.new_id
-FROM tmp_condition_set_clone c
-WHERE b.twin_factory_condition_set_id = c.old_id
-  AND b.twin_factory_id = c.twin_factory_id;
+        -- branch
+        UPDATE twin_factory_branch b
+        SET twin_factory_condition_set_id = r.new_id
+        WHERE b.twin_factory_condition_set_id = r.old_id
+          AND b.twin_factory_id = r.twin_factory_id;
+        GET DIAGNOSTICS updated_count = ROW_COUNT;
+        IF updated_count > 0 THEN
+            RAISE NOTICE 'Updated twin_factory_branch: set condition_set_id % (was %) for % rows', r.new_id, r.old_id, updated_count;
+        END IF;
 
--- eraser
-UPDATE twin_factory_eraser e
-SET twin_factory_condition_set_id = c.new_id
-FROM tmp_condition_set_clone c
-WHERE e.twin_factory_condition_set_id = c.old_id
-  AND e.twin_factory_id = c.twin_factory_id;
+        -- eraser
+        UPDATE twin_factory_eraser e
+        SET twin_factory_condition_set_id = r.new_id
+        WHERE e.twin_factory_condition_set_id = r.old_id
+          AND e.twin_factory_id = r.twin_factory_id;
+        GET DIAGNOSTICS updated_count = ROW_COUNT;
+        IF updated_count > 0 THEN
+            RAISE NOTICE 'Updated twin_factory_eraser: set condition_set_id % (was %) for % rows', r.new_id, r.old_id, updated_count;
+        END IF;
 
--- multiplier filter
-UPDATE twin_factory_multiplier_filter mf
-SET twin_factory_condition_set_id = c.new_id
-FROM tmp_condition_set_clone c,
-     twin_factory_multiplier m
-WHERE mf.twin_factory_condition_set_id = c.old_id
-  AND m.id = mf.twin_factory_multiplier_id
-  AND m.twin_factory_id = c.twin_factory_id;
+        -- multiplier filter
+        UPDATE twin_factory_multiplier_filter mf
+        SET twin_factory_condition_set_id = r.new_id
+        FROM twin_factory_multiplier m
+        WHERE mf.twin_factory_condition_set_id = r.old_id
+          AND m.id = mf.twin_factory_multiplier_id
+          AND m.twin_factory_id = r.twin_factory_id;
+        GET DIAGNOSTICS updated_count = ROW_COUNT;
+        IF updated_count > 0 THEN
+            RAISE NOTICE 'Updated twin_factory_multiplier_filter: set condition_set_id % (was %) for % rows', r.new_id, r.old_id, updated_count;
+        END IF;
+    END LOOP;
+END $$;
 
 -- 8. Delete old twin_factory_condition_set that are not used
 
