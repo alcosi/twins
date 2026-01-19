@@ -59,6 +59,15 @@ public interface DataListOptionRepository extends CrudRepository<DataListOptionE
             "and option.id not in (select cast(field.value as uuid) from TwinFieldSimpleEntity field where field.twinClassFieldId = :twinClassFieldId and field.twin.headTwinId = :headTwinId ) order by option.order")
     List<DataListOptionEntity> findByDataListIdAndNotUsedInHead(@Param("dataListId") UUID dataListId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("headTwinId") UUID headTwinId);
 
+    @Query("SELECT option.id FROM DataListOptionEntity option " +
+            "WHERE option.dataListId = :dataListId " +
+            "AND option.id NOT IN (SELECT CAST(field.value AS uuid) " +
+            "FROM TwinFieldSimpleEntity field " +
+            "WHERE field.twinClassFieldId = :twinClassFieldId " +
+            "AND field.twin.headTwinId = :headTwinId) " +
+            "ORDER BY option.order")
+    Set<UUID> findOptionIdsByDataListIdAndNotUsedInHead(@Param("dataListId") UUID dataListId, @Param("twinClassFieldId") UUID twinClassFieldId,@Param("headTwinId") UUID headTwinId);
+
     @Query("select dlo.id from DataListOptionEntity dlo where dlo.businessAccountId = :businessAccountId and dlo.dataList.domainId = :domainId")
     List<UUID> findAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
 

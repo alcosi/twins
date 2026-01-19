@@ -262,5 +262,8 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         return dataListOptionRepository.findByDataListIdAndNotUsedInHead(listId, twinClassFieldId, headTwinId);
     }
 
+    public Set<UUID> findOptionIdsByDataListIdAndNotUsedInHead(UUID listId, UUID twinClassFieldId, UUID headTwinId) {
+        return dataListOptionRepository.findOptionIdsByDataListIdAndNotUsedInHead(listId, twinClassFieldId, headTwinId);
+    }
 }
 
