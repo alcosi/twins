@@ -196,8 +196,7 @@ WHERE cs.twin_factory_id IS NULL
   AND NOT EXISTS (SELECT 1 FROM twin_factory_pipeline_step ps WHERE ps.twin_factory_condition_set_id = cs.id)
   AND NOT EXISTS (SELECT 1 FROM twin_factory_branch b WHERE b.twin_factory_condition_set_id = cs.id)
   AND NOT EXISTS (SELECT 1 FROM twin_factory_eraser e WHERE e.twin_factory_condition_set_id = cs.id)
-  AND NOT EXISTS (SELECT 1 FROM twin_factory_multiplier_filter mf WHERE mf.twin_factory_condition_set_id = cs.id)
-  AND NOT EXISTS (SELECT 1 FROM twin_factory_condition tc WHERE tc.twin_factory_condition_set_id = cs.id);
+  AND NOT EXISTS (SELECT 1 FROM twin_factory_multiplier_filter mf WHERE mf.twin_factory_condition_set_id = cs.id);
 
 -- 9. Secure
 
