@@ -8,6 +8,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
 
 import java.util.HashMap;
@@ -22,14 +23,19 @@ public class DataListOptionSearchPredicateEntity implements EasyLoggable {
     @Id
     private UUID id;
 
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
+
     @Column(name = "data_list_option_search_id")
     private UUID dataListOptionSearchId;
 
-    @Column(name = "field_finder_featurer_id")
+    @Column(name = "data_list_option_finder_featurer_id")
     private Integer optionFinderFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
-    @Column(name = "field_finder_params", columnDefinition = "hstore")
+    @Column(name = "data_list_option_finder_params", columnDefinition = "hstore")
     private HashMap<String, String> optionFinderParams;
 
     @ManyToOne

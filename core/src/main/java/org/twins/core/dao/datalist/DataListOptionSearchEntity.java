@@ -1,14 +1,12 @@
 package org.twins.core.dao.datalist;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
 
 import java.util.HashMap;
@@ -23,6 +21,11 @@ public class DataListOptionSearchEntity implements EasyLoggable {
     @Id
     private UUID id;
 
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
+
     @Column(name = "domain_id")
     private UUID domainId;
 
@@ -32,11 +35,11 @@ public class DataListOptionSearchEntity implements EasyLoggable {
     @Column(name = "force_sorting")
     private Boolean forceSorting;
 
-    @Column(name = "field_sorter_featurer_id")
+    @Column(name = "data_list_option_sorter_featurer_id")
     private Integer optionSorterFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
-    @Column(name = "field_sorter_params", columnDefinition = "hstore")
+    @Column(name = "data_list_option_sorter_params", columnDefinition = "hstore")
     private HashMap<String, String> optionSorterParams;
 
     @Override

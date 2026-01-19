@@ -9,7 +9,7 @@ import java.util.Map;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "DataListOptionSearchRqV1")
+@Schema(name = "DataListOptionSearchConfiguredRqV1")
 public class DataListOptionSearchConfiguredRqDTOv1 {
     @Schema(description = "Search named params values")
     public Map<String, String> params;
