@@ -10,53 +10,55 @@ ALTER TABLE twin_factory_condition_set
 DROP TABLE IF EXISTS tmp_condition_set_usage;
 
 CREATE TEMP TABLE tmp_condition_set_usage AS
+WITH all_usage AS (
+    -- pipeline
+    SELECT
+        p.twin_factory_condition_set_id AS condition_set_id,
+        p.twin_factory_id               AS twin_factory_id
+    FROM twin_factory_pipeline p
+    WHERE p.twin_factory_condition_set_id IS NOT NULL
 
--- pipeline
-SELECT DISTINCT
-    p.twin_factory_condition_set_id AS condition_set_id,
-    p.twin_factory_id               AS twin_factory_id
-FROM twin_factory_pipeline p
-WHERE p.twin_factory_condition_set_id IS NOT NULL
+    UNION ALL
 
-UNION ALL
+    -- pipeline step
+    SELECT
+        ps.twin_factory_condition_set_id,
+        p.twin_factory_id
+    FROM twin_factory_pipeline_step ps
+             JOIN twin_factory_pipeline p
+                  ON p.id = ps.twin_factory_pipeline_id
+    WHERE ps.twin_factory_condition_set_id IS NOT NULL
 
--- pipeline step
-SELECT DISTINCT
-    ps.twin_factory_condition_set_id,
-    p.twin_factory_id
-FROM twin_factory_pipeline_step ps
-         JOIN twin_factory_pipeline p
-              ON p.id = ps.twin_factory_pipeline_id
-WHERE ps.twin_factory_condition_set_id IS NOT NULL
+    UNION ALL
 
-UNION ALL
+    -- branch
+    SELECT
+        b.twin_factory_condition_set_id,
+        b.twin_factory_id
+    FROM twin_factory_branch b
+    WHERE b.twin_factory_condition_set_id IS NOT NULL
 
--- branch
-SELECT DISTINCT
-    b.twin_factory_condition_set_id,
-    b.twin_factory_id
-FROM twin_factory_branch b
-WHERE b.twin_factory_condition_set_id IS NOT NULL
+    UNION ALL
 
-UNION ALL
+    -- eraser
+    SELECT
+        e.twin_factory_condition_set_id,
+        e.twin_factory_id
+    FROM twin_factory_eraser e
+    WHERE e.twin_factory_condition_set_id IS NOT NULL
 
--- eraser
-SELECT DISTINCT
-    e.twin_factory_condition_set_id,
-    e.twin_factory_id
-FROM twin_factory_eraser e
-WHERE e.twin_factory_condition_set_id IS NOT NULL
+    UNION ALL
 
-UNION ALL
-
--- multiplier filter
-SELECT DISTINCT
-    mf.twin_factory_condition_set_id,
-    m.twin_factory_id
-FROM twin_factory_multiplier_filter mf
-         JOIN twin_factory_multiplier m
-              ON m.id = mf.twin_factory_multiplier_id
-WHERE mf.twin_factory_condition_set_id IS NOT NULL;
+    -- multiplier filter
+    SELECT
+        mf.twin_factory_condition_set_id,
+        m.twin_factory_id
+    FROM twin_factory_multiplier_filter mf
+             JOIN twin_factory_multiplier m
+                  ON m.id = mf.twin_factory_multiplier_id
+    WHERE mf.twin_factory_condition_set_id IS NOT NULL
+)
+SELECT DISTINCT condition_set_id, twin_factory_id FROM all_usage;
 
 -- 3. Define a PRIMARY factory for each condition_set
 
@@ -122,6 +124,29 @@ SELECT
 FROM tmp_condition_set_clone;
 
 
+-- 6.1 Clone conditions for the new sets
+
+INSERT INTO twin_factory_condition (
+    id,
+    twin_factory_condition_set_id,
+    conditioner_featurer_id,
+    conditioner_params,
+    invert,
+    active,
+    description
+)
+SELECT
+    gen_random_uuid(),
+    c.new_id,
+    tc.conditioner_featurer_id,
+    tc.conditioner_params,
+    tc.invert,
+    tc.active,
+    tc.description
+FROM twin_factory_condition tc
+JOIN tmp_condition_set_clone c ON tc.twin_factory_condition_set_id = c.old_id;
+
+
 -- 7. Relink ALL links
 
 -- pipeline
@@ -171,7 +196,8 @@ WHERE cs.twin_factory_id IS NULL
   AND NOT EXISTS (SELECT 1 FROM twin_factory_pipeline_step ps WHERE ps.twin_factory_condition_set_id = cs.id)
   AND NOT EXISTS (SELECT 1 FROM twin_factory_branch b WHERE b.twin_factory_condition_set_id = cs.id)
   AND NOT EXISTS (SELECT 1 FROM twin_factory_eraser e WHERE e.twin_factory_condition_set_id = cs.id)
-  AND NOT EXISTS (SELECT 1 FROM twin_factory_multiplier_filter mf WHERE mf.twin_factory_condition_set_id = cs.id);
+  AND NOT EXISTS (SELECT 1 FROM twin_factory_multiplier_filter mf WHERE mf.twin_factory_condition_set_id = cs.id)
+  AND NOT EXISTS (SELECT 1 FROM twin_factory_condition tc WHERE tc.twin_factory_condition_set_id = cs.id);
 
 -- 9. Secure
 
