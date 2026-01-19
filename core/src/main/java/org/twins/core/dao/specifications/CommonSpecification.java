@@ -490,6 +490,19 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
+    public static <T> Specification<T> checkQueryDistinct(Ternary distinct) {
+        return (root, query, cb) -> {
+            if (distinct == null)
+                return cb.conjunction();
+            switch (distinct) {
+                case ONLY -> query.distinct(true);
+                case ONLY_NOT -> query.distinct(false);
+                default -> {}
+            }
+            return cb.conjunction();
+        };
+    }
+
     public static <T> Specification<T> checkIntegerIn(final Set<Integer> ids, boolean not, final String field) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(ids)) return cb.conjunction();

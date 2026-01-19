@@ -12,6 +12,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
@@ -20,7 +21,6 @@ import org.twins.core.service.twin.TwinSearchService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 @Featurer(
@@ -44,28 +44,31 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
     @Override
     public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
         var user = authService.getApiUser().getUser();
-        var ret = new ArrayList<FactoryItem>();
         var childrenStatusIds = childrenStatuses.extract(properties);
         var depth = childrenDepth.extract(properties) == -1 ? Integer.MAX_VALUE : childrenDepth.extract(properties);
-
+        var twinToInputMapping = new HashMap<UUID, FactoryItem>();
         // parent twins
-        var twinsToCopy = inputFactoryItemList.stream()
-                .map(FactoryItem::getTwin)
-                .collect(Collectors.toSet());
-
+        var twinsToCopy = new HashSet<TwinEntity>(inputFactoryItemList.size());
         // hierarchy paths from parents
-        var hierarchyPaths = inputFactoryItemList.stream()
-                .map(FactoryItem::getTwin)
-                .map(TwinEntity::getHierarchyTree)
-                .collect(Collectors.toSet());
+        var hierarchyPaths = new HashSet<String>(inputFactoryItemList.size());
+
+        for (var factoryItem : inputFactoryItemList) {
+            var twin = factoryItem.getTwin();
+            twinsToCopy.add(twin);
+            hierarchyPaths.add(twin.getHierarchyTree());
+            twinToInputMapping.put(twin.getId(), factoryItem);
+        }
 
         var search = new BasicSearch().setCheckViewPermission(false);
         if (!childrenStatusIds.isEmpty()) {
             search.addStatusId(childrenStatusIds, false);
         }
         search
-                .setHierarchyPaths(hierarchyPaths)
-                .setMaxChildrenDepth(depth);
+                .setHierarchyChildrenSearch(
+                        new HierarchySearch()
+                                .setDepth(depth)
+                                .setHierarchyList(hierarchyPaths)
+                );
 
         // using set to remove duplicate twins from db search
         var twinsChildren = twinSearchService.findTwinsSet(search);
@@ -101,14 +104,14 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
             oldToNewTwinMap.put(oldTwin.getId(), newTwin);
         }
 
-        for (var inputItem : inputFactoryItemList) {
-            var newTwin = oldToNewTwinMap.get(inputItem.getTwin().getId());
+        var ret = new ArrayList<FactoryItem>(oldToNewTwinMap.size());
+        for (var entry : oldToNewTwinMap.entrySet()) {
             var twinCreate = new TwinCreate();
-            twinCreate.setTwinEntity(newTwin);
+            twinCreate.setTwinEntity(entry.getValue());
             ret.add(
                     new FactoryItem()
                             .setOutput(twinCreate)
-                            .setContextFactoryItemList(List.of(inputItem))
+                            .setContextFactoryItemList(List.of(twinToInputMapping.get(entry.getKey())))
             );
         }
 

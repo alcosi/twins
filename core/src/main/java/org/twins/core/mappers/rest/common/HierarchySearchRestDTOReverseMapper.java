@@ -18,6 +18,7 @@ public class HierarchySearchRestDTOReverseMapper extends RestSimpleDTOMapper<Hie
         dst
                 .setIdList(convertToSetSafe(src.getIdList()))
                 .setIdExcludeList(convertToSetSafe(src.getIdExcludeList()))
+                .setHierarchyList(convertToSetSafe(src.getHierarchyList()))
                 .setDepth(src.getDepth());
     }
 

@@ -8,6 +8,7 @@ import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.enums.twin.Touch;
@@ -67,7 +68,8 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkTouchSearch(userId,false,twinSearch.getTouchList(),touchFieldPath),
                 checkTouchSearch(userId,true,twinSearch.getTouchExcludeList(),touchFieldPath),
                 checkFieldLocalDateTimeBetween(twinSearch.getCreatedAt(), TwinEntity.Fields.createdAt),
-                checkTwinChildrenWithDepth(twinSearch.getHierarchyPaths(), twinSearch.getMaxChildrenDepth(), hierarchyTreeFieldPath)
+                checkTwinChildrenWithDepth(twinSearch.getHierarchyChildrenSearch(), hierarchyTreeFieldPath),
+                checkQueryDistinct(twinSearch.getDistinct())
         };
 
         return Specification.allOf(concatArray(commonSpecifications, getTwinSearchFieldsSpecifications(twinSearch.getFields())));
@@ -192,9 +194,12 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         };
     }
 
-    public static <T> Specification<T> checkTwinChildrenWithDepth(Set<String> parentPaths, Integer maxDepth, String... fieldPath) {
+    public static <T> Specification<T> checkTwinChildrenWithDepth(HierarchySearch hierarchySearch, String... fieldPath) {
 
         return (root, query, cb) -> {
+            var maxDepth = hierarchySearch.getDepth();
+            var parentPaths = hierarchySearch.getHierarchyList();
+
             if (maxDepth == null || CollectionUtils.isEmpty(parentPaths)) {
                 return cb.conjunction();
             }

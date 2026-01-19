@@ -4,7 +4,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.DataTimeRangeDTOv1;
+import org.twins.core.dto.rest.twinclass.HierarchySearchDTOv1;
 import org.twins.core.enums.twin.Touch;
 
 import java.util.*;
@@ -122,12 +124,11 @@ public class TwinSearchDTOv1 {
     @Schema(description = "created at")
     public DataTimeRangeDTOv1 createdAt;
 
-    @Schema(description = "Set of hierarchy paths")
-    public Set<String> hierarchyPathSet;
+    @Schema(description = "hierarchy children search")
+    public HierarchySearchDTOv1 hierarchyChildrenSearch;
 
-    @Schema(description = "Max twin children depth")
-    public Integer maxChildrenDepth;
-
+    @Schema(description = "apply distinct on query results")
+    public Ternary distinct;
 
     public TwinSearchDTOv1 addTwinClassIdListItem(UUID item) {
         this.twinClassIdList = CollectionUtils.safeAdd(this.twinClassIdList, item);
