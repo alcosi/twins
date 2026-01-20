@@ -8,7 +8,6 @@ import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.enums.twin.Touch;
@@ -68,7 +67,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkTouchSearch(userId,false,twinSearch.getTouchList(),touchFieldPath),
                 checkTouchSearch(userId,true,twinSearch.getTouchExcludeList(),touchFieldPath),
                 checkFieldLocalDateTimeBetween(twinSearch.getCreatedAt(), TwinEntity.Fields.createdAt),
-                checkTwinChildrenWithDepth(twinSearch.getHierarchyChildrenSearch(), hierarchyTreeFieldPath),
+                checkHierarchyChilds(twinSearch.getHierarchyChildrenSearch().getIdList(), false, false, twinSearch.getHierarchyChildrenSearch().getDepth(), hierarchyTreeFieldPath),
                 checkQueryDistinct(twinSearch.getDistinct())
         };
 
@@ -191,55 +190,6 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 exclude = cb.conjunction();
 
             return cb.and(include, exclude);
-        };
-    }
-
-    public static <T> Specification<T> checkTwinChildrenWithDepth(HierarchySearch hierarchySearch, String... fieldPath) {
-
-        return (root, query, cb) -> {
-            var maxDepth = hierarchySearch.getDepth();
-            var parentPaths = hierarchySearch.getHierarchyList();
-
-            if (maxDepth == null || CollectionUtils.isEmpty(parentPaths)) {
-                return cb.conjunction();
-            }
-
-            List<Predicate> predicates = new ArrayList<>();
-
-            for (String parentPath : parentPaths) {
-                // check for parent-child relation
-                Expression<Boolean> isDescendant = cb.function(
-                        "ltree_isparent",
-                        Boolean.class,
-                        cb.literal(parentPath),
-                        root.get(Arrays.toString(fieldPath))
-                );
-
-                // depth level of child
-                Expression<Integer> childDepth = cb.function(
-                        "nlevel",
-                        Integer.class,
-                        root.get(Arrays.toString(fieldPath))
-                );
-
-                // depth level of parent
-                Expression<Integer> parentDepth = cb.function(
-                        "nlevel",
-                        Integer.class,
-                        cb.literal(parentPath)
-                );
-
-                // isDescendant = true && childLevel - parentLevel <= maxDepth && exclude parent
-                Predicate condition = cb.and(
-                        cb.isTrue(isDescendant),
-                        cb.lessThanOrEqualTo(cb.diff(childDepth, parentDepth), maxDepth),
-                        cb.notEqual(root.get(Arrays.toString(fieldPath)), parentPath)
-                );
-
-                predicates.add(condition);
-            }
-
-            return cb.or(predicates.toArray(new Predicate[0]));
         };
     }
 }

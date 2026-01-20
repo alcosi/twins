@@ -45,17 +45,14 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
     public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
         var user = authService.getApiUser().getUser();
         var childrenStatusIds = childrenStatuses.extract(properties);
-        var depth = childrenDepth.extract(properties) == -1 ? Integer.MAX_VALUE : childrenDepth.extract(properties);
+        var depth = childrenDepth.extract(properties);
         var twinToInputMapping = new HashMap<UUID, FactoryItem>();
         // parent twins
         var twinsToCopy = new HashSet<TwinEntity>(inputFactoryItemList.size());
-        // hierarchy paths from parents
-        var hierarchyPaths = new HashSet<String>(inputFactoryItemList.size());
 
         for (var factoryItem : inputFactoryItemList) {
             var twin = factoryItem.getTwin();
             twinsToCopy.add(twin);
-            hierarchyPaths.add(twin.getHierarchyTree());
             twinToInputMapping.put(twin.getId(), factoryItem);
         }
 
@@ -67,11 +64,11 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
                 .setHierarchyChildrenSearch(
                         new HierarchySearch()
                                 .setDepth(depth)
-                                .setHierarchyList(hierarchyPaths)
+                                .setIdList(twinToInputMapping.keySet())
                 );
 
         // using set to remove duplicate twins from db search
-        var twinsChildren = twinSearchService.findTwinsSet(search);
+        var twinsChildren = twinSearchService.findTwins(search);
         twinsToCopy.addAll(twinsChildren);
 
         // sort to have confidence that twin on every depth level in processing has an already created parent

@@ -16,7 +16,6 @@ import java.util.UUID;
 public class HierarchySearch {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
-    private Set<String> hierarchyList;
     private Integer depth;
     public static final int INCLUDE_SELF = -1;
 

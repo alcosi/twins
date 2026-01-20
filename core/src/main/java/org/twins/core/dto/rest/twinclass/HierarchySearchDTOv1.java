@@ -19,9 +19,6 @@ public class HierarchySearchDTOv1  {
     @Schema(description = "twin class id exclude list")
     public Set<UUID> idExcludeList;
 
-    @Schema(description = "hierarchy list")
-    public Set<String> hierarchyList;
-
     @Schema(description = "Search depth")
     public Integer depth = 1;
 }
