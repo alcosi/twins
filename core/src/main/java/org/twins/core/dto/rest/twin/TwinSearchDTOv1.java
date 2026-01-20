@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.DataTimeRangeDTOv1;
 import org.twins.core.dto.rest.twinclass.HierarchySearchDTOv1;
 import org.twins.core.enums.twin.Touch;
@@ -128,7 +127,7 @@ public class TwinSearchDTOv1 {
     public HierarchySearchDTOv1 hierarchyChildrenSearch;
 
     @Schema(description = "apply distinct on query results")
-    public Ternary distinct;
+    public Boolean distinct;
 
     public TwinSearchDTOv1 addTwinClassIdListItem(UUID item) {
         this.twinClassIdList = CollectionUtils.safeAdd(this.twinClassIdList, item);

@@ -489,15 +489,12 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
-    public static <T> Specification<T> checkQueryDistinct(Ternary distinct) {
+    public static <T> Specification<T> checkQueryDistinct(Boolean distinct) {
         return (root, query, cb) -> {
-            if (distinct == null)
-                return cb.conjunction();
-            switch (distinct) {
-                case ONLY -> query.distinct(true);
-                case ONLY_NOT -> query.distinct(false);
-                default -> {}
+            if (distinct != null) {
+                query.distinct(distinct);
             }
+
             return cb.conjunction();
         };
     }

@@ -359,5 +359,6 @@ public class TwinSearchService {
         mainSearch.setDstLinksNoAnyOfList(narrowMapOfSets(mainSearch.getDstLinksNoAnyOfList(), narrowSearch.getDstLinksNoAnyOfList()));
         mainSearch.setSrcLinksAnyOfList(narrowMapOfSets(mainSearch.getSrcLinksAnyOfList(), narrowSearch.getSrcLinksAnyOfList()));
         mainSearch.setSrcLinksNoAnyOfList(narrowMapOfSets(mainSearch.getSrcLinksNoAnyOfList(), narrowSearch.getSrcLinksNoAnyOfList()));
+        // todo add distinct and hierarchyChildrenSearch
     }
 }
