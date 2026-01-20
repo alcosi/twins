@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.scheduler.SchedulerLogEntity;
 import org.twins.core.dao.scheduler.SchedulerLogRepository;
 import org.twins.core.domain.search.SchedulerLogSearch;
-import org.twins.core.mappers.rest.DataTimeRangeDTOReverseMapper;
-import org.twins.core.mappers.rest.LongRangeDTOReverseMapper;
 
 import static org.springframework.data.jpa.domain.Specification.allOf;
 import static org.twins.core.dao.specifications.CommonSpecification.*;
@@ -20,9 +18,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.*;
 @RequiredArgsConstructor
 public class SchedulerLogSearchService {
 
-    private final DataTimeRangeDTOReverseMapper dateMapper;
     private final SchedulerLogRepository schedulerLogRepository;
-    private final LongRangeDTOReverseMapper longRangeMapper;
 
     public PaginationResult<SchedulerLogEntity> search(SchedulerLogSearch schedulerLogSearch, SimplePagination pagination) throws Exception {
         if (schedulerLogSearch == null) {
@@ -40,8 +36,8 @@ public class SchedulerLogSearchService {
                 checkUuidIn(search.getSchedulerIdExcludeSet(), true, false, SchedulerLogEntity.Fields.schedulerId),
                 checkFieldLikeIn(search.getResultLikeSet(), false, false, SchedulerLogEntity.Fields.result),
                 checkFieldLikeIn(search.getResultNotLikeSet(), true, true, SchedulerLogEntity.Fields.result),
-                checkFieldLocalDateTimeBetween(dateMapper.convert(search.getCreatedAt()), SchedulerLogEntity.Fields.createdAt),
-                checkFieldLongRange(longRangeMapper.convert(search.getExecutionTimeRange()), SchedulerLogEntity.Fields.executionTime)
+                checkFieldLocalDateTimeBetween(search.getCreatedAt(), SchedulerLogEntity.Fields.createdAt),
+                checkFieldLongRange(search.getExecutionTimeRange(), SchedulerLogEntity.Fields.executionTime)
         );
     }
 }
