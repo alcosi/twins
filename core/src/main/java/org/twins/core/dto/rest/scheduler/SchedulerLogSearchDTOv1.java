@@ -3,7 +3,7 @@ package org.twins.core.dto.rest.scheduler;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.domain.DataTimeRange;
+import org.twins.core.dto.rest.DataTimeRangeDTOv1;
 import org.twins.core.dto.rest.LongRangeDTOv1;
 
 import java.util.Set;
@@ -27,7 +27,7 @@ public class SchedulerLogSearchDTOv1 {
     public Set<UUID> schedulerIdExcludeSet;
 
     @Schema(description = "created at")
-    public DataTimeRange createdAt;
+    public DataTimeRangeDTOv1 createdAt;
 
     @Schema(description = "result like set")
     public Set<String> resultLikeSet;
