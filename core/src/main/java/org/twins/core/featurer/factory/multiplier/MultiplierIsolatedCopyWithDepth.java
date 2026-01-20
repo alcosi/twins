@@ -2,6 +2,7 @@ package org.twins.core.featurer.factory.multiplier;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
@@ -31,7 +32,7 @@ import java.util.*;
 @Slf4j
 public class MultiplierIsolatedCopyWithDepth extends Multiplier {
 
-    @FeaturerParam(name = "Children Depth", description = "Level of depth in twin hierarchy tree", defaultValue = "0")
+    @FeaturerParam(name = "Children Depth", description = "Level of depth in twin hierarchy tree", optional = true, defaultValue = "0")
     public static final FeaturerParamInt childrenDepth =  new FeaturerParamInt("childrenDepth");
 
     @FeaturerParam(name = "Children statuses", description = "Statuses that are used to filter twin children", optional = true)
@@ -84,6 +85,7 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
 
         for (var oldTwin : twinsToCopySorted) {
             var newTwin = new TwinEntity()
+                    .setId(UuidUtils.generate())
                     .setName("")
                     .setTwinClass(oldTwin.getTwinClass())
                     .setTwinClassId(oldTwin.getTwinClassId())
@@ -91,11 +93,13 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
                     .setCreatedByUserId(user.getId())
                     .setCreatedByUser(user);
 
-            if (oldTwin.getHeadTwinId() != null) {
+            if (oldTwin.getHeadTwinId() != null && oldToNewTwinMap.containsKey(oldTwin.getHeadTwinId())) {
                 var newHeadTwin = oldToNewTwinMap.get(oldTwin.getHeadTwinId());
                 newTwin
                         .setHeadTwin(newHeadTwin)
                         .setHeadTwinId(newHeadTwin.getId());
+
+                twinToInputMapping.put(oldTwin.getId(), twinToInputMapping.get(oldTwin.getHeadTwinId()));
             }
 
             oldToNewTwinMap.put(oldTwin.getId(), newTwin);
