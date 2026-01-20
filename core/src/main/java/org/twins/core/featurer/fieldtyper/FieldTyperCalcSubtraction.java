@@ -8,7 +8,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import java.util.Properties;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_1321, name = "Subtraction", description = "First - Second")
+@Featurer(id = FeaturerTwins.ID_1339, name = "Subtraction", description = "First - Second")
 public class FieldTyperCalcSubtraction extends FieldTyperCalcBinaryBase {
 
     @Override
