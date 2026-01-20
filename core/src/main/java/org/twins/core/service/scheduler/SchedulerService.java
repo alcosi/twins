@@ -50,7 +50,7 @@ public class SchedulerService extends EntitySecureFindServiceImpl<SchedulerEntit
 
     @Override
     public boolean validateEntity(SchedulerEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return false;
+        return true;
     }
 
     @Override

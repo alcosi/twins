@@ -21,6 +21,7 @@ import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.projection.ProjectionTypeEntity;
 import org.twins.core.dao.projection.ProjectionTypeGroupEntity;
+import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -100,6 +101,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<ProjectionTypeGroupEntity>> relatedProjectionTypeGroupMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<ProjectionTypeEntity>> relatedProjectionTypeMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<SchedulerEntity>> relatedSchedulerMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
@@ -258,6 +261,8 @@ public class MapperContext {
             smartPut(relatedProjectionTypeGroupMap, entity, entity.getId());
         else if (relatedObject instanceof ProjectionTypeEntity entity)
             smartPut(relatedProjectionTypeMap, entity, entity.getId());
+        else if (relatedObject instanceof SchedulerEntity entity)
+            smartPut(relatedSchedulerMap, entity, entity.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -471,6 +476,7 @@ public class MapperContext {
         dstMapperContext.relatedClassFieldRuleMap = srcMapperContext.relatedClassFieldRuleMap;
         dstMapperContext.relatedProjectionTypeGroupMap = srcMapperContext.relatedProjectionTypeGroupMap;
         dstMapperContext.relatedProjectionTypeMap = srcMapperContext.relatedProjectionTypeMap;
+        dstMapperContext.relatedSchedulerMap = srcMapperContext.relatedSchedulerMap;
     }
 
     public MapperContext fork(MapperModeCollection mapperModeCollection) {

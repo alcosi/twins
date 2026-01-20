@@ -56,8 +56,6 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
         List<FieldValueText> result = new ArrayList<>();
 
         fieldsMap.forEach((key, value) -> {
-            if (value == null)
-                return;
             TwinClassFieldEntity field = twinClassFieldkit.get(key);
             if (field != null) {
                 result.add(new FieldValueText(field).setValue(value));
@@ -76,8 +74,6 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
         List<FieldValueText> result = new ArrayList<>();
 
         fieldsMap.forEach((key, value) -> {
-            if (value == null)
-                return;
             TwinClassFieldEntity field = twinClassFieldkit.get(key);
             if (field != null) {
                 result.add(new FieldValueText(field).setValue(value));

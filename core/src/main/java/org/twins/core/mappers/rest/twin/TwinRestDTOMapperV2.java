@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldAttributeEntity;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twin.TwinFieldAttributeDTOv1;
 import org.twins.core.dto.rest.twin.TwinFieldDTOv2;
@@ -32,6 +31,7 @@ import static java.util.function.Predicate.not;
         TwinFieldCollectionFilterEmptyMode.class,
         TwinFieldCollectionFilterSystemMode.class,
         TwinFieldCollectionFilterRequiredMode.class,
+        TwinFieldCollectionFilterFieldScope.class,
         TwinFieldAttributeMode.class})
 public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTOv2> {
 
@@ -69,6 +69,11 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
                 fieldsStream = switch (mapperContext.getModeOrUse(TwinFieldCollectionFilterSystemMode.ANY)) {
                     case ONLY -> fieldsStream.filter(fieldValue -> fieldValue.getTwinClassField().getSystem());
                     case ONLY_NOT -> fieldsStream.filter(fieldValue -> !fieldValue.getTwinClassField().getSystem());
+                    default -> fieldsStream;
+                };
+                fieldsStream = switch (mapperContext.getModeOrUse(TwinFieldCollectionFilterFieldScope.ANY)) {
+                    case ONLY_DECLARED -> fieldsStream.filter(fieldValue -> fieldValue.getTwinClassField().getTwinClassId().equals(src.getTwinClassId()));
+                    case ONLY_INHERITED -> fieldsStream.filter(fieldValue -> !fieldValue.getTwinClassField().getTwinClassId().equals(src.getTwinClassId()));
                     default -> fieldsStream;
                 };
                 List<FieldValue> fields = fieldsStream.toList();
