@@ -18,7 +18,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.DataTimeRange;
-import org.cambium.common.math.LongRange;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
 
 import java.sql.Timestamp;
@@ -48,8 +47,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      * @param ltreeFieldPath    The path to the ltree field in the entity. Can be one or more strings representing a nested field path.
      * @return A Specification object that can be used in a JPA Criteria query to apply the hierarchy child check based on the given parameters.
      */
-    public static <T> Specification<T> checkHierarchyChilds(Collection<UUID> ids, boolean not,
-                                                            boolean includeNullValues, Integer depthLimit, final String... ltreeFieldPath) {
+    public static <T> Specification<T> checkHierarchyChildren(Collection<UUID> ids, boolean not,
+                                                              boolean includeNullValues, Integer depthLimit, final String... ltreeFieldPath) {
 
         return (root, query, cb) -> {
             if (org.cambium.common.util.CollectionUtils.isEmpty(ids))
