@@ -8,9 +8,9 @@ import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.enums.twin.Touch;
 import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinSearch;
+import org.twins.core.enums.twin.Touch;
 
 import java.util.*;
 
@@ -38,7 +38,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] markersFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.markers, TwinMarkerEntity.Fields.markerDataListOptionId);
         String[] touchFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.touches);
 
-        var commonSpecifications = new Specification[]{
+        var commonSpecifications = new Specification[] {
                 checkTwinLinks(twinSearch, false,twinsEntityFieldPath),
                 checkTwinLinks(twinSearch, true, twinsEntityFieldPath),
                 checkUuidIn(twinSearch.getTwinIdList(), false, false, idFieldPath),
@@ -66,7 +66,9 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkHierarchyContainsAny(twinSearch.getTwinClassExtendsHierarchyContainsIdList(), twinClassExtendsHierarchyTreeFieldPath),
                 checkTouchSearch(userId,false,twinSearch.getTouchList(),touchFieldPath),
                 checkTouchSearch(userId,true,twinSearch.getTouchExcludeList(),touchFieldPath),
-                checkFieldLocalDateTimeBetween(twinSearch.getCreatedAt(), TwinEntity.Fields.createdAt)
+                checkFieldLocalDateTimeBetween(twinSearch.getCreatedAt(), TwinEntity.Fields.createdAt),
+                checkHierarchyChildren(twinSearch.getHierarchyChildrenSearch().getIdList(), false, false, twinSearch.getHierarchyChildrenSearch().getDepth(), hierarchyTreeFieldPath),
+                checkQueryDistinct(twinSearch.getDistinct())
         };
 
         return Specification.allOf(concatArray(commonSpecifications, getTwinSearchFieldsSpecifications(twinSearch.getFields())));

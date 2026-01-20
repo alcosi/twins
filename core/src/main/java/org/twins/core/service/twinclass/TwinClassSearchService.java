@@ -105,13 +105,13 @@ public class TwinClassSearchService extends EntitySecureFindServiceImpl<TwinClas
                         .and(checkFieldLikeIn(twinClassSearch.getExternalIdLikeList(), false, true, TwinClassEntity.Fields.externalId))
                         .and(checkFieldLikeIn(twinClassSearch.getExternalIdNotLikeList(), true, true, TwinClassEntity.Fields.externalId))
 
-                        .and(checkHeadTwinClassChilds(headHierarchyChildrenForTwinClassSearch.getIdList(), false, false, headHierarchyChildrenForTwinClassSearch.getDepth()))
-                        .and(checkHeadTwinClassChilds(headHierarchyChildrenForTwinClassSearch.getIdExcludeList(), true, true, headHierarchyChildrenForTwinClassSearch.getDepth()))
+                        .and(checkHeadTwinClassChildren(headHierarchyChildrenForTwinClassSearch.getIdList(), false, false, headHierarchyChildrenForTwinClassSearch.getDepth()))
+                        .and(checkHeadTwinClassChildren(headHierarchyChildrenForTwinClassSearch.getIdExcludeList(), true, true, headHierarchyChildrenForTwinClassSearch.getDepth()))
                         .and(checkHeadTwinClassParents(headHierarchyParentsForTwinClassSearch.getIdList(), false, false, headHierarchyParentsForTwinClassSearch.getDepth()))
                         .and(checkHeadTwinClassParents(headHierarchyParentsForTwinClassSearch.getIdExcludeList(), true, true, headHierarchyParentsForTwinClassSearch.getDepth()))
 
-                        .and(checkExtendsTwinClassChilds(extendsHierarchyChildsForTwinClassSearch.getIdList(), false, false, extendsHierarchyChildsForTwinClassSearch.getDepth()))
-                        .and(checkExtendsTwinClassChilds(extendsHierarchyChildsForTwinClassSearch.getIdExcludeList(), true, true, extendsHierarchyChildsForTwinClassSearch.getDepth()))
+                        .and(checkExtendsTwinClassChildren(extendsHierarchyChildsForTwinClassSearch.getIdList(), false, false, extendsHierarchyChildsForTwinClassSearch.getDepth()))
+                        .and(checkExtendsTwinClassChildren(extendsHierarchyChildsForTwinClassSearch.getIdExcludeList(), true, true, extendsHierarchyChildsForTwinClassSearch.getDepth()))
                         .and(checkExtendsTwinClassParents(extendsHierarchyParentsForTwinClassSearch.getIdList(), false, false, extendsHierarchyParentsForTwinClassSearch.getDepth()))
                         .and(checkExtendsTwinClassParents(extendsHierarchyParentsForTwinClassSearch.getIdExcludeList(), true, true, extendsHierarchyParentsForTwinClassSearch.getDepth()))
 
