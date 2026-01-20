@@ -289,10 +289,10 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel2.getRelatedTwinClassFreezeMap(), twinClassFreezeDTOMapper, mapperContextLevel3, twinClassFreezeMap, TwinClassFreezeEntity::getId);
         if (!mapperContextLevel2.getRelatedClassFieldRuleMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedClassFieldRuleMap(), twinClassFieldRuleRestDTOMapper, mapperContextLevel3, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
-        if (!mapperContext.getRelatedProjectionTypeGroupMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedProjectionTypeGroupMap(), projectionTypeGroupRestDTOMapper, mapperContextLevel3, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
-        if (!mapperContext.getRelatedProjectionTypeMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedProjectionTypeMap(), projectionTypeRestDTOMapper, mapperContextLevel3, projectionTypeMap, ProjectionTypeEntity::getId);
+        if (!mapperContextLevel2.getRelatedProjectionTypeGroupMap().isEmpty())
+            convertAndPut(mapperContextLevel2.getRelatedProjectionTypeGroupMap(), projectionTypeGroupRestDTOMapper, mapperContextLevel3, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
+        if (!mapperContextLevel2.getRelatedProjectionTypeMap().isEmpty())
+            convertAndPut(mapperContextLevel2.getRelatedProjectionTypeMap(), projectionTypeRestDTOMapper, mapperContextLevel3, projectionTypeMap, ProjectionTypeEntity::getId);
         if (!mapperContextLevel2.getRelatedSchedulerMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedSchedulerMap(), schedulerRestDTOMapperV1, mapperContextLevel3, schedulerMap, SchedulerEntity::getId);
 
@@ -332,9 +332,9 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContextLevel3.getRelatedFactoryPipelineMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedFactoryPipelineMap(), factoryPipelineRestDTOMapper, mapperContextLevel3, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryConditionSetMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryConditionSetMap(), factoryConditionSetRestDTOMapper, mapperContextLevel3, factoryConditionSetMap, TwinFactoryConditionSetEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedFactoryConditionSetMap(), factoryConditionSetRestDTOMapper, mapperContextLevel3, factoryConditionSetMap, TwinFactoryConditionSetEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryMultiplierMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryMultiplierMap(), factoryMultiplierRestDTOMapper, mapperContextLevel3, factoryMultiplierMap, TwinFactoryMultiplierEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedFactoryMultiplierMap(), factoryMultiplierRestDTOMapper, mapperContextLevel3, factoryMultiplierMap, TwinFactoryMultiplierEntity::getId);
         if (!mapperContextLevel3.getRelatedFaceMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedFaceMap(), faceRestDTOMapper, mapperContextLevel3, faceMap, FaceEntity::getId);
         if (!mapperContextLevel3.getRelatedCommentMap().isEmpty())
@@ -355,10 +355,10 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedTwinClassFreezeMap(), twinClassFreezeDTOMapper, mapperContextLevel3, twinClassFreezeMap, TwinClassFreezeEntity::getId);
         if (!mapperContextLevel3.getRelatedClassFieldRuleMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedClassFieldRuleMap(), twinClassFieldRuleRestDTOMapper, mapperContextLevel3, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
-        if (!mapperContext.getRelatedProjectionTypeGroupMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedProjectionTypeGroupMap(), projectionTypeGroupRestDTOMapper, mapperContextLevel3, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
-        if (!mapperContext.getRelatedProjectionTypeMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedProjectionTypeMap(), projectionTypeRestDTOMapper, mapperContextLevel3, projectionTypeMap, ProjectionTypeEntity::getId);
+        if (!mapperContextLevel3.getRelatedProjectionTypeGroupMap().isEmpty())
+            convertAndPut(mapperContextLevel3.getRelatedProjectionTypeGroupMap(), projectionTypeGroupRestDTOMapper, mapperContextLevel3, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
+        if (!mapperContextLevel3.getRelatedProjectionTypeMap().isEmpty())
+            convertAndPut(mapperContextLevel3.getRelatedProjectionTypeMap(), projectionTypeRestDTOMapper, mapperContextLevel3, projectionTypeMap, ProjectionTypeEntity::getId);
         if (!mapperContextLevel3.getRelatedSchedulerMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedSchedulerMap(), schedulerRestDTOMapperV1, mapperContextLevel3, schedulerMap, SchedulerEntity::getId);
 

@@ -8,6 +8,7 @@ import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.enums.twin.Touch;
@@ -38,6 +39,8 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] markersFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.markers, TwinMarkerEntity.Fields.markerDataListOptionId);
         String[] touchFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.touches);
 
+        HierarchySearch hierarchyChildrenSearch = Objects.requireNonNullElse(twinSearch.getHierarchyChildrenSearch(), HierarchySearch.EMPTY);
+
         var commonSpecifications = new Specification[] {
                 checkTwinLinks(twinSearch, false,twinsEntityFieldPath),
                 checkTwinLinks(twinSearch, true, twinsEntityFieldPath),
@@ -67,7 +70,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkTouchSearch(userId,false,twinSearch.getTouchList(),touchFieldPath),
                 checkTouchSearch(userId,true,twinSearch.getTouchExcludeList(),touchFieldPath),
                 checkFieldLocalDateTimeBetween(twinSearch.getCreatedAt(), TwinEntity.Fields.createdAt),
-                checkHierarchyChildren(twinSearch.getHierarchyChildrenSearch().getIdList(), false, false, twinSearch.getHierarchyChildrenSearch().getDepth(), hierarchyTreeFieldPath),
+                checkHierarchyChildren(hierarchyChildrenSearch.getIdList(), false, false, hierarchyChildrenSearch.getDepth(), hierarchyTreeFieldPath),
                 checkQueryDistinct(twinSearch.getDistinct())
         };
 

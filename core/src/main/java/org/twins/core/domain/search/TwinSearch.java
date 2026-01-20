@@ -6,7 +6,6 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.Ternary;
 import org.twins.core.dao.search.TwinSearchEntity;
 import org.twins.core.domain.DataTimeRange;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
@@ -61,7 +60,7 @@ public class TwinSearch {
     private DataTimeRange createdAt;
     private TwinSearchEntity configuredSearch;
     private HierarchySearch hierarchyChildrenSearch;
-    private Ternary distinct;
+    private Boolean distinct;
 
     public boolean isEmpty() {
         return CollectionUtils.isEmpty(twinIdList) &&
@@ -101,7 +100,9 @@ public class TwinSearch {
                 CollectionUtils.isEmpty(touchList) &&
                 CollectionUtils.isEmpty(touchExcludeList) &&
                 CollectionUtils.isEmpty(fields) &&
-                createdAt == null;
+                (hierarchyChildrenSearch == null || hierarchyChildrenSearch.isEmpty()) &&
+                createdAt == null &&
+                distinct == null;
     }
 
     public TwinSearch addTwinId(UUID twinId, boolean exclude) {
