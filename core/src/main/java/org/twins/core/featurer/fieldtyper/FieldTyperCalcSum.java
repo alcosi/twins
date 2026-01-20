@@ -20,7 +20,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinClassFieldId;
 import java.util.*;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_1320, name = "Sum fields", description = "Sum of fields")
+@Featurer(id = FeaturerTwins.ID_1340, name = "Sum fields", description = "Sum of fields")
 public class FieldTyperCalcSum extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageSimple, TwinFieldSearchNotImplemented> {
 
     @FeaturerParam(name = "fieldIds", description = "Fields to sum")

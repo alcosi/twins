@@ -10,7 +10,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import java.util.Properties;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_1323, name = "Division", description = "First / Second")
+@Featurer(id = FeaturerTwins.ID_1337, name = "Division", description = "First / Second")
 public class FieldTyperCalcDivision extends FieldTyperCalcBinaryBase {
 
     @FeaturerParam(name = "divisionByZeroResul", description = "Result if division by zero", defaultValue = "<n/a>")
