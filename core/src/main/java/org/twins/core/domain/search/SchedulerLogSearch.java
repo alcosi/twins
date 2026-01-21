@@ -2,8 +2,8 @@ package org.twins.core.domain.search;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.math.LongRange;
 import org.twins.core.domain.DataTimeRange;
-import org.twins.core.dto.rest.LongRangeDTOv1;
 
 import java.util.Set;
 import java.util.UUID;
@@ -18,5 +18,5 @@ public class SchedulerLogSearch {
     public DataTimeRange createdAt;
     public Set<String> resultLikeSet;
     public Set<String> resultNotLikeSet;
-    public LongRangeDTOv1 executionTimeRange;
+    public LongRange executionTimeRange;
 }

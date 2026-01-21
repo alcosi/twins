@@ -4,12 +4,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.SchedulerSearch;
 import org.twins.core.dto.rest.scheduler.SchedulerSearchDTOv1;
+import org.twins.core.mappers.rest.DataTimeRangeDTOReverseMapper;
+import org.twins.core.mappers.rest.IntegerRangeDTOReverseMapper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 @Component
 @RequiredArgsConstructor
 public class SchedulerSearchRestDTOReverseMapper extends RestSimpleDTOMapper<SchedulerSearchDTOv1, SchedulerSearch> {
+
+    private final DataTimeRangeDTOReverseMapper dateMapper;
+    private final IntegerRangeDTOReverseMapper integerRangeMapper;
 
     @Override
     public void map(SchedulerSearchDTOv1 src, SchedulerSearch dst, MapperContext mapperContext) throws Exception {
@@ -22,12 +27,12 @@ public class SchedulerSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Sch
                 .setFeaturerIdExcludeSet(src.getFeaturerIdExcludeSet())
                 .setCronSet(src.getCronLikeSet())
                 .setCronExcludeSet(src.getCronNotLikeSet())
-                .setFixedRateRange(src.getFixedRateRange())
+                .setFixedRateRange(integerRangeMapper.convert(src.getFixedRateRange()))
                 .setActive(src.getActive())
                 .setLogEnabled(src.getLogEnabled())
                 .setDescriptionLikeSet(src.getDescriptionLikeSet())
                 .setDescriptionNotLikeSet(src.getDescriptionNotLikeSet())
-                .setCreatedAtRange(src.getCreatedAtRange())
-                .setUpdatedAtRange(src.getUpdatedAtRange());
+                .setCreatedAtRange(dateMapper.convert(src.getCreatedAtRange()))
+                .setUpdatedAtRange(dateMapper.convert(src.getUpdatedAtRange()));
     }
 }
