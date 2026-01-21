@@ -55,4 +55,33 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
     @Query(value = "update TwinLinkEntity set dstTwinId = :newVal where dstTwinId = :oldVal and linkId = :linkId")
     void replaceDstTwinIdForTwinLinkByLinkId(@Param("linkId") UUID linkId, @Param("oldVal") UUID oldVal, @Param("newVal") UUID newVal);
 
+    @Query(value = """
+            SELECT tl.*
+            FROM twin_link tl
+            JOIN twin src ON tl.src_twin_id = src.id
+            JOIN twin dst ON tl.dst_twin_id = dst.id
+            WHERE EXISTS (
+                SELECT 1 FROM twin h
+                WHERE h.id IN :hierarchyTwinIds
+                  AND src.hierarchy_tree <@ h.hierarchy_tree
+                  AND dst.hierarchy_tree <@ h.hierarchy_tree
+            )
+            """, nativeQuery = true)
+    Set<TwinLinkEntity> findAllWithinHierarchies(@Param("hierarchyTwinIds") Collection<UUID> hierarchyTwinIds);
+
+    @Query(value = """
+            SELECT tl.*
+            FROM twin_link tl
+            JOIN twin src ON tl.src_twin_id = src.id
+            JOIN twin dst ON tl.dst_twin_id = dst.id
+            WHERE src.twin_status_id IN :twinStatusIds
+              AND dst.twin_status_id IN :twinStatusIds
+              AND EXISTS (
+                  SELECT 1 FROM twin h
+                  WHERE h.id IN :hierarchyTwinIds
+                    AND src.hierarchy_tree <@ h.hierarchy_tree
+                    AND dst.hierarchy_tree <@ h.hierarchy_tree
+              )
+            """, nativeQuery = true)
+    Set<TwinLinkEntity> findAllWithinHierarchiesAndTwinsInStatusIds(@Param("hierarchyTwinIds") Collection<UUID> hierarchyTwinIds, @Param("twinStatusIds") Collection<UUID> twinStatusIds);
 }
