@@ -4,7 +4,10 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.UrlUtils;
 import org.cambium.featurer.annotations.Featurer;
+import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamUrl;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
@@ -22,6 +25,9 @@ import java.util.Properties;
         name = "Url",
         description = "")
 public class FieldTyperUrl extends FieldTyperSimple<FieldDescriptorUrl, FieldValueText, TwinFieldSearchNotImplemented> {
+    @FeaturerParam(name = "Default value", description = "", optional = true, order = 1)
+    public static final FeaturerParamUrl defaultValue = new FeaturerParamUrl("defaultValue");
+
     @Override
     public FieldDescriptorUrl getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new FieldDescriptorUrl();
@@ -38,5 +44,13 @@ public class FieldTyperUrl extends FieldTyperSimple<FieldDescriptorUrl, FieldVal
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
         return new FieldValueText(twinField.getTwinClassField())
                 .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : null);
+    }
+
+    @Override
+    protected void setDefaultValueIfConfigured(Properties properties, TwinEntity twin, FieldValueText value) {
+        var defaultValueString = defaultValue.extract(properties);
+        if (defaultValueString != null) {
+            value.setValue(defaultValueString);
+        }
     }
 }

@@ -37,10 +37,15 @@ import java.util.Properties;
 public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, FieldValueDate, TwinFieldSearchDate> {
     @FeaturerParam(name = "Pattern", description = "pattern for date value")
     public static final FeaturerParamString pattern = new FeaturerParamString("pattern");
+
     @FeaturerParam(name = "HoursPast", description = "number of hours in the past", optional = true, defaultValue = "-1")
     public static final FeaturerParamInt hoursPast = new FeaturerParamInt("hoursPast");
+
     @FeaturerParam(name = "HoursFuture", description = "number of hours in the futures", optional = true, defaultValue = "-1")
     public static final FeaturerParamInt hoursFuture = new FeaturerParamInt("hoursFuture");
+
+    @FeaturerParam(name = "Default value", description = "", optional = true, order = 1)
+    public static final FeaturerParamString defaultValue = new FeaturerParamString("defaultValue");
 
     @Override
     public FieldDescriptorDate getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -138,4 +143,11 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
         return result;
     }
 
+    @Override
+    protected void setDefaultValueIfConfigured(Properties properties, TwinEntity twin, FieldValueDate value) {
+        var defaultValueString = defaultValue.extract(properties);
+        if (defaultValueString != null) {
+            value.setDateStr(defaultValueString);
+        }
+    }
 }

@@ -167,13 +167,6 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         if (value.isValidated()) { // already validated, no need to validate again
             return value.getValidationResult();
         }
-
-        if (!twin.isSketch() // check required for non-sketch twins
-                && value.getTwinClassField().getRequired()
-                && !value.isFilled()) {
-            log.error("{} is required", value.getTwinClassField().logNormal());
-            return new ValidationResult(false, getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, value.getTwinClassField()));
-        }
         if (!valuetype.isInstance(value)) {
             log.error("{} incorrect value type", value.getTwinClassField().logNormal());
             return new ValidationResult(false, getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, value.getTwinClassField()));
@@ -184,9 +177,25 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
             return new ValidationResult(false, getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField()));
         }
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams(), new HashMap<>());
+        if (!value.isFilled()) {
+            setDefaultValueIfConfigured(properties, twin, value);
+        }
+        if (!twin.isSketch() // check required for non-sketch twins
+                && value.getTwinClassField().getRequired()
+                && !value.isFilled()) {
+            log.error("{} is required", value.getTwinClassField().logNormal());
+            return new ValidationResult(false, getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, value.getTwinClassField()));
+        }
         ValidationResult validationResult = validate(properties, twin, value);
         value.setValidationResult(validationResult);
         return validationResult;
+    }
+
+    /*
+     * Override this method if you want to set the default value on create
+     */
+    protected void setDefaultValueIfConfigured(Properties properties, TwinEntity twin, T value) throws ServiceException {
+
     }
 
     /*

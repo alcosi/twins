@@ -86,4 +86,9 @@ public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolea
                 ? TwinSpecification.checkFieldBoolean(twinFieldSearchBoolean)
                 : TwinSpecification.checkFieldBooleanWithPhantoms(twinFieldSearchBoolean, defaultValue.extract(properties));
     }
+
+    @Override
+    protected void setDefaultValueIfConfigured(Properties properties, TwinEntity twin, FieldValueBoolean value) {
+        value.setValue(defaultValue.extract(properties));
+    }
 }
