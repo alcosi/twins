@@ -1,8 +1,9 @@
 package org.twins.core.featurer.fieldtyper;
 
+import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.cambium.featurer.annotations.FeaturerParam;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
@@ -15,29 +16,29 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageCalcSumByHead;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinClassFieldId;
 
 import java.util.Properties;
-import java.util.Set;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_1312,
-        name = "Sum children field values (on fly)",
-        description = "Get sum of child.fields.values on fly")
-public class FieldTyperCalcChildrenFieldV1 extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumByHead, TwinFieldSearchNotImplemented> implements FieldTyperCalcChildrenField {
-    public static final Integer ID = 1312;
+@Featurer(id = FeaturerTwins.ID_1341,
+        name = "Sum fields by head",
+        description = "Sum of fields by head twin")
+@RequiredArgsConstructor
+public class FieldTyperCalcSumByHead extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumByHead, TwinFieldSearchNotImplemented> implements FieldTyperCalcByHead {
+    private final TwinFieldSimpleRepository twinFieldSimpleRepository;
 
-    @Autowired
-    TwinFieldSimpleRepository twinFieldSimpleRepository;
+    @FeaturerParam(name = "fieldIds", description = "Fields to sum")
+    public static final FeaturerParamUUIDSetTwinsTwinClassFieldId fieldIds = new FeaturerParamUUIDSetTwinsTwinClassFieldId("fieldIds");
 
-    @Deprecated
     @Override
-    public FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
+    protected FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         return new FieldDescriptorText();
     }
 
-    @Deprecated
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+
     }
 
     @Override
@@ -51,9 +52,9 @@ public class FieldTyperCalcChildrenFieldV1 extends FieldTyper<FieldDescriptorTex
         return new TwinFieldStorageCalcSumByHead(
                 twinFieldSimpleRepository,
                 twinClassFieldEntity.getId(),
-                Set.of(childrenTwinClassFieldId.extract(properties)),
-                childrenTwinStatusIdList.extract(properties),
-                null,
-                exclude.extract(properties));
+                fieldIds.extract(properties),
+                childrenTwinInStatusIds.extract(properties),
+                childrenTwinOfClassIds.extract(properties),
+                statusExclude.extract(properties));
     }
 }

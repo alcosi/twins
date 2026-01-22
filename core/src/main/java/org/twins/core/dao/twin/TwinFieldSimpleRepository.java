@@ -1,5 +1,6 @@
 package org.twins.core.dao.twin;
 
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -8,10 +9,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpleEntity, UUID>, JpaSpecificationExecutor<TwinFieldSimpleEntity> {
@@ -180,4 +179,354 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
 
     void deleteByTwinIdAndTwinClassFieldIdIn(UUID twinId, Set<UUID> twinClassFieldIds);
 
+    default List<TwinFieldCalcProjection> mapNativeQueryResults(List<Object[]> results) {
+        if (CollectionUtils.isEmpty(results)) {
+            return Collections.emptyList();
+        }
+
+        return results.stream()
+                .filter(Objects::nonNull)
+                .filter(row -> row.length >= 2)
+                .map(row -> {
+                    UUID twinId = (UUID) row[0];
+                    Object value = row[1];
+                    String calcValue = formatNumericValue(value);
+                    return new TwinFieldCalcProjection(twinId, calcValue);
+                })
+                .collect(Collectors.toList());
+    }
+
+    default String formatNumericValue(Object value) {
+        if (value == null) {
+            return "0";
+        }
+
+        if (value instanceof Double doubleValue) {
+            if (doubleValue == doubleValue.longValue()) {
+                return String.format("%d", doubleValue.longValue());
+            } else {
+                return String.format("%.2f", doubleValue);
+            }
+        } else if (value instanceof String stringValue) {
+            try {
+                Double doubleValue = Double.parseDouble(stringValue);
+                return formatNumericValue(doubleValue);
+            } catch (NumberFormatException e) {
+                return stringValue;
+            }
+        } else {
+            return value.toString();
+        }
+    }
+
+    @Query(value = """
+        SELECT * FROM twin_field_calc_sum_by_head(
+            string_to_array(:headTwinIdListStr, ',')::uuid[],
+            string_to_array(:twinClassFieldIdsStr, ',')::uuid[],
+            string_to_array(:childrenTwinStatusIdListStr, ',')::uuid[],
+            :excludeStatus,
+            string_to_array(:childrenTwinOfClassIdListStr, ',')::uuid[]
+        )
+        """, nativeQuery = true)
+    List<Object[]> _sumChildrenTwinFieldValuesByHead(
+            @Param("headTwinIdListStr") String headTwinIdListStr,
+            @Param("twinClassFieldIdsStr") String twinClassFieldIdsStr,
+            @Param("childrenTwinStatusIdListStr") String childrenTwinStatusIdListStr,
+            @Param("excludeStatus") boolean exclude,
+            @Param("childrenTwinOfClassIdListStr") String childrenTwinOfClassIdListStr);
+
+    @Query(value = """
+        SELECT * FROM twin_field_calc_sum_of_divisions_by_head(
+            string_to_array(:headTwinIdsStr, ',')::uuid[],
+            string_to_array(:childrenInTwinStatusIdsStr, ',')::uuid[],
+            string_to_array(:childrenOfTwinClassIdsStr, ',')::uuid[],
+            :firstTwinClassFieldId,
+            :secondTwinClassFieldId,
+            :excludeStatus
+        )
+        """, nativeQuery = true)
+    List<Object[]> _sumChildrenTwinFieldValuesOfDivisionsByHead(
+            @Param("headTwinIdsStr") String headTwinIdsStr,
+            @Param("childrenInTwinStatusIdsStr") String childrenInTwinStatusIdsStr,
+            @Param("childrenOfTwinClassIdsStr") String childrenOfTwinClassIdsStr,
+            @Param("firstTwinClassFieldId") UUID firstTwinClassFieldId,
+            @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
+            @Param("excludeStatus") boolean exclude);
+
+    @Query(value = """
+        SELECT * FROM twin_field_calc_sum_of_multiplications_by_head(
+            string_to_array(:headTwinIdsStr, ',')::uuid[],
+            string_to_array(:childrenInTwinStatusIdsStr, ',')::uuid[],
+            string_to_array(:childrenOfTwinClassIdsStr, ',')::uuid[],
+            :firstTwinClassFieldId,
+            :secondTwinClassFieldId,
+            :excludeStatus
+        )
+        """, nativeQuery = true)
+    List<Object[]> _sumChildrenTwinFieldValuesOfMultiplicationsByHead(
+            @Param("headTwinIdsStr") String headTwinIdsStr,
+            @Param("childrenInTwinStatusIdsStr") String childrenInTwinStatusIdsStr,
+            @Param("childrenOfTwinClassIdsStr") String childrenOfTwinClassIdsStr,
+            @Param("firstTwinClassFieldId") UUID firstTwinClassFieldId,
+            @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
+            @Param("excludeStatus") boolean exclude);
+
+    @Query(value = """
+        SELECT * FROM twin_field_calc_sum_of_subtractions_by_head(
+            string_to_array(:headTwinIdsStr, ',')::uuid[],
+            string_to_array(:childrenInTwinStatusIdsStr, ',')::uuid[],
+            string_to_array(:childrenOfTwinClassIdsStr, ',')::uuid[],
+            :firstTwinClassFieldId,
+            :secondTwinClassFieldId,
+            :excludeStatus
+        )
+        """, nativeQuery = true)
+    List<Object[]> _sumChildrenTwinFieldValuesOfSubtractionsByHead(
+            @Param("headTwinIdsStr") String headTwinIdsStr,
+            @Param("childrenInTwinStatusIdsStr") String childrenInTwinStatusIdsStr,
+            @Param("childrenOfTwinClassIdsStr") String childrenOfTwinClassIdsStr,
+            @Param("firstTwinClassFieldId") UUID firstTwinClassFieldId,
+            @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
+            @Param("excludeStatus") boolean exclude);
+
+    @Query(value = """
+        SELECT * FROM twin_field_calc_sum_by_link(
+            string_to_array(:linkedToTwinIdsStr, ',')::uuid[],
+            :srcElseDst,
+            string_to_array(:linkedFromInTwinStatusIdsStr, ',')::uuid[],
+            string_to_array(:linkedTwinOfClassIdsStr, ',')::uuid[],
+            string_to_array(:twinClassFieldIdsStr, ',')::uuid[],
+            :statusExclude
+        )
+        """, nativeQuery = true)
+    List<Object[]> _sumLinkedTwinFieldValuesByLink(
+            @Param("linkedToTwinIdsStr") String linkedToTwinIdsStr,
+            @Param("srcElseDst") boolean srcElseDst,
+            @Param("linkedFromInTwinStatusIdsStr") String linkedFromInTwinStatusIdsStr,
+            @Param("linkedTwinOfClassIdsStr") String linkedTwinOfClassIdsStr,
+            @Param("twinClassFieldIdsStr") String twinClassFieldIdsStr,
+            @Param("statusExclude") boolean statusExclude);
+
+    @Query(value = """
+        SELECT * FROM twin_field_calc_sum_of_divisions_by_link(
+            string_to_array(:linkedToTwinIdsStr, ',')::uuid[],
+            :srcElseDst,
+            string_to_array(:linkedFromInTwinStatusIdsStr, ',')::uuid[],
+            string_to_array(:linkedTwinOfClassIdsStr, ',')::uuid[],
+            :firstTwinClassFieldId,
+            :secondTwinClassFieldId,
+            :statusExclude
+        )
+        """, nativeQuery = true)
+    List<Object[]> _sumLinkedTwinFieldValuesOfDivisionsByLink(
+            @Param("linkedToTwinIdsStr") String linkedToTwinIdsStr,
+            @Param("srcElseDst") boolean srcElseDst,
+            @Param("linkedFromInTwinStatusIdsStr") String linkedFromInTwinStatusIdsStr,
+            @Param("linkedTwinOfClassIdsStr") String linkedTwinOfClassIdsStr,
+            @Param("firstTwinClassFieldId") UUID firstTwinClassFieldId,
+            @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
+            @Param("statusExclude") boolean statusExclude);
+
+    @Query(value = """
+        SELECT * FROM twin_field_calc_sum_of_multiplications_by_link(
+            string_to_array(:linkedToTwinIdsStr, ',')::uuid[],
+            :srcElseDst,
+            string_to_array(:linkedFromInTwinStatusIdsStr, ',')::uuid[],
+            string_to_array(:linkedTwinOfClassIdsStr, ',')::uuid[],
+            :firstTwinClassFieldId,
+            :secondTwinClassFieldId,
+            :statusExclude
+        )
+        """, nativeQuery = true)
+    List<Object[]> _sumLinkedTwinFieldValuesOfMultiplicationsByLink(
+            @Param("linkedToTwinIdsStr") String linkedToTwinIdsStr,
+            @Param("srcElseDst") boolean srcElseDst,
+            @Param("linkedFromInTwinStatusIdsStr") String linkedFromInTwinStatusIdsStr,
+            @Param("linkedTwinOfClassIdsStr") String linkedTwinOfClassIdsStr,
+            @Param("firstTwinClassFieldId") UUID firstTwinClassFieldId,
+            @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
+            @Param("statusExclude") boolean statusExclude);
+
+    @Query(value = """
+        SELECT * FROM twin_field_calc_sum_of_subtractions_by_link(
+            string_to_array(:linkedToTwinIdsStr, ',')::uuid[],
+            :srcElseDst,
+            string_to_array(:linkedFromInTwinStatusIdsStr, ',')::uuid[],
+            string_to_array(:linkedTwinOfClassIdsStr, ',')::uuid[],
+            :firstTwinClassFieldId,
+            :secondTwinClassFieldId,
+            :statusExclude
+        )
+        """, nativeQuery = true)
+    List<Object[]> _sumLinkedTwinFieldValuesOfSubtractionsByLink(
+            @Param("linkedToTwinIdsStr") String linkedToTwinIdsStr,
+            @Param("srcElseDst") boolean srcElseDst,
+            @Param("linkedFromInTwinStatusIdsStr") String linkedFromInTwinStatusIdsStr,
+            @Param("linkedTwinOfClassIdsStr") String linkedTwinOfClassIdsStr,
+            @Param("firstTwinClassFieldId") UUID firstTwinClassFieldId,
+            @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
+            @Param("statusExclude") boolean statusExclude);
+
+    default String collectionToString(Collection<UUID> collection) {
+        if (collection == null || collection.isEmpty()) {
+            return "";
+        }
+        return collection.stream()
+                .map(UUID::toString)
+                .collect(Collectors.joining(","));
+    }
+
+    default List<TwinFieldCalcProjection> sumChildrenTwinFieldValuesByHead(
+            Collection<UUID> headTwinIdList,
+            Collection<UUID> twinClassFieldIds,
+            Collection<UUID> childrenTwinStatusIdList,
+            boolean exclude,
+            Collection<UUID> childrenTwinOfClassIdList) {
+
+        String headStr = collectionToString(headTwinIdList);
+        String fieldsStr = collectionToString(twinClassFieldIds);
+        String statusStr = collectionToString(childrenTwinStatusIdList);
+        String classStr = collectionToString(childrenTwinOfClassIdList);
+
+        List<Object[]> results = _sumChildrenTwinFieldValuesByHead(
+                headStr, fieldsStr, statusStr, exclude, classStr
+        );
+        return mapNativeQueryResults(results);
+    }
+
+    default List<TwinFieldCalcProjection> sumChildrenTwinFieldValuesOfDivisionsByHead(
+            Collection<UUID> headTwinIds,
+            Collection<UUID> childrenInTwinStatusIds,
+            Collection<UUID> childrenOfTwinClassIds,
+            UUID firstTwinClassFieldId,
+            UUID secondTwinClassFieldId,
+            boolean exclude) {
+
+        String headStr = collectionToString(headTwinIds);
+        String statusStr = collectionToString(childrenInTwinStatusIds);
+        String classStr = collectionToString(childrenOfTwinClassIds);
+
+        List<Object[]> results = _sumChildrenTwinFieldValuesOfDivisionsByHead(
+                headStr, statusStr, classStr,
+                firstTwinClassFieldId, secondTwinClassFieldId, exclude
+        );
+        return mapNativeQueryResults(results);
+    }
+
+    default List<TwinFieldCalcProjection> sumChildrenTwinFieldValuesOfMultiplicationsByHead(
+            Collection<UUID> headTwinIds,
+            Collection<UUID> childrenInTwinStatusIds,
+            Collection<UUID> childrenOfTwinClassIds,
+            UUID firstTwinClassFieldId,
+            UUID secondTwinClassFieldId,
+            boolean exclude) {
+
+        String headStr = collectionToString(headTwinIds);
+        String statusStr = collectionToString(childrenInTwinStatusIds);
+        String classStr = collectionToString(childrenOfTwinClassIds);
+
+        List<Object[]> results = _sumChildrenTwinFieldValuesOfMultiplicationsByHead(
+                headStr, statusStr, classStr,
+                firstTwinClassFieldId, secondTwinClassFieldId, exclude
+        );
+        return mapNativeQueryResults(results);
+    }
+
+    default List<TwinFieldCalcProjection> sumChildrenTwinFieldValuesOfSubtractionsByHead(
+            Collection<UUID> headTwinIds,
+            Collection<UUID> childrenInTwinStatusIds,
+            Collection<UUID> childrenOfTwinClassIds,
+            UUID firstTwinClassFieldId,
+            UUID secondTwinClassFieldId,
+            boolean exclude) {
+
+        String headStr = collectionToString(headTwinIds);
+        String statusStr = collectionToString(childrenInTwinStatusIds);
+        String classStr = collectionToString(childrenOfTwinClassIds);
+
+        List<Object[]> results = _sumChildrenTwinFieldValuesOfSubtractionsByHead(
+                headStr, statusStr, classStr,
+                firstTwinClassFieldId, secondTwinClassFieldId, exclude
+        );
+        return mapNativeQueryResults(results);
+    }
+
+    default List<TwinFieldCalcProjection> sumLinkedTwinFieldValuesByLink(
+            Collection<UUID> linkedToTwinIds,
+            boolean srcElseDst,
+            Collection<UUID> linkedFromInTwinStatusIds,
+            Collection<UUID> linkedTwinOfClassIds,
+            Collection<UUID> twinClassFieldIds,
+            boolean statusExclude) {
+
+        String linkedToStr = collectionToString(linkedToTwinIds);
+        String statusStr = collectionToString(linkedFromInTwinStatusIds);
+        String classStr = collectionToString(linkedTwinOfClassIds);
+        String fieldsStr = collectionToString(twinClassFieldIds);
+
+        List<Object[]> results = _sumLinkedTwinFieldValuesByLink(
+                linkedToStr, srcElseDst, statusStr, classStr, fieldsStr, statusExclude
+        );
+        return mapNativeQueryResults(results);
+    }
+
+    default List<TwinFieldCalcProjection> sumLinkedTwinFieldValuesOfDivisionsByLink(
+            Collection<UUID> linkedToTwinIds,
+            boolean srcElseDst,
+            Collection<UUID> linkedFromInTwinStatusIds,
+            Collection<UUID> linkedTwinOfClassIds,
+            UUID firstTwinClassFieldId,
+            UUID secondTwinClassFieldId,
+            boolean statusExclude) {
+
+        String linkedToStr = collectionToString(linkedToTwinIds);
+        String statusStr = collectionToString(linkedFromInTwinStatusIds);
+        String classStr = collectionToString(linkedTwinOfClassIds);
+
+        List<Object[]> results = _sumLinkedTwinFieldValuesOfDivisionsByLink(
+                linkedToStr, srcElseDst, statusStr, classStr,
+                firstTwinClassFieldId, secondTwinClassFieldId, statusExclude
+        );
+        return mapNativeQueryResults(results);
+    }
+
+    default List<TwinFieldCalcProjection> sumLinkedTwinFieldValuesOfMultiplicationsByLink(
+            Collection<UUID> linkedToTwinIds,
+            boolean srcElseDst,
+            Collection<UUID> linkedFromInTwinStatusIds,
+            Collection<UUID> linkedTwinOfClassIds,
+            UUID firstTwinClassFieldId,
+            UUID secondTwinClassFieldId,
+            boolean statusExclude) {
+
+        String linkedToStr = collectionToString(linkedToTwinIds);
+        String statusStr = collectionToString(linkedFromInTwinStatusIds);
+        String classStr = collectionToString(linkedTwinOfClassIds);
+
+        List<Object[]> results = _sumLinkedTwinFieldValuesOfMultiplicationsByLink(
+                linkedToStr, srcElseDst, statusStr, classStr,
+                firstTwinClassFieldId, secondTwinClassFieldId, statusExclude
+        );
+        return mapNativeQueryResults(results);
+    }
+
+    default List<TwinFieldCalcProjection> sumLinkedTwinFieldValuesOfSubtractionsByLink(
+            Collection<UUID> linkedToTwinIds,
+            boolean srcElseDst,
+            Collection<UUID> linkedFromInTwinStatusIds,
+            Collection<UUID> linkedTwinOfClassIds,
+            UUID firstTwinClassFieldId,
+            UUID secondTwinClassFieldId,
+            boolean statusExclude) {
+
+        String linkedToStr = collectionToString(linkedToTwinIds);
+        String statusStr = collectionToString(linkedFromInTwinStatusIds);
+        String classStr = collectionToString(linkedTwinOfClassIds);
+
+        List<Object[]> results = _sumLinkedTwinFieldValuesOfSubtractionsByLink(
+                linkedToStr, srcElseDst, statusStr, classStr,
+                firstTwinClassFieldId, secondTwinClassFieldId, statusExclude
+        );
+        return mapNativeQueryResults(results);
+    }
 }
