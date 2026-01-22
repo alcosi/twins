@@ -31,7 +31,6 @@ import org.twins.core.dao.draft.DraftTwinPersistEntity;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
@@ -52,8 +51,6 @@ import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.face.FaceTwinPointerService;
-import org.twins.core.service.factory.TwinFactoryService;
 import org.twins.core.service.history.ChangesRecorder;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.i18n.I18nService;
@@ -1572,6 +1569,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     private ValidationResult validateField(TwinEntity twinEntity, Map<UUID, FieldValue> fields, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
         Optional<FieldValue> fieldValue = getFieldValueSafe(twinEntity, fields, twinClassFieldEntity);
+        //todo check for required field (for sketch)
         if (fieldValue.isEmpty())
             return new ValidationResult(true);
         FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
@@ -1579,6 +1577,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     private Optional<FieldValue> getFieldValueSafe(TwinEntity twinEntity, Map<UUID, FieldValue> fields, TwinClassFieldEntity twinClassFieldEntity) {
+        if (MapUtils.isEmpty(fields))
+            return Optional.empty();
         FieldValue fieldValue = fields.get(twinClassFieldEntity.getId());
         if (fieldValue == null || !fieldValue.isFilled()) {
             return Optional.empty();
