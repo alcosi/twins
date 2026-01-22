@@ -197,22 +197,24 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             @Param("childrenTwinOfClassIdListStr") String childrenTwinOfClassIdListStr);
 
     @Query(value = """
-        SELECT * FROM twin_field_calc_sum_of_divisions_by_head(
-            string_to_array(:headTwinIdsStr, ',')::uuid[],
-            string_to_array(:childrenInTwinStatusIdsStr, ',')::uuid[],
-            string_to_array(:childrenOfTwinClassIdsStr, ',')::uuid[],
-            :firstTwinClassFieldId,
-            :secondTwinClassFieldId,
-            :excludeStatus
-        )
-        """, nativeQuery = true)
+    SELECT * FROM twin_field_calc_sum_of_divisions_by_head(
+        string_to_array(:headTwinIdsStr, ',')::uuid[],
+        string_to_array(:childrenInTwinStatusIdsStr, ',')::uuid[],
+        string_to_array(:childrenOfTwinClassIdsStr, ',')::uuid[],
+        :firstTwinClassFieldId,
+        :secondTwinClassFieldId,
+        :excludeStatus,
+        :throwOnDivisionByZero
+    )
+    """, nativeQuery = true)
     List<Object[]> _sumChildrenTwinFieldValuesOfDivisionsByHead(
             @Param("headTwinIdsStr") String headTwinIdsStr,
             @Param("childrenInTwinStatusIdsStr") String childrenInTwinStatusIdsStr,
             @Param("childrenOfTwinClassIdsStr") String childrenOfTwinClassIdsStr,
             @Param("firstTwinClassFieldId") UUID firstTwinClassFieldId,
             @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
-            @Param("excludeStatus") boolean exclude);
+            @Param("excludeStatus") boolean excludeStatus,
+            @Param("throwOnDivisionByZero") boolean throwOnDivisionByZero);
 
     @Query(value = """
         SELECT * FROM twin_field_calc_sum_of_multiplications_by_head(
@@ -269,16 +271,17 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             @Param("statusExclude") boolean statusExclude);
 
     @Query(value = """
-        SELECT * FROM twin_field_calc_sum_of_divisions_by_link(
-            string_to_array(:linkedToTwinIdsStr, ',')::uuid[],
-            :srcElseDst,
-            string_to_array(:linkedFromInTwinStatusIdsStr, ',')::uuid[],
-            string_to_array(:linkedTwinOfClassIdsStr, ',')::uuid[],
-            :firstTwinClassFieldId,
-            :secondTwinClassFieldId,
-            :statusExclude
-        )
-        """, nativeQuery = true)
+    SELECT * FROM twin_field_calc_sum_of_divisions_by_link(
+        string_to_array(:linkedToTwinIdsStr, ',')::uuid[],
+        :srcElseDst,
+        string_to_array(:linkedFromInTwinStatusIdsStr, ',')::uuid[],
+        string_to_array(:linkedTwinOfClassIdsStr, ',')::uuid[],
+        :firstTwinClassFieldId,
+        :secondTwinClassFieldId,
+        :statusExclude,
+        :throwOnDivisionByZero
+    )
+    """, nativeQuery = true)
     List<Object[]> _sumLinkedTwinFieldValuesOfDivisionsByLink(
             @Param("linkedToTwinIdsStr") String linkedToTwinIdsStr,
             @Param("srcElseDst") boolean srcElseDst,
@@ -286,7 +289,8 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             @Param("linkedTwinOfClassIdsStr") String linkedTwinOfClassIdsStr,
             @Param("firstTwinClassFieldId") UUID firstTwinClassFieldId,
             @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
-            @Param("statusExclude") boolean statusExclude);
+            @Param("statusExclude") boolean statusExclude,
+            @Param("throwOnDivisionByZero") boolean throwOnDivisionByZero);
 
     @Query(value = """
         SELECT * FROM twin_field_calc_sum_of_multiplications_by_link(
@@ -352,7 +356,8 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             Collection<UUID> childrenOfTwinClassIds,
             UUID firstTwinClassFieldId,
             UUID secondTwinClassFieldId,
-            boolean exclude) {
+            boolean exclude,
+            boolean throwOnDivisionByZero) {
 
         String headStr = StringUtils.collectionToString(headTwinIds);
         String statusStr = StringUtils.collectionToString(childrenInTwinStatusIds);
@@ -360,7 +365,8 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
 
         List<Object[]> results = _sumChildrenTwinFieldValuesOfDivisionsByHead(
                 headStr, statusStr, classStr,
-                firstTwinClassFieldId, secondTwinClassFieldId, exclude
+                firstTwinClassFieldId, secondTwinClassFieldId,
+                exclude, throwOnDivisionByZero
         );
         return mapNativeQueryResults(results);
     }
@@ -429,7 +435,8 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             Collection<UUID> linkedTwinOfClassIds,
             UUID firstTwinClassFieldId,
             UUID secondTwinClassFieldId,
-            boolean statusExclude) {
+            boolean statusExclude,
+            boolean throwOnDivisionByZero) {
 
         String linkedToStr = StringUtils.collectionToString(linkedToTwinIds);
         String statusStr = StringUtils.collectionToString(linkedFromInTwinStatusIds);
@@ -437,7 +444,8 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
 
         List<Object[]> results = _sumLinkedTwinFieldValuesOfDivisionsByLink(
                 linkedToStr, srcElseDst, statusStr, classStr,
-                firstTwinClassFieldId, secondTwinClassFieldId, statusExclude
+                firstTwinClassFieldId, secondTwinClassFieldId,
+                statusExclude, throwOnDivisionByZero
         );
         return mapNativeQueryResults(results);
     }

@@ -20,8 +20,9 @@ public class TwinFieldStorageCalcSumOfDivisionsByLink extends TwinFieldStorageCa
     private final Set<UUID> linkedTwinInStatusIdList;
     private final Set<UUID> linkedTwinOfClassIds;
     private final boolean statusExclude;
+    private final boolean divisionByZeroIgnore;
 
-    public TwinFieldStorageCalcSumOfDivisionsByLink(UUID twinClassFieldId, TwinFieldSimpleRepository twinFieldSimpleRepository, UUID firstFieldId, UUID secondFieldId, UUID linkId, boolean srcElseDst, Set<UUID> linkedTwinInStatusIdList, Set<UUID> linkedTwinOfClassIds, boolean statusExclude) {
+    public TwinFieldStorageCalcSumOfDivisionsByLink(UUID twinClassFieldId, TwinFieldSimpleRepository twinFieldSimpleRepository, UUID firstFieldId, UUID secondFieldId, UUID linkId, boolean srcElseDst, Set<UUID> linkedTwinInStatusIdList, Set<UUID> linkedTwinOfClassIds, boolean statusExclude, boolean divisionByZeroIgnore) {
         super(twinClassFieldId);
         this.twinFieldSimpleRepository = twinFieldSimpleRepository;
         this.firstFieldId = firstFieldId;
@@ -31,6 +32,7 @@ public class TwinFieldStorageCalcSumOfDivisionsByLink extends TwinFieldStorageCa
         this.linkedTwinInStatusIdList = linkedTwinInStatusIdList;
         this.linkedTwinOfClassIds = linkedTwinOfClassIds;
         this.statusExclude = statusExclude;
+        this.divisionByZeroIgnore = divisionByZeroIgnore;
     }
 
 
@@ -43,7 +45,8 @@ public class TwinFieldStorageCalcSumOfDivisionsByLink extends TwinFieldStorageCa
                 linkedTwinOfClassIds,
                 firstFieldId,
                 secondFieldId,
-                statusExclude
+                statusExclude,
+                divisionByZeroIgnore
         );
 
         packResult(twinsKit, calc);

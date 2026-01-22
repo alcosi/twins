@@ -90,7 +90,8 @@ CREATE OR REPLACE FUNCTION twin_field_calc_two_field_op_by_head(
     p_first_twin_class_field_id UUID,
     p_second_twin_class_field_id UUID,
     p_exclude_status boolean DEFAULT false,
-    p_operation_type TEXT DEFAULT 'division'
+    p_operation_type TEXT DEFAULT 'division',
+    p_throw_on_division_by_zero boolean DEFAULT true
 )
     RETURNS TABLE (
                       result_head_twin_id UUID,
@@ -137,7 +138,7 @@ BEGIN
                      CASE p_operation_type
                          WHEN 'division' THEN
                              CASE
-                                 WHEN second_val IS NOT NULL AND second_val != 0
+                                 WHEN (second_val IS NOT NULL AND second_val != 0) OR p_throw_on_division_by_zero = true
                                      THEN COALESCE(first_val, 0) / second_val
                                  ELSE 0
                                  END
@@ -166,7 +167,8 @@ CREATE OR REPLACE FUNCTION twin_field_calc_sum_of_divisions_by_head(
     children_of_twin_class_ids UUID[],
     first_twin_class_field_id UUID,
     second_twin_class_field_id UUID,
-    exclude_status boolean DEFAULT false
+    exclude_status boolean DEFAULT false,
+    throw_on_division_by_zero boolean DEFAULT true
 )
     RETURNS TABLE (
                       head_twin_id UUID,
@@ -183,7 +185,8 @@ BEGIN
                 first_twin_class_field_id,
                 second_twin_class_field_id,
                 exclude_status,
-                'division'
+                'division',
+                throw_on_division_by_zero
                       );
 END;
 $$;
@@ -317,7 +320,8 @@ CREATE OR REPLACE FUNCTION twin_field_calc_two_field_op_by_link(
     p_first_twin_class_field_id UUID,
     p_second_twin_class_field_id UUID,
     p_status_exclude BOOLEAN DEFAULT false,
-    p_operation_type TEXT DEFAULT 'division'
+    p_operation_type TEXT DEFAULT 'division',
+    p_throw_on_division_by_zero boolean DEFAULT true
 )
     RETURNS TABLE (
                       linked_to_twin_id UUID,
@@ -380,7 +384,7 @@ BEGIN
                      CASE p_operation_type
                          WHEN 'division' THEN
                              CASE
-                                 WHEN second_val IS NOT NULL AND second_val != 0
+                                 WHEN (second_val IS NOT NULL AND second_val != 0) OR p_throw_on_division_by_zero = true
                                      THEN COALESCE(first_val, 0) / second_val
                                  ELSE 0
                                  END
@@ -410,7 +414,8 @@ CREATE OR REPLACE FUNCTION twin_field_calc_sum_of_divisions_by_link(
     linked_twin_of_class_ids UUID[],
     first_twin_class_field_id UUID,
     second_twin_class_field_id UUID,
-    status_exclude BOOLEAN DEFAULT false
+    status_exclude BOOLEAN DEFAULT false,
+    throw_on_division_by_zero boolean DEFAULT true
 )
     RETURNS TABLE (
                       linked_to_twin_id UUID,
@@ -428,7 +433,8 @@ BEGIN
                 first_twin_class_field_id,
                 second_twin_class_field_id,
                 status_exclude,
-                'division'
+                'division',
+                throw_on_division_by_zero
                       );
 END;
 $$;

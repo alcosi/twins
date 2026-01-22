@@ -18,8 +18,9 @@ public class TwinFieldStorageCalcSumOfDivisionsByHead extends TwinFieldStorageCa
     private final Set<UUID> childrenTwinStatusIdSet;
     private final Set<UUID> childrenTwinOfClassIdSet;
     private final boolean exclude;
+    private final boolean divisionByZeroIgnore;
 
-    public TwinFieldStorageCalcSumOfDivisionsByHead(UUID twinClassFieldId, TwinFieldSimpleRepository twinFieldSimpleRepository, UUID firstFieldId, UUID secondFieldId, Set<UUID> childrenTwinStatusIdSet, Set<UUID> childrenTwinOfClassIdSet, boolean exclude) {
+    public TwinFieldStorageCalcSumOfDivisionsByHead(UUID twinClassFieldId, TwinFieldSimpleRepository twinFieldSimpleRepository, UUID firstFieldId, UUID secondFieldId, Set<UUID> childrenTwinStatusIdSet, Set<UUID> childrenTwinOfClassIdSet, boolean exclude, boolean divisionByZeroIgnore) {
         super(twinClassFieldId);
         this.twinFieldSimpleRepository = twinFieldSimpleRepository;
         this.firstFieldId = firstFieldId;
@@ -27,6 +28,7 @@ public class TwinFieldStorageCalcSumOfDivisionsByHead extends TwinFieldStorageCa
         this.childrenTwinStatusIdSet = childrenTwinStatusIdSet;
         this.childrenTwinOfClassIdSet = childrenTwinOfClassIdSet;
         this.exclude = exclude;
+        this.divisionByZeroIgnore = divisionByZeroIgnore;
     }
 
     @Override
@@ -37,7 +39,8 @@ public class TwinFieldStorageCalcSumOfDivisionsByHead extends TwinFieldStorageCa
                 childrenTwinOfClassIdSet,
                 firstFieldId,
                 secondFieldId,
-                exclude
+                exclude,
+                divisionByZeroIgnore
         );
 
         packResult(twinsKit, calc);

@@ -3,6 +3,8 @@ package org.twins.core.featurer.fieldtyper;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
+import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
@@ -25,6 +27,9 @@ import java.util.Properties;
 @RequiredArgsConstructor
 public class FieldTyperCalcSumOfDivisionsByHead extends FieldTyperCalcBinaryByHead<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumOfDivisionsByHead, TwinFieldSearchNotImplemented> {
     private final TwinFieldSimpleRepository twinFieldSimpleRepository;
+
+    @FeaturerParam(name = "Throw on division by zero", order = 6, optional = true, defaultValue = "true")
+    public static final FeaturerParamBoolean throwOnDivisionByZero = new FeaturerParamBoolean("throwOnDivisionByZero");
 
     @Override
     protected FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
@@ -51,6 +56,7 @@ public class FieldTyperCalcSumOfDivisionsByHead extends FieldTyperCalcBinaryByHe
                 secondFieldId.extract(properties),
                 childrenTwinInStatusIds.extract(properties),
                 childrenTwinOfClassIds.extract(properties),
-                statusExclude.extract(properties));
+                statusExclude.extract(properties),
+                throwOnDivisionByZero.extract(properties));
     }
 }
