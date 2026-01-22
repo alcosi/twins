@@ -19,6 +19,7 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.service.link.TwinLinkService;
@@ -52,7 +53,7 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
     private static class CopyContext {
         private TwinEntity twinCopy;
         private List<TwinLinkEntity> linksCopy;
-        private FactoryItem contextFactoryItem;
+        private FactoryItem origFactoryItem;
     }
 
     @Override
@@ -60,13 +61,13 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
         var user = authService.getApiUser().getUser();
         var childrenStatusIds = childrenStatuses.extract(properties);
         var depth = childrenDepth.extract(properties);
-        var copyContextMap = new HashMap<UUID, CopyContext>();
+        var copyContextMap = new LinkedHashMap<UUID, CopyContext>();
         var origTwins = new HashSet<TwinEntity>(inputFactoryItemList.size());
 
         for (var factoryItem : inputFactoryItemList) {
             var twin = factoryItem.getTwin();
             origTwins.add(twin);
-            copyContextMap.put(twin.getId(), new CopyContext().setContextFactoryItem(factoryItem));
+            copyContextMap.put(twin.getId(), new CopyContext().setOrigFactoryItem(factoryItem));
         }
 
         var search = new BasicSearch().setCheckViewPermission(false);
@@ -113,15 +114,15 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
         }
 
         var ret = new ArrayList<FactoryItem>(copyContextMap.size());
-        for (var ctx : copyContextMap.values()) {
+        for (var copyContext : copyContextMap.values()) {
             var twinCreate = new TwinCreate();
             twinCreate
-                    .setLinksEntityList(ctx.getLinksCopy())
-                    .setTwinEntity(ctx.getTwinCopy());
+                    .setLinksEntityList(copyContext.getLinksCopy())
+                    .setTwinEntity(copyContext.getTwinCopy());
             ret.add(
                     new FactoryItem()
                             .setOutput(twinCreate)
-                            .setContextFactoryItemList(List.of(ctx.getContextFactoryItem()))
+                            .setContextFactoryItemList(List.of(copyContext.getOrigFactoryItem()))
             );
         }
 
@@ -149,19 +150,22 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
         }
 
         // get existing context (for input twins) or create a new one (usually for children)
-        var ctx = copyContextMap.computeIfAbsent(
+        var copyContext = copyContextMap.computeIfAbsent(
                 origTwin.getId(),
-                k -> {
-                    var newCtx = new CopyContext();
-                    var parentFactoryItem = copyContextMap.get(origTwin.getHeadTwinId()).getContextFactoryItem();
-                    newCtx.setContextFactoryItem(parentFactoryItem);
-
-                    return newCtx;
-                }
+                k -> new CopyContext()
+                        .setOrigFactoryItem(
+                                new FactoryItem()
+                                        .setOutput(
+                                                new TwinUpdate().setDbTwinEntity(origTwin)
+                                        )
+                                        .setContextFactoryItemList(
+                                                List.of(copyContextMap.get(origTwin.getHeadTwinId()).getOrigFactoryItem())
+                                        )
+                        )
         );
-        ctx.setTwinCopy(twinCopy);
+        copyContext.setTwinCopy(twinCopy);
 
-        return ctx;
+        return copyContext;
     }
 
     private List<TwinLinkEntity> copyForwardLinks(TwinEntity srcTwinCopy, List<TwinLinkEntity> origTwinLinks, UserEntity user, Map<UUID, CopyContext> copyContextMap) {
