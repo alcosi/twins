@@ -4,6 +4,7 @@ import org.apache.commons.lang3.text.StrLookup;
 import org.apache.commons.lang3.text.StrSubstitutor;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class StringUtils extends org.apache.commons.lang3.StringUtils {
     public static String replaceVariables(String str, Map<String, String> map) {
@@ -67,5 +68,41 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
                     .append(parts[i].substring(1));
         }
         return camelCase.toString();
+    }
+
+    public static String formatNumericValue(Object value) {
+        switch (value) {
+            case null -> {
+                return "0";
+            }
+            case Double doubleValue -> {
+                if (doubleValue == doubleValue.longValue()) {
+                    return String.format("%d", doubleValue.longValue());
+                } else {
+                    return String.format("%.2f", doubleValue);
+                }
+            }
+            case String stringValue -> {
+                try {
+                    Double doubleValue = Double.parseDouble(stringValue);
+                    return formatNumericValue(doubleValue);
+                } catch (NumberFormatException e) {
+                    return stringValue;
+                }
+            }
+            default -> {
+                return value.toString();
+            }
+        }
+    }
+
+
+    public static String collectionToString(Collection<UUID> collection) {
+        if (collection == null || collection.isEmpty()) {
+            return "";
+        }
+        return collection.stream()
+                .map(UUID::toString)
+                .collect(Collectors.joining(","));
     }
 }
