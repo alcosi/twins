@@ -6,7 +6,6 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.featurer.fieldtyper.FieldTyperTextField;
 
 @Getter
 @Setter
@@ -34,6 +33,11 @@ public class FieldValueText extends FieldValue {
     @Override
     public boolean hasValue(String value) {
         return StringUtils.equals(this.value, value);
+    }
+
+    @Override
+    public void copyValueFrom(FieldValue src) {
+        value = ((FieldValueText) src).getValue();
     }
 
     public void nullify() {

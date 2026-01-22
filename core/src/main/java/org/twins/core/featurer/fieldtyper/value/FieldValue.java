@@ -16,6 +16,8 @@ import java.util.UUID;
 public abstract class FieldValue implements Cloneable {
     protected final TwinClassFieldEntity twinClassField;
     private ValidationResult validationResult;
+    private boolean nullify = false;
+    private boolean alreadyInitialized = false; //will help to prevent repeated initialization
 
     public FieldValue(TwinClassFieldEntity twinClassField) {
         this.twinClassField = twinClassField;
@@ -50,4 +52,6 @@ public abstract class FieldValue implements Cloneable {
     public boolean isEmpty() {
         return !isFilled() || isNullified();
     }
+
+    public abstract void copyValueFrom(FieldValue src);
 }

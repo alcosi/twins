@@ -10,7 +10,6 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.Specification;
-import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.history.context.HistoryContextDatalistMultiChange;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
@@ -27,7 +26,6 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetDatalistOptionId;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetDatalistSubsetId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsDataListId;
-import org.twins.core.featurer.params.FeaturerParamUUIDTwinsDataListOptionId;
 import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.history.HistoryItem;
@@ -60,9 +58,6 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     @FeaturerParam(name = "datalist subset exclude ids", description = "", order = 9, optional = true)
     public static final FeaturerParamUUIDSet dataListSubsetIdExcludeIds = new FeaturerParamUUIDSetDatalistSubsetId("dataListSubsetIdExcludeIds");
 
-    @FeaturerParam(name = "default option id", description = "", order = 10, optional = true)
-    public static final FeaturerParamUUID defaultOptionId = new FeaturerParamUUIDTwinsDataListOptionId("defaultOptionId");
-
     @Override
     protected FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         FieldDescriptorList fieldDescriptorList = new FieldDescriptorList();
@@ -73,8 +68,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
                 .dataListOptionIdList(dataListOptionIds.extract(properties))
                 .dataListOptionIdExcludeList(dataListOptionExcludeIds.extract(properties))
                 .dataListSubsetIdList(dataListSubsetIds.extract(properties))
-                .dataListSubsetIdExcludeList(dataListSubsetIdExcludeIds.extract(properties))
-                .defaultDataListOptionId(defaultOptionId.extract(properties));
+                .dataListSubsetIdExcludeList(dataListSubsetIdExcludeIds.extract(properties));
         return fieldDescriptorList;
 
     }
@@ -187,37 +181,23 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
         return TwinSpecification.checkFieldList(search);
     }
 
-    @Override
-    protected void setDefaultValueIfConfigured(Properties properties, TwinEntity twin, FieldValueSelect value) throws ServiceException {
-        UUID defaultOptionIdValue = defaultOptionId.extract(properties);
-        if (defaultOptionIdValue == null) {
-            DataListEntity dataListEntity = dataListService.findEntitySafe(dataListId.extract(properties));
-            defaultOptionIdValue = dataListEntity.getDefaultDataListOptionId();
-        }
-        if (defaultOptionIdValue != null) {
-            DataListOptionEntity defaultOption = dataListOptionService.findEntitySafe(defaultOptionIdValue);
-            value.getOptions().clear();
-            value.add(defaultOption);
-        }
-    }
-
-    public UUID getDataListId(Properties properties) throws ServiceException {
+    public static UUID getDataListId(Properties properties) throws ServiceException {
         return dataListId.extract(properties);
     }
 
-    public Set<UUID> getDataListOptionIds(Properties properties) {
+    public static Set<UUID> getDataListOptionIds(Properties properties) {
         return dataListOptionIds.extract(properties);
     }
 
-    public Set<UUID> getDataListOptionExcludeIds(Properties properties) {
+    public static Set<UUID> getDataListOptionExcludeIds(Properties properties) {
         return dataListOptionExcludeIds.extract(properties);
     }
 
-    public Set<UUID> getDataListSubsetIds(Properties properties) {
+    public static Set<UUID> getDataListSubsetIds(Properties properties) {
         return dataListSubsetIds.extract(properties);
     }
 
-    public Set<UUID> getDataListSubsetExcludeIds(Properties properties) {
+    public static Set<UUID> getDataListSubsetExcludeIds(Properties properties) {
         return dataListSubsetIdExcludeIds.extract(properties);
     }
 }

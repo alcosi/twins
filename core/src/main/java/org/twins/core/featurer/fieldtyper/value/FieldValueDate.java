@@ -39,6 +39,12 @@ public class FieldValueDate extends FieldValue {
     }
 
     @Override
+    public void copyValueFrom(FieldValue src) {
+        dateStr = ((FieldValueDate) src).getDateStr();
+        date = ((FieldValueDate) src).getDate();
+    }
+
+    @Override
     public void nullify() {
         dateStr = "";
     }

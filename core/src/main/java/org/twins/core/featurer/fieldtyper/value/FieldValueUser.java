@@ -59,6 +59,12 @@ public class FieldValueUser extends FieldValue {
     }
 
     @Override
+    public void copyValueFrom(FieldValue src) {
+        users.clear();
+        users.addAll(((FieldValueUser) src).users);
+    }
+
+    @Override
     public void nullify() {
         users = new ArrayList<>();
     }

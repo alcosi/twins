@@ -44,9 +44,6 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     @FeaturerParam(name = "HoursFuture", description = "number of hours in the futures", optional = true, defaultValue = "-1")
     public static final FeaturerParamInt hoursFuture = new FeaturerParamInt("hoursFuture");
 
-    @FeaturerParam(name = "Default value", description = "", optional = true, order = 1)
-    public static final FeaturerParamString defaultValue = new FeaturerParamString("defaultValue");
-
     @Override
     public FieldDescriptorDate getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         LocalDateTime now = LocalDateTime.now();
@@ -141,13 +138,5 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
             result = new ValidationResult(false, i18nService.translateToLocale(value.getTwinClassField().getBeValidationErrorI18nId()));
         }
         return result;
-    }
-
-    @Override
-    protected void setDefaultValueIfConfigured(Properties properties, TwinEntity twin, FieldValueDate value) {
-        var defaultValueString = defaultValue.extract(properties);
-        if (defaultValueString != null) {
-            value.setDateStr(defaultValueString);
-        }
     }
 }

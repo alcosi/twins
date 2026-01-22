@@ -45,6 +45,11 @@ public class FieldValueLinkSingle extends FieldValue {
     }
 
     @Override
+    public void copyValueFrom(FieldValue src) {
+        dstTwin = ((FieldValueLinkSingle) src).dstTwin;
+    }
+
+    @Override
     public void nullify() {
         dstTwin = null;
     }

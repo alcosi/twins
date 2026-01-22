@@ -388,6 +388,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinCreate.isCheckCreatePermission())
             checkCreatePermission(twinEntity, authService.getApiUser());
         createTwinEntity(twinCreate, twinChangesCollector);
+        intFields(twinEntity, twinCreate.getFields());
         runFactoryOnCreate(twinCreate);
         validateFields(twinEntity, twinCreate.getFields());
         saveTwinFields(twinEntity, twinCreate.getFields(), twinChangesCollector);
@@ -408,6 +409,25 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             twinFieldAttributeService.addAttributes(twinEntity, twinCreate.getTwinFieldAttributeEntityList(), twinChangesCollector);
         }
         runFactoryAfterCreate(twinCreate, twinChangesCollector);
+    }
+
+    private void intFields(TwinEntity twinEntity, Map<UUID, FieldValue> fields) throws ServiceException {
+        twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
+        //we will try to init all fields (not only required).
+        //If you want to fill default values only in required fields, check this flag in some fieldInitializer
+        for (TwinClassFieldEntity twinClassFieldEntity : twinEntity.getTwinClass().getTwinClassFieldKit().getCollection()) {
+            initFieldValue(twinEntity, fields, twinClassFieldEntity);
+        }
+    }
+
+    private void initFieldValue(TwinEntity twinEntity, Map<UUID, FieldValue> fields, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        var fieldValue = getFieldValueSafe(twinEntity, fields, twinClassFieldEntity).orElse(null);
+        if (fieldValue == null) {
+            fieldValue = createFieldValue(twinClassFieldEntity, null);
+            fields.put(twinClassFieldEntity.getId(), fieldValue);
+        }
+        var fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
+        fieldTyper.initializeField(twinEntity, fieldValue);
     }
 
     private void setHeadSafe(TwinEntity twinEntity) throws ServiceException {
@@ -717,8 +737,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     private boolean isAllRequiredFieldsFilled(TwinUpdate twinUpdate) throws ServiceException {
         loadFieldsValues(twinUpdate.getDbTwinEntity());
+        //no sense to call FieldInitializer, because this is an update operation. All defaults was already set on create
         for (var classField : twinUpdate.getDbTwinEntity().getTwinClass().getTwinClassFieldKit()) {
-            if (Boolean.TRUE.equals(classField.getRequired())
+            if (Boolean.TRUE.equals(classField.getRequired()) //todo this is not working correctly with rules
                     && !(twinUpdate.getDbTwinEntity().getFieldValuesKit().containsKey(classField.getId()) && twinUpdate.getDbTwinEntity().getFieldValuesKit().get(classField.getId()).isFilled())
                     && (twinUpdate.getField(classField.getId()) == null || !twinUpdate.getField(classField.getId()).isFilled())
             ) {
@@ -1307,6 +1328,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return src.clone(dstTwinClassField);
     }
 
+    public void copyToField(FieldValue src, FieldValue dst) throws ServiceException {
+        if (!src.getTwinClassField().equals(dst.getTwinClassField()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, src.getTwinClassField().logShort()
+                    + " value can not be copied to " + dst.getTwinClassField().logShort());
+        dst.copyValueFrom(src);
+    }
 
     //TODO ft params equals(data list scope)
     public boolean isCopyable(TwinClassFieldEntity src, TwinClassFieldEntity dst) throws ServiceException {

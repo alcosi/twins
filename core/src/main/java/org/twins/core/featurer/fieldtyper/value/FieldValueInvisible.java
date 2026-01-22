@@ -33,7 +33,13 @@ public class FieldValueInvisible extends FieldValue {
     }
 
     @Override
-    public void nullify() {}
+    public void copyValueFrom(FieldValue src) {
+
+    }
+
+    @Override
+    public void nullify() {
+    }
 
     @Override
     public boolean isNullified() {

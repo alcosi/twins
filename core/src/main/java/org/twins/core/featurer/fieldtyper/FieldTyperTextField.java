@@ -43,9 +43,6 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
     @FeaturerParam(name = "Unique", description = "", order = 3, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean unique = new FeaturerParamBoolean("unique");
 
-    @FeaturerParam(name = "Default value", description = "", optional = true, order = 1)
-    public static final FeaturerParamString defaultValue = new FeaturerParamString("defaultValue");
-
     @Autowired
     private TwinFieldSimpleRepository twinFieldSimpleRepository;
 
@@ -111,13 +108,5 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
             return new ValidationResult(false, i18nService.translateToLocale(fieldValue.getTwinClassField().getBeValidationErrorI18nId()));
         }
         return new ValidationResult(true);
-    }
-
-    @Override
-    protected void setDefaultValueIfConfigured(Properties properties, TwinEntity twin, FieldValueText value) {
-        var defaultValueString = defaultValue.extract(properties);
-        if (defaultValueString != null) {
-            value.setValue(defaultValueString);
-        }
     }
 }

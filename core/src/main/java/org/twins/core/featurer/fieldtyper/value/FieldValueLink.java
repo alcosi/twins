@@ -60,6 +60,13 @@ public class FieldValueLink extends FieldValue {
         return false;
     }
 
+    @Override
+    public void copyValueFrom(FieldValue src) {
+        forwardLink = ((FieldValueLink) src).forwardLink;
+        twinLinks.clear();
+        twinLinks.addAll(((FieldValueLink) src).twinLinks);
+    }
+
     public void nullify() {
         twinLinks = Collections.EMPTY_LIST;
     }

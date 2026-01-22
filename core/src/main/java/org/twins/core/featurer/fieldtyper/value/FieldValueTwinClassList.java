@@ -8,7 +8,9 @@ import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -63,5 +65,11 @@ public class FieldValueTwinClassList extends FieldValue {
         }
 
         return false;
+    }
+
+    @Override
+    public void copyValueFrom(FieldValue src) {
+        twinClassEntities.clear();
+        twinClassEntities.addAll(((FieldValueTwinClassList) src).getTwinClassEntities());
     }
 }

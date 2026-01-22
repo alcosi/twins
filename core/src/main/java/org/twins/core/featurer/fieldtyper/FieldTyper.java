@@ -17,6 +17,7 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.fieldinitializer.FieldInitializer;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.storage.FieldStorageService;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
@@ -106,19 +107,25 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     }
 
     public D getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams(), new HashMap<>());
-        return getFieldDescriptor(twinClassFieldEntity, properties);
+        var fieldTyperProperties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams());
+        var descriptor = getFieldDescriptor(twinClassFieldEntity, fieldTyperProperties);
+        var fieldInitializerProperties = featurerService.extractProperties(twinClassFieldEntity.getFieldInitializerFeaturerId(), twinClassFieldEntity.getFieldInitializerParams());
+        var fieldInitializer = featurerService.getFeaturer(twinClassFieldEntity.getFieldInitializerFeaturerId(), FieldInitializer.class);
+        fieldInitializer.appendDescriptor(fieldInitializerProperties, descriptor);
+        return descriptor;
     }
 
     protected abstract D getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException;
 
     public void serializeValue(TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams(), new HashMap<>());
+        if (!value.isFilled()) {
+            initializeField(twin, value);
+        }
         if (!validate(twin, value).isValid()) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Can not serialize invalid value for " + value.getTwinClassField().logNormal());
         }
         serializeValue(properties, twin, value, twinChangesCollector);
-
     }
 
     protected abstract void serializeValue(Properties properties, TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException;
@@ -176,26 +183,21 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
             log.error("{} is not suitable for {}", value.getTwinClassField().logNormal(), twin.logNormal());
             return new ValidationResult(false, getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField()));
         }
-        Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams(), new HashMap<>());
-        if (!value.isFilled()) {
-            setDefaultValueIfConfigured(properties, twin, value);
-        }
         if (!twin.isSketch() // check required for non-sketch twins
                 && value.getTwinClassField().getRequired()
                 && !value.isFilled()) {
             log.error("{} is required", value.getTwinClassField().logNormal());
             return new ValidationResult(false, getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, value.getTwinClassField()));
         }
+        Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
         ValidationResult validationResult = validate(properties, twin, value);
         value.setValidationResult(validationResult);
         return validationResult;
     }
 
-    /*
-     * Override this method if you want to set the default value on create
-     */
-    protected void setDefaultValueIfConfigured(Properties properties, TwinEntity twin, T value) throws ServiceException {
-
+    public void initializeField(TwinEntity twin, T value) throws ServiceException {
+        var fieldInitializer = featurerService.getFeaturer(value.getTwinClassField().getFieldInitializerFeaturerId(), FieldInitializer.class);
+        fieldInitializer.setInitValue(twin, value);
     }
 
     /*

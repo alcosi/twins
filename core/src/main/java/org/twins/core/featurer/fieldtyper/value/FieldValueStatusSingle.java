@@ -45,6 +45,11 @@ public class FieldValueStatusSingle extends FieldValue {
     }
 
     @Override
+    public void copyValueFrom(FieldValue src) {
+        status = ((FieldValueStatusSingle) src).status;
+    }
+
+    @Override
     public void nullify() {
         status = null;
     }

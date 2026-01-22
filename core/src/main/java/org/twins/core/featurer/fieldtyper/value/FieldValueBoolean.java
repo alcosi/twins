@@ -44,4 +44,9 @@ public class FieldValueBoolean extends FieldValue {
     public boolean hasValue(String value) {
         return this.value == Boolean.parseBoolean(value);
     }
+
+    @Override
+    public void copyValueFrom(FieldValue src) {
+        value = ((FieldValueBoolean) src).getValue();
+    }
 }

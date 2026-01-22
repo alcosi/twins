@@ -53,6 +53,7 @@ public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolea
         where tfb.twin_id is null or tfb.value = false|true;
     */
 
+    @Deprecated //better to user FieldInitializer
     @FeaturerParam(name = "DefaultValue", description = "", order = 2, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean defaultValue = new FeaturerParamBoolean("defaultValue");
 
@@ -85,10 +86,5 @@ public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolea
         return isRequired
                 ? TwinSpecification.checkFieldBoolean(twinFieldSearchBoolean)
                 : TwinSpecification.checkFieldBooleanWithPhantoms(twinFieldSearchBoolean, defaultValue.extract(properties));
-    }
-
-    @Override
-    protected void setDefaultValueIfConfigured(Properties properties, TwinEntity twin, FieldValueBoolean value) {
-        value.setValue(defaultValue.extract(properties));
     }
 }

@@ -59,6 +59,12 @@ public class FieldValueSelect extends FieldValue {
         return false;
     }
 
+    @Override
+    public void copyValueFrom(FieldValue src) {
+        options.clear();
+        options.addAll(((FieldValueSelect) src).options);
+    }
+
     public void nullify() {
         options = Collections.EMPTY_LIST;
     }

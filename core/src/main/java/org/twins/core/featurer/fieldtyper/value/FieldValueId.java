@@ -44,6 +44,11 @@ public class FieldValueId extends FieldValue {
     }
 
     @Override
+    public void copyValueFrom(FieldValue src) {
+        id = ((FieldValueId) src).id;
+    }
+
+    @Override
     public void nullify() {
         id = null;
     }

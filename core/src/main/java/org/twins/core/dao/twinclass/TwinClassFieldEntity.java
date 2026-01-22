@@ -64,6 +64,13 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Column(name = "twin_sorter_params", columnDefinition = "hstore")
     private HashMap<String, String> twinSorterParams;
 
+    @Column(name = "field_initializer_featurer_id")
+    private Integer fieldInitializerFeaturerId;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "field_initializer_params", columnDefinition = "hstore")
+    private HashMap<String, String> fieldInitializerParams;
+
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
 

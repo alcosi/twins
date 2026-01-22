@@ -45,6 +45,11 @@ public class FieldValueTwinClassSingle extends FieldValue {
     }
 
     @Override
+    public void copyValueFrom(FieldValue src) {
+        twinClass = ((FieldValueTwinClassSingle) src).twinClass;
+    }
+
+    @Override
     public void nullify() {
         twinClass = null;
     }

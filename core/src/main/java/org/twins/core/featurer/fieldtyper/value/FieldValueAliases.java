@@ -59,6 +59,12 @@ public class FieldValueAliases extends FieldValue {
         return false;
     }
 
+    @Override
+    public void copyValueFrom(FieldValue src) {
+        aliases.clear();
+        aliases.addAll(((FieldValueAliases)src).aliases);
+    }
+
     public void nullify() {
         aliases = Collections.EMPTY_LIST;
     }

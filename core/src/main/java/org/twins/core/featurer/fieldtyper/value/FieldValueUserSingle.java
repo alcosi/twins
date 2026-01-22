@@ -45,6 +45,11 @@ public class FieldValueUserSingle extends FieldValue {
     }
 
     @Override
+    public void copyValueFrom(FieldValue src) {
+        user = ((FieldValueUserSingle) src).user;
+    }
+
+    @Override
     public void nullify() {
         user = null;
     }

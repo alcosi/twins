@@ -36,6 +36,11 @@ public class FieldValueColorHEX extends FieldValue {
     }
 
     @Override
+    public void copyValueFrom(FieldValue src) {
+        hex = ((FieldValueColorHEX) src).getHex();
+    }
+
+    @Override
     public void nullify() {
         hex = "";
     }

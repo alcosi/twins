@@ -257,11 +257,20 @@ public class FeaturerService {
         return extractProperties(getFeaturerId(featurer), params, context);
     }
 
+    public Properties extractProperties(Featurer featurer, HashMap<String, String> params) throws ServiceException {
+        return extractProperties(getFeaturerId(featurer), params, Collections.emptyMap());
+    }
+
     private int getFeaturerId(Featurer featurer) {
         var annotation = featurer.getClass().getAnnotation(org.cambium.featurer.annotations.Featurer.class);
         return annotation.id();
     }
 
+    public Properties extractProperties(Integer featurerId, HashMap<String, String> params) throws ServiceException {
+        return extractProperties(featurerId,  params, Collections.emptyMap());
+    }
+
+    //todo add caching
     public Properties extractProperties(Integer featurerId, HashMap<String, String> params, Map<String, Object> context) throws ServiceException {
         Properties ret = new Properties();
 

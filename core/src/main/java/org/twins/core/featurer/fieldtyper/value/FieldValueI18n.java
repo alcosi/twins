@@ -8,7 +8,9 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.MapUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -54,5 +56,10 @@ public class FieldValueI18n extends FieldValue {
     @Override
     public boolean hasValue(String value) {
         return !MapUtils.isEmpty(translations) && translations.containsValue(value);
+    }
+
+    @Override
+    public void copyValueFrom(FieldValue src) {
+        translations = new HashMap<>(((FieldValueI18n) src).getTranslations());
     }
 }

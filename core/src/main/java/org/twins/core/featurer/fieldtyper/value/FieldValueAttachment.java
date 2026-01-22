@@ -37,6 +37,11 @@ public class FieldValueAttachment extends FieldValue {
     }
 
     @Override
+    public void copyValueFrom(FieldValue src) {
+
+    }
+
+    @Override
     public void nullify() {
         name = null;
         base64Content = null;
