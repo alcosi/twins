@@ -19,7 +19,6 @@ import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.link.LinkEntity;
@@ -433,5 +432,13 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             twinLinkEntity.setDstTwin(twinService.findEntity(twinLinkEntity.getDstTwinId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows));
         }
         return twinLinkEntity.getDstTwin();
+    }
+
+    public Set<TwinLinkEntity> findAllWithinHierarchies(Collection<UUID> hierarchies) {
+        return twinLinkRepository.findAllWithinHierarchies(hierarchies);
+    }
+
+    public Set<TwinLinkEntity> findAllWithinHierarchiesAndTwinsInStatusIds(Collection<UUID> hierarchies, Collection<UUID> twinStatusIds) {
+        return twinLinkRepository.findAllWithinHierarchiesAndTwinsInStatusIds(hierarchies, twinStatusIds);
     }
 }
