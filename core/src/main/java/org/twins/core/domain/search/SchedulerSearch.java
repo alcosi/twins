@@ -2,9 +2,9 @@ package org.twins.core.domain.search;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.math.IntegerRange;
 import org.cambium.common.util.Ternary;
-import org.twins.core.dto.rest.DataTimeRangeDTOv1;
-import org.twins.core.dto.rest.IntegerRangeDTOv1;
+import org.twins.core.domain.DataTimeRange;
 
 import java.util.Set;
 import java.util.UUID;
@@ -22,9 +22,9 @@ public class SchedulerSearch {
     public Ternary logEnabled;
     public Set<String> cronSet;
     public Set<String> cronExcludeSet;
-    public IntegerRangeDTOv1 fixedRateRange;
+    public IntegerRange fixedRateRange;
     public Set<String> descriptionLikeSet;
     public Set<String> descriptionNotLikeSet;
-    public DataTimeRangeDTOv1 createdAtRange;
-    public DataTimeRangeDTOv1 updatedAtRange;
+    public DataTimeRange createdAtRange;
+    public DataTimeRange updatedAtRange;
 }

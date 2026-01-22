@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.scheduler.SchedulerRepository;
 import org.twins.core.domain.search.SchedulerSearch;
-import org.twins.core.mappers.rest.DataTimeRangeDTOReverseMapper;
-import org.twins.core.mappers.rest.IntegerRangeDTOReverseMapper;
 
 import static org.springframework.data.jpa.domain.Specification.allOf;
 import static org.twins.core.dao.specifications.CommonSpecification.*;
@@ -21,8 +19,6 @@ import static org.twins.core.dao.specifications.CommonSpecification.*;
 public class SchedulerSearchService {
 
     private final SchedulerRepository schedulerRepository;
-    private final DataTimeRangeDTOReverseMapper dateMapper;
-    private final IntegerRangeDTOReverseMapper integerRangeMapper;
 
     public PaginationResult<SchedulerEntity> search(SchedulerSearch schedulerSearch, SimplePagination pagination) throws Exception {
         if (schedulerSearch == null) {
@@ -44,11 +40,11 @@ public class SchedulerSearchService {
                 checkTernary(search.getLogEnabled(), SchedulerEntity.Fields.logEnabled),
                 checkFieldLikeIn(search.getCronSet(), false, false, SchedulerEntity.Fields.cron),
                 checkFieldLikeIn(search.getCronExcludeSet(), true, true, SchedulerEntity.Fields.cron),
-                checkFieldIntegerRange(integerRangeMapper.convert(search.getFixedRateRange()), SchedulerEntity.Fields.fixedRate),
+                checkFieldIntegerRange(search.getFixedRateRange(), SchedulerEntity.Fields.fixedRate),
                 checkFieldLikeIn(search.getDescriptionLikeSet(), false, false, SchedulerEntity.Fields.description),
                 checkFieldLikeIn(search.getDescriptionNotLikeSet(), true, true, SchedulerEntity.Fields.description),
-                checkFieldLocalDateTimeBetween(dateMapper.convert(search.getCreatedAtRange()), SchedulerEntity.Fields.createdAt),
-                checkFieldLocalDateTimeBetween(dateMapper.convert(search.getUpdatedAtRange()), SchedulerEntity.Fields.updatedAt)
+                checkFieldLocalDateTimeBetween(search.getCreatedAtRange(), SchedulerEntity.Fields.createdAt),
+                checkFieldLocalDateTimeBetween(search.getUpdatedAtRange(), SchedulerEntity.Fields.updatedAt)
         );
     }
 }
