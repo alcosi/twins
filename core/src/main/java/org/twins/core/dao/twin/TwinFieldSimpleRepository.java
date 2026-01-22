@@ -1,6 +1,7 @@
 package org.twins.core.dao.twin;
 
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.StringUtils;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -179,46 +180,6 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
 
     void deleteByTwinIdAndTwinClassFieldIdIn(UUID twinId, Set<UUID> twinClassFieldIds);
 
-    default List<TwinFieldCalcProjection> mapNativeQueryResults(List<Object[]> results) {
-        if (CollectionUtils.isEmpty(results)) {
-            return Collections.emptyList();
-        }
-
-        return results.stream()
-                .filter(Objects::nonNull)
-                .filter(row -> row.length >= 2)
-                .map(row -> {
-                    UUID twinId = (UUID) row[0];
-                    Object value = row[1];
-                    String calcValue = formatNumericValue(value);
-                    return new TwinFieldCalcProjection(twinId, calcValue);
-                })
-                .collect(Collectors.toList());
-    }
-
-    default String formatNumericValue(Object value) {
-        if (value == null) {
-            return "0";
-        }
-
-        if (value instanceof Double doubleValue) {
-            if (doubleValue == doubleValue.longValue()) {
-                return String.format("%d", doubleValue.longValue());
-            } else {
-                return String.format("%.2f", doubleValue);
-            }
-        } else if (value instanceof String stringValue) {
-            try {
-                Double doubleValue = Double.parseDouble(stringValue);
-                return formatNumericValue(doubleValue);
-            } catch (NumberFormatException e) {
-                return stringValue;
-            }
-        } else {
-            return value.toString();
-        }
-    }
-
     @Query(value = """
         SELECT * FROM twin_field_calc_sum_by_head(
             string_to_array(:headTwinIdListStr, ',')::uuid[],
@@ -367,15 +328,6 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
             @Param("statusExclude") boolean statusExclude);
 
-    default String collectionToString(Collection<UUID> collection) {
-        if (collection == null || collection.isEmpty()) {
-            return "";
-        }
-        return collection.stream()
-                .map(UUID::toString)
-                .collect(Collectors.joining(","));
-    }
-
     default List<TwinFieldCalcProjection> sumChildrenTwinFieldValuesByHead(
             Collection<UUID> headTwinIdList,
             Collection<UUID> twinClassFieldIds,
@@ -383,10 +335,10 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             boolean exclude,
             Collection<UUID> childrenTwinOfClassIdList) {
 
-        String headStr = collectionToString(headTwinIdList);
-        String fieldsStr = collectionToString(twinClassFieldIds);
-        String statusStr = collectionToString(childrenTwinStatusIdList);
-        String classStr = collectionToString(childrenTwinOfClassIdList);
+        String headStr = StringUtils.collectionToString(headTwinIdList);
+        String fieldsStr = StringUtils.collectionToString(twinClassFieldIds);
+        String statusStr = StringUtils.collectionToString(childrenTwinStatusIdList);
+        String classStr = StringUtils.collectionToString(childrenTwinOfClassIdList);
 
         List<Object[]> results = _sumChildrenTwinFieldValuesByHead(
                 headStr, fieldsStr, statusStr, exclude, classStr
@@ -402,9 +354,9 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             UUID secondTwinClassFieldId,
             boolean exclude) {
 
-        String headStr = collectionToString(headTwinIds);
-        String statusStr = collectionToString(childrenInTwinStatusIds);
-        String classStr = collectionToString(childrenOfTwinClassIds);
+        String headStr = StringUtils.collectionToString(headTwinIds);
+        String statusStr = StringUtils.collectionToString(childrenInTwinStatusIds);
+        String classStr = StringUtils.collectionToString(childrenOfTwinClassIds);
 
         List<Object[]> results = _sumChildrenTwinFieldValuesOfDivisionsByHead(
                 headStr, statusStr, classStr,
@@ -421,9 +373,9 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             UUID secondTwinClassFieldId,
             boolean exclude) {
 
-        String headStr = collectionToString(headTwinIds);
-        String statusStr = collectionToString(childrenInTwinStatusIds);
-        String classStr = collectionToString(childrenOfTwinClassIds);
+        String headStr = StringUtils.collectionToString(headTwinIds);
+        String statusStr = StringUtils.collectionToString(childrenInTwinStatusIds);
+        String classStr = StringUtils.collectionToString(childrenOfTwinClassIds);
 
         List<Object[]> results = _sumChildrenTwinFieldValuesOfMultiplicationsByHead(
                 headStr, statusStr, classStr,
@@ -440,9 +392,9 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             UUID secondTwinClassFieldId,
             boolean exclude) {
 
-        String headStr = collectionToString(headTwinIds);
-        String statusStr = collectionToString(childrenInTwinStatusIds);
-        String classStr = collectionToString(childrenOfTwinClassIds);
+        String headStr = StringUtils.collectionToString(headTwinIds);
+        String statusStr = StringUtils.collectionToString(childrenInTwinStatusIds);
+        String classStr = StringUtils.collectionToString(childrenOfTwinClassIds);
 
         List<Object[]> results = _sumChildrenTwinFieldValuesOfSubtractionsByHead(
                 headStr, statusStr, classStr,
@@ -459,10 +411,10 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             Collection<UUID> twinClassFieldIds,
             boolean statusExclude) {
 
-        String linkedToStr = collectionToString(linkedToTwinIds);
-        String statusStr = collectionToString(linkedFromInTwinStatusIds);
-        String classStr = collectionToString(linkedTwinOfClassIds);
-        String fieldsStr = collectionToString(twinClassFieldIds);
+        String linkedToStr = StringUtils.collectionToString(linkedToTwinIds);
+        String statusStr = StringUtils.collectionToString(linkedFromInTwinStatusIds);
+        String classStr = StringUtils.collectionToString(linkedTwinOfClassIds);
+        String fieldsStr = StringUtils.collectionToString(twinClassFieldIds);
 
         List<Object[]> results = _sumLinkedTwinFieldValuesByLink(
                 linkedToStr, srcElseDst, statusStr, classStr, fieldsStr, statusExclude
@@ -479,9 +431,9 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             UUID secondTwinClassFieldId,
             boolean statusExclude) {
 
-        String linkedToStr = collectionToString(linkedToTwinIds);
-        String statusStr = collectionToString(linkedFromInTwinStatusIds);
-        String classStr = collectionToString(linkedTwinOfClassIds);
+        String linkedToStr = StringUtils.collectionToString(linkedToTwinIds);
+        String statusStr = StringUtils.collectionToString(linkedFromInTwinStatusIds);
+        String classStr = StringUtils.collectionToString(linkedTwinOfClassIds);
 
         List<Object[]> results = _sumLinkedTwinFieldValuesOfDivisionsByLink(
                 linkedToStr, srcElseDst, statusStr, classStr,
@@ -499,9 +451,9 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             UUID secondTwinClassFieldId,
             boolean statusExclude) {
 
-        String linkedToStr = collectionToString(linkedToTwinIds);
-        String statusStr = collectionToString(linkedFromInTwinStatusIds);
-        String classStr = collectionToString(linkedTwinOfClassIds);
+        String linkedToStr = StringUtils.collectionToString(linkedToTwinIds);
+        String statusStr = StringUtils.collectionToString(linkedFromInTwinStatusIds);
+        String classStr = StringUtils.collectionToString(linkedTwinOfClassIds);
 
         List<Object[]> results = _sumLinkedTwinFieldValuesOfMultiplicationsByLink(
                 linkedToStr, srcElseDst, statusStr, classStr,
@@ -519,14 +471,31 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
             UUID secondTwinClassFieldId,
             boolean statusExclude) {
 
-        String linkedToStr = collectionToString(linkedToTwinIds);
-        String statusStr = collectionToString(linkedFromInTwinStatusIds);
-        String classStr = collectionToString(linkedTwinOfClassIds);
+        String linkedToStr = StringUtils.collectionToString(linkedToTwinIds);
+        String statusStr = StringUtils.collectionToString(linkedFromInTwinStatusIds);
+        String classStr = StringUtils.collectionToString(linkedTwinOfClassIds);
 
         List<Object[]> results = _sumLinkedTwinFieldValuesOfSubtractionsByLink(
                 linkedToStr, srcElseDst, statusStr, classStr,
                 firstTwinClassFieldId, secondTwinClassFieldId, statusExclude
         );
         return mapNativeQueryResults(results);
+    }
+
+    default List<TwinFieldCalcProjection> mapNativeQueryResults(List<Object[]> results) {
+        if (CollectionUtils.isEmpty(results)) {
+            return Collections.emptyList();
+        }
+
+        return results.stream()
+                .filter(Objects::nonNull)
+                .filter(row -> row.length >= 2)
+                .map(row -> {
+                    UUID twinId = (UUID) row[0];
+                    Object value = row[1];
+                    String calcValue = StringUtils.formatNumericValue(value);
+                    return new TwinFieldCalcProjection(twinId, calcValue);
+                })
+                .collect(Collectors.toList());
     }
 }

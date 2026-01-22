@@ -7,7 +7,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 
 public interface FieldTyperCalcByHead {
-    @FeaturerParam(name = "Children twin in status id list", order = 1, optional = true)
+    @FeaturerParam(name = "Children twin in status ids", order = 1, optional = true)
     FeaturerParamUUIDSet childrenTwinInStatusIds = new FeaturerParamUUIDSetTwinsStatusId("childrenTwinInStatusIds");
 
     @FeaturerParam(name = "Children twin of class ids", order = 2, optional = true)

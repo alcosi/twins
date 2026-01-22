@@ -15,7 +15,7 @@ public interface FieldTyperCalcByLink {
     @FeaturerParam(name = "Src or dst", order = 2, optional = true, defaultValue = "true")
     FeaturerParamBoolean srcElseDst = new FeaturerParamBoolean("srcElseDst");
 
-    @FeaturerParam(name = "Linked twin in status id set", order = 3, optional = true)
+    @FeaturerParam(name = "Linked twin in status ids", order = 3, optional = true)
     FeaturerParamUUIDSet linkedTwinInStatusIdSet = new FeaturerParamUUIDSetTwinsStatusId("linkedTwinInStatusIdSet");
 
     @FeaturerParam(name = "Linked twin of class ids", order = 4, optional = true)

@@ -18,8 +18,8 @@ public class TwinFieldStorageCalcSumByHead extends TwinFieldStorageCalc {
         super(twinClassFieldId);
         this.twinFieldSimpleRepository = twinFieldSimpleRepository;
         this.childrenTwinClassFieldIds = childrenTwinClassFieldIds;
-        this.childrenTwinStatusIdSet = childrenTwinStatusIdSet == null ? Collections.emptySet() : childrenTwinStatusIdSet;
-        this.childrenTwinOfClassIdSet = childrenTwinOfClassIdSet == null ? Collections.emptySet() : childrenTwinOfClassIdSet;
+        this.childrenTwinStatusIdSet = childrenTwinStatusIdSet;
+        this.childrenTwinOfClassIdSet = childrenTwinOfClassIdSet;
         this.exclude = exclude;
     }
 
