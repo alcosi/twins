@@ -90,7 +90,7 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
         origTwins.addAll(origTwinsChildren);
 
         // sort to have confidence that twin on every depth level in processing has an already created parent
-        var origTwinsSroted = origTwins.stream()
+        var origTwinsSorted = origTwins.stream()
                 .sorted((t1, t2) -> {
                     var h1 = t1.getHierarchyTree().split("\\.").length;
                     var h2 = t2.getHierarchyTree().split("\\.").length;
@@ -109,7 +109,7 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
                 })
                 .toList();
 
-        for (var origTwin : origTwinsSroted) {
+        for (var origTwin : origTwinsSorted) {
             // skipping already copied twins (maybe already copied for twinLink)
             if (copyContextMap.get(origTwin.getId()) != null && copyContextMap.get(origTwin.getId()).getTwinCopy() != null) {
                 continue;
@@ -141,6 +141,27 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
     }
 
     private CopyContext createCopyContext(TwinEntity origTwin, UserEntity user, Map<UUID, CopyContext> copyContextMap) {
+        // get existing context (for input twins) or create a new one (usually for children)
+        var copyContext = copyContextMap.computeIfAbsent(
+                origTwin.getId(),
+                k -> new CopyContext()
+                        .setOrigFactoryItem(
+                                new FactoryItem()
+                                        .setOutput(
+                                                new TwinUpdate().setDbTwinEntity(origTwin)
+                                        )
+                                        .setContextFactoryItemList(
+                                                List.of(copyContextMap.get(origTwin.getHeadTwinId()).getOrigFactoryItem())
+                                        )
+                        )
+        );
+
+        if (copyContext.getTwinCopy() != null) {
+            // already created context
+            return copyContext;
+        }
+
+        // creating twin copy with head copy
         var twinCopy = new TwinEntity()
                 .setId(UuidUtils.generate())
                 .setName("")
@@ -160,20 +181,7 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
                     .setHeadTwinId(headTwinCopy.getId());
         }
 
-        // get existing context (for input twins) or create a new one (usually for children)
-        var copyContext = copyContextMap.computeIfAbsent(
-                origTwin.getId(),
-                k -> new CopyContext()
-                        .setOrigFactoryItem(
-                                new FactoryItem()
-                                        .setOutput(
-                                                new TwinUpdate().setDbTwinEntity(origTwin)
-                                        )
-                                        .setContextFactoryItemList(
-                                                List.of(copyContextMap.get(origTwin.getHeadTwinId()).getOrigFactoryItem())
-                                        )
-                        )
-        );
+        // setting twin copy in context
         copyContext.setTwinCopy(twinCopy);
 
         return copyContext;
