@@ -94,7 +94,18 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
                 .sorted((t1, t2) -> {
                     var h1 = t1.getHierarchyTree().split("\\.").length;
                     var h2 = t2.getHierarchyTree().split("\\.").length;
-                    return Integer.compare(h1, h2);
+
+                    var depthComparison = Integer.compare(h1, h2);
+                    if (depthComparison != 0) {
+                        // stop sort if twins are on different levels
+                        return depthComparison;
+                    }
+
+                    // secondary sort: twins without links go first
+                    boolean t1HasLinks = origTwinLinksGrouped.containsGroupedKey(t1.getId());
+                    boolean t2HasLinks = origTwinLinksGrouped.containsGroupedKey(t2.getId());
+
+                    return Boolean.compare(t1HasLinks, t2HasLinks);
                 })
                 .toList();
 
