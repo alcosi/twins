@@ -62,7 +62,7 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
         var depth = childrenDepth.extract(properties);
         var classReplaceMap = twinClassReplaceMap.extract(properties);
 
-        var copyContextMap = new HashMap<UUID, CopyContext>();
+        var copyContextMap = new LinkedHashMap<UUID, CopyContext>();
         var origTwins = new HashSet<TwinEntity>(inputFactoryItemList.size());
 
         for (var factoryItem : inputFactoryItemList) {
