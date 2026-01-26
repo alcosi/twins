@@ -100,10 +100,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
         return isSetInverted(validatorContainer) != validationPassed;
     }
 
-    public <T extends ContainsTwinValidatorSet> Map<UUID, ValidationResult> isValid(
-            Collection<TwinEntity> twinEntities,
-            T validatorContainer
-    ) throws ServiceException {
+    public <T extends ContainsTwinValidatorSet> Map<UUID, ValidationResult> isValid(Collection<TwinEntity> twinEntities, T validatorContainer) throws ServiceException {
         Boolean validationReady = checkValidationReady(validatorContainer);
         if (validationReady == null) {
             return createDefaultResults(twinEntities, true);
