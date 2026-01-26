@@ -15,7 +15,7 @@ import java.util.function.Function;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FieldValueSelect extends FieldValueCollection<DataListOptionEntity> {
+public class FieldValueSelect extends FieldValueCollectionImmutable<DataListOptionEntity> {
     private List<DataListOptionEntity> options = null;
 
     public FieldValueSelect(TwinClassFieldEntity twinClassField) {
@@ -23,41 +23,14 @@ public class FieldValueSelect extends FieldValueCollection<DataListOptionEntity>
     }
 
     @Override
-    protected List<DataListOptionEntity> getCollection() {
-        return options;
-    }
-
-    @Override
     protected Function<DataListOptionEntity, UUID> itemGetIdFunction() {
         return DataListOptionEntity::getId;
-    }
-
-    public FieldValueSelect add(DataListOptionEntity option) {
-        options = addWithNullifyMarkerSupport(options, option);
-        return this;
     }
 
     @Override
     public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueSelect clone = new FieldValueSelect(newTwinClassFieldEntity);
-        clone.getOptions().addAll(this.options);
+        clone.setItems(this.collection);
         return clone;
-    }
-
-
-    @Override
-    public void copyValueFrom(FieldValue src) {
-        options.clear();
-        options.addAll(((FieldValueSelect) src).options);
-    }
-
-    @Override
-    public void onUndefine() {
-        options = null;
-    }
-
-    @Override
-    public void onClear() {
-        options = null;
     }
 }

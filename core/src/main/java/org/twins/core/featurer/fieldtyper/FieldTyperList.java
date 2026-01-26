@@ -75,7 +75,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueSelect value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        List<DataListOptionEntity> dataListOptionEntityList = value.getOptions();
+        List<DataListOptionEntity> dataListOptionEntityList = value.getItems();
         Map<UUID, TwinFieldDataListEntity> storedOptions = null;
         twinService.loadTwinFields(twin);
         if (twin.getTwinFieldDatalistKit().containsGroupedKey(value.getTwinClassField().getId()))
@@ -136,13 +136,13 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     @Override
     protected ValidationResult validate(Properties properties, TwinEntity twin, FieldValueSelect fieldValue) throws ServiceException {
         //todo - check that additional option conditions are met
-        if (fieldValue.getOptions() != null && fieldValue.getOptions().size() > 1 && !allowMultiply(properties)) {
+        if (fieldValue.size() > 1 && !allowMultiply(properties)) {
             return new ValidationResult(false, fieldValue.getTwinClassField().logNormal() + " multiply options are not allowed");
         }
         UUID fieldListId = dataListId.extract(properties);
-        dataListOptionService.reloadOptionsOnDataListAbsent(fieldValue.getOptions());
+        dataListOptionService.reloadOptionsOnDataListAbsent(fieldValue);
         var ret = new ValidationResult(true);
-        for (var option : fieldValue.getOptions()) {
+        for (var option : fieldValue.getItems()) {
             if (!option.getDataListId().equals(fieldListId)) {
                 ret
                         .setValid(false)

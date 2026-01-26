@@ -35,6 +35,8 @@ public class FieldTyperBaseMarkerField extends FieldTyper<FieldDescriptorImmutab
     @Override
     protected FieldValueSelect deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         TwinEntity twin = twinField.getTwin();
-        return new FieldValueSelect(twinField.getTwinClassField()).setOptions(twin.getTwinMarkerKit().getList());
+        var ret = new FieldValueSelect(twinField.getTwinClassField());
+        ret.setItems(twin.getTwinMarkerKit().getList());
+        return ret;
     }
 }

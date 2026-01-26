@@ -42,7 +42,7 @@ public class FieldTyperTwinClass extends FieldTyper<FieldDescriptorTwinClassList
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueTwinClassList value, TwinChangesCollector twinChangesCollector) throws ServiceException {
 
         List<TwinClassEntity> selectedTwinClassEntities = twinClassService.findEntitiesSafe(
-                value.getTwinClasses().stream()
+                value.getItems().stream()
                         .map(TwinClassEntity::getId)
                         .toList()
         ).getList();
@@ -123,7 +123,7 @@ public class FieldTyperTwinClass extends FieldTyper<FieldDescriptorTwinClassList
         FieldValueTwinClassList ret = new FieldValueTwinClassList(twinField.getTwinClassField());
         if (twinFieldTwinClassEntityList != null)
             for (var item : twinFieldTwinClassEntityList) {
-                ret.getTwinClasses().add(item.getTwinClass());
+                ret.add(item.getTwinClass());
             }
 
         return ret;

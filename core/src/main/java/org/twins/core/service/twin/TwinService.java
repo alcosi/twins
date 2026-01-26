@@ -1257,7 +1257,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 } catch (Exception e) {
                     throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueTwinClassList.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect class id[" + id + "]");
                 }
-                fieldValueTwinClassList.getTwinClasses().add(new TwinClassEntity().setId(uuid));
+                fieldValueTwinClassList.add(new TwinClassEntity().setId(uuid));
             }
         }
         if (fieldValue instanceof FieldValueSelect fieldValueSelect) {
@@ -1469,7 +1469,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     .map(UserEntity::getName)
                     .collect(Collectors.joining(", "));
         } else if (fieldValue instanceof FieldValueSelect select) {
-            res = select.getOptions().stream()
+            res = select.getItems().stream()
                     .map(DataListOptionEntity::getOption)
                     .collect(Collectors.joining(", "));
         } else if (fieldValue instanceof FieldValueI18n i18n) {
@@ -1477,7 +1477,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         } else if (fieldValue instanceof FieldValueBoolean bool) {
             res = bool.toString();
         } else if (fieldValue instanceof FieldValueTwinClassList classList) {
-            res = classList.getTwinClasses().stream()
+            res = classList.getItems().stream()
                     .map(entity -> i18nService.translateToLocale(entity.getNameI18NId()))
                     .collect(Collectors.joining(", "));
         }

@@ -32,7 +32,7 @@ public class FieldInitializerList extends FieldInitializer<FieldDescriptorList, 
     @Override
     protected void setInitValue(Properties properties, TwinEntity twin, FieldValueSelect value) throws ServiceException {
         DataListOptionEntity initOption = dataListOptionService.findEntitySafe(initValue.extract(properties));
-        value.getOptions().clear();
+        value.clear();
         value.add(initOption);
     }
 

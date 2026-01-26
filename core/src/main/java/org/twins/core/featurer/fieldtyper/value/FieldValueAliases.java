@@ -16,7 +16,7 @@ import java.util.function.Function;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FieldValueAliases extends FieldValueCollection<TwinAliasEntity> {
+public class FieldValueAliases extends FieldValueCollectionImmutable<TwinAliasEntity> {
     private List<TwinAliasEntity> aliases = new ArrayList<>();
 
     public FieldValueAliases(TwinClassFieldEntity twinClassField) {

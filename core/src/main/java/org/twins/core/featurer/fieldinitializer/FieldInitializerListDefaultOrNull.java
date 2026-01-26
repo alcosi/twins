@@ -49,7 +49,7 @@ public class FieldInitializerListDefaultOrNull extends FieldInitializer<FieldDes
         var defaultOptionIdValue = dataListEntity.getDefaultDataListOptionId();
         if (defaultOptionIdValue != null) {
             DataListOptionEntity defaultOption = dataListOptionService.findEntitySafe(defaultOptionIdValue);
-            value.getOptions().clear();
+            value.clear();
             value.add(defaultOption);
         } else if (throwIfNull.extract(properties)) {
             throw new ServiceException(ErrorCodeTwins.CONFIGURATION_IS_INVALID, dataListEntity.logNormal() + " has no default option");

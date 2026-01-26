@@ -17,7 +17,7 @@ import java.util.function.Function;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FieldValueLink extends FieldValueCollection<TwinLinkEntity> {
+public class FieldValueLink extends FieldValueCollectionImmutable<TwinLinkEntity> {
     @Getter
     private boolean forwardLink;
     jkhjhkhkj

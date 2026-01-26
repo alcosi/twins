@@ -8,10 +8,10 @@ import java.util.*;
 import java.util.function.Function;
 
 
-public abstract class FieldValueCollection<T> extends FieldValue {
+public abstract class FieldValueCollectionImmutable<T> extends FieldValue {
     protected List<T> collection = null;
 
-    public FieldValueCollection(TwinClassFieldEntity twinClassField) {
+    public FieldValueCollectionImmutable(TwinClassFieldEntity twinClassField) {
         super(twinClassField);
     }
 
@@ -23,15 +23,15 @@ public abstract class FieldValueCollection<T> extends FieldValue {
 
     protected List<T> setWithNullifyMarkerSupport(Collection<T> newCollection) {
         if (CollectionUtils.isEmpty(newCollection) || UuidUtils.hasNullifyMarker(newCollection, itemGetIdFunction())) {
-            state = State.CLEARED;
+            state = FieldValue.State.CLEARED;
             return null;
         } else {
-            state = State.PRESENT;
+            state = FieldValue.State.PRESENT;
             return new ArrayList<>(newCollection); //this will be another list
         }
     }
 
-    public FieldValueCollection<T> add(T newItem) {
+    public FieldValueCollectionImmutable<T> add(T newItem) {
         if (newItem == null) {
             return this;
         } else if (UuidUtils.isNullifyMarker(itemGetIdFunction().apply(newItem))) {
@@ -44,12 +44,12 @@ public abstract class FieldValueCollection<T> extends FieldValue {
         return this;
     }
 
-    public FieldValueCollection<T> setItems(Collection<T> newCollection) {
+    public FieldValueCollectionImmutable<T> setItems(Collection<T> newCollection) {
         if (CollectionUtils.isEmpty(newCollection) || UuidUtils.hasNullifyMarker(newCollection, itemGetIdFunction())) {
-            state = State.CLEARED;
+            state = FieldValue.State.CLEARED;
             collection = null;
         } else {
-            state = State.PRESENT;
+            state = FieldValue.State.PRESENT;
             collection = new ArrayList<>(newCollection); //this will be another list
         }
         return this;
@@ -80,7 +80,7 @@ public abstract class FieldValueCollection<T> extends FieldValue {
     public void copyValueFrom(FieldValue src) {
         if (collection != null) {
             collection.clear();
-            collection.addAll(((FieldValueCollection<T>) src).collection);
+            collection.addAll(((FieldValueCollectionImmutable<T>) src).collection);
         }
 
     }

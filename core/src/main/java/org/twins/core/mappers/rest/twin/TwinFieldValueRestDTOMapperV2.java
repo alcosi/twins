@@ -16,10 +16,8 @@ import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
-import org.twins.core.mappers.rest.mappercontext.modes.RelationTwinMode;
-import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
-import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
+import org.twins.core.mappers.rest.mappercontext.modes.*;
+import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
@@ -39,6 +37,9 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
 
     @MapperModePointerBinding(modes = StatusMode.TwinField2StatusMode.class)
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+
+    @MapperModePointerBinding(modes = UserMode.TwinField2UserMode.class)
+    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @MapperModePointerBinding(modes = RelationTwinMode.TwinByFieldMode.class)
     private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
@@ -67,10 +68,17 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
         } else if (src instanceof FieldValueBoolean fieldValueBoolean) {
             dst.setValue(String.valueOf(fieldValueBoolean.getValue()));
         } else if (src instanceof FieldValueTwinClassList fieldValueTwinClassList) {
-            dst.setValue(String.valueOf(fieldValueTwinClassList.getTwinClasses()));
+            StringJoiner stringJoiner = new StringJoiner(",");
+            for (var classEntity : fieldValueTwinClassList.getItems()) {
+                stringJoiner.add(classEntity.getId().toString());
+                if (mapperContext.hasModeButNot(TwinClassMode.TwinField2TwinClassMode.HIDE)) {
+                    twinClassRestDTOMapper.postpone(classEntity, mapperContext.forkOnPoint(TwinClassMode.TwinField2TwinClassMode.HIDE));
+                }
+            }
+            dst.setValue(stringJoiner.toString());
         } else if (src instanceof FieldValueSelect select) {
             StringJoiner stringJoiner = new StringJoiner(",");
-            for (DataListOptionEntity dataListOptionEntity : select.getOptions()) {
+            for (DataListOptionEntity dataListOptionEntity : select.getItems()) {
                 stringJoiner.add(dataListOptionEntity.getId().toString());
                 if (mapperContext.hasModeButNot(DataListOptionMode.TwinField2DataListOptionMode.HIDE)) {
                     dataListOptionRestDTOMapper.postpone(dataListOptionEntity, mapperContext.forkOnPoint(DataListOptionMode.TwinField2DataListOptionMode.SHORT));
