@@ -16,6 +16,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     UUID_IS_NULL(10005, "uuid is null"),
     CONFIGURATION_IS_INVALID(10006, "some part of domain config is invalid"),
     UUID_MISMATCH(10007, "uuid is mismatch"),
+    RECURSIVE_LOAD_DETECTED(10008, "twin marker recursive load detected"),
     USER_UNKNOWN(10101, "unknown user"),
     USER_LOCALE_UNKNOWN(10102, "unknown locale"),
     DOMAIN_UNKNOWN(10201, "unknown domain"),
@@ -73,6 +74,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_CLASS_FIELD_CONDITION_BASE_FIELD_NOT_SPECIFIED(10431, "Twin class field condition base field is not specified"),
     TWIN_CLASS_FIELD_CONDITION_FEATURER_NOT_SPECIFIED(10432, "Twin class field condition featurer is not specified"),
     TWIN_CLASS_FIELD_RULE_OVERWRITTEN_VALUE_NOT_SPECIFIED(10433, "Twin class field rule overwitten value is not specified"),
+    TWIN_CLASS_MUST_HAVE_DYNAMIC_MARKERS(10434, "twin class must have dynamic markers"),
     TWINFLOW_SCHEMA_NOT_ALLOWED(10501, "twinflow schema is not allowed"),
     TWINFLOW_SCHEMA_NOT_CONFIGURED(10502, "twinflow schema is not configured"),
     TWINFLOW_TRANSACTION_INCORRECT(10503, "twinflow transition can not be performed"),
@@ -188,8 +190,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     SCHEDULER_IS_NOT_RUNNING(13202, "scheduler is not running, start it first"),
     SCHEDULER_IS_ALREADY_RUNNING(13203, "scheduler is already running, stop it first"),
     USER_SEARCH_CONFIG_INCORRECT(14001, "user search config incorrect"),
-    TWIN_CLASS_FIELD_CONDITION_DEPTH_EXCEEDED(15001, "twin class field condition depth exceeded"),
-    TWIN_MARKER_RECURSIVE_LOAD_DETECTED(16001, "twin marker recursive load detected");
+    TWIN_CLASS_FIELD_CONDITION_DEPTH_EXCEEDED(15001, "twin class field condition depth exceeded");
 
     private final int code;
     private final String message;

@@ -386,4 +386,10 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             functionSetGroupingEntity.accept(item, loaded.get(key));
         }
     }
+
+    public static <T, E extends Enum<E>> List<T> filterByEnum(Collection<T> items, Function<T, E> getter, E targetValue) {
+        return items.stream()
+                .filter(item -> getter.apply(item) == targetValue)
+                .toList();
+    }
 }

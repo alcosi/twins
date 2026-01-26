@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS twin_class_dynamic_marker (
     id UUID PRIMARY KEY,
-    twin_class_id UUID NOT NULL REFERENCES twin_class(id),
-    twin_validator_set_id UUID NOT NULL REFERENCES twin_validator_set(id),
-    marker_data_list_option_id UUID NOT NULL REFERENCES data_list_option(id)
+    twin_class_id UUID NOT NULL REFERENCES twin_class(id) ON DELETE CASCADE,
+    twin_validator_set_id UUID NOT NULL REFERENCES twin_validator_set(id) ON DELETE CASCADE,
+    marker_data_list_option_id UUID NOT NULL REFERENCES data_list_option(id) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_twin_class_dynamic_marker_twin_class_id

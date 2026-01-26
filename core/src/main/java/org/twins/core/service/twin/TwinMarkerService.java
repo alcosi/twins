@@ -10,6 +10,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -98,13 +99,6 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
     }
 
     public Kit<DataListOptionEntity, UUID> loadMarkers(TwinEntity twinEntity) throws ServiceException {
-        if (twinEntity.getMarkersLoadState() == LoadState.LOADING) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_MARKER_RECURSIVE_LOAD_DETECTED, "Cannot load markers recursively for twin: " + twinEntity.logShort());
-        }
-
-        if (twinEntity.getMarkersLoadState() == LoadState.LOADED)
-            return twinEntity.getTwinMarkerKit();
-
         loadMarkers(Collections.singletonList(twinEntity));
         return twinEntity.getTwinMarkerKit();
     }
@@ -112,119 +106,142 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
     public void loadMarkers(Collection<TwinEntity> twinEntityList) throws ServiceException {
         if (CollectionUtils.isEmpty(twinEntityList)) return;
 
-        List<TwinEntity> twinsWithRecursion = twinEntityList.stream().filter(twin -> twin.getMarkersLoadState() == LoadState.LOADING).toList();
-
+        List<TwinEntity> twinsWithRecursion = filterByEnum(twinEntityList, TwinEntity::getMarkersLoadState, LoadState.LOADING);
         if (!twinsWithRecursion.isEmpty()) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_MARKER_RECURSIVE_LOAD_DETECTED, "Cannot load markers recursively for twin: " + twinsWithRecursion.getFirst().logShort());
+            throw new ServiceException(ErrorCodeTwins.RECURSIVE_LOAD_DETECTED, "Cannot load markers recursively for twin: " + twinsWithRecursion.getFirst().logShort());
         }
 
-        List<TwinEntity> twinsToLoad = twinEntityList.stream().filter(twin -> twin.getMarkersLoadState() == LoadState.NOT_LOADED).toList();
-
+        List<TwinEntity> twinsToLoad = filterByEnum(twinEntityList, TwinEntity::getMarkersLoadState, LoadState.NOT_LOADED);
         if (twinsToLoad.isEmpty()) return;
 
-        twinsToLoad.forEach(twin -> twin.setMarkersLoadState(LoadState.LOADING));
+        setLoadingState(twinsToLoad, LoadState.LOADING);
 
         try {
-            Map<UUID, TwinEntity> needLoadStatic = new HashMap<>();
-            for (TwinEntity twinEntity : twinsToLoad) {
-                if (twinEntity.getTwinMarkerKit() == null) {
-                    needLoadStatic.put(twinEntity.getId(), twinEntity);
-                }
-            }
-
-            if (!needLoadStatic.isEmpty()) {
-                List<TwinMarkerEntity> twinMarkerEntityList = twinMarkerRepository.findByTwinIdIn(needLoadStatic.keySet());
-                if (CollectionUtils.isNotEmpty(twinMarkerEntityList)) {
-                    Map<UUID, List<DataListOptionEntity>> markersMap = new HashMap<>();
-                    for (TwinMarkerEntity twinMarkerEntity : twinMarkerEntityList) {
-                        markersMap.computeIfAbsent(twinMarkerEntity.getTwinId(), k -> new ArrayList<>())
-                                .add(twinMarkerEntity.getMarkerDataListOption());
-                    }
-
-                    for (Map.Entry<UUID, TwinEntity> entry : needLoadStatic.entrySet()) {
-                        List<DataListOptionEntity> twinMarkers = markersMap.get(entry.getKey());
-                        List<DataListOptionEntity> markersForKit = twinMarkers != null
-                                ? new ArrayList<>(twinMarkers)
-                                : new ArrayList<>();
-                        entry.getValue().setTwinMarkerKit(new Kit<>(markersForKit, DataListOptionEntity::getId));
-                    }
-                } else {
-                    for (TwinEntity twinEntity : needLoadStatic.values()) {
-                        twinEntity.setTwinMarkerKit(new Kit<>(new ArrayList<>(), DataListOptionEntity::getId));
-                    }
-                }
-            }
-
-            List<TwinEntity> twinsWithDynamicMarkers = twinsToLoad.stream()
-                    .filter(twin -> twin.getTwinClass().getHasDynamicMarkers())
-                    .collect(Collectors.toList());
-
-            if (CollectionUtils.isEmpty(twinsWithDynamicMarkers)) {
-                twinsToLoad.forEach(twin -> twin.setMarkersLoadState(LoadState.LOADED));
-                return;
-            }
-
-            Map<UUID, List<TwinEntity>> twinsByClass = twinsWithDynamicMarkers.stream()
-                    .collect(Collectors.groupingBy(twin -> twin.getTwinClass().getId()));
-
-            List<TwinClassDynamicMarkerEntity> classDynamicMarkers = twinClassDynamicMarkerService
-                    .findByTwinClassIdIn(twinsByClass.keySet());
-
-            if (CollectionUtils.isEmpty(classDynamicMarkers)) {
-                twinsToLoad.forEach(twin -> twin.setMarkersLoadState(LoadState.LOADED));
-                return;
-            }
-
-            Map<UUID, List<TwinClassDynamicMarkerEntity>> dynamicMarkersByClass = classDynamicMarkers.stream()
-                    .collect(Collectors.groupingBy(TwinClassDynamicMarkerEntity::getTwinClassId));
-
-            List<UUID> allMarkerOptionIds = classDynamicMarkers.stream()
-                    .map(TwinClassDynamicMarkerEntity::getMarkerDataListOptionId)
-                    .distinct()
-                    .collect(Collectors.toList());
-
-            Kit<DataListOptionEntity, UUID> allMarkerOptions = dataListOptionService.findEntitiesSafe(allMarkerOptionIds);
-
-            for (Map.Entry<UUID, List<TwinClassDynamicMarkerEntity>> classEntry : dynamicMarkersByClass.entrySet()) {
-                List<TwinEntity> classTwins = twinsByClass.get(classEntry.getKey());
-
-                if (CollectionUtils.isEmpty(classTwins)) {
-                    continue;
-                }
-
-                for (TwinClassDynamicMarkerEntity dynamicMarker : classEntry.getValue()) {
-                    DataListOptionEntity markerOption = allMarkerOptions.get(dynamicMarker.getMarkerDataListOptionId());
-                    if (markerOption == null) {
-                        log.warn("Dynamic marker option not found: {}", dynamicMarker.getMarkerDataListOptionId());
-                        continue;
-                    }
-
-                    Map<UUID, ValidationResult> validationResults = twinValidatorSetService.isValid(classTwins, dynamicMarker);
-
-                    for (TwinEntity twin : classTwins) {
-                        ValidationResult result = validationResults.get(twin.getId());
-                        if (result != null && result.isValid()) {
-                            Kit<DataListOptionEntity, UUID> kit = twin.getTwinMarkerKit();
-                            if (kit == null) {
-                                kit = new Kit<>(DataListOptionEntity::getId);
-                                twin.setTwinMarkerKit(kit);
-                            }
-                            if (!kit.containsKey(markerOption.getId())) {
-                                kit.add(markerOption);
-                            }
-                        }
-                    }
-                }
-            }
-
-            twinsToLoad.forEach(twin -> twin.setMarkersLoadState(LoadState.LOADED));
+            loadStaticMarkers(twinsToLoad);
+            loadDynamicMarkers(twinsToLoad);
+            setLoadingState(twinsToLoad, LoadState.LOADED);
 
         } catch (ServiceException e) {
-            for (TwinEntity twin : twinsToLoad) {
-                twin.setMarkersLoadState(LoadState.NOT_LOADED);
-                twin.setTwinMarkerKit(null);
-            }
+            setLoadingState(twinsToLoad, LoadState.NOT_LOADED);
             throw e;
+        }
+    }
+
+    private void setLoadingState(List<TwinEntity> twins, LoadState state) {
+        twins.forEach(twin -> twin.setMarkersLoadState(state));
+    }
+
+    private void loadStaticMarkers(List<TwinEntity> twinsToLoad) throws ServiceException {
+        Map<UUID, TwinEntity> needLoadStatic = twinsToLoad.stream()
+                .filter(twin -> twin.getTwinMarkerKit() == null)
+                .collect(Collectors.toMap(TwinEntity::getId, Function.identity()));
+
+        if (needLoadStatic.isEmpty()) {
+            return;
+        }
+        List<TwinMarkerEntity> twinMarkerEntityList = twinMarkerRepository.findByTwinIdIn(needLoadStatic.keySet());
+
+        if (CollectionUtils.isNotEmpty(twinMarkerEntityList)) {
+            Map<UUID, List<DataListOptionEntity>> markersMap = groupMarkersByTwinId(twinMarkerEntityList);
+            assignStaticMarkers(needLoadStatic, markersMap);
+        } else {
+            assignEmptyMarkers(needLoadStatic.values());
+        }
+    }
+
+    private Map<UUID, List<DataListOptionEntity>> groupMarkersByTwinId(List<TwinMarkerEntity> twinMarkerEntityList) {
+        Map<UUID, List<DataListOptionEntity>> markersMap = new HashMap<>();
+        for (TwinMarkerEntity twinMarkerEntity : twinMarkerEntityList) {
+            markersMap.computeIfAbsent(twinMarkerEntity.getTwinId(), k -> new ArrayList<>())
+                    .add(twinMarkerEntity.getMarkerDataListOption());
+        }
+        return markersMap;
+    }
+
+    private void assignStaticMarkers(Map<UUID, TwinEntity> needLoadStatic, Map<UUID, List<DataListOptionEntity>> markersMap) {
+        for (Map.Entry<UUID, TwinEntity> entry : needLoadStatic.entrySet()) {
+            List<DataListOptionEntity> twinMarkers = markersMap.get(entry.getKey());
+            List<DataListOptionEntity> markersForKit = twinMarkers != null
+                    ? new ArrayList<>(twinMarkers)
+                    : new ArrayList<>();
+            entry.getValue().setTwinMarkerKit(new Kit<>(markersForKit, DataListOptionEntity::getId));
+        }
+    }
+
+    private void assignEmptyMarkers(Collection<TwinEntity> twins) {
+        for (TwinEntity twinEntity : twins) {
+            twinEntity.setTwinMarkerKit(new Kit<>(new ArrayList<>(), DataListOptionEntity::getId));
+        }
+    }
+
+    private void loadDynamicMarkers(List<TwinEntity> twinsToLoad) throws ServiceException {
+        KitGrouped<TwinEntity, UUID, UUID> twinsByClass = createTwinsGroupedByClass(twinsToLoad);
+        if (twinsByClass.isEmpty()) return;
+
+        List<TwinClassDynamicMarkerEntity> classDynamicMarkers = twinClassDynamicMarkerService.findByTwinClassIdIn(twinsByClass.getGroupedKeySet());
+
+        if (CollectionUtils.isEmpty(classDynamicMarkers))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_MUST_HAVE_DYNAMIC_MARKERS, "Missing markers for " + twinsByClass.getList().getFirst().getTwinClass().logShort());
+
+        twinValidatorSetService.loadTwinValidatorSet(classDynamicMarkers);
+
+        KitGrouped<TwinClassDynamicMarkerEntity, UUID, UUID> markersByValidatorSet = new KitGrouped<>(
+                classDynamicMarkers,
+                TwinClassDynamicMarkerEntity::getId,
+                TwinClassDynamicMarkerEntity::getTwinValidatorSetId
+        );
+
+        for (UUID validatorSetId : markersByValidatorSet.getGroupedKeySet()) {
+            processValidatorSet(twinsByClass, markersByValidatorSet.getGrouped(validatorSetId));
+        }
+    }
+
+    private void processValidatorSet(KitGrouped<TwinEntity, UUID, UUID> twinsByClass, List<TwinClassDynamicMarkerEntity> markers) throws ServiceException {
+        if (markers.isEmpty()) return;
+
+        Set<UUID> classIds = markers.stream()
+                .map(TwinClassDynamicMarkerEntity::getTwinClassId)
+                .collect(Collectors.toSet());
+
+        List<TwinEntity> twinsForValidation = twinsByClass.getAllForGroupedKeys(classIds);
+
+        if (twinsForValidation.isEmpty()) return;
+
+        Map<UUID, ValidationResult> validationResults = twinValidatorSetService.isValid(twinsForValidation, markers.getFirst());
+
+        applyMarkers(markers, twinsByClass, validationResults);
+    }
+
+    private void applyMarkers(List<TwinClassDynamicMarkerEntity> markers, KitGrouped<TwinEntity, UUID, UUID> twinsByClass, Map<UUID, ValidationResult> validationResults) {
+        for (TwinClassDynamicMarkerEntity marker : markers) {
+            twinsByClass.getGrouped(marker.getTwinClassId()).forEach(twin -> {
+                if (validationResults.get(twin.getId()).isValid()) {
+                    addMarkerToTwin(twin, marker.getMarkerDataListOption());
+                }
+            });
+        }
+    }
+
+    private KitGrouped<TwinEntity, UUID, UUID> createTwinsGroupedByClass(List<TwinEntity> twins) {
+        List<TwinEntity> filtered = twins.stream()
+                .filter(twin -> twin.getTwinClass().getHasDynamicMarkers())
+                .collect(Collectors.toList());
+
+        return new KitGrouped<>(
+                filtered,
+                TwinEntity::getId,
+                twin -> twin.getTwinClass().getId()
+        );
+    }
+
+    private void addMarkerToTwin(TwinEntity twin, DataListOptionEntity markerOption) {
+        Kit<DataListOptionEntity, UUID> kit = twin.getTwinMarkerKit();
+        if (kit == null) {
+            kit = new Kit<>(DataListOptionEntity::getId);
+            twin.setTwinMarkerKit(kit);
+        }
+        if (!kit.containsKey(markerOption.getId())) {
+            kit.add(markerOption);
         }
     }
 

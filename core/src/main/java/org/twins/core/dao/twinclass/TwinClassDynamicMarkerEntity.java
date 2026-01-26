@@ -8,6 +8,8 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
@@ -36,6 +38,14 @@ public class TwinClassDynamicMarkerEntity implements ContainsTwinValidatorSet, E
 
     @Column(name = "marker_data_list_option_id")
     private UUID markerDataListOptionId;
+
+    @ManyToOne
+    @JoinColumn(name = "marker_data_list_option_id", insertable = false, updatable = false)
+    private DataListOptionEntity markerDataListOption;
+
+    @ManyToOne
+    @JoinColumn(name = "twin_class_id", insertable = false, updatable = false)
+    private TwinClassEntity twinClass;
 
     @Transient
     private TwinValidatorSetEntity twinValidatorSet;

@@ -11,6 +11,8 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassDynamicMarkerEntity;
 import org.twins.core.dao.twinclass.TwinClassDynamicMarkerRepository;
+import org.twins.core.domain.ApiUser;
+import org.twins.core.service.auth.AuthService;
 
 import java.util.Collection;
 import java.util.List;
@@ -23,6 +25,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class TwinClassDynamicMarkerService extends EntitySecureFindServiceImpl<TwinClassDynamicMarkerEntity> {
     private final TwinClassDynamicMarkerRepository twinClassDynamicMarkerRepository;
+    private final AuthService authService;
 
     @Override
     public CrudRepository<TwinClassDynamicMarkerEntity, UUID> entityRepository() {
@@ -37,7 +40,7 @@ public class TwinClassDynamicMarkerService extends EntitySecureFindServiceImpl<T
 
     @Override
     public boolean isEntityReadDenied(TwinClassDynamicMarkerEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
+        return entity.getTwinClass().getDomainId() != null && !entity.getTwinClass().getDomainId().equals(authService.getApiUser().getDomainId());
     }
 
     @Override
