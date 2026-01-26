@@ -188,7 +188,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     SCHEDULER_IS_NOT_RUNNING(13202, "scheduler is not running, start it first"),
     SCHEDULER_IS_ALREADY_RUNNING(13203, "scheduler is already running, stop it first"),
     USER_SEARCH_CONFIG_INCORRECT(14001, "user search config incorrect"),
-    TWIN_CLASS_FIELD_CONDITION_DEPTH_EXCEEDED(15001, "twin class field condition depth exceeded");
+    TWIN_CLASS_FIELD_CONDITION_DEPTH_EXCEEDED(15001, "twin class field condition depth exceeded"),
+    TWIN_MARKER_RECURSIVE_LOAD_DETECTED(16001, "twin marker recursive load detected");
 
     private final int code;
     private final String message;
