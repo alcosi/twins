@@ -69,18 +69,4 @@ public class KitGrouped<E, K, GK> extends Kit<E, K>{
         List<E> ret = groupedMap.get(key);
         return ret != null ? ret : Collections.EMPTY_LIST;
     }
-
-    public List<E> getAllForGroupedKeys(Collection<GK> groupedKeys) {
-        getGroupedMap();
-        if (groupedMap == null || groupedMap.isEmpty()) {
-            return Collections.EMPTY_LIST;
-        }
-
-        return groupedKeys.stream()
-                .distinct()
-                .map(groupedMap::get)
-                .filter(Objects::nonNull)
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
-    }
 }
