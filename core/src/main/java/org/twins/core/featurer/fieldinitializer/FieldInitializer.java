@@ -24,7 +24,7 @@ public abstract class FieldInitializer<D extends FieldDescriptor, T extends Fiel
     public void setInitValue(TwinEntity twin, T value, boolean reinitForce) throws ServiceException {
         if (value.isAlreadyInitialized())
             return;
-        if (reinitForce || !value.isFilled()) {
+        if (reinitForce || value.isUndefined()) {
             Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldInitializerParams(), new HashMap<>());
             setInitValue(properties, twin, value);
             value.setAlreadyInitialized(true);

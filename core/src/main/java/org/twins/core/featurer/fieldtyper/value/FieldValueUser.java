@@ -1,61 +1,48 @@
 package org.twins.core.featurer.fieldtyper.value;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 
-@Getter
-@Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FieldValueUser extends FieldValue {
-    private List<UserEntity> users = new ArrayList<>();
+public class FieldValueUser extends FieldValueCollection<UserEntity> {
+    private List<UserEntity> users = null;
 
     public FieldValueUser(TwinClassFieldEntity twinClassField) {
         super(twinClassField);
     }
 
+    public FieldValueUser setUsers(List<UserEntity> newUsers) {
+        users = setWithNullifyMarkerSupport(newUsers);
+        return this;
+    }
+
     @Override
-    public boolean isFilled() {
-        return CollectionUtils.isNotEmpty(users);
+    protected List<UserEntity> getCollection() {
+        return users;
+    }
+
+    @Override
+    protected Function<UserEntity, UUID> itemGetIdFunction() {
+        return UserEntity::getId;
     }
 
     public FieldValueUser add(UserEntity user) {
-        users.add(user);
+        users = addWithNullifyMarkerSupport(users, user);
         return this;
     }
 
     @Override
     public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueUser clone = new FieldValueUser(newTwinClassFieldEntity);
-        clone.getUsers().addAll(this.getUsers()); // we have to copy list
+        clone.setUsers(this.getItems()); // we have to copy a list
         return clone;
-    }
-
-    @Override
-    public boolean hasValue(String value) {
-        if (CollectionUtils.isEmpty(users)) {
-            return false;
-        }
-        UUID valueUUID;
-        try {
-            valueUUID = UUID.fromString(value);
-        } catch (Exception e) {
-            return false;
-        }
-        for (UserEntity userEntity : users) {
-            if (userEntity.getId() != null && userEntity.getId().equals(valueUUID))
-                return true;
-        }
-        return false;
     }
 
     @Override
@@ -65,12 +52,12 @@ public class FieldValueUser extends FieldValue {
     }
 
     @Override
-    public void nullify() {
-        users = new ArrayList<>();
+    public void onUndefine() {
+        users = null;
     }
 
     @Override
-    public boolean isNullified() {
-        return users != null && users.isEmpty();
+    public void onClear() {
+        users.clear();
     }
 }

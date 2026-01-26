@@ -119,11 +119,15 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     public void serializeValue(TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams(), new HashMap<>());
-        if (!value.isFilled()) {
+        if (value.isUndefined()) {
             initializeField(twin, value);
         }
-        if (!validate(twin, value).isValid()) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Can not serialize invalid value for " + value.getTwinClassField().logNormal());
+        if (value.isCleared()) {
+            //todo some clear logic
+        } else {
+            if (!validate(twin, value).isValid()) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Can not serialize invalid value for " + value.getTwinClassField().logNormal());
+            }
         }
         serializeValue(properties, twin, value, twinChangesCollector);
     }
@@ -185,7 +189,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         }
         if (!twin.isSketch() // check required for non-sketch twins
                 && value.getTwinClassField().getRequired()
-                && !value.isFilled()) {
+                && value.isEmpty()) {
             log.error("{} is required", value.getTwinClassField().logNormal());
             return new ValidationResult(false, getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, value.getTwinClassField()));
         }

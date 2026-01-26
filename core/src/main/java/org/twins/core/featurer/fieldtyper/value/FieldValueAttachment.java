@@ -19,11 +19,6 @@ public class FieldValueAttachment extends FieldValue {
     }
 
     @Override
-    public boolean isFilled() {
-        return name != null && !name.isEmpty() && base64Content != null && !base64Content.isEmpty();
-    }
-
-    @Override
     public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueAttachment clone = new FieldValueAttachment(newTwinClassFieldEntity);
         clone.setName(name);
@@ -42,13 +37,14 @@ public class FieldValueAttachment extends FieldValue {
     }
 
     @Override
-    public void nullify() {
+    public void onUndefine() {
         name = null;
         base64Content = null;
     }
 
     @Override
-    public boolean isNullified() {
-        return name == null && base64Content == null;
+    public void onClear() {
+        name = null;
+        base64Content = null;
     }
 }

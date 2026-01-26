@@ -1,19 +1,16 @@
 package org.twins.core.featurer.fieldtyper.value;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.MapUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-@Getter
-@Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class FieldValueI18n extends FieldValue {
@@ -24,6 +21,23 @@ public class FieldValueI18n extends FieldValue {
         this.translations = new HashMap<>();
     }
 
+    public Map<Locale, String> getTranslations() {
+        return translations == null
+                ? Collections.EMPTY_MAP
+                : Collections.unmodifiableMap(translations);
+    }
+
+    public FieldValueI18n setTranslations(Map<Locale, String> newTranslations) {
+        if (CollectionUtils.isEmpty(newTranslations)) {
+            translations = null;
+            state = State.CLEARED;
+        } else {
+            translations = new HashMap<>(newTranslations); //new map here
+            state = State.PRESENT;
+        }
+        return this;
+    }
+
     public void addTranslation(Locale locale, String translation) {
         if (translations == null) {
             translations = new HashMap<>();
@@ -32,25 +46,10 @@ public class FieldValueI18n extends FieldValue {
     }
 
     @Override
-    public boolean isFilled() {
-        return MapUtils.isNotEmpty(translations);
-    }
-
-    @Override
     public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueI18n clone = new FieldValueI18n(newTwinClassFieldEntity);
-        clone.setTranslations(new HashMap<>(this.translations));
+        clone.translations = new HashMap<>(this.translations);
         return clone;
-    }
-
-    @Override
-    public void nullify() {
-        translations = null;
-    }
-
-    @Override
-    public boolean isNullified() {
-        return CollectionUtils.isEmpty(translations);
     }
 
     @Override
@@ -60,6 +59,16 @@ public class FieldValueI18n extends FieldValue {
 
     @Override
     public void copyValueFrom(FieldValue src) {
-        translations = new HashMap<>(((FieldValueI18n) src).getTranslations());
+        translations = new HashMap<>(((FieldValueI18n) src).translations);
+    }
+
+    @Override
+    public void onUndefine() {
+        translations = null;
+    }
+
+    @Override
+    public void onClear() {
+        translations = null;
     }
 }

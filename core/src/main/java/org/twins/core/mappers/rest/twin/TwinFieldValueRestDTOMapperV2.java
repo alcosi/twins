@@ -5,7 +5,6 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.JsonUtils;
-import org.cambium.common.util.MapUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -47,12 +46,12 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
     @Override
     public FieldValueText convert(FieldValue src, MapperContext mapperContext) throws Exception {
         FieldValueText dst = new FieldValueText(src.getTwinClassField());
-        if (!src.isFilled()) {
+        if (src.isEmpty()) {
             dst.setValue("");
         } else if (src instanceof FieldValueText text) {
             dst.setValue(text.getValue());
         } else if (src instanceof FieldValueColorHEX color) {
-            dst.setValue(color.getHex());
+            dst.setValue(color.getValue());
         } else if (src instanceof FieldValueDate date) {
             dst.setValue(date.getDateStr());
         } else if (src instanceof FieldValueInvisible) {
@@ -68,7 +67,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
         } else if (src instanceof FieldValueBoolean fieldValueBoolean) {
             dst.setValue(String.valueOf(fieldValueBoolean.getValue()));
         } else if (src instanceof FieldValueTwinClassList fieldValueTwinClassList) {
-            dst.setValue(String.valueOf(fieldValueTwinClassList.getTwinClassEntities()));
+            dst.setValue(String.valueOf(fieldValueTwinClassList.getTwinClasses()));
         } else if (src instanceof FieldValueSelect select) {
             StringJoiner stringJoiner = new StringJoiner(",");
             for (DataListOptionEntity dataListOptionEntity : select.getOptions()) {
@@ -80,7 +79,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
             dst.setValue(stringJoiner.toString());
         } else if (src instanceof FieldValueUser userField) {
             StringJoiner stringJoiner = new StringJoiner(",");
-            for (UserEntity userEntity : userField.getUsers()) {
+            for (UserEntity userEntity : userField.getItems()) {
                 stringJoiner.add(userEntity.getId().toString());
                 if (mapperContext.hasModeButNot(UserMode.TwinField2UserMode.HIDE)) {
                     userRestDTOMapper.postpone(userEntity, mapperContext.forkOnPoint(UserMode.TwinField2UserMode.HIDE));
@@ -92,7 +91,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
                 userRestDTOMapper.postpone(userField.getUser(), mapperContext.forkOnPoint(UserMode.TwinField2UserMode.HIDE));
             }
             dst.setValue(userField.getUser().getId().toString());
-        } else if (src instanceof FieldValueStatusSingle statusField) {
+        } else if (src instanceof FieldValueStatus statusField) {
             if (mapperContext.hasModeButNot(StatusMode.TwinField2StatusMode.HIDE)) {
                 twinStatusRestDTOMapper.postpone(statusField.getStatus(), mapperContext.forkOnPoint(StatusMode.TwinField2StatusMode.HIDE));
             }
@@ -117,7 +116,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
             }
             dst.setValue(link.getDstTwin().getId().toString());
         } else if (src instanceof FieldValueI18n i18nField) {
-            if (MapUtils.isNotEmpty(i18nField.getTranslations())) {
+            if (i18nField.isNotEmpty()) {
                 String jsonStr = JsonUtils.translationsMapToJson(i18nField.getTranslations());
                 if (jsonStr == null)
                     throw new ServiceException(

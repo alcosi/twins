@@ -19,6 +19,6 @@ import java.util.Properties;
 public class FieldInitializerNull<D extends FieldDescriptor,T extends FieldValue> extends FieldInitializer<D, T> {
     @Override
     protected void setInitValue(Properties properties, TwinEntity twin, T value) throws ServiceException {
-        value.nullify();
+        value.undefine();
     }
 }

@@ -2,34 +2,55 @@ package org.twins.core.featurer.fieldtyper.value;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class FieldValueDate extends FieldValue {
+    @Getter
     private String dateStr;
+    @Getter
     private LocalDateTime date;
 
     public FieldValueDate(TwinClassFieldEntity twinClassField) {
         super(twinClassField);
     }
 
-    @Override
-    public boolean isFilled() {
-        return dateStr != null;
+    public FieldValueDate setDateStr(String newValue) {
+        if (newValue == null) {
+            this.dateStr = null;
+            this.date = null;
+            this.state = State.CLEARED;
+        } else {
+            this.dateStr = newValue;
+            this.date = null;
+            this.state = State.PRESENT;
+        }
+        return this;
+    }
+
+    public FieldValueDate setDate(LocalDateTime date, String newValue) {
+        if (newValue == null) {
+            this.dateStr = null;
+            this.date = null;
+            this.state = State.CLEARED;
+        } else {
+            this.dateStr = newValue;
+            this.date = date;
+            this.state = State.PRESENT;
+        }
+        return this;
     }
 
     @Override
     public FieldValueDate clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueDate clone = new FieldValueDate(newTwinClassFieldEntity);
-        clone.setDateStr(this.dateStr);
+        clone.dateStr = this.dateStr;
+        clone.date = this.date;
         return clone;
     }
 
@@ -45,12 +66,14 @@ public class FieldValueDate extends FieldValue {
     }
 
     @Override
-    public void nullify() {
-        dateStr = "";
+    public void onUndefine() {
+        dateStr = null;
+        date = null;
     }
 
     @Override
-    public boolean isNullified() {
-        return "".equals(dateStr);
+    public void onClear() {
+        dateStr = null;
+        date = null;
     }
 }

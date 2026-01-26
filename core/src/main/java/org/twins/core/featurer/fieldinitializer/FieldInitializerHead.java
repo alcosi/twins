@@ -39,7 +39,7 @@ public class FieldInitializerHead<D extends FieldDescriptor, T extends FieldValu
         twinService.loadHeadForTwin(twin);
         twinService.loadTwinFields(twin.getHeadTwin());
         var headTwinValue = twin.getHeadTwin().getFieldValuesKit().get(fromTwinClassFieldId.extract(properties));
-        if (headTwinValue != null && !headTwinValue.isEmpty()) {
+        if (headTwinValue != null && headTwinValue.isNotEmpty()) {
             twinService.copyToField(headTwinValue, value);
         } else if (throwIfNull.extract(properties)) {
             throw new ServiceException(ErrorCodeTwins.CONFIGURATION_IS_INVALID, twin.logNormal() + " has no value in head twin field " + fromTwinClassFieldId.extract(properties));

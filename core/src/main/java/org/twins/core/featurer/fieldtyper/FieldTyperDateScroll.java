@@ -57,10 +57,14 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (!value.isNullified()) {
+        //todo refactor me
+        if (value.isUndefined())
+            return;
+        else if (value.isNotEmpty()) {
             LocalDateTime localDateTime = parseDateTime(value.getDateStr(), properties);
-            value.setDate(localDateTime);
-            value.setDateStr(formatDate(localDateTime, properties));
+            value.setDate(localDateTime, formatDate(localDateTime, properties));
+        } else { // isCleared
+            value.setDateStr("");
         }
         detectValueChange(twinFieldEntity, twinChangesCollector, value.getDateStr());
     }
@@ -68,11 +72,11 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     @Override
     protected FieldValueDate deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) throws ServiceException {
         FieldValueDate fieldValueDate = new FieldValueDate(twinField.getTwinClassField());
-        fieldValueDate
-                .setDateStr(twinFieldEntity != null && !StringUtils.isEmpty(twinFieldEntity.getValue()) ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : null)
-                .setDate(fieldValueDate.getDateStr() != null
-                        ? parseDateTime(fieldValueDate.getDateStr(), properties)
-                        : null);
+        var dateStr = twinFieldEntity != null && !StringUtils.isEmpty(twinFieldEntity.getValue()) ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : null;
+        if (dateStr != null) {
+            fieldValueDate.setDate(parseDateTime(dateStr, properties),dateStr);
+        } else
+            fieldValueDate.undefine();
         return fieldValueDate;
     }
 

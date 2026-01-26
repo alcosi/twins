@@ -17,11 +17,6 @@ public class FieldValueInvisible extends FieldValue {
     }
 
     @Override
-    public boolean isFilled() {
-        return false;
-    }
-
-    @Override
     public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueInvisible clone = new FieldValueInvisible(newTwinClassFieldEntity);
         return clone;
@@ -38,11 +33,12 @@ public class FieldValueInvisible extends FieldValue {
     }
 
     @Override
-    public void nullify() {
+    public void onUndefine() {
+
     }
 
     @Override
-    public boolean isNullified() {
-        return false;
+    public void onClear() {
+
     }
 }

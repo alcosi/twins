@@ -62,10 +62,10 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueUser value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (value.getUsers() != null && value.getUsers().size() > 1 && !allowMultiply(properties))
+        if (value.size() > 1 && !allowMultiply(properties))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply options are not allowed");
         UUID userFilterId = userFilterUUID.extract(properties); //todo not implemented yet
-        List<UserEntity> selectedUserEntityList = userService.findEntitiesSafe(value.getUsers().stream().map(UserEntity::getId).toList()).getList();
+        List<UserEntity> selectedUserEntityList = userService.findEntitiesSafe(value.getItems().stream().map(UserEntity::getId).toList()).getList();
         twinService.loadTwinFields(twin);
         Map<UUID, TwinFieldUserEntity> storedFieldUsers = null;
         if (twin.getTwinFieldUserKit().containsGroupedKey(value.getTwinClassField().getId()))

@@ -4,25 +4,31 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.springframework.util.ObjectUtils;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.UUID;
 
-@Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class FieldValueId extends FieldValue {
+    @Getter
     private UUID id;
 
     public FieldValueId(TwinClassFieldEntity twinClassField) {
         super(twinClassField);
     }
 
-    @Override
-    public boolean isFilled() {
-        return !ObjectUtils.isEmpty(id);
+    public FieldValue setId(UUID newId) {
+        if (newId == null || UuidUtils.isNullifyMarker(newId)) {
+            this.state = State.CLEARED;
+            this.id = null;
+        } else {
+            this.id = newId;
+            this.state = State.PRESENT;
+        }
+        return this;
     }
 
     @Override
@@ -34,13 +40,7 @@ public class FieldValueId extends FieldValue {
 
     @Override
     public boolean hasValue(String value) {
-        UUID valueUUID;
-        try {
-            valueUUID = UUID.fromString(value);
-        } catch (Exception e) {
-            return false;
-        }
-        return id != null && id.equals(valueUUID);
+        return UuidUtils.equals(id, value);
     }
 
     @Override
@@ -49,12 +49,12 @@ public class FieldValueId extends FieldValue {
     }
 
     @Override
-    public void nullify() {
+    public void onUndefine() {
         id = null;
     }
 
     @Override
-    public boolean isNullified() {
-        return id == null;
+    public void onClear() {
+        id = null;
     }
 }

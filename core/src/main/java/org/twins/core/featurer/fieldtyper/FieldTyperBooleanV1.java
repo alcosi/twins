@@ -67,7 +67,7 @@ public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolea
         detectValueChange(
                 twinFieldBooleanEntity,
                 twinChangesCollector,
-                value.isFilled() ? value.getValue() : defaultValue.extract(properties) // if field_value=null in json and field is not required we use defaultValue and save it in db
+                value.isNotEmpty() ? value.getValue() : defaultValue.extract(properties) // if field_value=null in json and field is not required we use defaultValue and save it in db
         );
     }
 

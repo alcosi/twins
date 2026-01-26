@@ -2,46 +2,42 @@ package org.twins.core.featurer.fieldtyper.value;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.UUID;
+import java.util.function.Function;
 
-@Getter
-@Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FieldValueLinkSingle extends FieldValue {
+public class FieldValueLinkSingle extends FieldValueItem<TwinEntity> {
+    @Getter
     private TwinEntity dstTwin;
 
     public FieldValueLinkSingle(TwinClassFieldEntity twinClassField) {
         super(twinClassField);
     }
 
-    @Override
-    public boolean isFilled() {
-        return !ObjectUtils.isEmpty(dstTwin);
+    public FieldValueLinkSingle setDstTwin(TwinEntity dstTwin) {
+        this.dstTwin = setItemWithNullifSupport(dstTwin);
+        return this;
     }
 
     @Override
+    protected TwinEntity getItem() {
+        return dstTwin;
+    }
+
+    @Override
+    protected Function<TwinEntity, UUID> itemGetIdFunction() {
+        return TwinEntity::getId;
+    }
+
     public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueLinkSingle clone = new FieldValueLinkSingle(newTwinClassFieldEntity);
         clone.setDstTwin(this.getDstTwin());
         return clone;
-    }
-
-    @Override
-    public boolean hasValue(String value) {
-        UUID valueUUID;
-        try {
-            valueUUID = UUID.fromString(value);
-        } catch (Exception e) {
-            return false;
-        }
-        return dstTwin.getId() != null && dstTwin.getId().equals(valueUUID);
     }
 
     @Override
@@ -50,12 +46,12 @@ public class FieldValueLinkSingle extends FieldValue {
     }
 
     @Override
-    public void nullify() {
+    public void onUndefine() {
         dstTwin = null;
     }
 
     @Override
-    public boolean isNullified() {
-        return dstTwin == null; //not sure that this is correct
+    public void onClear() {
+        dstTwin = null;
     }
 }

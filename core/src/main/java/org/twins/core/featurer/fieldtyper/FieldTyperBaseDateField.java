@@ -41,8 +41,7 @@ public class FieldTyperBaseDateField extends FieldTyper<FieldDescriptorImmutable
         TwinEntity twin = twinField.getTwin();
         if (fieldId.equals(TWIN_CLASS_FIELD_TWIN_CREATED_AT)) {
             return new FieldValueDate(twinField.getTwinClassField())
-                    .setDateStr(twin.getCreatedAt().toString())
-                    .setDate(twin.getCreatedAt().toLocalDateTime());
+                    .setDate(twin.getCreatedAt().toLocalDateTime(), twin.getCreatedAt().toString());
         }
         throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
                 "Field [" + twinField.getTwinClassField().logShort() + "] is not a supported base field for " + twin.logNormal());

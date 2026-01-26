@@ -7,10 +7,10 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.featurer.fieldtyper.value.*;
-import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
 
 
 @Component
@@ -32,7 +32,7 @@ public class TwinFieldValueRestDTOMapper extends RestSimpleDTOMapper<FieldValue,
                     .text(text.getValue());
         if (fieldValue instanceof FieldValueColorHEX color)
             return new TwinFieldValueColorHexDTOv1()
-                    .hex(color.getHex());
+                    .hex(color.getValue());
         if (fieldValue instanceof FieldValueDate date)
             return new TwinFieldValueDateDTOv1()
                     .date(date.getDateStr());

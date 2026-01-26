@@ -11,8 +11,8 @@ import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.*;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 
@@ -39,7 +39,7 @@ public class TwinFieldValueRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
                     .setValue(text.text());
         if (fieldValueDTO instanceof TwinFieldValueColorHexDTOv1 color)
             fieldValue =  new FieldValueColorHEX(twinClassFieldEntity)
-                    .setHex(color.hex());
+                    .setValue(color.hex());
         if (fieldValueDTO instanceof TwinFieldValueDateDTOv1 date)
             fieldValue = new FieldValueDate(twinClassFieldEntity)
                     .setDateStr(date.date());

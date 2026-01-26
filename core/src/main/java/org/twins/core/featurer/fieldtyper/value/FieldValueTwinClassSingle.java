@@ -2,19 +2,18 @@ package org.twins.core.featurer.fieldtyper.value;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.UUID;
+import java.util.function.Function;
 
-@Getter
-@Setter
+
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FieldValueTwinClassSingle extends FieldValue {
+public class FieldValueTwinClassSingle extends FieldValueItem<TwinClassEntity> {
+    @Getter
     private TwinClassEntity twinClass;
 
     public FieldValueTwinClassSingle(TwinClassFieldEntity twinClassField) {
@@ -22,8 +21,18 @@ public class FieldValueTwinClassSingle extends FieldValue {
     }
 
     @Override
-    public boolean isFilled() {
-        return !ObjectUtils.isEmpty(twinClass);
+    protected TwinClassEntity getItem() {
+        return twinClass;
+    }
+
+    @Override
+    protected Function<TwinClassEntity, UUID> itemGetIdFunction() {
+        return TwinClassEntity::getId;
+    }
+
+    public FieldValueTwinClassSingle setTwinClass(TwinClassEntity newTwinClass) {
+        twinClass = setItemWithNullifSupport(newTwinClass);
+        return this;
     }
 
     @Override
@@ -34,28 +43,17 @@ public class FieldValueTwinClassSingle extends FieldValue {
     }
 
     @Override
-    public boolean hasValue(String value) {
-        UUID valueUUID;
-        try {
-            valueUUID = UUID.fromString(value);
-        } catch (Exception e) {
-            return false;
-        }
-        return twinClass.getId() != null && twinClass.getId().equals(valueUUID);
-    }
-
-    @Override
     public void copyValueFrom(FieldValue src) {
         twinClass = ((FieldValueTwinClassSingle) src).twinClass;
     }
 
     @Override
-    public void nullify() {
+    public void onUndefine() {
         twinClass = null;
     }
 
     @Override
-    public boolean isNullified() {
-        return twinClass == null;
+    public void onClear() {
+        twinClass = null;
     }
 }
