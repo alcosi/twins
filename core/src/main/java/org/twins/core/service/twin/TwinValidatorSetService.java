@@ -159,13 +159,21 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
     }
 
     private <T extends ContainsTwinValidatorSet> boolean performValidation(TwinEntity twinEntity, List<TwinValidatorEntity> activeValidators, T validatorContainer) throws ServiceException {
-        for (TwinValidatorEntity validatorEntity : activeValidators) {
-            if (!validateWithSingleValidator(twinEntity, validatorEntity, validatorContainer)) {
-                return false;
+        if (!isSetInverted(validatorContainer)) {
+            for (TwinValidatorEntity validatorEntity : activeValidators) {
+                if (!validateWithSingleValidator(twinEntity, validatorEntity, validatorContainer)) {
+                    return false;
+                }
             }
+            return true;
+        } else {
+            for (TwinValidatorEntity validatorEntity : activeValidators) {
+                if (!validateWithSingleValidator(twinEntity, validatorEntity, validatorContainer)) {
+                    return true;
+                }
+            }
+            return false;
         }
-
-        return true;
     }
 
     private <T extends ContainsTwinValidatorSet> boolean validateWithSingleValidator(TwinEntity twinEntity, TwinValidatorEntity validatorEntity, T validatorContainer) throws ServiceException {
