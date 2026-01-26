@@ -1,1 +1,1 @@
-INSERT INTO featurer VALUES (2344, 23, null,null, null, false) ON CONFLICT DO NOTHING;
+INSERT INTO featurer VALUES (2344, 23, 'org.twins.core.featurer.factory.filler.FillerBasicsFiledFromTwinField','', '', false) ON CONFLICT DO NOTHING;
