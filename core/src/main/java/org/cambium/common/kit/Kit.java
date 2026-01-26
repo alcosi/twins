@@ -42,6 +42,7 @@ public class Kit<E, K> implements Collection<E> {
     public boolean add(E e) {
         if (collection == null)
             collection = new ArrayList<>();
+        //todo perhaps we need to migrate to LinkedHashMap (instead of separate collection and map fields)
         boolean ret = collection.add(e);
         if (map != null) {
             map.put(functionGetId.apply(e), e);
