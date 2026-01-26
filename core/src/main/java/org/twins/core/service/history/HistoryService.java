@@ -29,7 +29,6 @@ import org.twins.core.dao.history.HistoryTypeDomainTemplateRepository;
 import org.twins.core.dao.history.context.*;
 import org.twins.core.dao.history.context.snapshot.FieldSnapshot;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -279,6 +278,15 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setFromValue(fromValue)
                 .setToValue(toValue);
         context.shotField(twinClassFieldEntity, i18nService);
+        return new HistoryItem<>(HistoryType.fieldChanged, context);
+    }
+
+    public HistoryItem<HistoryContextStringChange> fieldChangeTimestamp(TwinClassFieldEntity twinClassFieldEntity, String fromValue, String toValue) {
+        var context = new HistoryContextStringChange()
+                .setFromValue(fromValue)
+                .setToValue(toValue);
+        context.shotField(twinClassFieldEntity, i18nService);
+
         return new HistoryItem<>(HistoryType.fieldChanged, context);
     }
 

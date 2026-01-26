@@ -93,6 +93,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinFieldI18nRepository twinFieldI18nRepository;
     private final TwinFieldBooleanRepository twinFieldBooleanRepository;
     private final TwinFieldTwinClassListRepository twinFieldTwinClassListRepository;
+    private final TwinFieldTimestampRepository twinFieldTimestampRepository;
     private final TwinClassFieldService twinClassFieldService;
     private final EntitySmartService entitySmartService;
     private final TwinflowService twinflowService;
@@ -1038,6 +1039,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 twinChangesCollector.add(duplicateTwinFieldBooleanEntity);
             }
         }
+        if (KitUtils.isNotEmpty(srcTwin.getTwinFieldTimestampKit())) {
+            for (TwinFieldTimestampEntity twinFieldTimestampEntity : srcTwin.getTwinFieldTimestampKit().getCollection()) {
+                TwinFieldTimestampEntity duplicateTwinFieldTimestampEntity = twinFieldTimestampEntity.cloneFor(dstTwinEntity);
+                twinChangesCollector.add(duplicateTwinFieldTimestampEntity);
+            }
+        }
         if (KitUtils.isNotEmpty(srcTwin.getTwinFieldTwinClassKit())) {
             for (TwinFieldTwinClassEntity twinFieldTwinClassEntity : srcTwin.getTwinFieldTwinClassKit().getCollection()) {
                 TwinFieldTwinClassEntity duplicateTwinFieldTwinClassEntity = twinFieldTwinClassEntity.cloneFor(dstTwinEntity);
@@ -1057,6 +1064,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public TwinFieldBooleanEntity createTwinFieldBooleanEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, Boolean value) {
         return new TwinFieldBooleanEntity()
+                .setTwinClassField(twinClassFieldEntity)
+                .setTwinClassFieldId(twinClassFieldEntity.getId())
+                .setTwin(twinEntity)
+                .setTwinId(twinEntity.getId())
+                .setValue(value);
+    }
+
+    public TwinFieldTimestampEntity createTwinFieldTimestampEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, java.sql.Timestamp value) {
+        return new TwinFieldTimestampEntity()
                 .setTwinClassField(twinClassFieldEntity)
                 .setTwinClassFieldId(twinClassFieldEntity.getId())
                 .setTwin(twinEntity)
@@ -1188,6 +1204,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             fieldValue = new FieldValueBoolean(twinClassFieldEntity);
         if (fieldTyper.getValueType() == FieldValueTwinClassList.class)
             fieldValue = new FieldValueTwinClassList(twinClassFieldEntity);
+        if (fieldTyper.getValueType() == FieldValueTimestamp.class)
+            fieldValue = new FieldValueTimestamp(twinClassFieldEntity);
         if (fieldValue == null)
             throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "unknown fieldValue[" + fieldTyper.getValueType() + "]");
 
@@ -1207,6 +1225,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             fieldValueDate.setDateStr(value);
         if (fieldValue instanceof FieldValueBoolean fieldValueBoolean)
             fieldValueBoolean.setValue(Boolean.parseBoolean(value));
+        if (fieldValue instanceof FieldValueTimestamp fieldValueTimestamp)
+            fieldValueTimestamp.setValue(value);
         if (fieldValue instanceof FieldValueAttachment fieldValueAttachment) {
             // Parse the value as JSON to extract name and base64Content
             // For simplicity, we'll assume the value is in the format "name:base64Content"
@@ -1391,6 +1411,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinFieldI18nRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
         twinFieldBooleanRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
         twinFieldTwinClassListRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
+        twinFieldTimestampRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
 
         log.info("Twin class fields [" + StringUtils.join(twinClassFieldIds, ",") + "] perhaps were deleted from all twins of class[" + twinClassId + "]");
     }
@@ -1416,6 +1437,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             twinFieldBooleanRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
         } else if (fieldTyper.getStorageType() == TwinFieldStorageTwinClassList.class) {
             twinFieldTwinClassListRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
+        } else if (fieldTyper.getStorageType() == TwinFieldStorageTimestamp.class) {
+            twinFieldTimestampRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
         }
     }
 
@@ -1446,6 +1469,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             res = classList.getTwinClassEntities().stream()
                     .map(entity -> i18nService.translateToLocale(entity.getNameI18NId()))
                     .collect(Collectors.joining(", "));
+        } else if (fieldValue instanceof FieldValueTimestamp fieldValueTimestamp) {
+            res = fieldValueTimestamp.toString();
         }
 
         return res;

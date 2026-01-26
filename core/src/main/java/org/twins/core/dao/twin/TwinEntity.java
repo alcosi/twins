@@ -234,6 +234,14 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    private Collection<TwinFieldTimestampEntity> fieldsTimestamp;
+
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinFieldDataListEntity> fieldsList;
 
     //needed for specification
@@ -329,6 +337,11 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Kit<TwinFieldBooleanEntity, UUID> twinFieldBooleanKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinFieldTimestampEntity, UUID> twinFieldTimestampKit;
 
     /*
      we have to use TwinClassFieldId as key, not id. Also, multiple values supported, that is why kit inside a ki
