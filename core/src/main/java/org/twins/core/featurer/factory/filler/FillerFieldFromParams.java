@@ -45,7 +45,7 @@ public class FillerFieldFromParams extends Filler {
         UUID extractedTwinClassFieldId = twinClassFieldId.extract(properties);
         TwinClassFieldEntity twinClassField = twinClassFieldService.findEntitySafe(extractedTwinClassFieldId);
         FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
-        if (fieldTyper.getValueType() != FieldValueText.class)
+        if (fieldTyper.getValueType(twinClassField) != FieldValueText.class)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "twinClassField[" + extractedTwinClassFieldId + "] is not instance of text field");
         FieldValue fieldValue = new FieldValueText(twinClassField).setValue(value.extract(properties));
         factoryItem.getOutput().addField(fieldValue);

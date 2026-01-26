@@ -83,7 +83,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
             throw new RuntimeException("Can not initialize ");
     }
 
-    public Class<T> getValueType() {
+    public Class<T> getValueType(TwinClassFieldEntity twinClassField) throws ServiceException {
         return valuetype;
     }
 
