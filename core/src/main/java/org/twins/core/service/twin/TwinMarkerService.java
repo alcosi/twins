@@ -94,10 +94,6 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
         return twinMarkerRepository.findByTwinId(twinId);
     }
 
-    public List<DataListOptionEntity> findDataListOptionByTwinId(UUID twinId) {
-        return twinMarkerRepository.findDataListOptionByTwinId(twinId);
-    }
-
     public Kit<DataListOptionEntity, UUID> loadMarkers(TwinEntity twinEntity) throws ServiceException {
         loadMarkers(Collections.singletonList(twinEntity));
         return twinEntity.getTwinMarkerKit();
@@ -106,10 +102,7 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
     public void loadMarkers(Collection<TwinEntity> twinEntityList) throws ServiceException {
         if (CollectionUtils.isEmpty(twinEntityList)) return;
 
-        List<TwinEntity> twinsWithRecursion = filterByEnumWithException(twinEntityList, TwinEntity::getMarkersLoadState, LoadState.LOADING);
-        if (!twinsWithRecursion.isEmpty()) {
-            throw new ServiceException(ErrorCodeTwins.RECURSIVE_LOAD_DETECTED, "Cannot load markers recursively for twin: " + twinsWithRecursion.getFirst().logShort());
-        }
+        filterByEnumWithException(twinEntityList, TwinEntity::getMarkersLoadState, LoadState.LOADING);
 
         List<TwinEntity> twinsToLoad = filterByEnum(twinEntityList, TwinEntity::getMarkersLoadState, LoadState.NOT_LOADED);
         if (twinsToLoad.isEmpty()) return;
@@ -175,73 +168,30 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
     }
 
     private void loadDynamicMarkers(List<TwinEntity> twinsToLoad) throws ServiceException {
-        KitGrouped<TwinEntity, UUID, UUID> twinsByClass = createTwinsGroupedByClass(twinsToLoad);
-        if (twinsByClass.isEmpty()) return;
+        List<TwinEntity> filtered = twinsToLoad.stream().filter(twin -> twin.getTwinClass().getHasDynamicMarkers()).toList();
+        if (filtered.isEmpty()) return;
 
-        List<TwinClassDynamicMarkerEntity> classDynamicMarkers = twinClassDynamicMarkerService.findByTwinClassIdIn(twinsByClass.getGroupedKeySet());
+        Map<UUID, List<TwinEntity>> twinsByClass = filtered.stream().collect(Collectors.groupingBy(TwinEntity::getTwinClassId));
 
-        if (CollectionUtils.isEmpty(classDynamicMarkers))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_MUST_HAVE_DYNAMIC_MARKERS, "Missing markers for " + twinsByClass.getList().getFirst().getTwinClass().logShort());
-
+        List<TwinClassDynamicMarkerEntity> classDynamicMarkers = twinClassDynamicMarkerService.findByTwinClassIdIn(twinsByClass.keySet());
         twinValidatorSetService.loadTwinValidatorSet(classDynamicMarkers);
 
-        KitGrouped<TwinClassDynamicMarkerEntity, UUID, UUID> markersByValidatorSet = new KitGrouped<>(
-                classDynamicMarkers,
-                TwinClassDynamicMarkerEntity::getId,
-                TwinClassDynamicMarkerEntity::getTwinValidatorSetId
-        );
 
-        for (UUID validatorSetId : markersByValidatorSet.getGroupedKeySet()) {
-            processValidatorSet(twinsByClass, markersByValidatorSet.getGrouped(validatorSetId));
+        for (TwinClassDynamicMarkerEntity twinClassDynamicMarkerEntity : classDynamicMarkers) {
+            processValidatorSet(twinClassDynamicMarkerEntity, twinsByClass.get(twinClassDynamicMarkerEntity.getTwinClassId()));
         }
     }
 
-    private void processValidatorSet(KitGrouped<TwinEntity, UUID, UUID> twinsByClass, List<TwinClassDynamicMarkerEntity> markers) throws ServiceException {
-        if (markers.isEmpty()) return;
+    private void processValidatorSet(TwinClassDynamicMarkerEntity dynamicMarkerEntity, List<TwinEntity> twinEntitiesToLoad) throws ServiceException {
+        Map<UUID, ValidationResult> validationResults = twinValidatorSetService.isValid(twinEntitiesToLoad, dynamicMarkerEntity);
 
-        Set<UUID> classIds = markers.stream()
-                .map(TwinClassDynamicMarkerEntity::getTwinClassId)
-                .collect(Collectors.toSet());
-
-        List<TwinEntity> twinsForValidation = twinsByClass.getAllForGroupedKeys(classIds);
-
-        if (twinsForValidation.isEmpty()) return;
-
-        Map<UUID, ValidationResult> validationResults = twinValidatorSetService.isValid(twinsForValidation, markers.getFirst());
-
-        applyMarkers(markers, twinsByClass, validationResults);
-    }
-
-    private void applyMarkers(List<TwinClassDynamicMarkerEntity> markers, KitGrouped<TwinEntity, UUID, UUID> twinsByClass, Map<UUID, ValidationResult> validationResults) {
-        for (TwinClassDynamicMarkerEntity marker : markers) {
-            twinsByClass.getGrouped(marker.getTwinClassId()).forEach(twin -> {
-                if (validationResults.get(twin.getId()).isValid()) {
-                    addMarkerToTwin(twin, marker.getMarkerDataListOption());
+        for (TwinEntity twin : twinEntitiesToLoad) {
+            if (validationResults.get(twin.getId()).isValid()) {
+                if (twin.getTwinMarkerKit() == null) {
+                    twin.setTwinMarkerKit(new Kit<>(DataListOptionEntity::getId));
                 }
-            });
-        }
-    }
-
-    private KitGrouped<TwinEntity, UUID, UUID> createTwinsGroupedByClass(List<TwinEntity> twins) {
-        List<TwinEntity> filtered = twins.stream()
-                .filter(twin -> twin.getTwinClass().getHasDynamicMarkers())
-                .collect(Collectors.toList());
-
-        return new KitGrouped<>(
-                filtered,
-                TwinEntity::getId,
-                twin -> twin.getTwinClass().getId()
-        );
-    }
-
-    private void addMarkerToTwin(TwinEntity twin, DataListOptionEntity markerOption) {
-        Kit<DataListOptionEntity, UUID> kit = twin.getTwinMarkerKit();
-        if (kit == null) {
-            kit = new Kit<>(DataListOptionEntity::getId);
-            twin.setTwinMarkerKit(kit);
-        }
-        if (!kit.containsKey(markerOption.getId())) {
-            kit.add(markerOption);
+                twin.getTwinMarkerKit().add(dynamicMarkerEntity.getMarkerDataListOption());
+            }
         }
     }
 
