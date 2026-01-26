@@ -50,7 +50,7 @@ public class DataListSpecification extends CommonSpecification<DataListEntity> {
 
             List<Predicate> predicates = new ArrayList<>();
             for (String value : search) {
-                Predicate predicate = cb.like(cb.lower(getOrCreateJoin(root).get(field)), value.toLowerCase());
+                Predicate predicate = cb.like(cb.lower(getOrCreateJoin(root).get(field)), value.toLowerCase(), escapeChar);
                 if (not) predicate = cb.not(predicate);
                 predicates.add(predicate);
             }

@@ -1,5 +1,7 @@
 package org.twins.core.service.twinflow;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -24,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
@@ -33,6 +34,8 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.status.StatusType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 import org.twins.core.service.SystemEntityService;
@@ -49,6 +52,7 @@ import java.util.function.Function;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity> {
     private final TwinflowRepository twinflowRepository;
@@ -79,7 +83,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
 
     @Override
     public boolean isEntityReadDenied(TwinflowEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
+        return twinClassService.isEntityReadDenied(entity.getTwinClass(), readPermissionCheckMode);
     }
 
     @Override
@@ -128,7 +132,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         return twinflowEntity;
     }
 
-    private UUID getTwinflowSchemaSpaceId(TwinEntity twinEntity) {
+    private UUID getTwinflowSchemaSpaceId(TwinEntity twinEntity) throws ServiceException {
         if (twinEntity.getTwinflowSchemaSpaceId() != null)
             return twinEntity.getTwinflowSchemaSpaceId();
         //looks like new twin creation
@@ -210,7 +214,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
             return;
         for (TwinStatusTransitionTriggerEntity triggerEntity : twinStatusTransitionTriggerEntityList) {
             log.info(triggerEntity.easyLog(EasyLoggable.Level.DETAILED) + " will be triggered");
-            TransitionTrigger transitionTrigger = featurerService.getFeaturer(triggerEntity.getTransitionTriggerFeaturer(), TransitionTrigger.class);
+            TransitionTrigger transitionTrigger = featurerService.getFeaturer(triggerEntity.getTransitionTriggerFeaturerId(), TransitionTrigger.class);
             transitionTrigger.run(triggerEntity.getTransitionTriggerParams(), twinEntity, srcStatusEntity, dstStatusEntity);
         }
     }
@@ -266,8 +270,8 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     public TwinflowEntity updateTwinflow(TwinflowEntity twinflowEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         TwinflowEntity dbTwinflowEntity = findEntitySafe(twinflowEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
-        updateTwinflowName(dbTwinflowEntity, nameI18n, changesHelper);
-        updateTwinflowDescription(dbTwinflowEntity, descriptionI18n, changesHelper);
+        i18nService.updateI18nFieldForEntity(nameI18n, I18nType.TWINFLOW_NAME, dbTwinflowEntity, TwinflowEntity::getNameI18NId, TwinflowEntity::setNameI18NId, TwinflowEntity.Fields.nameI18NId, changesHelper);
+        i18nService.updateI18nFieldForEntity(descriptionI18n, I18nType.TWINFLOW_DESCRIPTION, dbTwinflowEntity, TwinflowEntity::getDescriptionI18NId, TwinflowEntity::setDescriptionI18NId, TwinflowEntity.Fields.descriptionI18NId, changesHelper);
         updateTwinflowInitStatus(dbTwinflowEntity, twinflowEntity.getInitialTwinStatusId(), changesHelper);
         dbTwinflowEntity = updateSafe(dbTwinflowEntity, changesHelper);
         if (changesHelper.hasChanges()) {
@@ -280,27 +284,6 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         return dbTwinflowEntity;
     }
 
-    public void updateTwinflowDescription(TwinflowEntity dbTwinflowEntity, I18nEntity descriptionI18n, ChangesHelper changesHelper) throws ServiceException {
-        if (descriptionI18n == null)
-            return;
-        if (dbTwinflowEntity.getDescriptionI18NId() != null)
-            descriptionI18n.setId(dbTwinflowEntity.getDescriptionI18NId());
-        i18nService.saveTranslations(I18nType.TWINFLOW_DESCRIPTION, descriptionI18n);
-        if (changesHelper.isChanged(TwinflowEntity.Fields.descriptionI18NId, dbTwinflowEntity.getDescriptionI18NId(), descriptionI18n.getId()))
-            dbTwinflowEntity.setDescriptionI18NId(descriptionI18n.getId());
-    }
-
-
-    public void updateTwinflowName(TwinflowEntity dbTwinflowEntity, I18nEntity nameI18n, ChangesHelper changesHelper) throws ServiceException {
-        if (nameI18n == null)
-            return;
-        if (dbTwinflowEntity.getNameI18NId() != null)
-            nameI18n.setId(dbTwinflowEntity.getNameI18NId());
-        i18nService.saveTranslations(I18nType.TWINFLOW_NAME, nameI18n);
-        if (changesHelper.isChanged(TwinflowEntity.Fields.nameI18NId, dbTwinflowEntity.getNameI18NId(), nameI18n.getId()))
-            dbTwinflowEntity.setNameI18NId(nameI18n.getId());
-    }
-
     public void updateTwinflowInitStatus(TwinflowEntity dbTwinflowEntity, UUID initStatusId, ChangesHelper changesHelper) throws ServiceException {
         if (!changesHelper.isChanged(TwinflowEntity.Fields.initialTwinStatusId, dbTwinflowEntity.getInitialTwinStatusId(), initStatusId))
             return;
@@ -309,5 +292,15 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         dbTwinflowEntity.setInitialTwinStatusId(initStatusId);
     }
 
+    public TwinStatusEntity getInitSketchStatusSafe(TwinflowEntity twinflow) throws ServiceException {
+        var sketchStatus = twinflow.getInitialSketchTwinStatusId(); //hope that getTwinClass is not null
+        if (sketchStatus == null) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_STATUS_SKETCH_FORBIDDEN);
+        }
+        if (!twinflow.getInitialSketchTwinStatus().getType().equals(StatusType.SKETCH)) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_STATUS_INCORRECT, "configured status[{}] is not a sketch status", sketchStatus);
+        }
+        return twinflow.getInitialSketchTwinStatus();
+    }
 }
 

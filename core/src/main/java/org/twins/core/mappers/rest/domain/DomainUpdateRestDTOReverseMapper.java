@@ -28,6 +28,8 @@ public class DomainUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Domain
                 .setDomainUserTemplateTwinId(src.getDomainUserTemplateTwinId())
                 .setIconDarkResourceId(src.getIconDarkResourceId())
                 .setIconLightResourceId(src.getIconLightResourceId())
+                .setResourcesStorageId(src.getResourceStorageId())
+                .setAttachmentsStorageId(src.getAttachmentStorageId())
                 .setNavbarFaceId(src.getNavbarFaceId());
     }
 }

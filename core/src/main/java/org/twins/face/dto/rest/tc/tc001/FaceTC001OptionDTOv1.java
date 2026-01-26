@@ -35,6 +35,9 @@ public class FaceTC001OptionDTOv1 {
     @Schema(description = "twin class field search id")
     public UUID twinClassFieldSearchId;
 
+    @Schema(description = "twin class id")
+    public UUID twinClassId;
+
     @Schema(description = "Search named params values")
     public Map<String, String> twinClassFieldsSearchParams;
 }

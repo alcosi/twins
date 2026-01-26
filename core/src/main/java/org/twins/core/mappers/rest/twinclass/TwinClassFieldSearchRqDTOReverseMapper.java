@@ -1,14 +1,19 @@
 package org.twins.core.mappers.rest.twinclass;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldSearchRqDTOv1;
+import org.twins.core.mappers.rest.LongRangeDTOReverseMapper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 @Deprecated
 @Component
+@RequiredArgsConstructor
 public class TwinClassFieldSearchRqDTOReverseMapper extends RestSimpleDTOMapper<TwinClassFieldSearchRqDTOv1, TwinClassFieldSearch> {
+
+    private final LongRangeDTOReverseMapper longRangeDTOReverseMapper;
 
     @Override
     public void map(TwinClassFieldSearchRqDTOv1 src, TwinClassFieldSearch dst, MapperContext mapperContext) throws Exception {
@@ -31,6 +36,7 @@ public class TwinClassFieldSearchRqDTOReverseMapper extends RestSimpleDTOMapper<
                 .setEditPermissionIdExcludeList(src.getEditPermissionIdExcludeList())
                 .setRequired(src.getRequired())
                 .setExternalIdLikeList(src.getExternalIdLikeList())
-                .setExternalIdNotLikeList(src.getExternalIdNotLikeList());
+                .setExternalIdNotLikeList(src.getExternalIdNotLikeList())
+                .setOrderRange(longRangeDTOReverseMapper.convert(src.getOrderRange()));
     }
 }

@@ -30,3 +30,5 @@ public class ValidatorRuleBaseDTOv1 {
     @Schema(description = "grouping set of twin validator")
     public TwinValidatorSetBaseDTOv1 twinValidatorSet;
 }
+
+

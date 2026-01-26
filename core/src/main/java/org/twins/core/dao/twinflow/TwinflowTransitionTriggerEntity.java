@@ -3,14 +3,15 @@ package org.twins.core.dao.twinflow;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
-import org.cambium.featurer.annotations.FeaturerList;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
-import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -22,8 +23,12 @@ import java.util.UUID;
 @FieldNameConstants
 public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicCloneable<TwinflowTransitionTriggerEntity> {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twinflow_transition_id")
     private UUID twinflowTransitionId;
@@ -35,17 +40,23 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicClon
     @Column(name = "transition_trigger_featurer_id")
     private Integer transitionTriggerFeaturerId;
 
-    @FeaturerList(type = TransitionTrigger.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "transition_trigger_featurer_id", insertable = false, updatable = false)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity transitionTriggerFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "transition_trigger_params", columnDefinition = "hstore")
     private HashMap<String, String> transitionTriggerParams;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
+    @JoinColumn(name = "twinflow_transition_id", insertable = false, updatable = false)
+    private TwinflowTransitionEntity twinflowTransition;
+
     @Column(name = "active")
-    private boolean isActive;
+    private Boolean isActive;
 
     public String easyLog(EasyLoggable.Level level) {
         return switch (level) {
@@ -65,6 +76,6 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicClon
                 .setTransitionTriggerFeaturerId(transitionTriggerFeaturerId)
                 .setTransitionTriggerFeaturer(transitionTriggerFeaturer)
                 .setTransitionTriggerParams(transitionTriggerParams)
-                .setActive(isActive);
+                .setIsActive(isActive);
     }
 }

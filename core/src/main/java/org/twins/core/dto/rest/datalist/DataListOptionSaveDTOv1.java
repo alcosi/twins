@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.Map;
@@ -21,6 +20,9 @@ public class DataListOptionSaveDTOv1 {
     @Schema(description = "option")
     public I18nSaveDTOv1 optionI18n;
 
+    @Schema(description = "description")
+    public I18nSaveDTOv1 descriptionI18n;
+
     @Schema(description = "attributes map")
     public Map<String, String> attributesMap;
 
@@ -32,4 +34,7 @@ public class DataListOptionSaveDTOv1 {
 
     @Schema(description = "font color hex", example = DTOExamples.COLOR_HEX)
     public String fontColor;
+
+    @Schema(description = "boolean flag for custom field", example = DTOExamples.BOOLEAN_TRUE)
+    public Boolean custom;
 }

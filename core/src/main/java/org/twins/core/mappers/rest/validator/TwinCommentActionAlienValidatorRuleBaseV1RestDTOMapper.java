@@ -31,29 +31,32 @@ public class TwinCommentActionAlienValidatorRuleBaseV1RestDTOMapper extends Rest
 
     @Override
     public void map(TwinCommentActionAlienValidatorRuleEntity src, TwinCommentActionAlienValidatorRuleBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
-            switch (mapperContext.getModeOrUse(TwinCommentAlienValidatorRuleMode.HIDE)) {
-                case DETAILED:
-                    dst
-                            .setTwinClassId(src.getTwinClassId())
-                            .setCommentAction(src.getTwinCommentAction())
-                            .setId(src.getId())
-                            .setOrder(src.getOrder())
-                            .setActive(src.isActive());
-                    break;
-                case SHORT:
-                    dst
-                            .setId(src.getId());
-                    break;
+        switch (mapperContext.getModeOrUse(TwinCommentAlienValidatorRuleMode.HIDE)) {
+            case DETAILED:
+                dst
+                        .setTwinClassId(src.getTwinClassId())
+                        .setCommentAction(src.getTwinCommentAction())
+                        .setId(src.getId())
+                        .setOrder(src.getOrder())
+                        .setActive(src.isActive());
+                break;
+            case SHORT:
+                dst
+                        .setId(src.getId());
+                break;
 
-            }
-        if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinCommentActionAlienValidatorRule2TwinValidatorSetMode.HIDE))
+        }
+        if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinCommentActionAlienValidatorRule2TwinValidatorSetMode.HIDE)) {
+            twinValidatorSetService.loadTwinValidatorSet(src);
             dst
-                    .setTwinValidatorSet(twinValidatorSetBaseV1RestDTOMapper.convert(
-                            twinValidatorSetService.loadTwinValidatorSet(src), mapperContext.forkOnPoint(TwinValidatorMode.TwinCommentActionAlienValidatorRule2TwinValidatorMode.SHORT)))
+                    .setTwinValidatorSet(twinValidatorSetBaseV1RestDTOMapper.convert(src.getTwinValidatorSet(), mapperContext.forkOnPoint(TwinValidatorMode.TwinCommentActionAlienValidatorRule2TwinValidatorMode.SHORT)))
                     .setTwinValidatorSetId(src.getTwinValidatorSetId());
-        if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinCommentActionAlienValidatorRule2TwinValidatorSetMode.HIDE))
-            dst
-                    .setTwinValidators(twinValidatorBaseV1RestDTOMapper.convertCollection(src.getTwinValidators(), mapperContext.forkOnPoint(TwinValidatorMode.TwinCommentActionAlienValidatorRule2TwinValidatorMode.SHORT)));
+        }
+        if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinCommentActionAlienValidatorRule2TwinValidatorSetMode.HIDE)) {
+            twinValidatorSetService.loadTwinValidatorSet(src);
+            dst.setTwinValidators(twinValidatorBaseV1RestDTOMapper.convertCollection(
+                    src.getTwinValidatorKit().getList(), mapperContext.forkOnPoint(TwinValidatorMode.TwinCommentActionAlienValidatorRule2TwinValidatorMode.SHORT)));
+        }
     }
 
     @Override

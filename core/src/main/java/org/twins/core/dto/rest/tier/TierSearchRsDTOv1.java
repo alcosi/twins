@@ -19,5 +19,5 @@ public class TierSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     public PaginationDTOv1 pagination;
 
     @Schema(description = "tiers")
-    public List<TierDTOv2> tiers;
+    public List<TierDTOv1> tiers;
 }

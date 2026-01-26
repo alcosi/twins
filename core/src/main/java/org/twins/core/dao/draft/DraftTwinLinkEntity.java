@@ -2,7 +2,10 @@ package org.twins.core.dao.draft;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.CUD;
 import org.twins.core.dao.CUDConverter;
 
@@ -14,9 +17,12 @@ import java.util.UUID;
 @Table(name = "draft_twin_link")
 public class DraftTwinLinkEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
-    @Column(name = "id")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "draft_id")
     private UUID draftId;
@@ -45,6 +51,8 @@ public class DraftTwinLinkEntity {
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "draft_id", insertable = false, updatable = false)
     private DraftEntity draft;

@@ -4,8 +4,6 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -14,26 +12,22 @@ import org.cambium.common.util.KeyUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySmartService;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListAttribute;
+import org.twins.core.domain.datalist.DataListCreate;
 import org.twins.core.domain.datalist.DataListSave;
 import org.twins.core.domain.datalist.DataListUpdate;
+import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperSharedSelectInHead;
@@ -48,7 +42,6 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 
 //Log calls that took more then 2 seconds
@@ -62,7 +55,7 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
     final EntitySmartService entitySmartService;
     final TwinClassFieldService twinClassFieldService;
     final FeaturerService featurerService;
-    final CacheManager cacheManager;
+    final DataListOptionService dataListOptionService;
 
     @Lazy
     final AuthService authService;
@@ -111,16 +104,29 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public DataListEntity createDataList(DataListSave dataListSave) throws ServiceException {
+    public DataListEntity createDataList(DataListCreate dataListCreate) throws ServiceException {
         DataListEntity dataListEntity = new DataListEntity()
-                .setKey(KeyUtils.lowerCaseNullSafe(dataListSave.getKey(), ErrorCodeTwins.DATALIST_KEY_INCORRECT))
+                .setKey(KeyUtils.lowerCaseNullSafe(dataListCreate.getKey(), ErrorCodeTwins.DATALIST_KEY_INCORRECT))
                 .setDomainId(authService.getApiUser().getDomainId())
-                .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_NAME, dataListSave.getNameI18n()).getId())
-                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_DESCRIPTION, dataListSave.getDescriptionI18n()).getId())
-                .setExternalId(dataListSave.getExternalId())
+                .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_NAME, dataListCreate.getNameI18n()).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_DESCRIPTION, dataListCreate.getDescriptionI18n()).getId())
+                .setExternalId(dataListCreate.getExternalId())
                 .setCreatedAt(Timestamp.from(Instant.now()));
-        setAttributes(dataListEntity, dataListSave);
-        return saveSafe(dataListEntity);
+        setAttributes(dataListEntity, dataListCreate);
+
+        saveSafe(dataListEntity);
+
+        if (dataListCreate.getDefaultOption() != null) {
+            DataListOptionEntity optionEntity = dataListOptionService.createDataListOptions(
+                    dataListCreate.getDefaultOption().setDataListId(dataListEntity.getId())
+            );
+
+            dataListRepository.updateDefaultOptionId(dataListEntity.getId(), optionEntity.getId());
+            dataListEntity
+                    .setDefaultDataListOptionId(optionEntity.getId())
+                    .setOptions(new Kit<>(List.of(optionEntity), DataListOptionEntity::getId));
+        }
+        return dataListEntity;
     }
 
     private void setAttributes(DataListEntity dataList, DataListSave dataListSave) throws ServiceException {
@@ -139,8 +145,8 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         DataListEntity dbDataListEntity = findEntitySafe(dataListUpdate.getId());
         ChangesHelper changesHelper = new ChangesHelper();
         updateDataListKey(dataListUpdate, dbDataListEntity, changesHelper);
-        updateDataListName(dataListUpdate.getNameI18n(), dbDataListEntity, changesHelper);
-        updateDataListDescription(dataListUpdate.getDescriptionI18n(), dbDataListEntity, changesHelper);
+        i18nService.updateI18nFieldForEntity(dataListUpdate.getNameI18n(), I18nType.DATA_LIST_NAME, dbDataListEntity, DataListEntity::getNameI18nId, DataListEntity::setNameI18nId, DataListEntity.Fields.nameI18nId, changesHelper);
+        i18nService.updateI18nFieldForEntity(dataListUpdate.getDescriptionI18n(), I18nType.DATA_LIST_DESCRIPTION, dbDataListEntity, DataListEntity::getDescriptionI18NId, DataListEntity::setDescriptionI18NId, DataListEntity.Fields.descriptionI18NId, changesHelper);
         updateDataListAttributeKey(dataListUpdate.getAttribute1(), DataListEntity.Fields.attribute1key, dbDataListEntity, DataListEntity::getAttribute1key, DataListEntity::setAttribute1key, changesHelper);
         updateDataListAttributeI18n(dataListUpdate.getAttribute1(), DataListEntity.Fields.attribute1nameI18nId, dbDataListEntity, DataListEntity::getAttribute1nameI18nId, DataListEntity::setAttribute1nameI18nId, changesHelper);
         updateDataListAttributeKey(dataListUpdate.getAttribute2(), DataListEntity.Fields.attribute2key, dbDataListEntity, DataListEntity::getAttribute2key, DataListEntity::setAttribute2key, changesHelper);
@@ -150,6 +156,7 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         updateDataListAttributeKey(dataListUpdate.getAttribute4(), DataListEntity.Fields.attribute4key, dbDataListEntity, DataListEntity::getAttribute4key, DataListEntity::setAttribute4key, changesHelper);
         updateDataListAttributeI18n(dataListUpdate.getAttribute4(), DataListEntity.Fields.attribute4nameI18nId, dbDataListEntity, DataListEntity::getAttribute4nameI18nId, DataListEntity::setAttribute4nameI18nId, changesHelper);
         updateExternalId(dbDataListEntity, dataListUpdate.getExternalId(), changesHelper);
+        updateEntityFieldByValue(dataListUpdate.getDefaultOptionId(), dbDataListEntity, DataListEntity::getDefaultDataListOptionId, DataListEntity::setDefaultDataListOptionId, DataListEntity.Fields.defaultDataListOptionId, changesHelper);
         dbDataListEntity.setUpdatedAt(Timestamp.from(Instant.now()));
         return updateSafe(dbDataListEntity, changesHelper);
     }
@@ -167,26 +174,6 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         dbEntity.setKey(dataListSave.getKey());
     }
 
-    private void updateDataListName(I18nEntity nameI18n, DataListEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
-        if (nameI18n == null)
-            return;
-        if (dbEntity.getNameI18nId() != null)
-            nameI18n.setId(dbEntity.getNameI18nId());
-        i18nService.saveTranslations(I18nType.DATA_LIST_NAME, nameI18n);
-        if (changesHelper.isChanged(DataListEntity.Fields.nameI18nId, dbEntity.getNameI18nId(), nameI18n.getId()))
-            dbEntity.setNameI18nId(nameI18n.getId());
-    }
-
-    private void updateDataListDescription(I18nEntity descriptionI18n, DataListEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
-        if (descriptionI18n == null)
-            return;
-        if (dbEntity.getDescriptionI18NId() != null)
-            descriptionI18n.setId(dbEntity.getDescriptionI18NId());
-        i18nService.saveTranslations(I18nType.DATA_LIST_DESCRIPTION, descriptionI18n);
-        if (changesHelper.isChanged(DataListEntity.Fields.descriptionI18NId, dbEntity.getDescriptionI18NId(), descriptionI18n.getId()))
-            dbEntity.setDescriptionI18NId(descriptionI18n.getId());
-    }
-
     private void updateDataListAttributeKey(DataListAttribute attribute, String fieldName, DataListEntity dbEntity, Function<DataListEntity, String> getAttributeKey, BiConsumer<DataListEntity, String> setAttributeKey, ChangesHelper changesHelper) throws ServiceException {
         if (attribute == null || attribute.getKey() == null)
             return;
@@ -196,28 +183,11 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         setAttributeKey.accept(dbEntity, attribute.getKey());
     }
 
-    private void updateDataListAttributeI18n(DataListAttribute attribute, String fieldName, DataListEntity dbEntity, Function<DataListEntity, UUID> getAttribute, BiConsumer<DataListEntity, UUID> setAttribute, ChangesHelper changesHelper) throws ServiceException {
+    private void updateDataListAttributeI18n(DataListAttribute attribute, String fieldName, DataListEntity dbDataListEntity, Function<DataListEntity, UUID> getAttribute, BiConsumer<DataListEntity, UUID> setAttribute, ChangesHelper changesHelper) throws ServiceException {
         if (attribute == null || attribute.getAttributeI18n() == null)
             return;
-        UUID currentId = getAttribute.apply(dbEntity);
-        if (currentId != null)
-            attribute.getAttributeI18n().setId(currentId);
-        i18nService.saveTranslations(I18nType.DATA_LIST_OPTION_VALUE, attribute.getAttributeI18n());
-        UUID newId = attribute.getAttributeI18n().getId();
-        if (changesHelper.isChanged(fieldName, currentId, newId)) {
-            setAttribute.accept(dbEntity, newId);
-        }
+        i18nService.updateI18nFieldForEntity(attribute.getAttributeI18n(), I18nType.DATA_LIST_OPTION_VALUE, dbDataListEntity, getAttribute, setAttribute, fieldName, changesHelper);
     }
-
-//    private void updateDataListAttribute1I18n(I18nEntity attribute1I18n, DataListEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
-//        if (attribute1I18n == null)
-//            return;
-//        if (dbEntity.getAttribute1nameI18nId() != null)
-//            attribute1I18n.setId(dbEntity.getAttribute1nameI18nId());
-//        i18nService.saveTranslations(I18nType.DATA_LIST_OPTION_VALUE, attribute1I18n);
-//        if (changesHelper.isChanged(DataListEntity.Fields.attribute1nameI18nId, dbEntity.getAttribute1nameI18nId(), attribute1I18n.getId()))
-//            dbEntity.setAttribute1nameI18nId(attribute1I18n.getId());
-//    }
 
     //todo cache it
     public void loadDataListOptions(DataListEntity dataListEntity) throws ServiceException {
@@ -246,14 +216,6 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
                 dataListOptionRepository.findByDataListIdIn(dataListIds);
     }
 
-    public DataListEntity findDataListOptionsSharedInHead(UUID twinClassFieldId, UUID headTwinId) throws ServiceException {
-        TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findEntitySafe(twinClassFieldId);
-        FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
-        if (!(fieldTyper instanceof FieldTyperSharedSelectInHead))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, twinClassFieldEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not shared in head");
-        return ((FieldTyperSharedSelectInHead) fieldTyper).getDataListWithValidOption(twinClassFieldEntity, headTwinId);
-    }
-
     public DataListOptionEntity findDataListOption(UUID dataListOptionId) throws ServiceException {
         DataListOptionEntity dataListOptionEntity = entitySmartService.findById(dataListOptionId, dataListOptionRepository, EntitySmartService.FindMode.ifEmptyThrows);
         ApiUser apiUser = authService.getApiUser();
@@ -270,11 +232,6 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
 
         List<UUID> optionsToDelete = dataListOptionRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
         entitySmartService.deleteAllAndLog(optionsToDelete, dataListOptionRepository);
-    }
-
-
-    public Iterable<DataListOptionEntity> saveOptions(List<DataListOptionEntity> newOptions) {
-        return entitySmartService.saveAllAndLog(newOptions, dataListOptionRepository);
     }
 
     public int countByDataListId(UUID listId) {
@@ -297,73 +254,12 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         return dataListOptionRepository.findByDataListIdAndNotUsedInHead(listId, twinClassFieldId, headTwinId);
     }
 
-    //Method for reloading options if dataList is not present in entity;
-    public List<DataListOptionEntity> reloadOptionsOnDataListAbsent(List<DataListOptionEntity> options) {
-        List<UUID> idsForReload = new ArrayList<>();
-        for (var option : options)
-            if (null == option.getDataList() || null == option.getDataListId()) idsForReload.add(option.getId());
-        if (!idsForReload.isEmpty()) {
-            options.removeIf(o -> idsForReload.contains(o.getId()));
-            options.addAll(dataListOptionRepository.findByIdIn(idsForReload));
-        }
-        return options;
+    public Set<UUID> findOptionIdsByDataListIdAndNotUsedInHead(UUID listId, UUID twinClassFieldId, UUID headTwinId) {
+        return dataListOptionRepository.findOptionIdsByDataListIdAndNotUsedInHead(listId, twinClassFieldId, headTwinId);
     }
 
-
-    public DataListOptionEntity checkOptionsExists(UUID dataListId, String optionName, UUID businessAccountId) {
-        List<DataListOptionEntity> foundOptions;
-        if (businessAccountId != null)
-            foundOptions = dataListOptionRepository.findOptionForBusinessAccount(dataListId, businessAccountId, optionName.trim(), PageRequest.of(0, 1));
-        else
-            foundOptions = dataListOptionRepository.findOptionOutOfBusinessAccount(dataListId, optionName.trim(), PageRequest.of(0, 1));
-
-        if (CollectionUtils.isNotEmpty(foundOptions))
-            return foundOptions.get(0);
-
-        return null;
+    public Set<UUID> findOptionIdsByDataListIdAndNotUsedInHeadExcludingTwin(UUID listId, UUID twinClassFieldId, UUID headTwinId, UUID twinId) {
+        return dataListOptionRepository.findOptionIdsByDataListIdAndNotUsedInHeadExcludingTwin(listId, twinClassFieldId, headTwinId, twinId);
     }
-
-    public List<DataListOptionEntity> processNewOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId) {
-        Set<String> optionsForProcessing = options.stream().filter(option -> ObjectUtils.isEmpty(option.getId()) && ObjectUtils.isEmpty(option.getExternalId())).map(DataListOptionEntity::getOption).collect(Collectors.toSet());
-        options.removeIf(o -> optionsForProcessing.contains(o.getOption()));
-        List<DataListOptionEntity> processedOptions = processNewOptions(dataListId, optionsForProcessing, businessAccountId);
-        options.addAll(processedOptions);
-        return options;
-    }
-
-    public List<DataListOptionEntity> processNewOptions(UUID dataListId, Set<String> newOptions, UUID businessAccountId) {
-        List<DataListOptionEntity> optionsExists = new ArrayList<>();
-        List<DataListOptionEntity> optionsForSave = new ArrayList<>();
-        for (String optionName : newOptions) {
-            DataListOptionEntity foundedOption = checkOptionsExists(dataListId, optionName, businessAccountId);
-            if (null != foundedOption) optionsExists.add(foundedOption);
-            else {
-                DataListOptionEntity newOption = new DataListOptionEntity();
-                newOption.setOption(optionName);
-                newOption.setBusinessAccountId(businessAccountId);
-                newOption.setStatus(DataListOptionEntity.Status.active);
-                newOption.setDataListId(dataListId);
-                optionsForSave.add(newOption);
-            }
-        }
-        Iterable<DataListOptionEntity> savedOptions = saveOptions(optionsForSave);
-        savedOptions.forEach(optionsExists::add);
-        if (CollectionUtils.isNotEmpty(optionsForSave))
-            evictOptionsCloudCache(dataListId, businessAccountId);
-        return optionsExists;
-    }
-
-    private void evictOptionsCloudCache(UUID dataListId, UUID businessAccountId) {
-        Cache cache = cacheManager.getCache(DataListOptionRepository.CACHE_DATA_LIST_OPTIONS);
-        if (cache != null)
-            cache.evictIfPresent(dataListId);
-        if (businessAccountId != null) {
-            cache = cacheManager.getCache(DataListOptionRepository.CACHE_DATA_LIST_OPTIONS_WITH_BUSINESS_ACCOUNT);
-            if (cache != null)
-                cache.evictIfPresent(dataListId + "" + businessAccountId);
-        }
-    }
-
-
 }
 

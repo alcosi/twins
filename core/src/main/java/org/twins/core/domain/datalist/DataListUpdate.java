@@ -11,4 +11,5 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class DataListUpdate extends DataListSave {
     private UUID id;
+    private UUID defaultOptionId;
 }

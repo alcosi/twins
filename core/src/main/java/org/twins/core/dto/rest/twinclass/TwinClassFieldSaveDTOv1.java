@@ -2,13 +2,12 @@ package org.twins.core.dto.rest.twinclass;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -34,12 +33,33 @@ public abstract class TwinClassFieldSaveDTOv1{
     @Schema(description = "Required field", example = "true")
     public Boolean required;
 
+    @Schema(description = "System field", example = "true")
+    public Boolean system;
+
     @Schema(description = "external id", example = "")
     public String externalId;
+
+    @Schema(description = "external properties")
+    public Map<String, String> externalProperties;
 
     @Schema(description = "Field typer featurer ID", example = "1")
     public Integer fieldTyperFeaturerId;
 
     @Schema(description = "Field typer parameters", example = "{}")
     public HashMap<String, String> fieldTyperParams;
+
+    @Schema(description = "Twin sorter featurer ID", example = "1")
+    public Integer twinSorterFeaturerId;
+
+    @Schema(description = "Twin sorter parameters", example = "{}")
+    public HashMap<String, String> twinSorterParams;
+
+    @Schema(description = "I18n frontend validation error", example = "")
+    public I18nSaveDTOv1 feValidationErrorI18n;
+
+    @Schema(description = "I18n backend validation error", example = "")
+    public I18nSaveDTOv1 beValidationErrorI18n;
+
+    @Schema(description = "order", example = "1")
+    public Integer order;
 }

@@ -25,3 +25,5 @@ public class I18nDTOv1 {
     @Schema(description = "translations", example = DTOExamples.I18N_ID)
     public Map<Locale, String> translations;
 }
+
+

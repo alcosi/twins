@@ -7,13 +7,13 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilderParamCurrentTwinId;
+import org.twins.core.featurer.twin.finder.TwinFinderRequested;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.core.service.face.FaceTwinPointerService;
-import org.twins.core.service.i18n.I18nService;
 import org.twins.face.dao.widget.wt001.FaceWT001Entity;
 import org.twins.face.dto.rest.widget.wt001.FaceWT001DTOv1;
 import org.twins.face.service.widget.FaceWT001ColumnService;
@@ -30,7 +30,6 @@ import java.util.Map;
 public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<FaceWT001Entity, FaceWT001DTOv1> {
     protected final FaceWT001Service faceWT001Service;
     protected final FaceWT001ColumnService faceWT001ColumnService;
-    protected final I18nService i18nService;
     protected final FaceTwinPointerService faceTwinPointerService;
 
     @MapperModePointerBinding(modes = FaceWT001Modes.FaceWT001Column2TwinClassFieldMode.class)
@@ -49,7 +48,7 @@ public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<FaceWT001Entity,
                 faceWT001ColumnService.loadColumns(src);
                 dst
                         .setKey(src.getKey())
-                        .setLabel(i18nService.translateToLocale(src.getLabelI18nId()))
+                        .setLabel(I18nCacheHolder.addId(src.getLabelI18nId()))
                         .setTwinClassId(src.getTwinClassId())
                         .setSearchId(src.getSearchId())
                         .setShowCreateButton(src.isShowCreateButton())
@@ -61,7 +60,7 @@ public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<FaceWT001Entity,
                     if (pointedTwin == null) {
                         throw new ServiceException(ErrorCodeTwins.POINTER_ON_NULL, "configured search pointer is pointed on null");
                     }
-                    searchParams.put(SearchCriteriaBuilderParamCurrentTwinId.PARAM_CURRENT_TWIN_ID, pointedTwin.getId().toString());
+                    searchParams.put(TwinFinderRequested.PARAM_TWIN_ID, pointedTwin.getId().toString());
                     dst.setSearchParams(searchParams);
                 }
             }

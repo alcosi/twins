@@ -7,10 +7,7 @@ import org.cambium.common.util.StringUtils;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 @Accessors(chain = true)
@@ -21,17 +18,20 @@ public class AttachmentSnapshot {
     private String externalId;
     private String title;
     private String description;
+    private Integer order;
 
     public static AttachmentSnapshot convertEntity(TwinAttachmentEntity attachmentEntity) {
         if (attachmentEntity == null)
             return null;
+        Map<String, String> modificationMap = attachmentEntity.getModifications() == null ? Collections.emptyMap() : convertModificationsToMap(attachmentEntity.getModifications().getCollection());
         return new AttachmentSnapshot()
                 .setId(attachmentEntity.getId())
                 .setStorageFileKey(attachmentEntity.getStorageFileKey())
-                .setModifications(convertModificationsToMap(attachmentEntity.getModifications().getCollection()))
+                .setModifications(modificationMap)
                 .setExternalId(attachmentEntity.getExternalId())
                 .setTitle(attachmentEntity.getTitle())
-                .setDescription(attachmentEntity.getDescription());
+                .setDescription(attachmentEntity.getDescription())
+                .setOrder(attachmentEntity.getOrder());
     }
 
     private static Map<String, String> convertModificationsToMap(Collection<TwinAttachmentModificationEntity> modifications) {
@@ -51,5 +51,6 @@ public class AttachmentSnapshot {
         vars.put(prefix + "externalId", attachmentSnapshot != null ? attachmentSnapshot.externalId : "");
         vars.put(prefix + "title", attachmentSnapshot != null ? attachmentSnapshot.title : "");
         vars.put(prefix + "description", attachmentSnapshot != null ? attachmentSnapshot.description : "");
+        vars.put(prefix + "order", attachmentSnapshot != null ? String.valueOf(attachmentSnapshot.order) : "");
     }
 }

@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
-import org.twins.core.dao.factory.TwinFactoryEraserEntity;
+import org.twins.core.enums.factory.FactoryEraserAction;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 
@@ -51,10 +51,10 @@ public class FactoryEraserSearchRqDTOv1 extends Request {
     public Set<String> descriptionNotLikeList;
 
     @Schema(description = "erase action like list")
-    public Set<TwinFactoryEraserEntity.Action> eraseActionLikeList;
+    public Set<FactoryEraserAction> eraseActionLikeList;
 
     @Schema(description = "erase action not like list")
-    public Set<TwinFactoryEraserEntity.Action> eraseActionNotLikeList;
+    public Set<FactoryEraserAction> eraseActionNotLikeList;
 
     @Schema(description = "active", example = DTOExamples.TERNARY)
     public Ternary active;

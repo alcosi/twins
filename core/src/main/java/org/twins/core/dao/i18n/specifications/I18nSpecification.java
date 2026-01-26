@@ -5,6 +5,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.springframework.data.jpa.domain.Specification;
+import org.twins.core.dao.specifications.CommonSpecification;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,8 +57,8 @@ public class I18nSpecification<T> {
         List<Predicate> predicates = new ArrayList<>();
         for (String value : search) {
             predicates.add(not ?
-                    cb.notLike(cb.lower(path), "%" + value.toLowerCase() + "%") :
-                    cb.like(cb.lower(path), "%" + value.toLowerCase() + "%"));
+                    cb.notLike(cb.lower(path), "%" + value.toLowerCase() + "%", CommonSpecification.escapeChar) :
+                    cb.like(cb.lower(path), "%" + value.toLowerCase() + "%", CommonSpecification.escapeChar));
         }
         return predicates;
     }

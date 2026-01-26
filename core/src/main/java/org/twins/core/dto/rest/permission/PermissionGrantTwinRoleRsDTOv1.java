@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Schema(name = "PermissionGrantTwinRoleRsV1")
 public class PermissionGrantTwinRoleRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "results -  permission grant twin role")
-    public PermissionGrantTwinRoleDTOv2 permissionGrantTwinRole;
+    public PermissionGrantTwinRoleDTOv1 permissionGrantTwinRole;
 }

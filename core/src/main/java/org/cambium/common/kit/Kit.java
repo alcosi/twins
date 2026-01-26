@@ -1,5 +1,7 @@
 package org.cambium.common.kit;
 
+import org.cambium.common.exception.ErrorCodeCommon;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 
 import java.util.*;
@@ -72,11 +74,34 @@ public class Kit<E, K> implements Collection<E> {
         return map.containsKey(key);
     }
 
+    public boolean containsKeyIgnoreCase(K key) {
+        getMap();
+        if (map == null || key == null)
+            return false;
+
+        if (!(key instanceof String)) {
+            return map.containsKey(key);
+        }
+
+        String searchKey = (String) key;
+        return map.keySet().stream()
+                .filter(k -> k instanceof String)
+                .map(k -> (String) k)
+                .anyMatch(k -> k.equalsIgnoreCase(searchKey));
+    }
+
     public E get(K key) {
         getMap();
         if (map == null)
             return null;
         return map.get(key);
+    }
+
+    public E getSafe(K key) throws ServiceException {
+        E entry = get(key);
+        if (entry == null)
+            throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Kit does not contain entry with key {}", key);
+        return entry;
     }
 
     public Set<K> getIdSet() {
@@ -139,6 +164,8 @@ public class Kit<E, K> implements Collection<E> {
 
     @Override
     public int size() {
+        if (collection == null)
+            return 0;
         return CollectionUtils.size(collection);
     }
 

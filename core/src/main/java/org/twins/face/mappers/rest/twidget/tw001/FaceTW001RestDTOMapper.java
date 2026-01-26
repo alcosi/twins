@@ -4,13 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.domain.face.PointedFace;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentRestrictionRestDTOMapper;
 import org.twins.core.mappers.rest.face.FaceTwidgetRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
-import org.twins.core.service.i18n.I18nService;
 import org.twins.face.dao.twidget.tw001.FaceTW001Entity;
 import org.twins.face.dto.rest.twidget.tw001.FaceTW001DTOv1;
 import org.twins.face.service.twidget.FaceTW001Service;
@@ -19,9 +19,7 @@ import org.twins.face.service.twidget.FaceTW001Service;
 @Component
 @RequiredArgsConstructor
 public class FaceTW001RestDTOMapper extends RestSimpleDTOMapper<PointedFace<FaceTW001Entity>, FaceTW001DTOv1> {
-
     protected final FaceTwidgetRestDTOMapper faceTwidgetRestDTOMapper;
-    private final I18nService i18nService;
     @MapperModePointerBinding(modes = FaceTW001Modes.FaceTW0012TwinClassFieldMode.class)
     private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
     private final FaceTW001Service faceTW001Service;
@@ -40,7 +38,7 @@ public class FaceTW001RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
 
                 dst
                         .setKey(tw001.getKey())
-                        .setLabel(i18nService.translateToLocale(tw001.getLabelI18nId()))
+                        .setLabel(I18nCacheHolder.addId(tw001.getLabelI18nId()))
                         .setImagesTwinClassFieldId(tw001.getImagesTwinClassFieldId())
                         .setUploadable(tw001.isUploadable())
                         .setRestrictionId(tw001.getTwinAttachmentRestriction() != null ? tw001.getTwinAttachmentRestriction().getId() : null);
@@ -59,7 +57,6 @@ public class FaceTW001RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
             if (src.getConfig().getTwinAttachmentRestriction() != null) {
                 dst.setRestrictionId(src.getConfig().getTwinAttachmentRestriction().getId());
                 attachmentRestrictionRestDTOMapper.postpone(src.getConfig().getTwinAttachmentRestriction(), mapperContext.forkOnPoint(FaceTW001Modes.FaceTW0012AttachmentRestrictionMode.SHOW));
-
             }
         }
     }

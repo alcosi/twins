@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.exception.TwinBatchFieldValidationException;
+import org.cambium.common.exception.TwinFieldValidationException;
 import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,18 +20,23 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.mappers.rest.attachment.AttachmentCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.TwinLinkAddRestDTOReverseMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.TwinCreateRqRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinCreateRsRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapper;
+import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
@@ -51,7 +58,10 @@ public class TwinCreateController extends ApiController {
     private final AttachmentCreateRestDTOReverseMapper attachmentCreateRestDTOReverseMapper;
     private final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
     private final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
+    private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
+    @Deprecated
     @ParametersApiUserHeaders
     @Operation(operationId = "twinCreateV1", summary = "Create new twin")
     @ApiResponses(value = {
@@ -84,10 +94,14 @@ public class TwinCreateController extends ApiController {
             twinCreate
                     .setAttachmentEntityList(attachmentCreateRestDTOReverseMapper.convertCollection(request.getAttachments()))
                     .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertCollection(request.getLinks()))
-                    .setCheckCreatePermission(true);
+                    .setCheckCreatePermission(true)
+                    .setLauncher(TwinOperation.Launcher.direct);
+
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
                             .createTwin(twinCreate));
+        } catch (TwinFieldValidationException ve) {
+            return createErrorRs(ve, rs, null);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -109,7 +123,7 @@ public class TwinCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")
     })
     @PostMapping(value = "/private/twin/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> twinCreateFromJson(@RequestBody TwinCreateRqDTOv2 request) {
+    public ResponseEntity<?> twinCreateV2(@RequestBody TwinCreateRqDTOv2 request) {
         return createTwinV2(request, Collections.emptyMap());
     }
 
@@ -127,7 +141,7 @@ public class TwinCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")
     })
     @PostMapping(value = "/private/twin/v2", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> twinCreateFromMultipart(
+    public ResponseEntity<?> twinCreateV2Multipart(
             @Schema(hidden = true) MultipartHttpServletRequest request,
             @Schema(implementation = TwinCreateRqDTOv2.class) @RequestPart("request") byte[] requestBytes) {
         Map<String, MultipartFile> filesMap = new HashMap<>();
@@ -144,11 +158,15 @@ public class TwinCreateController extends ApiController {
         TwinCreateRsDTOv1 rs = new TwinCreateRsDTOv1();
         try {
             attachmentCreateRestDTOReverseMapper.preProcessAttachments(request.attachments, filesMap);
-            TwinCreate twinCreate = twinCreateRqRestDTOReverseMapper.convert(request)
-                    .setCheckCreatePermission(true);
+            TwinCreate twinCreate = twinCreateRqRestDTOReverseMapper.convert(request);
+            twinCreate
+                    .setCheckCreatePermission(true)
+                    .setLauncher(TwinOperation.Launcher.direct);
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
                             .createTwin(twinCreate));
+        } catch (TwinFieldValidationException ve) {
+            return createErrorRs(ve, rs, null);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -162,12 +180,13 @@ public class TwinCreateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Import was completed successfully", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = Response.class))}),
+                    @Schema(implementation = TwinBatchSaveRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/batch/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinBatchCreateV1(
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinBatchSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody TwinBatchCreateRqDTOv1 request) {
-        return processBatch(request, Collections.emptyMap());
+        return processBatch(request, Collections.emptyMap(), mapperContext);
     }
 
     @SneakyThrows
@@ -175,10 +194,11 @@ public class TwinCreateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Import was completed successfully", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = Response.class))}),
+                    @Schema(implementation = TwinBatchSaveRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/batch/v1", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinBatchCreateV1Multipart(
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinBatchSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Schema(hidden = true) MultipartHttpServletRequest request,
             @Schema(implementation = TwinBatchCreateRqDTOv1.class) @RequestPart("request") byte[] requestBytes
     ) {
@@ -189,20 +209,27 @@ public class TwinCreateController extends ApiController {
                 filesMap.put(fileName, file);
             });
         });
-        return processBatch(mapRequest(requestBytes, TwinBatchCreateRqDTOv1.class), filesMap);
+        return processBatch(mapRequest(requestBytes, TwinBatchCreateRqDTOv1.class), filesMap, mapperContext);
     }
 
-    protected ResponseEntity<Response> processBatch(TwinBatchCreateRqDTOv1 request, Map<String, MultipartFile> filesMap) {
-        Response rs = new Response();
+    protected ResponseEntity<Response> processBatch(TwinBatchCreateRqDTOv1 request, Map<String, MultipartFile> filesMap, MapperContext mapperContext) {
+        TwinBatchSaveRsDTOv1 rs = new TwinBatchSaveRsDTOv1();
         try {
             request.getTwins().forEach(twinCreateRqDTOv1 -> {
                 attachmentCreateRestDTOReverseMapper.preProcessAttachments(twinCreateRqDTOv1.attachments, filesMap);
             });
             List<TwinCreate> twinCreates = twinCreateRqRestDTOReverseMapper.convertCollection(request.getTwins());
             for (TwinCreate twinCreate : twinCreates) {
-                twinCreate.setCheckCreatePermission(true);
+                twinCreate
+                        .setCheckCreatePermission(true)
+                        .setLauncher(TwinOperation.Launcher.direct);
             }
-            twinService.createTwinsAsyncBatch(twinCreates);
+            List<TwinEntity> twinEntities = twinService.createTwinsAsyncBatch(twinCreates);
+            rs
+                    .setTwinList(twinRestDTOMapperV2.convertCollection(twinEntities, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
+        } catch (TwinBatchFieldValidationException ve) {
+            return createErrorRs(ve, rs, null);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

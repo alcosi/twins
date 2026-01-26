@@ -6,11 +6,11 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
-import org.twins.core.dao.twin.TwinTouchEntity;
+import org.twins.core.dao.search.TwinSearchEntity;
 import org.twins.core.domain.DataTimeRange;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
+import org.twins.core.enums.twin.Touch;
 
-import java.sql.Timestamp;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -40,20 +40,27 @@ public class TwinSearch {
     private Set<UUID> createdByUserIdExcludeList;
     private Set<UUID> ownerUserIdList;
     private Set<UUID> ownerBusinessAccountIdList;
-    private Map<UUID, Set<UUID>> linksAnyOfList;
-    private Map<UUID, Set<UUID>> linksNoAnyOfList;
-    private Map<UUID, Set<UUID>> linksAllOfList;
-    private Map<UUID, Set<UUID>> linksNoAllOfList;
+    private Map<UUID, Set<UUID>> dstLinksAnyOfList;
+    private Map<UUID, Set<UUID>> dstLinksNoAnyOfList;
+    private Map<UUID, Set<UUID>> dstLinksAllOfList;
+    private Map<UUID, Set<UUID>> dstLinksNoAllOfList;
+    private Map<UUID, Set<UUID>> srcLinksAnyOfList;
+    private Map<UUID, Set<UUID>> srcLinksNoAnyOfList;
+    private Map<UUID, Set<UUID>> srcLinksAllOfList;
+    private Map<UUID, Set<UUID>> srcLinksNoAllOfList;
     private Set<UUID> hierarchyTreeContainsIdList;
     private Set<UUID> statusIdExcludeList;
     private Set<UUID> tagDataListOptionIdList;
     private Set<UUID> tagDataListOptionIdExcludeList;
     private Set<UUID> markerDataListOptionIdList;
     private Set<UUID> markerDataListOptionIdExcludeList;
-    private Set<TwinTouchEntity.Touch> touchList;
-    private Set<TwinTouchEntity.Touch> touchExcludeList;
+    private Set<Touch> touchList;
+    private Set<Touch> touchExcludeList;
     private List<TwinFieldSearch> fields;
     private DataTimeRange createdAt;
+    private TwinSearchEntity configuredSearch;
+    private HierarchySearch hierarchyChildrenSearch;
+    private Boolean distinct;
 
     public boolean isEmpty() {
         return CollectionUtils.isEmpty(twinIdList) &&
@@ -76,10 +83,14 @@ public class TwinSearch {
                 CollectionUtils.isEmpty(createdByUserIdExcludeList) &&
                 CollectionUtils.isEmpty(ownerUserIdList) &&
                 CollectionUtils.isEmpty(ownerBusinessAccountIdList) &&
-                CollectionUtils.isEmpty(linksAnyOfList) &&
-                CollectionUtils.isEmpty(linksNoAnyOfList) &&
-                CollectionUtils.isEmpty(linksAllOfList) &&
-                CollectionUtils.isEmpty(linksNoAllOfList) &&
+                CollectionUtils.isEmpty(dstLinksAnyOfList) &&
+                CollectionUtils.isEmpty(dstLinksNoAnyOfList) &&
+                CollectionUtils.isEmpty(dstLinksAllOfList) &&
+                CollectionUtils.isEmpty(dstLinksNoAllOfList) &&
+                CollectionUtils.isEmpty(srcLinksAnyOfList) &&
+                CollectionUtils.isEmpty(srcLinksNoAnyOfList) &&
+                CollectionUtils.isEmpty(srcLinksAllOfList) &&
+                CollectionUtils.isEmpty(srcLinksNoAllOfList) &&
                 CollectionUtils.isEmpty(hierarchyTreeContainsIdList) &&
                 CollectionUtils.isEmpty(statusIdExcludeList) &&
                 CollectionUtils.isEmpty(tagDataListOptionIdList) &&
@@ -89,7 +100,9 @@ public class TwinSearch {
                 CollectionUtils.isEmpty(touchList) &&
                 CollectionUtils.isEmpty(touchExcludeList) &&
                 CollectionUtils.isEmpty(fields) &&
-                createdAt == null;
+                (hierarchyChildrenSearch == null || hierarchyChildrenSearch.isEmpty()) &&
+                createdAt == null &&
+                distinct == null;
     }
 
     public TwinSearch addTwinId(UUID twinId, boolean exclude) {
@@ -97,6 +110,14 @@ public class TwinSearch {
             twinIdExcludeList = CollectionUtils.safeAdd(twinIdExcludeList, twinId);
         else
             twinIdList = CollectionUtils.safeAdd(twinIdList, twinId);
+        return this;
+    }
+
+    public TwinSearch addTwinId(Collection<UUID> twinIds, boolean exclude) {
+        if (exclude)
+            twinIdExcludeList = CollectionUtils.safeAdd(twinIdExcludeList, twinIds);
+        else
+            twinIdList = CollectionUtils.safeAdd(twinIdList, twinIds);
         return this;
     }
 
@@ -126,7 +147,7 @@ public class TwinSearch {
         return this;
     }
 
-    public TwinSearch addHeadTwinId(List<UUID> headerTwinIds) {
+    public TwinSearch addHeadTwinId(Collection<UUID> headerTwinIds) {
         headTwinIdList = CollectionUtils.safeAdd(headTwinIdList, headerTwinIds);
         return this;
     }
@@ -155,6 +176,14 @@ public class TwinSearch {
         return this;
     }
 
+    public TwinSearch addAssigneeUserId(Collection<UUID>  assigneeUserIds, boolean exclude) {
+        if (exclude)
+            assigneeUserIdList = CollectionUtils.safeAdd(assigneeUserIdList, assigneeUserIds);
+        else
+            assigneeUserIdExcludeList = CollectionUtils.safeAdd(assigneeUserIdExcludeList, assigneeUserIds);
+        return this;
+    }
+
     public TwinSearch addCreatedByUserId(UUID createdByUserId, boolean exclude) {
         if (exclude)
             createdByUserIdList = CollectionUtils.safeAdd(createdByUserIdList, createdByUserId);
@@ -162,6 +191,15 @@ public class TwinSearch {
             createdByUserIdExcludeList = CollectionUtils.safeAdd(createdByUserIdExcludeList, createdByUserId);
         return this;
     }
+
+    public TwinSearch addCreatedByUserId(Collection<UUID> createdByUserIds, boolean exclude) {
+        if (exclude)
+            createdByUserIdList = CollectionUtils.safeAdd(createdByUserIdList, createdByUserIds);
+        else
+            createdByUserIdExcludeList = CollectionUtils.safeAdd(createdByUserIdExcludeList, createdByUserIds);
+        return this;
+    }
+
 
     public TwinSearch addOwnerUserId(UUID ownerUserId) {
         ownerUserIdList = CollectionUtils.safeAdd(ownerUserIdList, ownerUserId);
@@ -177,22 +215,45 @@ public class TwinSearch {
         Map<UUID, Set<UUID>> map = null;
         if (exclude) {
             if (or) {
-                if (linksNoAnyOfList == null) linksNoAnyOfList = new HashMap<>();
-                map = linksNoAnyOfList;
+                if (dstLinksNoAnyOfList == null) dstLinksNoAnyOfList = new HashMap<>();
+                map = dstLinksNoAnyOfList;
             } else {
-                if (linksNoAllOfList == null) linksNoAllOfList = new HashMap<>();
-                map = linksNoAllOfList;
+                if (dstLinksNoAllOfList == null) dstLinksNoAllOfList = new HashMap<>();
+                map = dstLinksNoAllOfList;
             }
         } else {
             if (or) {
-                if (linksAnyOfList == null) linksAnyOfList = new HashMap<>();
-                map = linksAnyOfList;
+                if (dstLinksAnyOfList == null) dstLinksAnyOfList = new HashMap<>();
+                map = dstLinksAnyOfList;
             } else {
-                if (linksAllOfList == null) linksAllOfList = new HashMap<>();
-                map = linksAllOfList;
+                if (dstLinksAllOfList == null) dstLinksAllOfList = new HashMap<>();
+                map = dstLinksAllOfList;
             }
         }
         map.computeIfAbsent(linkId, k -> new HashSet<>()).addAll(null != dstTwinIdList ? dstTwinIdList : Collections.emptySet());
+        return this;
+    }
+
+    public TwinSearch addLinkSrcTwinsId(UUID linkId, Collection<UUID> srcTwinIdList, boolean exclude, boolean or) {
+        Map<UUID, Set<UUID>> map = null;
+        if (exclude) {
+            if (or) {
+                if (srcLinksNoAnyOfList == null) srcLinksNoAnyOfList = new HashMap<>();
+                map = srcLinksNoAnyOfList;
+            } else {
+                if (srcLinksNoAllOfList == null) srcLinksNoAllOfList = new HashMap<>();
+                map = srcLinksNoAllOfList;
+            }
+        } else {
+            if (or) {
+                if (srcLinksAnyOfList == null) srcLinksAnyOfList = new HashMap<>();
+                map = srcLinksAnyOfList;
+            } else {
+                if (srcLinksAllOfList == null) srcLinksAllOfList = new HashMap<>();
+                map = srcLinksAllOfList;
+            }
+        }
+        map.computeIfAbsent(linkId, k -> new HashSet<>()).addAll(null != srcTwinIdList ? srcTwinIdList : Collections.emptySet());
         return this;
     }
 
@@ -206,6 +267,11 @@ public class TwinSearch {
         return this;
     }
 
+    public TwinSearch addTwinClassExtendsHierarchyContainsId(Collection<UUID> twinClassIdSet) {
+        twinClassExtendsHierarchyContainsIdList = CollectionUtils.safeAdd(twinClassExtendsHierarchyContainsIdList, twinClassIdSet);
+        return this;
+    }
+
     public TwinSearch addMarkerDataListOptionId(UUID markerDataListOptionId, boolean exclude) {
         if (exclude)
             markerDataListOptionIdExcludeList = CollectionUtils.safeAdd(markerDataListOptionIdExcludeList, markerDataListOptionId);
@@ -214,7 +280,15 @@ public class TwinSearch {
         return this;
     }
 
-    public TwinSearch addTouchId(TwinTouchEntity.Touch touchId, boolean exclude) {//todo need use in SearchCriteriaBuilderSingleUUID ???
+    public TwinSearch addMarkerDataListOptionId(Collection<UUID> markerDataListOptionId, boolean exclude) {
+        if (exclude)
+            markerDataListOptionIdExcludeList = CollectionUtils.safeAdd(markerDataListOptionIdExcludeList, markerDataListOptionId);
+        else
+            markerDataListOptionIdList = CollectionUtils.safeAdd(markerDataListOptionIdList, markerDataListOptionId);
+        return this;
+    }
+
+    public TwinSearch addTouchId(Touch touchId, boolean exclude) {//todo need use in SearchCriteriaBuilderSingleUUID ???
         if (exclude)
             touchExcludeList = CollectionUtils.safeAdd(touchExcludeList, touchId);
         else
@@ -227,6 +301,14 @@ public class TwinSearch {
             tagDataListOptionIdExcludeList = CollectionUtils.safeAdd(tagDataListOptionIdExcludeList, tagDataListOptionId);
         else
             tagDataListOptionIdList = CollectionUtils.safeAdd(tagDataListOptionIdList, tagDataListOptionId);
+        return this;
+    }
+
+    public TwinSearch addTagDataListOptionId(Collection<UUID> tagDataListOptionIds, boolean exclude) {
+        if (exclude)
+            tagDataListOptionIdExcludeList = CollectionUtils.safeAdd(tagDataListOptionIdExcludeList, tagDataListOptionIds);
+        else
+            tagDataListOptionIdList = CollectionUtils.safeAdd(tagDataListOptionIdList, tagDataListOptionIds);
         return this;
     }
 

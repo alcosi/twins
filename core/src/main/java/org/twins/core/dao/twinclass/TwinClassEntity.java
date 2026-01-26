@@ -1,26 +1,22 @@
 package org.twins.core.dao.twinclass;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
-import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.action.TwinActionPermissionEntity;
-import org.twins.core.dao.attachment.TwinAttachmentAction;
 import org.twins.core.dao.attachment.TwinAttachmentActionAlienPermissionEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
-import org.twins.core.dao.comment.TwinCommentAction;
 import org.twins.core.dao.comment.TwinCommentActionAlienPermissionEntity;
 import org.twins.core.dao.comment.TwinCommentActionSelfEntity;
 import org.twins.core.dao.datalist.DataListEntity;
@@ -28,7 +24,7 @@ import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.permission.PermissionEntity;
-import org.twins.core.dao.twin.TwinFieldTwinClassEntity;
+import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
@@ -36,8 +32,11 @@ import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionAlienValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionSelfValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleEntity;
+import org.twins.core.enums.action.TwinAction;
+import org.twins.core.enums.attachment.TwinAttachmentAction;
+import org.twins.core.enums.comment.TwinCommentAction;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
-import org.twins.core.featurer.headhunter.HeadHunter;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -63,6 +62,9 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Column(name = "key")
     private String key;
+
+    @Column(name = "twin_class_freeze_id")
+    private UUID twinClassFreezeId;
 
     @Column(name = "permission_schema_space")
     private Boolean permissionSchemaSpace;
@@ -103,11 +105,20 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @Column(name = "logo")
-    private String logo;
+    @Column(name = "icon_light_resource_id")
+    private UUID iconLightResourceId;
+
+    @Column(name = "icon_dark_resource_id")
+    private UUID iconDarkResourceId;
 
     @Column(name = "head_twin_class_id")
     private UUID headTwinClassId;
+
+    @Column(name = "segment")
+    private Boolean segment;
+
+    @Column(name = "has_segments")
+    private Boolean hasSegment;
 
     @Column(name = "extends_twin_class_id")
     private UUID extendsTwinClassId;
@@ -139,9 +150,9 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "assignee_required")
     private Boolean assigneeRequired;
 
-    @FeaturerList(type = HeadHunter.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "head_hunter_featurer_id", insertable = false, updatable = false)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity headHunterFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
@@ -150,6 +161,21 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Column(name = "page_face_id")
     private UUID pageFaceId;
+
+    @Column(name = "bread_crumbs_face_id")
+    private UUID breadCrumbsFaceId;
+
+    @Column(name = "inherited_page_face_id", insertable = false, updatable = false)
+    private UUID inheritedPageFaceId;
+
+    @Column(name = "inherited_bread_crumbs_face_id", insertable = false, updatable = false)
+    private UUID inheritedBreadCrumbsFaceId;
+
+    @Column(name = "inherited_marker_data_list_id", insertable = false, updatable = false)
+    private UUID inheritedMarkerDataListId;
+
+    @Column(name = "inherited_tag_data_list_id", insertable = false, updatable = false)
+    private UUID inheritedTagDataListId;
 
     @Column(name = "general_attachment_restriction_id")
     private UUID generalAttachmentRestrictionId;
@@ -160,9 +186,29 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "external_id")
     private String externalId;
 
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "external_properties", columnDefinition = "hstore")
+    private Map<String, String> externalProperties;
+
+    @Type(JsonType.class)
+    @Column(name = "external_json", columnDefinition = "jsonb")
+    private Map<String, Object> externalJson;
+
 //    @ManyToOne
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
 //    private DomainEntity domain;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "icon_light_resource_id", insertable = false, updatable = false)
+    private ResourceEntity iconLightResource;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "icon_dark_resource_id", insertable = false, updatable = false)
+    private ResourceEntity iconDarkResource;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
@@ -184,134 +230,203 @@ public class TwinClassEntity implements EasyLoggable {
     @ToString.Exclude
     private FaceEntity pageFace;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bread_crumbs_face_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity breadCrumbsFace;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inherited_page_face_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity inheritedPageFace;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inherited_bread_crumbs_face_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity inheritedBreadCrumbsFace;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inherited_marker_data_list_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DataListEntity inheritedMarkerDataList;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inherited_tag_data_list_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DataListEntity inheritedTagDataList;
+
 //    @ManyToOne
 //    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
 //    private UserEntity createdByUser;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<UUID> extendedClassIdSet;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<UUID> headHierarchyClassIdSet;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinClassEntity, UUID> headHierarchyChildClassKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinClassEntity, UUID> extendsHierarchyChildClassKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinflowEntity, UUID> twinflowKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinClassFieldEntity, UUID> twinClassFieldKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Set<TwinFieldStorage> fieldStorageSet;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinStatusEntity, UUID> twinStatusKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<LinkEntity, UUID> linksKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinActionPermissionEntity, TwinAction> actionsProtectedByPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private KitGrouped<TwinActionValidatorRuleEntity, UUID, TwinAction> actionsProtectedByValidatorRules;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinCommentActionAlienPermissionEntity, TwinCommentAction> commentAlienActionsProtectedByPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private KitGrouped<TwinCommentActionAlienValidatorRuleEntity, UUID, TwinCommentAction> commentAlienActionsProtectedByValidatorRules;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinCommentActionSelfEntity, TwinCommentAction> commentSelfActionsRestriction;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinAttachmentActionAlienPermissionEntity, TwinAttachmentAction> attachmentAlienActionsProtectedByPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private KitGrouped<TwinAttachmentActionAlienValidatorRuleEntity, UUID, TwinAttachmentAction> attachmentAlienActionsProtectedByValidatorRules;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private KitGrouped<TwinAttachmentActionSelfValidatorRuleEntity, UUID, TwinAttachmentAction> attachmentSelfActionsRestriction;
 
     //TODO m.b. move to Twinflow entity? services logic
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinflowTransitionEntity, UUID> transitionsKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassFreezeEntity twinClassFreeze;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionEntity viewPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionEntity createPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionEntity editPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionEntity deletePermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassEntity headTwinClass;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassEntity extendsTwinClass;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private DataListEntity markerDataList;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private DataListEntity tagDataList;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinAttachmentRestrictionEntity generalAttachmentRestriction;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinClassEntity, UUID> segmentTwinsClassKit;
 
 
     public Set<UUID> getExtendedClassIdSet() {
         if (null == extendedClassIdSet && null != getExtendsHierarchyTree()) {
-            extendedClassIdSet = new HashSet<>();
-            for (String hierarchyItem : convertUuidFromLtreeFormat(getExtendsHierarchyTree()).split("\\."))
-                extendedClassIdSet.add(UUID.fromString(hierarchyItem));
+            extendedClassIdSet = new LinkedHashSet<>();
+            var hierarchyIds = convertUuidFromLtreeFormat(getExtendsHierarchyTree()).split("\\.");
+            for (int i = hierarchyIds.length - 1; i >= 0; i--) //reverse direction, directly extends - first
+                extendedClassIdSet.add(UUID.fromString(hierarchyIds[i]));
         }
         return extendedClassIdSet;
     }
 
     public Set<UUID> getHeadHierarchyClassIdSet() {
         if (null == headHierarchyClassIdSet && null != getHeadHierarchyTree()) {
-            headHierarchyClassIdSet = new HashSet<>();
-            for (String hierarchyItem : convertUuidFromLtreeFormat(getHeadHierarchyTree()).split("\\."))
-                headHierarchyClassIdSet.add(UUID.fromString(hierarchyItem));
+            headHierarchyClassIdSet = new LinkedHashSet<>();
+            var hierarchyIds = convertUuidFromLtreeFormat(getHeadHierarchyTree()).split("\\.");
+            for (int i = hierarchyIds.length - 1; i >= 0; i--) //reverse direction, directly extends - first
+                headHierarchyClassIdSet.add(UUID.fromString(hierarchyIds[i]));
         }
         return headHierarchyClassIdSet;
     }
@@ -330,37 +445,6 @@ public class TwinClassEntity implements EasyLoggable {
 
     public boolean isSpace() {
         return permissionSchemaSpace || twinflowSchemaSpace || twinClassSchemaSpace || aliasSpace;
-    }
-
-    @Getter
-    public enum OwnerType {
-        SYSTEM("system", false, false, false),
-        USER("user", false, false, true),
-        BUSINESS_ACCOUNT("businessAccount", true, false, false),
-        DOMAIN("domain", false, true, false),
-        DOMAIN_BUSINESS_ACCOUNT("domainBusinessAccount", true, true, false),
-        DOMAIN_USER("domainUser", false, true, true),
-        DOMAIN_BUSINESS_ACCOUNT_USER("domainBusinessAccountUser", true, true, true);
-
-        private final String id;
-        private final boolean businessAccountLevel;
-        private final boolean domainLevel;
-        private final boolean userLevel;
-
-        OwnerType(String id, boolean businessAccountLevel, boolean domainLevel, boolean userLevel) {
-            this.id = id;
-            this.businessAccountLevel = businessAccountLevel;
-            this.domainLevel = domainLevel;
-            this.userLevel = userLevel;
-        }
-
-        public static OwnerType valueOd(String type) {
-            return Arrays.stream(OwnerType.values()).filter(t -> t.id.equals(type)).findAny().orElse(DOMAIN_BUSINESS_ACCOUNT);
-        }
-
-        public boolean isSystemLevel() {
-            return this == SYSTEM;
-        }
     }
 
 

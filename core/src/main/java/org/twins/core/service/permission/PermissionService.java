@@ -1,5 +1,7 @@
 package org.twins.core.service.permission;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -18,11 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
-import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.domain.DomainType;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
-import org.twins.core.dao.i18n.I18nType;
 import org.twins.core.dao.permission.*;
 import org.twins.core.dao.space.*;
 import org.twins.core.dao.twin.TwinEntity;
@@ -33,8 +32,10 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.TwinRole;
 import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
+import org.twins.core.enums.domain.DomainType;
+import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.enums.twin.TwinRole;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
@@ -55,6 +56,7 @@ import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArr
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class PermissionService extends TwinsEntitySecureFindService<PermissionEntity> {
 
@@ -191,14 +193,6 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return detectKeys;
     }
 
-    public PermissionSchemaEntity loadSchemaForDomain(DomainEntity domain) {
-        if(null != domain.getPermissionSchema())
-            return domain.getPermissionSchema();
-        final PermissionSchemaEntity permissionSchema = permissionSchemaRepository.findById(domain.getPermissionSchemaId()).orElse(null);
-        domain.setPermissionSchema(permissionSchema);
-        return permissionSchema;
-    }
-
     public PermissionSchemaEntity getCurrentPermissionSchema(TwinEntity twin) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         PermissionSchemaEntity permissionSchema = null;
@@ -210,7 +204,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
                 final DomainBusinessAccountEntity domainBusinessAccount = domainBusinessAccountService.getDomainBusinessAccountEntitySafe(apiUser.getDomainId(), apiUser.getBusinessAccountId());
                 permissionSchema = domainBusinessAccount.getPermissionSchema();
             } else {
-                permissionSchema = loadSchemaForDomain(apiUser.getDomain());
+                permissionSchema = apiUser.getDomain().getPermissionSchema();
             }
             if (null == permissionSchema) throw new ServiceException(ErrorCodeTwins.PERMISSION_SCHEMA_NOT_SPECIFIED);
         }
@@ -264,29 +258,9 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         ChangesHelper changesHelper = new ChangesHelper();
         updatePermissionKey(updateEntity, dbEntity, changesHelper);
         updatePermissionGroupId(updateEntity, dbEntity, changesHelper);
-        updatePermissionName(nameI18n, dbEntity, changesHelper);
-        updatePermissionDescription(descriptionI18n, dbEntity, changesHelper);
+        i18nService.updateI18nFieldForEntity(nameI18n, I18nType.PERMISSION_NAME, dbEntity, PermissionEntity::getNameI18NId, PermissionEntity::setNameI18NId, PermissionEntity.Fields.nameI18NId, changesHelper);
+        i18nService.updateI18nFieldForEntity(descriptionI18n, I18nType.PERMISSION_DESCRIPTION, dbEntity, PermissionEntity::getDescriptionI18NId, PermissionEntity::setDescriptionI18NId, PermissionEntity.Fields.descriptionI18NId, changesHelper);
         return updateSafe(dbEntity, changesHelper);
-    }
-
-    private void updatePermissionDescription(I18nEntity descriptionI18n, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
-        if (descriptionI18n == null)
-            return;
-        if (dbEntity.getDescriptionI18NId() != null)
-            descriptionI18n.setId(dbEntity.getDescriptionI18NId());
-        i18nService.saveTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n);
-        if (changesHelper.isChanged(PermissionEntity.Fields.descriptionI18NId, dbEntity.getDescriptionI18NId(), descriptionI18n.getId()))
-            dbEntity.setDescriptionI18NId(descriptionI18n.getId());
-    }
-
-    private void updatePermissionName(I18nEntity nameI18n, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
-        if (nameI18n == null)
-            return;
-        if (dbEntity.getNameI18NId() != null)
-            nameI18n.setId(dbEntity.getNameI18NId());
-        i18nService.saveTranslations(I18nType.PERMISSION_NAME, nameI18n);
-        if (changesHelper.isChanged(PermissionEntity.Fields.nameI18NId, dbEntity.getNameI18NId(), nameI18n.getId()))
-            dbEntity.setNameI18NId(nameI18n.getId());
     }
 
     private void updatePermissionGroupId(PermissionEntity updateEntity, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
@@ -468,7 +442,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
             return false;
 
         loadUserPermissions(apiUser.getUser());
-        return anyOf 
+        return anyOf
             ? apiUser.getUser().getPermissions().stream().anyMatch(permissions::contains)
             : apiUser.getUser().getPermissions().containsAll(permissions);
     }

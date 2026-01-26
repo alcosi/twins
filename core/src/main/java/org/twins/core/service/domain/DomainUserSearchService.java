@@ -1,5 +1,7 @@
 package org.twins.core.service.domain;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -10,12 +12,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.domain.DomainType;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.domain.DomainUserRepository;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.DomainUserSearch;
+import org.twins.core.enums.domain.DomainType;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
@@ -24,6 +26,7 @@ import static org.twins.core.dao.specifications.domain.DomainUserSpecification.*
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class DomainUserSearchService {
     private final DomainUserRepository domainUserRepository;

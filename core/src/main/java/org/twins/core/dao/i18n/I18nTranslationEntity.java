@@ -2,6 +2,8 @@ package org.twins.core.dao.i18n;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,8 @@ public class I18nTranslationEntity implements EasyLoggable {
     @Column(name = "i18n_id")
     private UUID i18nId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "i18n_id", insertable = false, updatable = false)
     private I18nEntity i18n;

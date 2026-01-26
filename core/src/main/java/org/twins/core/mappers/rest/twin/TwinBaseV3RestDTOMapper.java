@@ -27,10 +27,10 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = {TwinActionMode.class})
+@MapperModeBinding(modes = {TwinActionMode.class, TwinSegmentMode.class})
 public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinBaseDTOv3> {
 
-    private final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
+    private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
 
     @MapperModePointerBinding(modes = {AttachmentMode.Twin2AttachmentMode.class, AttachmentCollectionMode.Twin2AttachmentCollectionMode.class})
     private final AttachmentRestDTOMapper attachmentRestDTOMapper;
@@ -63,8 +63,9 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
 
     @Override
     public void map(TwinEntity src, TwinBaseDTOv3 dst, MapperContext mapperContext) throws Exception {
-        twinBaseV2RestDTOMapper.map(src, dst, mapperContext);
-        if (mapperContext.hasMode(TwinFieldCollectionMode.ALL_FIELDS_WITH_ATTACHMENTS) || mapperContext.hasMode(TwinFieldCollectionMode.NOT_EMPTY_FIELDS_WITH_ATTACHMENTS)) {
+        twinBaseRestDTOMapper.map(src, dst, mapperContext);
+        if (mapperContext.hasModeButNot(AttachmentMode.TwinField2AttachmentMode.HIDE)) {
+            //todo not clear code
             mapperContext.setPriorityMinMode(AttachmentCollectionMode.Twin2AttachmentCollectionMode.FROM_FIELDS);
             mapperContext.setPriorityMinMode(AttachmentMode.Twin2AttachmentMode.SHORT);
         }
@@ -82,15 +83,18 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         }
         if (showTransitions(mapperContext)) {
             twinflowTransitionService.loadValidTransitions(src);
-            convertOrPostpone(src.getValidTransitionsKit(), dst, twinTransitionRestDTOMapper, mapperContext.forkOnPoint(TransitionMode.Twin2TransitionMode.HIDE), TwinBaseDTOv3::setTransitions, TwinBaseDTOv3::setTransitionsIdList);
+            dst.setTransitionsIdList(src.getValidTransitionsKit().getIdSet());
+            twinTransitionRestDTOMapper.postpone(src.getValidTransitionsKit(), mapperContext.forkOnPoint(TransitionMode.Twin2TransitionMode.HIDE));
         }
         if (showMarkers(mapperContext)) {
             twinMarkerService.loadMarkers(src);
-            convertOrPostpone(src.getTwinMarkerKit(), dst, dataListOptionRestDTOMapper, mapperContext.forkOnPoint(DataListOptionMode.TwinMarker2DataListOptionMode.HIDE), TwinBaseDTOv3::setMarkers, TwinBaseDTOv3::setMarkerIdList);
+            dst.setMarkerIdList(src.getTwinMarkerKit().getIdSet());
+            dataListOptionRestDTOMapper.postpone(src.getTwinMarkerKit(), mapperContext.forkOnPoint(DataListOptionMode.TwinMarker2DataListOptionMode.HIDE));
         }
         if (showTags(mapperContext)) {
             twinTagService.loadTags(src);
-            convertOrPostpone(src.getTwinTagKit(), dst, dataListOptionRestDTOMapper, mapperContext.forkOnPoint(DataListOptionMode.TwinTag2DataListOptionMode.HIDE), TwinBaseDTOv3::setTags, TwinBaseDTOv3::setTagIdList);
+            dst.setTagIdList(src.getTwinTagKit().getIdSet());
+            dataListOptionRestDTOMapper.postpone(src.getTwinTagKit(), mapperContext.forkOnPoint(DataListOptionMode.TwinTag2DataListOptionMode.HIDE));
         }
         if (showActions(mapperContext)) {
             twinActionService.loadActions(src);
@@ -98,7 +102,13 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         }
         if (showCreatableChildTwinClasses(mapperContext)) {
             twinHeadService.loadCreatableChildTwinClasses(src);
-            convertOrPostpone(src.getCreatableChildTwinClasses(), dst, twinClassRestDTOMapper, mapperContext.forkOnPoint(TwinClassMode.TwinCreatableChild2TwinClassMode.HIDE), TwinBaseDTOv3::setCreatableChildTwinClasses, TwinBaseDTOv3::setCreatableChildTwinClassIds);
+            dst.setCreatableChildTwinClassIds(src.getCreatableChildTwinClasses().getIdSet());
+            twinClassRestDTOMapper.postpone(src.getCreatableChildTwinClasses(), mapperContext.forkOnPoint(TwinClassMode.TwinCreatableChild2TwinClassMode.HIDE));
+        }
+        if (showSegments(mapperContext)) {
+            twinService.loadSegments(src);
+            dst.setSegmentTwinIdList(src.getSegments().getIdSet());
+            postpone(src.getSegments(), mapperContext.forkAndExclude(TwinSegmentMode.SHOW));
         }
     }
 
@@ -134,10 +144,14 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         return mapperContext.hasModeButNot(TwinAttachmentCountMode.HIDE);
     }
 
+    private static boolean showSegments(MapperContext mapperContext) {
+        return mapperContext.hasModeButNot(TwinSegmentMode.HIDE);
+    }
+
     @Override
     public void beforeCollectionConversion(Collection<TwinEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        twinBaseV2RestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
+        twinBaseRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
         if (showAttachments(mapperContext))
             attachmentService.loadAttachments(srcCollection);
         if (showMarkers(mapperContext))
@@ -154,11 +168,13 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             twinAttachmentsCounterRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
         if (showCreatableChildTwinClasses(mapperContext))
             twinHeadService.loadCreatableChildTwinClasses(srcCollection);
+        if (showSegments(mapperContext))
+            twinService.loadSegments(srcCollection);
     }
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return twinBaseV2RestDTOMapper.hideMode(mapperContext);
+        return twinBaseRestDTOMapper.hideMode(mapperContext);
     }
 
     @Override

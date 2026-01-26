@@ -8,7 +8,9 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.enums.i18n.I18nType;
 
 import java.util.List;
 import java.util.Locale;
@@ -26,9 +28,7 @@ public class I18nEntity {
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UUID.randomUUID();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "domain_id")

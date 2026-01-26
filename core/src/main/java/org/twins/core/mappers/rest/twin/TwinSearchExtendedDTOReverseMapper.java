@@ -13,6 +13,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 public class TwinSearchExtendedDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchExtendedDTOv1, BasicSearch> {
 
     private final TwinSearchDTOReverseMapper twinSearchDTOReverseMapper;
+    private final TwinSortDTOReverseMapper twinSortDTOReverseMapper;
 
     @Override
     public void map(TwinSearchExtendedDTOv1 src, BasicSearch dst, MapperContext mapperContext) throws Exception {
@@ -20,6 +21,7 @@ public class TwinSearchExtendedDTOReverseMapper extends RestSimpleDTOMapper<Twin
         dst
                 .setHeadSearch(twinSearchDTOReverseMapper.convert(src.getHeadSearch(), mapperContext))
                 .setChildrenSearch(twinSearchDTOReverseMapper.convert(src.getChildrenSearch(), mapperContext))
+                .setSorts(twinSortDTOReverseMapper.convertCollection(src.getSorts(), mapperContext))
         ;
     }
 }

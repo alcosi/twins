@@ -1,0 +1,1 @@
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2436, 24, 'org.twins.core.featurer.factory.conditioner.ConditionerApiUserIsAssigneeForLinkedTwinOutputField', 'Is current user assignee for linked twin from output field', '', false) on conflict do nothing ;

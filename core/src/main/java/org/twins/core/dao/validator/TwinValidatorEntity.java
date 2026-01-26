@@ -3,13 +3,15 @@ package org.twins.core.dao.validator;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.annotations.FeaturerList;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
-import org.twins.core.featurer.twin.validator.TwinValidator;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -21,8 +23,12 @@ import java.util.UUID;
 @FieldNameConstants
 public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;
@@ -30,9 +36,9 @@ public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggab
     @Column(name = "twin_validator_featurer_id")
     private Integer twinValidatorFeaturerId;
 
-    @FeaturerList(type = TwinValidator.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "twin_validator_featurer_id", insertable = false, updatable = false)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity twinValidatorFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
@@ -51,6 +57,10 @@ public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggab
     @Column(name = "`order`")
     @Basic
     private Integer order;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinValidatorEntity, UUID> twinValidatorKit;
 
     @Transient
     private TwinValidatorSetEntity twinValidatorSet;

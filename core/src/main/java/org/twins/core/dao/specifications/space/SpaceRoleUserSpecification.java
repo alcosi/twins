@@ -53,7 +53,7 @@ public class SpaceRoleUserSpecification extends CommonSpecification<SpaceRoleUse
     public static Specification<SpaceRoleUserEntity> checkUserNameLikeWithPattern(final String search) {
         return (root, query, cb) -> {
             if (!ObjectUtils.isEmpty(search))
-                return cb.like(cb.lower(root.join(SpaceRoleUserEntity.Fields.user).get(UserEntity.Fields.name)), "%" + search.toLowerCase() + "%");
+                return cb.like(cb.lower(root.join(SpaceRoleUserEntity.Fields.user).get(UserEntity.Fields.name)), "%" + search.toLowerCase() + "%", escapeChar);
             else return cb.conjunction();
         };
     }
@@ -61,7 +61,7 @@ public class SpaceRoleUserSpecification extends CommonSpecification<SpaceRoleUse
     public static Specification<SpaceRoleUserEntity> checkUserNameLikeWithoutPattern(final String search) {
         return (root, query, cb) -> {
             if (!ObjectUtils.isEmpty(search))
-                return cb.like(cb.lower(root.join(SpaceRoleUserEntity.Fields.user).get(UserEntity.Fields.name)), search.toLowerCase());
+                return cb.like(cb.lower(root.join(SpaceRoleUserEntity.Fields.user).get(UserEntity.Fields.name)), search.toLowerCase(), escapeChar);
             else return cb.conjunction();
         };
     }

@@ -1,0 +1,1 @@
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2438, 24, 'org.twins.core.featurer.factory.conditioner.ConditionerFactoryItemTwinHasChildrenOfClasses', 'Factory item twin has children of classes', '', false) on conflict do nothing;

@@ -3,12 +3,14 @@ package org.twins.core.dao.factory;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.annotations.FeaturerList;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
-import org.twins.core.featurer.factory.multiplier.Multiplier;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -17,34 +19,45 @@ import java.util.UUID;
 @Table(name = "twin_factory_condition")
 @Accessors(chain = true)
 @Data
+@FieldNameConstants
 public class TwinFactoryConditionEntity implements EasyLoggable {
-    @GeneratedValue(generator = "uuid")
     @Id
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twin_factory_condition_set_id")
     private UUID twinFactoryConditionSetId;
 
     @Column(name = "conditioner_featurer_id")
-    private int conditionerFeaturerId;
+    private Integer conditionerFeaturerId;
 
     @Column(name = "description")
     private String description;
 
     @Column(name = "active")
-    private boolean active;
+    private Boolean active;
 
     @Column(name = "invert")
-    private boolean invert;
+    private Boolean invert;
 
-    @FeaturerList(type = Multiplier.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "conditioner_featurer_id", insertable = false, updatable = false)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity conditionerFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "conditioner_params", columnDefinition = "hstore")
     private HashMap<String, String> conditionerParams;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
+    private TwinFactoryConditionSetEntity conditionSet;
 
     public String easyLog(Level level) {
         return switch (level) {

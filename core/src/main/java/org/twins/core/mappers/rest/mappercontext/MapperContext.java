@@ -9,18 +9,23 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.face.FaceEntity;
+import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
+import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
+import org.twins.core.dao.projection.ProjectionTypeEntity;
+import org.twins.core.dao.projection.ProjectionTypeGroupEntity;
+import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -69,6 +74,10 @@ public class MapperContext {
     @Getter
     private Map<UUID, RelatedObject<TwinFactoryPipelineEntity>> relatedFactoryPipelineMap = new LinkedHashMap<>();
     @Getter
+    private Map<UUID, RelatedObject<TwinFactoryConditionSetEntity>> relatedFactoryConditionSetMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinFactoryMultiplierEntity>> relatedFactoryMultiplierMap = new LinkedHashMap<>();
+    @Getter
     private Map<UUID, RelatedObject<FaceEntity>> relatedFaceMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<I18nEntity>> relatedI18nMap = new LinkedHashMap<>();
@@ -79,7 +88,21 @@ public class MapperContext {
     @Getter
     private Map<UUID, RelatedObject<TwinCommentEntity>> relatedCommentMap = new LinkedHashMap<>();
     @Getter
+    private Map<UUID, RelatedObject<TwinClassSchemaEntity>> relatedTwinClassSchemaMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TierEntity>> relatedTierMap = new LinkedHashMap<>();
+    @Getter
     private Map<UUID, RelatedObject<TwinAttachmentRestrictionEntity>> relatedAttachmentRestrictionMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinClassFreezeEntity>> relatedTwinClassFreezeMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinClassFieldRuleEntity>> relatedClassFieldRuleMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<ProjectionTypeGroupEntity>> relatedProjectionTypeGroupMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<ProjectionTypeEntity>> relatedProjectionTypeMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<SchedulerEntity>> relatedSchedulerMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
@@ -96,6 +119,11 @@ public class MapperContext {
     public MapperContext removeMode(MapperMode mapperMode) {
         modes.remove(mapperMode);
         return this;
+    }
+
+    public MapperContext setModes(MapperModeCollection mapperModeCollection) {
+        modes.clear(); // let's clean them! this will delete forked modes during fork on collection
+        return setModes(mapperModeCollection.getConfiguredModes());
     }
 
     public MapperContext setModes(MapperMode... mapperModes) {
@@ -205,6 +233,10 @@ public class MapperContext {
             smartPut(relatedFactoryMap, twinFactory, twinFactory.getId());
         else if (relatedObject instanceof TwinFactoryPipelineEntity twinFactoryPipeline)
             smartPut(relatedFactoryPipelineMap, twinFactoryPipeline, twinFactoryPipeline.getId());
+        else if (relatedObject instanceof TwinFactoryConditionSetEntity factoryConditionSet)
+            smartPut(relatedFactoryConditionSetMap, factoryConditionSet, factoryConditionSet.getId());
+        else if (relatedObject instanceof TwinFactoryMultiplierEntity factoryMultiplier)
+            smartPut(relatedFactoryMultiplierMap, factoryMultiplier, factoryMultiplier.getId());
         else if (relatedObject instanceof FaceEntity face)
             smartPut(relatedFaceMap, face, face.getId());
         else if (relatedObject instanceof I18nEntity i18n)
@@ -215,8 +247,22 @@ public class MapperContext {
             smartPut(relatedTwinClassFieldMap, twinClassField, twinClassField.getId());
         else if (relatedObject instanceof TwinCommentEntity entity)
             smartPut(relatedCommentMap, entity, entity.getId());
+        else if (relatedObject instanceof TwinClassSchemaEntity twinClassSchema)
+            smartPut(relatedTwinClassSchemaMap, twinClassSchema, twinClassSchema.getId());
+        else if (relatedObject instanceof TierEntity tier)
+            smartPut(relatedTierMap, tier, tier.getId());
         else if (relatedObject instanceof TwinAttachmentRestrictionEntity entity)
             smartPut(relatedAttachmentRestrictionMap, entity, entity.getId());
+        else if (relatedObject instanceof TwinClassFieldRuleEntity entity)
+            smartPut(relatedClassFieldRuleMap, entity, entity.getId());
+        else if (relatedObject instanceof TwinClassFreezeEntity entity)
+            smartPut(relatedTwinClassFreezeMap, entity, entity.getId());
+        else if (relatedObject instanceof ProjectionTypeGroupEntity entity)
+            smartPut(relatedProjectionTypeGroupMap, entity, entity.getId());
+        else if (relatedObject instanceof ProjectionTypeEntity entity)
+            smartPut(relatedProjectionTypeMap, entity, entity.getId());
+        else if (relatedObject instanceof SchedulerEntity entity)
+            smartPut(relatedSchedulerMap, entity, entity.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -357,22 +403,31 @@ public class MapperContext {
         return mapperContext;
     }
 
-    public MapperContext cloneWithIsolatedModes() {
+    public MapperContext fork() {
         MapperContext mapperContext = cloneIgnoreRelatedObjects();
         linkToRelatedObjects(this, mapperContext);
         return mapperContext;
     }
 
+    public MapperContext forkAndExclude(MapperMode... excludeModes) {
+        MapperContext fork = fork();
+        if (excludeModes != null) {
+            for (MapperMode mapperMode : excludeModes) {
+                fork.removeMode(mapperMode);
+            }
+        }
+        return fork;
+    }
+
     public MapperContext forkOnPoint(MapperModePointer<?>... mapperModePointers) {
-        MapperContext fork = null;
-        fork = cloneWithIsolatedModes();
+        MapperContext fork = fork();
         for (MapperModePointer<?> mapperModePointer : mapperModePointers) {
             MapperModePointer<?> configuredPointer = getModeOrUse(mapperModePointer);
             MapperMode pointedMode = configuredPointer.point();
             if (pointedMode == null)
                 continue;
             else if (pointedMode instanceof MapperModeCollection modeCollection) {
-                fork.setModes(modeCollection.getConfiguredModes()); // we will override duplicates
+                fork.setModes(modeCollection); // we will override duplicates
             } else {
                 fork.removeMode(mapperModePointer); //this will protect us from stackoverflow
                 fork.setMode(pointedMode);
@@ -407,18 +462,27 @@ public class MapperContext {
         dstMapperContext.relatedTwinflowMap = srcMapperContext.relatedTwinflowMap;
         dstMapperContext.relatedFactoryMap = srcMapperContext.relatedFactoryMap;
         dstMapperContext.relatedFactoryPipelineMap = srcMapperContext.relatedFactoryPipelineMap;
+        dstMapperContext.relatedFactoryConditionSetMap = srcMapperContext.relatedFactoryConditionSetMap;
+        dstMapperContext.relatedFactoryMultiplierMap = srcMapperContext.relatedFactoryMultiplierMap;
         dstMapperContext.relatedFaceMap = srcMapperContext.relatedFaceMap;
         dstMapperContext.relatedI18nMap = srcMapperContext.relatedI18nMap;
         dstMapperContext.relatedFeaturerMap = srcMapperContext.relatedFeaturerMap;
         dstMapperContext.relatedTwinClassFieldMap = srcMapperContext.relatedTwinClassFieldMap;
         dstMapperContext.relatedCommentMap = srcMapperContext.relatedCommentMap;
+        dstMapperContext.relatedTwinClassSchemaMap = srcMapperContext.relatedTwinClassSchemaMap;
+        dstMapperContext.relatedTierMap = srcMapperContext.relatedTierMap;
         dstMapperContext.relatedAttachmentRestrictionMap = srcMapperContext.relatedAttachmentRestrictionMap;
+        dstMapperContext.relatedTwinClassFreezeMap = srcMapperContext.relatedTwinClassFreezeMap;
+        dstMapperContext.relatedClassFieldRuleMap = srcMapperContext.relatedClassFieldRuleMap;
+        dstMapperContext.relatedProjectionTypeGroupMap = srcMapperContext.relatedProjectionTypeGroupMap;
+        dstMapperContext.relatedProjectionTypeMap = srcMapperContext.relatedProjectionTypeMap;
+        dstMapperContext.relatedSchedulerMap = srcMapperContext.relatedSchedulerMap;
     }
 
-    public MapperContext cloneWithIsolatedModes(MapperModeCollection mapperModeCollection) {
-        MapperContext cloneMapperContext = cloneWithIsolatedModes();
+    public MapperContext fork(MapperModeCollection mapperModeCollection) {
+        MapperContext cloneMapperContext = fork();
         mapperModeCollection = getModeOrUse(mapperModeCollection);
-        cloneMapperContext.setModes(mapperModeCollection.getConfiguredModes());
+        cloneMapperContext.setModes(mapperModeCollection);
         return cloneMapperContext;
     }
 

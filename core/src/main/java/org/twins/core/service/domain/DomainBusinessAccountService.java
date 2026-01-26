@@ -1,5 +1,7 @@
 package org.twins.core.service.domain;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -22,13 +24,15 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountRepository;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.domain.DomainType;
 import org.twins.core.domain.search.DomainBusinessAccountSearch;
+import org.twins.core.enums.domain.DomainType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
+import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.permission.PermissionSchemaService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.space.SpaceRoleService;
 import org.twins.core.service.twin.TwinAliasService;
@@ -43,12 +47,12 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
-import static org.springframework.data.jpa.domain.Specification.where;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.domain.DomainBusinessAccountSpecification.*;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @AllArgsConstructor
 public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<DomainBusinessAccountEntity> {
@@ -61,6 +65,8 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
     private final BusinessAccountService businessAccountService;
     @Lazy
     private final PermissionService permissionService;
+    @Lazy
+    private final PermissionSchemaService permissionSchemaService;
     private final TwinClassService twinClassService;
     private final TwinflowService twinflowService;
     @Lazy
@@ -72,6 +78,8 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
     @Lazy
     private final DataListService dataListService;
     private final UserGroupService userGroupService;
+    @Lazy
+    private final HistoryService historyService;
 
     @Override
     public CrudRepository<DomainBusinessAccountEntity, UUID> entityRepository() {
@@ -195,8 +203,7 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
 
     public Specification<DomainBusinessAccountEntity> createDomainBusinessAccountEntitySearchSpecification(DomainBusinessAccountSearch domainBusinessAccountSearch) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
-        return where(
-                checkUuid(DomainBusinessAccountEntity.Fields.domainId, domainId)
+        return checkUuid(DomainBusinessAccountEntity.Fields.domainId, domainId)
                         .and(checkBusinessAccountFieldLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameLikeList(), false))
                         .and(checkBusinessAccountFieldNotLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameNotLikeList(), true))
                         .and(checkUuidIn(domainBusinessAccountSearch.getPermissionSchemaIdList(), false, false, DomainBusinessAccountEntity.Fields.permissionSchemaId))
@@ -206,7 +213,6 @@ public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<Do
                         .and(checkUuidIn(domainBusinessAccountSearch.getTwinClassSchemaIdList(), false, false, DomainBusinessAccountEntity.Fields.twinClassSchemaId))
                         .and(checkUuidIn(domainBusinessAccountSearch.getTwinClassSchemaIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.twinClassSchemaId))
                         .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdList(), false, false, DomainBusinessAccountEntity.Fields.businessAccountId))
-                        .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, false, DomainBusinessAccountEntity.Fields.businessAccountId))
-        );
+                        .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, false, DomainBusinessAccountEntity.Fields.businessAccountId));
     }
 }

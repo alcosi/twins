@@ -79,26 +79,6 @@ public enum TwinMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinField2TwinMode implements MapperModePointer<TwinMode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        final int priority;
-
-        @Override
-        public TwinMode point() {
-            return switch (this) {
-                case HIDE -> TwinMode.HIDE;
-                case SHORT -> TwinMode.SHORT;
-                case DETAILED -> TwinMode.DETAILED;
-            };
-        }
-    }
-
-    @Getter
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
     public enum Attachment2TwinMode implements MapperModePointer<TwinMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
@@ -120,6 +100,66 @@ public enum TwinMode implements MapperMode {
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
     public enum FaceTwidget2TwinMode implements MapperModePointer<TwinMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public TwinMode point() {
+            return switch (this) {
+                case HIDE -> TwinMode.HIDE;
+                case SHORT -> TwinMode.SHORT;
+                case DETAILED -> TwinMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum DomainBusinessAccountTemplate2TwinMode implements MapperModePointer<TwinMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public TwinMode point() {
+            return switch (this) {
+                case HIDE -> TwinMode.HIDE;
+                case SHORT -> TwinMode.SHORT;
+                case DETAILED -> TwinMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum DomainUserTemplate2TwinMode implements MapperModePointer<TwinMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public TwinMode point() {
+            return switch (this) {
+                case HIDE -> TwinMode.HIDE;
+                case SHORT -> TwinMode.SHORT;
+                case DETAILED -> TwinMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum TransitionResult2TwinMode implements MapperModePointer<TwinMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

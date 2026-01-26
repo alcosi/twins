@@ -1,5 +1,7 @@
 package org.twins.core.service.twin;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCodeCommon;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleRepository;
+import org.twins.core.service.validator.TwinValidatorService;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -19,11 +22,14 @@ import java.util.function.Function;
 @Slf4j
 @Service
 @Lazy
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TwinPointerValidatorRuleService extends EntitySecureFindServiceImpl<TwinPointerValidatorRuleEntity> {
     private final TwinPointerValidatorRuleRepository twinPointerValidatorRuleRepository;
     private final TwinPointerService twinPointerService;
     private final TwinValidatorSetService twinValidatorSetService;
+    @Lazy
+    private final TwinValidatorService twinValidatorService;
 
     @Override
     public CrudRepository<TwinPointerValidatorRuleEntity, UUID> entityRepository() {
@@ -54,8 +60,7 @@ public class TwinPointerValidatorRuleService extends EntitySecureFindServiceImpl
     public boolean isValid(TwinEntity currentTwin, UUID twinPointerValidatorRuleId) throws ServiceException {
         TwinPointerValidatorRuleEntity pointerValidatorRuleEntity = twinPointerValidatorRuleRepository.findById(twinPointerValidatorRuleId)
                 .orElseThrow(() -> new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION));
-        twinValidatorSetService.loadTwinValidatorSet(pointerValidatorRuleEntity);
         TwinEntity pointedTwin = twinPointerService.getPointer(currentTwin, pointerValidatorRuleEntity.getTwinPointerId());
-        return twinValidatorSetService.isValid(pointedTwin, pointerValidatorRuleEntity, pointerValidatorRuleEntity.getTwinValidators());
+        return twinValidatorSetService.isValid(pointedTwin, pointerValidatorRuleEntity);
     }
 }

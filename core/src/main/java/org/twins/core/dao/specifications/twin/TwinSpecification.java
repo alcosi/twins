@@ -8,12 +8,13 @@ import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.specifications.AbstractTwinEntityBasicSearchSpecification;
 import org.twins.core.dao.twin.*;
-import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.search.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
@@ -178,11 +179,11 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
             List<Predicate> predicatesAny = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search.getValueLikeAnyOfList()))
                 for (String value : search.getValueLikeAnyOfList())
-                    predicatesAny.add(cb.like(fieldExpression, value));
+                    predicatesAny.add(cb.like(fieldExpression, value, escapeChar));
             List<Predicate> predicatesAll = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search.getValueLikeAllOfList()))
                 for (String value : search.getValueLikeAllOfList())
-                    predicatesAll.add(cb.like(fieldExpression, value));
+                    predicatesAll.add(cb.like(fieldExpression, value, escapeChar));
 
             Predicate include;
             if (!predicatesAny.isEmpty() && !predicatesAll.isEmpty())
@@ -198,11 +199,11 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
             List<Predicate> excludePredicatesAny = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search.getValueLikeNoAnyOfList()))
                 for (String value : search.getValueLikeNoAnyOfList())
-                    excludePredicatesAny.add(cb.notLike(fieldExpression, value));
+                    excludePredicatesAny.add(cb.notLike(fieldExpression, value, escapeChar));
             List<Predicate> excludePredicatesAll = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search.getValueLikeNoAllOfList()))
                 for (String value : search.getValueLikeNoAllOfList())
-                    excludePredicatesAll.add(cb.notLike(fieldExpression, value));
+                    excludePredicatesAll.add(cb.notLike(fieldExpression, value, escapeChar));
 
             Predicate exclude;
             if (!excludePredicatesAny.isEmpty() && !excludePredicatesAll.isEmpty())
@@ -275,13 +276,51 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
 
     public static Specification<TwinEntity> checkFieldBoolean(final TwinFieldSearchBoolean search) {
         return (root, query, cb) -> {
-            Join<TwinEntity, TwinFieldBooleanEntity> twinFieldBooleanJoin = root.join(TwinEntity.Fields.fieldsBoolean, JoinType.INNER);
-            twinFieldBooleanJoin.on(cb.equal(twinFieldBooleanJoin.get(TwinFieldBooleanEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
+            if (search.isEmptySearch()) {
+                return cb.conjunction();
+            }
 
-            Expression<Boolean> booleanField = twinFieldBooleanJoin.get(TwinFieldBooleanEntity.Fields.value);
-
-            return search.getValue() == null ? cb.isNull(booleanField) : cb.equal(booleanField, search.getValue());
+            return getPredicateForBoolean(root, cb , search);
         };
+    }
+
+    public static Specification<TwinEntity> checkFieldBooleanWithPhantoms(final TwinFieldSearchBoolean search, Boolean defaultValue) {
+        return (root, query, cb) -> {
+            if (search.isEmptySearch()) {
+                return cb.conjunction();
+            } else if (search.getValue().equals(defaultValue)) {
+                //  left join twin_field_boolean
+                Join<TwinEntity, TwinFieldBooleanEntity> tfbJoin = root.join(TwinEntity.Fields.fieldsBoolean, JoinType.LEFT);
+                tfbJoin.on(
+                        cb.equal(tfbJoin.get(TwinFieldBooleanEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId())
+                );
+
+                Predicate missingBooleanRecord = cb.isNull(tfbJoin.get(TwinFieldBooleanEntity.Fields.twinId));
+                Predicate valueEqualsSearch = cb.equal(tfbJoin.get(TwinFieldBooleanEntity.Fields.value), search.getValue());
+
+                //  equivalent to inner join twin_class_field (we don't have list of TwinClassFieldEntity fields to join them)
+                Subquery<Long> tcfExists = query.subquery(Long.class);
+                Root<TwinClassFieldEntity> tcfRoot = tcfExists.from(TwinClassFieldEntity.class);
+                tcfExists.select(cb.literal(1L));
+                tcfExists.where(
+                        cb.equal(tcfRoot.get(TwinClassFieldEntity.Fields.id), search.getTwinClassFieldEntity().getId()),
+                        cb.equal(tcfRoot.get(TwinClassFieldEntity.Fields.twinClassId), root.get(TwinEntity.Fields.twinClassId))
+                );
+
+                return cb.and(cb.exists(tcfExists), cb.or(missingBooleanRecord, valueEqualsSearch));
+            } else {
+                return getPredicateForBoolean(root, cb, search);
+            }
+        };
+    }
+
+    private static Predicate getPredicateForBoolean(Root<TwinEntity> root, CriteriaBuilder cb, final TwinFieldSearchBoolean search) {
+        Join<TwinEntity, TwinFieldBooleanEntity> twinFieldBooleanJoin = root.join(TwinEntity.Fields.fieldsBoolean, JoinType.INNER);
+        twinFieldBooleanJoin.on(cb.equal(twinFieldBooleanJoin.get(TwinFieldBooleanEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
+
+        Expression<Boolean> booleanField = twinFieldBooleanJoin.get(TwinFieldBooleanEntity.Fields.value);
+
+        return cb.equal(booleanField, search.getValue());
     }
 
     public static Specification<TwinEntity> checkFieldTwinClassList(final TwinFieldSearchTwinClassList search) {
@@ -389,7 +428,7 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
     public static Specification<TwinEntity> checkSpaceRoleUser(final TwinFieldSearchSpaceRoleUser search) {
         return (root, query, cb) -> {
             if(search.isEmptySearch()) return cb.conjunction();
-            
+
             Join<TwinEntity, SpaceRoleUserEntity> spaceRoleUserJoin = root.join(TwinEntity.Fields.spaceRoleUsers, JoinType.INNER);
 
             Predicate roleInclude = cb.conjunction();

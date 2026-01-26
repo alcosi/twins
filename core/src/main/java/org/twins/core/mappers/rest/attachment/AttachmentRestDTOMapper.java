@@ -15,7 +15,7 @@ import org.twins.core.mappers.rest.comment.CommentRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
@@ -56,9 +56,12 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
     @Lazy
     @Autowired
     @MapperModePointerBinding(modes = TwinMode.Attachment2TwinMode.class)
-    private TwinRestDTOMapper twinRestDTOMapper;
+    private TwinRestDTOMapperV2 twinRestDTOMapper;
+
+    @Lazy
     @Autowired
     private TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
+
     @Autowired
     @MapperModePointerBinding(modes = PermissionMode.Attachment2PermissionMode.class)
     private PermissionRestDTOMapper permissionRestDTOMapper;
@@ -78,7 +81,8 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
                     .setSize(src.getSize())
                     .setTitle(src.getTitle())
                     .setExternalId(src.getExternalId())
-                    .setStorageLink(attachmentService.getAttachmentUri(src));
+                    .setStorageLink(attachmentService.getAttachmentUri(src))
+                    .setOrder(src.getOrder());
             case SHORT -> dst
                     .setId(src.getId())
                     .setStorageLink(attachmentService.getAttachmentUri(src));

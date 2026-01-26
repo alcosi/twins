@@ -11,8 +11,10 @@ import java.util.Map;
 public class DataListOptionSave {
     private String icon;
     private I18nEntity nameI18n;
+    private I18nEntity descriptionI18n;
     private String externalId;
     private String backgroundColor;
     private String fontColor;
     private Map<String, String> attributes;
+    private Boolean custom;
 }

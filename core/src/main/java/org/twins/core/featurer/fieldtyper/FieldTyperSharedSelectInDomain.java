@@ -24,12 +24,12 @@ import java.util.UUID;
 public class FieldTyperSharedSelectInDomain extends FieldTyperList {
     @Override
     public FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
-        UUID listId = listUUID.extract(properties);
-        dataListService.findEntitySafe(listId);
-        return new FieldDescriptorList()
+        FieldDescriptorList fieldDescriptorList = (FieldDescriptorList) super.getFieldDescriptor(twinClassFieldEntity, properties);
+        fieldDescriptorList
                 .supportCustom(false)
                 .multiple(false)
-                .options(dataListService.findByDataListIdAndNotUsedInDomain(listId, twinClassFieldEntity.getId()));
+                .options(dataListService.findByDataListIdAndNotUsedInDomain(dataListId.extract(properties), twinClassFieldEntity.getId()));
+        return fieldDescriptorList;
     }
 
     @Override

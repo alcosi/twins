@@ -8,11 +8,10 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.annotations.FeaturerList;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.featurer.factory.multiplier.Multiplier;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -23,9 +22,13 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_factory_multiplier")
 public class TwinFactoryMultiplierEntity implements EasyLoggable {
-    @GeneratedValue(generator = "uuid")
     @Id
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twin_factory_id")
     private UUID twinFactoryId;
@@ -39,9 +42,9 @@ public class TwinFactoryMultiplierEntity implements EasyLoggable {
     @Column(name = "description")
     private String description;
 
-    @FeaturerList(type = Multiplier.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "multiplier_featurer_id", insertable = false, updatable = false)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity multiplierFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
@@ -69,8 +72,9 @@ public class TwinFactoryMultiplierEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinFactoryMultiplier[" + id + "]";
-            case NORMAL -> "twinFactoryMultiplier[id:" + id + ", class:" + multiplierFeaturer.getName() + "]";
-            default -> "**" + description + "** twinFactoryMultiplier[id:" + id + ", class:" + multiplierFeaturer.getName() + ", twinFactoryId:" + twinFactoryId + "]";
+            case NORMAL -> "twinFactoryMultiplier[id:" + id + ", multiplierFeaturerId:" + multiplierFeaturerId + "]";
+            default ->
+                    "**" + description + "** twinFactoryMultiplier[id:" + id + ", multiplierFeaturerId:" + multiplierFeaturerId + ", twinFactoryId:" + twinFactoryId + "]";
         };
     }
 }

@@ -11,6 +11,7 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "DomainUserViewRsV1")
 public class DomainUserViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+    //todo rename to domainUser
     @Schema(description = "user")
-    public DomainUserDTOv2 user;
+    public DomainUserDTOv1 user;
 }

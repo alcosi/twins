@@ -3,8 +3,10 @@ package org.twins.core.dto.rest.usergroup;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.user.UserGroupTypeEntity;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
+import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.enums.user.UserGroupType;
 
 import java.util.UUID;
 
@@ -16,6 +18,7 @@ public class UserGroupDTOv1 {
     public UUID id;
 
     @Schema(example = DTOExamples.BUSINESS_ACCOUNT_ID)
+    @RelatedObject(type = BusinessAccountDTOv1.class, name = "businessAccount")
     public UUID businessAccountId;
 
     @Schema(description = "name", example = DTOExamples.USER_GROUP_NAME)
@@ -25,5 +28,7 @@ public class UserGroupDTOv1 {
     public String description;
 
     @Schema(description = "type", example = DTOExamples.USER_GROUP_TYPE)
-    public UserGroupTypeEntity.UserGroupType type;
+    public UserGroupType type;
 }
+
+

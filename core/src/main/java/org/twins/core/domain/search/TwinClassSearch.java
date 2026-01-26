@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.Ternary;
-import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.enums.twinclass.OwnerType;
 
 import java.util.Collection;
 import java.util.Set;
@@ -31,18 +31,22 @@ public class TwinClassSearch {
     private HierarchySearch headHierarchyParentsForTwinClassSearch;
     private HierarchySearch extendsHierarchyChildsForTwinClassSearch;
     private HierarchySearch extendsHierarchyParentsForTwinClassSearch;
-    private Set<TwinClassEntity.OwnerType> ownerTypeList;
-    private Set<TwinClassEntity.OwnerType> ownerTypeExcludeList;
+    private Set<OwnerType> ownerTypeList;
+    private Set<OwnerType> ownerTypeExcludeList;
     private Set<UUID> markerDatalistIdList;
     private Set<UUID> markerDatalistIdExcludeList;
     private Set<UUID> tagDatalistIdList;
     private Set<UUID> tagDatalistIdExcludeList;
+    private Set<UUID> freezeIdList;
+    private Set<UUID> freezeIdExcludeList;
     private Ternary abstractt;
     private Ternary twinflowSchemaSpace;
     private Ternary twinClassSchemaSpace;
     private Ternary permissionSchemaSpace;
     private Ternary aliasSpace;
     private Ternary assigneeRequired;
+    private Ternary segment;
+    private Ternary hasSegments;
     private Set<UUID> viewPermissionIdList;
     private Set<UUID> viewPermissionIdExcludeList;
     private Set<UUID> createPermissionIdList;
@@ -53,7 +57,7 @@ public class TwinClassSearch {
     private Set<UUID> deletePermissionIdExcludeList;
 
     public TwinClassSearch addOwnerTypeExclude() {
-        ownerTypeExcludeList = CollectionUtils.safeAdd(ownerTypeExcludeList, TwinClassEntity.OwnerType.SYSTEM);
+        ownerTypeExcludeList = CollectionUtils.safeAdd(ownerTypeExcludeList, OwnerType.SYSTEM);
         return this;
     }
 
@@ -105,6 +109,8 @@ public class TwinClassSearch {
             Pair.of(TwinClassSearch::getTwinClassSchemaSpace, TwinClassSearch::setTwinClassSchemaSpace),
             Pair.of(TwinClassSearch::getPermissionSchemaSpace, TwinClassSearch::setPermissionSchemaSpace),
             Pair.of(TwinClassSearch::getAliasSpace, TwinClassSearch::setAliasSpace),
-            Pair.of(TwinClassSearch::getAbstractt, TwinClassSearch::setAbstractt)
+            Pair.of(TwinClassSearch::getAbstractt, TwinClassSearch::setAbstractt),
+            Pair.of(TwinClassSearch::getSegment, TwinClassSearch::setSegment),
+            Pair.of(TwinClassSearch::getHasSegments, TwinClassSearch::setHasSegments)
     );
 }

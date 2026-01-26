@@ -1,7 +1,6 @@
 package org.twins.core.dto.rest.i18n;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
@@ -22,3 +21,5 @@ public class I18nTranslationDTOv1 {
     @Schema(description = "translation", example = DTOExamples.TRANSLATION)
     public String translation;
 }
+
+

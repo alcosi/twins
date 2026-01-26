@@ -23,7 +23,7 @@ import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dto.rest.datalist.DataListCreateRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
 import org.twins.core.mappers.rest.datalist.DataListCreateDTOReverseMapper;
-import org.twins.core.mappers.rest.datalist.DataListRestDTOMapperV2;
+import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.datalist.DataListService;
@@ -38,7 +38,7 @@ import org.twins.core.service.permission.Permissions;
 public class DataListCreateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final DataListCreateDTOReverseMapper dataListCreateDTOReverseMapper;
-    private final DataListRestDTOMapperV2 dataListRestDTOMapperV2;
+    private final DataListRestDTOMapper dataListRestDTOMapper;
     private final DataListService dataListService;
 
 
@@ -51,13 +51,13 @@ public class DataListCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/data_list/v1")
     public ResponseEntity<?> dataListCreateV1(
-            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody DataListCreateRqDTOv1 request) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
             DataListEntity dataListEntity = dataListService.createDataList(dataListCreateDTOReverseMapper.convert(request));
             rs
-                    .setDataList(dataListRestDTOMapperV2.convert(dataListEntity, mapperContext))
+                    .setDataList(dataListRestDTOMapper.convert(dataListEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

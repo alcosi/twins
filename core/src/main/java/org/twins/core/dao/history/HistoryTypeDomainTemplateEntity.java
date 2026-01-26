@@ -2,8 +2,12 @@ package org.twins.core.dao.history;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
+import org.twins.core.enums.history.HistoryType;
 
 import java.util.UUID;
 
@@ -13,8 +17,12 @@ import java.util.UUID;
 @Table(name = "history_type_domain_template")
 public class HistoryTypeDomainTemplateEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "history_type_id")
     @Convert(converter = HistoryTypeConverter.class)
@@ -26,6 +34,8 @@ public class HistoryTypeDomainTemplateEntity implements EasyLoggable {
     @Column(name = "snapshot_message_template")
     private String snapshotMessageTemplate;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "history_type_id", insertable = false, updatable = false, nullable = false)
     private HistoryTypeEntity historyTypeEntity;

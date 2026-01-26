@@ -6,9 +6,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamInt;
-import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
@@ -39,28 +37,29 @@ public class FieldTyperSelect extends FieldTyperList {
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueSelect value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         // TODO add transactional support
         // TODO maybe need to get BAiD at apiUser
-        UUID datalistId = listUUID.extract(properties);
-        dataListOptionService.processExternalOptions(datalistId, value.getOptions(), twin.getOwnerBusinessAccountId());
+        UUID datalistId = dataListId.extract(properties);
         boolean supportCustomValue = supportCustom.extract(properties);
-        if (supportCustomValue)
-            value.setOptions(dataListService.processNewOptions(datalistId, value.getOptions(), twin.getOwnerBusinessAccountId()));
-        else
-            value.getOptions().removeIf(o -> ObjectUtils.isEmpty(o.getId()));
+        dataListOptionService.processIncompleteOptions(datalistId, value.getOptions(), twin.getOwnerBusinessAccountId(), supportCustomValue);
         super.serializeValue(properties, twin, value, twinChangesCollector);
     }
 
     @Override
     public FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
-        UUID listId = listUUID.extract(properties);
-        dataListService.checkId(listId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS);
-        int listSize = dataListService.countByDataListId(listId);
-        FieldDescriptorList fieldDescriptorList = new FieldDescriptorList()
+        FieldDescriptorList fieldDescriptorList = (FieldDescriptorList) super.getFieldDescriptor(twinClassFieldEntity, properties);
+        fieldDescriptorList
                 .supportCustom(supportCustom.extract(properties))
                 .multiple(multiple.extract(properties));
-        if (listSize > longListThreshold.extract(properties))
-            fieldDescriptorList.dataListId(listId);
-        else {
-            fieldDescriptorList.options(dataListService.findByDataListId(listId));
+        UUID listId = dataListId.extract(properties);
+        var longListThresholdValue = longListThreshold.extract(properties);
+        if (longListThresholdValue > 0) {
+            if (longListThresholdValue > 100) {
+                log.warn("{}: long list threshold value is too big [{}]. 100 will be used instead.", twinClassFieldEntity.logShort(), longListThresholdValue);
+                longListThresholdValue = 100;
+            }
+            var listSize = dataListService.countByDataListId(listId);
+            if (listSize < longListThresholdValue) {
+                fieldDescriptorList.options(dataListService.findByDataListId(listId));
+            }
         }
         return fieldDescriptorList;
     }

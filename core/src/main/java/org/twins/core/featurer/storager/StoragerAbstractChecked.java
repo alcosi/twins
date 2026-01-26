@@ -2,8 +2,10 @@ package org.twins.core.featurer.storager;
 
 import io.github.breninsul.io.service.stream.inputStream.CacheReadenInputStream;
 import io.github.breninsul.io.service.stream.inputStream.CountedLimitedSizeInputStream;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
+import org.apache.tika.mime.MimeTypes;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -124,12 +126,11 @@ public abstract class StoragerAbstractChecked extends Storager {
     protected AddedFileKey checkAndAddFileInternal(UUID fileId, InputStream fileStream, HashMap<String, String> params) throws ServiceException {
         String fileKey = generateFileKey(fileId, params);
         try {
-            fileStream = checkMimeTypeAndCacheStream(fileStream, params);
-            //Wrap to count bytes and limit if needed
-            Integer fileSizeLimit = getFileSizeLimit(params);
-            CountedLimitedSizeInputStream sizeLimitedStream = new CountedLimitedSizeInputStream(fileStream, fileSizeLimit, 0);
-            addFileInternal(fileKey, sizeLimitedStream, params);
-            return new AddedFileKey(fileKey, sizeLimitedStream.bytesRead());
+            var fileInfo = checkMimeTypeAndCacheStream(fileStream, params);
+            fileKey = fileKey + fileInfo.extension;
+            fileStream = fileInfo.fileStream;
+
+            return addFileInternal(fileKey, fileStream, fileInfo.mimeType, params);
         } catch (CountedLimitedSizeInputStream.SizeExceededException ex) {
             tryDeleteFile(fileKey, params);
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "File size limit " + ex.getLimit() + " exceeded (" + ex.getBytesRead() + ")");
@@ -140,16 +141,42 @@ public abstract class StoragerAbstractChecked extends Storager {
         }
     }
 
-    protected InputStream checkMimeTypeAndCacheStream(InputStream fileStream, HashMap<String, String> params) throws IOException, ServiceException {
+    protected FileInputStreamWithMetaInfo checkMimeTypeAndCacheStream(InputStream fileStream, HashMap<String, String> params) throws IOException, ServiceException {
         Set<String> supportedMimeTypes = getSupportedMimeTypes(params);
+        FileInputStreamWithMetaInfo result = getFileInputStreamWithMetaInfo(fileStream);
         if (!supportedMimeTypes.isEmpty()) {
             //Not to read IS twice, we have to cache already readen bytes by mime type resolving
-            CacheReadenInputStream cachedReadInputStream = new CacheReadenInputStream(fileStream, false, Short.MAX_VALUE);
-            checkFileMimeType(cachedReadInputStream, supportedMimeTypes);
-            //And then continue to read IS as usual
-            fileStream = cachedReadInputStream.toUnreadPushbackInputStream();
+            checkFileMimeType(result.mimeType(), supportedMimeTypes);
         }
-        return fileStream;
+        return result;
+    }
+
+    @SneakyThrows
+    protected FileInputStreamWithMetaInfo getFileInputStreamWithMetaInfo(InputStream fileStream) throws IOException {
+        CacheReadenInputStream cachedReadInputStream = null;
+        if (fileStream instanceof CacheReadenInputStream) {
+            cachedReadInputStream = (CacheReadenInputStream) fileStream;
+        } else {
+            cachedReadInputStream = new CacheReadenInputStream(fileStream, false, Short.MAX_VALUE);
+        }
+        String mimeType = tika.detect(cachedReadInputStream);
+        String extension = "unknown";
+        try {
+            var mimeTypeInfo = MimeTypes.getDefaultMimeTypes().forName(mimeType);
+            extension = mimeTypeInfo.getExtension();
+        } catch (Exception e) {
+            log.warn("Error parsing mime type: {}", mimeType, e);
+        }
+        if (!extension.startsWith(".")) {
+            extension = "." + extension;
+        }
+        //And then continue to read IS as usual
+        fileStream = cachedReadInputStream.toUnreadPushbackInputStream();
+        FileInputStreamWithMetaInfo result = new FileInputStreamWithMetaInfo(fileStream, mimeType, extension);
+        return result;
+    }
+
+    public static record FileInputStreamWithMetaInfo(InputStream fileStream, String mimeType, String extension) {
     }
 
     /**
@@ -159,23 +186,27 @@ public abstract class StoragerAbstractChecked extends Storager {
      *
      * @param fileKey    the unique key used to identify the file in the storage system
      * @param fileStream the input stream representing the file content to be stored
+     * @param mimeType   the MIME type of the file being stored, if known; otherwise, set to null or empty string.
      * @param params     a map of additional parameters required for the storage operation
+     * @return An instance of {@code AddedFileKey} that contains information about the uploaded file, such as its key and size.
      * @throws ServiceException if any error occurs during the file addition process
      */
-    protected abstract void addFileInternal(String fileKey, InputStream fileStream, HashMap<String, String> params) throws ServiceException;
+    protected abstract AddedFileKey addFileInternal(String fileKey, InputStream fileStream, String mimeType, HashMap<String, String> params) throws ServiceException;
 
     /**
-     * Validates the MIME type of file against a set of supported MIME types.
-     * If the MIME type of the file detected from the input stream is not supported,
-     * a ServiceException will be thrown.
+     * Validates whether a given raw MIME type is supported based on a set of supported MIME types.
+     * The method splits the raw MIME type into its primary type and sub-type, then checks if the
+     * provided MIME type matches any of the supported patterns. If no match is found, a
+     * {@link ServiceException} is thrown with details about the unsupported type.
      *
-     * @param cachedReadInputStream the input stream of the file whose MIME type is to be checked
-     * @param supportedMimeTypes    a set of MIME types accepted for validation
-     * @throws IOException      if an I/O error occurs while reading the input stream
-     * @throws ServiceException if the MIME type of the input file is not supported
+     * @param mimeTypeRaw        the raw MIME type as a string, typically in the form of "type/subtype".
+     * @param supportedMimeTypes a set of supported MIME types, where each entry can be in the
+     *                           form of "type/subtype", "type/*", or "*".
+     * @throws IOException      if an I/O error occurs during the processing.
+     * @throws ServiceException if the MIME type is not supported by the provided set.
      */
-    protected void checkFileMimeType(CacheReadenInputStream cachedReadInputStream, Set<String> supportedMimeTypes) throws IOException, ServiceException {
-        String[] mimeTypeArray = tika.detect(cachedReadInputStream).toLowerCase().split("/");
+    protected void checkFileMimeType(String mimeTypeRaw, Set<String> supportedMimeTypes) throws IOException, ServiceException {
+        String[] mimeTypeArray = mimeTypeRaw.split("/");
         String mimeType = mimeTypeArray[0];
         String mimeSubType = mimeTypeArray.length > 1 ? mimeTypeArray[1] : "*";
         supportedMimeTypes.stream().filter(t -> {

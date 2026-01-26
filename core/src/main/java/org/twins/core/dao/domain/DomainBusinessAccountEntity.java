@@ -1,11 +1,16 @@
 package org.twins.core.dao.domain;
 
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
+import org.twins.core.dao.notification.NotificationSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 
 import java.sql.Timestamp;
@@ -18,8 +23,12 @@ import java.util.UUID;
 @Table(name = "domain_business_account")
 public class DomainBusinessAccountEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "domain_id")
     private UUID domainId;
@@ -48,21 +57,37 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
     @Column(name = "attachments_storage_used_size")
     private Long attachmentsStorageUsedSize;
 
+    @Column(name = "notification_schema_id")
+    private UUID notificationSchemaId;
+
     @ManyToOne
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private DomainEntity domain;
 
     @ManyToOne
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private BusinessAccountEntity businessAccount;
 
     @ManyToOne
     @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionSchemaEntity permissionSchema;
 
     @ManyToOne
     @JoinColumn(name = "tier_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TierEntity tier;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "notification_schema_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private NotificationSchemaEntity notificationSchema;
 
 //    @ManyToOne
 //    @JoinColumn(name = "twinflow_schema_id", insertable = false, updatable = false)
@@ -73,6 +98,6 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
 //    private TwinClassSchemaEntity twinClassSchema;
 
     public String easyLog(Level level) {
-        return "domainBusinessAccount[id:" + id + ", domainId:" + domainId + ", businessAccountId:" + businessAccountId+ "]";
+        return "domainBusinessAccount[id:" + id + ", domainId:" + domainId + ", businessAccountId:" + businessAccountId + "]";
     }
 }

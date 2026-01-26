@@ -47,7 +47,7 @@ public class TwinFieldSearchMapDTOReverseMapper extends RestSimpleDTOMapper<Map<
             for (Map.Entry<UUID, TwinFieldSearchDTOv1> field : src.entrySet()) {
                 TwinFieldSearch search = twinFieldSearchDTOReverseMapper.convert(field.getValue(), mapperContext);
                 search.setTwinClassFieldEntity(twinClassFieldEntitiesKit.get(field.getKey()));
-                FieldTyper<?, ?, ?, TwinFieldSearch> fieldTyper = featurerService.getFeaturer(search.getTwinClassFieldEntity().getFieldTyperFeaturer(), FieldTyper.class);
+                FieldTyper<?, ?, ?, TwinFieldSearch> fieldTyper = featurerService.getFeaturer(search.getTwinClassFieldEntity().getFieldTyperFeaturerId(), FieldTyper.class);
                 if (fieldTyper.getTwinFieldSearch().equals(TwinFieldSearchNotImplemented.class))
                     throw new ServiceException(ErrorCodeTwins.FIELD_TYPER_SEARCH_NOT_IMPLEMENTED, "Field of type: [" + this.getClass().getSimpleName() + "] do not support twin field search not implemented");
                 if (!fieldTyper.getTwinFieldSearch().equals(search.getClass()))

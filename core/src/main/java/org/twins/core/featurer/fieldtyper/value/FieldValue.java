@@ -2,6 +2,7 @@ package org.twins.core.featurer.fieldtyper.value;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.ValidationResult;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.UUID;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 public abstract class FieldValue implements Cloneable {
     protected final TwinClassFieldEntity twinClassField;
+    private ValidationResult validationResult;
 
     public FieldValue(TwinClassFieldEntity twinClassField) {
         this.twinClassField = twinClassField;
@@ -40,4 +42,12 @@ public abstract class FieldValue implements Cloneable {
     public abstract boolean isNullified();
 
     public abstract boolean hasValue(String value);
+
+    public boolean isValidated() {
+        return validationResult != null;
+    }
+
+    public boolean isEmpty() {
+        return !isFilled() || isNullified();
+    }
 }

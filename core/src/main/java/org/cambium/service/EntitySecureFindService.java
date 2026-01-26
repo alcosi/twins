@@ -4,6 +4,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.UUID;
 
 public interface EntitySecureFindService<T> {
@@ -22,4 +23,18 @@ public interface EntitySecureFindService<T> {
                               EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException;
     boolean isEntityReadDenied(T entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException;
     boolean validateEntity(T entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException;
+
+    default boolean validateEntities(Collection<T> entities, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        beforeValidateEntities(entities, entityValidateMode);
+        for (T entity : entities) {
+            if (!validateEntity(entity, entityValidateMode)) return false;
+        }
+        return true;
+    }
+
+    default void beforeValidateEntity(T entity, EntitySmartService.EntityValidateMode entityValidateMode) {
+        beforeValidateEntities(Collections.singletonList(entity), entityValidateMode);
+    }
+
+    void beforeValidateEntities(Collection<T> entities, EntitySmartService.EntityValidateMode entityValidateMode);
 }

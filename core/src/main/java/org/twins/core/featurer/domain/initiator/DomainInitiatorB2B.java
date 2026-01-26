@@ -9,7 +9,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.TierEntity;
-import org.twins.core.dao.i18n.I18nType;
+import org.twins.core.enums.twinclass.OwnerType;
+import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -36,12 +37,12 @@ public class DomainInitiatorB2B extends DomainInitiator {
     }
 
     @Override
-    public TwinClassEntity.OwnerType getDefaultTwinClassOwnerType() {
-        return TwinClassEntity.OwnerType.DOMAIN_BUSINESS_ACCOUNT;
+    public OwnerType getDefaultTwinClassOwnerType() {
+        return OwnerType.DOMAIN_BUSINESS_ACCOUNT;
     }
 
     @Override
-    public boolean isSupportedTwinClassOwnerType(TwinClassEntity.OwnerType ownerType) {
+    public boolean isSupportedTwinClassOwnerType(OwnerType ownerType) {
         return switch (ownerType) {
             case DOMAIN, DOMAIN_USER, DOMAIN_BUSINESS_ACCOUNT, DOMAIN_BUSINESS_ACCOUNT_USER -> true;
             default -> false;
@@ -84,7 +85,7 @@ public class DomainInitiatorB2B extends DomainInitiator {
                 .setAbstractt(false)
                 .setExtendsTwinClassId(domainEntity.getAncestorTwinClassId())
                 .setKey("DOMAIN_BUSINESS_ACCOUNT_FOR_" + domainEntity.getKey().toUpperCase())
-                .setOwnerType(TwinClassEntity.OwnerType.DOMAIN_BUSINESS_ACCOUNT)
+                .setOwnerType(OwnerType.DOMAIN_BUSINESS_ACCOUNT)
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(systemEntityService.getUserIdSystem())
                 .setAssigneeRequired(false);

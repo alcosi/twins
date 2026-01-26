@@ -24,6 +24,7 @@ import org.twins.core.dto.rest.draft.DraftRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinDeleteRqDTOv1;
 import org.twins.core.mappers.rest.draft.DraftRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinEraserService;
 
@@ -37,6 +38,7 @@ import java.util.UUID;
 public class TwinDeleteController extends ApiController {
     private final TwinEraserService twinEraserService;
     private final DraftRestDTOMapper draftRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinDeleteV1", summary = "Delete twin by id")
@@ -52,7 +54,9 @@ public class TwinDeleteController extends ApiController {
         DraftRsDTOv1 rs = new DraftRsDTOv1();
         try {
             DraftEntity draftEntity = twinEraserService.eraseTwin(twinId);
-            rs.setDraft(draftRestDTOMapper.convert(draftEntity, mapperContext));
+            rs
+                    .setDraft(draftRestDTOMapper.convert(draftEntity, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -75,7 +79,9 @@ public class TwinDeleteController extends ApiController {
         DraftRsDTOv1 rs = new DraftRsDTOv1();
         try {
             DraftEntity draftEntity = twinEraserService.eraseTwins(twinDeleteRqDTOv1.twinIds);
-            rs.setDraft(draftRestDTOMapper.convert(draftEntity, mapperContext));
+            rs
+                    .setDraft(draftRestDTOMapper.convert(draftEntity, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -98,7 +104,9 @@ public class TwinDeleteController extends ApiController {
         DraftRsDTOv1 rs = new DraftRsDTOv1();
         try {
             DraftEntity draftEntity = twinEraserService.eraseTwinDrafted(twinId);
-            rs.setDraft(draftRestDTOMapper.convert(draftEntity, mapperContext));
+            rs
+                    .setDraft(draftRestDTOMapper.convert(draftEntity, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

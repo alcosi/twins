@@ -2,6 +2,7 @@ package org.twins.core.domain;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.enums.EntityRelinkOperationStrategy;
 
 import java.util.Map;
 import java.util.UUID;
@@ -10,11 +11,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class EntityRelinkOperation {
     private UUID newId;
-    private Strategy strategy = Strategy.delete;
+    private EntityRelinkOperationStrategy strategy = EntityRelinkOperationStrategy.delete;
     private Map<UUID, UUID> replaceMap;
 
-    public enum Strategy {
-        delete,
-        restrict
-    }
 }

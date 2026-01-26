@@ -2,9 +2,12 @@ package org.twins.core.dao.businessaccount;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.user.UserEntity;
 
@@ -18,8 +21,12 @@ import java.util.UUID;
 @Table(name = "business_account_user")
 public class BusinessAccountUserEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "business_account_id")
     private UUID businessAccountId;
@@ -29,10 +36,14 @@ public class BusinessAccountUserEntity implements EasyLoggable {
 
     @ManyToOne
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private BusinessAccountEntity businessAccount;
 
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity user;
 
     @CreationTimestamp

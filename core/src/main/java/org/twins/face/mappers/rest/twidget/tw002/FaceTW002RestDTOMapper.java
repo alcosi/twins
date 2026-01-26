@@ -4,12 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.domain.face.PointedFace;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceTwidgetRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
-import org.twins.core.service.i18n.I18nService;
 import org.twins.face.dao.twidget.tw002.FaceTW002Entity;
 import org.twins.face.dto.rest.twidget.tw002.FaceTW002DTOv1;
 import org.twins.face.service.twidget.FaceTW002Service;
@@ -22,7 +22,6 @@ import java.util.Collection;
 public class FaceTW002RestDTOMapper extends RestSimpleDTOMapper<PointedFace<FaceTW002Entity>, FaceTW002DTOv1> {
     protected final FaceTwidgetRestDTOMapper faceTwidgetRestDTOMapper;
     private final FaceTW002Service faceTW002Service;
-    private final I18nService i18nService;
     private final FaceTW002AccordionItemRestDTOMapper faceTW002AccordionItemRestDTOMapper;
     @MapperModePointerBinding(modes = FaceTW002Modes.FaceTW0022TwinClassFieldMode.class)
     private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
@@ -36,7 +35,7 @@ public class FaceTW002RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
                     .setKey(src.getConfig().getKey());
             case DETAILED -> dst
                     .setKey(src.getConfig().getKey())
-                    .setLabel(i18nService.translateToLocale(src.getConfig().getLabelI18nId() != null ?
+                    .setLabel(I18nCacheHolder.addId(src.getConfig().getLabelI18nId() != null ?
                             src.getConfig().getLabelI18nId() : src.getConfig().getI18nTwinClassField().getNameI18nId()))
                     .setI18nTwinClassFieldId(src.getConfig().getI18nTwinClassFieldId());
         }

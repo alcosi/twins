@@ -1,5 +1,6 @@
 package org.twins.core.featurer.fieldtyper;
 
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
@@ -48,4 +49,11 @@ public abstract class FieldTyperSimple<D extends FieldDescriptor, T extends Fiel
     }
 
     protected abstract T deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) throws ServiceException;
+
+    @Override
+    public ValidationResult validate(Properties properties, TwinEntity twin, T fieldValue) throws ServiceException {
+        return new ValidationResult(true);
+    }
+
+
 }

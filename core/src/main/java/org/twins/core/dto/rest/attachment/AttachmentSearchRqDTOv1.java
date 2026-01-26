@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DataTimeRangeDTOv1;
+import org.twins.core.dto.rest.LongRangeDTOv1;
 import org.twins.core.dto.rest.Request;
 
 import java.util.Set;
@@ -61,4 +62,6 @@ public class AttachmentSearchRqDTOv1 extends Request {
     public Set<String> descriptionNotLikeList;
     @Schema(description = "createdAt")
     public DataTimeRangeDTOv1 createdAt;
+    @Schema(description = "order")
+    public LongRangeDTOv1 order;
 }

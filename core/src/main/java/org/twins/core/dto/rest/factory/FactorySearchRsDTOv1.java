@@ -18,5 +18,5 @@ public class FactorySearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - factory list")
-    public List<FactoryDTOv2> factories;
+    public List<FactoryDTOv1> factories;
 }

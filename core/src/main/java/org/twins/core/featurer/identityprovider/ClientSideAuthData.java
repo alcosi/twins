@@ -1,9 +1,15 @@
 package org.twins.core.featurer.identityprovider;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.cambium.common.util.StringUtils.snakeToCamel;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -39,5 +45,22 @@ public class ClientSideAuthData extends HashMap<String, String> {
 
     public String getAuthToken() {
         return get(AUTH_TOKEN);
+    }
+
+    public List<Cookie> getCookies() {
+        return entrySet().stream()
+                .filter(it -> it.getKey() != null)
+                .filter(it -> it.getValue() != null)
+                .map(entry -> {
+                    String camelCaseKey = snakeToCamel(entry.getKey());
+                    return new Cookie(camelCaseKey, entry.getValue());
+                })
+                .collect(Collectors.toList());
+    }
+
+    public HttpServletResponse addCookiesToResponse(HttpServletResponse response) {
+        List<Cookie> cookies = getCookies();
+        cookies.forEach(response::addCookie);
+        return response;
     }
 }

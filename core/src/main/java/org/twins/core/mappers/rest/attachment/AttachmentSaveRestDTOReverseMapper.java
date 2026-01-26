@@ -5,13 +5,12 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
-import org.twins.core.dao.resource.StorageEntity;
-import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.file.DomainFile;
+import org.cambium.common.file.FileData;
 import org.twins.core.dto.rest.attachment.AttachmentSaveDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -35,15 +34,11 @@ public class AttachmentSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Atta
     @SneakyThrows
     public void preProcessAttachments(List<AttachmentSaveDTOv1> attachments, Map<String, MultipartFile> files) {
         try {
-            ApiUser apiUser = authService.getApiUser();
-            StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getAttachmentsStorageId());
-            StorageEntity externalLinkStorage = storageService.findEntitySafe(TWIN_ATTACHMENT_EXTERNAL_URI_STORAGER_ID);
-
-            if (attachments != null && !attachments.isEmpty()) {
-                attachments.forEach(att -> {
-                    processAttribute(files, att, externalLinkStorage, storage);
-                });
-            }
+            if (CollectionUtils.isEmpty(attachments))
+                return;
+            attachments.forEach(att -> {
+                processAttribute(files, att);
+            });
         } catch (Throwable t) {
             log.error("Error while pre-processing attachments", t);
             throw t;
@@ -51,15 +46,10 @@ public class AttachmentSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Atta
     }
 
     @SneakyThrows
-    protected void processAttribute(Map<String, MultipartFile> files, AttachmentSaveDTOv1 att, StorageEntity externalLinkStorage, StorageEntity storage) {
+    protected void processAttribute(Map<String, MultipartFile> files, AttachmentSaveDTOv1 att) {
         boolean haveLink = att.storageLink != null && !att.storageLink.isBlank();
         boolean isMultipart = haveLink && att.storageLink.toLowerCase().startsWith("multipart://");
-        boolean isExternalLink = !isMultipart;
-        if (isExternalLink) {
-            att.setStorage(externalLinkStorage);
-        } else {
-            att.setStorage(storage);
-        }
+        att.setExternalLink(!isMultipart);
         if (haveLink && isMultipart) {
             String fileKey = att.storageLink.replaceFirst("multipart://", "");
             MultipartFile file = files.get(fileKey);
@@ -67,8 +57,9 @@ public class AttachmentSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Atta
                 throw new ServiceException(BAD_REQUEST_MULTIPART_FILE_IS_NOT_PRESENTED, "File not found " + fileKey);
             }
             try {
-                DomainFile domainFile = new DomainFile(file.getInputStream(), file.getOriginalFilename(), file.getSize());
+                FileData domainFile = new FileData(file.getInputStream(), file.getOriginalFilename(), file.getSize());
                 att.setDomainFile(domainFile);
+                att.fileChanged = true;
                 if (att.size == null || att.size < 1) {
                     att.size = domainFile.fileSize();
                 }
@@ -84,15 +75,15 @@ public class AttachmentSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Atta
         dst
                 .setTwinId(src.getTwinId())
                 .setStorageFileKey(src.getStorageLink())
-                .setStorageId(src.storage.getId())
-                .setStorage(src.storage)
                 .setAttachmentFile(src.domainFile)
+                .setFileChanged(src.fileChanged)
                 .setModifications(new Kit<>(TwinAttachmentModificationEntity::getModificationType))
                 .setTitle(src.getTitle())
                 //TODO set size as is.
                 .setSize(src.getSize() == null ? 0 : src.getSize())
                 .setDescription(src.getDescription())
-                .setExternalId(src.getExternalId());
+                .setExternalId(src.getExternalId())
+                .setOrder(src.getOrder());
         if (null != src.getModifications()) {
             for (Map.Entry<String, String> mod : src.getModifications().entrySet()) {
                 TwinAttachmentModificationEntity modEntity = new TwinAttachmentModificationEntity();

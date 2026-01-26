@@ -17,7 +17,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
-import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
 import java.util.stream.Collectors;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<FieldDescriptor, TwinClassFieldDescriptorDTO> {
 
     @MapperModePointerBinding(modes = TwinMode.TwinClassFieldDescriptor2TwinMode.class)
-    private final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
+    private final TwinRestDTOMapperV2 twinRestDTOMapper;
 
     @MapperModePointerBinding(modes = DataListOptionMode.TwinClassFieldDescriptor2DataListOptionMode.class)
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
@@ -58,17 +58,22 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                     .beforeDate(dateDescriptor.beforeDate())
                     .afterDate(dateDescriptor.afterDate());
         else if (fieldDescriptor instanceof FieldDescriptorList listDescriptor)
-            if (listDescriptor.dataListId() != null) {
-                return new TwinClassFieldDescriptorListLongDTOv1()
+            if (listDescriptor.options() == null) {
+                TwinClassFieldDescriptorListLongDTOv1 listLongFieldDescriptor = new TwinClassFieldDescriptorListLongDTOv1()
                         .supportCustom(listDescriptor.supportCustom())
                         .multiple(listDescriptor.multiple())
-                        .dataListId(listDescriptor.dataListId());
+                        .dataListId(listDescriptor.dataListId())
+                        .dataListOptionIdList(listDescriptor.dataListOptionIdList())
+                        .dataListOptionIdExcludeList(listDescriptor.dataListOptionIdExcludeList())
+                        .dataListSubsetIdList(listDescriptor.dataListSubsetIdList())
+                        .dataListSubsetIdExcludeList(listDescriptor.dataListSubsetIdExcludeList());
+                return listLongFieldDescriptor;
             } else {
                 TwinClassFieldDescriptorListDTOv1 listFieldDescriptor = new TwinClassFieldDescriptorListDTOv1()
                         .supportCustom(listDescriptor.supportCustom())
                         .multiple(listDescriptor.multiple())
                         .options(dataListOptionRestDTOMapper.convertCollectionPostpone(listDescriptor.options(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListOptionMode.TwinClassFieldDescriptor2DataListOptionMode.SHORT))));
-                if (listFieldDescriptor.options == null && CollectionUtils.isNotEmpty(listDescriptor.options()))
+                if (CollectionUtils.isNotEmpty(listDescriptor.options()))
                     listFieldDescriptor.optionIdList(listDescriptor.options().stream().map(DataListOptionEntity::getId).collect(Collectors.toSet()));
                 return listFieldDescriptor;
             }
@@ -94,7 +99,8 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                     .filenameRegExp(attachmentDescriptor.filenameRegExp());
         else if (fieldDescriptor instanceof FieldDescriptorBoolean booleanDescriptor)
             return new TwinClassFieldDescriptorBooleanDTOv1()
-                    .checkboxType(booleanDescriptor.checkboxType());
+                    .checkboxType(booleanDescriptor.checkboxType())
+                    .nullable(booleanDescriptor.nullable());
         else if (fieldDescriptor instanceof FieldDescriptorNumeric numericDescriptor)
             return new TwinClassFieldDescriptorNumericDTOv1()
                     .min(numericDescriptor.min())
@@ -114,11 +120,13 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                         .multiple(linkDescriptor.multiple())
                         .linkId(linkDescriptor.linkId());
             } else {
-                return new TwinClassFieldDescriptorLinkDTOv1()
+                var ret = new TwinClassFieldDescriptorLinkDTOv1();
+                ret
                         .multiple(linkDescriptor.multiple())
-                        .dstTwins(twinBaseV2RestDTOMapper.convertCollection(linkDescriptor.dstTwins(),
-                                mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinMode.TwinClassFieldDescriptor2TwinMode.SHORT))
-                        ));
+                        .dstTwinIds(linkDescriptor.dstTwins().getIdSet());
+                twinRestDTOMapper.postpone(linkDescriptor.dstTwins(),
+                        mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinMode.TwinClassFieldDescriptor2TwinMode.SHORT)));
+                return ret;
             }
         else if (fieldDescriptor instanceof FieldDescriptorI18n i18nDescriptor) {
             return new TwinClassFieldDescriptorI18nDTOv1();

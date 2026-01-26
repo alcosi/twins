@@ -3,15 +3,16 @@ package org.twins.core.dao.twin;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.enums.twin.Touch;
 
 import java.sql.Timestamp;
-import java.util.Arrays;
 import java.util.UUID;
 
 @Entity
@@ -22,8 +23,12 @@ import java.util.UUID;
 @FieldNameConstants
 public class TwinTouchEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twin_id")
     private UUID twinId;
@@ -40,10 +45,14 @@ public class TwinTouchEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity user;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity twin;
@@ -56,20 +65,4 @@ public class TwinTouchEntity implements EasyLoggable {
         };
     }
 
-    @Getter
-    public enum Touch {
-        WATCHED("WATCHED"),
-        STARRED("STARRED"),
-        REVIEWED("REVIEWED");
-
-        private final String id;
-
-        Touch(String id) {
-            this.id = id;
-        }
-
-        public static Touch valueOfId(String type) {
-            return Arrays.stream(Touch.values()).filter(t -> t.id.equalsIgnoreCase(type)).findAny().orElseThrow();
-        }
-    }
 }

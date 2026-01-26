@@ -8,13 +8,12 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.annotations.FeaturerList;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.featurer.storager.Storager;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -29,14 +28,18 @@ import java.util.stream.Collectors;
 @Table(name = "storage")
 public class StorageEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "domain_id")
     private UUID domainId;
 
     @Column(name = "storager_featurer_id")
-    private Long storageFeaturerId;
+    private Integer storageFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "storager_params", columnDefinition = "hstore")
@@ -53,9 +56,9 @@ public class StorageEntity implements EasyLoggable {
     @Column(name = "updated_at")
     private Timestamp updatedAt;
 
-    @FeaturerList(type = Storager.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "storager_featurer_id", insertable = false, updatable = false)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity storageFeaturer;
 
     @EqualsAndHashCode.Exclude
@@ -67,8 +70,7 @@ public class StorageEntity implements EasyLoggable {
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case SHORT ->
-                    "resourceStorage[id:" + id + "]";
+            case SHORT -> "resourceStorage[id:" + id + "]";
             case NORMAL ->
                     "resourceStorage[id:" + id + ", domain:" + domain + ", description:" + description + ", storageFeaturerId:" + storageFeaturerId + "]";
             case DETAILED ->

@@ -1,33 +1,36 @@
 package org.twins.core.service.factory;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.KitUtils;
-import org.cambium.common.util.LoggerUtils;
+import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
-import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nType;
-import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.TwinChangeTaskStatus;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.factory.*;
+import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.twin.TwinChangeTaskEntity;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinflow.TwinflowFactoryRepository;
 import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.enums.factory.FactoryEraserAction;
+import org.twins.core.enums.factory.FactoryLauncher;
+import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.conditioner.Conditioner;
 import org.twins.core.featurer.factory.filler.Filler;
@@ -35,6 +38,8 @@ import org.twins.core.featurer.factory.multiplier.Multiplier;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
+import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.twin.TwinChangeTaskService;
 import org.twins.core.service.twin.TwinEraserService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -48,6 +53,7 @@ import static org.cambium.common.util.RowUtils.mapUuidInt;
 
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @RequiredArgsConstructor
 public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryEntity> {
@@ -69,8 +75,11 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     @Lazy
     final DraftService draftService;
     final DraftCommitService draftCommitService;
+    @Lazy
+    final TwinChangeTaskService twinChangeTaskService;
     private final TwinflowTransitionRepository twinflowTransitionRepository;
     private final I18nService i18nService;
+    private final TwinflowFactoryRepository twinflowFactoryRepository;
 
     @Override
     public CrudRepository<TwinFactoryEntity, UUID> entityRepository() {
@@ -85,7 +94,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     @Override
     public boolean isEntityReadDenied(TwinFactoryEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        return !entity.getDomainId().equals(apiUser.getDomainId());
+        return entity.getDomainId() != null && !entity.getDomainId().equals(apiUser.getDomainId());
     }
 
     @Override
@@ -165,6 +174,9 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                             .setCommittable(false); // this factory result can not be commited because of lock
             }
         }
+        for (var entry : factoryContext.getAfterCommitFactories().entrySet()) {
+            factoryResultUncommited.addAfterCommitFactory(entry.getKey(), entry.getValue());
+        }
         return factoryResultUncommited;
     }
 
@@ -192,6 +204,9 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     private void runMultipliers(TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {
         List<TwinFactoryMultiplierEntity> factoryMultiplierEntityList = twinFactoryMultiplierRepository.findByTwinFactoryId(factoryEntity.getId()); //few multipliers can be attached to one factory, because one can be used to create on grouped twin, other for create isolated new twin and so on
         log.info("Loaded " + factoryMultiplierEntityList.size() + " multipliers");
+        if (CollectionUtils.isEmpty(factoryMultiplierEntityList)) {
+            return;
+        }
         Map<UUID, List<FactoryItem>> factoryInputTwins = groupItemsByClass(factoryContext);
         LoggerUtils.traceTreeLevelDown();
         for (TwinFactoryMultiplierEntity factoryMultiplierEntity : factoryMultiplierEntityList) {
@@ -205,7 +220,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 log.info("Skipping: no input of twinClass[" + factoryMultiplierEntity.getInputTwinClassId() + "]");
                 continue;
             }
-            Multiplier multiplier = featurerService.getFeaturer(factoryMultiplierEntity.getMultiplierFeaturer(), Multiplier.class);
+            Multiplier multiplier = featurerService.getFeaturer(factoryMultiplierEntity.getMultiplierFeaturerId(), Multiplier.class);
             log.info("Running multiplier[" + multiplier.getClass().getSimpleName() + "] with params: " + factoryMultiplierEntity.getMultiplierParams());
             List<FactoryItem> multiplierOutput = multiplier.multiply(factoryMultiplierEntity, multiplierInput, factoryContext);
             log.info("Result:" + multiplierOutput.size() + " factoryItems");
@@ -253,6 +268,9 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 continue;
             }
             runPipelineSteps(factoryContext, factoryPipelineEntity, pipelineInputList);
+            if (factoryPipelineEntity.getAfterCommitTwinFactoryId() != null) {
+                factoryContext.addAfterCommitFactories(pipelineInputList, factoryPipelineEntity.getAfterCommitTwinFactoryId());
+            }
             if (factoryPipelineEntity.getNextTwinFactoryId() != null) {
                 log.info("{} has nextFactoryId configured", factoryPipelineEntity.logShort());
                 if (factoryPipelineEntity.getNextTwinFactoryLimitScope()) {
@@ -307,7 +325,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             log.info("Processing {}", pipelineInput.logDetailed());
             pipelineInput.setFactoryContext(factoryContext); // setting global factory context to be accessible from fillers
             if (pipelineInput.getOutput().getTwinEntity().getId() == null)
-                pipelineInput.getOutput().getTwinEntity().setId(UUID.randomUUID()); //generating id for using in fillers (if some field must be created)
+                pipelineInput.getOutput().getTwinEntity().setId(UuidUtils.generate()); //generating id for using in fillers (if some field must be created)
             String logMsg, stepOrder;
             LoggerUtils.traceTreeLevelDown();
             for (int step = 0; step < pipelineStepEntityList.size(); step++) {
@@ -317,7 +335,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                     log.info(stepOrder + pipelineStepEntity.logNormal() + " was skipped)");
                     continue;
                 }
-                Filler filler = featurerService.getFeaturer(pipelineStepEntity.getFillerFeaturer(), Filler.class);
+                Filler filler = featurerService.getFeaturer(pipelineStepEntity.getFillerFeaturerId(), Filler.class);
                 logMsg = stepOrder + pipelineStepEntity.logNormal();
                 try {
                     filler.fill(pipelineStepEntity.getFillerParams(), pipelineInput, factoryPipelineEntity.getTemplateTwin(), logMsg);
@@ -326,6 +344,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                         log.warn("Step is optional and unsuccessful: " + (ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage()) + ". Pipeline will not be aborted");
                     } else {
                         log.error("Step[{}] is mandatory. Factory process will be aborted", pipelineStepEntity.getId());
+                        LoggerUtils.traceTreeEnd();
                         throw ex;
                     }
                 }
@@ -352,11 +371,11 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 log.info("Skipping {} because of empty input", eraserEntity.logShort());
                 continue;
             }
-            TwinFactoryEraserEntity.Action action;
+            FactoryEraserAction action;
             for (FactoryItem eraserInput : eraserInputList) {
                 //if we are in erase mode then input twin can not be marked as candidate, it's already candidate for deletion, so me will replace action to ERASE_IRREVOCABLE
-                if (factoryContext.getFactoryLauncher().isDeletion() && eraserInput.isFactoryInputItem() && eraserEntity.getEraserAction() == TwinFactoryEraserEntity.Action.ERASE_CANDIDATE)
-                    action = TwinFactoryEraserEntity.Action.ERASE_IRREVOCABLE;
+                if (factoryContext.getFactoryLauncher().isDeletion() && eraserInput.isFactoryInputItem() && eraserEntity.getEraserAction() == FactoryEraserAction.ERASE_CANDIDATE)
+                    action = FactoryEraserAction.ERASE_IRREVOCABLE;
                 else
                     action = eraserEntity.getEraserAction();
                 log.info("Eraser action {} was detected for {}", action, eraserInput.logDetailed());
@@ -399,6 +418,15 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 twinService.updateTwin(twinUpdate);
                 factoryResultCommited.addUpdatedTwin(twinUpdate.getDbTwinEntity());
             }
+            List<TwinChangeTaskEntity> changeTaskList = new ArrayList<>();
+            for (var entry : factoryResultUncommited.getAfterCommitFactories().entrySet()) {
+                changeTaskList.add(new TwinChangeTaskEntity()
+                        .setTwinId(entry.getKey())
+                        .setTwinFactoryId(entry.getValue())
+                        .setTwinFactorylauncher(FactoryLauncher.factoryPipeline)
+                        .setStatusId(TwinChangeTaskStatus.NEED_START));
+            }
+            twinChangeTaskService.addTasks(changeTaskList);
             return factoryResultCommited;
         }
     }
@@ -432,9 +460,9 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             return true;
         List<TwinFactoryConditionEntity> conditionEntityList = twinFactoryConditionRepository.findByTwinFactoryConditionSetIdAndActiveTrue(conditionSetId);
         for (TwinFactoryConditionEntity conditionEntity : conditionEntityList) {
-            Conditioner conditioner = featurerService.getFeaturer(conditionEntity.getConditionerFeaturer(), Conditioner.class);
+            Conditioner conditioner = featurerService.getFeaturer(conditionEntity.getConditionerFeaturerId(), Conditioner.class);
             boolean conditionerResult = conditioner.check(conditionEntity, factoryItem);
-            if (conditionEntity.isInvert())
+            if (conditionEntity.getInvert())
                 conditionerResult = !conditionerResult;
             if (!conditionerResult) // no need to check other conditions if one of it is already false
                 return false;
@@ -474,14 +502,16 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             return;
 
         Map<UUID, Integer> twinflowTransitionCounts = mapUuidInt(twinflowTransitionRepository.countByInbuiltTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> twinflowFactoryCounts = mapUuidInt(twinflowFactoryRepository.countByAfterTransitionPerformFactoryIds(needLoad.getIdSet()));
         Map<UUID, Integer> twinFactoryBranchCounts = mapUuidInt(twinFactoryBranchRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
-        Map<UUID, Integer> twinFactoryPipelineCounts = mapUuidInt(twinFactoryPipelineRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> pipelineNextTwinFactoryCounts = mapUuidInt(twinFactoryPipelineRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> pipelineAfterCommitTwinFactoryCounts = mapUuidInt(twinFactoryPipelineRepository.countByAfterCommitTwinFactoryIds(needLoad.getIdSet()));
 
         needLoad.getCollection().forEach(twinFactory -> {
-            int twinflowTransitionCount = twinflowTransitionCounts.getOrDefault(twinFactory.getId(), 0);
+            int twinflowCount = twinflowTransitionCounts.getOrDefault(twinFactory.getId(), 0) + twinflowFactoryCounts.getOrDefault(twinFactory.getId(), 0);
             int twinFactoryBranchCount = twinFactoryBranchCounts.getOrDefault(twinFactory.getId(), 0);
-            int twinFactoryPipelineCount = twinFactoryPipelineCounts.getOrDefault(twinFactory.getId(), 0);
-            twinFactory.setFactoryUsagesCount(twinflowTransitionCount + twinFactoryBranchCount + twinFactoryPipelineCount);
+            int twinFactoryPipelineCount = pipelineNextTwinFactoryCounts.getOrDefault(twinFactory.getId(), 0) + pipelineAfterCommitTwinFactoryCounts.getOrDefault(twinFactory.getId(), 0);
+            twinFactory.setFactoryUsagesCount(twinflowCount + twinFactoryBranchCount + twinFactoryPipelineCount);
         });
     }
 

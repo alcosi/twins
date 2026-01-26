@@ -15,5 +15,14 @@ public class TwinSearchByLinkDTOv1 {
     public UUID linkId;
 
     @Schema(description = "Twin dest ids for in(ex)clude from search")
+    @Deprecated
     public List<UUID> dstTwinIdList;
+
+    @Schema(description = "Twin src or dest ids for in(ex)clude from search")
+    public List<UUID> twinIdList;
+
+    @Schema(description = "search direction")
+    public boolean srcElseDst;
 }
+
+

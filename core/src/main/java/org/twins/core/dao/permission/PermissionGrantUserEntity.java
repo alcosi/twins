@@ -2,12 +2,14 @@ package org.twins.core.dao.permission;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.user.UserEntity;
 
-import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.UUID;
 
@@ -18,8 +20,12 @@ import java.util.UUID;
 @Table(name = "permission_grant_user")
 public class PermissionGrantUserEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "domain_id", nullable = false)
     private UUID domainId;
@@ -42,18 +48,26 @@ public class PermissionGrantUserEntity implements EasyLoggable {
     @Column(name = "granted_at")
     private Timestamp grantedAt;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false)
     private PermissionSchemaEntity permissionSchema;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "permission_id", insertable = false, updatable = false, nullable = false)
     private PermissionEntity permission;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity user;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "granted_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity grantedByUser;
@@ -63,7 +77,8 @@ public class PermissionGrantUserEntity implements EasyLoggable {
         return switch (level) {
             case SHORT -> "permissionGrantUser[" + id + "]";
             case NORMAL -> "permissionGrantUser[" + id + ", permissionSchemaId:" + permissionSchemaId + "]";
-            default -> "permissionGrantUser[id:" + id + ", permissionSchemaId:" + permissionSchemaId + ", permissionId:" + permissionId + ", userId:" + userId + "]";
+            default ->
+                    "permissionGrantUser[id:" + id + ", permissionSchemaId:" + permissionSchemaId + ", permissionId:" + permissionId + ", userId:" + userId + "]";
         };
     }
 }

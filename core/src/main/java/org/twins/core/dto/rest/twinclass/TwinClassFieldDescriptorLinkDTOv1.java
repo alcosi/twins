@@ -3,10 +3,10 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.twin.TwinBaseDTOv2;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
@@ -21,11 +21,6 @@ public class TwinClassFieldDescriptorLinkDTOv1 implements TwinClassFieldDescript
     @Schema(description = "Multiple choice support", example = "true")
     public Boolean multiple;
 
-    @Schema(description = "Valid options", example = "")
-    public List<TwinBaseDTOv2> dstTwins = new ArrayList<>();
-
-    public TwinClassFieldDescriptorLinkDTOv1 add(TwinBaseDTOv2 dstTwin) {
-        dstTwins.add(dstTwin);
-        return this;
-    }
+    @Schema(description = "Valid twins", example = "")
+    public Set<UUID> dstTwinIds = new HashSet<>();
 }

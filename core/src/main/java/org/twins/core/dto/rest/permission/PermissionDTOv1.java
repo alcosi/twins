@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.related.RelatedObject;
 
-import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -25,5 +25,6 @@ public class PermissionDTOv1 {
     public String description;
 
     @Schema(description = "group id", example = DTOExamples.PERMISSION_GROUP_ID)
+    @RelatedObject(type = PermissionGroupDTOv1.class, name = "group")
     public UUID groupId;
 }

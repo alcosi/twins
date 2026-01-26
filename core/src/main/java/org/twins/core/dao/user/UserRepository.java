@@ -6,6 +6,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -28,6 +29,12 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
             "where businessAccountUser.businessAccountId = :businessAccountId " +
             "and domainUser.domainId = :domainId")
     List<UUID> findUserIdByBusinessAccountIdAndDomainId(@Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
+
+    @Query(value = "select domainUser.userId from DomainUserEntity domainUser join BusinessAccountUserEntity businessAccountUser on domainUser.userId = businessAccountUser.userId " +
+            "where businessAccountUser.businessAccountId = :businessAccountId " +
+            "and domainUser.domainId = :domainId " +
+            "and domainUser.userId in :userIds")
+    Set<UUID> findUserIdByBusinessAccountIdAndDomainIdFiltered(@Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId, @Param("userIds") Collection<UUID> userIds);
 
     @Query(value = "select user from UserEntity user join DomainUserEntity domainUser on user.id = domainUser.userId join BusinessAccountUserEntity businessAccountUser on user.id = businessAccountUser.userId " +
             "where businessAccountUser.businessAccountId = :businessAccountId " +
@@ -87,7 +94,7 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
             "and domainUser.domainId = :domainId")
     long countByBusinessAccountIdAndDomainId(@Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
 
-    List<UserEntity> findByIdIn(List<UUID> idList);
+    List<UserEntity> findByIdIn(Collection<UUID> idList);
 
     UserEntity findByEmail(String email);
 

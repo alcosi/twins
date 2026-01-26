@@ -31,7 +31,7 @@ BEGIN
               AND table_name = 'face_tc001_option'
         ) THEN
             insert into twin_class_search (id, domain_id, name) select twin_class_search_id, face.domain_id, ''
-                                                                      from face_tc001_option, face_tc001, face where face_tc001_option.face_tc001_id = face_tc001.id and face_tc001.face_id = face.id on conflict do nothing ;
+                                                                      from face_tc001_option, face_tc001, face where face_tc001_option.face_tc001_id = face_tc001.id and face_tc001.face_id = face.id and twin_class_search_id is not null on conflict do nothing ;
 
             ALTER TABLE face_tc001_option
                 ADD CONSTRAINT face_tc001_option_twin_class_search_id_fk

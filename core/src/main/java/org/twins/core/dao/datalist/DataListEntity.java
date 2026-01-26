@@ -76,6 +76,9 @@ public class DataListEntity implements EasyLoggable {
     @Column(name = "external_id")
     private String externalId;
 
+    @Column(name = "default_data_list_option_id")
+    private UUID defaultDataListOptionId;
+
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
@@ -119,7 +122,7 @@ public class DataListEntity implements EasyLoggable {
 
     //needed for specification
     @Deprecated
-    @OneToMany(mappedBy = "dataList")
+    @OneToMany(mappedBy = "dataList", fetch = FetchType.LAZY)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Collection<DataListOptionEntity> dataListOptions;

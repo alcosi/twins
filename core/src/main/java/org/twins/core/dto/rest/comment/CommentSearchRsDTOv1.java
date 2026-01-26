@@ -16,6 +16,7 @@ import java.util.List;
 public class CommentSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
+
     @Schema(description = "results - comment list")
     private List<CommentDTOv1> comments;
 }

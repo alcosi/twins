@@ -2,6 +2,7 @@ package org.twins.core.dao.i18n;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import org.twins.core.enums.i18n.I18nType;
 
 @Converter
 public class I18nTypeConverter implements AttributeConverter<I18nType, String> {

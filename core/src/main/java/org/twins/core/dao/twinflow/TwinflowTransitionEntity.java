@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.i18n.I18nEntity;
@@ -15,6 +16,7 @@ import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
+import org.twins.core.enums.twinflow.TwinflowTransitionType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -26,8 +28,12 @@ import java.util.UUID;
 @FieldNameConstants
 public class TwinflowTransitionEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twinflow_id")
     private UUID twinflowId;
@@ -80,16 +86,17 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @Column(name = "drafting_twin_factory_id")
     private UUID draftingTwinFactoryId;
 
-    @Column(name = "after_perform_twin_factory_id")
-    private UUID afterPerformTwinFactoryId;
-
     @Column(name = "twinflow_transition_alias_id")
     private UUID twinflowTransitionAliasId;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twinflow_transition_alias_id", insertable = false, updatable = false, nullable = false)
     private TwinflowTransitionAliasEntity twinflowTransitionAlias;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twinflow_id", insertable = false, updatable = false, nullable = false)
     private TwinflowEntity twinflow;
@@ -108,28 +115,36 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @ToString.Exclude
     private I18nEntity descriptionI18n;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "src_twin_status_id", insertable = false, updatable = false)
     private TwinStatusEntity srcTwinStatus;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "dst_twin_status_id", insertable = false, updatable = false, nullable = false)
     private TwinStatusEntity dstTwinStatus;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinflowTransitionValidatorRuleEntity, UUID> validatorRulesKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<TwinflowTransitionTriggerEntity, UUID> triggersKit;
 
     @Transient // because field can be useful only in admin panel
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionEntity permission;
 
     @Transient // because field can be useful only in admin panel
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity createdByUser;
 
     @EqualsAndHashCode.Exclude
@@ -148,8 +163,10 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinflowTransition[" + id + "]";
-            case NORMAL -> "twinflowTransition[id:" + id + ", alias:" + (twinflowTransitionAlias != null ? twinflowTransitionAlias.getAlias() : twinflowTransitionAliasId) +  "]";
-            default -> "twinflowTransition[id:" + id + ", alias:" + (twinflowTransitionAlias != null ? twinflowTransitionAlias.getAlias() : twinflowTransitionAliasId) +  "]";
+            case NORMAL ->
+                    "twinflowTransition[id:" + id + ", alias:" + (twinflowTransitionAlias != null ? twinflowTransitionAlias.getAlias() : twinflowTransitionAliasId) + "]";
+            default ->
+                    "twinflowTransition[id:" + id + ", alias:" + (twinflowTransitionAlias != null ? twinflowTransitionAlias.getAlias() : twinflowTransitionAliasId) + "]";
         };
     }
 }

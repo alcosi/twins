@@ -2,7 +2,6 @@ package org.twins.core.mappers.rest.link;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.twins.core.service.i18n.I18nService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -11,11 +10,13 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dto.rest.link.LinkDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 
@@ -42,7 +43,7 @@ public class LinkBackwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, L
                     throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + LinkMode.MANAGED + "] is not allowed for current user");
                 dst
                         .setId(src.getId())
-                        .setName(i18nService.translateToLocale(src.getBackwardNameI18NId()))
+                        .setName(I18nCacheHolder.addId(src.getBackwardNameI18NId()))
                         .setDstTwinClassId(src.getSrcTwinClassId())
                         .setLinkStrengthId(src.getLinkStrengthId())
                         .setType(src.getType());
@@ -50,14 +51,13 @@ public class LinkBackwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, L
             case SHORT:
                 dst
                         .setId(src.getId())
-                        .setName(i18nService.translateToLocale(src.getBackwardNameI18NId()));
+                        .setName(I18nCacheHolder.addId(src.getBackwardNameI18NId()));
         }
 
-        if (mapperContext.hasModeButNot(TwinClassMode.LinkDst2TwinClassMode.HIDE))
-            dst
-                    .setDstTwinClassId(src.getSrcTwinClassId())
-                    .setDstTwinClass(twinClassRestDTOMapper.convertOrPostpone(src.getSrcTwinClass(), mapperContext
-                            .forkOnPoint(TwinClassMode.LinkDst2TwinClassMode.SHORT)));
+        if (mapperContext.hasModeButNot(TwinClassMode.LinkDst2TwinClassMode.HIDE)) {
+            dst.setDstTwinClassId(src.getSrcTwinClassId());
+            twinClassRestDTOMapper.convertOrPostpone(src.getSrcTwinClass(), mapperContext.forkOnPoint(TwinClassMode.LinkDst2TwinClassMode.SHORT));
+        }
     }
 
     @Override

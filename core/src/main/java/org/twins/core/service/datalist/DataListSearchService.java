@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListRepository;
+import org.twins.core.enums.datalist.DataListStatus;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.DataListSearch;
 import org.twins.core.service.auth.AuthService;
@@ -26,7 +27,7 @@ import static org.twins.core.dao.i18n.specifications.I18nSpecification.doubleJoi
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.datalist.DataListSpecification.*;
 
-//Log calls that took more then 2 seconds
+//Log calls that took more than 2 seconds
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @Service
@@ -66,10 +67,12 @@ public class DataListSearchService {
                 checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch() != null ? search.getOptionSearch().getBusinessAccountIdList() : null, false, false),
                 checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch() != null ? search.getOptionSearch().getBusinessAccountIdExcludeList() : null, true, true),
                 checkFieldLikeIn(search.getExternalIdLikeList(), false, false, DataListEntity.Fields.externalId),
-                checkFieldLikeIn(search.getExternalIdNotLikeList(), true, false, DataListEntity.Fields.externalId));
+                checkFieldLikeIn(search.getExternalIdNotLikeList(), true, false, DataListEntity.Fields.externalId),
+                checkUuidIn(search.getDefaultOptionIdList(), false, false, DataListEntity.Fields.defaultDataListOptionId),
+                checkUuidIn(search.getDefaultOptionIdExcludeList(), true, false, DataListEntity.Fields.defaultDataListOptionId));
     }
 
-    private Set<String> safeConvert(Set<DataListOptionEntity.Status> collection) {
+    private Set<String> safeConvert(Set<DataListStatus> collection) {
         return collection == null ? Collections.emptySet() : collection.stream().map(Enum::name).collect(Collectors.toSet());
     }
 }

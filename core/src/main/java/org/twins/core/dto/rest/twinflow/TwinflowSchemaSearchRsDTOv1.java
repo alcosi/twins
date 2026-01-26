@@ -18,5 +18,5 @@ public class TwinflowSchemaSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - twinflow schema list")
-    public List<TwinflowSchemaDTOv2> twinflowSchemas;
+    public List<TwinflowSchemaDTOv1> twinflowSchemas;
 }

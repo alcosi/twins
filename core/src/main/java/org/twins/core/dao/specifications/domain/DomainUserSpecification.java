@@ -5,11 +5,10 @@ import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dao.user.UserStatus;
+import org.twins.core.enums.user.UserStatus;
 
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
@@ -23,7 +22,7 @@ public class DomainUserSpecification extends CommonSpecification<DomainUserEntit
             Join<DomainUserEntity, UserEntity> userJoin = root.join(DomainUserEntity.Fields.user, JoinType.INNER);
             if (search != null && !search.isEmpty()) {
                 for (String name : search) {
-                    Predicate predicate = cb.like(cb.lower(userJoin.get(field)), name.toLowerCase());
+                    Predicate predicate = cb.like(cb.lower(userJoin.get(field)), name.toLowerCase(), escapeChar);
                     predicates.add(predicate);
                 }
             }
@@ -37,7 +36,7 @@ public class DomainUserSpecification extends CommonSpecification<DomainUserEntit
             Join<DomainUserEntity, UserEntity> userJoin = root.join(DomainUserEntity.Fields.user, JoinType.INNER);
             if (search != null && !search.isEmpty()) {
                 for (String name : search) {
-                    Predicate predicate = cb.not(cb.like(cb.lower(userJoin.get(field)), name.toLowerCase()));
+                    Predicate predicate = cb.not(cb.like(cb.lower(userJoin.get(field)), name.toLowerCase(), escapeChar));
                     predicates.add(predicate);
                 }
             }

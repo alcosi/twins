@@ -25,6 +25,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.draft.DraftRsDTOv1;
 import org.twins.core.mappers.rest.draft.DraftRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.permission.Permissions;
 
@@ -38,6 +39,7 @@ import java.util.UUID;
 public class DraftCommitController extends ApiController {
     private final DraftRestDTOMapper draftRestDTOMapper;
     private final DraftCommitService draftCommitService;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "draftCommitV1", summary = "Commit draft by id")
@@ -54,7 +56,8 @@ public class DraftCommitController extends ApiController {
         try {
             DraftEntity draftEntity = draftCommitService.commitNowOrInQueue(draftId);
             rs
-                    .setDraft(draftRestDTOMapper.convert(draftEntity, mapperContext));
+                    .setDraft(draftRestDTOMapper.convert(draftEntity, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

@@ -16,6 +16,7 @@ public interface DTOExamples {
     String TWIN_CLASS_NAME = "Tool";
     String TWIN_CLASS_DESCRIPTION = "Professional tool class";
     String TWIN_CLASS_HEAD_CLASS_ID = "c2854a55-1dfe-41cd-bb36-f71eeaf16f81";
+    String TWIN_CLASS_FREEZE_ID = "06908b8e-5ab1-4af5-8a22-ab617f449e26";
     String TWIN_STATUS_ID = "a1178c4a-b974-449b-b51b-9a2bc54c5ea5";
     String TWIN_STATUS_KEY = "toDo";
     String TWIN_STATUS_NAME = "To Do";
@@ -39,6 +40,7 @@ public interface DTOExamples {
     String TWIN_TAG_ID = "cf8b1aec-c07c-4131-b834-8024462cfc93";
     String TWIN_FIELD_KEY = "brand";
     String TWIN_FIELD_VALUE = "alcosi";
+    String TWIN_FACTORY_LAUNCHER_ID = "onSketchCreate";
     String DATA_LIST_ID = "e844a4e5-1c09-474e-816f-05cdb1f093ed";
     String DATA_LIST_KEY = "country";
     String DATA_LIST_OPTION_ID = "7de977d4-df6d-4250-9cb2-088363d139a1";
@@ -67,6 +69,7 @@ public interface DTOExamples {
     String DRAFT_ID = "34618b09-e8dc-4712-a433-2e18915ee70d";
     String TWINFLOW_NAME = "Default twinflow";
     String TWINFLOW_TRANSITION_ID = "f6606fa2-c047-4ba9-a92c-84051df681ab";
+    String TWINFLOW_FACTORY_ID = "471a6baa-b215-40ae-8a7f-1a78e0925d76";
     String TWINFLOW_TRANSITION_TYPE_ID = "STATUS_CHANGE";
     String TWINFLOW_TRANSITION_ALIAS = "start";
     String TWINFLOW_TRANSITION_ALIAS_ID = "da755c8a-248f-4e4f-978a-6474e41c8dca";
@@ -126,6 +129,12 @@ public interface DTOExamples {
     String I18N_NAME = "name";
     String EMAIL = "user@example.com";
     String PASSWORD = "secret";
+    String CACHE_KEY = "TwinClassRepository.findById";
+    String CONDITIONER_FEATURE_ID = "";
+    String CONDITIONER_PARAMS_MAP = "";
+    String FACTORY_CONDITION_ID = "";
 
-
+    String CRON = "0 0 10 * * ?";
+    String TIME_IN_MILLIS = "500";
+    String UUID_ID = "be44e826-ce24-4881-a227-f3f72d915a20";
 }

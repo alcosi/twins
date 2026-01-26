@@ -3,11 +3,14 @@ package org.twins.core.dao.attachment;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
+import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.permission.PermissionEntity;
@@ -16,7 +19,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.file.DomainFile;
+import org.twins.core.enums.attachment.TwinAttachmentAction;
 
 import java.sql.Timestamp;
 import java.util.Set;
@@ -33,9 +36,7 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
 
     @PrePersist
     protected void onCreate() {
-        if (id == null) {
-            this.id = UUID.randomUUID();
-        }
+        id = UuidUtils.ifNullGenerate(id);
     }
 
     @Column(name = "twin_id")
@@ -76,45 +77,68 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
     @Column(name = "twin_class_field_id")
     private UUID twinClassFieldId;
 
-
     @Column(name = "storage_id", nullable = false)
     private UUID storageId;
 
+    @Column(name = "`order`")
+    private Integer order;
+
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinEntity twin;
 
     @ManyToOne
     @JoinColumn(name = "twinflow_transition_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinflowTransitionEntity twinflowTransition;
 
     @ManyToOne
     @JoinColumn(name = "view_permission_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionEntity viewPermission;
 
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity createdByUser;
 
     @ManyToOne
     @JoinColumn(name = "twin_comment_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinCommentEntity comment;
 
     @ManyToOne
     @JoinColumn(name = "twin_class_field_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassFieldEntity twinClassField;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "storage_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private StorageEntity storage;
 
     @Transient
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<TwinAttachmentAction> attachmentActions;
 
     @Transient
+    @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private DomainFile attachmentFile;
+    private FileData attachmentFile;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private boolean fileChanged = false;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -130,7 +154,10 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
                 .setExternalId(externalId)
                 .setTitle(title)
                 .setDescription(description)
+                .setStorageId(storageId)
+                .setStorage(storage)
                 .setStorageFileKey(storageFileKey)
+                .setFileChanged(fileChanged)
                 .setModifications(modifications)
                 .setCreatedAt(createdAt)
                 .setTwinCommentId(twinCommentId)
@@ -138,7 +165,8 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
                 .setTwinflowTransitionId(twinflowTransitionId)
                 .setViewPermission(viewPermission)
                 .setViewPermissionId(viewPermissionId)
-                .setSize(size);
+                .setSize(size)
+                .setOrder(order);
     }
 
     public String easyLog(Level level) {

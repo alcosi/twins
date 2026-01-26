@@ -22,7 +22,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryEraserCreateRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryEraserSaveRsDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryEraserCreateDTOReverseMapper;
-import org.twins.core.mappers.rest.factory.FactoryEraserRestDTOMapperV2;
+import org.twins.core.mappers.rest.factory.FactoryEraserRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryEraserService;
@@ -38,7 +38,7 @@ import java.util.UUID;
 public class FactoryEraserCreateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final FactoryEraserCreateDTOReverseMapper factoryEraserCreateDTOReverseMapper;
-    private final FactoryEraserRestDTOMapperV2 factoryEraserRestDTOMapperV2;
+    private final FactoryEraserRestDTOMapper factoryEraserRestDTOMapper;
     private final FactoryEraserService factoryEraserService;
 
     @ParametersApiUserHeaders
@@ -50,7 +50,7 @@ public class FactoryEraserCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory/{factoryId}/factory_eraser/v1")
     public ResponseEntity<?> factoryEraserCreateV1(
-            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryEraserRestDTOMapper.class, response = FactoryEraserSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_ID) @PathVariable UUID factoryId,
             @RequestBody FactoryEraserCreateRqDTOv1 request) {
         FactoryEraserSaveRsDTOv1 rs = new FactoryEraserSaveRsDTOv1();
@@ -58,7 +58,7 @@ public class FactoryEraserCreateController extends ApiController {
             TwinFactoryEraserEntity entity = factoryEraserCreateDTOReverseMapper.convert(request.getEraser(), mapperContext);
             entity = factoryEraserService.createEraser(entity.setTwinFactoryId(factoryId));
             rs
-                    .setEraser(factoryEraserRestDTOMapperV2.convert(entity, mapperContext))
+                    .setEraser(factoryEraserRestDTOMapper.convert(entity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

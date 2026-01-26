@@ -5,7 +5,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinAliasEntity;
-import org.twins.core.dao.twin.TwinAliasType;
+import org.twins.core.enums.twin.TwinAliasType;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;

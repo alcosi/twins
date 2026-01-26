@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.twins.core.enums.twinflow.TwinflowTransitionType;
 
 import java.util.Collection;
 import java.util.List;
@@ -49,12 +50,14 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
     @Query(value = "select tt from TwinflowTransitionEntity tt " +
             "where tt.twinflowId = :twinflowId and (tt.srcTwinStatusId = :srcTwinStatusId or (tt.srcTwinStatusId is null and tt.dstTwinStatusId != :srcTwinStatusId)) " +
             "and tt.twinflowTransitionAlias.alias = :alias " +
+            "and tt.twinflowTransitionTypeId != :twinflowTransitionType " +
             "and true = function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
     TwinflowTransitionEntity findTransitionByAlias(
             @Param("twinflowId") UUID twinflowId,
             @Param("srcTwinStatusId") UUID srcTwinStatusId,
             @Param("alias") String alias,
             @Param("domainId") UUID domainId,
+            @Param("twinflowTransitionType") TwinflowTransitionType twinflowTransitionType,
             @Param("businessAccountId") TypedParameterValue<UUID> businessAccountId,
             @Param("permissionSpaceId") TypedParameterValue<UUID> permissionSpaceId,
             @Param("userId") UUID userId,

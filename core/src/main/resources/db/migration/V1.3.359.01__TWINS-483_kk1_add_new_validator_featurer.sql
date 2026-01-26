@@ -1,0 +1,1 @@
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1613, 16, 'org.twins.core.featurer.twin.validator.TwinValidatorTwinOfTwinClass', 'Twin of given twin class', '', false) on conflict do nothing;

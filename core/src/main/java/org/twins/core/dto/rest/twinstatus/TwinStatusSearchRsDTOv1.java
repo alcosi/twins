@@ -18,5 +18,5 @@ public class TwinStatusSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - status list")
-    public List<TwinStatusDTOv2> statuses;
+    public List<TwinStatusDTOv1> statuses;
 }

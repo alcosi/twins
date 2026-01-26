@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 
 import java.util.UUID;
 
@@ -15,8 +16,12 @@ import java.util.UUID;
 @FieldNameConstants
 public class TwinValidatorSetEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "domain_id")
     private UUID domainId;
@@ -27,13 +32,15 @@ public class TwinValidatorSetEntity implements EasyLoggable {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "invert")
+    private boolean invert;
+
     @Override
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinValidatorSetEntity[" + id + "]";
             case NORMAL -> "twinValidatorSetEntity[id:" + id + ", domainId:" + domainId + "]";
-            default ->
-                    "twinValidatorSetEntity[id:" + id + ", domainId:" + domainId + ", name:" + name + "]";
+            default -> "twinValidatorSetEntity[id:" + id + ", domainId:" + domainId + ", name:" + name + "]";
         };
     }
 

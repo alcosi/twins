@@ -18,5 +18,5 @@ public class FactoryMultiplierFilterSearchRsDTOv1 extends ResponseRelatedObjects
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - condition list")
-    public List<FactoryMultiplierFilterDTOv2> multiplierFilters;
+    public List<FactoryMultiplierFilterDTOv1> multiplierFilters;
 }

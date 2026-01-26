@@ -1,0 +1,47 @@
+syntax="proto3";
+
+option csharp_namespace="Alcosi.NotificationManager.gRPC";
+
+import "google/protobuf/wrappers.proto";
+
+package alcosi.notification_manager.v1;
+
+// Service for sending notifications to users.
+service ReceiverService {
+
+  // Sends a notification to one or more users based on the specified command.
+  rpc SendNotification(SendNotificationCommand) returns (SendNotificationResult);
+  
+  // Sends a callback with the results of the notification sending process.
+  // DO NOT USE THIS METHOD DIRECTLY. IT IS INTENDED FOR INTERNAL USE ONLY.
+  rpc SendCallback(SendCallbackCommand) returns (SendCallbackResult);
+
+}
+
+// Command message for sending a notification to users.
+message SendNotificationCommand {
+  repeated string users_ids= 1 ; // Unique identifiers for the users
+  map<string,string> filters= 2 ; // Additional filters for notifications
+  string event_id = 3; // Unique identifier for the event associated with the notification
+  google.protobuf.StringValue title = 4; // Title of the notification
+  google.protobuf.StringValue body = 5; // Message content of the notification
+  map<string,string> data = 6; // Additional data for the notification
+}
+
+// Result message for the SendNotification operation.
+message SendNotificationResult {
+  string request_id = 1; // Unique identifier for the sent notification
+}
+
+message SendCallbackCommand {
+  string notification_id = 1; // Unique identifier for the notification
+  repeated DeviceNotificationResultDto notification_results = 2; // List of notification results to be processed
+}
+
+message DeviceNotificationResultDto {
+  string device_token = 1; // Unique identifier for the device
+  bool is_sent = 2; // Indicates if the notification was sent successfully
+  google.protobuf.StringValue error_message = 3; // Error message if the notification failed to send
+}
+
+message SendCallbackResult {}

@@ -48,7 +48,7 @@ public class ApiUser {
     public static final UUID NOT_SPECIFIED = UuidUtils.NULLIFY_MARKER;
 
     @Getter
-    private final UUID requestId = UUID.randomUUID();
+    private final UUID requestId = UuidUtils.generate();
 
     public Set<UUID> getPermissions() {
         if (user != null && user.getPermissions() != null)

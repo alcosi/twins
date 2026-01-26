@@ -18,5 +18,5 @@ public class PermissionGrantAssigneePropagationSearchRsDTOv1 extends ResponseRel
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - permission assignee propagation list")
-    public List<PermissionGrantAssigneePropagationDTOv2> permissionGrantAssigneePropagations;
+    public List<PermissionGrantAssigneePropagationDTOv1> permissionGrantAssigneePropagations;
 }

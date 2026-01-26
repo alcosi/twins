@@ -1,0 +1,4 @@
+INSERT INTO public.featurer_type (id, name, description) VALUES (44::integer, 'FieldProjector'::varchar(40), 'Field projection'::varchar(255)) on conflict do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (4401::integer, 44::integer, 'org.twins.core.featurer.classfield.projector.FieldProjectorStub'::varchar, 'Field projection stub'::varchar, null::varchar(255), false::boolean) on conflict do nothing;
+
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (3209::integer, 32::integer, 'org.twins.core.featurer.classfield.finder.FieldFinderByIdExcludeProjection'::varchar, 'Field finder by id exclude projection'::varchar, null::varchar(255), false::boolean) on conflict do nothing;

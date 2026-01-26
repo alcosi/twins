@@ -18,8 +18,8 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
+import org.twins.core.mappers.rest.mappercontext.modes.RelationTwinMode;
 import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
@@ -41,7 +41,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
     @MapperModePointerBinding(modes = StatusMode.TwinField2StatusMode.class)
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
 
-    @MapperModePointerBinding(modes = TwinMode.TwinField2TwinMode.class)
+    @MapperModePointerBinding(modes = RelationTwinMode.TwinByFieldMode.class)
     private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
 
     @Override
@@ -54,9 +54,17 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
         } else if (src instanceof FieldValueColorHEX color) {
             dst.setValue(color.getHex());
         } else if (src instanceof FieldValueDate date) {
-            dst.setValue(date.getDate());
+            dst.setValue(date.getDateStr());
         } else if (src instanceof FieldValueInvisible) {
             dst.setValue("");
+        } else if (src instanceof FieldValueAttachment fieldValueAttachment) {
+            if (fieldValueAttachment.getName() != null && fieldValueAttachment.getBase64Content() != null) {
+                dst.setValue(fieldValueAttachment.getBase64Content());
+            } else if (fieldValueAttachment.getName() != null) {
+                dst.setValue(fieldValueAttachment.getName());
+            } else {
+                dst.setValue("");
+            }
         } else if (src instanceof FieldValueBoolean fieldValueBoolean) {
             dst.setValue(String.valueOf(fieldValueBoolean.getValue()));
         } else if (src instanceof FieldValueTwinClassList fieldValueTwinClassList) {
@@ -98,14 +106,14 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
                 else
                     linkedTwin = twinLinkEntity.getSrcTwin();
                 stringJoiner.add(linkedTwin.getId().toString());
-                if (mapperContext.hasModeButNot(TwinMode.TwinField2TwinMode.HIDE)) {
-                    twinBaseRestDTOMapper.postpone(linkedTwin, mapperContext.forkOnPoint(UserMode.TwinField2UserMode.HIDE));
+                if (mapperContext.hasModeButNot(RelationTwinMode.TwinByFieldMode.WHITE)) {
+                    twinBaseRestDTOMapper.postpone(linkedTwin, mapperContext.forkOnPoint(RelationTwinMode.TwinByFieldMode.GREEN));
                 }
             }
             dst.setValue(stringJoiner.toString());
         } else if (src instanceof FieldValueLinkSingle link) {
-            if (mapperContext.hasModeButNot(TwinMode.TwinField2TwinMode.HIDE)) {
-                twinBaseRestDTOMapper.postpone(link.getDstTwin(), mapperContext.forkOnPoint(UserMode.TwinField2UserMode.HIDE));
+            if (mapperContext.hasModeButNot(RelationTwinMode.TwinByFieldMode.WHITE)) {
+                twinBaseRestDTOMapper.postpone(link.getDstTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByFieldMode.GREEN));
             }
             dst.setValue(link.getDstTwin().getId().toString());
         } else if (src instanceof FieldValueI18n i18nField) {
@@ -127,7 +135,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
     @Override
     public List<FieldValueText> convertCollection(Collection<FieldValue> srcList, MapperContext mapperContext) throws Exception {
         return super.convertCollection(srcList
-                .stream().filter(v -> !(v instanceof FieldValueInvisible)).toList(), mapperContext);
+                .stream().filter(v -> !(v instanceof FieldValueInvisible) || (v instanceof FieldValueAttachment)).toList(), mapperContext);
     }
 
     @Override

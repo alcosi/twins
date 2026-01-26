@@ -1,14 +1,16 @@
 package org.twins.core.config.filter;
 
-import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.util.JsonUtils;
 import org.cambium.common.util.LoggerUtils;
+import org.cambium.common.util.UuidUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,7 +24,9 @@ import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 import org.twins.core.controller.rest.annotation.Loggable;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.*;
 
@@ -30,6 +34,7 @@ import static org.twins.core.service.HttpRequestService.*;
 
 //@RequiredArgsConstructor
 public class LoggingFilter extends OncePerRequestFilter {
+    public static final int MAX_BODY_LIMIT = 2000;
     @Autowired
     private List<HandlerMapping> handlerMappings;
     public static final String REQUEST_LOG_ID = "RequestLogId";
@@ -38,29 +43,31 @@ public class LoggingFilter extends OncePerRequestFilter {
     public static final Random RANDOM = new Random();
 
     public static class LogInternalService {
+        protected final JsonUtils jsonUtils = new JsonUtils(new String[]{"fullName", "accessToken", "refreshToken", "username", "password", "email", "firstName", "lastName"});
 
 
-        public void afterRequest(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response, Long time) {
+        public void afterRequest(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response, Long time, byte[] multipartContent) {
             try {
                 if ("OPTIONS".equals(request.getMethod())) {
                     return;
                 }
                 String id = request.getAttribute(REQUEST_LOG_ID) + "";
-                logRequest(request, id);
+                logRequest(request, id, multipartContent);
                 logResponse(request, response, id, time);
-                response.copyBodyToResponse();
-                LoggerUtils.cleanMDC();
             } catch (Throwable t) {
                 log.error("RqRs error !", t);
+            } finally {
+                LoggerUtils.cleanMDC();
             }
 
         }
 
-        private void logRequest(ContentCachingRequestWrapper request, String rqId) {
+        private void logRequest(ContentCachingRequestWrapper request, String rqId, byte[] multipartContent) {
             logHeaders(request, List.of(HEADER_DOMAIN_ID, HEADER_CHANNEL, HEADER_BUSINESS_ACCOUNT_ID, HEADER_LOCALE));
             Loggable loggable = LoggingFilter.getLoggableMethodAnnotation(request);
-            byte[] content = request.getContentAsByteArray();
-            logContent(content, request.getContentType(), request.getCharacterEncoding(), "RQ", rqId, loggable != null ? loggable.rqBodyThreshold() : 0);
+            int maxBodySize = loggable != null ? loggable.rqBodyThreshold() : 0;
+            byte[] content = extractRequestContent(request, maxBodySize, multipartContent);
+            logContent(content, request.getContentType(), request.getCharacterEncoding(), "RQ", rqId, maxBodySize);
         }
 
         private void logHeaders(ContentCachingRequestWrapper request, List<String> headerNameList) {
@@ -78,9 +85,9 @@ public class LoggingFilter extends OncePerRequestFilter {
         private void logContent(byte[] content, String contentType, String contentEncoding, String prfx, String rqId, int logShortThreshold) {
             try {
                 String message = new String(content, contentEncoding);
-                message = JsonUtils.mask(new String[]{"fullName", "accessToken", "refreshToken", "username", "password", "email", "firstName", "lastName"}, message);
+                message = jsonUtils.mask(message);
                 log.info("{}_BODY: {}", prfx, message);
-                if (message.length() > 2000 && message.indexOf("openapi") > 0) { // swagger output is too big
+                if (message.length() > MAX_BODY_LIMIT && message.indexOf("openapi") > 0) { // swagger output is too big
                     logShort.info("{}_BODY: <content> is longer then 2000 symbols. Please see other log file", prfx);
                 } else if (logShortThreshold == 0 || logShortThreshold > message.length())
                     logShort.info("{}_BODY: {}", prfx, message);
@@ -91,21 +98,105 @@ public class LoggingFilter extends OncePerRequestFilter {
             }
         }
 
+        @SneakyThrows
         private void logResponse(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response, String rqId, Long time) {
             String requestUri = StringUtils.defaultIfBlank(request.getRequestURI(), "");
             if (!requestUri.contains("/actuator/prometheus")) {
-            int status = response.getStatus();
-            String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
-            logInfoBoth("RS_URL {}:{}{} STATUS:{} {} | {} ms", request.getMethod(), requestUri, queryString, status, HttpStatus.valueOf(status).getReasonPhrase(), System.currentTimeMillis() - time);
-            response.getHeaderNames().forEach(headerName ->
-                    log.debug("RS_HEADER {}: {}", headerName, response.getHeader(headerName)));
-            byte[] content = response.getContentAsByteArray();
-            Loggable loggable = LoggingFilter.getLoggableMethodAnnotation(request);
+                int status = response.getStatus();
+                String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
+                logInfoBoth("RS_URL {}:{}{} STATUS:{} {} | {} ms", request.getMethod(), requestUri, queryString, status, HttpStatus.valueOf(status).getReasonPhrase(), System.currentTimeMillis() - time);
+                response.getHeaderNames().forEach(headerName ->
+                        log.debug("RS_HEADER {}: {}", headerName, response.getHeader(headerName)));
+
+                byte[] content = extractResponseContent(response);
+
+                Loggable loggable = LoggingFilter.getLoggableMethodAnnotation(request);
 
                 logContent(content, response.getContentType(), response.getCharacterEncoding(), "RS", rqId, loggable != null ? loggable.rsBodyThreshold() : 0);
             }
         }
+
+        @SneakyThrows
+        public byte[] extractRequestContent(ContentCachingRequestWrapper request, int maxBodySize, byte[] multipartContent) {
+            var isMultipart = isMultipart(request.getContentType());
+            if (isMultipart) {
+                return multipartContent;
+            } else {
+                return request.getContentAsByteArray();
+            }
+        }
+
+        @SneakyThrows
+        public byte[] extractMultipartContent(ContentCachingRequestWrapper request) throws IOException, ServletException {
+            String characterEncoding = request.getCharacterEncoding();
+            var isMultipart = isMultipart(request.getContentType());
+            if (!isMultipart) {
+                return new byte[0];
+            }
+            List<Part> parts = new ArrayList<Part>(request.getParts());
+            var loggedParts = parts.stream().map(part -> part.getName() + ":" + extractPartBody(part, characterEncoding)).toList();
+            return String.join(";\n", loggedParts).getBytes(characterEncoding);
+        }
+
+        @SneakyThrows
+        private String extractPartBody(Part part, String characterEncoding) {
+            if (!isJsonOrTextOrNull(part.getContentType())) {
+                return "<File. Size:" + getSize(part) + ">";
+            }
+            InputStream inputStream = part.getInputStream();
+            if (!(inputStream instanceof ByteArrayInputStream)) {
+                return "<File. Size:" + getSize(part) + ">";
+            }
+            return new String(inputStream.readAllBytes(), characterEncoding);
+        }
+
+        public long getSize(Part part) {
+            try {
+                return part.getSize();
+            } catch (Throwable t) {
+                return -1;
+            }
+        }
+
+        @SneakyThrows
+        public byte[] extractResponseContent(ContentCachingResponseWrapper response) {
+            if (!isJsonOrTextOrNull(response.getContentType())) {
+                return ("<Not Text ot Json. Size:" + response.getContentSize() + ">").getBytes();
+            }
+            byte[] content = response.getContentAsByteArray();
+            response.copyBodyToResponse();
+            return content;
+        }
+
+        public boolean isMultipart(String contentType) {
+            if (contentType == null) {
+                return false;
+            }
+            return contentType.toLowerCase().startsWith("multipart");
+        }
+
+        public boolean isJsonOrTextOrNull(String contentType) {
+            if (contentType == null) {
+                return true;
+            }
+            return isJson(contentType) || isText(contentType);
+        }
+
+        public boolean isJson(String contentType) {
+            if (contentType == null) {
+                return false;
+            }
+            return contentType.toLowerCase().contains("json");
+        }
+
+        private boolean isText(String contentType) {
+            if (contentType == null) {
+                return false;
+            }
+            return contentType.toLowerCase().contains("text");
+        }
     }
+
 
     static final Logger log = ((Logger) LoggerFactory.getLogger("RqRsLogger"));
     static final Logger logShort = ((Logger) LoggerFactory.getLogger("RqRsLoggerShort"));
@@ -122,7 +213,7 @@ public class LoggingFilter extends OncePerRequestFilter {
 
 
     static {
-        log.setLevel(Level.TRACE);
+        // log.setLevel(Level.TRACE);
     }
 
 
@@ -142,8 +233,8 @@ public class LoggingFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         logController(request);
+        logSessionId(request);
         if (isLoggable(request)) {
-            logSessionId(request);
             doFilterWrapped(wrapRequest(request), wrapResponse(response), filterChain);
         } else {
             filterChain.doFilter(request, response);
@@ -185,7 +276,7 @@ public class LoggingFilter extends OncePerRequestFilter {
     }
 
     private void logSessionId(HttpServletRequest request) {
-        String sessionid = Optional.ofNullable(request.getHeader("Authorization")).map(String::toUpperCase).orElseGet(() -> UUID.randomUUID().toString().replace("-", "").toUpperCase());
+        String sessionid = Optional.ofNullable(request.getHeader("Authorization")).map(String::toUpperCase).orElseGet(() -> UuidUtils.generate().toString().replace("-", "").toUpperCase());
         RequestAttributes attrs = RequestContextHolder.getRequestAttributes();
         if (attrs != null) {
             attrs.setAttribute("SESSION_ID", sessionid, RequestAttributes.SCOPE_REQUEST);
@@ -203,14 +294,16 @@ public class LoggingFilter extends OncePerRequestFilter {
 
     protected void doFilterWrapped(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response, FilterChain filterChain) throws ServletException, IOException {
         Long time = System.currentTimeMillis();
+        byte[] multipartContent = new byte[0];
         try {
             String id = getIdString();
+            multipartContent = logInternalService.extractMultipartContent(request);
             String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
             logInfoBoth("RQ_URL {}:{}{}", request.getMethod(), request.getRequestURI(), queryString);
             request.setAttribute(REQUEST_LOG_ID, id);
             filterChain.doFilter(request, response);
         } finally {
-            logInternalService.afterRequest(request, response, time);
+            logInternalService.afterRequest(request, response, time, multipartContent);
         }
     }
 

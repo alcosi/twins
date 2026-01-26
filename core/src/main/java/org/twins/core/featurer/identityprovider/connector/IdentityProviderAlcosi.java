@@ -2,6 +2,7 @@ package org.twins.core.featurer.identityprovider.connector;
 
 import com.alcosi.identity.exception.parser.IdentityParserException;
 import com.alcosi.identity.exception.parser.api.*;
+import com.alcosi.identity.exception.parser.ids.IdentityInvalidClientParserException;
 import com.alcosi.identity.exception.parser.ids.IdentityInvalidCredentialsParserException;
 import com.alcosi.identity.exception.parser.ids.IdentityInvalidRefreshTokenParserException;
 import com.alcosi.identity.service.error.IdentityErrorParser;
@@ -129,7 +130,11 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
             throw new ServiceException(IDP_PROVIDED_TOKEN_IS_NOT_ACTIVE);
         }
 
-        UUID userId = UUID.fromString(claims.get("sub").asText());
+        JsonNode sub = claims.get("sub");
+        JsonNode clientId = claims.get("client_id");
+
+        UUID userId = sub != null ? UUID.fromString(sub.asText()) : UUID.fromString(clientId.asText());
+
         JsonNode claim = claims.get(activeBusinessAccountClaimName.extract(properties));
         UUID businessAccountId = null;
         if (claim != null) {
@@ -222,7 +227,19 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
 
     @Override
     protected ClientSideAuthData m2mAuth(Properties properties, String clientId, String clientSecret) throws ServiceException {
-        return login(properties, clientId, clientSecret, null);
+
+        URI url = URI.create(identityServerTokenBaseUri.extract(properties) + "/token");
+        String requestBody = new StringJoiner("&")
+                .add("grant_type=client_credentials")
+                .add("client_id=" + clientId)
+//                .add("scope=" + clientScope.extract(properties))
+                .add("client_secret=" + clientSecret)
+                .toString();
+        HttpHeaders httpHeaders = getHttpHeaders(APPLICATION_FORM_URLENCODED);
+        RequestEntity<String> requestEntity = new RequestEntity<>(requestBody, httpHeaders, POST, url);
+        ResponseEntity<TokenResponse> responseEntity = makeRequest(requestEntity, TokenResponse.class);
+        var accessToken = responseEntity.getBody().accessToken;
+        return new ClientSideAuthData().putAuthToken(accessToken);
     }
 
     private Claim getClaim(String claimType, List<Claim> claims) {
@@ -384,6 +401,8 @@ public class IdentityProviderAlcosi extends IdentityProviderConnector {
     private void resolveError(String responseBody, int responseStatus) throws ServiceException {
         try {
             parser.processAnyException(responseStatus, () -> responseBody);
+        } catch (IdentityInvalidClientParserException exception) {
+            throw new ServiceException(IDP_INVALID_CLIENT_CREDENTIALS);
         } catch (IdentityInvalidCredentialsParserException exception) {
             throw new ServiceException(IDP_UNAUTHORIZED);
         } catch (IdentityInvalidRefreshTokenParserException exception) {

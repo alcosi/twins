@@ -1,0 +1,1 @@
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (3206, 32, 'org.twins.core.featurer.classfield.finder.FieldFinderClass', 'fields by class ids', '', false) on conflict do nothing;

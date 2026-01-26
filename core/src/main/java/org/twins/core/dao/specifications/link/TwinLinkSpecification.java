@@ -3,7 +3,7 @@ package org.twins.core.dao.specifications.link;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.link.LinkStrength;
+import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twin.TwinLinkEntity;
 

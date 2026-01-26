@@ -2,12 +2,13 @@ package org.twins.core.dao.validator;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.dao.comment.TwinCommentAction;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.util.UuidUtils;
+import org.twins.core.enums.comment.TwinCommentAction;
 
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -16,8 +17,12 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class TwinCommentActionAlienValidatorRuleEntity implements ContainsTwinValidatorSet, EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twin_class_id")
     private UUID twinClassId;
@@ -36,10 +41,9 @@ public class TwinCommentActionAlienValidatorRuleEntity implements ContainsTwinVa
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;
 
-    //TODO think over @ManyToMany https://alcosi.atlassian.net/browse/TWINS-220
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "twin_validator_set_id", referencedColumnName = "twin_validator_set_id", insertable = false, updatable = false)
-    private Set<TwinValidatorEntity> twinValidators;
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinValidatorEntity, UUID> twinValidatorKit;
 
     @Transient
     private TwinValidatorSetEntity twinValidatorSet;

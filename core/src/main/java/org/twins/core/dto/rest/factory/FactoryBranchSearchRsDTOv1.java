@@ -18,5 +18,5 @@ public class FactoryBranchSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - condition list")
-    public List<FactoryBranchDTOv2> branches;
+    public List<FactoryBranchDTOv1> branches;
 }

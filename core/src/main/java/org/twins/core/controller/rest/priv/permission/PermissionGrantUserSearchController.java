@@ -27,7 +27,7 @@ import org.twins.core.dto.rest.permission.PermissionGrantUserSearchRsDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGrantUserViewRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
-import org.twins.core.mappers.rest.permission.PermissionGrantUserRestDTOMapperV2;
+import org.twins.core.mappers.rest.permission.PermissionGrantUserRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionGrantUserSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantUserSearchService;
@@ -45,7 +45,7 @@ public class PermissionGrantUserSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;
     private final PermissionGrantUserSearchService permissionGrantUserSearchService;
-    private final PermissionGrantUserRestDTOMapperV2 permissionGrantUserRestDTOMapperV2;
+    private final PermissionGrantUserRestDTOMapper permissionGrantUserRestDTOMapper;
     private final PermissionGrantUserSearchDTOReverseMapper permissionGrantUserSearchDTOReverseMapper;
     private final PermissionGrantUserService permissionGrantUserService;
 
@@ -58,7 +58,7 @@ public class PermissionGrantUserSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/user/search/v1")
     public ResponseEntity<?> permissionGrantUserSearchV1(
-            @MapperContextBinding(roots = PermissionGrantUserRestDTOMapperV2.class, response = PermissionGrantUserSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantUserRestDTOMapper.class, response = PermissionGrantUserSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody PermissionGrantUserSearchRqDTOv1 request) {
         PermissionGrantUserSearchRsDTOv1 rs = new PermissionGrantUserSearchRsDTOv1();
@@ -66,7 +66,7 @@ public class PermissionGrantUserSearchController extends ApiController {
             PaginationResult<PermissionGrantUserEntity> permissionGrants = permissionGrantUserSearchService
                     .findPermissionGrantUsersByDomain(permissionGrantUserSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setPermissionGrantUsers(permissionGrantUserRestDTOMapperV2.convertCollection(permissionGrants.getList(), mapperContext))
+                    .setPermissionGrantUsers(permissionGrantUserRestDTOMapper.convertCollection(permissionGrants.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(permissionGrants))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -87,7 +87,7 @@ public class PermissionGrantUserSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/user/{grantId}/v1")
     public ResponseEntity<?> permissionGrantUserViewV1(
-            @MapperContextBinding(roots = PermissionGrantUserRestDTOMapperV2.class, response = PermissionGrantUserViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantUserRestDTOMapper.class, response = PermissionGrantUserViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GRANT_USER_ID) @PathVariable("grantId") UUID grantId) {
 
         PermissionGrantUserViewRsDTOv1 rs = new PermissionGrantUserViewRsDTOv1();
@@ -95,7 +95,7 @@ public class PermissionGrantUserSearchController extends ApiController {
             PermissionGrantUserEntity permissionGrant = permissionGrantUserService.findEntitySafe(grantId);
 
             rs
-                    .setPermissionGrantUser(permissionGrantUserRestDTOMapperV2.convert(permissionGrant, mapperContext))
+                    .setPermissionGrantUser(permissionGrantUserRestDTOMapper.convert(permissionGrant, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

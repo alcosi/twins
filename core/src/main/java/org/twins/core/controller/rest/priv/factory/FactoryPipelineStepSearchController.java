@@ -25,7 +25,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryPipelineStepSearchRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineStepSearchRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineStepViewRsDTOv1;
-import org.twins.core.mappers.rest.factory.FactoryPipelineStepRestDTOMapperV2;
+import org.twins.core.mappers.rest.factory.FactoryPipelineStepRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryPipelineStepSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
@@ -45,7 +45,7 @@ public class FactoryPipelineStepSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final FactoryPipelineStepSearchDTOReverseMapper factoryPipelineStepSearchDTOReverseMapper;
-    private final FactoryPipelineStepRestDTOMapperV2 factoryPipelineStepRestDTOMapperV2;
+    private final FactoryPipelineStepRestDTOMapper factoryPipelineStepRestDTOMapper;
     private final FactoryPipelineStepSearchService factoryPipelineStepSearchService;
     private final FactoryPipelineStepService factoryPipelineStepService;
 
@@ -58,7 +58,7 @@ public class FactoryPipelineStepSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory_pipeline_step/search/v1")
     public ResponseEntity<?> factoryPipelineStepSearchV1(
-            @MapperContextBinding(roots = FactoryPipelineStepRestDTOMapperV2.class, response = FactoryPipelineStepSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryPipelineStepRestDTOMapper.class, response = FactoryPipelineStepSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody FactoryPipelineStepSearchRqDTOv1 request) {
         FactoryPipelineStepSearchRsDTOv1 rs = new FactoryPipelineStepSearchRsDTOv1();
@@ -66,7 +66,7 @@ public class FactoryPipelineStepSearchController extends ApiController {
             PaginationResult<TwinFactoryPipelineStepEntity> pipelineSteps = factoryPipelineStepSearchService
                     .findFactoryPipelineSteps(factoryPipelineStepSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setSteps(factoryPipelineStepRestDTOMapperV2.convertCollection(pipelineSteps.getList(), mapperContext))
+                    .setSteps(factoryPipelineStepRestDTOMapper.convertCollection(pipelineSteps.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(pipelineSteps))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -86,14 +86,14 @@ public class FactoryPipelineStepSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/factory_pipeline_step/{stepId}/v1")
     public ResponseEntity<?> factoryPipelineStepViewV1(
-            @MapperContextBinding(roots = FactoryPipelineStepRestDTOMapperV2.class, response = FactoryPipelineStepViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryPipelineStepRestDTOMapper.class, response = FactoryPipelineStepViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_PIPELINE_STEP_ID) @PathVariable("stepId") UUID stepId) {
         FactoryPipelineStepViewRsDTOv1 rs = new FactoryPipelineStepViewRsDTOv1();
         try {
             TwinFactoryPipelineStepEntity pipelineStep = factoryPipelineStepService.findEntitySafe(stepId);
 
             rs
-                    .setStep(factoryPipelineStepRestDTOMapperV2.convert(pipelineStep, mapperContext))
+                    .setStep(factoryPipelineStepRestDTOMapper.convert(pipelineStep, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

@@ -27,7 +27,7 @@ public class DataListOptionSpecification extends CommonSpecification<DataListOpt
 
             List<Predicate> predicates = new ArrayList<>();
             for (String value : search) {
-                Predicate predicate = cb.like(cb.lower(root.get(DataListOptionEntity.Fields.status)), value.toLowerCase());
+                Predicate predicate = cb.like(cb.lower(root.get(DataListOptionEntity.Fields.status)), value.toLowerCase(), escapeChar);
                 if (not) predicate = cb.not(predicate);
                 predicates.add(predicate);
             }
@@ -45,7 +45,7 @@ public class DataListOptionSpecification extends CommonSpecification<DataListOpt
 
             List<Predicate> predicates = new ArrayList<>();
             for (String value : search) {
-                Predicate predicate = cb.like(cb.lower(joinDataListOption.get(DataListEntity.Fields.key)), value.toLowerCase());
+                Predicate predicate = cb.like(cb.lower(joinDataListOption.get(DataListEntity.Fields.key)), value.toLowerCase(), escapeChar);
                 if (not) predicate = cb.not(predicate);
                 predicates.add(predicate);
             }
@@ -86,7 +86,7 @@ public class DataListOptionSpecification extends CommonSpecification<DataListOpt
             Join<DataListSubsetOptionEntity, DataListSubsetEntity> subsetJoin = subsetOptionJoin.join(DataListSubsetOptionEntity.Fields.dataListSubset, JoinType.INNER);
             List<Predicate> predicates = new ArrayList<>();
             for (String value : search) {
-                Predicate predicate = cb.like(cb.lower(subsetJoin.get(DataListSubsetEntity.Fields.key)), value.toLowerCase());
+                Predicate predicate = cb.like(cb.lower(subsetJoin.get(DataListSubsetEntity.Fields.key)), value.toLowerCase(), escapeChar);
                 if (not) predicate = cb.not(predicate);
                 predicates.add(predicate);
             }

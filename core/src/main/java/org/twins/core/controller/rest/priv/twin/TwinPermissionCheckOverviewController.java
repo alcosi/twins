@@ -22,9 +22,9 @@ import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionCheckOverviewRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionCheckOverviewRsDTOv1;
-import org.twins.core.dto.rest.twin.TwinSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionCheckOverviewDTOMapper;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 
@@ -39,13 +39,14 @@ public class TwinPermissionCheckOverviewController extends ApiController {
 
     private final PermissionService permissionService;
     private final PermissionCheckOverviewDTOMapper permissionCheckOverviewDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "permissonCheckOverviewV1", summary = "Permisson check overview by twinId & userId")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin list", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinSearchRsDTOv1.class))}),
+                    @Schema(implementation = PermissionCheckOverviewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/{twinId}/permisson_check_overview/v1")
     @Loggable(rsBodyThreshold = 2000)
@@ -57,6 +58,8 @@ public class TwinPermissionCheckOverviewController extends ApiController {
         try {
             PermissionCheckForTwinOverviewResult permissionCheckOverviewResult = permissionService.checkTwinAndUserForPermissions(request.userId(), twinId, request.permissionId());
             rs = permissionCheckOverviewDTOMapper.convert(permissionCheckOverviewResult, mapperContext);
+            rs
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

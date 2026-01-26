@@ -1,5 +1,7 @@
 package org.twins.core.service.attachment;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -18,6 +20,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class AttachmentSearchService {
     private final TwinAttachmentRepository twinAttachmentRepository;
@@ -52,7 +55,8 @@ public class AttachmentSearchService {
                 checkFieldLikeIn(search.getTitleNotLikeList(), true, true, TwinAttachmentEntity.Fields.title),
                 checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinAttachmentEntity.Fields.description),
                 checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinAttachmentEntity.Fields.description),
-                checkFieldLocalDateTimeBetween(search.getCreatedAt(), TwinAttachmentEntity.Fields.createdAt)
+                checkFieldLocalDateTimeBetween(search.getCreatedAt(), TwinAttachmentEntity.Fields.createdAt),
+                checkFieldLongRange(search.getOrder(), TwinAttachmentEntity.Fields.order)
         );
     }
 }

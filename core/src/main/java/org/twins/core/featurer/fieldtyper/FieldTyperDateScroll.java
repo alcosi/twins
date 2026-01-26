@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.GenericValidator;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -44,58 +45,46 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     @Override
     public FieldDescriptorDate getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         LocalDateTime now = LocalDateTime.now();
-        return new FieldDescriptorDate().pattern(pattern.extract(properties)).beforeDate(now.minusHours(hoursPast.extract(properties))).afterDate(now.plusHours(hoursFuture.extract(properties)));
+        FieldDescriptorDate fieldDescriptorDate = new FieldDescriptorDate()
+                .pattern(pattern.extract(properties))
+                .beforeDate(now.minusHours(hoursPast.extract(properties)))
+                .afterDate(now.plusHours(hoursFuture.extract(properties)));
+        fieldDescriptorDate.backendValidated(false);
+        return fieldDescriptorDate;
     }
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (!value.isNullified()) {
-            LocalDateTime localDateTime = validateValue(twinFieldEntity, value.getDate(), properties);
-            value.setDate(formatDate(localDateTime, properties));
+            LocalDateTime localDateTime = parseDateTime(value.getDateStr(), properties);
+            value.setDate(localDateTime);
+            value.setDateStr(formatDate(localDateTime, properties));
         }
-        detectValueChange(twinFieldEntity, twinChangesCollector, value.getDate());
+        detectValueChange(twinFieldEntity, twinChangesCollector, value.getDateStr());
     }
 
     @Override
-    protected FieldValueDate deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
-        return new FieldValueDate(twinField.getTwinClassField()).setDate(twinFieldEntity != null && !StringUtils.isEmpty(twinFieldEntity.getValue()) ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : null);
+    protected FieldValueDate deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) throws ServiceException {
+        FieldValueDate fieldValueDate = new FieldValueDate(twinField.getTwinClassField());
+        fieldValueDate
+                .setDateStr(twinFieldEntity != null && !StringUtils.isEmpty(twinFieldEntity.getValue()) ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : null)
+                .setDate(fieldValueDate.getDateStr() != null
+                        ? parseDateTime(fieldValueDate.getDateStr(), properties)
+                        : null);
+        return fieldValueDate;
     }
 
     public String validDateOrEmpty(String dateStr, Properties properties) {
         if (GenericValidator.isDate(dateStr, pattern.extract(properties), false)) {
             return dateStr;
         }
-        log.warn("Value[ {}] does not match expected format[{}]", dateStr, pattern.extract(properties));
+        log.warn("Value[{}] does not match expected format[{}]", dateStr, pattern.extract(properties));
         return "";
     }
 
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldSearchDate search) {
-        return Specification.where(TwinSpecification.checkFieldDate(search));
-    }
-
-    public LocalDateTime validateValue(TwinFieldSimpleEntity twinFieldEntity, String value, Properties properties) throws ServiceException {
-        String datePattern = pattern.extract(properties);
-        boolean clearedValue = !twinFieldEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(value);
-        if (!GenericValidator.isDate(value, datePattern, false) && !clearedValue)
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " date[" + value + "] does not match pattern[" + datePattern + "]");
-        LocalDateTime localDateTime = parseDateTime(value, properties);
-        LocalDateTime now = LocalDateTime.now();
-        Integer minHours = FieldTyperDateScroll.hoursPast.extract(properties);
-        if (minHours != null && minHours >= 0) {
-            LocalDateTime minDate = now.minusHours(minHours);
-            if (localDateTime.isBefore(minDate)) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Date value [" + localDateTime + "] is more than " + minHours + " hours in the past");
-            }
-        }
-        Integer maxHours = FieldTyperDateScroll.hoursFuture.extract(properties);
-        if (maxHours != null && maxHours >= 0) {
-            LocalDateTime maxDate = now.plusHours(maxHours);
-            if (localDateTime.isAfter(maxDate)) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Date value [" + localDateTime + "] is more than " + maxHours + " hours in the future");
-            }
-        }
-        return localDateTime;
+        return TwinSpecification.checkFieldDate(search);
     }
 
     private LocalDateTime parseDateTime(String value, Properties properties) throws ServiceException {
@@ -116,4 +105,37 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
         Date date = Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
         return formatter.format(date);
     }
+
+    @Override
+    public ValidationResult validate(Properties properties, TwinEntity twin, FieldValueDate value) {
+        String datePattern = pattern.extract(properties);
+        ValidationResult result = new ValidationResult(true);
+        try {
+            String dateValue = value.getDateStr();
+            if (StringUtils.isEmpty(dateValue) && !value.getTwinClassField().getRequired())
+                return result;
+            if (!GenericValidator.isDate(dateValue, datePattern, false))
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " date[" + value + "] does not match pattern[" + datePattern + "]");
+            LocalDateTime localDateTime = parseDateTime(dateValue, properties);
+            LocalDateTime now = LocalDateTime.now();
+            Integer minHours = FieldTyperDateScroll.hoursPast.extract(properties);
+            if (minHours != null && minHours >= 0) {
+                LocalDateTime minDate = now.minusHours(minHours);
+                if (localDateTime.isBefore(minDate)) {
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Date value [" + localDateTime + "] is more than " + minHours + " hours in the past");
+                }
+            }
+            Integer maxHours = FieldTyperDateScroll.hoursFuture.extract(properties);
+            if (maxHours != null && maxHours >= 0) {
+                LocalDateTime maxDate = now.plusHours(maxHours);
+                if (localDateTime.isAfter(maxDate)) {
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Date value [" + localDateTime + "] is more than " + maxHours + " hours in the future");
+                }
+            }
+        } catch (ServiceException e) {
+            result = new ValidationResult(false, i18nService.translateToLocale(value.getTwinClassField().getBeValidationErrorI18nId()));
+        }
+        return result;
+    }
+
 }

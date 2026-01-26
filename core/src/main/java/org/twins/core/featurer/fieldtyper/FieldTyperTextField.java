@@ -1,6 +1,8 @@
 package org.twins.core.featurer.fieldtyper;
 
+import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -14,11 +16,11 @@ import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchText;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
@@ -26,12 +28,13 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.util.Properties;
 
+@Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_1301,
         name = "Text",
         description = "")
 public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, FieldValueText, TwinFieldSearchText> {
-    @FeaturerParam(name = "Regexp", description = "", order = 1)
+    @FeaturerParam(name = "Regexp", description = "", optional = true, defaultValue = "(?s).*", order = 1)
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
     @FeaturerParam(name = "EditorType", description = "", order = 2, optional = true, defaultValue = "PLAIN")
     public static final FeaturerParamStringTwinsEditorType editorType = new FeaturerParamStringTwinsEditorType("editorType");
@@ -43,23 +46,15 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
 
     @Override
     public FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
-        return new FieldDescriptorText()
+        FieldDescriptorText descriptorText = new FieldDescriptorText()
                 .regExp(regexp.extract(properties))
-                .editorType(editorType.extract(properties))
-                .unique(unique.extract(properties));
+                .editorType(editorType.extract(properties));
+        descriptorText.backendValidated(unique.extract(properties));
+        return descriptorText;
     }
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        String pattern = regexp.extract(properties);
-        if (!value.getValue().matches(pattern)) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + value.getValue() + "] does not match pattern[" + pattern + "]");
-        }
-
-        if (unique.extract(properties).equals(true)) {
-            checkForUniqueness(twinFieldEntity, value);
-        }
-
         detectValueChange(twinFieldEntity, twinChangesCollector, value.getValue());
     }
 
@@ -72,40 +67,45 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
 
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldSearchText search) {
-        return Specification.where(TwinSpecification.checkFieldText(search, TwinEntity.Fields.fieldsSimple, TwinFieldSimpleEntity.Fields.value));
+        return TwinSpecification.checkFieldText(search, TwinEntity.Fields.fieldsSimple, TwinFieldSimpleEntity.Fields.value);
     }
 
-    public enum TextEditorType {
-        PLAIN,
-        MARKDOWN_GITHUB,
-        MARKDOWN_BASIC,
-        HTML;
-
-        @Override
-        public String toString() {
-            return name();
-        }
-    }
-
-    private void checkForUniqueness(TwinFieldSimpleEntity twinFieldEntity, FieldValueText value) throws ServiceException {
-        TwinClassEntity.OwnerType ownerType = twinFieldEntity.getTwin().getTwinClass().getOwnerType();
+    private void checkForUniqueness(TwinEntity twin, FieldValueText value) throws ServiceException {
+        OwnerType ownerType = twin.getTwinClass().getOwnerType();
 
         switch (ownerType) {
             case USER, DOMAIN_USER -> {
-                if (!twinFieldSimpleRepository.existsByTwinClassFieldIdAndValueAndOwnerUserId(twinFieldEntity.getTwinClassFieldId(), value.getValue(), twinFieldEntity.getTwin().getOwnerUserId())) {
-                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, twinFieldEntity.getTwinClassField().logNormal() + " value[" + value.getValue() + "] is not unique");
+                if (!twinFieldSimpleRepository.existsByTwinClassFieldIdAndValueAndOwnerUserIdExcludingTwin(value.getTwinClassFieldId(), value.getValue(), twin.getOwnerUserId(), twin.getId())) {
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, value.getTwinClassField().logNormal() + " value[" + value.getValue() + "] is not unique");
                 }
             }
             case BUSINESS_ACCOUNT, DOMAIN_BUSINESS_ACCOUNT -> {
-                if (!twinFieldSimpleRepository.existsByTwinClassFieldIdAndValueAndOwnerBusinessAccountId(twinFieldEntity.getTwinClassFieldId(), value.getValue(), twinFieldEntity.getTwin().getOwnerBusinessAccountId())) {
-                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, twinFieldEntity.getTwinClassField().logNormal() + " value[" + value.getValue() + "] is not unique");
+                if (!twinFieldSimpleRepository.existsByTwinClassFieldIdAndValueAndOwnerBusinessAccountIdExcludingTwin(value.getTwinClassFieldId(), value.getValue(), twin.getOwnerBusinessAccountId(), twin.getId())) {
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, value.getTwinClassField().logNormal() + " value[" + value.getValue() + "] is not unique");
                 }
             }
             default -> {
-                if (!twinFieldSimpleRepository.existsByTwinClassFieldIdAndValue(twinFieldEntity.getTwinClassFieldId(), value.getValue())) {
-                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, twinFieldEntity.getTwinClassField().logNormal() + " value[" + value.getValue() + "] is not unique");
+                if (!twinFieldSimpleRepository.existsByTwinClassFieldIdAndValueExcludingTwin(value.getTwinClassFieldId(), value.getValue(), twin.getId())) {
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_NOT_UNIQUE, value.getTwinClassField().logNormal() + " value[" + value.getValue() + "] is not unique");
                 }
             }
         }
     }
+
+    @Override
+    public ValidationResult validate(Properties properties, TwinEntity twin, FieldValueText fieldValue) {
+        try {
+            String pattern = regexp.extract(properties);
+            if (!fieldValue.getValue().matches(pattern)) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, fieldValue.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + fieldValue.getValue() + "] does not match pattern[" + pattern + "]");
+            }
+            if (unique.extract(properties).equals(true)) {
+                checkForUniqueness(twin, fieldValue);
+            }
+        } catch (ServiceException e) {
+            return new ValidationResult(false, i18nService.translateToLocale(fieldValue.getTwinClassField().getBeValidationErrorI18nId()));
+        }
+        return new ValidationResult(true);
+    }
+
 }

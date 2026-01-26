@@ -1,8 +1,9 @@
 package org.twins.face.dao.widget.wt001;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.face.FaceVariantEntity;
 import org.twins.core.dao.i18n.I18nEntity;
@@ -11,8 +12,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
 @Entity
 @Table(name = "face_wt001_column")
 public class FaceWT001ColumnEntity implements EasyLoggable, FaceVariantEntity {
@@ -29,7 +29,8 @@ public class FaceWT001ColumnEntity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "twin_class_field_id")
     private UUID twinClassFieldId;
 
-    @Column(name = "order")
+    @Column(name = "`order`")
+    @Basic
     private Integer order;
 
     @Column(name = "label_i18n_id")
@@ -40,14 +41,20 @@ public class FaceWT001ColumnEntity implements EasyLoggable, FaceVariantEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_class_field_id", nullable = false, insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassFieldEntity twinClassField;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "label_i18n_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity labelI18n;
 
     @Override

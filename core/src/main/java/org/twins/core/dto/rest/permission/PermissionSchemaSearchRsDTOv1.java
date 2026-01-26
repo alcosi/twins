@@ -18,5 +18,5 @@ public class PermissionSchemaSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     public PaginationDTOv1 pagination;
 
     @Schema(description = "permission schema list")
-    public List<PermissionSchemaDTOv2> permissionSchemas;
+    public List<PermissionSchemaDTOv1> permissionSchemas;
 }

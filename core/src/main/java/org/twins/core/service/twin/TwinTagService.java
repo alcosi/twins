@@ -1,5 +1,7 @@
 package org.twins.core.service.twin;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -9,26 +11,24 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.UuidUtils;
-import org.twins.core.service.i18n.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinTagEntity;
 import org.twins.core.dao.twin.TwinTagRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.enums.EntityRelinkOperationStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.datalist.DataListService;
-import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -37,18 +37,14 @@ import java.util.stream.Collectors;
 @Lazy
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
     final TwinTagRepository twinTagRepository;
-    final DataListOptionRepository dataListOptionRepository;
     final TwinService twinService;
     final DataListService dataListService;
-    final EntitySmartService entitySmartService;
-    final I18nService i18nService;
     final AuthService authService;
-    final CacheManager cacheManager;
-    @Lazy
-    final TwinClassService twinClassService;
+    private final DataListOptionService dataListOptionService;
 
     @Override
     public CrudRepository<TwinTagEntity, UUID> entityRepository() {
@@ -78,7 +74,11 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
                 if (entity.getTagDataListOption() == null)
                     entity.setTagDataListOption(dataListService.findDataListOption(entity.getTagDataListOptionId())); // Why there is a side effect in validate function ?!
             default:
-                if (!entity.getTwin().getTwinClass().getTagDataListId().equals(entity.getTagDataListOption().getDataListId()))
+                UUID expectedTagDataListId = entity.getTwin().getTwinClass().getTagDataListId() != null
+                        ? entity.getTwin().getTwinClass().getTagDataListId()
+                        : entity.getTwin().getTwinClass().getInheritedTagDataListId();
+
+                if (!expectedTagDataListId.equals(entity.getTagDataListOption().getDataListId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect twinTag dataListOptionId[" + entity.getTagDataListOptionId() + "]");
         }
         return true;
@@ -160,7 +160,7 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
             businessAccountId = authService.getApiUser().getBusinessAccountId();
         Kit<TwinTagEntity, UUID> tagsToSave = new Kit<>(TwinTagEntity::getTagDataListOptionId); //we will use kit to guaranty uniq
         if (CollectionUtils.isNotEmpty(newTagsStrings)) {
-            List<DataListOptionEntity> newTags = dataListService.processNewOptions(twinEntity.getTwinClass().getTagDataListId(), newTagsStrings, businessAccountId);
+            List<DataListOptionEntity> newTags = dataListOptionService.processNewOptions(twinEntity.getTwinClass().getTagDataListId(), newTagsStrings, businessAccountId);
             for (var option : newTags) {
                 tagsToSave.add(createTagEntity(twinEntity, option.getId(), option));
             }
@@ -218,7 +218,7 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
                     .setTagDataListId(newTagsDataList.getId());
             return;
         }
-        if (entityRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict
+        if (entityRelinkOperation.getStrategy() == EntityRelinkOperationStrategy.restrict
                 && MapUtils.isEmpty(entityRelinkOperation.getReplaceMap()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide tagsReplaceMap for tags: " + org.cambium.common.util.StringUtils.join(existedTwinTagIds));
 
@@ -229,7 +229,7 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
                 continue;
             UUID replacement = entityRelinkOperation.getReplaceMap().get(tagForReplace);
             if (replacement == null) {
-                if (entityRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict)
+                if (entityRelinkOperation.getStrategy() == EntityRelinkOperationStrategy.restrict)
                     throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide tagsReplaceMap value for tag: " + tagForReplace);
                 else
                     replacement = UuidUtils.NULLIFY_MARKER;

@@ -6,9 +6,9 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
+import org.twins.core.enums.link.LinkType;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -35,7 +35,7 @@ public class FillerBackwardLinksFromContextTwinAll extends FillerLinks {
         TwinOperation outputTwin = factoryItem.getOutput();
         List<TwinLinkEntity> twinLinkEntityList = new ArrayList<>();
         for (TwinLinkEntity contextTwinLinkEntity : contextTwinLinksList) {
-            if (contextTwinLinkEntity.getLink().getType() == LinkEntity.TwinlinkType.ManyToMany
+            if (contextTwinLinkEntity.getLink().getType() == LinkType.ManyToMany
                     || uniqForSrcRelink.extract(properties))
                 twinLinkEntityList.add(new TwinLinkEntity()
                         .setDstTwin(contextTwinLinkEntity.getSrcTwin()) //setting dst, because TwinLinkService.prepareTwinLinks will hold it

@@ -1,0 +1,1 @@
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2342, 23, 'org.twins.core.featurer.factory.filler.FillerFieldAsFoundTwinOfClass', 'field as found twin of class', '', false) on conflict do nothing;

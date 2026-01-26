@@ -1,9 +1,8 @@
 package org.twins.face.dao.page.pg002;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
@@ -13,8 +12,7 @@ import org.twins.core.dao.i18n.I18nEntity;
 
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
 @Entity
 @Table(name = "face_pg002")
 public class FacePG002Entity implements EasyLoggable, FaceVariantEntity {
@@ -40,10 +38,14 @@ public class FacePG002Entity implements EasyLoggable, FaceVariantEntity {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FaceEntity face;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "title_i18n_id", nullable = false, insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity titleI18n;
 
     @Transient

@@ -26,7 +26,7 @@ public class DomainBusinessAccountDTOMapper extends RestSimpleDTOMapper<DomainBu
             case DETAILED:
                 dst
                         .setId(src.getId())
-                        .setBusinessAccountid(src.getBusinessAccountId())
+                        .setBusinessAccountId(src.getBusinessAccountId())
                         .setPermissionSchemaId(src.getPermissionSchemaId())
                         .setTwinflowSchemaId(src.getTwinflowSchemaId())
                         .setTwinClassSchemaId(src.getTwinClassSchemaId())
@@ -37,10 +37,11 @@ public class DomainBusinessAccountDTOMapper extends RestSimpleDTOMapper<DomainBu
                         .setId(src.getId());
                 break;
         }
-        if (mapperContext.hasModeButNot(BusinessAccountMode.DomainBusinessAccount2BusinessAccountMode.HIDE))
-            dst
-                    .setBusinessAccount(businessAccountDTOMapper.convertOrPostpone(src.getBusinessAccount(), mapperContext.forkOnPoint(BusinessAccountMode.DomainBusinessAccount2BusinessAccountMode.SHORT)))
-                    .setBusinessAccountid(src.getBusinessAccountId());
+        if (mapperContext.hasModeButNot(BusinessAccountMode.DomainBusinessAccount2BusinessAccountMode.HIDE)) {
+            dst.setBusinessAccountId(src.getBusinessAccountId());
+            businessAccountDTOMapper.postpone(src.getBusinessAccount(), mapperContext.forkOnPoint(BusinessAccountMode.DomainBusinessAccount2BusinessAccountMode.SHORT));
+        }
+
 
     }
 }

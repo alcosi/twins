@@ -2,10 +2,10 @@ package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.twins.core.dto.rest.twinclass.TwinClassCreate;
+import org.twins.core.domain.twinclass.TwinClassCreate;
 import org.twins.core.dto.rest.twinclass.TwinClassCreateRqDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 @Deprecated
 @Component

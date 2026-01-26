@@ -27,7 +27,6 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.USER_MANAGE, Permissions.USER_UPDATE})
 public class UserLocaleController extends ApiController {
     private final AuthService authService;
     private final DomainService domainService;

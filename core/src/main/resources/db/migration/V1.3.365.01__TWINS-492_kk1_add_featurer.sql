@@ -1,0 +1,1 @@
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2210, 22, 'org.twins.core.featurer.factory.multiplier.MultiplierIsolatedOnContextHeadTwin', 'create twin by head twin class', '', false) on conflict do nothing;

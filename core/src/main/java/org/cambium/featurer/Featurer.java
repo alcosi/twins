@@ -20,14 +20,17 @@ public abstract class Featurer {
         //check and update feature components in database
     }
 
-    protected Properties extractProperties(HashMap<String, String> paramsMap, boolean logParams) throws ServiceException {
+    public Properties extractProperties(HashMap<String, String> paramsMap, boolean logParams) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, paramsMap, Collections.emptyMap());
         if (logParams)
             log.info("Running featurer[{}] with params: {}", this.getClass().getSimpleName(), properties.toString());
         return properties;
     }
 
-    public void extraParamsValidation(Properties properties) throws ServiceException {
+    public Properties extractProperties(HashMap<String, String> paramsMap) throws ServiceException {
+        return featurerService.extractProperties(this, paramsMap, Collections.emptyMap());
     }
 
+    public void extraParamsValidation(Properties properties) throws ServiceException {
+    }
 }

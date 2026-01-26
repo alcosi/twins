@@ -1,12 +1,14 @@
 package org.twins.core.service.comment;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
@@ -14,31 +16,34 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.comment.*;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinRepository;
-import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleRepository;
+import org.twins.core.dao.validator.TwinValidatorEntity;
+import org.twins.core.enums.comment.TwinCommentAction;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.validator.TwinValidatorService;
 
 import java.util.*;
 
 @Lazy
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class CommentActionService {
     final TwinCommentActionAlienPermissionRepository twinCommentActionAlienPermissionRepository;
     final TwinCommentActionAlienValidatorRuleRepository twinCommentActionAlienValidatorRuleRepository;
     private final TwinCommentActionSelfRepository twinCommentActionSelfRepository;
-    final TwinRepository twinRepository;
     @Lazy
     final PermissionService permissionService;
     @Lazy
     final FeaturerService featurerService;
+    @Lazy
+    final TwinValidatorService twinValidatorService;
 
     private final AuthService authService;
 
@@ -76,7 +81,8 @@ public class CommentActionService {
                     log.info("{} will not be used, since it is inactive.", twinCommentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                     continue;
                 }
-                List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(twinCommentActionAlienValidatorRule.getTwinValidators());
+                twinValidatorService.loadValidators(twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidatorRules());
+                List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(twinCommentActionAlienValidatorRule.getTwinValidatorKit().getList());
                 sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                 isValid = true;
                 for(TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
@@ -84,8 +90,8 @@ public class CommentActionService {
                         log.info("{} from {} will not be used, since it is inactive.", twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL), twinCommentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                         continue;
                     }
-                    TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
-                    TwinValidator.ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
+                    TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturerId(), TwinValidator.class);
+                    ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
                     if (!validationResult.isValid()) {
                         log.error(validationResult.getMessage());
                         isValid = false;
@@ -129,7 +135,7 @@ public class CommentActionService {
                     TwinCommentActionSelfEntity::getRestrictTwinCommentAction));
     }
 
-    public void loadClassCommentActionsAlienProtected(Collection<TwinClassEntity> twinClassCollection) {
+    public void loadClassCommentActionsAlienProtected(Collection<TwinClassEntity> twinClassCollection) throws ServiceException {
         Map<UUID, TwinClassEntity> needLoadByPermissions = new HashMap<>();
         Map<UUID, TwinClassEntity> needLoadByValidators = new HashMap<>();
         for (TwinClassEntity twinClassEntity : twinClassCollection) {
@@ -146,7 +152,8 @@ public class CommentActionService {
             }
         }
         if (MapUtils.isNotEmpty(needLoadByValidators)) {
-            List<TwinCommentActionAlienValidatorRuleEntity> twinClassCommentActionValidatorEntities = twinCommentActionAlienValidatorRuleRepository.findByTwinClassIdIn(needLoadByPermissions.keySet());
+            List<TwinCommentActionAlienValidatorRuleEntity> twinClassCommentActionValidatorEntities = twinCommentActionAlienValidatorRuleRepository.findByTwinClassIdIn(needLoadByValidators.keySet());
+            twinValidatorService.loadValidators(twinClassCommentActionValidatorEntities);
             KitGrouped<TwinCommentActionAlienValidatorRuleEntity, UUID, UUID> commentActionGroupedByClass = new KitGrouped<>(twinClassCommentActionValidatorEntities, TwinCommentActionAlienValidatorRuleEntity::getId, TwinCommentActionAlienValidatorRuleEntity::getTwinClassId);
             for (TwinClassEntity twinClassEntity : needLoadByValidators.values()) {
                 twinClassEntity.setCommentAlienActionsProtectedByValidatorRules(new KitGrouped<>(commentActionGroupedByClass.getGrouped(twinClassEntity.getId()), TwinCommentActionAlienValidatorRuleEntity::getId, TwinCommentActionAlienValidatorRuleEntity::getTwinCommentAction));

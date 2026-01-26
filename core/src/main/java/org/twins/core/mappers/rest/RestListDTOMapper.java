@@ -16,6 +16,7 @@ public abstract class RestListDTOMapper<T, S> implements RestDTOMapper<T, S> {
             if (converted != null)
                 ret.add(converted);
         }
+        afterCollectionConversion(ret, mapperContext);
         return ret;
     }
 
@@ -33,10 +34,15 @@ public abstract class RestListDTOMapper<T, S> implements RestDTOMapper<T, S> {
         for (Map.Entry<UUID, T> src : srcMap.entrySet()) {
             ret.put(src.getKey(), this.convert(src.getValue(), mapperContext));
         }
+        afterCollectionConversion(ret.values(), mapperContext);
         return ret;
     }
 
     public void beforeCollectionConversion(Collection<T> srcCollection, MapperContext mapperContext) throws Exception {
+
+    }
+
+    public void afterCollectionConversion(Collection<S> dstCollection, MapperContext mapperContext) throws Exception {
 
     }
 }

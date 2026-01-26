@@ -18,3 +18,5 @@ public class SpaceSearchDTOv1 {
     @Schema(description = "role id")
     public UUID roleId;
 }
+
+

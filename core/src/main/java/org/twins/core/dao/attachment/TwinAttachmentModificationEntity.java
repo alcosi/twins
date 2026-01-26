@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
+import org.cambium.common.util.UuidUtils;
 
 import java.util.UUID;
 
@@ -19,11 +20,13 @@ import java.util.UUID;
         columnNames = {"twin_attachment_id", "modification_type"}
 ))
 public class TwinAttachmentModificationEntity implements PublicCloneable<TwinAttachmentModificationEntity>, EasyLoggable {
-
     @Id
-    @GeneratedValue(generator = "uuid")
-    @Column(name = "id")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twin_attachment_id")
     private UUID twinAttachmentId;
@@ -50,7 +53,8 @@ public class TwinAttachmentModificationEntity implements PublicCloneable<TwinAtt
         return switch (level) {
             case SHORT -> "attachmentModification[" + id + "]";
             case NORMAL -> "attachmentModification[id:" + id + ", twinAttachmentId:" + twinAttachmentId + "]";
-            default -> "attachmentModification[id:" + id + ", twinAttachmentId:" + twinAttachmentId + ", modificationType:" + modificationType + ", storageFileKey:" + storageFileKey + "]";
+            default ->
+                    "attachmentModification[id:" + id + ", twinAttachmentId:" + twinAttachmentId + ", modificationType:" + modificationType + ", storageFileKey:" + storageFileKey + "]";
         };
 
     }

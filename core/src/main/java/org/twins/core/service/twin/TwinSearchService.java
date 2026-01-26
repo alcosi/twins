@@ -1,5 +1,7 @@
 package org.twins.core.service.twin;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -23,19 +25,25 @@ import org.twins.core.dao.search.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.SearchByAlias;
 import org.twins.core.domain.search.TwinSearch;
+import org.twins.core.domain.search.TwinSort;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilder;
-import org.twins.core.featurer.search.detector.SearchDetector;
+import org.twins.core.featurer.twin.detector.SearchDetector;
+import org.twins.core.featurer.twin.finder.TwinFinder;
+import org.twins.core.featurer.twin.sorter.TwinSorter;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DBUService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.search.TwinSearchPredicateService;
+import org.twins.core.service.search.TwinSearchSortService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.user.UserGroupService;
 
 import java.util.*;
@@ -46,19 +54,22 @@ import java.util.stream.Collectors;
 import static org.cambium.common.util.MapUtils.narrowMapOfSets;
 import static org.cambium.common.util.PaginationUtils.sortType;
 import static org.cambium.common.util.SetUtils.narrowSet;
-import static org.springframework.data.jpa.domain.Specification.where;
 import static org.twins.core.dao.specifications.twin.TwinSpecification.*;
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @RequiredArgsConstructor
 public class TwinSearchService {
     private final EntityManager entityManager;
     private final TwinRepository twinRepository;
     private final UserGroupService userGroupService;
-    private final SearchRepository searchRepository;
-    private final SearchAliasRepository searchAliasRepository;
-    private final SearchPredicateRepository searchPredicateRepository;
+    private final TwinSearchRepository twinSearchRepository;
+    private final TwinSearchAliasRepository twinSearchAliasRepository;
+    private final TwinSearchPredicateRepository twinSearchPredicateRepository;
+    private final TwinSearchSortService twinSearchSortService;
+    private final TwinSearchPredicateService twinSearchPredicateService;
+    private final TwinClassFieldService twinClassFieldService;
     private final PermissionService permissionService;
     @Lazy
     private final FeaturerService featurerService;
@@ -74,7 +85,7 @@ public class TwinSearchService {
         UUID businessAccountId = apiUser.getBusinessAccountId();
         UUID userId = apiUser.getUser().getId();
         //todo create filter by basicSearch.getExtendsTwinClassIdList()
-        Specification<TwinEntity> specification = where(createTwinEntityBasicSearchSpecification(basicSearch, userId));
+        Specification<TwinEntity> specification = createTwinEntityBasicSearchSpecification(basicSearch, userId);
 
         if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL) || !basicSearch.isCheckViewPermission()) {
             specification = specification
@@ -149,6 +160,7 @@ public class TwinSearchService {
     public PaginationResult<TwinEntity> findTwins(BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
         detectSystemClassSearchCheck(basicSearch);
         Specification<TwinEntity> spec = createTwinEntitySearchSpecification(basicSearch);
+        spec = addSorting(basicSearch, pagination, spec);
         Page<TwinEntity> ret = twinRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
@@ -156,10 +168,15 @@ public class TwinSearchService {
     //todo THIS IS TEMPORAL SOLUTION FOR WORKING TWIN SEARCH V3
     // without sorting
     public PaginationResult<TwinEntity> findTwins(List<BasicSearch> basicSearches, SimplePagination pagination) throws ServiceException {
+        if (basicSearches.size() == 1) {
+            return findTwins(basicSearches.getFirst(), pagination);
+        }
         Set<TwinEntity> alreadyLoaded = new LinkedHashSet<>();
         for (BasicSearch basicSearch : basicSearches) {
             detectSystemClassSearchCheck(basicSearch);
-            List<TwinEntity> ret = twinRepository.findAll(createTwinEntitySearchSpecification(basicSearch));
+            Specification<TwinEntity> spec = createTwinEntitySearchSpecification(basicSearch);
+            spec = addSorting(basicSearch, pagination, spec);
+            List<TwinEntity> ret = twinRepository.findAll(spec);
             alreadyLoaded.addAll(ret);
         }
         pagination.setTotalElements(alreadyLoaded.size());
@@ -184,32 +201,50 @@ public class TwinSearchService {
     }
 
     public Long count(List<BasicSearch> basicSearches) throws ServiceException {
-        Specification<TwinEntity> spec = where(null);
+        Specification<TwinEntity> spec = (root, query, builder) -> builder.disjunction();
         for (BasicSearch basicSearch : basicSearches)
             spec = spec.or(createTwinEntitySearchSpecification(basicSearch));
         return count(spec);
     }
 
+    public boolean exists(Specification<TwinEntity> spec) throws ServiceException {
+        return twinRepository.exists(spec);
+    }
+
+    public boolean exists(BasicSearch basicSearch) throws ServiceException {
+        return exists(createTwinEntitySearchSpecification(basicSearch));
+    }
+
     public Map<String, Long> countTwinsBySearchAliasInBatch(Map<String, SearchByAlias> searchMap) throws ServiceException {
         Map<String, Long> result = new HashMap<>();
         for (Map.Entry<String, SearchByAlias> entry : searchMap.entrySet()) {
-            List<SearchEntity> searchEntities = detectSearchesByAlias(entry.getKey());
+            List<TwinSearchEntity> searchEntities = detectSearchesByAlias(entry.getKey());
             result.put(entry.getKey(), count(getBasicSearchesByAlias(searchEntities, entry.getValue())));
         }
         return result;
     }
 
-    private List<BasicSearch> getBasicSearchesByAlias(List<SearchEntity> searchEntities, SearchByAlias searchByAlias) throws ServiceException {
+    private List<BasicSearch> getBasicSearchesByAlias(List<TwinSearchEntity> searchEntities, SearchByAlias searchByAlias) throws ServiceException {
         List<BasicSearch> basicSearches = new ArrayList<>();
-        for (SearchEntity searchEntity : searchEntities) {
+        for (TwinSearchEntity twinSearchEntity : searchEntities) {
             BasicSearch basicSearch = new BasicSearch();
-            addPredicates(searchEntity.getSearchPredicateList(), searchByAlias.getParams(), basicSearch, searchByAlias.getNarrow());
-            if (searchEntity.getHeadTwinSearchId() != null) {
-                List<SearchPredicateEntity> headSearchPredicates = searchPredicateRepository.findBySearchId(searchEntity.getHeadTwinSearchId());
+            twinSearchPredicateService.loadPredicates(twinSearchEntity);
+            twinSearchSortService.loadSorts(twinSearchEntity);
+            // narrow applies to every search
+            addPredicates(twinSearchEntity.getSearchPredicateKit().getList(), searchByAlias.getParams(), basicSearch, searchByAlias.getNarrow());
+            // narrow sort overrides every search sort
+            if (searchByAlias.getNarrow() != null && CollectionUtils.isNotEmpty(searchByAlias.getNarrow().getSorts())) {
+                basicSearch.setSorts(searchByAlias.getNarrow().getSorts());
+            } else if (CollectionUtils.isNotEmpty(twinSearchEntity.getSortKit())) {
+                addSorts(twinSearchEntity, basicSearch);
+            }
+            if (twinSearchEntity.getHeadTwinSearchId() != null) {
+                List<TwinSearchPredicateEntity> headSearchPredicates = twinSearchPredicateRepository.findByTwinSearchId(twinSearchEntity.getHeadTwinSearchId());
                 if (CollectionUtils.isNotEmpty(headSearchPredicates) && basicSearch.getHeadSearch() == null)
                     basicSearch.setHeadSearch(new TwinSearch());
                 addPredicates(headSearchPredicates, searchByAlias.getParams(), basicSearch.getHeadSearch(), searchByAlias.getNarrow());
             }
+            basicSearch.setConfiguredSearch(twinSearchEntity);
             basicSearches.add(basicSearch);
         }
         return basicSearches;
@@ -237,18 +272,18 @@ public class TwinSearchService {
         return resultMap;
     }
 
-    public List<SearchEntity> detectSearchesByAlias(String searchAliasId) throws ServiceException {
-        SearchAliasEntity searchAliasEntity = searchAliasRepository.findByDomainIdAndAlias(authService.getApiUser().getDomainId(), searchAliasId);
-        if (searchAliasEntity == null)
+    public List<TwinSearchEntity> detectSearchesByAlias(String searchAliasId) throws ServiceException {
+        TwinSearchAliasEntity twinSearchAliasEntity = twinSearchAliasRepository.findByDomainIdAndAlias(authService.getApiUser().getDomainId(), searchAliasId);
+        if (twinSearchAliasEntity == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_ALIAS_UNKNOWN);
-        List<SearchEntity> searchEntityList = searchRepository.findBySearchAliasId(searchAliasEntity.getId());
-        if (searchEntityList == null)
+        List<TwinSearchEntity> twinSearchEntityList = twinSearchRepository.findByTwinSearchAliasId(twinSearchAliasEntity.getId());
+        if (twinSearchEntityList == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_ALIAS_UNKNOWN);
-        SearchDetector searchDetector = featurerService.getFeaturer(searchAliasEntity.getSearchDetectorFeaturer(), SearchDetector.class);
-        List<SearchEntity> detectedSearches = searchDetector.detect(searchAliasEntity, searchEntityList);
+        SearchDetector searchDetector = featurerService.getFeaturer(twinSearchAliasEntity.getTwinSearchDetectorFeaturerId(), SearchDetector.class);
+        List<TwinSearchEntity> detectedSearches = searchDetector.detect(twinSearchAliasEntity, twinSearchEntityList);
         if (CollectionUtils.isEmpty(detectedSearches))
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "no searches detected");
-        return detectedSearches;
+        return detectedSearches; // hope we will get only single value here, otherwise we will get problems with sorting and pagination
     }
 
     public PaginationResult<TwinEntity> findTwins(SearchByAlias searchByAlias, SimplePagination pagination) throws ServiceException {
@@ -263,14 +298,14 @@ public class TwinSearchService {
         if (SystemEntityService.TWIN_SEARCH_UNLIMITED.equals(searchId)) {
             return findTwins(searchNarrow, pagination);
         }
-        return findTwins(entitySmartService.findById(searchId, searchRepository, EntitySmartService.FindMode.ifEmptyThrows), namedParamsMap, searchNarrow, pagination);
+        return findTwins(entitySmartService.findById(searchId, twinSearchRepository, EntitySmartService.FindMode.ifEmptyThrows), namedParamsMap, searchNarrow, pagination);
     }
 
-    public PaginationResult<TwinEntity> findTwins(SearchEntity searchEntity, Map<String, String> namedParamsMap, BasicSearch searchNarrow, SimplePagination pagination) throws ServiceException {
-        return findTwins(List.of(searchEntity), namedParamsMap, searchNarrow, pagination);
+    public PaginationResult<TwinEntity> findTwins(TwinSearchEntity twinSearchEntity, Map<String, String> namedParamsMap, BasicSearch searchNarrow, SimplePagination pagination) throws ServiceException {
+        return findTwins(List.of(twinSearchEntity), namedParamsMap, searchNarrow, pagination);
     }
 
-    public PaginationResult<TwinEntity> findTwins(List<SearchEntity> searchEntities, Map<String, String> namedParamsMap, BasicSearch searchNarrow, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<TwinEntity> findTwins(List<TwinSearchEntity> searchEntities, Map<String, String> namedParamsMap, BasicSearch searchNarrow, SimplePagination pagination) throws ServiceException {
         SearchByAlias searchByAlias = new SearchByAlias();
         searchByAlias.setParams(namedParamsMap);
         searchByAlias.setNarrow(searchNarrow);
@@ -278,25 +313,52 @@ public class TwinSearchService {
         return findTwins(basicSearches, pagination);
     }
 
-    protected void addPredicates(List<SearchPredicateEntity> searchPredicates, Map<String, String> namedParamsMap, TwinSearch mainSearch, TwinSearch narrowSearch) throws ServiceException {
-        SearchCriteriaBuilder searchCriteriaBuilder = null;
-        for (SearchPredicateEntity mainSearchPredicate : searchPredicates) {
-            searchCriteriaBuilder = featurerService.getFeaturer(mainSearchPredicate.getSearchCriteriaBuilderFeaturer(), SearchCriteriaBuilder.class);
-            searchCriteriaBuilder.concat(mainSearch, mainSearchPredicate, namedParamsMap);
+    protected void addPredicates(List<TwinSearchPredicateEntity> searchPredicates, Map<String, String> namedParamsMap, TwinSearch mainSearch, TwinSearch narrowSearch) throws ServiceException {
+        TwinFinder twinFinder = null;
+        for (TwinSearchPredicateEntity mainSearchPredicate : searchPredicates) {
+            twinFinder = featurerService.getFeaturer(mainSearchPredicate.getTwinFinderFeaturerId(), TwinFinder.class);
+            twinFinder.concat(mainSearch, mainSearchPredicate, namedParamsMap);
         }
         narrowSearch(mainSearch, narrowSearch);
+    }
+
+    protected void addSorts(TwinSearchEntity searchEntity, BasicSearch basicSearch) throws ServiceException {
+        List<TwinSort> sorts = new ArrayList<>();
+        for (TwinSearchSortEntity twinSort : searchEntity.getSortKit().getList())
+            sorts.add(new TwinSort().setTwinClassFieldId(twinSort.getTwinClassFieldId()).setDirection(twinSort.getDirection()));
+        basicSearch.setSorts(sorts);
+    }
+
+    private Specification<TwinEntity> addSorting(BasicSearch search, SimplePagination pagination, Specification<TwinEntity> specification) throws ServiceException {
+        if (CollectionUtils.isNotEmpty(search.getSorts())) {
+            twinClassFieldService.loadTwinClassFieldsForTwinSorts(search.getSorts());
+            for (TwinSort twinSort : search.getSorts()) {
+                TwinClassFieldEntity twinClassField = twinSort.getTwinClassField();
+                TwinSorter fieldSorter = featurerService.getFeaturer(twinClassField.getTwinSorterFeaturerId(), TwinSorter.class);
+                var sortFunction = fieldSorter.createSort(twinClassField.getTwinSorterParams(), twinClassField, twinSort.getDirection());
+                if (sortFunction != null) {
+                    specification = sortFunction.apply(specification);
+                    if (pagination != null)
+                        pagination.setSort(null);
+                }
+            }
+        }
+        return specification;
     }
 
     protected void narrowSearch(TwinSearch mainSearch, TwinSearch narrowSearch) {
         if (narrowSearch == null)
             return;
-        for (Pair<Function<TwinSearch, Set<UUID>>, BiConsumer<TwinSearch, Set<UUID>>> functioPair : TwinSearch.FUNCTIONS) {
-            Set<UUID> mainSet = functioPair.getKey().apply(mainSearch);
-            Set<UUID> narrowSet = functioPair.getKey().apply(narrowSearch);
-            functioPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
+        for (Pair<Function<TwinSearch, Set<UUID>>, BiConsumer<TwinSearch, Set<UUID>>> functionPair : TwinSearch.FUNCTIONS) {
+            Set<UUID> mainSet = functionPair.getKey().apply(mainSearch);
+            Set<UUID> narrowSet = functionPair.getKey().apply(narrowSearch);
+            functionPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
         }
         mainSearch.setTwinNameLikeList(narrowSet(mainSearch.getTwinNameLikeList(), narrowSearch.getTwinNameLikeList()));
-        mainSearch.setLinksAnyOfList(narrowMapOfSets(mainSearch.getLinksAnyOfList(), narrowSearch.getLinksAnyOfList()));
-        mainSearch.setLinksNoAnyOfList(narrowMapOfSets(mainSearch.getLinksNoAnyOfList(), narrowSearch.getLinksNoAnyOfList()));
+        mainSearch.setDstLinksAnyOfList(narrowMapOfSets(mainSearch.getDstLinksAnyOfList(), narrowSearch.getDstLinksAnyOfList()));
+        mainSearch.setDstLinksNoAnyOfList(narrowMapOfSets(mainSearch.getDstLinksNoAnyOfList(), narrowSearch.getDstLinksNoAnyOfList()));
+        mainSearch.setSrcLinksAnyOfList(narrowMapOfSets(mainSearch.getSrcLinksAnyOfList(), narrowSearch.getSrcLinksAnyOfList()));
+        mainSearch.setSrcLinksNoAnyOfList(narrowMapOfSets(mainSearch.getSrcLinksNoAnyOfList(), narrowSearch.getSrcLinksNoAnyOfList()));
+        // todo add distinct and hierarchyChildrenSearch
     }
 }

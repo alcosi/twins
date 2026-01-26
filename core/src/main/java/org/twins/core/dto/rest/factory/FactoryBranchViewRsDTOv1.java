@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Schema(name = "FactoryBranchViewRsV1")
 public class FactoryBranchViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "results - branch")
-    public FactoryBranchDTOv2 branch;
+    public FactoryBranchDTOv1 branch;
 }

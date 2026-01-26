@@ -14,5 +14,5 @@ import java.util.List;
 @Schema(name = "TwinClassFieldListRsV1")
 public class TwinClassFieldListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "results - twin class fields list")
-    public List<TwinClassFieldDTOv2> twinClassFieldList;
+    public List<TwinClassFieldDTOv1> twinClassFieldList;
 }

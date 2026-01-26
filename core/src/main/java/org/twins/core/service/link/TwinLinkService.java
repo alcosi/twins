@@ -1,5 +1,7 @@
 package org.twins.core.service.link;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +19,9 @@ import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.link.LinkStrength;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinLinkNoRelationsProjection;
@@ -31,6 +31,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.linker.Linker;
 import org.twins.core.service.TwinChangesService;
@@ -50,6 +51,7 @@ import static org.twins.core.dao.specifications.link.TwinLinkSpecification.check
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
 public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity> {
@@ -77,7 +79,8 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
 
     @Override
     public boolean isEntityReadDenied(TwinLinkEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return true;
+        //todo check src and dst twins belong to the domain
+        return false;
     }
 
     @Override
@@ -278,9 +281,8 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
 
     public List<TwinLinkEntity> findTwinBackwardLinksAndLinkStrengthIds(Collection<UUID> twinIds, List<LinkStrength> strengthIds) throws ServiceException {
         List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findAll(
-                Specification.where(checkStrength(strengthIds)
+                checkStrength(strengthIds)
                         .and(checkUuidIn(twinIds, false, false, TwinLinkEntity.Fields.dstTwinId))
-                )
         );
         return filterDenied(twinLinkEntityList);
     }
@@ -321,7 +323,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             headTwinEntity = twinService.findEntitySafe(headTwinId);
         addClassCheckToValidTwinsForLinkSearch(linkEntity, srcTwinClassEntity, basicSearch);
         if (linkEntity.getLinkerFeaturerId() != null) {
-            Linker linker = featurerService.getFeaturer(linkEntity.getLinkerFeaturer(), Linker.class);
+            Linker linker = featurerService.getFeaturer(linkEntity.getLinkerFeaturerId(), Linker.class);
             linker.expandValidLinkedTwinSearch(linkEntity.getLinkerParams(), srcTwinClassEntity, headTwinEntity, basicSearch);
         }
         return twinSearchService.findTwins(basicSearch, pagination);
@@ -332,7 +334,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         TwinEntity twinEntity = twinService.findEntitySafe(twinId);
         addClassCheckToValidTwinsForLinkSearch(linkEntity, twinEntity.getTwinClass(), basicSearch);
         if (linkEntity.getLinkerFeaturerId() != null) {
-            Linker linker = featurerService.getFeaturer(linkEntity.getLinkerFeaturer(), Linker.class);
+            Linker linker = featurerService.getFeaturer(linkEntity.getLinkerFeaturerId(), Linker.class);
             linker.expandValidLinkedTwinSearch(linkEntity.getLinkerParams(), twinEntity, basicSearch);
         }
         return twinSearchService.findTwins(basicSearch, pagination);
@@ -394,6 +396,23 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         return twinLinkRepository.existsBySrcTwinIdAndLinkId(twinEntity.getId(), linkId);
     }
 
+    public boolean hasBackwardLink(TwinEntity twinEntity, UUID linkId) {
+        if (twinEntity.getTwinLinks() != null && twinEntity.getTwinLinks().getBackwardLinks() != null)
+            return twinEntity.getTwinLinks().getBackwardLinks().containsGroupedKey(linkId);
+        return twinLinkRepository.existsByDstTwinIdAndLinkId(twinEntity.getId(), linkId);
+    }
+
+    public boolean isLinkDstTwinStatusIn(TwinEntity twin, UUID linkId, Set<UUID> statusIds) throws ServiceException {
+        loadTwinLinks(twin);
+        List<TwinLinkEntity> twinLinkEntityList = twin.getTwinLinks().getForwardLinks().getGrouped(linkId);
+
+        if (twinLinkEntityList.size() != 1) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_VALIDATOR_INCORRECT, "this validator can't validate twin with more than 1 link with linkId[" + linkId + "]");
+        } else {
+            return statusIds.contains(twinLinkEntityList.getFirst().getDstTwin().getTwinStatusId());
+        }
+    }
+
     public void cudTwinLinks(TwinEntity twinEntity, EntityCUD<TwinLinkEntity> twinLinkCUD, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinLinkCUD == null)
             return;
@@ -413,5 +432,13 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             twinLinkEntity.setDstTwin(twinService.findEntity(twinLinkEntity.getDstTwinId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows));
         }
         return twinLinkEntity.getDstTwin();
+    }
+
+    public Set<TwinLinkEntity> findAllWithinHierarchies(Collection<UUID> hierarchies) {
+        return twinLinkRepository.findAllWithinHierarchies(hierarchies);
+    }
+
+    public Set<TwinLinkEntity> findAllWithinHierarchiesAndTwinsInStatusIds(Collection<UUID> hierarchies, Collection<UUID> twinStatusIds) {
+        return twinLinkRepository.findAllWithinHierarchiesAndTwinsInStatusIds(hierarchies, twinStatusIds);
     }
 }

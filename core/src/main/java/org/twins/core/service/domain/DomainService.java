@@ -1,9 +1,12 @@
 package org.twins.core.service.domain;
 
 import com.google.common.collect.Streams;
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.CollectionUtils;
@@ -20,11 +23,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.*;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.resource.StorageEntity;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.attachment.AttachmentQuotas;
-import org.twins.core.domain.file.DomainFile;
+import org.twins.core.enums.domain.DomainStatus;
+import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
@@ -41,6 +44,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
 public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
@@ -97,7 +101,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     }
 
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
-    public DomainEntity createDomain(DomainEntity domainEntity, DomainFile lightIcon, DomainFile darkIcon) throws ServiceException {
+    public DomainEntity createDomain(DomainEntity domainEntity, FileData lightIcon, FileData darkIcon) throws ServiceException {
         if (StringUtils.isBlank(domainEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.DOMAIN_KEY_INCORRECT, "New domain key can not be blank");
         domainEntity.setKey(domainEntity.getKey().trim().replaceAll("\\s", "_").toLowerCase()); //todo replace all unsupported chars
@@ -114,9 +118,9 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         userGroupService.enterGroup(UserGroup.DOMAIN_ADMIN.uuid);
         return processIcons(domainEntity, lightIcon, darkIcon);
     }
-    
+
     @Transactional(rollbackFor = Throwable.class)
-    public DomainEntity updateDomain(DomainEntity updateEntity) throws ServiceException {
+    public DomainEntity updateDomain(DomainEntity updateEntity, FileData lightIcon, FileData darkIcon) throws ServiceException {
         DomainEntity dbEntity = findEntitySafe(authService.getApiUser().getDomainId());
         ChangesHelper changesHelper = new ChangesHelper();
         updateEntityFieldByEntity(updateEntity, dbEntity, DomainEntity::getName, DomainEntity::setName,
@@ -149,9 +153,29 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                 DomainEntity.Fields.navbarFaceId, changesHelper);
         updateBusinessAccountInitiatorFeaturerId(dbEntity, updateEntity.getBusinessAccountInitiatorFeaturerId(), updateEntity.getBusinessAccountInitiatorParams(), changesHelper);
         updateUserGroupManagerFeaturerId(dbEntity, updateEntity.getUserGroupManagerFeaturerId(), updateEntity.getUserGroupManagerParams(), changesHelper);
+        updateDomainIcons(dbEntity, lightIcon, darkIcon, changesHelper);
 
         updateSafe(dbEntity, changesHelper);
         return dbEntity;
+    }
+
+    public void updateDomainIcons(DomainEntity dbDomainEntity, FileData iconLight, FileData iconDark, ChangesHelper changesHelper) throws ServiceException {
+        if (iconLight != null) {
+            ResourceEntity newValue = saveIconResourceIfExist(iconLight);
+            if (changesHelper.isChanged(DomainEntity.Fields.iconLightResourceId, dbDomainEntity.getIconLightResourceId(), newValue.getId())) {
+                dbDomainEntity
+                        .setIconLightResourceId(newValue.getId())
+                        .setIconLightResource(newValue);
+            }
+        }
+        if (iconDark != null) {
+            ResourceEntity newValue = saveIconResourceIfExist(iconDark);
+            if (changesHelper.isChanged(DomainEntity.Fields.iconDarkResourceId, dbDomainEntity.getIconDarkResourceId(), newValue.getId())) {
+                dbDomainEntity
+                        .setIconLightResourceId(newValue.getId())
+                        .setIconLightResource(newValue);
+            }
+        }
     }
 
     public void updateBusinessAccountInitiatorFeaturerId(DomainEntity dbDomainEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
@@ -195,9 +219,9 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         }
     }
 
-    protected DomainEntity processIcons(DomainEntity domainEntity, DomainFile lightIcon, DomainFile darkIcon) throws ServiceException {
-        var lightIconEntity = saveIconResourceIfExist(domainEntity, lightIcon);
-        var darkIconEntity = saveIconResourceIfExist(domainEntity, darkIcon);
+    protected DomainEntity processIcons(DomainEntity domainEntity, FileData lightIcon, FileData darkIcon) throws ServiceException {
+        var lightIconEntity = saveIconResourceIfExist(lightIcon);
+        var darkIconEntity = saveIconResourceIfExist(darkIcon);
         if (lightIconEntity != null) {
             domainEntity.setIconLightResourceId(lightIconEntity.getId());
             domainEntity.setIconLightResource(lightIconEntity);
@@ -212,7 +236,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         return domainEntity;
     }
 
-    private ResourceEntity saveIconResourceIfExist(DomainEntity domainEntity, DomainFile icon) throws ServiceException {
+    private ResourceEntity saveIconResourceIfExist(FileData icon) throws ServiceException {
         if (icon != null) {
             return resourceService.addResource(icon.originalFileName(), icon.content());
         } else {
@@ -261,7 +285,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         return domainEntity.getDomainTypeEntity();
     }
 
-    public TwinClassEntity.OwnerType checkDomainSupportedTwinClassOwnerType(DomainEntity domainEntity, TwinClassEntity.OwnerType ownerType) throws ServiceException {
+    public OwnerType checkDomainSupportedTwinClassOwnerType(DomainEntity domainEntity, OwnerType ownerType) throws ServiceException {
         DomainTypeEntity domainTypeEntity = loadDomainType(domainEntity);
         DomainInitiator domainInitiator = featurerService.getFeaturer(domainTypeEntity.getDomainInitiatorFeaturer(), DomainInitiator.class);
         if (ownerType != null) {
@@ -310,16 +334,16 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     public void loadIconResources(Collection<DomainEntity> domains) throws ServiceException {
         if (CollectionUtils.isEmpty(domains))
             return;
-        Set<UUID> neadLoad = new HashSet<>();
+        Set<UUID> needLoad = new HashSet<>();
         for (var domain : domains) {
             if (domain.getIconDarkResource() == null && domain.getIconDarkResourceId() != null)
-                neadLoad.add(domain.getIconDarkResourceId());
+                needLoad.add(domain.getIconDarkResourceId());
             if (domain.getIconLightResource() == null && domain.getIconLightResourceId() != null)
-                neadLoad.add(domain.getIconLightResourceId());
+                needLoad.add(domain.getIconLightResourceId());
         }
-        if (CollectionUtils.isEmpty(neadLoad))
+        if (CollectionUtils.isEmpty(needLoad))
             return;
-        Kit<ResourceEntity, UUID> resources = resourceService.findEntitiesSafe(neadLoad);
+        Kit<ResourceEntity, UUID> resources = resourceService.findEntitiesSafe(needLoad);
         domains.forEach(domain -> {
             domain.setIconDarkResource(resources.get(domain.getIconDarkResourceId()));
             domain.setIconLightResource(resources.get(domain.getIconLightResourceId()));
@@ -342,5 +366,17 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
             domain.setResourcesStorage(storages.get(domain.getResourcesStorageId()));
             domain.setAttachmentsStorage(storages.get(domain.getAttachmentsStorageId()));
         });
+    }
+
+    public void loadUserGroupManager(DomainEntity src) {
+        loadUserGroupManagers(Collections.singletonList(src));
+    }
+
+    public void loadUserGroupManagers(Collection<DomainEntity> srcCollection) {
+        featurerService.loadFeaturers(srcCollection,
+                DomainEntity::getId,
+                DomainEntity::getUserGroupManagerFeaturerId,
+                DomainEntity::getUserGroupManagerFeaturer,
+                DomainEntity::setUserGroupManagerFeaturer);
     }
 }

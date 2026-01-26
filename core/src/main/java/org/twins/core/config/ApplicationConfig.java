@@ -30,12 +30,17 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
+import org.twins.core.config.filter.I18nCacheCleanupFilter;
 import org.twins.core.config.filter.LoggingFilter;
 import org.twins.core.config.filter.UncaughtExceptionFilter;
+import org.twins.core.featurer.scheduler.Scheduler;
 
 import javax.sql.DataSource;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -58,7 +63,10 @@ public class ApplicationConfig {
 
     @Bean
     public RestTemplate restTemplate(RestTemplateConfig.LogRequestResponseFilter filter) {
-        final RestTemplate restTemplate = new RestTemplate(new BufferingClientHttpRequestFactory(new SimpleClientHttpRequestFactory()));
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(60000); // 1 min for connection setup
+        factory.setReadTimeout(60000); // 1 min for reading data
+        final RestTemplate restTemplate = new RestTemplate(new BufferingClientHttpRequestFactory(factory));
         restTemplate.getInterceptors().add(filter);
         return restTemplate;
     }
@@ -87,6 +95,12 @@ public class ApplicationConfig {
     @Bean(name = "uncaughtExceptionFilter", value = "uncaughtExceptionFilter")
     public UncaughtExceptionFilter uncaughtExceptionFilter(UncaughtExceptionFilter.LoggingController controller, ObjectMapper objectMapper) {
         return new UncaughtExceptionFilter(controller, objectMapper);
+    }
+
+    @Order(3)
+    @Bean(name = "i18nCacheCleanupFilter", value = "i18nCacheCleanupFilter")
+    public I18nCacheCleanupFilter i18nCacheCleanupFilter() {
+        return new I18nCacheCleanupFilter();
     }
     /**
      * Configures a MeterRegistry with common tags applied to all metrics.
@@ -175,6 +189,33 @@ public class ApplicationConfig {
         if (taskDecorator != null) executor.setTaskDecorator(taskDecorator);
         executor.initialize();
         return executor;
+    }
+
+    @Bean
+    public TaskExecutor historyNotificationTaskExecutor(@Autowired(required = false) TaskDecorator taskDecorator) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5); //todo move to settings
+        executor.setMaxPoolSize(10);
+        executor.setThreadNamePrefix("historyNotificationTaskExecutor-");
+        if (taskDecorator != null) executor.setTaskDecorator(taskDecorator);
+        executor.initialize();
+        return executor;
+    }
+
+    @Bean(name = "attachmentDeleteTaskExecutor")
+    public Executor attachmentDeleteTaskExecutor() {
+        return Executors.newVirtualThreadPerTaskExecutor();
+    }
+
+    @Bean(name = "virtualThreadTaskScheduler")
+    public TaskScheduler virtualThreadTaskScheduler(List<Scheduler> schedulerList) {
+        var taskScheduler = new SimpleAsyncTaskScheduler();
+
+        taskScheduler.setVirtualThreads(true);
+        taskScheduler.setConcurrencyLimit(schedulerList.size() * 3);
+        taskScheduler.setThreadNamePrefix("task-scheduler-vt-");
+
+        return taskScheduler;
     }
 
     @Bean(name = "emailTaskExecutor")

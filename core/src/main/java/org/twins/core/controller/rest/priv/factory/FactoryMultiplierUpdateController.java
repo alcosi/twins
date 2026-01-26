@@ -21,7 +21,7 @@ import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryMultiplierRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryMultiplierUpdateRqDTOv1;
-import org.twins.core.mappers.rest.factory.FactoryMultiplierRestDTOMapperV2;
+import org.twins.core.mappers.rest.factory.FactoryMultiplierRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryMultiplierUpdateDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -36,7 +36,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.MULTIPLIER_MANAGE, Permissions.MULTIPLIER_UPDATE})
 public class FactoryMultiplierUpdateController extends ApiController {
-    private final FactoryMultiplierRestDTOMapperV2 factoryMultiplierRestDTOMapperV2;
+    private final FactoryMultiplierRestDTOMapper factoryMultiplierRestDTOMapper;
     private final FactoryMultiplierUpdateDTOReverseMapper factoryMultiplierUpdateDTOReverseMapper;
     private final FactoryMultiplierService factoryMultiplierService;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -50,7 +50,7 @@ public class FactoryMultiplierUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/factory_multiplier/{factoryMultiplierId}/v1")
     public ResponseEntity<?> factoryMultiplierUpdateV1(
-            @MapperContextBinding(roots = FactoryMultiplierRestDTOMapperV2.class, response = FactoryMultiplierRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryMultiplierRestDTOMapper.class, response = FactoryMultiplierRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_MULTIPLIER_ID) @PathVariable UUID factoryMultiplierId,
             @RequestBody FactoryMultiplierUpdateRqDTOv1 request) {
         FactoryMultiplierRsDTOv1 rs = new FactoryMultiplierRsDTOv1();
@@ -59,7 +59,7 @@ public class FactoryMultiplierUpdateController extends ApiController {
                     .setId(factoryMultiplierId);
             multiplierEntity = factoryMultiplierService.updateFactoryMultiplier(multiplierEntity);
             rs
-                    .setFactoryMultiplier(factoryMultiplierRestDTOMapperV2.convert(multiplierEntity, mapperContext))
+                    .setFactoryMultiplier(factoryMultiplierRestDTOMapper.convert(multiplierEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

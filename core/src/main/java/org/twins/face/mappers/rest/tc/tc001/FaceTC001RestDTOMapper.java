@@ -3,11 +3,11 @@ package org.twins.face.mappers.rest.tc.tc001;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.util.StringUtils;
 import org.springframework.stereotype.Component;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
-import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.resource.ResourceService;
 import org.twins.face.dao.tc.tc001.FaceTC001Entity;
 import org.twins.face.dto.rest.tc.tc001.FaceTC001DTOv1;
@@ -21,7 +21,6 @@ import java.util.Collection;
 @RequiredArgsConstructor
 public class FaceTC001RestDTOMapper extends RestSimpleDTOMapper<FaceTC001Entity, FaceTC001DTOv1> {
     protected final FaceRestDTOMapper faceRestDTOMapper;
-    private final I18nService i18nService;
     private final ResourceService resourceService;
     private final FaceTC001OptionRestDTOMapper faceTC001OptionRestDTOMapper;
     private final FaceTC001Service faceTC001Service;
@@ -38,10 +37,10 @@ public class FaceTC001RestDTOMapper extends RestSimpleDTOMapper<FaceTC001Entity,
                 dst
                         .setKey(src.getKey())
                         .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "))
-                        .setSaveButtonLabel(i18nService.translateToLocale(src.getSaveButtonLabelI18nId()))
-                        .setHeaderLabel(i18nService.translateToLocale(src.getHeaderI18nId()))
+                        .setSaveButtonLabel(I18nCacheHolder.addId(src.getSaveButtonLabelI18nId()))
+                        .setHeaderLabel(I18nCacheHolder.addId(src.getHeaderI18nId()))
                         .setIcon(resourceService.getResourceUri(src.getIconResource()))
-                        .setOptionSelectLabel(i18nService.translateToLocale(src.getOptionSelectI18nId()))
+                        .setOptionSelectLabel(I18nCacheHolder.addId(src.getOptionSelectI18nId()))
                         .setSketchMode(src.getSketchMode())
                         .setSingleOptionSilentMode(src.getSingleOptionSilentMode())
                         .setOptions(faceTC001OptionRestDTOMapper.convertCollection(faceTC001OptionService.filterVariants(src.getOptions()), mapperContext));

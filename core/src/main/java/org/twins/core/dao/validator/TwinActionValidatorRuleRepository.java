@@ -13,4 +13,6 @@ public interface TwinActionValidatorRuleRepository extends CrudRepository<TwinAc
     List<TwinActionValidatorRuleEntity> findByTwinClassIdOrderByOrder(UUID twinClassId);
 
     List<TwinActionValidatorRuleEntity> findByTwinClassIdIn(Set<UUID> twinClassIds);
+
+    List<TwinActionValidatorRuleEntity> findByTwinClassIdInOrderByOrder(Set<UUID> twinClassIds);
 }

@@ -14,12 +14,13 @@ import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_3902,
         name = "Class finder by given twin class id set",
         description = "")
-public class ClassFinderGivenSet extends ClassFinder{
+public class ClassFinderGivenSet extends ClassFinder {
     @FeaturerParam(name = "twin class id set", description = "", order = 1, optional = false)
     public static final FeaturerParamUUIDSet twinClassIds = new FeaturerParamUUIDSetTwinsClassId("twinClassIdSet");
 

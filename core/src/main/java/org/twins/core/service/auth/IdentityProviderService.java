@@ -1,5 +1,7 @@
 package org.twins.core.service.auth;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -13,19 +15,20 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.DomainType;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.idp.IdentityProviderEntity;
 import org.twins.core.dao.idp.IdentityProviderRepository;
 import org.twins.core.dao.user.UserEmailVerificationEntity;
 import org.twins.core.dao.user.UserEmailVerificationRepository;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dao.user.UserStatus;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.ActAsUser;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
 import org.twins.core.domain.apiuser.UserResolverGivenId;
 import org.twins.core.domain.auth.*;
+import org.twins.core.enums.auth.EmailVerificationType;
+import org.twins.core.enums.domain.DomainType;
+import org.twins.core.enums.user.UserStatus;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.identityprovider.ClientLogoutData;
 import org.twins.core.featurer.identityprovider.ClientSideAuthData;
@@ -49,6 +52,7 @@ import java.util.function.Function;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
 public class IdentityProviderService extends TwinsEntitySecureFindService<IdentityProviderEntity> {
@@ -203,7 +207,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         UserEntity user = userService.findByEmail(authSignup.getEmail());
         if (user == null) {
             user = new UserEntity()
-                    .setId(UUID.randomUUID())
+                    .setId(UuidUtils.generate())
                     .setName(authSignup.getFirstName() + " " + authSignup.getLastName())
                     .setUserStatusId(UserStatus.EMAIL_VERIFICATION_REQUIRED);
             userService.addUser(user, EntitySmartService.SaveMode.saveAndThrowOnException);
@@ -212,7 +216,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
         EmailVerificationHolder emailVerificationHolder = identityProviderConnector.signupByEmailInitiate(identityProvider.getIdentityProviderConnectorParams(), authSignup);
         UserEmailVerificationEntity userEmailVerificationEntity = new UserEmailVerificationEntity()
-                .setId(UUID.randomUUID())
+                .setId(UuidUtils.generate())
                 .setEmail(authSignup.getEmail())
                 .setIdentityProviderId(identityProvider.getId())
                 .setUserId(user.getId())

@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Schema(name = "TierRsV1")
 public class TierSaveRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "results - tier")
-    public TierDTOv2 tier;
+    public TierDTOv1 tier;
 }

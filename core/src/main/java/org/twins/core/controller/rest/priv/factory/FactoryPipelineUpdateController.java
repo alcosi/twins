@@ -21,7 +21,7 @@ import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryPipelineRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineUpdateRqDTOv1;
-import org.twins.core.mappers.rest.factory.FactoryPipelineRestDTOMapperV2;
+import org.twins.core.mappers.rest.factory.FactoryPipelineRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryPipelineUpdateDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -36,7 +36,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.PIPELINE_MANAGE, Permissions.PIPELINE_UPDATE})
 public class FactoryPipelineUpdateController extends ApiController {
-    private final FactoryPipelineRestDTOMapperV2 factoryPipelineRestDTOMapperV2;
+    private final FactoryPipelineRestDTOMapper factoryPipelineRestDTOMapper;
     private final FactoryPipelineUpdateDTOReverseMapper factoryPipelineUpdateDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final FactoryPipelineService factoryPipelineService;
@@ -50,7 +50,7 @@ public class FactoryPipelineUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/factory_pipeline/{factoryPipelineId}/v1")
     public ResponseEntity<?> factoryPipelineUpdateV1(
-            @MapperContextBinding(roots = FactoryPipelineRestDTOMapperV2.class, response = FactoryPipelineRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryPipelineRestDTOMapper.class, response = FactoryPipelineRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_PIPELINE_ID) @PathVariable UUID factoryPipelineId,
             @RequestBody FactoryPipelineUpdateRqDTOv1 request) {
         FactoryPipelineRsDTOv1 rs = new FactoryPipelineRsDTOv1();
@@ -59,7 +59,7 @@ public class FactoryPipelineUpdateController extends ApiController {
                     .setId(factoryPipelineId);
             factoryPipeline = factoryPipelineService.updateFactoryPipeline(factoryPipeline);
             rs
-                    .setFactoryPipeline(factoryPipelineRestDTOMapperV2.convert(factoryPipeline, mapperContext))
+                    .setFactoryPipeline(factoryPipelineRestDTOMapper.convert(factoryPipeline, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

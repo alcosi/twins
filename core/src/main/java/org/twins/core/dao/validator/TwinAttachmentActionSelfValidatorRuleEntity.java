@@ -4,7 +4,9 @@ package org.twins.core.dao.validator;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.dao.attachment.TwinAttachmentAction;
+import org.cambium.common.util.UuidUtils;
+import org.hibernate.annotations.BatchSize;
+import org.twins.core.enums.attachment.TwinAttachmentAction;
 
 import java.util.Set;
 import java.util.UUID;
@@ -14,8 +16,12 @@ import java.util.UUID;
 @Table(name = "twin_attachment_action_self_validator_rule")
 public class TwinAttachmentActionSelfValidatorRuleEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twin_class_id")
     private UUID twinClassId;
@@ -33,9 +39,9 @@ public class TwinAttachmentActionSelfValidatorRuleEntity implements EasyLoggable
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;
 
-    //TODO think over @ManyToMany https://alcosi.atlassian.net/browse/TWINS-220
-    @OneToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_validator_set_id", referencedColumnName = "twin_validator_set_id", insertable = false, updatable = false)
+    @BatchSize(size = 20)
     private Set<TwinValidatorEntity> twinValidators;
 
     @Override

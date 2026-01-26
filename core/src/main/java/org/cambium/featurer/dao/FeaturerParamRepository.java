@@ -5,6 +5,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -18,5 +19,5 @@ public interface FeaturerParamRepository extends CrudRepository<FeaturerParamEnt
     FeaturerParamEntity findByFeaturerIdAndKey(Integer featurerId, String key);
 
     @Transactional
-    void deleteAllByFeaturerIdIn(List<Integer> list);
+    void deleteAllByFeaturerIdIn(Collection<Integer> list);
 }

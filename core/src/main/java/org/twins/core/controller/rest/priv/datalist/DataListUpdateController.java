@@ -22,7 +22,7 @@ import org.twins.core.domain.datalist.DataListUpdate;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
 import org.twins.core.dto.rest.datalist.DataListUpdateRqDTOv1;
-import org.twins.core.mappers.rest.datalist.DataListRestDTOMapperV2;
+import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListUpdateDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -41,7 +41,7 @@ public class DataListUpdateController extends ApiController {
     private final DataListUpdateDTOReverseMapper dataListUpdateDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final DataListService dataListService;
-    private final DataListRestDTOMapperV2 dataListRestDTOMapperV2;
+    private final DataListRestDTOMapper dataListRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListUpdateV1", summary = "Data list update")
@@ -52,7 +52,7 @@ public class DataListUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/data_list/{dataListId}/v1")
     public ResponseEntity<?> dataListUpdateV1(
-            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId,
             @RequestBody DataListUpdateRqDTOv1 request) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
@@ -60,7 +60,7 @@ public class DataListUpdateController extends ApiController {
             DataListUpdate dataListUpdate = dataListUpdateDTOReverseMapper.convert(request);
             DataListEntity dataListEntity = dataListService.updateDataList(dataListUpdate.setId(dataListId));
             rs
-                    .setDataList(dataListRestDTOMapperV2.convert(dataListEntity, mapperContext))
+                    .setDataList(dataListRestDTOMapper.convert(dataListEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

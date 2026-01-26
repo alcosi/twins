@@ -4,19 +4,19 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.annotations.FeaturerList;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.featurer.linker.Linker;
+import org.twins.core.enums.link.LinkStrength;
+import org.twins.core.enums.link.LinkType;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -29,8 +29,12 @@ import java.util.UUID;
 @Table(name = "link")
 public class LinkEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "domain_id")
     private UUID domainId;
@@ -49,7 +53,7 @@ public class LinkEntity implements EasyLoggable {
 
     @Column(name = "link_type_id")
     @Enumerated(EnumType.STRING)
-    private TwinlinkType type;
+    private LinkType type;
 
     @Column(name = "link_strength_id")
     @Enumerated(EnumType.STRING)
@@ -67,16 +71,21 @@ public class LinkEntity implements EasyLoggable {
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
 //    private DomainEntity domain;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "src_twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity srcTwinClass;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "dst_twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity dstTwinClass;
 
     @Transient
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity createdByUser;
 
     @Deprecated //for specification only
@@ -96,9 +105,9 @@ public class LinkEntity implements EasyLoggable {
     @Column(name = "linker_featurer_id")
     private Integer linkerFeaturerId;
 
-    @FeaturerList(type = Linker.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "linker_featurer_id", insertable = false, updatable = false)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity linkerFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
@@ -108,25 +117,9 @@ public class LinkEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "link[" + id + "]";
-            default -> "link[id:" + id + ", srcTwinClassId:" + srcTwinClassId + "], dstTwinClassId:" + dstTwinClassId + "]";
+            default ->
+                    "link[id:" + id + ", srcTwinClassId:" + srcTwinClassId + "], dstTwinClassId:" + dstTwinClassId + "]";
         };
 
-    }
-
-    @Getter
-    public enum TwinlinkType {
-        ManyToOne(true, true, false),
-        ManyToMany(true, false, false),
-        OneToOne(false, true, true);
-
-        private final boolean many;
-        private final boolean uniqForSrcTwin;
-        private final boolean uniqForDstTwin;
-
-        TwinlinkType(boolean many, boolean uniqForSrcTwin, boolean uniqForDstTwin) {
-            this.many = many;
-            this.uniqForSrcTwin = uniqForSrcTwin;
-            this.uniqForDstTwin = uniqForDstTwin;
-        }
     }
 }

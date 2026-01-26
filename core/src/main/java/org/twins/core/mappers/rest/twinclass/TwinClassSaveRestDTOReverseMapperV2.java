@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dto.rest.twinclass.TwinClassSave;
+import org.twins.core.domain.twinclass.TwinClassSave;
 import org.twins.core.dto.rest.twinclass.TwinClassSaveDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
@@ -29,13 +29,17 @@ public class TwinClassSaveRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Twi
                         .setTwinflowSchemaSpace(BooleanUtils.isTrue(src.getTwinflowSchemaSpace()))
                         .setHeadHunterFeaturerId(src.getHeadHunterFeaturerId())
                         .setHeadHunterParams(src.getHeadHunterParams())
-                        .setLogo(src.getLogo())
                         .setViewPermissionId(src.getViewPermissionId())
                         .setCreatePermissionId(src.getCreatePermissionId())
                         .setEditPermissionId(src.getEditPermissionId())
                         .setDeletePermissionId(src.getDeletePermissionId())
                         .setOwnerType(src.getOwnerType())
                         .setAssigneeRequired(src.getAssigneeRequired())
-                        .setExternalId(src.getExternalId()));
+                        .setSegment(src.getSegment())
+                        .setExternalId(src.getExternalId())
+                        .setExternalProperties(src.getExternalProperties())
+                        .setExternalJson(src.getExternalJson())
+                        .setTwinClassFreezeId(src.getTwinClassFreezeId())
+                );
     }
 }

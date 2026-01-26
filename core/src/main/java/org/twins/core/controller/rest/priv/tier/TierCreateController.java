@@ -24,7 +24,7 @@ import org.twins.core.dto.rest.tier.TierCreateRqDTOv1;
 import org.twins.core.dto.rest.tier.TierSaveRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.tier.TierCreateDTOReverseMapper;
-import org.twins.core.mappers.rest.tier.TierRestDTOMapperV2;
+import org.twins.core.mappers.rest.tier.TierRestDTOMapper;
 import org.twins.core.service.domain.TierService;
 import org.twins.core.service.permission.Permissions;
 
@@ -36,7 +36,7 @@ import org.twins.core.service.permission.Permissions;
 public class TierCreateController extends ApiController {
     private final TierService tierService;
     private final TierCreateDTOReverseMapper tierCreateDTOReverseMapper;
-    private final TierRestDTOMapperV2 tierRestDTOMapperV2;
+    private final TierRestDTOMapper tierRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "tierCreateV1", summary = "Tier add")
@@ -47,12 +47,12 @@ public class TierCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/tier/v1")
     public ResponseEntity<?> tierCreateV1(
-            @MapperContextBinding(roots = TierRestDTOMapperV2.class, response = TierSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TierRestDTOMapper.class, response = TierSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody TierCreateRqDTOv1 request) {
         TierSaveRsDTOv1 rs = new TierSaveRsDTOv1();
         try {
             TierEntity tierEntity = tierService.createTier(tierCreateDTOReverseMapper.convert(request.getTier()));
-            rs.setTier(tierRestDTOMapperV2.convert(tierEntity, mapperContext));
+            rs.setTier(tierRestDTOMapper.convert(tierEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

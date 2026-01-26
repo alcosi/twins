@@ -3,12 +3,16 @@ package org.twins.core.mappers.rest.datalist;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.businessaccount.BusinessAccountDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.BusinessAccountMode;
+import org.twins.core.mappers.rest.mappercontext.modes.DataListMode;
 import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
-import org.twins.core.service.i18n.I18nService;
 
 import java.util.Hashtable;
 
@@ -17,8 +21,10 @@ import java.util.Hashtable;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = DataListOptionMode.class)
 public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOptionEntity, DataListOptionDTOv1> {
-
-    private final I18nService i18nService;
+    @MapperModePointerBinding(modes = DataListMode.DataListOption2DataListMode.class)
+    private final DataListRestDTOMapper dataListRestDTOMapper;
+    @MapperModePointerBinding(modes = BusinessAccountMode.DataListOption2BusinessAccountMode.class)
+    private final BusinessAccountDTOMapper businessAccountDTOMapper;
 
     @Override
     public void map(DataListOptionEntity src, DataListOptionDTOv1 dst, MapperContext mapperContext) {
@@ -26,17 +32,29 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
             case DETAILED ->
                 dst
                         .setId(src.getId())
-                        .setName(src.getOptionI18NId() != null ? i18nService.translateToLocale(src.getOptionI18NId()) : src.getOption())
+                        .setName(src.getOptionI18nId() != null ? I18nCacheHolder.addId(src.getOptionI18nId()) : src.getOption())
+                        .setDescription(I18nCacheHolder.addId(src.getDescriptionI18nId()))
                         .setIcon(src.getIcon())
                         .setAttributes(getAttributes(src))
                         .setStatus(src.getStatus())
                         .setBackgroundColor(src.getBackgroundColor())
                         .setExternalId(src.getExternalId())
-                        .setFontColor(src.getFontColor());
+                        .setFontColor(src.getFontColor())
+                        .setDataListId(src.getDataListId())
+                        .setBusinessAccountId(src.getBusinessAccountId())
+                        .setCustom(src.isCustom());
             case SHORT ->
                 dst
                         .setId(src.getId())
-                        .setName(src.getOptionI18NId() != null ? i18nService.translateToLocale(src.getOptionI18NId()) : src.getOption());
+                        .setName(src.getOptionI18nId() != null ? I18nCacheHolder.addId(src.getOptionI18nId()) : src.getOption())
+                        .setDescription(I18nCacheHolder.addId(src.getDescriptionI18nId()));
+        }
+        if (mapperContext.hasModeButNot(DataListMode.DataListOption2DataListMode.HIDE)) {
+            dst.setDataListId(src.getDataListId());
+            dataListRestDTOMapper.postpone(src.getDataList(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListMode.DataListOption2DataListMode.SHORT)));
+        } if (mapperContext.hasModeButNot(BusinessAccountMode.DataListOption2BusinessAccountMode.HIDE)) {
+            dst.setBusinessAccountId(src.getBusinessAccountId());
+            businessAccountDTOMapper.postpone(src.getBusinessAccount(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(BusinessAccountMode.DataListOption2BusinessAccountMode.SHORT)));
         }
     }
 

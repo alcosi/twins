@@ -25,7 +25,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryBranchSearchRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryBranchSearchRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryBranchViewRsDTOv1;
-import org.twins.core.mappers.rest.factory.FactoryBranchRestDTOMapperV2;
+import org.twins.core.mappers.rest.factory.FactoryBranchRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryBranchSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
@@ -45,7 +45,7 @@ public class FactoryBranchSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final FactoryBranchSearchDTOReverseMapper factoryBranchSearchDTOReverseMapper;
-    private final FactoryBranchRestDTOMapperV2 factoryBranchRestDTOMapperV2;
+    private final FactoryBranchRestDTOMapper factoryBranchRestDTOMapper;
     private final FactoryBranchSearchService factoryBranchSearchService;
     private final FactoryBranchService factoryBranchService;
     @ParametersApiUserHeaders
@@ -57,7 +57,7 @@ public class FactoryBranchSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory_branch/search/v1")
     public ResponseEntity<?> factoryBranchSearchV1(
-            @MapperContextBinding(roots = FactoryBranchRestDTOMapperV2.class, response = FactoryBranchSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryBranchRestDTOMapper.class, response = FactoryBranchSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody FactoryBranchSearchRqDTOv1 request) {
         FactoryBranchSearchRsDTOv1 rs = new FactoryBranchSearchRsDTOv1();
@@ -65,7 +65,7 @@ public class FactoryBranchSearchController extends ApiController {
             PaginationResult<TwinFactoryBranchEntity> branchList = factoryBranchSearchService
                     .findFactoryBranches(factoryBranchSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setBranches(factoryBranchRestDTOMapperV2.convertCollection(branchList.getList(), mapperContext))
+                    .setBranches(factoryBranchRestDTOMapper.convertCollection(branchList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(branchList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -85,14 +85,14 @@ public class FactoryBranchSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/factory_branch/{factoryBranchId}/v1")
     public ResponseEntity<?> factoryBranchViewV1(
-            @MapperContextBinding(roots = FactoryBranchRestDTOMapperV2.class, response = FactoryBranchViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryBranchRestDTOMapper.class, response = FactoryBranchViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_BRANCH_ID) @PathVariable("factoryBranchId")UUID factoryBranchId) {
         FactoryBranchViewRsDTOv1 rs = new FactoryBranchViewRsDTOv1();
         try {
             TwinFactoryBranchEntity branch = factoryBranchService.findEntitySafe(factoryBranchId);
 
             rs
-                    .setBranch(factoryBranchRestDTOMapperV2.convert(branch, mapperContext))
+                    .setBranch(factoryBranchRestDTOMapper.convert(branch, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

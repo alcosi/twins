@@ -162,6 +162,6 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
 
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldSearchUser search) throws ServiceException {
-        return Specification.where(TwinSpecification.checkFieldUser(search));
+        return TwinSpecification.checkFieldUser(search);
     }
 }

@@ -24,7 +24,8 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinstatus.TwinStatusRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapperV2;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinStatusService;
 
@@ -37,7 +38,8 @@ import java.util.UUID;
 @ProtectedBy({Permissions.TWIN_STATUS_MANAGE, Permissions.TWIN_STATUS_VIEW})
 public class TwinStatusViewController extends ApiController {
     private final TwinStatusService twinStatusService;
-    private final TwinStatusRestDTOMapperV2 twinStatusRestDTOMapperV2;
+    private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinStatusViewV1", summary = "Return twin status data by id")
@@ -48,13 +50,14 @@ public class TwinStatusViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_status/{twinStatusId}/v1")
     public ResponseEntity<?> twinStatusViewV1(
-            @MapperContextBinding(roots = TwinStatusRestDTOMapperV2.class, response = TwinStatusRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinStatusRestDTOMapper.class, response = TwinStatusRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_STATUS_ID) @PathVariable UUID twinStatusId) {
         TwinStatusRsDTOv1 rs = new TwinStatusRsDTOv1();
         try {
             TwinStatusEntity twinStatusEntity = twinStatusService.findEntitySafe(twinStatusId);
             rs
-                    .setTwinStatus(twinStatusRestDTOMapperV2.convert(twinStatusEntity, mapperContext));
+                    .setTwinStatus(twinStatusRestDTOMapper.convert(twinStatusEntity, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

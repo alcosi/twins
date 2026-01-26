@@ -54,7 +54,7 @@ public class UserGroupManagerSingleGroup extends UserGroupManager {
             if (userGroup == null) {
                 throw new ServiceException(ErrorCodeTwins.USER_GROUP_UNKNOWN, "Incorrect enterUserGroupId[" + enterUserGroupId + "]");
             }
-            Slugger slugger = featurerService.getFeaturer(userGroup.getUserGroupType().getSluggerFeaturer(), Slugger.class);
+            Slugger slugger = featurerService.getFeaturer(userGroup.getUserGroupType().getSluggerFeaturerId(), Slugger.class);
             slugger.enterGroup(userGroup, user);
             userGroupExitList = CollectionUtils.safeAdd(userGroupExitList, user.getUserGroups().getIdSet().stream().filter(m -> !m.equals(enterUserGroupId)).toList());
         }
@@ -70,7 +70,7 @@ public class UserGroupManagerSingleGroup extends UserGroupManager {
             if (leftGroups.isEmpty() && !allowEmpty.extract(properties))
                 throw new ServiceException(ErrorCodeTwins.USER_GROUP_IS_MANDATORY, "User can not be deleted from all groups");
             for (UserGroupEntity exitUserGroup : exitedGroups) {
-                Slugger slugger = featurerService.getFeaturer(exitUserGroup.getUserGroupType().getSluggerFeaturer(), Slugger.class);
+                Slugger slugger = featurerService.getFeaturer(exitUserGroup.getUserGroupType().getSluggerFeaturerId(), Slugger.class);
                 slugger.exitGroup(exitUserGroup, user);
             }
         }

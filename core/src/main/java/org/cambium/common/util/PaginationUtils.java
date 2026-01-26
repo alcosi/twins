@@ -2,8 +2,8 @@ package org.cambium.common.util;
 
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
-import org.springframework.data.domain.*;
 import org.cambium.common.pagination.SimplePagination;
+import org.springframework.data.domain.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,9 +17,10 @@ public class PaginationUtils {
     public static final int DEFAULT_VALUE_LIMIT = 10;
     public static final String SORT_UNSORTED = "unsorted";
 
-    public static Sort sortType(boolean sortAsc, String sortField) {
-        if (sortField.equals(SORT_UNSORTED))
+    public static Sort sortType(boolean sortAsc, String... sortField) {
+        if (sortField == null || sortField.length == 0 || (sortField.length == 1 && (sortField[0].equals(SORT_UNSORTED) || StringUtils.isEmpty(sortField[0])))) {
             return Sort.unsorted();
+        }
         return Sort.by(sortAsc ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
     }
 
@@ -40,10 +41,8 @@ public class PaginationUtils {
             throw new ServiceException(PAGINATION_LIMIT_ERROR);
         if (pagination.getOffset() % pagination.getLimit() > 0)
             throw new ServiceException(PAGINATION_ERROR);
-        if (pagination.getSortField() == null)
-            pagination.setSortField(SORT_UNSORTED);
-        Sort sort = sortType(pagination.isSortAsc(), pagination.getSortField());
-        return sort.isUnsorted()
+        Sort sort = pagination.getSort();
+        return sort == null || sort.isUnsorted()
                 ? PageRequest.of(pagination.getOffset() / pagination.getLimit(), pagination.getLimit())
                 : PageRequest.of(pagination.getOffset() / pagination.getLimit(), pagination.getLimit(), sort);
     }

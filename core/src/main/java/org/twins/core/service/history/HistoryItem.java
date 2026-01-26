@@ -2,7 +2,7 @@ package org.twins.core.service.history;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.twins.core.dao.history.HistoryType;
+import org.twins.core.enums.history.HistoryType;
 import org.twins.core.dao.history.context.HistoryContext;
 
 @Getter

@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.domain.LongRange;
+import org.cambium.common.math.LongRange;
 
 import java.util.Locale;
 import java.util.Set;

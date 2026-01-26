@@ -1,5 +1,7 @@
 package org.twins.core.service.factory;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -16,16 +18,21 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.factory.*;
+import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
+import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
+import org.twins.core.dao.factory.TwinFactoryPipelineStepRepository;
 import org.twins.core.featurer.factory.filler.Filler;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.function.Function;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @AllArgsConstructor
 public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<TwinFactoryPipelineStepEntity> {
@@ -132,5 +139,17 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
     @Transactional
     public void deleteById(UUID id) throws ServiceException {
         deleteSafe(id);
+    }
+
+    public void loadFiller(TwinFactoryPipelineStepEntity src) {
+        loadFillers(Collections.singleton(src));
+    }
+
+    public void loadFillers(Collection<TwinFactoryPipelineStepEntity> srcCollection) {
+        featurerService.loadFeaturers(srcCollection,
+                TwinFactoryPipelineStepEntity::getId,
+                TwinFactoryPipelineStepEntity::getFillerFeaturerId,
+                TwinFactoryPipelineStepEntity::getFillerFeaturer,
+                TwinFactoryPipelineStepEntity::setFillerFeaturer);
     }
 }

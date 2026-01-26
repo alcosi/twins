@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dto.rest.twinstatus.TwinStatusCreateRqDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 
 @Component
@@ -16,9 +16,9 @@ public class TwinStatusCreateRestDTOReverseMapper extends RestSimpleDTOMapper<Tw
         dst
                 .setTwinClassId(src.getTwinClassId())
                 .setKey(src.getKey())
-                .setLogo(src.getLogo())
                 .setBackgroundColor(src.getBackgroundColor())
                 .setFontColor(src.getFontColor())
+                .setType(src.getType())
         ;
     }
 }

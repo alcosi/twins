@@ -1,0 +1,2 @@
+ALTER TABLE twin_attachment
+    ADD COLUMN IF NOT EXISTS "order" INTEGER;

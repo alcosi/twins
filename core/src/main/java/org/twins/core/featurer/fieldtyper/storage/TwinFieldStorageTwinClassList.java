@@ -4,9 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.*;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinFieldTwinClassEntity;
+import org.twins.core.dao.twin.TwinFieldTwinClassListRepository;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -52,6 +55,13 @@ public class TwinFieldStorageTwinClassList extends TwinFieldStorage {
     @Override
     public void replaceTwinClassFieldForTwinsOfClass(UUID twinClassId, UUID fromTwinClassFieldId, UUID toTwinClassFieldId) {
         twinFieldTwinClassListRepository.replaceTwinClassFieldForTwinsOfClass(twinClassId, fromTwinClassFieldId, toTwinClassFieldId);
+    }
+
+    @Override
+    public void deleteTwinFieldsForTwins(Map<UUID, Set<UUID>> deleteMap) {
+        //todo optimize for bulk delete
+        for (var entry : deleteMap.entrySet())
+            twinFieldTwinClassListRepository.deleteByTwinIdAndTwinClassFieldIdIn(entry.getKey(), entry.getValue());
     }
 
     @Override

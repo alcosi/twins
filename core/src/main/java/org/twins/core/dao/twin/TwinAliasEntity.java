@@ -3,7 +3,11 @@ package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.UuidUtils;
+import org.twins.core.enums.twin.TwinAliasType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -13,10 +17,13 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_alias")
 public class TwinAliasEntity {
-
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "alias_value")
     private String alias;
@@ -43,6 +50,8 @@ public class TwinAliasEntity {
     @Column(name = "archived")
     private boolean archived;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = true)
     private TwinEntity twin;

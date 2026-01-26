@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Data
@@ -20,4 +21,10 @@ public class TwinSearchBatchRqDTOv1 extends Request {
             }
             """)
     public Map<String, TwinSearchRqDTOv1> searchMap;
+
+    public TwinSearchBatchRqDTOv1 putSearchMapItem(String key, TwinSearchRqDTOv1 item) {
+        if (this.searchMap == null) this.searchMap = new HashMap<>();
+        this.searchMap.put(key, item);
+        return this;
+    }
 }

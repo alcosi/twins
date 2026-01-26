@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Schema(name = "TransitionViewRsV1")
 public class TransitionViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "transition details")
-    public TwinflowTransitionBaseDTOv3 transition;
+    public TwinflowTransitionBaseDTOv2 transition;
 }

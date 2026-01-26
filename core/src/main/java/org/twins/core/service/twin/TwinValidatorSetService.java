@@ -1,9 +1,11 @@
 package org.twins.core.service.twin;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.cambium.common.EasyLoggable;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -21,12 +23,14 @@ import org.twins.core.dao.validator.TwinValidatorSetRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.validator.TwinValidatorService;
 
 import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinValidatorSetEntity> {
 
@@ -34,6 +38,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
     @Lazy
     private final AuthService authService;
     private final FeaturerService featurerService;
+    private final TwinValidatorService twinValidatorService;
 
     @Override
     public CrudRepository<TwinValidatorSetEntity, UUID> entityRepository() {
@@ -55,12 +60,8 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
         return true;
     }
 
-    public <T extends ContainsTwinValidatorSet> TwinValidatorSetEntity loadTwinValidatorSet(T entity) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (entity.getTwinValidatorSet() != null)
-            return entity.getTwinValidatorSet();
-        entity.setTwinValidatorSet(twinValidatorSetRepository.findAllByIdAndDomainId(entity.getTwinValidatorSetId(), apiUser.getDomainId()));
-        return entity.getTwinValidatorSet();
+    public <T extends ContainsTwinValidatorSet> void loadTwinValidatorSet(T entity) throws ServiceException {
+        loadTwinValidatorSet(Collections.singletonList(entity));
     }
 
     public <T extends ContainsTwinValidatorSet> void loadTwinValidatorSet(Collection<T> implementedValidatorRules) throws ServiceException {
@@ -79,24 +80,42 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
             validatorRule.setTwinValidatorSet(twinValidatorSetEntitiesKit.get(validatorRule.getTwinValidatorSetId()));
     }
 
-    public boolean isValid(TwinEntity twinEntity, EasyLoggable validationForEntity, Set<TwinValidatorEntity> validatorsSet) throws ServiceException {
-        List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validatorsSet);
+    public <T extends ContainsTwinValidatorSet> boolean isValid(TwinEntity twinEntity, T validatorContainer) throws ServiceException {
+        loadTwinValidatorSet(validatorContainer);
+        if (validatorContainer.getTwinValidatorSet() == null)
+            return true;
+        twinValidatorService.loadValidators(validatorContainer);
+        if (validatorContainer.getTwinValidatorKit() == null)
+            return !validatorContainer.getTwinValidatorSet().isInvert();
+        List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validatorContainer.getTwinValidatorKit().getList()); //todo
         sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
         boolean validationResultOfSet = true;
         for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
             if (!twinValidatorEntity.isActive()) {
-                log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.logNormal(), validationForEntity.logNormal());
+                log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.logNormal(), validatorContainer.logNormal());
                 continue;
             }
 
-            TwinValidator transitionValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
-            TwinValidator.ValidationResult validationResult = transitionValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
+            TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturerId(), TwinValidator.class);
+            ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
             validationResultOfSet = validationResult.isValid();
             if (!validationResultOfSet) {
-                log.info("{} from {} is not valid. {}", twinValidatorEntity.logNormal(), validationForEntity.logNormal(), validationResult.getMessage());
+                log.info("{} from {} is not valid. {}", twinValidatorEntity.logNormal(), validatorContainer.logNormal(), validationResult.getMessage());
                 break;
             }
         }
-        return validationResultOfSet;
+        return validatorContainer.getTwinValidatorSet().isInvert() != validationResultOfSet;
+    }
+
+    public void loadTwinValidator(TwinValidatorEntity src) {
+        loadTwinValidators(Collections.singletonList(src));
+    }
+
+    public void loadTwinValidators(Collection<TwinValidatorEntity> srcCollection) {
+        featurerService.loadFeaturers(srcCollection,
+                TwinValidatorEntity::getId,
+                TwinValidatorEntity::getTwinValidatorFeaturerId,
+                TwinValidatorEntity::getTwinValidatorFeaturer,
+                TwinValidatorEntity::setTwinValidatorFeaturer);
     }
 }

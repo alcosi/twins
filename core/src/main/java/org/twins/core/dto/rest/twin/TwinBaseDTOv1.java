@@ -6,8 +6,13 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
+import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
+import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -20,6 +25,7 @@ public class TwinBaseDTOv1 {
     @Schema(description = "externalId", example = "934599502DFFAE")
     public String externalId;
 
+    @RelatedObject(type = TwinDTOv2.class, name = "headTwin")
     @Schema(description = "headTwinId", example = DTOExamples.HEAD_TWIN_ID)
     public UUID headTwinId;
 
@@ -33,15 +39,19 @@ public class TwinBaseDTOv1 {
     @Schema(description = "description", example = "The biggest tree")
     public String description;
 
+    @RelatedObject(type = TwinStatusDTOv1.class, name = "status")
     @Schema(description = "statusId")
     public UUID statusId;
 
+    @RelatedObject(type = TwinClassDTOv1.class, name = "twinClass")
     @Schema(description = "class")
     public UUID twinClassId;
 
+    @RelatedObject(type = UserDTOv1.class, name = "assigneeUser")
     @Schema(description = "current assigner")
     public UUID assignerUserId;
 
+    @RelatedObject(type = UserDTOv1.class, name = "authorUser")
     @Schema(description = "author")
     public UUID authorUserId;
 
@@ -52,8 +62,14 @@ public class TwinBaseDTOv1 {
     public UUID ownerUserId;
 
     @Schema(description = "page id")
-    public UUID pageId;
+    public UUID pageFaceId;
 
     @Schema(description = "breadcrumbs face id")
     public UUID breadCrumbsFaceId;
+
+    @Schema(description = "freeze")
+    public Boolean freeze;
+
+    @Schema(description = "aliases")
+    public Set<String> aliases;
 }

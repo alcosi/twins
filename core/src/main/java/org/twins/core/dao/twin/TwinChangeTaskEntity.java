@@ -2,10 +2,14 @@ package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.domain.factory.FactoryLauncher;
+import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.TwinChangeTaskStatus;
+import org.twins.core.enums.factory.FactoryLauncher;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -17,8 +21,12 @@ import java.util.UUID;
 @FieldNameConstants
 public class TwinChangeTaskEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "twin_id")
     private UUID twinId;
@@ -52,6 +60,8 @@ public class TwinChangeTaskEntity implements EasyLoggable {
     @Column(name = "done_at")
     private Timestamp doneAt;
 
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity twin;
@@ -59,9 +69,8 @@ public class TwinChangeTaskEntity implements EasyLoggable {
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case NORMAL -> "twinChangeTask[id:" + id + ", twinId:" + twinId + ", factoryId:" + twinFactoryId + "]";
-            case DETAILED ->
-                    "twinChangeTask[id:" + id + ", twinId:" + twinId + ", factoryId:" + twinFactoryId + ", userId:" + createdByUserId + ", businessAccountId:" + businessAccountId + "]";
+            case NORMAL -> "twinChangeTask[id:" + id + ", twinId:" + twinId + ", factoryId:" + twinFactoryId + ", statusId:" + statusId + "]";
+            case DETAILED -> "twinChangeTask[id:" + id + ", twinId:" + twinId + ", factoryId:" + twinFactoryId + ", userId:" + createdByUserId + ", businessAccountId:" + businessAccountId + "]";
             default -> "twinChangeTask[id:" + id + "]";
         };
     }

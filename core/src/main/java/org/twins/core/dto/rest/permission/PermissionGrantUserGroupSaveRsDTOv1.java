@@ -11,5 +11,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "PermissionGrantUserGroupSaveRsV1")
 public class PermissionGrantUserGroupSaveRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
-    public PermissionGrantUserGroupDTOv2 permissionGrantUserGroup;
+    public PermissionGrantUserGroupDTOv1 permissionGrantUserGroup;
 }

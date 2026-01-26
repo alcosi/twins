@@ -3,10 +3,11 @@ package org.twins.core.dao.link;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
-import org.cambium.featurer.annotations.FeaturerList;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
-import org.twins.core.featurer.link.validator.LinkValidator;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -16,8 +17,12 @@ import java.util.UUID;
 @Table(name = "link_validator")
 public class LinkValidatorEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "link_id")
     private UUID twinflowTransitionId;
@@ -29,9 +34,9 @@ public class LinkValidatorEntity {
     @Column(name = "link_validator_featurer_id")
     private Integer linkValidatorFeaturerId;
 
-    @FeaturerList(type = LinkValidator.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "link_validator_featurer_id", insertable = false, updatable = false)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private FeaturerEntity linkValidatorFeaturer;
 
     @Type(PostgreSQLHStoreType.class)

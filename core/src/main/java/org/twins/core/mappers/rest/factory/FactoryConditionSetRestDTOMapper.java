@@ -3,11 +3,13 @@ package org.twins.core.mappers.rest.factory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dto.rest.factory.FactoryConditionSetDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
+import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.factory.TwinFactoryService;
 
 import java.util.Collection;
@@ -24,6 +26,9 @@ import static org.cambium.common.util.DateUtils.convertOrNull;
         ConditionSetInFactoryBranchUsagesCountMode.class,
         ConditionSetInFactoryEraserUsagesCountMode.class})
 public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryConditionSetEntity, FactoryConditionSetDTOv1> {
+
+    @MapperModePointerBinding(modes = UserMode.FactoryConditionSet2UserMode.class)
+    private final UserRestDTOMapper userRestDTOMapper;
 
     private final TwinFactoryService twinFactoryService;
 
@@ -62,6 +67,10 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
         if (mapperContext.hasModeButNot(ConditionSetInFactoryEraserUsagesCountMode.HIDE)) {
             twinFactoryService.countConditionSetInFactoryEraserUsages(src);
             dst.setId(src.getId()).setInFactoryEraserUsagesCount(src.getInFactoryEraserUsagesCount());
+        }
+        if (mapperContext.hasModeButNot(UserMode.FactoryConditionSet2UserMode.HIDE)) {
+            dst.setCreatedByUserId(src.getCreatedByUserId());
+            userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.FactoryConditionSet2UserMode.HIDE));
         }
     }
 

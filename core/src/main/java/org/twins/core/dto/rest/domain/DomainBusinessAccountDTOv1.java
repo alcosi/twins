@@ -7,6 +7,9 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
+import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
+import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -20,21 +23,21 @@ public class DomainBusinessAccountDTOv1 {
     public UUID id;
 
     @Schema(description = "business account id")
-    public UUID businessAccountid;
+    @RelatedObject(type = BusinessAccountDTOv1.class, name = "businessAccount")
+    public UUID businessAccountId;
 
     @Schema(description = "", example = DTOExamples.PERMISSION_SCHEMA_ID)
+    @RelatedObject(type = PermissionSchemaDTOv1.class, name = "permissionSchema")
     public UUID permissionSchemaId;
 
     @Schema(description = "", example = DTOExamples.TWINFLOW_SCHEMA_ID)
     public UUID twinflowSchemaId;
 
     @Schema(description = "", example = DTOExamples.TWIN_CLASS_SCHEMA_ID)
+    @RelatedObject(type = TwinClassSchemaDTOv1.class, name = "twinClassSchema")
     public UUID twinClassSchemaId;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)
     public LocalDateTime createdAt;
-
-    @Schema(description = "business account")
-    public BusinessAccountDTOv1 businessAccount;
 }

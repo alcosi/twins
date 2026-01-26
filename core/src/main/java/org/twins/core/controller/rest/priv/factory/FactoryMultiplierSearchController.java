@@ -25,7 +25,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryMultiplierSearchRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryMultiplierSearchRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryMultiplierViewRsDTOv1;
-import org.twins.core.mappers.rest.factory.FactoryMultiplierRestDTOMapperV2;
+import org.twins.core.mappers.rest.factory.FactoryMultiplierRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryMultiplierSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
@@ -46,7 +46,7 @@ public class FactoryMultiplierSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final FactoryMultiplierSearchService factoryMultiplierSearchService;
-    private final FactoryMultiplierRestDTOMapperV2 factoryMultiplierRestDTOMapperV2;
+    private final FactoryMultiplierRestDTOMapper factoryMultiplierRestDTOMapper;
     private final FactoryMultiplierSearchRqDTOReverseMapper factoryMultiplierSearchRqDTOReverseMapper;
     private final FactoryMultiplierService factoryMultiplierService;
 
@@ -59,7 +59,7 @@ public class FactoryMultiplierSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory_multiplier/search/v1")
     public ResponseEntity<?> factoryMultiplierSearchV1(
-            @MapperContextBinding(roots = FactoryMultiplierRestDTOMapperV2.class, response = FactoryMultiplierSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryMultiplierRestDTOMapper.class, response = FactoryMultiplierSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody FactoryMultiplierSearchRqDTOv1 request) {
         FactoryMultiplierSearchRsDTOv1 rs = new FactoryMultiplierSearchRsDTOv1();
@@ -67,7 +67,7 @@ public class FactoryMultiplierSearchController extends ApiController {
             PaginationResult<TwinFactoryMultiplierEntity> multipliers = factoryMultiplierSearchService
                     .findFactoryMultipliers(factoryMultiplierSearchRqDTOReverseMapper.convert(request), pagination);
             rs
-                    .setMultipliers(factoryMultiplierRestDTOMapperV2.convertCollection(multipliers.getList(), mapperContext))
+                    .setMultipliers(factoryMultiplierRestDTOMapper.convertCollection(multipliers.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(multipliers))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -87,13 +87,13 @@ public class FactoryMultiplierSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/factory_multiplier/{multiplierId}/v1")
     public ResponseEntity<?> factoryMultiplierViewV1(
-            @MapperContextBinding(roots = FactoryMultiplierRestDTOMapperV2.class, response = FactoryMultiplierViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryMultiplierRestDTOMapper.class, response = FactoryMultiplierViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.MULTIPLIER_ID) @PathVariable("multiplierId") UUID multiplierId) {
         FactoryMultiplierViewRsDTOv1 rs = new FactoryMultiplierViewRsDTOv1();
         try {
             TwinFactoryMultiplierEntity multiplier = factoryMultiplierService.findEntitySafe(multiplierId);
             rs
-                    .setMultiplier(factoryMultiplierRestDTOMapperV2.convert(multiplier, mapperContext))
+                    .setMultiplier(factoryMultiplierRestDTOMapper.convert(multiplier, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

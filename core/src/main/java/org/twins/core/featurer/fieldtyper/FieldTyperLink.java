@@ -94,12 +94,12 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
         Map<UUID, TwinLinkEntity> storedLinksMap = null; // key is links dstTwinId
         switch (linkDirection) {
             case forward:
-                storedLinksList = twin.getTwinLinks().getForwardLinks().getCollection();
+                storedLinksList = twin.getTwinLinks().getForwardLinks().getGrouped(linkEntity.getId());
                 if (CollectionUtils.isNotEmpty(storedLinksList))
                     storedLinksMap = storedLinksList.stream().collect(Collectors.toMap(TwinLinkEntity::getDstTwinId, Function.identity()));
                 break;
             case backward:
-                storedLinksList = twin.getTwinLinks().getBackwardLinks().getCollection();
+                storedLinksList = twin.getTwinLinks().getBackwardLinks().getGrouped(linkEntity.getId());
                 if (CollectionUtils.isNotEmpty(storedLinksList))
                     storedLinksMap = storedLinksList.stream().collect(Collectors.toMap(TwinLinkEntity::getSrcTwinId, Function.identity()));
                 break;

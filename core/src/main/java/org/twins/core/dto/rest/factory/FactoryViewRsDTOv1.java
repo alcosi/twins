@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Schema(name = "FactoryViewRsV1")
 public class FactoryViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "result - factory")
-    public FactoryDTOv2 factory;
+    public FactoryDTOv1 factory;
 }

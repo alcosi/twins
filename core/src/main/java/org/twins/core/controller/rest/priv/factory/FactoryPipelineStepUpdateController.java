@@ -21,7 +21,7 @@ import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryPipelineStepSaveRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineStepUpdateRqDTOv1;
-import org.twins.core.mappers.rest.factory.FactoryPipelineStepRestDTOMapperV2;
+import org.twins.core.mappers.rest.factory.FactoryPipelineStepRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryPipelineStepUpdateDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -37,7 +37,7 @@ import java.util.UUID;
 @ProtectedBy({Permissions.PIPELINE_STEP_MANAGE, Permissions.PIPELINE_STEP_UPDATE})
 public class FactoryPipelineStepUpdateController extends ApiController {
     private final FactoryPipelineStepService factoryPipelineStepService;
-    private final FactoryPipelineStepRestDTOMapperV2 factoryPipelineStepRestDTOMapper;
+    private final FactoryPipelineStepRestDTOMapper factoryPipelineStepRestDTOMapper;
     private final FactoryPipelineStepUpdateDTOReverseMapper factoryPipelineStepUpdateDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
@@ -50,7 +50,7 @@ public class FactoryPipelineStepUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/factory/factory_pipeline_step/{factoryPipelineStepId}/v1")
     public ResponseEntity<?> factoryPipelineStepUpdateV1(
-            @MapperContextBinding(roots = FactoryPipelineStepRestDTOMapperV2.class, response = FactoryPipelineStepSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryPipelineStepRestDTOMapper.class, response = FactoryPipelineStepSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_PIPELINE_STEP_ID) @PathVariable UUID factoryPipelineStepId,
             @RequestBody FactoryPipelineStepUpdateRqDTOv1 request) {
         FactoryPipelineStepSaveRsDTOv1 rs = new FactoryPipelineStepSaveRsDTOv1();

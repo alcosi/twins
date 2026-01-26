@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "FaceWT005ViewRsV1")
+@Schema(name = "FaceTW005ViewRsV1")
 public class FaceTW005ViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "results - widget details")
     public FaceTW005DTOv1 widget;

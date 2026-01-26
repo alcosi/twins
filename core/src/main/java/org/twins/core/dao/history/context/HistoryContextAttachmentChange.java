@@ -13,6 +13,7 @@ public class HistoryContextAttachmentChange extends HistoryContextAttachment {
     private String newExternalId;
     private String newTitle;
     private String newDescription;
+    private Integer newOrder;
 
     @Override
     public String getType() {
@@ -30,6 +31,8 @@ public class HistoryContextAttachmentChange extends HistoryContextAttachment {
             vars.put("attachment.newTitle", newTitle);
         if (newDescription != null)
             vars.put("attachment.newDescription", newDescription);
+        if (newOrder != null)
+            vars.put("attachment.newOrder", String.valueOf(newOrder));
         return vars;
     }
 }

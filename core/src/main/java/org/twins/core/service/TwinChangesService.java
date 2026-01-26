@@ -1,5 +1,7 @@
 package org.twins.core.service;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -9,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.TwinChangeTaskStatus;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationRepository;
@@ -16,19 +19,17 @@ import org.twins.core.dao.attachment.TwinAttachmentRepository;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.twin.*;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.twin.TwinChangeTaskService;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.*;
 
 import static org.twins.core.domain.TwinChangesCollector.TwinInvalidate;
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @RequiredArgsConstructor
 public class TwinChangesService {
@@ -46,11 +47,11 @@ public class TwinChangesService {
     private final TwinFieldBooleanRepository twinFieldBooleanRepository;
     private final TwinFieldTwinClassListRepository twinFieldTwinClassListRepository;
     private final TwinAttachmentModificationRepository twinAttachmentModificationRepository;
+    private final TwinFieldAttributeRepository twinFieldAttributeRepository;
     private final SpaceRoleUserRepository spaceRoleUserRepository;
-    private final TwinChangeTaskRepository twinChangeTaskRepository;
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
-    private final AuthService authService;
+    private final TwinChangeTaskService twinChangeTaskService;
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinChangesApplyResult applyChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
@@ -72,6 +73,7 @@ public class TwinChangesService {
         saveEntities(twinChangesCollector, TwinFieldBooleanEntity.class, twinFieldBooleanRepository, changesApplyResult);
         saveEntities(twinChangesCollector, SpaceRoleUserEntity.class, spaceRoleUserRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldTwinClassEntity.class, twinFieldTwinClassListRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, TwinFieldAttributeEntity.class, twinFieldAttributeRepository, changesApplyResult);
 
         if (!twinChangesCollector.getSaveEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Map<Object, ChangesHelper>> classChanges : twinChangesCollector.getSaveEntityMap().entrySet()) {
@@ -92,6 +94,7 @@ public class TwinChangesService {
         deleteEntities(twinChangesCollector, TwinFieldBooleanEntity.class, twinFieldBooleanRepository);
         deleteEntities(twinChangesCollector, SpaceRoleUserEntity.class, spaceRoleUserRepository);
         deleteEntities(twinChangesCollector, TwinFieldTwinClassEntity.class, twinFieldTwinClassListRepository);
+        deleteEntities(twinChangesCollector, TwinFieldAttributeEntity.class, twinFieldAttributeRepository);
 
         if (!twinChangesCollector.getDeleteEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Set<Object>> classChanges : twinChangesCollector.getDeleteEntityMap().entrySet()) {
@@ -107,20 +110,15 @@ public class TwinChangesService {
     private void savePostponedChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinChangesCollector.getPostponedChanges().isEmpty())
             return;
-        ApiUser apiUser = authService.getApiUser();
         List<TwinChangeTaskEntity> changeTaskList = new ArrayList<>();
         for (var entry : twinChangesCollector.getPostponedChanges().entrySet()) {
             changeTaskList.add(new TwinChangeTaskEntity()
                     .setTwinId(entry.getKey())
-                    .setRequestId(apiUser.getRequestId()) //we have uniq index on twinId + requestId to avoid conflict runs
                     .setTwinFactoryId(entry.getValue().getLeft())
                     .setTwinFactorylauncher(entry.getValue().getRight())
-                    .setStatusId(TwinChangeTaskStatus.NEED_START)
-                    .setCreatedAt(Timestamp.from(Instant.now()))
-                    .setCreatedByUserId(apiUser.getUserId())
-                    .setBusinessAccountId(apiUser.getBusinessAccountId()));
+                    .setStatusId(TwinChangeTaskStatus.NEED_START));
         }
-        entitySmartService.saveAllAndLog(changeTaskList, twinChangeTaskRepository);
+        twinChangeTaskService.addTasks(changeTaskList);
     }
 
     private void invalidate(Map<Object, Set<TwinChangesCollector.TwinInvalidate>> invalidationMap) {
@@ -140,6 +138,7 @@ public class TwinChangesService {
                         case twinFieldI18nKit -> twinEntity.setTwinFieldI18nKit(null);
                         case twinFieldBooleanKit -> twinEntity.setTwinFieldBooleanKit(null);
                         case twinFieldTwinClassKit -> twinEntity.setTwinFieldTwinClassKit(null);
+                        case twinFieldAttributeKit -> twinEntity.setTwinFieldAttributeKit(null);
                     }
                 }
             } else if (entry.getKey() instanceof TwinAttachmentEntity twinAttachmentEntity) {

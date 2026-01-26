@@ -1,5 +1,7 @@
 package org.twins.core.service;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,9 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
+import org.twins.core.mappers.rest.RestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperMode;
 import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
-import org.twins.core.mappers.rest.RestDTOMapper;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -20,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 @Slf4j
 public class MapperModesResolveService {

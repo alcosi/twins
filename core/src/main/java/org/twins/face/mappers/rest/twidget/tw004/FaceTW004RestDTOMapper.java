@@ -7,12 +7,12 @@ import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.domain.face.PointedFace;
+import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceTwidgetRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
-import org.twins.core.service.i18n.I18nService;
 import org.twins.face.dao.twidget.tw004.FaceTW004Entity;
 import org.twins.face.domain.twidget.tw004.FaceTW004TwinClassField;
 import org.twins.face.dto.rest.twidget.tw004.FaceTW004DTOv1;
@@ -25,7 +25,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FaceTW004RestDTOMapper extends RestSimpleDTOMapper<PointedFace<FaceTW004Entity>, FaceTW004DTOv1> {
     protected final FaceTwidgetRestDTOMapper faceTwidgetRestDTOMapper;
-    private final I18nService i18nService;
     private final FaceTW004Service faceTW004Service;
     @MapperModePointerBinding(modes = FaceTW004Modes.FaceTW0042TwinClassFieldMode.class)
     private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
@@ -44,7 +43,7 @@ public class FaceTW004RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
                     .setEditable(true);
             case DETAILED -> dst
                     .setKey(faceTW004TwinClassField.getField().getKey())
-                    .setLabel(i18nService.translateToLocale(faceTW004TwinClassField.getField().getNameI18nId()))
+                    .setLabel(I18nCacheHolder.addId(faceTW004TwinClassField.getField().getNameI18nId()))
                     .setTwinClassFieldId(faceTW004TwinClassField.getField().getId())
                     .setEditable(faceTW004TwinClassField.isEditable());
         }

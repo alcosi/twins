@@ -10,5 +10,6 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "DataListCreateRqV1")
 public class DataListCreateRqDTOv1 extends DataListSaveRqDTOv1 {
-
+    @Schema(description = "default option")
+    public DataListOptionDefaultCreateDTOv1 defaultOption;
 }

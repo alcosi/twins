@@ -19,6 +19,7 @@ public class TwinUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Pair<Twi
     private final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
     private final AttachmentCUDRestDTOReverseMapper twinAttachmentCUDRestDTOReverseMapper;
     private final TwinLinkCUDRestDTOReverseMapper twinLinkCUDRestDTOReverseMapper;
+    private final TwinFieldAttributeCUDRestDTOReverseMapper twinFieldAttributeCUDRestDTOReverseMapper;
     private final UserService userService;
 
     @Override
@@ -53,6 +54,10 @@ public class TwinUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Pair<Twi
                         .setTagsDelete(twinUpdateDTO.getTagsUpdate().deleteTags())
                         .setTagsAddExisted(twinUpdateDTO.getTagsUpdate().existingTags())
                         .setTagsAddNew(twinUpdateDTO.getTagsUpdate().newTags());
+            }
+
+            if (twinUpdateDTO.getFieldsAttributes() != null) {
+                dst.setTwinFieldAttributeCUD(twinFieldAttributeCUDRestDTOReverseMapper.convert(twinUpdateDTO.getFieldsAttributes()));
             }
         }
     }

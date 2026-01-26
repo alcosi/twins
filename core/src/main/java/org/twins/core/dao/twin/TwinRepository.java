@@ -60,4 +60,10 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
 
     <T> List<T> findByHeadTwinIdInAndTwinClassIdIn(Collection<UUID> headTwinIds, Collection<UUID> twinClassIds, Class<T> clazz);
 
+    @Query(value = "select t from TwinEntity t where t.headTwinId in :headTwinIds and t.twinClass.segment = true ")
+    List<TwinEntity> findSegments(Collection<UUID> headTwinIds);
+
+    @Query(value = "select h from TwinEntity t, TwinEntity h where t.id = :twinId and t.headTwinId = h.id")
+    TwinEntity findHeadTwin(@Param("twinId") UUID twinId);
+
 }

@@ -30,12 +30,12 @@ public class FieldTyperSharedSelectInBusinessAccount extends FieldTyperList {
 
     @Override
     public FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
-        UUID listId = listUUID.extract(properties);
-        dataListService.findEntitySafe(listId);
-        return new FieldDescriptorList()
+        FieldDescriptorList fieldDescriptorList = (FieldDescriptorList) super.getFieldDescriptor(twinClassFieldEntity, properties);
+        fieldDescriptorList
                 .supportCustom(false)
                 .multiple(false)
-                .options(dataListService.findByDataListIdAndNotUsedInBusinessAccount(listId, twinClassFieldEntity.getId(), getBusinessAccountId(twinClassFieldEntity)));
+                .options(dataListService.findByDataListIdAndNotUsedInBusinessAccount(dataListId.extract(properties), twinClassFieldEntity.getId(), getBusinessAccountId(twinClassFieldEntity)));
+        return fieldDescriptorList;
     }
 
     @Override

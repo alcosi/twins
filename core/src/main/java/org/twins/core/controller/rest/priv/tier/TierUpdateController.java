@@ -24,7 +24,6 @@ import org.twins.core.dto.rest.tier.TierSaveRsDTOv1;
 import org.twins.core.dto.rest.tier.TierUpdateRqDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.tier.TierRestDTOMapper;
-import org.twins.core.mappers.rest.tier.TierRestDTOMapperV2;
 import org.twins.core.mappers.rest.tier.TierUpdateDTOReverseMapper;
 import org.twins.core.service.domain.TierService;
 import org.twins.core.service.permission.Permissions;
@@ -39,7 +38,7 @@ import java.util.UUID;
 public class TierUpdateController extends ApiController {
     private final TierUpdateDTOReverseMapper tierUpdateDTOReverseMapper;
     private final TierService tierService;
-    private final TierRestDTOMapperV2 tierRestDTOMapperV2;
+    private final TierRestDTOMapper tierRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "tierUpdateV1", summary = "tier for update")
@@ -56,7 +55,7 @@ public class TierUpdateController extends ApiController {
         TierSaveRsDTOv1 rs = new TierSaveRsDTOv1();
         try {
             TierEntity tierEntity = tierService.updateTier(tierUpdateDTOReverseMapper.convert(request.getTier()).setId(tierId));
-            rs.setTier(tierRestDTOMapperV2.convert(tierEntity, mapperContext));
+            rs.setTier(tierRestDTOMapper.convert(tierEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

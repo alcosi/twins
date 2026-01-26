@@ -23,3 +23,5 @@ public class TwinUpdateRsDTOv1 extends Response {
     @Schema(description = "twin alias list. Alias is unique in domain scope")
     public List<String> domainAliasList;
 }
+
+

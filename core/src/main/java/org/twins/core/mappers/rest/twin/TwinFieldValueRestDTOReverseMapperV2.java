@@ -20,7 +20,6 @@ import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.*;
 
-
 @Component
 @RequiredArgsConstructor
 public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<FieldValueText, FieldValue> {

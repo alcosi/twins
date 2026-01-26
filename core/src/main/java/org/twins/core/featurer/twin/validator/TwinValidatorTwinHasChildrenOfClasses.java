@@ -2,6 +2,7 @@ package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -36,7 +37,7 @@ public class TwinValidatorTwinHasChildrenOfClasses extends TwinValidator {
         BasicSearch search = new BasicSearch();
         search
                 .addHeadTwinId(twinEntity.getId())
-                .addTwinClassId(classIdSet, false);
+                .addTwinClassExtendsHierarchyContainsId(classIdSet);
         long count = twinSearchService.count(search);
         boolean isValid = count > 0;
         return buildResult(
@@ -50,7 +51,7 @@ public class TwinValidatorTwinHasChildrenOfClasses extends TwinValidator {
     protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
         Set<UUID> classIdSet = classIds.extract(properties);
         BasicSearch search = new BasicSearch();
-        search.addTwinClassId(classIdSet, false);
+        search.addTwinClassExtendsHierarchyContainsId(classIdSet);
         Map<UUID, Long> counts = twinSearchService.countGroupBy(search, TwinEntity.Fields.headTwinId);
         CollectionValidationResult result = new CollectionValidationResult();
         for (TwinEntity twinEntity : twinEntityCollection) {

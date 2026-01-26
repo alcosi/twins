@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Schema(name = "TwinClassFieldRsV1")
 public class TwinClassFieldRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "results - twin class fields list")
-    public TwinClassFieldDTOv2 field;
+    public TwinClassFieldDTOv1 field;
 }

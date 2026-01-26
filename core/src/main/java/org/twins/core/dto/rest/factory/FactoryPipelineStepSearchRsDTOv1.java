@@ -18,5 +18,5 @@ public class FactoryPipelineStepSearchRsDTOv1 extends ResponseRelatedObjectsDTOv
     public PaginationDTOv1 pagination;
 
     @Schema(description = "results - factory pipeline step list")
-    public List<FactoryPipelineStepDTOv2> steps;
+    public List<FactoryPipelineStepDTOv1> steps;
 }

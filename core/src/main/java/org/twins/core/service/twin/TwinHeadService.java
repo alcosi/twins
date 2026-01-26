@@ -1,5 +1,7 @@
 package org.twins.core.service.twin;
 
+import io.github.breninsul.logging.aspect.JavaLoggingLevel;
+import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
@@ -26,6 +28,7 @@ import java.util.Collections;
 import java.util.UUID;
 
 @Service
+@LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @Lazy
 @RequiredArgsConstructor
@@ -51,10 +54,11 @@ public class TwinHeadService {
         } else {
             basicSearch.addTwinClassExtendsHierarchyContainsId(headTwinClassEntity.getId());
         }
-        if (twinClassEntity.getHeadHunterFeaturer() != null) {//headhunter should not be empty if head twin is specified and head class is not USER and BA
-            HeadHunter headHunter = featurerService.getFeaturer(twinClassEntity.getHeadHunterFeaturer(), HeadHunter.class);
+        if (twinClassEntity.getHeadHunterFeaturerId() != null) {//headhunter should not be empty if head twin is specified and head class is not USER and BA
+            HeadHunter headHunter = featurerService.getFeaturer(twinClassEntity.getHeadHunterFeaturerId(), HeadHunter.class);
             headHunter.expandValidHeadSearch(twinClassEntity.getHeadHunterParams(), twinClassEntity, basicSearch);
         }
+        //todo add checkSegmentUniq logic, to exclude heads with segments
         return twinSearchService.findTwins(basicSearch, pagination);
     }
 
@@ -78,7 +82,22 @@ public class TwinHeadService {
         PaginationResult<TwinEntity> validHead = findValidHeads(subClass, basicSearch, SimplePagination.SINGLE);
         if (validHead.getTotal() == 0)
             throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, "twin[" + headTwinId + "] is not allowed for twinClass[" + subClass.getId() + "]");
-        return validHead.getList().getFirst();
+        var head = validHead.getList().getFirst();
+        checkSegmentUniq(head, subClass);
+        return head;
+    }
+
+    private void checkSegmentUniq(TwinEntity headTwin, TwinClassEntity subClass) throws ServiceException {
+        if (Boolean.FALSE.equals(subClass.getSegment()))
+            return;
+        //segments are one-to-one only
+        var segmentsSearch = new BasicSearch();
+        segmentsSearch
+                .addTwinClassId(subClass.getId(), false)
+                .addHeadTwinId(headTwin.getId());
+        if (twinSearchService.exists(segmentsSearch)) {
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_SEGMENT_NOT_UNIQ, "segment of {} is already exists for head {} ", subClass.logShort(), headTwin.logShort());
+        }
     }
 
     public void loadCreatableChildTwinClasses(TwinEntity twinEntity) throws ServiceException {
@@ -96,9 +115,9 @@ public class TwinHeadService {
         for (TwinEntity twinEntity : needLoad.getList()) {
             Kit<TwinClassEntity, UUID> creatableChildTwinClasses = new Kit<>(TwinClassEntity::getId);
             for (TwinClassEntity childTwinClassEntity : twinEntity.getTwinClass().getHeadHierarchyChildClassKit().getList()) {
-                if (childTwinClassEntity.getHeadHunterFeaturer() == null)
+                if (childTwinClassEntity.getHeadHunterFeaturerId() == null)
                     continue;
-                HeadHunter headHunter = featurerService.getFeaturer(childTwinClassEntity.getHeadHunterFeaturer(), HeadHunter.class);
+                HeadHunter headHunter = featurerService.getFeaturer(childTwinClassEntity.getHeadHunterFeaturerId(), HeadHunter.class);
                 if (headHunter.isCreatableChildClass(childTwinClassEntity.getHeadHunterParams(), twinEntity, childTwinClassEntity)) {
                     //todo check permission
                     creatableChildTwinClasses.add(childTwinClassEntity);

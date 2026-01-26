@@ -25,4 +25,7 @@ public class TwinflowSaveRqDTOv1 extends Request {
     @Schema(description = "initial status id", example = DTOExamples.TWIN_STATUS_ID)
     public UUID initialStatusId;
 
+    @Schema(description = "initial sketch status id", example = DTOExamples.TWIN_STATUS_ID)
+    public UUID initialSketchStatusId;
+
 }

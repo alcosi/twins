@@ -25,7 +25,7 @@ import org.twins.core.dto.rest.twinflow.TwinflowCreateRsDTOv1;
 import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twinflow.TwinflowBaseV2RestDTOMapper;
+import org.twins.core.mappers.rest.twinflow.TwinflowBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowCreateRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowService;
@@ -39,7 +39,7 @@ import java.util.UUID;
 @ProtectedBy({Permissions.TWINFLOW_MANAGE, Permissions.TWINFLOW_CREATE})
 public class TwinflowCreateController extends ApiController {
 
-    private final TwinflowBaseV2RestDTOMapper twinflowBaseV2RestDTOMapper;
+    private final TwinflowBaseV1RestDTOMapper twinflowBaseV1RestDTOMapper;
     private final TwinflowCreateRestDTOReverseMapper twinflowCreateRestDTOReverseMapper;
     private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -55,7 +55,7 @@ public class TwinflowCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_class/{twinClassId}/twinflow/v1")
     public ResponseEntity<?> twinflowCreateV1(
-            @MapperContextBinding(roots = TwinflowBaseV2RestDTOMapper.class, response = TwinflowCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinflowBaseV1RestDTOMapper.class, response = TwinflowCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
             @RequestBody TwinflowCreateRqDTOv1 request) {
         TwinflowCreateRsDTOv1 rs = new TwinflowCreateRsDTOv1();
@@ -66,7 +66,7 @@ public class TwinflowCreateController extends ApiController {
             TwinflowEntity twinflowEntity = twinflowCreateRestDTOReverseMapper.convert(request).setTwinClassId(twinClassId);
             twinflowEntity = twinflowService.createTwinflow(twinflowEntity, nameI18n, descriptionsI18n);
             rs
-                    .setTwinflow(twinflowBaseV2RestDTOMapper.convert(twinflowEntity, mapperContext))
+                    .setTwinflow(twinflowBaseV1RestDTOMapper.convert(twinflowEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

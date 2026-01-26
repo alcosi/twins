@@ -23,7 +23,6 @@ import org.twins.core.dto.rest.datalist.DataListOptionMapRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionMapRsDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv3;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
-import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapperV3;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.permission.Permissions;
@@ -38,7 +37,6 @@ import java.util.UUID;
 public class DataListOptionController extends ApiController {
     private final DataListOptionService dataListOptionService;
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
-    private final DataListOptionRestDTOMapperV3 dataListOptionRestDTOMapperV3;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListOptionViewV1", summary = "Returns list data")
@@ -49,13 +47,13 @@ public class DataListOptionController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/data_list_option/{dataListOptionId}/v1")
     public ResponseEntity<?> dataListOptionV1(
-            @MapperContextBinding(roots = DataListOptionRestDTOMapperV3.class, response = DataListOptionRsDTOv3.class) @Schema(hidden = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, response = DataListOptionRsDTOv3.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_OPTION_ID) @PathVariable UUID dataListOptionId) {
         DataListOptionRsDTOv3 rs = new DataListOptionRsDTOv3();
         try {
             DataListOptionEntity dataListOptionEntity = dataListOptionService.findEntitySafe(dataListOptionId);
             rs
-                    .setOption(dataListOptionRestDTOMapperV3.convert(dataListOptionEntity, mapperContext));
+                    .setOption(dataListOptionRestDTOMapper.convert(dataListOptionEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -64,6 +62,7 @@ public class DataListOptionController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
+    @Deprecated //no pagination support
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListOptionsMapViewV1", summary = "Returns map option id ref list data option")
     @ApiResponses(value = {

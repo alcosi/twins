@@ -17,3 +17,5 @@ public class TwinSearchIncludeByLinkDTOv1 {
     @Schema(description = "Head twin id list")
     public List<UUID> dstTwinIdList;
 }
+
+
