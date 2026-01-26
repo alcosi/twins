@@ -118,7 +118,7 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
             throw new ServiceException(ErrorCodeTwins.TWIN_MARKER_RECURSIVE_LOAD_DETECTED, "Cannot load markers recursively for twin: " + twinsWithRecursion.getFirst().logShort());
         }
 
-        List<TwinEntity> twinsToLoad = twinEntityList.stream().filter(twin -> twin.getMarkersLoadState() == LoadState.NOT_LOAD).toList();
+        List<TwinEntity> twinsToLoad = twinEntityList.stream().filter(twin -> twin.getMarkersLoadState() == LoadState.NOT_LOADED).toList();
 
         if (twinsToLoad.isEmpty()) return;
 
@@ -221,7 +221,7 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
 
         } catch (ServiceException e) {
             for (TwinEntity twin : twinsToLoad) {
-                twin.setMarkersLoadState(LoadState.NOT_LOAD);
+                twin.setMarkersLoadState(LoadState.NOT_LOADED);
                 twin.setTwinMarkerKit(null);
             }
             throw e;

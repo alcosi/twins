@@ -136,7 +136,7 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private LoadState markersLoadState = LoadState.NOT_LOAD; // needed for load markers
+    private LoadState markersLoadState = LoadState.NOT_LOADED; // needed for load markers
 
 //    @ManyToOne(fetch = FetchType.EAGER)
 //    @JoinColumn(name = "head_twin_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = true)

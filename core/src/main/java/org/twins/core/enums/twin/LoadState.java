@@ -1,7 +1,7 @@
 package org.twins.core.enums.twin;
 
 public enum LoadState {
-    NOT_LOAD,
+    NOT_LOADED,
     LOADING,
     LOADED
 }
