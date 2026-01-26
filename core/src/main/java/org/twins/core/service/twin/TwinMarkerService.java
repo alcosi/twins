@@ -106,7 +106,6 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
             return twinEntity.getTwinMarkerKit();
 
         loadMarkers(Collections.singletonList(twinEntity));
-        twinEntity.setMarkersLoadState(LoadState.LOADED);
         return twinEntity.getTwinMarkerKit();
     }
 
