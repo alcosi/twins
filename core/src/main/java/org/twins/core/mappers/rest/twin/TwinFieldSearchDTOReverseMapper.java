@@ -89,6 +89,11 @@ public class TwinFieldSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinFie
                     .setIdIncludeAllSet(dto.idIncludeAllSet())
                     .setIdExcludeAnySet(dto.idExcludeAnySet())
                     .setIdIncludeAnySet(dto.idIncludeAnySet());
+        } else if (twinFieldSearchDTOv1 instanceof TwinFieldSearchTimestampDTOv1 dto) {
+            return new TwinFieldSearchTimestamp()
+                    .setEquals(dto.getEquals())
+                    .setAfterDate(dto.getAfterDate())
+                    .setBeforeDate(dto.getBeforeDate());
         } else {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, "Invalid search field type: " + twinFieldSearchDTOv1.type());
         }
