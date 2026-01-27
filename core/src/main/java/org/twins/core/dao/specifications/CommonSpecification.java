@@ -37,13 +37,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
 
     /**
      * Generates a Specification to check hierarchy of child elements based on the given parameters.
-     * The method supports:
-     * 1. Filtering based on a list of UUIDs (regular hierarchy roots)
-     * 2. Special handling for UuidUtils.NULLIFY_MARKER (ffffffff-ffff-ffff-ffff-ffffffffffff)
-     *    to find root elements without parent (elements with ltree values that don't contain dots)
-     * 3. Negating the condition
-     * 4. Including null values in results
-     * 5. Limiting the hierarchy depth
+     *      * The method supports filtering based on a list of UUIDs, negating the condition,
+     *      * including null values, and limiting the hierarchy depth.
      *
      * @param <T>               The type of the entities being queried.
      * @param ids               A collection of UUIDs representing the hierarchy roots to validate against.
