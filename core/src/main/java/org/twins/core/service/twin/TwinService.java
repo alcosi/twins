@@ -1166,30 +1166,30 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public FieldValue createFieldValue(TwinClassFieldEntity twinClassFieldEntity, String value) throws ServiceException {
         FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
         FieldValue fieldValue = null;
-        if (fieldTyper.getValueType() == FieldValueText.class)
+        if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueText.class)
             fieldValue = new FieldValueText(twinClassFieldEntity);
-        if (fieldTyper.getValueType() == FieldValueColorHEX.class)
+        if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueColorHEX.class)
             fieldValue = new FieldValueColorHEX(twinClassFieldEntity);
-        if (fieldTyper.getValueType() == FieldValueDate.class)
+        if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueDate.class)
             fieldValue = new FieldValueDate(twinClassFieldEntity);
-        if (fieldTyper.getValueType() == FieldValueSelect.class)
+        if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueSelect.class)
             fieldValue = new FieldValueSelect(twinClassFieldEntity);
-        if (fieldTyper.getValueType() == FieldValueUser.class)
+        if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueUser.class)
             fieldValue = new FieldValueUser(twinClassFieldEntity);
-        if (fieldTyper.getValueType() == FieldValueLink.class)
+        if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueLink.class)
             fieldValue = new FieldValueLink(twinClassFieldEntity);
-        if (fieldTyper.getValueType() == FieldValueInvisible.class)
+        if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueInvisible.class)
             fieldValue = new FieldValueInvisible(twinClassFieldEntity);
-        if (fieldTyper.getValueType() == FieldValueAttachment.class)
+        if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueAttachment.class)
             fieldValue = new FieldValueAttachment(twinClassFieldEntity);
-        if (fieldTyper.getValueType() == FieldValueI18n.class)
+        if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueI18n.class)
             fieldValue = new FieldValueI18n(twinClassFieldEntity);
-        if (fieldTyper.getValueType() == FieldValueBoolean.class)
+        if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueBoolean.class)
             fieldValue = new FieldValueBoolean(twinClassFieldEntity);
-        if (fieldTyper.getValueType() == FieldValueTwinClassList.class)
+        if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueTwinClassList.class)
             fieldValue = new FieldValueTwinClassList(twinClassFieldEntity);
         if (fieldValue == null)
-            throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "unknown fieldValue[" + fieldTyper.getValueType() + "]");
+            throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "unknown fieldValue[" + fieldTyper.getValueType(twinClassFieldEntity) + "]");
 
         if (value == null) // nullify
             fieldValue.nullify();

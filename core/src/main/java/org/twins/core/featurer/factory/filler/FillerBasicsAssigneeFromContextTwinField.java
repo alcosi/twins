@@ -15,6 +15,7 @@ import java.util.Properties;
         name = "Basics assignee from context twin field",
         description = "")
 @Slf4j
+@Deprecated
 public class FillerBasicsAssigneeFromContextTwinField extends FillerBasicsAssigneeFromContext {
 
     @Override
