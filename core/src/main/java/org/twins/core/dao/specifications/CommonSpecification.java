@@ -37,8 +37,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
 
     /**
      * Generates a Specification to check hierarchy of child elements based on the given parameters.
-     *      * The method supports filtering based on a list of UUIDs, negating the condition,
-     *      * including null values, and limiting the hierarchy depth.
+     * The method supports filtering based on a list of UUIDs, negating the condition,
+     * including null values, and limiting the hierarchy depth.
      *
      * @param <T>               The type of the entities being queried.
      * @param ids               A collection of UUIDs representing the hierarchy roots to validate against.
