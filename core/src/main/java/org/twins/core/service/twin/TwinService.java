@@ -1204,8 +1204,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             fieldValue = new FieldValueBoolean(twinClassFieldEntity);
         if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueTwinClassList.class)
             fieldValue = new FieldValueTwinClassList(twinClassFieldEntity);
-        if (fieldTyper.getValueType() == FieldValueTimestamp.class)
-            fieldValue = new FieldValueTimestamp(twinClassFieldEntity);
         if (fieldValue == null)
             throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "unknown fieldValue[" + fieldTyper.getValueType(twinClassFieldEntity) + "]");
 
@@ -1225,8 +1223,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             fieldValueDate.setDateStr(value);
         if (fieldValue instanceof FieldValueBoolean fieldValueBoolean)
             fieldValueBoolean.setValue(Boolean.parseBoolean(value));
-        if (fieldValue instanceof FieldValueTimestamp fieldValueTimestamp)
-            fieldValueTimestamp.setValue(value);
         if (fieldValue instanceof FieldValueAttachment fieldValueAttachment) {
             // Parse the value as JSON to extract name and base64Content
             // For simplicity, we'll assume the value is in the format "name:base64Content"
@@ -1469,8 +1465,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             res = classList.getTwinClassEntities().stream()
                     .map(entity -> i18nService.translateToLocale(entity.getNameI18NId()))
                     .collect(Collectors.joining(", "));
-        } else if (fieldValue instanceof FieldValueTimestamp fieldValueTimestamp) {
-            res = fieldValueTimestamp.toString();
         }
 
         return res;

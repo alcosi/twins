@@ -322,7 +322,8 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
 
         return cb.equal(booleanField, search.getValue());
     }
-    public static Specification<TwinEntity> checkFieldTimestamp(final TwinFieldSearchTimestamp search) {
+
+    public static Specification<TwinEntity> checkFieldTimestamp(TwinFieldSearchDate search) {
         return (root, query, cb) -> {
             if (search.isEmptySearch()) return cb.conjunction();
 
@@ -334,10 +335,10 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
 
             if (search.getEquals() != null)
                 predicates.add(cb.equal(timestampField, convertToTimestamp(search.getEquals())));
-            if (search.getBeforeDate() != null)
-                predicates.add(cb.lessThan(timestampField, convertToTimestamp(search.getBeforeDate())));
-            if (search.getAfterDate() != null)
-                predicates.add(cb.greaterThan(timestampField, convertToTimestamp(search.getAfterDate())));
+            if (search.getLessThen() != null)
+                predicates.add(cb.lessThan(timestampField, convertToTimestamp(search.getLessThen())));
+            if (search.getMoreThen() != null)
+                predicates.add(cb.greaterThan(timestampField, convertToTimestamp(search.getMoreThen())));
 
             return predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(new Predicate[0]));
         };

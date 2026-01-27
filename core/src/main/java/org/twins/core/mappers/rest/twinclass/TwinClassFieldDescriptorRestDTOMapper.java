@@ -57,11 +57,6 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                     .pattern(dateDescriptor.pattern())
                     .beforeDate(dateDescriptor.beforeDate())
                     .afterDate(dateDescriptor.afterDate());
-        else if (fieldDescriptor instanceof FieldDescriptorTimestamp timestampDescriptor)
-            return new TwinClassFieldDescriptorTimestampDTOv1()
-                    .pattern(timestampDescriptor.pattern())
-                    .beforeDate(timestampDescriptor.beforeDate())
-                    .afterDate(timestampDescriptor.afterDate());
         else if (fieldDescriptor instanceof FieldDescriptorList listDescriptor)
             if (listDescriptor.options() == null) {
                 TwinClassFieldDescriptorListLongDTOv1 listLongFieldDescriptor = new TwinClassFieldDescriptorListLongDTOv1()
