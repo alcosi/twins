@@ -157,7 +157,7 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
     }
 
     private CopyContext createCopyContext(TwinEntity origTwin, UserEntity user, Map<UUID, CopyContext> copyContextMap, Properties properties) throws ServiceException {
-        var classReplaceMap = extractLinkReplaceMap(properties);
+        var classReplaceMap = twinClassReplaceMap.extract(properties);
 
         // get existing context (for input twins) or create a new one (usually for children)
         var copyContext = copyContextMap.computeIfAbsent(
@@ -179,7 +179,7 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
             return copyContext;
         }
 
-        var newClassId = classReplaceMap.get(origTwin.getTwinClassId());
+        var newClassId = UUID.fromString(classReplaceMap.get(origTwin.getTwinClassId().toString()));
         var newClass = twinClassService.findEntitySafe(newClassId);
 
         // creating twin copy with head copy and new class
