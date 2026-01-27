@@ -9,6 +9,7 @@ import org.cambium.common.math.LongRange;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LTreeUtils;
 import org.cambium.common.util.Ternary;
+import org.cambium.common.util.UuidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
@@ -36,8 +37,13 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
 
     /**
      * Generates a Specification to check hierarchy of child elements based on the given parameters.
-     * The method supports filtering based on a list of UUIDs, negating the condition,
-     * including null values, and limiting the hierarchy depth.
+     * The method supports:
+     * 1. Filtering based on a list of UUIDs (regular hierarchy roots)
+     * 2. Special handling for UuidUtils.NULLIFY_MARKER (ffffffff-ffff-ffff-ffff-ffffffffffff)
+     *    to find root elements without parent (elements with ltree values that don't contain dots)
+     * 3. Negating the condition
+     * 4. Including null values in results
+     * 5. Limiting the hierarchy depth
      *
      * @param <T>               The type of the entities being queried.
      * @param ids               A collection of UUIDs representing the hierarchy roots to validate against.
@@ -49,31 +55,76 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      */
     public static <T> Specification<T> checkHierarchyChildren(Collection<UUID> ids, boolean not,
                                                               boolean includeNullValues, Integer depthLimit, final String... ltreeFieldPath) {
-
         return (root, query, cb) -> {
             if (org.cambium.common.util.CollectionUtils.isEmpty(ids))
                 return cb.conjunction();
-            Range<Integer> range = null;
-            if (depthLimit == null || depthLimit == 0)
-                range = Range.of(1, (int) Short.MAX_VALUE);
-            else if (depthLimit > 0)
-                range = Range.of(1, depthLimit);
-            else if (depthLimit < 0) {
-                range = Range.of(0, (int) Short.MAX_VALUE);
+
+            boolean hasNullifyMarker = ids.contains(UuidUtils.NULLIFY_MARKER);
+
+            List<UUID> regularIds = ids.stream()
+                    .filter(id -> !UuidUtils.NULLIFY_MARKER.equals(id))
+                    .toList();
+
+            List<Predicate> allPredicates = new ArrayList<>();
+
+            if (!regularIds.isEmpty()) {
+                Range<Integer> range;
+                if (depthLimit == null || depthLimit == 0) {
+                    range = Range.of(1, (int) Short.MAX_VALUE);
+                } else if (depthLimit > 0) {
+                    range = Range.of(1, depthLimit);
+                } else {
+                    range = Range.of(0, (int) Short.MAX_VALUE);
+                }
+
+                var preparedIds = LTreeUtils.findChildsLQuery(
+                        regularIds.stream().map(UUID::toString).collect(Collectors.toList()),
+                        range
+                );
+
+                Path<String> ltreePath = getFieldPath(root, includeNullValues || hasNullifyMarker ? JoinType.LEFT : JoinType.INNER, ltreeFieldPath);
+                var ltreeIsInFunction = cb.function("hierarchy_check_lquery", Boolean.class, ltreePath, cb.literal(preparedIds));
+
+                Predicate regularPredicate = not ? cb.isFalse(ltreeIsInFunction) : cb.isTrue(ltreeIsInFunction);
+
+                if (includeNullValues) {
+                    allPredicates.add(cb.or(regularPredicate, ltreePath.isNull()));
+                } else {
+                    allPredicates.add(regularPredicate);
+                }
             }
-            var preparedIds = LTreeUtils.findChildsLQuery(ids.stream().map(UUID::toString).collect(Collectors.toList()), range);
-            Path<String> ltreePath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, ltreeFieldPath);
-            Predicate idPredicate;
-            var ltreeIsInFunction = cb.function("hierarchy_check_lquery", Boolean.class, ltreePath, cb.literal(preparedIds));
-            if (not) {
-                idPredicate = cb.isFalse(ltreeIsInFunction);
-            } else {
-                idPredicate = cb.isTrue(ltreeIsInFunction);
+            if (hasNullifyMarker) {
+                Path<String> ltreePath = getFieldPath(root, JoinType.LEFT, ltreeFieldPath);
+                Expression<String> ltreeText = cb.function("text", String.class, ltreePath);
+
+                Predicate noParentPredicate;
+                if (not) {
+                    noParentPredicate = cb.or(
+                            ltreePath.isNull(),
+                            cb.like(ltreeText, "%.%")
+                    );
+                } else {
+                    noParentPredicate = cb.and(
+                            ltreePath.isNotNull(),
+                            cb.notLike(ltreeText, "%.%")
+                    );
+                }
+
+                allPredicates.add(noParentPredicate);
             }
-            if (includeNullValues) {
-                return cb.or(idPredicate, ltreePath.isNull());
+
+            if (allPredicates.isEmpty()) {
+                return cb.conjunction();
+            } else if (allPredicates.size() == 1) {
+                return allPredicates.getFirst();
             } else {
-                return idPredicate;
+                Predicate combined;
+                if (not) {
+                    combined = cb.and(allPredicates.toArray(new Predicate[0]));
+                } else {
+                    combined = cb.or(allPredicates.toArray(new Predicate[0]));
+                }
+                return combined;
             }
         };
     }
