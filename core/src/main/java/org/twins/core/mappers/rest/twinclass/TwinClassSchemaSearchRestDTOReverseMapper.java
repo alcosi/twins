@@ -18,8 +18,6 @@ public class TwinClassSchemaSearchRestDTOReverseMapper extends RestSimpleDTOMapp
         dst
                 .setIdList(src.getIdList())
                 .setIdExcludeList(src.getIdExcludeList())
-                .setDomainIdList(src.getDomainIdList())
-                .setDomainIdExcludeList(src.getDomainIdExcludeList())
                 .setNameLikeList(src.getNameLikeList())
                 .setNameNotLikeList(src.getNameNotLikeList())
                 .setDescriptionLikeList(src.getDescriptionLikeList())

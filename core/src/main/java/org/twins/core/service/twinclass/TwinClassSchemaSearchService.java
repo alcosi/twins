@@ -11,7 +11,6 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.notification.HistoryNotificationRecipientEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaRepository;
 import org.twins.core.domain.ApiUser;
@@ -40,11 +39,9 @@ public class TwinClassSchemaSearchService {
     private Specification<TwinClassSchemaEntity> createTwinClassSchemaSearchSpecification(TwinClassSchemaSearch search) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         return Specification.allOf(
-                checkFieldUuid(apiUser.getDomainId(), HistoryNotificationRecipientEntity.Fields.domainId),
+                checkFieldUuid(apiUser.getDomainId(), TwinClassSchemaEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinClassSchemaEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinClassSchemaEntity.Fields.id),
-                checkUuidIn(search.getDomainIdList(), false, false, TwinClassSchemaEntity.Fields.domainId),
-                checkUuidIn(search.getDomainIdExcludeList(), true, false, TwinClassSchemaEntity.Fields.domainId),
                 checkFieldLikeIn(search.getNameLikeList(), false, true, TwinClassSchemaEntity.Fields.name),
                 checkFieldLikeIn(search.getNameNotLikeList(), true, true, TwinClassSchemaEntity.Fields.name),
                 checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinClassSchemaEntity.Fields.description),

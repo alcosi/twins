@@ -12,8 +12,6 @@ import java.util.UUID;
 public class TwinClassSchemaSearch {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
-    private Set<UUID> domainIdList;
-    private Set<UUID> domainIdExcludeList;
     private Set<String> nameLikeList;
     private Set<String> nameNotLikeList;
     private Set<String> descriptionLikeList;

@@ -19,12 +19,6 @@ public class TwinClassSchemaSearchDTOv1 {
     @Schema(description = "id exclude list")
     public Set<UUID> idExcludeList;
 
-    @Schema(description = "domain id list")
-    public Set<UUID> domainIdList;
-
-    @Schema(description = "domain id exclude list")
-    public Set<UUID> domainIdExcludeList;
-
     @Schema(description = "name like list")
     public Set<String> nameLikeList;
 
