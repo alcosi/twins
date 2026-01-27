@@ -2,7 +2,6 @@ package org.cambium.common.kit;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class KitGrouped<E, K, GK> extends Kit<E, K>{
     protected Map<GK, List<E>> groupedMap;

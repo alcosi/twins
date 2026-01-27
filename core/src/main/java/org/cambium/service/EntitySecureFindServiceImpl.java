@@ -387,21 +387,19 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         }
     }
 
-    public static <T, E extends Enum<E>> List<T> filterByEnum(Collection<T> items, Function<T, E> getter, E targetValue) {
-        return items.stream()
-                .filter(item -> getter.apply(item) == targetValue)
-                .toList();
+    public static <T, E extends Enum<E>> List<T> filterItemsForLoad(Collection<T> items, Function<T, E> enumGetter, E prohibitedValue, E targetValue) throws ServiceException {
+        if (CollectionUtils.isEmpty(items)) {
+            return Collections.emptyList();
+        }
+        CollectionUtils.validateByEnumWithException(items, enumGetter, prohibitedValue);
+
+        return CollectionUtils.filterByEnum(items, enumGetter, targetValue);
     }
 
-    public static <T, E extends Enum<E>> List<T> filterByEnumWithException(Collection<T> items, Function<T, E> getter, E targetValue) throws ServiceException {
-        List<T> filtered = items.stream()
-                .filter(item -> getter.apply(item) == targetValue)
-                .toList();
-
-        if (!filtered.isEmpty()) {
-            EasyLoggable firstInvalidItem = (EasyLoggable) filtered.getFirst();
-            throw new ServiceException(ErrorCodeTwins.RECURSIVE_LOAD_DETECTED, "Cannot load recursively for " + firstInvalidItem.logShort());
+    public static <T, E extends Enum<E>> void setEntityEnumState(Collection<T> items, BiConsumer<T, E> setter, E state) {
+        if (CollectionUtils.isEmpty(items)) {
+            return;
         }
-        return filtered;
+        items.forEach(item -> setter.accept(item, state));
     }
 }
