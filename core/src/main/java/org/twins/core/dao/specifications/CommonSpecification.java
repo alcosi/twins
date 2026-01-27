@@ -61,9 +61,9 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
 
             boolean hasNullifyMarker = ids.contains(UuidUtils.NULLIFY_MARKER);
 
-            List<UUID> regularIds = ids.stream()
-                    .filter(id -> !UuidUtils.NULLIFY_MARKER.equals(id))
-                    .toList();
+            List<UUID> regularIds = hasNullifyMarker
+                    ? ids.stream().filter(id -> !UuidUtils.NULLIFY_MARKER.equals(id)).toList()
+                    : new ArrayList<>(ids);
 
             List<Predicate> allPredicates = new ArrayList<>();
 
@@ -120,9 +120,9 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             } else {
                 Predicate combined;
                 if (not) {
-                    combined = cb.and(allPredicates.toArray(new Predicate[0]));
+                    combined = cb.and(allPredicates.toArray(Predicate[]::new));
                 } else {
-                    combined = cb.or(allPredicates.toArray(new Predicate[0]));
+                    combined = cb.or(allPredicates.toArray(Predicate[]::new));
                 }
                 return combined;
             }
