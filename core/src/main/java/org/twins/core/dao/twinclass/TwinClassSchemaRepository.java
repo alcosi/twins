@@ -7,5 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface TwinClassSchemaRepository extends CrudRepository<TwinClassSchemaEntity, UUID> {
+public interface TwinClassSchemaRepository extends CrudRepository<TwinClassSchemaEntity, UUID>, JpaSpecificationExecutor<TwinClassSchemaEntity> {
+
 }
