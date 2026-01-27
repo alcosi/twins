@@ -68,23 +68,18 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             List<Predicate> allPredicates = new ArrayList<>();
 
             if (!regularIds.isEmpty()) {
-                Range<Integer> range;
-                if (depthLimit == null || depthLimit == 0) {
+                Range<Integer> range = null;
+                if (depthLimit == null || depthLimit == 0)
                     range = Range.of(1, (int) Short.MAX_VALUE);
-                } else if (depthLimit > 0) {
+                else if (depthLimit > 0)
                     range = Range.of(1, depthLimit);
-                } else {
+                else if (depthLimit < 0) {
                     range = Range.of(0, (int) Short.MAX_VALUE);
                 }
 
-                var preparedIds = LTreeUtils.findChildsLQuery(
-                        regularIds.stream().map(UUID::toString).collect(Collectors.toList()),
-                        range
-                );
-
+                var preparedIds = LTreeUtils.findChildsLQuery(regularIds.stream().map(UUID::toString).collect(Collectors.toList()), range);
                 Path<String> ltreePath = getFieldPath(root, includeNullValues || hasNullifyMarker ? JoinType.LEFT : JoinType.INNER, ltreeFieldPath);
                 var ltreeIsInFunction = cb.function("hierarchy_check_lquery", Boolean.class, ltreePath, cb.literal(preparedIds));
-
                 Predicate regularPredicate = not ? cb.isFalse(ltreeIsInFunction) : cb.isTrue(ltreeIsInFunction);
 
                 if (includeNullValues) {
