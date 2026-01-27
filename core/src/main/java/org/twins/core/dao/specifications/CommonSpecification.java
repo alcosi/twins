@@ -43,13 +43,11 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      * @param <T>               The type of the entities being queried.
      * @param ids               A collection of UUIDs representing the hierarchy roots to validate against.
      * @param not               A flag indicating whether to negate the result of the condition.
-     * @param includeNullValues A flag indicating whether null values should be included in the results.
      * @param depthLimit        The maximum depth of the hierarchy to consider for the query. If null, defaults to unlimit.
      * @param ltreeFieldPath    The path to the ltree field in the entity. Can be one or more strings representing a nested field path.
      * @return A Specification object that can be used in a JPA Criteria query to apply the hierarchy child check based on the given parameters.
      */
-    public static <T> Specification<T> checkHierarchyChildren(Collection<UUID> ids, boolean not,
-                                                              boolean includeNullValues, Integer depthLimit, final String... ltreeFieldPath) {
+    public static <T> Specification<T> checkHierarchyChildren(Collection<UUID> ids, boolean not, Integer depthLimit, final String... ltreeFieldPath) {
         return (root, query, cb) -> {
             if (org.cambium.common.util.CollectionUtils.isEmpty(ids))
                 return cb.conjunction();
@@ -72,41 +70,32 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                     range = Range.of(0, (int) Short.MAX_VALUE);
                 }
                 var preparedIds = LTreeUtils.findChildsLQuery(regularIds.stream().map(UUID::toString).collect(Collectors.toList()), range);
-                Path<String> ltreePath = getFieldPath(root, includeNullValues || hasNullifyMarker ? JoinType.LEFT : JoinType.INNER, ltreeFieldPath);
+                Path<String> ltreePath = getFieldPath(root, JoinType.INNER, ltreeFieldPath);
                 var ltreeIsInFunction = cb.function("hierarchy_check_lquery", Boolean.class, ltreePath, cb.literal(preparedIds));
                 Predicate regularPredicate = not ? cb.isFalse(ltreeIsInFunction) : cb.isTrue(ltreeIsInFunction);
-                if (includeNullValues) {
-                    allPredicates.add(cb.or(regularPredicate, ltreePath.isNull()));
-                } else {
-                    allPredicates.add(regularPredicate);
-                }
+                allPredicates.add(regularPredicate);
             }
             if (hasNullifyMarker) {
-                Path<String> ltreePath = getFieldPath(root, JoinType.LEFT, ltreeFieldPath);
+                Path<String> ltreePath = getFieldPath(root, JoinType.INNER, ltreeFieldPath);
                 Expression<String> ltreeText = cb.function("text", String.class, ltreePath);
 
-                Predicate noParentPredicate;
+                Predicate isRootElement = cb.notLike(ltreeText, "%.%");
                 if (not) {
-                    noParentPredicate = cb.or(ltreePath.isNull(), cb.like(ltreeText, "%.%"));
+                    allPredicates.add(cb.like(ltreeText, "%.%"));
                 } else {
-                    noParentPredicate = cb.and(ltreePath.isNotNull(), cb.notLike(ltreeText, "%.%"));
+                    allPredicates.add(isRootElement);
                 }
-
-                allPredicates.add(noParentPredicate);
             }
-
             if (allPredicates.isEmpty()) {
                 return cb.conjunction();
             } else if (allPredicates.size() == 1) {
                 return allPredicates.getFirst();
             } else {
-                Predicate combined;
                 if (not) {
-                    combined = cb.and(allPredicates.toArray(Predicate[]::new));
+                    return cb.and(allPredicates.toArray(Predicate[]::new));
                 } else {
-                    combined = cb.or(allPredicates.toArray(Predicate[]::new));
+                    return cb.or(allPredicates.toArray(Predicate[]::new));
                 }
-                return combined;
             }
         };
     }
