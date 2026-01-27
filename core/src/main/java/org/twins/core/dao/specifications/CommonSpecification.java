@@ -71,12 +71,10 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                 else if (depthLimit < 0) {
                     range = Range.of(0, (int) Short.MAX_VALUE);
                 }
-
                 var preparedIds = LTreeUtils.findChildsLQuery(regularIds.stream().map(UUID::toString).collect(Collectors.toList()), range);
                 Path<String> ltreePath = getFieldPath(root, includeNullValues || hasNullifyMarker ? JoinType.LEFT : JoinType.INNER, ltreeFieldPath);
                 var ltreeIsInFunction = cb.function("hierarchy_check_lquery", Boolean.class, ltreePath, cb.literal(preparedIds));
                 Predicate regularPredicate = not ? cb.isFalse(ltreeIsInFunction) : cb.isTrue(ltreeIsInFunction);
-
                 if (includeNullValues) {
                     allPredicates.add(cb.or(regularPredicate, ltreePath.isNull()));
                 } else {
@@ -89,15 +87,9 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
 
                 Predicate noParentPredicate;
                 if (not) {
-                    noParentPredicate = cb.or(
-                            ltreePath.isNull(),
-                            cb.like(ltreeText, "%.%")
-                    );
+                    noParentPredicate = cb.or(ltreePath.isNull(), cb.like(ltreeText, "%.%"));
                 } else {
-                    noParentPredicate = cb.and(
-                            ltreePath.isNotNull(),
-                            cb.notLike(ltreeText, "%.%")
-                    );
+                    noParentPredicate = cb.and(ltreePath.isNotNull(), cb.notLike(ltreeText, "%.%"));
                 }
 
                 allPredicates.add(noParentPredicate);
