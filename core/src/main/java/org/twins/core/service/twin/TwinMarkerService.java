@@ -4,13 +4,13 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -29,11 +29,10 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.enums.EntityRelinkOperationStrategy;
-import org.twins.core.enums.twin.LoadState;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.twinclass.TwinClassDynamicMarkerService;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -47,8 +46,8 @@ import java.util.stream.Collectors;
 public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEntity> {
     final TwinMarkerRepository twinMarkerRepository;
     final TwinService twinService;
+    final TwinClassService twinClassService;
     final DataListService dataListService;
-    final DataListOptionService dataListOptionService;
     final TwinClassDynamicMarkerService twinClassDynamicMarkerService;
     final TwinValidatorSetService twinValidatorSetService;
 
@@ -100,18 +99,14 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
     }
 
     public void loadMarkers(Collection<TwinEntity> twinEntityList) throws ServiceException {
-        List<TwinEntity> twinsToLoad = filterItemsForLoad(twinEntityList, TwinEntity::getMarkersLoadState, LoadState.LOADING, LoadState.NOT_LOADED);
+        List<TwinEntity> twinsToLoad = loadStart(twinEntityList, TwinEntity::getMarkersLoadState, TwinEntity::setMarkersLoadState);
         if (twinsToLoad.isEmpty()) return;
-
-        setEntityEnumState(twinsToLoad, TwinEntity::setMarkersLoadState, LoadState.LOADING);
-
         try {
             loadStaticMarkers(twinsToLoad);
             loadDynamicMarkers(twinsToLoad);
-            setEntityEnumState(twinsToLoad, TwinEntity::setMarkersLoadState, LoadState.LOADED);
-
+            loadFinish(twinsToLoad, TwinEntity::setMarkersLoadState);
         } catch (ServiceException e) {
-            setEntityEnumState(twinsToLoad, TwinEntity::setMarkersLoadState, LoadState.NOT_LOADED);
+            loadError(twinsToLoad, TwinEntity::setMarkersLoadState);
             throw e;
         }
     }
@@ -156,20 +151,29 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
     }
 
     private void loadDynamicMarkers(List<TwinEntity> twinsToLoad) throws ServiceException {
-        List<TwinEntity> filtered = twinsToLoad.stream().filter(twin -> twin.getTwinClass().getHasDynamicMarkers()).toList();
-        if (filtered.isEmpty()) return;
+        if (CollectionUtils.isEmpty(twinsToLoad)) return;
 
-        KitGrouped<TwinEntity, UUID, UUID> twinsByClass = new KitGrouped<>(filtered, TwinEntity::getId, TwinEntity::getTwinClassId);
+        Set<UUID> twinClassIds = new HashSet<>();
+        for (var twinEntity : twinsToLoad) {
+            twinClassIds.addAll(twinEntity.getTwinClass().getExtendedClassIdSet());
+        }
 
         KitGrouped<TwinClassDynamicMarkerEntity, UUID, UUID> markersByValidatorSet = new KitGrouped<>(
-                twinClassDynamicMarkerService.findByTwinClassIdIn(twinsByClass.getGroupedKeySet()),
+                twinClassDynamicMarkerService.findByTwinClassIdIn(twinClassIds),
                 TwinClassDynamicMarkerEntity::getId,
                 TwinClassDynamicMarkerEntity::getTwinValidatorSetId);
 
         twinValidatorSetService.loadTwinValidatorSet(markersByValidatorSet.getCollection());
 
+        List<TwinEntity> twinsToValidate = new ArrayList<>();
         for (TwinClassDynamicMarkerEntity twinClassDynamicMarkerEntity : markersByValidatorSet.getCollection()) { //todo perhaps we could iterate by validatorSet in future
-            processValidatorSet(twinClassDynamicMarkerEntity, twinsByClass.getGrouped(twinClassDynamicMarkerEntity.getTwinClassId()));
+            twinsToValidate.clear();
+            for (var twin : twinsToLoad) {
+                if (twinClassService.isInstanceOf(twin, twinClassDynamicMarkerEntity.getTwinClassId())) {
+                    twinsToValidate.add(twin);
+                }
+            }
+            processValidatorSet(twinClassDynamicMarkerEntity, twinsToValidate);
         }
     }
 

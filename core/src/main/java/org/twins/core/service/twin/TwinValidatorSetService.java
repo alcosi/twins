@@ -27,7 +27,6 @@ import org.twins.core.service.validator.TwinValidatorService;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -116,18 +115,18 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
         loadTwinValidatorSet(validatorContainer);
 
         if (validatorContainer.getTwinValidatorSet() == null) {
-            return createAllValidResults(twinEntities);
+            return initializeResults(twinEntities, true);
         }
 
         twinValidatorService.loadValidators(validatorContainer);
         boolean setInvert = validatorContainer.getTwinValidatorSet().isInvert();
 
         if (validatorContainer.getTwinValidatorKit() == null) {
-            return createResultsWithSetInvert(twinEntities, setInvert);
+            return initializeResults(twinEntities, !setInvert);
         }
 
         List<TwinValidatorEntity> sortedValidators = getSortedActiveValidators(validatorContainer);
-        Map<UUID, ValidationResult> results = initializeResults(twinEntities);
+        Map<UUID, ValidationResult> results = initializeResults(twinEntities, true);
         List<TwinEntity> remainingTwins = new ArrayList<>(twinEntities);
 
         for (TwinValidatorEntity validatorEntity : sortedValidators) {
@@ -160,22 +159,6 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
         return results;
     }
 
-    private Map<UUID, ValidationResult> createAllValidResults(Collection<TwinEntity> twinEntities) {
-        return twinEntities.stream()
-                .collect(Collectors.toMap(
-                        TwinEntity::getId,
-                        t -> new ValidationResult().setValid(true)
-                ));
-    }
-
-    private Map<UUID, ValidationResult> createResultsWithSetInvert(Collection<TwinEntity> twinEntities, boolean setInvert) {
-        return twinEntities.stream()
-                .collect(Collectors.toMap(
-                        TwinEntity::getId,
-                        t -> new ValidationResult().setValid(!setInvert)
-                ));
-    }
-
     private List<TwinValidatorEntity> getSortedActiveValidators(ContainsTwinValidatorSet validatorContainer) {
         List<TwinValidatorEntity> validators = new ArrayList<>(
                 validatorContainer.getTwinValidatorKit().getList()
@@ -184,14 +167,13 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
         return validators;
     }
 
-    private Map<UUID, ValidationResult> initializeResults(Collection<TwinEntity> twinEntities) {
+    private Map<UUID, ValidationResult> initializeResults(Collection<TwinEntity> twinEntities, boolean valid) {
         Map<UUID, ValidationResult> results = new HashMap<>();
         for (TwinEntity twin : twinEntities) {
-            results.put(twin.getId(), new ValidationResult().setValid(true));
+            results.put(twin.getId(), new ValidationResult().setValid(valid));
         }
         return results;
     }
-
 
     private void invertResults(Map<UUID, ValidationResult> results) {
         for (Map.Entry<UUID, ValidationResult> entry : results.entrySet()) {
