@@ -97,6 +97,7 @@ public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<Tw
             else
                 fieldEntity.setRuleKit(Kit.EMPTY);
         }
+
     }
 
     public List<TwinClassFieldRuleMapEntity> findByTwinClassFieldIdIn(Collection<UUID> fieldIds) {
