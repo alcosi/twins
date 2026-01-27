@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -12,6 +13,7 @@ import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamMap;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
@@ -21,6 +23,7 @@ import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
+import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.sql.Timestamp;
@@ -47,11 +50,13 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
     public static final FeaturerParamMap twinClassReplaceMap = new FeaturerParamMap("twinClassReplaceMap");
 
     private final TwinSearchService twinSearchService;
+    private final TwinLinkService twinLinkService;
 
     @Data
     @Accessors(chain = true)
     private static class CopyContext {
         private TwinEntity twinCopy;
+        private List<TwinLinkEntity> linksCopy;
         private FactoryItem origFactoryItem;
     }
 
@@ -62,7 +67,7 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
         var depth = childrenDepth.extract(properties);
         var classReplaceMap = twinClassReplaceMap.extract(properties);
 
-        var copyContextMap = new HashMap<UUID, CopyContext>();
+        var copyContextMap = new LinkedHashMap<UUID, CopyContext>();
         var origTwins = new HashSet<TwinEntity>(inputFactoryItemList.size());
 
         for (var factoryItem : inputFactoryItemList) {
@@ -78,10 +83,15 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
                         .setIdList(copyContextMap.keySet())
         );
 
+        Set<TwinLinkEntity> origTwinLinks;
         if (!childrenStatusIds.isEmpty()) {
             search.addStatusId(childrenStatusIds, false);
+            origTwinLinks = twinLinkService.findAllWithinHierarchiesAndTwinsInStatusIds(copyContextMap.keySet(), childrenStatusIds);
+        } else {
+            origTwinLinks = twinLinkService.findAllWithinHierarchies(copyContextMap.keySet());
         }
 
+        var origTwinLinksGrouped = new KitGrouped<>(origTwinLinks, TwinLinkEntity::getId, TwinLinkEntity::getSrcTwinId);
         var origTwinsChildren = twinSearchService.findTwins(search);
         origTwins.addAll(origTwinsChildren);
 
@@ -90,7 +100,18 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
                 .sorted((t1, t2) -> {
                     var h1 = t1.getHierarchyTree().split("\\.").length;
                     var h2 = t2.getHierarchyTree().split("\\.").length;
-                    return Integer.compare(h1, h2);
+
+                    var depthComparison = Integer.compare(h1, h2);
+                    if (depthComparison != 0) {
+                        // stop sort if twins are on different levels
+                        return depthComparison;
+                    }
+
+                    // secondary sort: twins without links go first
+                    boolean t1HasLinks = origTwinLinksGrouped.containsGroupedKey(t1.getId());
+                    boolean t2HasLinks = origTwinLinksGrouped.containsGroupedKey(t2.getId());
+
+                    return Boolean.compare(t1HasLinks, t2HasLinks);
                 })
                 .toList();
 
@@ -100,13 +121,21 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
                 continue;
             }
 
-            createCopyContext(origTwin, user, copyContextMap, classReplaceMap);
+            var ctx = createCopyContext(origTwin, user, copyContextMap, classReplaceMap);
+
+            if (origTwinLinksGrouped.containsGroupedKey(origTwin.getId())) {
+                ctx.setLinksCopy(
+                        copyForwardLinks(ctx.getTwinCopy(), origTwinLinksGrouped.getGrouped(origTwin.getId()), user, copyContextMap, classReplaceMap)
+                );
+            }
         }
 
         var ret = new ArrayList<FactoryItem>(copyContextMap.size());
         for (var ctx : copyContextMap.values()) {
             var twinCreate = new TwinCreate();
-            twinCreate.setTwinEntity(ctx.getTwinCopy());
+            twinCreate
+                    .setLinksEntityList(ctx.getLinksCopy())
+                    .setTwinEntity(ctx.getTwinCopy());
             ret.add(
                     new FactoryItem()
                             .setOutput(twinCreate)
@@ -117,10 +146,31 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
         return ret;
     }
 
-    private void createCopyContext(TwinEntity origTwin, UserEntity user, Map<UUID, CopyContext> copyContextMap, Map<String, String> classReplaceMap) throws ServiceException {
+    private CopyContext createCopyContext(TwinEntity origTwin, UserEntity user, Map<UUID, CopyContext> copyContextMap, Map<String, String> classReplaceMap) throws ServiceException {
+        // get existing context (for input twins) or create a new one (usually for children)
+        var copyContext = copyContextMap.computeIfAbsent(
+                origTwin.getId(),
+                k -> new CopyContext()
+                        .setOrigFactoryItem(
+                                new FactoryItem()
+                                        .setOutput(
+                                                new TwinUpdate().setDbTwinEntity(origTwin)
+                                        )
+                                        .setContextFactoryItemList(
+                                                List.of(copyContextMap.get(origTwin.getHeadTwinId()).getOrigFactoryItem())
+                                        )
+                        )
+        );
+
+        if (copyContext.getTwinCopy() != null) {
+            // already created context
+            return copyContext;
+        }
+
         var newClassId = UUID.fromString(classReplaceMap.get(origTwin.getTwinClassId().toString()));
         var newClass = twinClassService.findEntitySafe(newClassId);
 
+        // creating twin copy with head copy and new class
         var twinCopy = new TwinEntity()
                 .setId(UuidUtils.generate())
                 .setName("")
@@ -140,20 +190,38 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
                     .setHeadTwinId(headTwinCopy.getId());
         }
 
-        // get existing context (for input twins) or create a new one (usually for children)
-        var copyContext = copyContextMap.computeIfAbsent(
-                origTwin.getId(),
-                k -> new CopyContext()
-                        .setOrigFactoryItem(
-                                new FactoryItem()
-                                        .setOutput(
-                                                new TwinUpdate().setDbTwinEntity(origTwin)
-                                        )
-                                        .setContextFactoryItemList(
-                                                List.of(copyContextMap.get(origTwin.getHeadTwinId()).getOrigFactoryItem())
-                                        )
-                        )
-        );
+        // setting twin copy in context
         copyContext.setTwinCopy(twinCopy);
+
+        return copyContext;
+    }
+
+    private List<TwinLinkEntity> copyForwardLinks(TwinEntity srcTwinCopy, List<TwinLinkEntity> origTwinLinks, UserEntity user, Map<UUID, CopyContext> copyContextMap, Map<String, String> classReplaceMap) throws ServiceException {
+        var linksCopy = new ArrayList<TwinLinkEntity>(origTwinLinks.size());
+
+        for (var origTwinLink : origTwinLinks) {
+            if (!copyContextMap.containsKey(origTwinLink.getDstTwinId())) {
+                continue;
+            }
+
+            var dstCtx = createCopyContext(origTwinLink.getDstTwin(), user, copyContextMap, classReplaceMap);
+            var dstTwinCopy = dstCtx.getTwinCopy();
+
+            var linkCopy = new TwinLinkEntity()
+                    .setId(UuidUtils.generate())
+                    .setSrcTwinId(srcTwinCopy.getId())
+                    .setSrcTwin(srcTwinCopy)
+                    .setDstTwinId(dstTwinCopy.getId())
+                    .setDstTwin(dstTwinCopy)
+                    .setLinkId(origTwinLink.getLinkId())
+                    .setLink(origTwinLink.getLink())
+                    .setCreatedByUserId(origTwinLink.getCreatedByUserId())
+                    .setCreatedByUser(origTwinLink.getCreatedByUser())
+                    .setCreatedAt(Timestamp.from(Instant.now()));
+
+            linksCopy.add(linkCopy);
+        }
+
+        return linksCopy;
     }
 }

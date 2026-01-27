@@ -1,6 +1,7 @@
 package org.twins.core.featurer.fieldtyper.storage;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
@@ -11,7 +12,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class TwinFieldStorageSpirit extends TwinFieldStorage {
     @Override
-    public void load(Kit<TwinEntity, UUID> twinsKit) {
+    public void load(Kit<TwinEntity, UUID> twinsKit) throws ServiceException {
 
     }
 
