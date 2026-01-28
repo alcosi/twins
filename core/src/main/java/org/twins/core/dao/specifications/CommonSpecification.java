@@ -374,6 +374,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                                                    boolean includeNullValues, final String... uuidFieldPath) {
         var includeNull = includeNullValues || (uuids != null && uuids.contains(UuidUtils.NULLIFY_MARKER)); //todo resolve includeNullValues vs NULLIFY_MARKER
         return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
             Path<UUID> fieldPath = getFieldPath(root, includeNull ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
             Predicate predicate = not ? fieldPath.in(uuids).not() : fieldPath.in(uuids);
             return includeNull ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
@@ -384,6 +385,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                                                  boolean includeNullValues, final String... uuidFieldPath) {
         var includeNull = includeNullValues || UuidUtils.isNullifyMarker(uuid); //todo resolve includeNullValues vs NULLIFY_MARKER
         return (root, query, cb) -> {
+            if (uuid == null) return cb.conjunction();
             Path<UUID> fieldPath = getFieldPath(root, includeNull ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
             Predicate predicate = not ? cb.equal(fieldPath, uuid).not() : cb.equal(fieldPath, uuid);
             return includeNull ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
