@@ -38,7 +38,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
     /**
      * Generates a Specification to check hierarchy of child elements based on the given parameters.
      * The method supports filtering based on a list of UUIDs, negating the condition,
-     * including null values, and limiting the hierarchy depth.
+     * finding root elements by NULLIFY_MARKER, and limiting the hierarchy depth.
      *
      * @param <T>               The type of the entities being queried.
      * @param ids               A collection of UUIDs representing the hierarchy roots to validate against.
@@ -77,11 +77,11 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             }
             if (hasNullifyMarker) {
                 Path<String> ltreePath = getFieldPath(root, JoinType.INNER, ltreeFieldPath);
-                Expression<String> ltreeText = cb.function("text", String.class, ltreePath);
+                var isRootFunction = cb.function("ltree_is_root", Boolean.class, ltreePath);
 
-                Predicate isRootElement = cb.notLike(ltreeText, "%.%");
+                Predicate isRootElement = cb.isTrue(isRootFunction);
                 if (not) {
-                    allPredicates.add(cb.like(ltreeText, "%.%"));
+                    allPredicates.add(cb.isFalse(isRootFunction));
                 } else {
                     allPredicates.add(isRootElement);
                 }
@@ -375,7 +375,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         if (CollectionUtils.isEmpty(uuids)) {
             return (root, query, cb) -> cb.conjunction();
         }
-        var includeNull = includeNullValues || uuids.contains(UuidUtils.NULLIFY_MARKER);
+        var includeNull = includeNullValues || uuids.contains(UuidUtils.NULLIFY_MARKER); //todo resolve includeNullValues vs NULLIFY_MARKER
         return (root, query, cb) -> {
             Path<UUID> fieldPath = getFieldPath(root, includeNull ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
             Predicate predicate = not ? fieldPath.in(uuids).not() : fieldPath.in(uuids);
@@ -388,7 +388,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         if (uuid == null) {
             return (root, query, cb) -> cb.conjunction();
         }
-        var includeNull = includeNullValues || UuidUtils.isNullifyMarker(uuid);
+        var includeNull = includeNullValues || UuidUtils.isNullifyMarker(uuid); //todo resolve includeNullValues vs NULLIFY_MARKER
         return (root, query, cb) -> {
             Path<UUID> fieldPath = getFieldPath(root, includeNull ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
             Predicate predicate = not ? cb.equal(fieldPath, uuid).not() : cb.equal(fieldPath, uuid);
