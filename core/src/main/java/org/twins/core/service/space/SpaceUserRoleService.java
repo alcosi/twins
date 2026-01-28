@@ -37,6 +37,7 @@ import java.util.*;
 
 import static org.twins.core.dao.specifications.space.SpaceRoleUserSpecification.*;
 
+import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
 
 @Slf4j
@@ -196,10 +197,9 @@ public class SpaceUserRoleService {
             for (SpaceRoleUserEntity entity : listToAdd) {
                 userIdList.add(entity.getUserId());
             }
-            HistoryContextSpaceRoleUserChange context = new HistoryContextSpaceRoleUserChange()
-                    .setRoleId(roleId)
-                    .setTargetedUserIds(userIdList);
-            historyService.saveHistory(twinService.findEntitySafe(spaceId), HistoryType.spaceRoleUserAdded, context);
+            TwinEntity twinEntity = twinService.findEntitySafe(spaceId);
+            HistoryItem<HistoryContextSpaceRoleUserChange> historyItem = historyService.spaceRoleUserAdd(twinEntity, roleId, userIdList);
+            historyService.saveHistory(twinEntity, historyItem.getType(), historyItem.getContext());
         }
     }
 
