@@ -48,6 +48,34 @@ public class TwinClassFieldRuleExecutionService {
         return results;
     }
 
+    /**
+     * Values are aligned to fields by key, and output contains only fields present in {@code rulesByField}.
+     * When {@code rulesByField} is empty, values are returned as-is.
+     */
+    public Map<TwinClassFieldEntity, Object> applyRules(
+            Map<TwinClassFieldEntity, List<TwinClassFieldRuleEntity>> rulesByField,
+            Map<TwinClassFieldEntity, Object> values) {
+        if (rulesByField == null || rulesByField.isEmpty())
+            return Collections.emptyMap();
+
+        List<FieldRuleInput> inputs = new ArrayList<>(rulesByField.size());
+        for (Map.Entry<TwinClassFieldEntity, List<TwinClassFieldRuleEntity>> entry : rulesByField.entrySet()) {
+            Object currentValue = values != null ? values.get(entry.getKey()) : null;
+            inputs.add(FieldRuleInput.builder()
+                    .field(entry.getKey())
+                    .currentValue(currentValue)
+                    .rules(entry.getValue())
+                    .build());
+        }
+
+        List<FieldRuleOutput> outputs = applyRules(inputs);
+        Map<TwinClassFieldEntity, Object> result = new LinkedHashMap<>(outputs.size());
+        for (FieldRuleOutput output : outputs) {
+            result.put(output.getField(), output.getValue());
+        }
+        return result;
+    }
+
     private FieldRuleOutput evaluateFieldRules(FieldRuleInput input, Map<UUID, String> contextValues) {
         FieldRuleOutput output = FieldRuleOutput.builder()
                 .field(input.getField())
