@@ -150,6 +150,9 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "assignee_required")
     private Boolean assigneeRequired;
 
+    @Column(name = "has_dynamic_markers")
+    private Boolean hasDynamicMarkers;
+
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

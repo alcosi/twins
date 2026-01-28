@@ -438,7 +438,15 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         return twinLinkRepository.findAllWithinHierarchies(hierarchies);
     }
 
+    public Set<TwinLinkEntity> findAllWithinHierarchiesAndLinkIdIn(Collection<UUID> hierarchies, Collection<UUID> linkIds) {
+        return twinLinkRepository.findAllWithinHierarchiesAndLinkIdIn(hierarchies, linkIds);
+    }
+
     public Set<TwinLinkEntity> findAllWithinHierarchiesAndTwinsInStatusIds(Collection<UUID> hierarchies, Collection<UUID> twinStatusIds) {
         return twinLinkRepository.findAllWithinHierarchiesAndTwinsInStatusIds(hierarchies, twinStatusIds);
+    }
+
+    public Set<TwinLinkEntity> findAllWithinHierarchiesAndLinkIdInAndTwinsInStatusIds(Collection<UUID> hierarchies, Collection<UUID> linkIds, Collection<UUID> twinStatusIds) {
+        return twinLinkRepository.findAllWithinHierarchiesAndLinkIdInAndTwinsInStatusIds(hierarchies, linkIds, twinStatusIds);
     }
 }

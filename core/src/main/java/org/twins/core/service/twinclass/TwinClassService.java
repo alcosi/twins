@@ -28,6 +28,7 @@ import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.resource.ResourceEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
@@ -347,6 +348,10 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             }
         }
 
+    }
+
+    public boolean isInstanceOf(TwinEntity twin, UUID ofClass) throws ServiceException {
+        return isInstanceOf(twin.getTwinClass(), ofClass);
     }
 
     public boolean isInstanceOf(TwinClassEntity instanceClass, UUID ofClass) throws ServiceException {

@@ -372,21 +372,27 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
 
     public static <T> Specification<T> checkUuidIn(final Collection<UUID> uuids, boolean not,
                                                    boolean includeNullValues, final String... uuidFieldPath) {
+        if (CollectionUtils.isEmpty(uuids)) {
+            return (root, query, cb) -> cb.conjunction();
+        }
+        var includeNull = includeNullValues || uuids.contains(UuidUtils.NULLIFY_MARKER);
         return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
-            Path<UUID> fieldPath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
+            Path<UUID> fieldPath = getFieldPath(root, includeNull ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
             Predicate predicate = not ? fieldPath.in(uuids).not() : fieldPath.in(uuids);
-            return includeNullValues ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
+            return includeNull ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
         };
     }
 
     public static <T> Specification<T> checkUuid(final UUID uuid, boolean not,
                                                  boolean includeNullValues, final String... uuidFieldPath) {
+        if (uuid == null) {
+            return (root, query, cb) -> cb.conjunction();
+        }
+        var includeNull = includeNullValues || UuidUtils.isNullifyMarker(uuid);
         return (root, query, cb) -> {
-            if (uuid == null) return cb.conjunction();
-            Path<UUID> fieldPath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
+            Path<UUID> fieldPath = getFieldPath(root, includeNull ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
             Predicate predicate = not ? cb.equal(fieldPath, uuid).not() : cb.equal(fieldPath, uuid);
-            return includeNullValues ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
+            return includeNull ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
         };
     }
 

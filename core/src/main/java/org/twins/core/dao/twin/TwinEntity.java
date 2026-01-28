@@ -27,6 +27,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.status.StatusType;
+import org.twins.core.enums.twin.LoadState;
 import org.twins.core.enums.twin.TwinAliasType;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.SystemEntityService;
@@ -131,6 +132,11 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private boolean createElseUpdate = false;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private LoadState markersLoadState = LoadState.NOT_LOADED; // needed for load markers
 
 //    @ManyToOne(fetch = FetchType.EAGER)
 //    @JoinColumn(name = "head_twin_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = true)
