@@ -460,7 +460,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return ret;
     }
 
-    public Set<HistoryType> findDistinctHistoryTypesByBatchId(UUID historyBatchId) {
-        return historyRepository.findDistinctHistoryTypesByBatchId(historyBatchId);
+    public boolean existsByHistoryBatchIdAndHistoryType(UUID historyBatchId, HistoryType type) {
+        return historyRepository.existsByHistoryBatchIdAndHistoryType(historyBatchId, type);
     }
 }

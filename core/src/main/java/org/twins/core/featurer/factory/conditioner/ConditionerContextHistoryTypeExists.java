@@ -27,6 +27,6 @@ public class ConditionerContextHistoryTypeExists extends Conditioner {
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        return historyService.findDistinctHistoryTypesByBatchId(factoryItem.getFactoryContext().getRequestId()).contains(historyType.extract(properties));
+        return historyService.existsByHistoryBatchIdAndHistoryType(factoryItem.getFactoryContext().getRequestId(), historyType.extract(properties));
     }
 }

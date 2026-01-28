@@ -9,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.twins.core.enums.history.HistoryType;
 
-import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -22,6 +21,5 @@ public interface HistoryRepository extends CrudRepository<HistoryEntity, UUID>, 
             "or he.twinId in (select child.id from TwinEntity child where child.headTwinId = :twinId)")
     Page<HistoryEntity> findByTwinIdIncludeFirstLevelChildren(@Param("twinId") UUID twinId, Pageable pageable);
 
-    @Query("SELECT DISTINCT h.historyType FROM HistoryEntity h WHERE h.historyBatchId = :batchId")
-    Set<HistoryType> findDistinctHistoryTypesByBatchId(@Param("batchId") UUID batchId);
+    boolean existsByHistoryBatchIdAndHistoryType(UUID batchId, HistoryType type);
 }
