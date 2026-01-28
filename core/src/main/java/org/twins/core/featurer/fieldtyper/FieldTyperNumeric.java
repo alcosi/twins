@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 
 import static org.cambium.common.util.MathUtils.EXPONENTIAL_FORM_REGEXP;
 
+@Deprecated
 @Component
 @Slf4j
 @Featurer(id = FeaturerTwins.ID_1317,
