@@ -49,7 +49,13 @@ public class TwinFieldBooleanEntity implements EasyLoggable {
 
     @Override
     public String easyLog(Level level) {
-        return "twinFieldBoolean[id:" + id + "]";
+        return switch (level) {
+            case SHORT -> "twinFieldBoolean[" + id + "]";
+            case NORMAL ->
+                    "twinFieldBoolean[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + "]";
+            default ->
+                    "twinFieldBoolean[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + ", value:" + value + "]";
+        };
     }
 
     public TwinFieldBooleanEntity cloneFor(TwinEntity dstTwinEntity) {

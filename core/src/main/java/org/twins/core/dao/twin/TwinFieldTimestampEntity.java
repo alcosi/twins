@@ -50,7 +50,13 @@ public class TwinFieldTimestampEntity implements EasyLoggable {
 
     @Override
     public String easyLog(Level level) {
-        return "twinFieldTimestamp[id:" + id + "]";
+        return switch (level) {
+            case SHORT -> "twinFieldTimestamp[" + id + "]";
+            case NORMAL ->
+                    "twinFieldTimestamp[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + "]";
+            default ->
+                    "twinFieldTimestamp[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + ", value:" + value + "]";
+        };
     }
 
     public TwinFieldTimestampEntity cloneFor(TwinEntity dstTwinEntity) {
