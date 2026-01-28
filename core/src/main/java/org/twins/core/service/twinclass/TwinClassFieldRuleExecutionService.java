@@ -49,7 +49,8 @@ public class TwinClassFieldRuleExecutionService {
     }
 
     /**
-     * Values are aligned to fields by key, and output contains only fields present in {@code rulesByField}.
+     * Values are aligned to fields by key, and output contains only fields present
+     * in {@code rulesByField}.
      * When {@code rulesByField} is empty, values are returned as-is.
      */
     public Map<TwinClassFieldEntity, Object> applyRules(
@@ -71,7 +72,15 @@ public class TwinClassFieldRuleExecutionService {
         List<FieldRuleOutput> outputs = applyRules(inputs);
         Map<TwinClassFieldEntity, Object> result = new LinkedHashMap<>(outputs.size());
         for (FieldRuleOutput output : outputs) {
-            result.put(output.getField(), output.getValue());
+            TwinClassFieldEntity field = output.getField();
+            if (output.getRequired() != null)
+                field.setRequired(output.getRequired());
+            if (output.getDescriptor() != null && !output.getDescriptor().isEmpty()) {
+                if (field.getFieldTyperParams() == null)
+                    field.setFieldTyperParams(new HashMap<>());
+                field.getFieldTyperParams().putAll(output.getDescriptor());
+            }
+            result.put(field, output.getValue());
         }
         return result;
     }
