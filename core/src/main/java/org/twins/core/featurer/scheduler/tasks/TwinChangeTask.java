@@ -51,6 +51,7 @@ public class TwinChangeTask implements Runnable {
             }
             authService.setThreadLocalApiUser(twinChangeTaskEntity.getTwin().getTwinClass().getDomainId(), twinChangeTaskEntity.getBusinessAccountId(), twinChangeTaskEntity.getCreatedByUserId());
             FactoryContext factoryContext = new FactoryContext(twinChangeTaskEntity.getTwinFactorylauncher(), FactoryBranchId.root(twinChangeTaskEntity.getTwinFactoryId()))
+                    .setRequestId(twinChangeTaskEntity.getRequestId())
                     .setInputTwinList(Collections.singletonList(twinChangeTaskEntity.getTwin()));
 //                    .setFields(transitionContext.getFields())
 //                    .setAttachmentCUD(transitionContext.getAttachmentCUD())

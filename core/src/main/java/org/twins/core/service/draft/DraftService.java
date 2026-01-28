@@ -231,6 +231,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         };
 
         FactoryContext factoryContext = new FactoryContext(factoryLauncher, FactoryBranchId.root(eraseFactoryId))
+                .setRequestId(authService.getApiUser().getRequestId())
                 .addInputTwin(eraseEntity.getTwin());
         FactoryResultUncommited factoryResultUncommited = twinFactoryService.runFactoryAndCollectResult(eraseFactoryId, factoryContext);
         TwinDelete twinDelete;
