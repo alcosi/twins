@@ -60,9 +60,6 @@ public class TwinChangeTaskEntity implements EasyLoggable {
     @Column(name = "done_at")
     private Timestamp doneAt;
 
-    @Column(name = "history_batch_id")
-    private UUID historyBatchId;
-
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne

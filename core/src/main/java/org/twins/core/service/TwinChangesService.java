@@ -118,8 +118,7 @@ public class TwinChangesService {
                     .setTwinId(entry.getKey())
                     .setTwinFactoryId(entry.getValue().getLeft())
                     .setTwinFactorylauncher(entry.getValue().getRight())
-                    .setStatusId(TwinChangeTaskStatus.NEED_START)
-                    .setHistoryBatchId(authService.getApiUser().getRequestId()));
+                    .setStatusId(TwinChangeTaskStatus.NEED_START));
         }
         twinChangeTaskService.addTasks(changeTaskList);
     }

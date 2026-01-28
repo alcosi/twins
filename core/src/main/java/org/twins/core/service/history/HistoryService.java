@@ -459,4 +459,8 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         }
         return ret;
     }
+
+    public Set<HistoryType> findDistinctHistoryTypesByBatchId(UUID historyBatchId) {
+        return historyRepository.findDistinctHistoryTypesByBatchId(historyBatchId);
+    }
 }
