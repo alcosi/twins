@@ -38,43 +38,64 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
     /**
      * Generates a Specification to check hierarchy of child elements based on the given parameters.
      * The method supports filtering based on a list of UUIDs, negating the condition,
-     * including null values, and limiting the hierarchy depth.
+     * finding root elements by NULLIFY_MARKER, and limiting the hierarchy depth.
      *
      * @param <T>               The type of the entities being queried.
      * @param ids               A collection of UUIDs representing the hierarchy roots to validate against.
      * @param not               A flag indicating whether to negate the result of the condition.
-     * @param includeNullValues A flag indicating whether null values should be included in the results.
      * @param depthLimit        The maximum depth of the hierarchy to consider for the query. If null, defaults to unlimit.
      * @param ltreeFieldPath    The path to the ltree field in the entity. Can be one or more strings representing a nested field path.
      * @return A Specification object that can be used in a JPA Criteria query to apply the hierarchy child check based on the given parameters.
      */
-    public static <T> Specification<T> checkHierarchyChildren(Collection<UUID> ids, boolean not,
-                                                              boolean includeNullValues, Integer depthLimit, final String... ltreeFieldPath) {
-
+    public static <T> Specification<T> checkHierarchyChildren(Collection<UUID> ids, boolean not, Integer depthLimit, final String... ltreeFieldPath) {
         return (root, query, cb) -> {
             if (org.cambium.common.util.CollectionUtils.isEmpty(ids))
                 return cb.conjunction();
-            Range<Integer> range = null;
-            if (depthLimit == null || depthLimit == 0)
-                range = Range.of(1, (int) Short.MAX_VALUE);
-            else if (depthLimit > 0)
-                range = Range.of(1, depthLimit);
-            else if (depthLimit < 0) {
-                range = Range.of(0, (int) Short.MAX_VALUE);
+
+            boolean hasNullifyMarker = ids.contains(UuidUtils.NULLIFY_MARKER);
+
+            List<UUID> regularIds = hasNullifyMarker
+                    ? ids.stream().filter(id -> !UuidUtils.NULLIFY_MARKER.equals(id)).toList()
+                    : new ArrayList<>(ids);
+
+            List<Predicate> allPredicates = new ArrayList<>();
+
+            if (!regularIds.isEmpty()) {
+                Range<Integer> range = null;
+                if (depthLimit == null || depthLimit == 0)
+                    range = Range.of(1, (int) Short.MAX_VALUE);
+                else if (depthLimit > 0)
+                    range = Range.of(1, depthLimit);
+                else if (depthLimit < 0) {
+                    range = Range.of(0, (int) Short.MAX_VALUE);
+                }
+                var preparedIds = LTreeUtils.findChildsLQuery(regularIds.stream().map(UUID::toString).collect(Collectors.toList()), range);
+                Path<String> ltreePath = getFieldPath(root, JoinType.INNER, ltreeFieldPath);
+                var ltreeIsInFunction = cb.function("hierarchy_check_lquery", Boolean.class, ltreePath, cb.literal(preparedIds));
+                Predicate regularPredicate = not ? cb.isFalse(ltreeIsInFunction) : cb.isTrue(ltreeIsInFunction);
+                allPredicates.add(regularPredicate);
             }
-            var preparedIds = LTreeUtils.findChildsLQuery(ids.stream().map(UUID::toString).collect(Collectors.toList()), range);
-            Path<String> ltreePath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, ltreeFieldPath);
-            Predicate idPredicate;
-            var ltreeIsInFunction = cb.function("hierarchy_check_lquery", Boolean.class, ltreePath, cb.literal(preparedIds));
-            if (not) {
-                idPredicate = cb.isFalse(ltreeIsInFunction);
-            } else {
-                idPredicate = cb.isTrue(ltreeIsInFunction);
+            if (hasNullifyMarker) {
+                Path<String> ltreePath = getFieldPath(root, JoinType.INNER, ltreeFieldPath);
+                var isRootFunction = cb.function("ltree_is_root", Boolean.class, ltreePath);
+
+                Predicate isRootElement = cb.isTrue(isRootFunction);
+                if (not) {
+                    allPredicates.add(cb.isFalse(isRootFunction));
+                } else {
+                    allPredicates.add(isRootElement);
+                }
             }
-            if (includeNullValues) {
-                return cb.or(idPredicate, ltreePath.isNull());
+            if (allPredicates.isEmpty()) {
+                return cb.conjunction();
+            } else if (allPredicates.size() == 1) {
+                return allPredicates.getFirst();
             } else {
-                return idPredicate;
+                if (not) {
+                    return cb.and(allPredicates.toArray(Predicate[]::new));
+                } else {
+                    return cb.or(allPredicates.toArray(Predicate[]::new));
+                }
             }
         };
     }
@@ -351,11 +372,9 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
 
     public static <T> Specification<T> checkUuidIn(final Collection<UUID> uuids, boolean not,
                                                    boolean includeNullValues, final String... uuidFieldPath) {
-        if (CollectionUtils.isEmpty(uuids)) {
-            return (root, query, cb) -> cb.conjunction();
-        }
-        var includeNull = includeNullValues || uuids.contains(UuidUtils.NULLIFY_MARKER);
+        var includeNull = includeNullValues || (uuids != null && uuids.contains(UuidUtils.NULLIFY_MARKER)); //todo resolve includeNullValues vs NULLIFY_MARKER
         return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
             Path<UUID> fieldPath = getFieldPath(root, includeNull ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
             Predicate predicate = not ? fieldPath.in(uuids).not() : fieldPath.in(uuids);
             return includeNull ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
@@ -364,11 +383,9 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
 
     public static <T> Specification<T> checkUuid(final UUID uuid, boolean not,
                                                  boolean includeNullValues, final String... uuidFieldPath) {
-        if (uuid == null) {
-            return (root, query, cb) -> cb.conjunction();
-        }
-        var includeNull = includeNullValues || UuidUtils.isNullifyMarker(uuid);
+        var includeNull = includeNullValues || UuidUtils.isNullifyMarker(uuid); //todo resolve includeNullValues vs NULLIFY_MARKER
         return (root, query, cb) -> {
+            if (uuid == null) return cb.conjunction();
             Path<UUID> fieldPath = getFieldPath(root, includeNull ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
             Predicate predicate = not ? cb.equal(fieldPath, uuid).not() : cb.equal(fieldPath, uuid);
             return includeNull ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
