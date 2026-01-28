@@ -1,0 +1,1 @@
+ALTER TABLE twin_change_task ADD COLUMN IF NOT EXISTS history_batch_id UUID;
