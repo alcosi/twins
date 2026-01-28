@@ -21,7 +21,6 @@ import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinChangeTaskService;
 
@@ -53,7 +52,6 @@ public class TwinChangesService {
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
     private final TwinChangeTaskService twinChangeTaskService;
-    private final AuthService authService;
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinChangesApplyResult applyChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
