@@ -21,8 +21,10 @@ public class TwinFieldStorageDecimal extends TwinFieldStorage {
 
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) {
-        KitGrouped<TwinFieldDecimalEntity, UUID, UUID> allTwinsFieldGrouped = new KitGrouped<>(
-                twinFieldDecimalRepository.findByTwinIdIn(twinsKit.getIdSet()), TwinFieldDecimalEntity::getId, TwinFieldDecimalEntity::getTwinId);
+        var allTwinsFieldGrouped = new KitGrouped<>(
+                twinFieldDecimalRepository.findByTwinIdIn(twinsKit.getIdSet()), TwinFieldDecimalEntity::getId, TwinFieldDecimalEntity::getTwinId
+        );
+
         for (var twinEntity : twinsKit) {
             if (allTwinsFieldGrouped.containsGroupedKey(twinEntity.getId())) {
                 twinEntity.setTwinFieldDecimalKit(new Kit<>(allTwinsFieldGrouped.getGrouped(twinEntity.getId()), TwinFieldDecimalEntity::getTwinClassFieldId));
