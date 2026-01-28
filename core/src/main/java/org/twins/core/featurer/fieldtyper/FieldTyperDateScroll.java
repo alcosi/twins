@@ -31,6 +31,7 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.Properties;
 
+@Deprecated
 @Component
 @Slf4j
 @Featurer(id = FeaturerTwins.ID_1302, name = "Date", description = "")

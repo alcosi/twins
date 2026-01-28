@@ -14,3 +14,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS twin_field_timestamp_twin_class_field_id_twin_
 INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
 VALUES (1350, 13, 'org.twins.core.featurer.fieldtyper.FieldTyperTimestamp','Timestamp', 'Timestamp field with dedicated table storage', false)
 ON CONFLICT DO NOTHING;
+
+UPDATE featurer
+SET deprecated=true
+WHERE id=1302;
