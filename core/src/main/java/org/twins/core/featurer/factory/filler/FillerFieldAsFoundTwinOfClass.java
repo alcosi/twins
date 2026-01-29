@@ -57,7 +57,7 @@ public class FillerFieldAsFoundTwinOfClass extends Filler {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "there are more than one twin of class[" + extractedTwinClassId + "] found.");
         }
         var twinEntity = entityList.getFirst();
-        FieldValue fieldValue = twinService.createFieldValue(extractedTwinClassId, twinEntity.getId().toString());
+        FieldValue fieldValue = twinService.createFieldValue(twinClassFieldLinkId.extract(properties), twinEntity.getId().toString());
         factoryItem.getOutput().addField(fieldValue);
     }
 }
