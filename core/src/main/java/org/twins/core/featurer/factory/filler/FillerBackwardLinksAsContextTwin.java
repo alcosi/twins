@@ -41,6 +41,7 @@ public class FillerBackwardLinksAsContextTwin extends FillerLinks {
         LinkEntity linkEntity = linkEntityList.get(0);
         TwinOperation outputTwin = factoryItem.getOutput();
         List<TwinLinkEntity> twinLinkEntityList = new ArrayList<>();
+        // todo why loop? we have already call factoryItem.checkSingleContextTwin();
         for (FactoryItem contextItem : factoryItem.getContextFactoryItemList()) {
             TwinEntity contextTwinEntity = contextItem.getTwin();
             twinLinkEntityList.add(new TwinLinkEntity()
