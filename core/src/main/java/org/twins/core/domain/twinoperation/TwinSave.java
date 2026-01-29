@@ -11,10 +11,11 @@ import java.util.*;
 @EqualsAndHashCode(callSuper = true) // TWINS-254 bug with hashcode generation during insert in factory items set
 @Accessors(chain = true)
 public abstract class TwinSave extends TwinOperation {
-    protected Map<UUID, FieldValue> fields; // key: twinClassFieldId
+    protected Map<UUID, FieldValue> fields = new LinkedHashMap<>(); // key: twinClassFieldId
     protected Set<UUID> markersAdd;
     protected Set<String> tagsAddNew;
     protected Set<UUID> tagsAddExisted;
+    protected String commentAdd;
     //this flag helps to simply avoid recursion factory task call during creates/updates,
     //so currently we do not support cascade factory call during such operations
     private boolean canTriggerAfterOperationFactory = true;

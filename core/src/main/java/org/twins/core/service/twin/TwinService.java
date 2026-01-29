@@ -51,6 +51,7 @@ import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.comment.CommentService;
 import org.twins.core.service.history.ChangesRecorder;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.i18n.I18nService;
@@ -124,6 +125,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private TwinflowFactoryService twinflowFactoryService;
     @Autowired
     private I18nService i18nService;
+    @Autowired
+    private CommentService commentService;
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
         Map<UUID, List<TwinEntity>> ret = new HashMap<>();
@@ -408,6 +411,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             twinFieldAttributeService.addAttributes(twinEntity, twinCreate.getTwinFieldAttributeEntityList(), twinChangesCollector);
         }
         runFactoryAfterCreate(twinCreate, twinChangesCollector);
+        if (twinCreate.getCommentAdd() != null) {
+            commentService.createComment(twinEntity, twinCreate.getCommentAdd(), twinChangesCollector);
+        }
     }
 
     private void setHeadSafe(TwinEntity twinEntity) throws ServiceException {
