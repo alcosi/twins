@@ -14,7 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldSimpleEntity;
+import org.twins.core.dao.twin.TwinFieldTimestampEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
@@ -24,6 +24,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorDate;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -31,16 +32,18 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.Properties;
 
-@Deprecated
 @Component
 @Slf4j
-@Featurer(id = FeaturerTwins.ID_1302, name = "Date", description = "")
-public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, FieldValueDate, TwinFieldSearchDate> {
-    @FeaturerParam(name = "Pattern", description = "pattern for date value")
+@Featurer(id = FeaturerTwins.ID_1350, name = "Timestamp", description = "")
+public class FieldTyperTimestamp extends FieldTyperTimestampBase<FieldDescriptorDate, FieldValueDate, TwinFieldSearchDate> {
+
+    @FeaturerParam(name = "Pattern", description = "pattern for timestamp value", optional = true, defaultValue = "yyyy-MM-dd'T'HH:mm:ss")
     public static final FeaturerParamString pattern = new FeaturerParamString("pattern");
-    @FeaturerParam(name = "HoursPast", description = "number of hours in the past", optional = true, defaultValue = "-1")
+
+    @FeaturerParam(name = "HoursPast", description = "max hours in the past", optional = true, defaultValue = "-1")
     public static final FeaturerParamInt hoursPast = new FeaturerParamInt("hoursPast");
-    @FeaturerParam(name = "HoursFuture", description = "number of hours in the futures", optional = true, defaultValue = "-1")
+
+    @FeaturerParam(name = "HoursFuture", description = "max hours in the future", optional = true, defaultValue = "-1")
     public static final FeaturerParamInt hoursFuture = new FeaturerParamInt("hoursFuture");
 
     @Override
@@ -55,37 +58,29 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    protected void serializeValue(Properties properties, TwinFieldTimestampEntity twinFieldEntity, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (!value.isNullified()) {
             LocalDateTime localDateTime = parseDateTime(value.getDateStr(), properties);
             value.setDate(localDateTime);
             value.setDateStr(formatDate(localDateTime, properties));
         }
-        detectValueChange(twinFieldEntity, twinChangesCollector, value.getDateStr());
+        detectValueChange(twinFieldEntity, twinChangesCollector, Timestamp.valueOf(value.getDate()));
     }
 
     @Override
-    protected FieldValueDate deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) throws ServiceException {
+    protected FieldValueDate deserializeValue(Properties properties, TwinField twinField, TwinFieldTimestampEntity twinFieldEntity) throws ServiceException {
         FieldValueDate fieldValueDate = new FieldValueDate(twinField.getTwinClassField());
         fieldValueDate
-                .setDateStr(twinFieldEntity != null && !StringUtils.isEmpty(twinFieldEntity.getValue()) ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : null)
+                .setDateStr(twinFieldEntity != null && !StringUtils.isEmpty(twinFieldEntity.getValue().toString()) ? formatDate(twinFieldEntity.getValue().toLocalDateTime(), properties) : null)
                 .setDate(fieldValueDate.getDateStr() != null
                         ? parseDateTime(fieldValueDate.getDateStr(), properties)
                         : null);
         return fieldValueDate;
     }
 
-    public String validDateOrEmpty(String dateStr, Properties properties) {
-        if (GenericValidator.isDate(dateStr, pattern.extract(properties), false)) {
-            return dateStr;
-        }
-        log.warn("Value[{}] does not match expected format[{}]", dateStr, pattern.extract(properties));
-        return "";
-    }
-
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldSearchDate search) {
-        return TwinSpecification.checkFieldDate(search);
+        return TwinSpecification.checkFieldTimestamp(search);
     }
 
     private LocalDateTime parseDateTime(String value, Properties properties) throws ServiceException {
@@ -138,5 +133,4 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
         }
         return result;
     }
-
 }
