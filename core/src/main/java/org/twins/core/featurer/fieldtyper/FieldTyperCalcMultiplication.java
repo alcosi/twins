@@ -5,7 +5,6 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.springframework.stereotype.Component;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.math.BigDecimal;
@@ -23,7 +22,7 @@ public class FieldTyperCalcMultiplication extends FieldTyperCalcBinaryBase {
     protected String calculate(Double v1, Double v2, Properties properties) throws ServiceException {
         boolean replace = replaceZeroWithOne.extract(properties);
         Integer scale = decimalPlaces.extract(properties);
-        boolean doRound = round.extract(properties);
+        RoundingMode roundingModeParam = roundingMode.extract(properties);
 
         BigDecimal d1 = prepare(v1, replace);
         BigDecimal d2 = prepare(v2, replace);
@@ -31,14 +30,7 @@ public class FieldTyperCalcMultiplication extends FieldTyperCalcBinaryBase {
         BigDecimal result = d1.multiply(d2);
 
         if (scale != null) {
-            if (doRound) {
-                result = result.setScale(scale, RoundingMode.HALF_UP);
-            } else {
-                if (result.scale() > scale) {
-                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Result has more decimal places than allowed: " + result.toPlainString()
-                    );
-                }
-            }
+            result = result.setScale(scale, roundingModeParam);
             result = result.stripTrailingZeros();
         }
 
