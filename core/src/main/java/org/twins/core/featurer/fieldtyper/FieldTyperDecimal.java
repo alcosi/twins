@@ -11,7 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldSimpleEntity;
+import org.twins.core.dao.twin.TwinFieldDecimalEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
@@ -21,20 +21,20 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 
 import static org.cambium.common.util.MathUtils.EXPONENTIAL_FORM_REGEXP;
 
-@Deprecated
 @Component
 @Slf4j
-@Featurer(id = FeaturerTwins.ID_1317,
-        name = "Numeric",
-        description = "Numeric field")
-public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, FieldValueText, TwinFieldSearchNumeric> {
-
+@Featurer(id = FeaturerTwins.ID_1351,
+        name = "Decimal",
+        description = "Decimal field with dedicated table storage")
+public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldSearchNumeric> {
+    
     @FeaturerParam(name = "Min", description = "Min possible value", order = 1)
     public static final FeaturerParamDouble min = new FeaturerParamDouble("min");
     @FeaturerParam(name = "Max", description = "Max possible value", order = 2)
@@ -69,7 +69,7 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    protected void serializeValue(Properties properties, TwinFieldDecimalEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         Double minValue = min.extract(properties);
         Double maxValue = max.extract(properties);
         Double stepValue = step.extract(properties);
@@ -152,33 +152,18 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
                             " thousandSep:" + thousandSeparatorValue + " extraThousandSep:" + extraThousandSeparators +
                             " decimalSep:" + decimalSeparatorValue + " extraDecimalSep:" + extraDecimalSeparators + "].");
         }
-        detectValueChange(twinFieldEntity, twinChangesCollector, finalValue);
+        detectValueChange(twinFieldEntity, twinChangesCollector, new BigDecimal(finalValue));
     }
 
 
     @Override
-    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
+    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldEntity) {
         return new FieldValueText(twinField.getTwinClassField())
-                .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : null);
+                .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue().toString() : null);
     }
 
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldSearchNumeric search) throws ServiceException {
-        return TwinSpecification.checkFieldNumeric(search);
-    }
-
-    @Deprecated
-    public static Double parseDoubleValue(TwinEntity twin, UUID fieldId, Double defaultValue) throws ServiceException {
-        if (twin.getTwinFieldSimpleKit() != null && twin.getTwinFieldSimpleKit().containsKey(fieldId)) {
-            TwinFieldSimpleEntity field = twin.getTwinFieldSimpleKit().get(fieldId);
-            try {
-                if (field.getValue() != null) {
-                    return Double.parseDouble(field.getValue());
-                }
-            } catch (NumberFormatException e) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, field.easyLog(EasyLoggable.Level.NORMAL) + " value[" + field.getValue() + "] can't be parsed to double");
-            }
-        }
-        return defaultValue;
+        return TwinSpecification.checkFieldDecimal(search);
     }
 }
