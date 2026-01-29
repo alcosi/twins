@@ -29,6 +29,9 @@ public class FactoryConditionSetDTOv1 {
     @RelatedObject(type = UserDTOv1.class, name = "createdByUser")
     public UUID createdByUserId;
 
+    @Schema(description = "twin factory id")
+    public UUID twinFactoryId;
+
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "updated at", example = DTOExamples.INSTANT)
     public LocalDateTime updatedAt;
