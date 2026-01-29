@@ -36,6 +36,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.domain.twinoperation.TwinOperation;
@@ -124,6 +125,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private TwinflowFactoryService twinflowFactoryService;
     @Autowired
     private I18nService i18nService;
+    @Autowired
+    private TwinSearchService twinSearchService;
+
+//    private
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
         Map<UUID, List<TwinEntity>> ret = new HashMap<>();
@@ -536,6 +541,24 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public void checkAssignee(TwinEntity twinEntity) throws ServiceException {
         checkAssignee(twinEntity, twinEntity.getAssignerUserId());
     }
+    
+    private void checkNameUniqueness(TwinEntity twinEntity) throws ServiceException {
+
+        var twinClass = twinEntity.getTwinClass();
+        if (twinClass.isUniqueName()) {
+            var name = twinEntity.getName();
+            if (name == null) return;
+            var basicSearch = new BasicSearch();
+            basicSearch.setTwinNameLikeList(Set.of(name));
+            basicSearch.setTwinClassIdList(Set.of(twinClass.getId()));
+            if (!twinEntity.isCreateElseUpdate()) {
+                basicSearch.setTwinIdExcludeList(Set.of(twinEntity.getId()));
+            }
+            if (twinSearchService.exists(basicSearch)) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_NAME_IS_NOT_UNIQUE);
+            }
+        }
+    }
 
     public void checkAssignee(TwinEntity twinEntity, UUID userId) throws ServiceException {
         if (Boolean.TRUE.equals(twinEntity.getTwinClass().getAssigneeRequired()) && userId == null) {
@@ -579,6 +602,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     private void createTwin(TwinEntity twinEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
         checkAssignee(twinEntity);
+        checkNameUniqueness(twinEntity);
         validateEntityAndThrow(twinEntity, EntitySmartService.EntityValidateMode.beforeSave);
         if (twinEntity.getCreatedAt() == null)
             twinEntity.setCreatedAt(Timestamp.from(Instant.now()));
@@ -681,6 +705,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         tryToFinalizeSketch(twinUpdate);
         runFactoryOnUpdate(twinUpdate);
+        checkNameUniqueness(twinUpdate.getTwinEntity());
         updateTwinBasics(twinChangesRecorder);
         if (twinChangesRecorder.hasChanges())
             twinChangesCollector.add(twinChangesRecorder.getRecorder());
