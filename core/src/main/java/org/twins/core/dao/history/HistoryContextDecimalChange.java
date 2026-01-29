@@ -1,11 +1,13 @@
 package org.twins.core.dao.history;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.history.context.HistoryContext;
 
 import java.math.BigDecimal;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true)
 public class HistoryContextDecimalChange extends HistoryContext {
