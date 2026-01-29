@@ -35,6 +35,7 @@ public enum HistoryType {
     linkDeleted("linkDeleted"), // 2 history records will be created
     twinDeleted("twinDeleted"),
     spaceRoleUserAdded("spaceRoleUserAdded"),
+    spaceRoleUserAddedOnCreate("spaceRoleUserAddedOnCreate"),
     spaceRoleUserRemoved("spaceRoleUserRemoved"),
     unknown("unknown");
 
