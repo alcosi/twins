@@ -41,12 +41,12 @@ public class TwinFieldStorageDecimal extends TwinFieldStorage {
 
     @Override
     public boolean isLoaded(TwinEntity twinEntity) {
-        return twinEntity.getTwinFieldBooleanKit() != null;
+        return twinEntity.getTwinFieldDecimalKit() != null;
     }
 
     @Override
     public void initEmpty(TwinEntity twinEntity) {
-        twinEntity.setTwinFieldBooleanKit(Kit.EMPTY);
+        twinEntity.setTwinFieldDecimalKit(Kit.EMPTY);
     }
 
     @Override
