@@ -49,6 +49,7 @@ public class TwinChangesService {
     private final TwinAttachmentModificationRepository twinAttachmentModificationRepository;
     private final TwinFieldAttributeRepository twinFieldAttributeRepository;
     private final SpaceRoleUserRepository spaceRoleUserRepository;
+    private final TwinFieldDecimalRepository twinFieldDecimalRepository;
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
     private final TwinChangeTaskService twinChangeTaskService;
@@ -74,6 +75,7 @@ public class TwinChangesService {
         saveEntities(twinChangesCollector, SpaceRoleUserEntity.class, spaceRoleUserRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldTwinClassEntity.class, twinFieldTwinClassListRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldAttributeEntity.class, twinFieldAttributeRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, TwinFieldDecimalEntity.class, twinFieldDecimalRepository, changesApplyResult);
 
         if (!twinChangesCollector.getSaveEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Map<Object, ChangesHelper>> classChanges : twinChangesCollector.getSaveEntityMap().entrySet()) {
@@ -95,6 +97,7 @@ public class TwinChangesService {
         deleteEntities(twinChangesCollector, SpaceRoleUserEntity.class, spaceRoleUserRepository);
         deleteEntities(twinChangesCollector, TwinFieldTwinClassEntity.class, twinFieldTwinClassListRepository);
         deleteEntities(twinChangesCollector, TwinFieldAttributeEntity.class, twinFieldAttributeRepository);
+        deleteEntities(twinChangesCollector, TwinFieldDecimalEntity.class, twinFieldDecimalRepository);
 
         if (!twinChangesCollector.getDeleteEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Set<Object>> classChanges : twinChangesCollector.getDeleteEntityMap().entrySet()) {

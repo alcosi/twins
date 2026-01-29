@@ -22,10 +22,10 @@ public abstract class FieldTyperDecimalBase<D extends FieldDescriptor, T extends
                 twinChangesCollector
                         .getHistoryCollector(twinFieldDecimalEntity.getTwin())
                         .add(
-                                historyService.fieldChangeSimple(
+                                historyService.fieldChangeDecimal(
                                         twinFieldDecimalEntity.getTwinClassField(),
-                                        twinFieldDecimalEntity.getValue() != null ? twinFieldDecimalEntity.getValue().toString() : null,
-                                        newValue != null ? newValue.toString() : null
+                                        twinFieldDecimalEntity.getValue() != null ? twinFieldDecimalEntity.getValue() : null,
+                                        newValue
                                 )
                         );
             }
