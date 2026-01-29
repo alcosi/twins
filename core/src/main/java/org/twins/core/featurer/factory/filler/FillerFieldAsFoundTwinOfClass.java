@@ -19,7 +19,6 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -48,23 +47,17 @@ public class FillerFieldAsFoundTwinOfClass extends Filler {
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         BasicSearch search = new BasicSearch();
         UUID extractedTwinClassId = twinClassId.extract(properties);
-
         search
                 .addTwinClassId(extractedTwinClassId, false);
-
-        List<TwinEntity> entityList = twinSearchService.findTwins(search);
-
+        var entityList = twinSearchService.findTwins(search);
         if (entityList.isEmpty()) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "there are no twins of class[" + extractedTwinClassId + "] found.");
         }
         if (entityList.size() > 1) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "there are more than one twin of class[" + extractedTwinClassId + "] found.");
         }
-
-        TwinEntity twinEntity = twinSearchService.findTwins(search).getFirst();
-
-        FieldValue fieldValue = twinService.createFieldValue(twinClassFieldLinkId.extract(properties), twinEntity.getId().toString());
-
+        var twinEntity = entityList.getFirst();
+        FieldValue fieldValue = twinService.createFieldValue(extractedTwinClassId, twinEntity.getId().toString());
         factoryItem.getOutput().addField(fieldValue);
     }
 }
