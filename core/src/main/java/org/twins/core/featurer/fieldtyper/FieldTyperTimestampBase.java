@@ -24,8 +24,8 @@ public abstract class FieldTyperTimestampBase<D extends FieldDescriptor, T exten
                         .add(
                                 historyService.fieldChangeTimestamp(
                                         twinFieldTimestampEntity.getTwinClassField(),
-                                        twinFieldTimestampEntity.getValue() != null ? twinFieldTimestampEntity.getValue().toString() : null,
-                                        newValue != null ? newValue.toString() : null
+                                        twinFieldTimestampEntity.getValue() != null ? twinFieldTimestampEntity.getValue() : null,
+                                        newValue
                                 )
                         );
             }
