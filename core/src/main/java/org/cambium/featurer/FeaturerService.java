@@ -3,6 +3,7 @@ package org.cambium.featurer;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
@@ -12,6 +13,7 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
+import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerParamType;
@@ -250,11 +252,11 @@ public class FeaturerService {
     }
 
     public Properties extractProperties(FeaturerEntity featurerEntity, HashMap<String, String> params, Map<String, Object> context) throws ServiceException {
-        return extractProperties(featurerEntity.getId(), params, context);
+        return extractProperties(featurerEntity.getId(), params);
     }
 
     public Properties extractProperties(Featurer featurer, HashMap<String, String> params, Map<String, Object> context) throws ServiceException {
-        return extractProperties(getFeaturerId(featurer), params, context);
+        return extractProperties(getFeaturerId(featurer), params);
     }
 
     private int getFeaturerId(Featurer featurer) {
@@ -397,5 +399,19 @@ public class FeaturerService {
             }
         }
         return featurerParams;
+    }
+
+    @Cacheable(value = "FeaturerExtractPropertiesCache", key = "#featurerId + '|' + T(org.apache.commons.codec.digest.DigestUtils).sha256Hex(#featurerId + '|' + canonical(#params))")
+    public Properties extractProperties(Integer featurerId, HashMap<String, String> params) throws ServiceException {
+        return extractProperties(featurerId, params, Collections.emptyMap());
+    }
+
+    private String canonical(Map<String, String> map) {
+        if(MapUtils.isEmpty(map)) return "";
+        return map.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(e -> e.getKey() + "=" + e.getValue())
+                .collect(Collectors.joining("&"));
     }
 }
