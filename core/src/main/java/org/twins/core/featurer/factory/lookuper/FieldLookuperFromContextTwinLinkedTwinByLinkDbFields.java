@@ -19,7 +19,7 @@ public class FieldLookuperFromContextTwinLinkedTwinByLinkDbFields extends FieldL
         twinLinkService.loadTwinLinks(contextTwin);
         TwinEntity fromTwin;
         try {
-            fromTwin = contextTwin.getTwinLinks().getForwardLinks().get(linkedTwinByLinkId).getDstTwin();
+            fromTwin = contextTwin.getTwinLinks().getForwardLinks().getGrouped(linkedTwinByLinkId).getFirst().getDstTwin();
         } catch (Exception e) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] is not present in context twin linked twins fields");
         }
