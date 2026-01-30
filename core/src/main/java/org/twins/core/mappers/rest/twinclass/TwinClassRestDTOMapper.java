@@ -139,7 +139,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                         .setExternalId(src.getExternalId())
                         .setExternalProperties(src.getExternalProperties())
                         .setSegment(src.getSegment())
-                        .setHasSegment(src.getHasSegment());
+                        .setHasSegment(src.getHasSegment())
+                        .setHeadHierarchyCounterDirectChildren(src.getHeadHierarchyCounterDirectChildren())
+                        .setExtendsHierarchyCounterDirectChildren(src.getExtendsHierarchyCounterDirectChildren());
                 break;
             case DETAILED:
                 dst
