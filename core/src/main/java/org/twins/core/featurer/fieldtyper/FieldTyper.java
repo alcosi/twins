@@ -87,6 +87,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         return valuetype;
     }
 
+    public Class<D> getFieldDescriptorType(TwinClassFieldEntity twinClassField) throws ServiceException {
+        return descriptorType;
+    }
+
     public Class<S> getStorageType() {
         return storageType;
     }

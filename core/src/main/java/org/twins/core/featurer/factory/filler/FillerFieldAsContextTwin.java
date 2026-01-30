@@ -4,9 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
@@ -18,23 +18,22 @@ import org.twins.core.service.twin.TwinService;
 import java.util.Properties;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_2341,
-        name = "Field from featurer params",
-        description = "")
+@Featurer(id = FeaturerTwins.ID_2345,
+        name = "Field as single context twin",
+        description = "Fill link field as single context twin")
 @Slf4j
-public class FillerFieldFromParams extends Filler {
-    @FeaturerParam(name = "Twin class field id", description = "", order = 1)
-    public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
+public class FillerFieldAsContextTwin extends Filler {
+    @FeaturerParam(name = "Twin class field id", description = "Link field witch need to fill", order = 1)
+    public static final FeaturerParamUUID twinClassFieldLinkId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldLinkId");
 
-    @FeaturerParam(name = "Value", description = "", order = 2)
-    public static final FeaturerParamString value = new FeaturerParamString("value");
-
+    @Lazy
     @Autowired
-    private TwinService twinService;
+    TwinService twinService;
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        FieldValue fieldValue = twinService.createFieldValue(twinClassFieldId.extract(properties), value.extract(properties));
+        var twin = factoryItem.checkSingleContextTwin();
+        FieldValue fieldValue = twinService.createFieldValue(twinClassFieldLinkId.extract(properties), twin.getId().toString());
         factoryItem.getOutput().addField(fieldValue);
     }
 }

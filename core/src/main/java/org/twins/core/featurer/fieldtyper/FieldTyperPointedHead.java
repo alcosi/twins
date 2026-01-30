@@ -13,7 +13,6 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStoragePointedHead;
@@ -39,16 +38,16 @@ public class FieldTyperPointedHead extends FieldTyper<FieldDescriptor, FieldValu
     @Override
     public Class<FieldValue> getValueType(TwinClassFieldEntity twinClassField) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, twinClassField.getFieldTyperParams(), new HashMap<>());
-        var headTwinClassField = getHeadTwinClassFieldSafe(twinClassField, properties);
+        var headTwinClassField = getHeadTwinClassFieldSafe(properties);
         var headFieldTyper = featurerService.getFeaturer(headTwinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
         return headFieldTyper.getValueType(headTwinClassField); //perhaps we should some wrapper here to indicate that the current value is just a pointer
     }
 
     @Override
     protected FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
-        var headTwinClassField = getHeadTwinClassFieldSafe(twinClassFieldEntity, properties);
+        var headTwinClassField = getHeadTwinClassFieldSafe(properties);
         var headFieldTyper = featurerService.getFeaturer(headTwinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
-        // this is recursion safe, even if some head pointed field points on another head pointed field, this will just head of head up ()
+        // this is recursion safe, even if some head-pointed field points on another head-pointed field, this will just head of head up ()
         var fieldDescriptor = headFieldTyper.getFieldDescriptor(headTwinClassField);
         //todo set editable false
         return fieldDescriptor;
@@ -60,20 +59,11 @@ public class FieldTyperPointedHead extends FieldTyper<FieldDescriptor, FieldValu
 
     @Override
     protected FieldValue deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        var headTwinClassField = getHeadTwinClassFieldSafe(twinField.getTwinClassField(), properties);
+        var headTwinClassField = getHeadTwinClassFieldSafe(properties);
         return twinField.getTwin().getHeadTwin().getFieldValuesKit().get(headTwinClassField.getId());
     }
 
-    protected TwinClassFieldEntity getHeadTwinClassFieldSafe(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
-        var headTwinClassField = twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties));
-        if (!headTwinClassField.getTwinClassId().equals(twinClassFieldEntity.getTwinClass().getHeadTwinClassId())) {
-            throw new ServiceException(ErrorCodeTwins.CONFIGURATION_IS_INVALID, headTwinClassField.logNormal() + " is not of " + twinClassFieldEntity.getTwinClass().logNormal());
-        }
-        return headTwinClassField;
-    }
-
-    protected FieldTyper getHeadFieldTyperSafe(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
-        var headTwinClassField = getHeadTwinClassFieldSafe(twinClassFieldEntity, properties);
-        return featurerService.getFeaturer(headTwinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
+    protected TwinClassFieldEntity getHeadTwinClassFieldSafe(Properties properties) throws ServiceException {
+        return twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties));
     }
 }
