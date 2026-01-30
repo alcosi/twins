@@ -410,10 +410,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (CollectionUtils.isNotEmpty(twinCreate.getTwinFieldAttributeEntityList())) {
             twinFieldAttributeService.addAttributes(twinEntity, twinCreate.getTwinFieldAttributeEntityList(), twinChangesCollector);
         }
-        runFactoryAfterCreate(twinCreate, twinChangesCollector);
-        if (twinCreate.getCommentAdd() != null) {
-            commentService.createComment(twinEntity, twinCreate.getCommentAdd(), twinChangesCollector);
+        if (CollectionUtils.isNotEmpty(twinCreate.getCommentsAdd())) {
+            commentService.createComment(twinEntity, twinCreate.getCommentsAdd(), twinChangesCollector);
         }
+        runFactoryAfterCreate(twinCreate, twinChangesCollector);
     }
 
     private void setHeadSafe(TwinEntity twinEntity) throws ServiceException {

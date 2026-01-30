@@ -13,6 +13,7 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.PaginationUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -91,22 +92,23 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public void createComment(TwinEntity twin, String commentText, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (commentText == null)
-            throw new ServiceException(ErrorCodeTwins.TWIN_COMMENT_FIELD_TEXT_IS_NULL);
+    public void createComment(TwinEntity twin, Set<String> comments, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (CollectionUtils.isEmpty(comments))
+            return;
         ApiUser apiUser = authService.getApiUser();
 
-        TwinCommentEntity comment = new TwinCommentEntity()
-                .setId(UUID.randomUUID())
-                .setText(commentText)
-                .setCreatedAt(Timestamp.from(Instant.now()))
-                .setCreatedByUserId(apiUser.getUserId())
-                .setCreatedByUser(apiUser.getUser())
-                .setTwinId(twin.getId())
-                .setTwin(twin);
-
-        twinChangesCollector.add(comment);
-        addCommentHistory(comment, twin, twinChangesCollector);
+        for (var commentText : comments) {
+            TwinCommentEntity comment = new TwinCommentEntity()
+                    .setId(UuidUtils.generate())
+                    .setText(commentText)
+                    .setCreatedAt(Timestamp.from(Instant.now()))
+                    .setCreatedByUserId(apiUser.getUserId())
+                    .setCreatedByUser(apiUser.getUser())
+                    .setTwinId(twin.getId())
+                    .setTwin(twin);
+            twinChangesCollector.add(comment);
+            addCommentHistory(comment, twin, twinChangesCollector);
+        }
     }
 
     private void addCommentHistory(TwinCommentEntity comment, TwinEntity twin) throws ServiceException {

@@ -30,7 +30,7 @@ public class FillerComment extends Filler {
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         FieldValue commentField = fieldLookupers.getFromContextTwinDbFields().lookupFieldValue(factoryItem, fieldId.extract(properties));
         if (commentField instanceof FieldValueText fieldValueText) {
-            factoryItem.getOutput().setCommentAdd(fieldValueText.getValue());
+            factoryItem.getOutput().addComment(fieldValueText.getValue());
         } else {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "targetTwinClassField[" + commentField.getTwinClassFieldId() + "] is not instance of text field");
         }

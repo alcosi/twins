@@ -20,7 +20,6 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.comment.TwinCommentEntity;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.comment.CommentCreateRqDTOv1;
