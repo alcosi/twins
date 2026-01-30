@@ -11,6 +11,8 @@ public class FieldLookupers {
     private final FieldLookuperFromContextFields fromContextFields;
     private final FieldLookuperFromContextFieldsAndContextTwinDbFields fromContextFieldsAndContextTwinDbFields;
     private final FieldLookuperFromContextTwinDbFields fromContextTwinDbFields;
+    private final FieldLookuperFromContextTwinLinkedTwinByLinkDbFields fromContextTwinLinkedByLinkTwinFields;
+    private final FieldLookuperFromContextTwinLinkedTwinByFieldDbFields fromContextTwinLinkedByFieldTwinFields;
     private final FieldLookuperFromContextTwinHeadTwinDbFields fromContextTwinHeadTwinDbFields;
     private final FieldLookuperFromContextTwinUncommitedFields fromContextTwinUncommitedFields;
     private final FieldLookuperFromItemOutputDbFields fromItemOutputDbFields;
