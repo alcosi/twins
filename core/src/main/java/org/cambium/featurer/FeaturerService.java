@@ -401,17 +401,21 @@ public class FeaturerService {
         return featurerParams;
     }
 
-    @Cacheable(value = "FeaturerExtractPropertiesCache", key = "#featurerId + '|' + T(org.apache.commons.codec.digest.DigestUtils).sha256Hex(#featurerId + '|' + canonical(#params))")
+    @Cacheable(value = "FeaturerExtractPropertiesCache", key = "T(FeaturerService).toConfigKey(#featurerId, #params)")
     public Properties extractProperties(Integer featurerId, HashMap<String, String> params) throws ServiceException {
         return extractProperties(featurerId, params, Collections.emptyMap());
     }
 
-    private String canonical(Map<String, String> map) {
+    private static String canonical(Map<String, String> map) {
         if(MapUtils.isEmpty(map)) return "";
         return map.entrySet()
                 .stream()
                 .sorted(Map.Entry.comparingByKey())
                 .map(e -> e.getKey() + "=" + e.getValue())
                 .collect(Collectors.joining("&"));
+    }
+
+    public static String toConfigKey(int featurerId, HashMap<String, String> params) {
+        return DigestUtils.sha256Hex(featurerId + "|" + canonical(params));
     }
 }
