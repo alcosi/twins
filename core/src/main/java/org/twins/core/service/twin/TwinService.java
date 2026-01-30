@@ -1318,7 +1318,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public boolean isCopyable(TwinClassFieldEntity src, TwinClassFieldEntity dst) throws ServiceException {
         FieldTyper srcFieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturerId(), FieldTyper.class);
         FieldTyper dstFieldTyper = featurerService.getFeaturer(dst.getFieldTyperFeaturerId(), FieldTyper.class);
-        return srcFieldTyper.getStorageType().equals(dstFieldTyper.getStorageType());
+        return srcFieldTyper.getFieldDescriptorType(src).equals(dstFieldTyper.getFieldDescriptorType(dst));
     }
 
     public TwinField getTwinFieldOrNull(TwinEntity twinEntity, UUID twinClassFieldId) throws ServiceException {
