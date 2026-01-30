@@ -758,7 +758,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinflowFactoryService.runFactoryAfter(twinCreate, twinChangesCollector, factoryLauncher);
     }
 
-    private void runFactoryOnUpdate(TwinUpdate twinUpdate) throws ServiceException {
+    public void runFactoryOnUpdate(TwinUpdate twinUpdate) throws ServiceException {
         if (twinUpdate.getLauncher() != TwinOperation.Launcher.direct) {
             return;
         }
@@ -777,7 +777,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
-    private void runFactoryAfterUpdate(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    public void runFactoryAfterUpdate(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinUpdate.getLauncher() != TwinOperation.Launcher.direct) {
             return;
         }

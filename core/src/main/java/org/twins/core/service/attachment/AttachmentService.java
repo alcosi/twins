@@ -30,6 +30,8 @@ import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.*;
+import org.twins.core.domain.twinoperation.TwinOperation;
+import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
 import org.twins.core.enums.history.HistoryType;
@@ -38,7 +40,6 @@ import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.Storager;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.storage.StorageService;
@@ -80,7 +81,15 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
     @Transactional
     public List<TwinAttachmentEntity> addAttachments(List<TwinAttachmentEntity> attachments, TwinEntity twinEntity) throws ServiceException {
+        TwinUpdate twinUpdate = new TwinUpdate();
+        twinUpdate
+                .setDbTwinEntity(twinEntity)
+                .setLauncher(TwinOperation.Launcher.direct)
+                .setTwinEntity(twinEntity);
+
+        twinService.runFactoryOnUpdate(twinUpdate);
         checkAndSetAttachmentTwin(attachments, twinEntity);
+        twinService.runFactoryAfterUpdate(twinUpdate, new TwinChangesCollector());
         return addAttachments(attachments);
     }
 
@@ -346,10 +355,17 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         attachmentActionService.checkAllowed(attachement, TwinAttachmentAction.DELETE);
         if (attachement == null)
             return;
+        TwinUpdate twinUpdate = new TwinUpdate();
+        twinUpdate
+                .setDbTwinEntity(attachement.getTwin())
+                .setLauncher(TwinOperation.Launcher.direct)
+                .setTwinEntity(attachement.getTwin());
+        twinService.runFactoryOnUpdate(twinUpdate);
         log.info(attachement.logDetailed() + " will be deleted");
         entitySmartService.deleteAndLog(attachmentId, twinAttachmentRepository);
         historyService.saveHistory(attachement.getTwin(), HistoryType.attachmentDelete, new HistoryContextAttachment()
                 .shotAttachment(attachement));
+        twinService.runFactoryAfterUpdate(twinUpdate, new TwinChangesCollector());
     }
 
 
