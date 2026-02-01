@@ -48,7 +48,7 @@ CREATE OR REPLACE FUNCTION twin_field_calc_sum_by_head(
     exclude_status boolean,
     children_of_twin_class_ids UUID[]
 )
-    RETURNS TABLE(head_twin_id UUID, total DOUBLE PRECISION) AS $$
+    RETURNS TABLE(head_twin_id UUID, total NUMERIC) AS $$
 BEGIN
     RETURN QUERY
         WITH filtered_children AS (
@@ -96,7 +96,7 @@ CREATE OR REPLACE FUNCTION twin_field_calc_two_field_op_by_head(
 )
     RETURNS TABLE (
                       result_head_twin_id UUID,
-                      result_total DOUBLE PRECISION
+                      result_total NUMERIC
                   )
     LANGUAGE plpgsql
 AS $$
@@ -173,7 +173,7 @@ CREATE OR REPLACE FUNCTION twin_field_calc_sum_by_link(
 )
     RETURNS TABLE (
                       result_linked_to_twin_id UUID,
-                      total DOUBLE PRECISION
+                      total NUMERIC
                   )
     LANGUAGE plpgsql
 AS $$
@@ -241,7 +241,7 @@ CREATE OR REPLACE FUNCTION twin_field_calc_two_field_op_by_link(
 )
     RETURNS TABLE (
                       linked_to_twin_id UUID,
-                      total DOUBLE PRECISION
+                      total NUMERIC
                   )
     LANGUAGE plpgsql
 AS $$

@@ -19,7 +19,7 @@ public class FieldTyperCalcMultiplication extends FieldTyperCalcBinaryBase {
     public static final FeaturerParamBoolean replaceZeroWithOne = new FeaturerParamBoolean("replaceZeroWithOne");
 
     @Override
-    protected String calculate(Double v1, Double v2, Properties properties) throws ServiceException {
+    protected String calculate(BigDecimal v1, BigDecimal v2, Properties properties) throws ServiceException {
         boolean replace = replaceZeroWithOne.extract(properties);
         Integer scale = decimalPlaces.extract(properties);
         RoundingMode roundingModeParam = roundingMode.extract(properties);
@@ -37,10 +37,13 @@ public class FieldTyperCalcMultiplication extends FieldTyperCalcBinaryBase {
         return result.toPlainString();
     }
 
-    private BigDecimal prepare(Double v, boolean replace) {
-        if (replace && (v == null || v == 0)) {
+    private BigDecimal prepare(BigDecimal v, boolean replace) {
+        if (v == null) {
+            return BigDecimal.ZERO;
+        }
+        if (replace && v.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ONE;
         }
-        return v == null ? BigDecimal.ZERO : BigDecimal.valueOf(v);
+        return v;
     }
 }
