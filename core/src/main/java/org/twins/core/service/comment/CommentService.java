@@ -98,6 +98,8 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         ApiUser apiUser = authService.getApiUser();
 
         for (var commentText : comments) {
+            if (commentText == null)
+                continue;
             TwinCommentEntity comment = new TwinCommentEntity()
                     .setId(UuidUtils.generate())
                     .setText(commentText)
