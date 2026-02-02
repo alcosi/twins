@@ -8,7 +8,6 @@ import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.hibernate.query.SortDirection;
 import org.hibernate.query.sqm.tree.expression.SqmExpression;
-import org.hibernate.query.sqm.tree.expression.SqmLiteral;
 import org.hibernate.query.sqm.tree.expression.ValueBindJpaCriteriaParameter;
 import org.hibernate.query.sqm.tree.predicate.SqmComparisonPredicate;
 import org.springframework.data.jpa.domain.Specification;
@@ -31,7 +30,7 @@ public abstract class TwinSorter extends FeaturerTwins {
     public static final FeaturerParamBoolean nullsLast = new FeaturerParamBoolean("nullsLast");
 
     public Function<Specification<TwinEntity>, Specification<TwinEntity>> createSort(HashMap<String, String> twinSorterParams, TwinClassFieldEntity twinClassFieldEntity, SortDirection direction) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, twinSorterParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, twinSorterParams);
         if (!checkCompatibleSorter(featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class)))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_SORTER_IS_INCOMPATIBLE, "The field typer " + twinClassFieldEntity.getFieldTyperFeaturerId() + " is not compatible with the sorter " + twinClassFieldEntity.getTwinSorterFeaturerId() + "; " + twinClassFieldEntity.logShort());
 

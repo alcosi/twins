@@ -17,7 +17,7 @@ import java.util.Properties;
 @Slf4j
 public abstract class HeadHunter extends FeaturerTwins {
     public void expandValidHeadSearch(HashMap<String, String> headHunterParams, TwinClassEntity twinClassEntity, BasicSearch basicSearch) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, headHunterParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, headHunterParams);
         log.info("Running featurer[" + this.getClass().getSimpleName() + "].expandValidHeadSearch with params: " + properties.toString());
         expandValidHeadSearch(properties, twinClassEntity, basicSearch);
     }
@@ -34,7 +34,7 @@ public abstract class HeadHunter extends FeaturerTwins {
      * @throws ServiceException
      */
     public boolean isCreatableChildClass(HashMap<String, String> headHunterParams, TwinEntity twinEntity, TwinClassEntity twinClassEntity) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, headHunterParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, headHunterParams);
         log.info("Running featurer[" + this.getClass().getSimpleName() + "].isCreatableChildClass with params: " + properties.toString());
         return isCreatableChildClass(properties, twinEntity, twinClassEntity);
     }

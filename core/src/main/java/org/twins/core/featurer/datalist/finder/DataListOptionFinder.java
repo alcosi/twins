@@ -20,7 +20,7 @@ public abstract class DataListOptionFinder extends FeaturerTwins {
     public static final String PARAM_CURRENT_TWIN_CLASS_FIELD_ID = "twinClassFieldId";
 
     public void concatSearch(HashMap<String, String> optionFinderParams, DataListOptionSearch optionSearch, Map<String, String> namedParamsMap) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, optionFinderParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, optionFinderParams);
         log.info("Running featurer[{}].findFields with params: {}", this.getClass().getSimpleName(), properties.toString());
         concatSearch(properties, optionSearch, namedParamsMap);
     }

@@ -29,7 +29,7 @@ public abstract class BusinessAccountInitiator extends FeaturerTwins {
     private TwinService twinService;
 
     public void init(HashMap<String, String> initiatorParams, DomainBusinessAccountEntity domainBusinessAccountEntity) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, initiatorParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, initiatorParams);
         domainBusinessAccountEntity
                 .setPermissionSchemaId(domainBusinessAccountEntity.getTier().getPermissionSchemaId())
                 .setPermissionSchema(domainBusinessAccountEntity.getTier().getPermissionSchema())

@@ -18,7 +18,7 @@ import java.util.Properties;
 public abstract class TransitionTrigger extends FeaturerTwins {
 
     public void run(HashMap<String, String> triggerParams, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, triggerParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, triggerParams);
         log.info("Running trigger[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
         run(properties, twinEntity, srcTwinStatus, dstTwinStatus);
     }

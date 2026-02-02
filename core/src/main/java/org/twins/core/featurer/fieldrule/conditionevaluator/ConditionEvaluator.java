@@ -11,7 +11,10 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldrule.conditionevaluator.conditiondescriptor.ConditionDescriptor;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
 
 @FeaturerType(id = FeaturerTwins.TYPE_45,
         name = "ConditionEvaluator",
@@ -55,7 +58,7 @@ public abstract class ConditionEvaluator<D extends ConditionDescriptor> extends 
     }
 
     public D getConditionDescriptor(TwinClassFieldConditionEntity twinClassFieldConditionEntity) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, twinClassFieldConditionEntity.getConditionEvaluatorParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, twinClassFieldConditionEntity.getConditionEvaluatorParams());
         return getConditionDescriptor(twinClassFieldConditionEntity, properties);
     }
 
