@@ -490,6 +490,9 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
 
         // Relations loaded manually
         spaceTwin = null;
+        if (headTwin != null) {
+            headTwin.resetTransientState();
+        }
         headTwin = null;
         twinflow = null;
 
