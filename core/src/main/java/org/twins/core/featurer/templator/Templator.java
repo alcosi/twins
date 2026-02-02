@@ -20,7 +20,7 @@ public abstract class Templator extends FeaturerTwins {
     @Autowired
     private I18nService i18nService;
     public String generate(HashMap<String, String> templaterParams, UUID templateI18nId, Map<String, String> templateVars) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, templaterParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, templaterParams);
         return generate(properties, templateI18nId, templateVars);
     }
 

@@ -28,7 +28,7 @@ public abstract class EmailerCachedSender<S> extends Emailer {
     protected abstract void sendMail(S sender, Properties properties, String dstEmail, String srcEmail, String subject, String body, Map<String, String> templateVars) throws ServiceException;
 
     public S createSender(HashMap<String, String> emailerParams) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, emailerParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, emailerParams);
         return createSender(properties);
     }
 

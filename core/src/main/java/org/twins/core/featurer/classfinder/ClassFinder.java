@@ -16,7 +16,7 @@ import java.util.Properties;
 public abstract class ClassFinder  extends FeaturerTwins {
 
     public TwinClassSearch createSearch(HashMap<String, String> classFinderParams) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, classFinderParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, classFinderParams);
         log.info("Running featurer[{}].findClasses with params: {}", this.getClass().getSimpleName(), properties.toString());
         TwinClassSearch twinClassSearch = new TwinClassSearch();
         concatSearch(properties, twinClassSearch);
@@ -24,7 +24,7 @@ public abstract class ClassFinder  extends FeaturerTwins {
     }
 
     public void concatSearch(HashMap<String, String> classFinderParams, TwinClassSearch classSearch) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, classFinderParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, classFinderParams);
         log.info("Running featurer[{}].findClasses with params: {}", this.getClass().getSimpleName(), properties.toString());
         concatSearch(properties, classSearch);
     }

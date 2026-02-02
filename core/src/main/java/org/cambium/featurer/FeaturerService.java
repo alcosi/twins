@@ -23,6 +23,7 @@ import org.cambium.featurer.exception.ErrorCodeFeaturer;
 import org.cambium.featurer.injectors.Injector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -59,6 +60,9 @@ public class FeaturerService {
     public void setFeaturerList(List<Featurer> featurerList) {
         this.featurerList = featurerList;
     }
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     @PostConstruct
     public void postConstruct() {
@@ -252,11 +256,14 @@ public class FeaturerService {
     }
 
     public Properties extractProperties(FeaturerEntity featurerEntity, HashMap<String, String> params, Map<String, Object> context) throws ServiceException {
-        return extractProperties(featurerEntity.getId(), params);
+        if (MapUtils.isNotEmpty(context))
+            return extractProperties(featurerEntity.getId(), params, context);
+        else
+            return extractPropertiesCached(featurerEntity.getId(), params);
     }
 
-    public Properties extractProperties(Featurer featurer, HashMap<String, String> params, Map<String, Object> context) throws ServiceException {
-        return extractProperties(getFeaturerId(featurer), params);
+    public Properties extractProperties(Featurer featurer, HashMap<String, String> params) throws ServiceException {
+        return extractPropertiesCached(getFeaturerId(featurer), params);
     }
 
     private int getFeaturerId(Featurer featurer) {
@@ -337,7 +344,7 @@ public class FeaturerService {
             throw new ServiceException(ErrorCodeCommon.FEATURER_ID_UNKNOWN, "unknown featurer id[" + featurerId + "]");
         if (!expectedFeaturerClass.isInstance(featurer))
             throw new ServiceException(ErrorCodeCommon.FEATURER_INCORRECT_TYPE, "featurer of id[" + featurerId + "] is not of expected type[" + expectedFeaturerClass.getSimpleName() + "]");
-        Properties properties = extractProperties(featurer, featurerParams, new HashMap<>());
+        Properties properties = extractProperties(featurer, featurerParams);
         basicParamsValidation(featurerId, properties);
         featurer.extraParamsValidation(properties);
         return featurerRepository.findById(featurerId).get();
@@ -404,6 +411,10 @@ public class FeaturerService {
     @Cacheable(value = "FeaturerExtractPropertiesCache", key = "T(FeaturerService).toConfigKey(#featurerId, #params)")
     public Properties extractProperties(Integer featurerId, HashMap<String, String> params) throws ServiceException {
         return extractProperties(featurerId, params, Collections.emptyMap());
+    }
+
+    private Properties extractPropertiesCached(Integer featurerId, HashMap<String, String> params) throws ServiceException {
+        return applicationContext.getBean(FeaturerService.class).extractProperties(featurerId, params); //self proxy
     }
 
     private static String canonical(Map<String, String> map) {

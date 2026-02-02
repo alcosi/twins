@@ -36,7 +36,7 @@ public abstract class Slugger<T extends UserGroupMap> extends FeaturerTwins {
     UserGroupService userGroupService;
 
     public boolean checkConfig(T userGroupMapEntity) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, userGroupMapEntity.getUserGroup().getUserGroupType().getSluggerParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, userGroupMapEntity.getUserGroup().getUserGroupType().getSluggerParams());
         return checkConfig(properties, userGroupMapEntity);
     }
 
@@ -153,7 +153,7 @@ public abstract class Slugger<T extends UserGroupMap> extends FeaturerTwins {
     }
 
     public List<? extends UserGroupMap> getGroups(HashMap<String, String> sluggerParams, Set<UUID> userIds) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, sluggerParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, sluggerParams);
         return getGroups(properties, userIds);
     }
 
@@ -161,7 +161,7 @@ public abstract class Slugger<T extends UserGroupMap> extends FeaturerTwins {
 
 
     public void enterGroup(UserGroupEntity userGroup, UserEntity user) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, userGroup.getUserGroupType().getSluggerParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, userGroup.getUserGroupType().getSluggerParams());
         userGroupService.loadGroups(user);
         if (user.getUserGroups().containsKey(userGroup.getId())) {
             log.warn("{} is already registered in {}", user.logShort(), userGroup.logShort());
@@ -177,7 +177,7 @@ public abstract class Slugger<T extends UserGroupMap> extends FeaturerTwins {
     protected abstract UserGroupMap enterGroup(Properties properties, UserEntity user, UserGroupEntity userGroup) throws ServiceException;
 
     public void exitGroup(UserGroupEntity userGroup, UserEntity user) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, userGroup.getUserGroupType().getSluggerParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, userGroup.getUserGroupType().getSluggerParams());
         userGroupService.loadGroups(user);
         if (!user.getUserGroups().containsKey(userGroup.getId())) {
             log.warn("{} is not registered in {}", user.logShort(), userGroup.logShort());
@@ -227,7 +227,7 @@ public abstract class Slugger<T extends UserGroupMap> extends FeaturerTwins {
     }
 
     public Set<UUID> getUsers(HashMap<String, String> sluggerParams, UUID domainId, UUID businessAccountId, Collection<UUID> userGroupIds) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, sluggerParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, sluggerParams);
         return getUsers(properties, domainId, businessAccountId, userGroupIds);
     }
 

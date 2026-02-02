@@ -57,12 +57,12 @@ public abstract class FieldTyperAttachment<T extends FieldValue> extends FieldTy
     }
 
     public UUID getRestrictionId(HashMap<String, String> fieldTyperParams) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, fieldTyperParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, fieldTyperParams);
         return restrictionId.extract(properties);
     }
 
     public UUID getStorageId(HashMap<String, String> fieldTyperParams) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, fieldTyperParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, fieldTyperParams);
         return getStorageId(properties);
     }
 

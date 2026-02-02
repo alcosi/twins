@@ -23,7 +23,7 @@ public abstract class Emailer extends FeaturerTwins {
 //    protected abstract void sendMail(UUID emailSenderId, Properties properties, String dstEmail, String subject, String text) throws ServiceException;
 
     public void sendMail(UUID emailSenderId, HashMap<String, String> emailerParams, String srcEmail, String dstEmail, String subject, String templateId, Map<String, String> templateVars) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, emailerParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, emailerParams);
         sendMail(emailSenderId, properties, srcEmail, dstEmail, subject, templateId, templateVars);
     }
 
