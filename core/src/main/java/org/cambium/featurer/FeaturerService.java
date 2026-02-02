@@ -408,7 +408,7 @@ public class FeaturerService {
         return featurerParams;
     }
 
-    @Cacheable(value = "FeaturerExtractPropertiesCache", key = "T(FeaturerService).toConfigKey(#featurerId, #params)")
+    @Cacheable(value = "FeaturerExtractPropertiesCache", key = "T(org.cambium.featurer.FeaturerService).toConfigKey(#featurerId, #params)")
     public Properties extractProperties(Integer featurerId, HashMap<String, String> params) throws ServiceException {
         return extractProperties(featurerId, params, Collections.emptyMap());
     }
