@@ -13,6 +13,7 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.PaginationUtils;
+import org.cambium.common.util.StringUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -98,8 +99,10 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         ApiUser apiUser = authService.getApiUser();
 
         for (var commentText : comments) {
-            if (commentText == null)
+            if (StringUtils.isEmpty(commentText)) {
+                log.info("Comment text is empty. Skipping comment creation.");
                 continue;
+            }
             TwinCommentEntity comment = new TwinCommentEntity()
                     .setId(UuidUtils.generate())
                     .setText(commentText)
