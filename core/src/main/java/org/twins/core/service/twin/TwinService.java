@@ -671,7 +671,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         twinChangesService.applyChanges(twinChangesCollector);
 
-        return twinUpdates.stream().map(TwinUpdate::getDbTwinEntity).map(TwinEntity::resetTransientState).toList();
+        return twinUpdates.stream().map(TwinUpdate::getDbTwinEntity).map(TwinEntity::resetCalculatedFields).toList();
     }
 
     public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector, ChangesRecorder<TwinEntity, ?> twinChangesRecorder) throws ServiceException {

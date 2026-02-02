@@ -480,20 +480,16 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     }
 
     public TwinEntity resetTransientState() {
-        // Faces / navigation
         pageFace = null;
         breadCrumbsFace = null;
 
-        // Flags / load markers
-//        createElseUpdate = false;
         markersLoadState = LoadState.NOT_LOADED;
 
-        // Relations loaded manually
         spaceTwin = null;
         if (headTwin != null) {
             headTwin.resetTransientState();
+            headTwin = null;
         }
-        headTwin = null;
         twinflow = null;
 
         // Kits — core fields
@@ -531,6 +527,39 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
 
         // Permissions / creation helpers
         creatableChildTwinClasses = null;
+        return this;
+    }
+
+    public TwinEntity resetLoadedFields() {
+        if (headTwin != null) {
+            headTwin.resetLoadedFields();
+        }
+        // Kits — core fields
+        twinFieldSimpleKit = null;
+        twinFieldSimpleNonIndexedKit = null;
+        twinFieldI18nKit = null;
+        twinFieldBooleanKit = null;
+        twinFieldDatalistKit = null;
+        twinFieldUserKit = null;
+        twinFieldSpaceUserKit = null;
+        twinFieldTwinClassKit = null;
+        twinFieldAttributeKit = null;
+        // Calculated
+        twinFieldCalculated = null;
+        fieldValuesKit = null;
+        // Links
+        twinLinks = null;
+        // todo
+        return this;
+    }
+
+    public TwinEntity resetCalculatedFields() {
+        if (headTwin != null) {
+            headTwin.resetCalculatedFields();
+        }
+        twinFieldCalculated = null;
+        twinFieldAttributeKit = null;
+        fieldValuesKit = null;
         return this;
     }
 }
