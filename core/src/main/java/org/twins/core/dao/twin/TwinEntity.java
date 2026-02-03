@@ -36,6 +36,7 @@ import org.twins.core.service.link.TwinLinkService;
 
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -432,6 +433,11 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @ToString.Exclude
     private Kit<TwinClassEntity, UUID> creatableChildTwinClasses;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Map<String, Boolean> twinValidatorResultCache;
+
     public boolean isSketch() {
         return SystemEntityService.TWIN_STATUS_SKETCH.equals(twinStatusId) || twinStatus.getType().equals(StatusType.SKETCH);
     }
@@ -527,6 +533,9 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
 
         // Permissions / creation helpers
         creatableChildTwinClasses = null;
+
+        // TwinValidators
+        twinValidatorResultCache = null;
         return this;
     }
 

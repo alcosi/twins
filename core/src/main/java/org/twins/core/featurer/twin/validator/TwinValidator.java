@@ -5,6 +5,8 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
+import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.FeaturerTwins;
@@ -28,7 +30,39 @@ public abstract class TwinValidator extends FeaturerTwins {
                     "given twin is null, next validation is skipped",
                     "given twin is not null");
         }
-        return isValid(properties, twinEntity, invert);
+
+        int featurerId = this.getClass().getAnnotation(FeaturerType.class).id();
+        String cacheKey = FeaturerService.toConfigKey(featurerId, validatorParams);
+
+        if (twinEntity.getTwinValidatorResultCache() == null) {
+            twinEntity.setTwinValidatorResultCache(new HashMap<>());
+        }
+
+        Boolean cachedResult = twinEntity.getTwinValidatorResultCache().get(cacheKey);
+        if (cachedResult != null) {
+            return buildResult(
+                    cachedResult,
+                    invert,
+                    "cached validation failed",
+                    "cached validation succeeded but inverted");
+        }
+
+        // Always validate without invert first and cache the result
+        ValidationResult validationResult = isValid(properties, twinEntity, false);
+        boolean isValidWithoutInvert = validationResult.isValid();
+
+        twinEntity.getTwinValidatorResultCache().put(cacheKey, isValidWithoutInvert);
+        log.info("Cached result for validator[{}], key: {}, result: {}", this.getClass().getSimpleName(), cacheKey, isValidWithoutInvert);
+
+        // Apply invert if needed
+        if (invert) {
+            return buildResult(
+                    !isValidWithoutInvert,
+                    true,
+                    validationResult.getMessage(),
+                    validationResult.getMessage());
+        }
+        return validationResult;
     }
 
     protected boolean nullable() {
