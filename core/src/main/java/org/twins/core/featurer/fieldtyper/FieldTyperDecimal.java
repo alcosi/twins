@@ -22,6 +22,7 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -158,8 +159,16 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldEntity) {
-        return new FieldValueText(twinField.getTwinClassField())
-                .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue().toString() : null);
+        var scale = decimalPlaces.extract(properties);
+        var value = "";
+
+        if (scale != null) {
+            value = twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue().setScale(scale, RoundingMode.UNNECESSARY).toPlainString() : null;
+        } else {
+            value = twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue().toString() : null;
+        }
+
+        return new FieldValueText(twinField.getTwinClassField()).setValue(value);
     }
 
     @Override
