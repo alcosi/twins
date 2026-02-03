@@ -98,7 +98,6 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
             twinService.loadHeadForTwin(src);
             dst.headTwinId(src.getHeadTwinId());
             this.convertOrPostpone(src.getHeadTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByHeadMode.GREEN));  //head twin will be much less detail
-
         }
         if (mapperContext.hasModeButNot(TwinAliasMode.HIDE)) {
             twinAliasService.loadAliases(src);

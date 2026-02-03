@@ -22,7 +22,7 @@ public abstract class Notifier extends FeaturerTwins {
     protected final Map<String, Object> stubCache = new ConcurrentHashMap<>();
 
     public void notify(Set<UUID> recipientIds, Map<String, String> context, String eventCode, HashMap<String, String> notifierParams) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, notifierParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, notifierParams);
         validateContext(context, throwExceptionOnNullValues.extract(properties));
         notify(recipientIds, context, eventCode, properties);
     }

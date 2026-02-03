@@ -17,7 +17,7 @@ import java.util.Properties;
 public abstract class ContextCollector extends FeaturerTwins {
 
     public Map<String, String> collectData(HistoryEntity history, Map<String, String> context, HashMap<String, String> recipientParams) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, recipientParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, recipientParams);
         return collectData(history, context, properties);
     }
 

@@ -15,15 +15,18 @@ import org.twins.core.dao.domain.DomainTypeEntity;
 import org.twins.core.dao.domain.TierRepository;
 import org.twins.core.dao.notification.NotificationSchemaEntity;
 import org.twins.core.dao.notification.NotificationSchemaRepository;
-import org.twins.core.dao.twinclass.*;
-import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassRepository;
+import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
+import org.twins.core.dao.twinclass.TwinClassSchemaRepository;
 import org.twins.core.dao.twinflow.*;
+import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.SystemEntityService;
@@ -33,7 +36,6 @@ import org.twins.core.service.i18n.I18nService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.UUID;
@@ -84,7 +86,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
     @Transactional(rollbackFor = Throwable.class)
     public DomainEntity init(DomainEntity domainEntity) throws ServiceException {
         DomainTypeEntity domainTypeEntity = domainService.loadDomainType(domainEntity);
-        Properties properties = featurerService.extractProperties(this, domainTypeEntity.getDomainInitiatorParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, domainTypeEntity.getDomainInitiatorParams());
         domainEntity
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setIdentityProvider(domainTypeEntity.getDefaultIdentityProvider())

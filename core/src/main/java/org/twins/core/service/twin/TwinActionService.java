@@ -290,6 +290,14 @@ public class TwinActionService {
             throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + action.name() + "] not available for " + twinEntity.logNormal());
     }
 
+    public void checkAllowed(Collection<TwinEntity> twinEntities, TwinAction action) throws ServiceException {
+        loadActions(twinEntities);
+        for (TwinEntity twinEntity : twinEntities) {
+            if (!twinEntity.getActions().contains(action))
+                throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + action.name() + "] not available for " + twinEntity.logNormal());
+        }
+    }
+
     public boolean isAllowed(TwinEntity twinEntity, TwinAction action) throws ServiceException {
         loadActions(twinEntity);
         return twinEntity.getActions().contains(action);

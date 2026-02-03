@@ -16,6 +16,7 @@ public interface FieldTyperCalcBinary {
     @FeaturerParam(name = "Decimal places",
             description = "Number of decimal places.",
             order = 3,
+            optional = true,
             defaultValue = "2")
     FeaturerParamInt decimalPlaces = new FeaturerParamInt("decimalPlaces");
 

@@ -18,6 +18,8 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageCalcSumOfDivisionsByHead;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Properties;
 
 @Component
@@ -43,8 +45,29 @@ public class FieldTyperCalcSumOfDivisionsByHead extends FieldTyperCalcBinaryByHe
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        return new FieldValueText(twinField.getTwinClassField())
-                .setValue(String.valueOf(twinField.getTwin().getTwinFieldCalculated().get(twinField.getTwinClassFieldId())));
+        Object calcValue = twinField.getTwin().getTwinFieldCalculated().get(twinField.getTwinClassFieldId());
+        if (calcValue == null) {
+            return new FieldValueText(twinField.getTwinClassField()).setValue(null);
+        }
+
+        // Convert to BigDecimal for rounding
+        BigDecimal value;
+        if (calcValue instanceof BigDecimal) {
+            value = (BigDecimal) calcValue;
+        } else {
+            value = new BigDecimal(calcValue.toString());
+        }
+
+        // Apply rounding if parameters are specified
+        Integer scale = decimalPlaces.extract(properties);
+        RoundingMode roundingModeParam = roundingMode.extract(properties);
+
+        if (scale != null) {
+            value = value.setScale(scale, roundingModeParam);
+            value = value.stripTrailingZeros();
+        }
+
+        return new FieldValueText(twinField.getTwinClassField()).setValue(value.toPlainString());
     }
 
     @Override

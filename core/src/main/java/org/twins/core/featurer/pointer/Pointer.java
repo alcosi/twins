@@ -15,7 +15,7 @@ import java.util.Properties;
 @Slf4j
 public abstract class Pointer extends FeaturerTwins {
     public TwinEntity point(HashMap<String, String> linkerParams, TwinEntity srcTwinEntity) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, linkerParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, linkerParams);
         log.info("Running featurer[{}].point with params: {}", this.getClass().getSimpleName(), properties.toString());
         return point(properties, srcTwinEntity);
     }

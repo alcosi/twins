@@ -10,6 +10,7 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorImmutable;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
+import java.math.BigDecimal;
 import java.util.Properties;
 
 
@@ -24,12 +25,12 @@ public abstract class FieldTyperCalcBinaryBase extends FieldTyper<FieldDescripto
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
     }
 
-    protected abstract String calculate(Double v1, Double v2, Properties properties) throws ServiceException;
+    protected abstract String calculate(BigDecimal v1, BigDecimal v2, Properties properties) throws ServiceException;
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        Double firstValue = FieldTyperNumeric.parseDoubleValue(twinField.getTwin(), firstFieldId.extract(properties), 0.0);
-        Double secondValue = FieldTyperNumeric.parseDoubleValue(twinField.getTwin(), secondFieldId.extract(properties), 0.0);
+        BigDecimal firstValue = FieldTyperNumeric.parseBigDecimalValue(twinField.getTwin(), firstFieldId.extract(properties), BigDecimal.ZERO);
+        BigDecimal secondValue = FieldTyperNumeric.parseBigDecimalValue(twinField.getTwin(), secondFieldId.extract(properties), BigDecimal.ZERO);
 
         String result = calculate(firstValue, secondValue, properties);
 
