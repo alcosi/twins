@@ -1,2 +1,2 @@
 ALTER TABLE twin_class
-    ADD COLUMN unique_name boolean NOT NULL DEFAULT false;
+    ADD COLUMN IF NOT EXISTS unique_name boolean NOT NULL DEFAULT false;

@@ -549,12 +549,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private void checkNameUniqueness(TwinEntity twinEntity) throws ServiceException {
 
         var twinClass = twinEntity.getTwinClass();
-        if (twinClass.isUniqueName()) {
+        if (Boolean.TRUE.equals(twinClass.getUniqueName())) {
             var name = twinEntity.getName();
             if (name == null) return;
             var basicSearch = new BasicSearch();
-            basicSearch.setTwinNameLikeList(Set.of(name));
-            basicSearch.setTwinClassIdList(Set.of(twinClass.getId()));
+            basicSearch
+                    .setTwinNameLikeList(Set.of(name))
+                    .setTwinClassIdList(Set.of(twinClass.getId()));
             if (!twinEntity.isCreateElseUpdate()) {
                 basicSearch.setTwinIdExcludeList(Set.of(twinEntity.getId()));
             }

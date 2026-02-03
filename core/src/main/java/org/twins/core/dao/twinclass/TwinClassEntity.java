@@ -204,7 +204,7 @@ public class TwinClassEntity implements EasyLoggable {
     private Map<String, Object> externalJson;
 
     @Column(name = "unique_name")
-    private boolean uniqueName;
+    private Boolean uniqueName;
 
 //    @ManyToOne
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
