@@ -5,7 +5,6 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.twins.core.dao.twin.TwinEntity;
@@ -31,8 +30,7 @@ public abstract class TwinValidator extends FeaturerTwins {
                     "given twin is not null");
         }
 
-        int featurerId = this.getClass().getAnnotation(FeaturerType.class).id();
-        String cacheKey = FeaturerService.toConfigKey(featurerId, validatorParams);
+        String cacheKey = FeaturerService.toConfigKey(this, validatorParams);
 
         if (twinEntity.getTwinValidatorResultCache() == null) {
             twinEntity.setTwinValidatorResultCache(new HashMap<>());
