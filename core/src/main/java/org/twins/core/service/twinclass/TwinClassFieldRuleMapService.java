@@ -32,7 +32,7 @@ import java.util.function.Function;
 public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<TwinClassFieldRuleMapEntity> {
     private final TwinClassFieldRuleMapRepository twinClassFieldRuleMapRepository;
     private final TwinClassService twinClassService;
-
+    private final TwinClassFieldRuleExecutionService twinClassFieldRuleExecutionService;
     @Lazy
     private final TwinClassFieldRuleService twinClassFieldRuleService;
 
@@ -97,6 +97,7 @@ public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<Tw
             else
                 fieldEntity.setRuleKit(Kit.EMPTY);
         }
+        twinClassFieldRuleExecutionService.applyRules(needLoad, null);
 
     }
 

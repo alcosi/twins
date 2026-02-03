@@ -50,6 +50,14 @@ public class TwinClassFieldRuleExecutionService {
         return results;
     }
 
+    public Map<TwinClassFieldEntity, Object> applyRules(Collection<TwinClassFieldEntity> fields,
+                                                        Map<TwinClassFieldEntity, Object> values) {
+        Map<TwinClassFieldEntity, List<TwinClassFieldRuleEntity>> rulesByField = new HashMap<>();
+        fields.forEach(it ->
+                rulesByField.put(it, it.getRuleKit().getList()));
+        return applyRules(rulesByField, values);
+    }
+
     /**
      * Values are aligned to fields by key, and output contains only fields present
      * in {@code rulesByField}.
