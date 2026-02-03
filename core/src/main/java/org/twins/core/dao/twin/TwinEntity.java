@@ -36,7 +36,6 @@ import org.twins.core.service.link.TwinLinkService;
 
 import java.sql.Timestamp;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
