@@ -57,7 +57,7 @@ public abstract class TwinValidator extends FeaturerTwins {
         // Apply invert if needed
         if (invert) {
             return buildResult(
-                    !isValidWithoutInvert,
+                    isValidWithoutInvert,
                     true,
                     validationResult.getMessage(),
                     validationResult.getMessage());
