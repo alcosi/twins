@@ -107,6 +107,12 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             loadTwins(attachments);
             storageService.loadStorages(attachments);
 
+            List<TwinEntity> twins = attachments.stream()
+                    .map(TwinAttachmentEntity::getTwin)
+                    .distinct()
+                    .toList();
+            twinActionService.checkAllowed(twins, TwinAction.ATTACHMENT_ADD);
+
             try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
                 // todo somehow rewrite thread-local logic for api user to use scoped values
                 attachments.forEach(attachmentEntity -> scope.fork(() -> {
@@ -118,11 +124,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                     try {
                         // ThreadLocal context
                         authService.setThreadLocalApiUser(domainId, businessAccountId, userId);
-
-                        twinActionService.checkAllowed(
-                                attachmentEntity.getTwin(),
-                                TwinAction.ATTACHMENT_ADD
-                        );
 
                         saveFile(attachmentEntity, uuid);
 

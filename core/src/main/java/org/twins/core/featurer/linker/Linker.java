@@ -17,7 +17,7 @@ import java.util.Properties;
 @Slf4j
 public abstract class Linker extends FeaturerTwins {
     public void expandValidLinkedTwinSearch(HashMap<String, String> linkerParams, TwinClassEntity twinClassEntity, TwinEntity headTwinEntity, BasicSearch basicSearch) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, linkerParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, linkerParams);
         log.info("Running featurer[" + this.getClass().getSimpleName() + "].expandValidLinkedTwinSearch with params: " + properties.toString());
         expandValidLinkedTwinSearch(properties, twinClassEntity, headTwinEntity, basicSearch);
     }
@@ -25,7 +25,7 @@ public abstract class Linker extends FeaturerTwins {
     protected abstract void expandValidLinkedTwinSearch(Properties properties, TwinClassEntity twinClassEntity, TwinEntity headTwinEntity, BasicSearch basicSearch) throws ServiceException;
 
     public void expandValidLinkedTwinSearch(HashMap<String, String> linkerParams, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, linkerParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, linkerParams);
         log.info("Running featurer[" + this.getClass().getSimpleName() + "].expandValidLinkedTwinSearch with params: " + properties.toString());
         expandValidLinkedTwinSearch(properties, twinEntity, basicSearch);
     }

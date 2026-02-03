@@ -18,7 +18,7 @@ import java.util.UUID;
 @Slf4j
 public abstract class RecipientResolver extends FeaturerTwins {
     public void resolve(HistoryEntity history, Set<UUID> recipientIds, HashMap<String, String> recipientParams) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, recipientParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, recipientParams);
         resolve(history, recipientIds, properties);
     }
 

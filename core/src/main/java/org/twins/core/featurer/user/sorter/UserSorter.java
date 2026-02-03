@@ -17,7 +17,7 @@ import java.util.function.Function;
 @Slf4j
 public abstract class UserSorter extends FeaturerTwins {
     public Function<Specification<UserEntity>, Specification<UserEntity>> createSort(HashMap<String, String> userSorterParams) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, userSorterParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, userSorterParams);
         log.info("Running featurer[{}].createSort with params: {}", this.getClass().getSimpleName(), properties.toString());
         return createSort(properties);
     }
