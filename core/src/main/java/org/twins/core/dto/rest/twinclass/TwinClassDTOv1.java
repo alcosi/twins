@@ -154,6 +154,12 @@ public class TwinClassDTOv1 {
     @Schema(description = "")
     public Boolean hasSegment;
 
+    @Schema(description = "how many children by head")
+    public Integer headHierarchyCounterDirectChildren;
+
+    @Schema(description = "how many children by extends")
+    public Integer extendsHierarchyCounterDirectChildren;
+
     @RelatedObject(type = TwinClassFieldDTOv1.class, name = "fieldList")
     @Schema(description = "Class fields id list")
     public Set<UUID> fieldIds;

@@ -19,7 +19,6 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStoragePointedHead;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
-import java.util.HashMap;
 import java.util.Properties;
 
 
@@ -37,7 +36,7 @@ public class FieldTyperPointedHead extends FieldTyper<FieldDescriptor, FieldValu
 
     @Override
     public Class<FieldValue> getValueType(TwinClassFieldEntity twinClassField) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, twinClassField.getFieldTyperParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, twinClassField.getFieldTyperParams());
         var headTwinClassField = getHeadTwinClassFieldSafe(properties);
         var headFieldTyper = featurerService.getFeaturer(headTwinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
         return headFieldTyper.getValueType(headTwinClassField); //perhaps we should some wrapper here to indicate that the current value is just a pointer

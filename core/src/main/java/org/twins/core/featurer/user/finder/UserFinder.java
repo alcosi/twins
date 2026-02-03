@@ -16,7 +16,7 @@ import java.util.Properties;
 @Slf4j
 public abstract class UserFinder extends FeaturerTwins {
     public void concatSearch(HashMap<String, String> userFinderParams, UserSearch userSearch, Map<String, String> namedParamsMap) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, userFinderParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, userFinderParams);
         log.info("Running featurer[{}].findUsers with params: {}", this.getClass().getSimpleName(), properties.toString());
         concatSearch(properties, userSearch, namedParamsMap);
     }
