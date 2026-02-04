@@ -7,14 +7,15 @@ import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorImmutable;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDecimal;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.math.BigDecimal;
 import java.util.Properties;
+import java.util.UUID;
 
 
-public abstract class FieldTyperCalcBinaryBase extends FieldTyper<FieldDescriptorImmutable, FieldValueText, TwinFieldStorageSimple, TwinFieldSearchNotImplemented> implements FieldTyperCalcBinary {
+public abstract class FieldTyperCalcBinaryBase extends FieldTyper<FieldDescriptorImmutable, FieldValueText, TwinFieldStorageDecimal, TwinFieldSearchNotImplemented> implements FieldTyperCalcBinary {
 
     @Override
     protected FieldDescriptorImmutable getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
@@ -29,11 +30,23 @@ public abstract class FieldTyperCalcBinaryBase extends FieldTyper<FieldDescripto
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        BigDecimal firstValue = FieldTyperNumeric.parseBigDecimalValue(twinField.getTwin(), firstFieldId.extract(properties), BigDecimal.ZERO);
-        BigDecimal secondValue = FieldTyperNumeric.parseBigDecimalValue(twinField.getTwin(), secondFieldId.extract(properties), BigDecimal.ZERO);
+        var firstValue = getDecimalValue(twinField.getTwin(), firstFieldId.extract(properties), BigDecimal.ZERO);
+        var secondValue = getDecimalValue(twinField.getTwin(), secondFieldId.extract(properties), BigDecimal.ZERO);
 
-        String result = calculate(firstValue, secondValue, properties);
+        var result = calculate(firstValue, secondValue, properties);
 
         return new FieldValueText(twinField.getTwinClassField()).setValue(result);
+    }
+
+    protected BigDecimal getDecimalValue(TwinEntity twin, UUID fieldId, BigDecimal defaultValue) {
+        if (twin.getTwinFieldDecimalKit() != null && twin.getTwinFieldDecimalKit().containsKey(fieldId)) {
+            var field = twin.getTwinFieldDecimalKit().get(fieldId);
+
+            if (field.getValue() != null) {
+                return field.getValue();
+            }
+        }
+
+        return defaultValue;
     }
 }

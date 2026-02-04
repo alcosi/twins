@@ -6,9 +6,10 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.service.i18n.I18nService;
+import org.twins.core.dao.history.HistoryContextDecimalChange;
 import org.twins.core.dao.history.context.snapshot.FieldSnapshot;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.service.i18n.I18nService;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -69,6 +70,10 @@ import java.util.HashMap;
         @JsonSubTypes.Type(
                 name = HistoryContextSpaceRoleUserChange.DISCRIMINATOR,
                 value = HistoryContextSpaceRoleUserChange.class
+        ),
+        @JsonSubTypes.Type(
+                name = HistoryContextDecimalChange.DISCRIMINATOR,
+                value = HistoryContextDecimalChange.class
         )
 })
 @JsonIgnoreProperties(ignoreUnknown = true)

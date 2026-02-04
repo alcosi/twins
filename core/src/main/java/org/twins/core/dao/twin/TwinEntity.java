@@ -265,6 +265,14 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    private Collection<TwinFieldDecimalEntity> fieldsDecimal;
+
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinTouchEntity> touches;
 
     //needed for specification (USER & BA twins)
@@ -364,6 +372,11 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private KitGrouped<TwinFieldAttributeEntity, UUID, UUID> twinFieldAttributeKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinFieldDecimalEntity, UUID> twinFieldDecimalKit;
 
     @Transient
     @EqualsAndHashCode.Exclude

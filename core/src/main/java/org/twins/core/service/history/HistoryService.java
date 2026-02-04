@@ -23,13 +23,13 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.history.HistoryContextDecimalChange;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.history.HistoryRepository;
 import org.twins.core.dao.history.HistoryTypeDomainTemplateRepository;
 import org.twins.core.dao.history.context.*;
 import org.twins.core.dao.history.context.snapshot.FieldSnapshot;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -44,6 +44,7 @@ import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinActionService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
@@ -276,6 +277,14 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     public HistoryItem<HistoryContextStringChange> fieldChangeSimple(TwinClassFieldEntity twinClassFieldEntity, String fromValue, String toValue) {
         HistoryContextStringChange context = new HistoryContextStringChange()
+                .setFromValue(fromValue)
+                .setToValue(toValue);
+        context.shotField(twinClassFieldEntity, i18nService);
+        return new HistoryItem<>(HistoryType.fieldChanged, context);
+    }
+
+    public HistoryItem<HistoryContextDecimalChange> fieldChangeDecimal(TwinClassFieldEntity twinClassFieldEntity, BigDecimal fromValue, BigDecimal toValue) {
+        var context = new HistoryContextDecimalChange()
                 .setFromValue(fromValue)
                 .setToValue(toValue);
         context.shotField(twinClassFieldEntity, i18nService);
