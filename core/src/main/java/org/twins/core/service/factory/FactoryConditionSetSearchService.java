@@ -41,6 +41,8 @@ public class FactoryConditionSetSearchService {
                 checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinFactoryConditionSetEntity.Fields.description),
                 checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryConditionSetEntity.Fields.description),
                 checkUuidIn(search.getIdList(), false, false, TwinFactoryConditionSetEntity.Fields.id),
-                checkUuidIn(search.getIdExcludeList(), true, false, TwinFactoryConditionSetEntity.Fields.id));
+                checkUuidIn(search.getIdExcludeList(), true, false, TwinFactoryConditionSetEntity.Fields.id),
+                checkUuidIn(search.getTwinFactoryIdList(), false, false, TwinFactoryConditionSetEntity.Fields.twinFactoryId),
+                checkUuidIn(search.getTwinFactoryIdExcludeList(), true, false, TwinFactoryConditionSetEntity.Fields.twinFactoryId));
     }
 }

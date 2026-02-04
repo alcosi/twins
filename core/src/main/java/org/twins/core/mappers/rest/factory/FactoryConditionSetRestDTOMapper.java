@@ -30,6 +30,9 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
     @MapperModePointerBinding(modes = UserMode.FactoryConditionSet2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
 
+    @MapperModePointerBinding(modes = FactoryMode.FactoryConditionSet2FactoryMode.class)
+    private final FactoryRestDTOMapper factoryRestDTOMapper;
+
     private final TwinFactoryService twinFactoryService;
 
     @Override
@@ -73,6 +76,10 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
         if (mapperContext.hasModeButNot(UserMode.FactoryConditionSet2UserMode.HIDE)) {
             dst.setCreatedByUserId(src.getCreatedByUserId());
             userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.FactoryConditionSet2UserMode.HIDE));
+        }
+        if (mapperContext.hasModeButNot(FactoryMode.FactoryConditionSet2FactoryMode.HIDE)) {
+            dst.setTwinFactoryId(src.getTwinFactoryId());
+            factoryRestDTOMapper.postpone(src.getTwinFactory(), mapperContext.forkOnPoint(FactoryMode.FactoryConditionSet2FactoryMode.SHORT));
         }
     }
 

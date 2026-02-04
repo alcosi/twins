@@ -51,6 +51,12 @@ public class TwinFactoryConditionSetEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity twinFactory;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false)
     private UserEntity createdByUser;
 
