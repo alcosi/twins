@@ -8,6 +8,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.*;
@@ -75,15 +76,15 @@ public abstract class TwinValidator extends FeaturerTwins {
 
         String cacheKey = FeaturerService.toConfigKey(this, validatorParams);
 
+        List<TwinEntity> twinsToValidate = new ArrayList<>();
         for (TwinEntity twinEntity : twinEntityCollection) {
             if (twinEntity.getTwinValidatorResultCache() == null) {
                 twinEntity.setTwinValidatorResultCache(new HashMap<>());
             }
+            if (twinEntity.getTwinValidatorResultCache().get(cacheKey) == null) {
+                twinsToValidate.add(twinEntity);
+            }
         }
-
-        List<TwinEntity> twinsToValidate = twinEntityCollection.stream()
-                .filter(t -> t.getTwinValidatorResultCache().get(cacheKey) == null)
-                .toList();
 
         // Validate only non-cached twins
         if (!twinsToValidate.isEmpty()) {
@@ -94,6 +95,8 @@ public abstract class TwinValidator extends FeaturerTwins {
                 if (result != null) {
                     twinEntity.getTwinValidatorResultCache().put(cacheKey, result.isValid());
                     log.info("Cached result for validator[{}], twin: {}, key: {}, result: {}", this.getClass().getSimpleName(), twinEntity.getId(), cacheKey, result.isValid());
+                } else {
+                    throw new ServiceException(ErrorCodeTwins.TWIN_VALIDATOR_INCORRECT, "validator [" + this.getClass().getSimpleName() + "] did not return result for " + twinEntity.logShort());
                 }
             }
         }
