@@ -11,10 +11,6 @@ CREATE INDEX IF NOT EXISTS twin_field_decimal_twin_class_field_id_value_index
 CREATE UNIQUE INDEX IF NOT EXISTS twin_field_decimal_twin_class_field_id_twin_id_uindex
     ON twin_field_decimal (twin_id, twin_class_field_id);
 
-INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
-VALUES (1351, 13, 'org.twins.core.featurer.fieldtyper.FieldTyperDecimal','Decimal', 'Decimal field with dedicated table storage', false)
-ON CONFLICT DO NOTHING;
-
-UPDATE featurer
-SET deprecated=true
-WHERE id=137;
+update featurer
+set class = 'org.twins.core.featurer.fieldtyper.FieldTyperDecimal', name = 'Decimal', description = 'Decimal field with dedicated table storage'
+where id=1317;

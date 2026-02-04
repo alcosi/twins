@@ -31,9 +31,11 @@ import static org.cambium.common.util.MathUtils.EXPONENTIAL_FORM_REGEXP;
 
 @Component
 @Slf4j
-@Featurer(id = FeaturerTwins.ID_1351,
+@Featurer(
+        id = FeaturerTwins.ID_1317,
         name = "Decimal",
-        description = "Decimal field with dedicated table storage")
+        description = "Decimal field with dedicated table storage"
+)
 public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldSearchNumeric> {
     
     @FeaturerParam(name = "Min", description = "Min possible value", order = 1)
