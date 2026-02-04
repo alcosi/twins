@@ -8,7 +8,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.specifications.AbstractTwinEntityBasicSearchSpecification;
 import org.twins.core.dao.twin.*;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.twinclass.TwinClassFreezeEntity;
 import org.twins.core.domain.search.*;
 
 import java.time.LocalDateTime;
@@ -84,14 +86,14 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
 
             // With freeze consideration: use COALESCE(twinClassFreeze.twinStatusId, twin.twinStatusId)
             // Join chain: twin -> twin_class -> twin_class_freeze
-            Join<TwinEntity, org.twins.core.dao.twinclass.TwinClassEntity> twinClassJoin =
+            Join<TwinEntity, TwinClassEntity> twinClassJoin =
                 root.join(TwinEntity.Fields.twinClass, JoinType.LEFT);
-            Join<org.twins.core.dao.twinclass.TwinClassEntity, org.twins.core.dao.twinclass.TwinClassFreezeEntity> twinClassFreezeJoin =
-                twinClassJoin.join(org.twins.core.dao.twinclass.TwinClassEntity.Fields.twinClassFreeze, JoinType.LEFT);
+            Join<TwinClassEntity, TwinClassFreezeEntity> twinClassFreezeJoin =
+                twinClassJoin.join(TwinClassEntity.Fields.twinClassFreeze, JoinType.LEFT);
 
             // COALESCE(freeze.twinStatusId, twin.twinStatusId) - freeze status has priority
             Expression<UUID> effectiveStatus = cb.coalesce(
-                twinClassFreezeJoin.get(org.twins.core.dao.twinclass.TwinClassFreezeEntity.Fields.twinStatusId),
+                twinClassFreezeJoin.get(TwinClassFreezeEntity.Fields.twinStatusId),
                 root.get(TwinEntity.Fields.twinStatusId)
             );
 
