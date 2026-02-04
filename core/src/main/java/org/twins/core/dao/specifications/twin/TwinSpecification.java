@@ -85,13 +85,10 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
             }
 
             // With freeze consideration: use COALESCE(twinClassFreeze.twinStatusId, twin.twinStatusId)
-            // Join chain: twin -> twin_class -> twin_class_freeze
-            Join<TwinEntity, TwinClassEntity> twinClassJoin =
-                root.join(TwinEntity.Fields.twinClass, JoinType.LEFT);
-            Join<TwinClassEntity, TwinClassFreezeEntity> twinClassFreezeJoin =
-                twinClassJoin.join(TwinClassEntity.Fields.twinClassFreeze, JoinType.LEFT);
+            // Join chain: twin -> twin_class (INNER) -> twin_class_freeze (LEFT)
+            Join<TwinEntity, TwinClassEntity> twinClassJoin = root.join(TwinEntity.Fields.twinClass);
+            Join<TwinClassEntity, TwinClassFreezeEntity> twinClassFreezeJoin = twinClassJoin.join(TwinClassEntity.Fields.twinClassFreeze, JoinType.LEFT);
 
-            // COALESCE(freeze.twinStatusId, twin.twinStatusId) - freeze status has priority
             Expression<UUID> effectiveStatus = cb.coalesce(
                 twinClassFreezeJoin.get(TwinClassFreezeEntity.Fields.twinStatusId),
                 root.get(TwinEntity.Fields.twinStatusId)
