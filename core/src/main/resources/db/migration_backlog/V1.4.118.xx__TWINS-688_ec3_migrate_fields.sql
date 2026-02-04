@@ -7,7 +7,3 @@ on conflict do nothing;
 update twin_class_field
 set field_typer_featurer_id=1351
 where field_typer_featurer_id=1317;
-
-delete
-from twin_field_simple
-where twin_class_field_id in (select id from twin_class_field where field_typer_featurer_id=1317);
