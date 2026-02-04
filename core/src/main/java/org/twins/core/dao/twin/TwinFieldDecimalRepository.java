@@ -44,7 +44,7 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
     BigDecimal sumChildrenTwinFieldValuesWithStatusIn(@Param("headTwinId") UUID headTwinId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 
 //    @Query(value = """
-//            select new org.twins.core.dao.twin.TwinFieldCalcProjection(twin.headTwinId, cast(coalesce(sum(field.value), 0) as string))
+//            select new org.twins.core.dao.twin.TwinFieldCalcProjection(twin.headTwinId, cast(coalesce(sum(field.value), 0) as bigdecimal))
 //            from TwinFieldDecimalEntity field inner join TwinEntity twin on field.twinId = twin.id
 //            where twin.headTwinId in :headTwinIdList and field.twinClassFieldId = :twinClassFieldId and twin.twinStatusId in :childrenTwinStatusIdList
 //            group by twin.headTwinId
@@ -63,7 +63,7 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
     BigDecimal sumChildrenTwinFieldValuesWithStatusNotIn(@Param("headTwinId") UUID headTwinId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 
 //    @Query(value = """
-//            select new org.twins.core.dao.twin.TwinFieldCalcProjection(twin.headTwinId,  cast(coalesce(sum(field.value), 0) as java.math.BigDecimal))
+//            select new org.twins.core.dao.twin.TwinFieldCalcProjection(twin.headTwinId,  cast(coalesce(sum(field.value), 0) as bigdecimal))
 //            from TwinFieldDecimalEntity field inner join TwinEntity twin on field.twinId = twin.id
 //            where twin.headTwinId in :headTwinIdList and field.twinClassFieldId = :twinClassFieldId and not twin.twinStatusId in :childrenTwinStatusIdList
 //            group by twin.headTwinId

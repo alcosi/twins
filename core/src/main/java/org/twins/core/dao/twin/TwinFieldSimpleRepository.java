@@ -23,8 +23,8 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
     long countChildrenTwinsWithStatusIn(@Param("headTwinId") UUID headTwinId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 
     @Query(value = """
-        select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as string))
-        from TwinEntity child 
+        select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as bigdecimal))
+        from TwinEntity child
         where child.headTwinId in :headTwinIdList and child.twinStatusId in :childrenTwinStatusIdList
         group by child.headTwinId
         """)
@@ -36,7 +36,7 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
     long countChildrenTwinsWithStatusNotIn(@Param("headTwinId") UUID headTwinId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 
     @Query(value = """
-        select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as string))
+        select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as bigdecimal))
         from TwinEntity child 
         where child.headTwinId in :headTwinIdList and not child.twinStatusId in :childrenTwinStatusIdList
         group by child.headTwinId
@@ -50,7 +50,7 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
     long countChildrenTwinsOfTwinClassIdIn(@Param("headTwinId") UUID headTwinId, @Param("twinClassIdList") Collection<UUID> twinClassIds);
 
     @Query(value = """
-        select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as string))
+        select new org.twins.core.dao.twin.TwinFieldCalcProjection(child.headTwinId, cast(count(child) as BigDecimal))
         from TwinEntity child 
         where child.headTwinId in :headTwinIdList and child.twinClassId in :twinClassIdList
         group by child.headTwinId
