@@ -82,6 +82,9 @@ public class TwinClassSearchDTOv1 {
     @Schema(description = "twin class has segments", example = DTOExamples.TERNARY)
     public Ternary hasSegments;
 
+    @Schema(description = "twin class has uniq name flag", example = DTOExamples.TERNARY)
+    public Ternary uniqueName;
+
     @Schema(description = "twin class has twinflow schema space", example = DTOExamples.TERNARY)
     public Ternary twinflowSchemaSpace;
 
