@@ -7,6 +7,7 @@ import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
 
+import java.math.BigDecimal;
 import java.util.Properties;
 
 @Component
@@ -17,17 +18,19 @@ public class FieldTyperCalcMultiplication extends FieldTyperCalcBinaryBase {
     public static final FeaturerParamBoolean replaceZeroWithOne = new FeaturerParamBoolean("replaceZeroWithOne");
 
     @Override
-    protected String calculate(Double v1, Double v2, Properties properties) throws ServiceException {
-        Boolean extractedReplaceZeroWithOne = replaceZeroWithOne.extract(properties);
-        double d1 = prepare(v1, extractedReplaceZeroWithOne);
-        double d2 = prepare(v2, extractedReplaceZeroWithOne);
-        return String.valueOf(d1 * d2);
+    protected String calculate(BigDecimal v1, BigDecimal v2, Properties properties) throws ServiceException {
+        var extractedReplaceZeroWithOne = replaceZeroWithOne.extract(properties);
+        var d1 = prepare(v1, extractedReplaceZeroWithOne);
+        var d2 = prepare(v2, extractedReplaceZeroWithOne);
+
+        return d1.multiply(d2).toPlainString();
     }
 
-    private double prepare(Double v, boolean replace) {
+    private BigDecimal prepare(BigDecimal v, boolean replace) {
         if (replace) {
-            return (v == null || v == 0) ? 1.0 : v;
+            return (v == null || v.equals(BigDecimal.ZERO)) ? BigDecimal.ONE : v;
         }
-        return v == null ? 0.0 : v;
+
+        return v == null ? BigDecimal.ZERO : v;
     }
 }

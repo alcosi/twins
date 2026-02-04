@@ -7,7 +7,7 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinFieldDecimalRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
@@ -26,7 +26,8 @@ import java.util.Properties;
         description = "Fields sum of divisions by link twin")
 @RequiredArgsConstructor
 public class FieldTyperCalcSumOfDivisionsByLink extends FieldTyperCalcBinaryByLink<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumOfDivisionsByLink, TwinFieldSearchNotImplemented> {
-    private final TwinFieldSimpleRepository twinFieldSimpleRepository;
+
+    private final TwinFieldDecimalRepository twinFieldDecimalRepository;
 
     @FeaturerParam(name = "Throw on division by zero", order = 6, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean throwOnDivisionByZero = new FeaturerParamBoolean("throwOnDivisionByZero");
@@ -51,7 +52,7 @@ public class FieldTyperCalcSumOfDivisionsByLink extends FieldTyperCalcBinaryByLi
     public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new TwinFieldStorageCalcSumOfDivisionsByLink(
                 twinClassFieldEntity.getId(),
-                twinFieldSimpleRepository,
+                twinFieldDecimalRepository,
                 firstFieldId.extract(properties),
                 secondFieldId.extract(properties),
                 linkId.extract(properties),
@@ -59,6 +60,7 @@ public class FieldTyperCalcSumOfDivisionsByLink extends FieldTyperCalcBinaryByLi
                 linkedTwinInStatusIdSet.extract(properties),
                 linkedTwinOfClassIds.extract(properties),
                 statusExclude.extract(properties),
-                throwOnDivisionByZero.extract(properties));
+                throwOnDivisionByZero.extract(properties)
+        );
     }
 }

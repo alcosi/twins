@@ -26,8 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionRepository;
-import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldDecimalEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinSort;
@@ -44,7 +42,6 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
 
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -623,20 +620,5 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         if (newSystemFlag == null || !changesHelper.isChanged(TwinClassFieldEntity.Fields.system, dbTwinClassFieldEntity.getRequired(), newSystemFlag))
             return;
         dbTwinClassFieldEntity.setRequired(newSystemFlag);
-    }
-
-    public BigDecimal parseNumericField(TwinEntity twin, UUID fieldId, BigDecimal defaultValue) throws ServiceException {
-        if (twin.getTwinFieldDecimalKit() != null && twin.getTwinFieldDecimalKit().containsKey(fieldId)) {
-            TwinFieldDecimalEntity field = twin.getTwinFieldDecimalKit().get(fieldId);
-            try {
-                if (field.getValue() != null) {
-                    return field.getValue();
-                }
-            } catch (NumberFormatException e) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, field.easyLog(EasyLoggable.Level.NORMAL) + " value[" + field.getValue() + "] can't be parsed to double");
-            }
-        }
-
-        return defaultValue;
     }
 }

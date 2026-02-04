@@ -4,7 +4,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldCalcProjection;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinFieldDecimalRepository;
 
 import java.util.List;
 import java.util.Objects;
@@ -12,7 +12,8 @@ import java.util.Set;
 import java.util.UUID;
 
 public class TwinFieldStorageCalcSumOfDivisionsByHead extends TwinFieldStorageCalc {
-    private final TwinFieldSimpleRepository twinFieldSimpleRepository;
+
+    private final TwinFieldDecimalRepository twinFieldDecimalRepository;
     private final UUID firstFieldId;
     private final UUID secondFieldId;
     private final Set<UUID> childrenTwinStatusIdSet;
@@ -20,9 +21,9 @@ public class TwinFieldStorageCalcSumOfDivisionsByHead extends TwinFieldStorageCa
     private final boolean exclude;
     private final boolean divisionByZeroIgnore;
 
-    public TwinFieldStorageCalcSumOfDivisionsByHead(UUID twinClassFieldId, TwinFieldSimpleRepository twinFieldSimpleRepository, UUID firstFieldId, UUID secondFieldId, Set<UUID> childrenTwinStatusIdSet, Set<UUID> childrenTwinOfClassIdSet, boolean exclude, boolean divisionByZeroIgnore) {
+    public TwinFieldStorageCalcSumOfDivisionsByHead(UUID twinClassFieldId, TwinFieldDecimalRepository twinFieldDecimalRepository, UUID firstFieldId, UUID secondFieldId, Set<UUID> childrenTwinStatusIdSet, Set<UUID> childrenTwinOfClassIdSet, boolean exclude, boolean divisionByZeroIgnore) {
         super(twinClassFieldId);
-        this.twinFieldSimpleRepository = twinFieldSimpleRepository;
+        this.twinFieldDecimalRepository = twinFieldDecimalRepository;
         this.firstFieldId = firstFieldId;
         this.secondFieldId = secondFieldId;
         this.childrenTwinStatusIdSet = childrenTwinStatusIdSet;
@@ -33,7 +34,7 @@ public class TwinFieldStorageCalcSumOfDivisionsByHead extends TwinFieldStorageCa
 
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) throws ServiceException {
-        List<TwinFieldCalcProjection> calc = twinFieldSimpleRepository.sumChildrenTwinFieldValuesOfDivisionsByHead(
+        List<TwinFieldCalcProjection> calc = twinFieldDecimalRepository.sumChildrenTwinFieldValuesOfDivisionsByHead(
                 twinsKit.getIdSet(),
                 childrenTwinStatusIdSet,
                 childrenTwinOfClassIdSet,

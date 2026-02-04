@@ -4,7 +4,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldCalcProjection;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinFieldDecimalRepository;
 
 import java.util.List;
 import java.util.Objects;
@@ -12,7 +12,8 @@ import java.util.Set;
 import java.util.UUID;
 
 public class TwinFieldStorageCalcSumByLink extends TwinFieldStorageCalc {
-    private final TwinFieldSimpleRepository twinFieldSimpleRepository;
+
+    private final TwinFieldDecimalRepository twinFieldDecimalRepository;
     private final Set<UUID> linkedTwinClassIds;
     private final UUID linkId;
     private final boolean srcElseDst;
@@ -20,9 +21,9 @@ public class TwinFieldStorageCalcSumByLink extends TwinFieldStorageCalc {
     private final Set<UUID> linkedTwinOfClassIds;
     private final boolean statusExclude;
 
-    public TwinFieldStorageCalcSumByLink(UUID twinClassFieldId, TwinFieldSimpleRepository twinFieldSimpleRepository, Set<UUID> linkedTwinClassIds, Set<UUID> linkedTwinInStatusIdList, Set<UUID> linkedTwinOfClassIds, boolean srcElseDst, boolean statusExclude, UUID linkId) {
+    public TwinFieldStorageCalcSumByLink(UUID twinClassFieldId, TwinFieldDecimalRepository twinFieldDecimalRepository, Set<UUID> linkedTwinClassIds, Set<UUID> linkedTwinInStatusIdList, Set<UUID> linkedTwinOfClassIds, boolean srcElseDst, boolean statusExclude, UUID linkId) {
         super(twinClassFieldId);
-        this.twinFieldSimpleRepository = twinFieldSimpleRepository;
+        this.twinFieldDecimalRepository = twinFieldDecimalRepository;
         this.linkedTwinClassIds = linkedTwinClassIds;
         this.linkId = linkId;
         this.srcElseDst = srcElseDst;
@@ -33,7 +34,7 @@ public class TwinFieldStorageCalcSumByLink extends TwinFieldStorageCalc {
 
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) throws ServiceException {
-        List<TwinFieldCalcProjection> calc = twinFieldSimpleRepository.sumLinkedTwinFieldValuesByLink(
+        List<TwinFieldCalcProjection> calc = twinFieldDecimalRepository.sumLinkedTwinFieldValuesByLink(
                 twinsKit.getIdSet(),
                 srcElseDst,
                 linkedTwinInStatusIdList,

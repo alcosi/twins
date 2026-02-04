@@ -5,6 +5,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
 
+import java.math.BigDecimal;
 import java.util.Properties;
 
 @Component
@@ -12,9 +13,10 @@ import java.util.Properties;
 public class FieldTyperCalcSubtraction extends FieldTyperCalcBinaryBase {
 
     @Override
-    protected String calculate(Double v1, Double v2, Properties properties) throws ServiceException {
-        double d1 = v1 != null ? v1 : 0.0;
-        double d2 = v2 != null ? v2 : 0.0;
-        return String.valueOf(d1 - d2);
+    protected String calculate(BigDecimal v1, BigDecimal v2, Properties properties) throws ServiceException {
+        var d1 = v1 != null ? v1 : BigDecimal.ZERO;
+        var d2 = v2 != null ? v2 : BigDecimal.ZERO;
+
+        return d1.subtract(d2).toPlainString();
     }
 }

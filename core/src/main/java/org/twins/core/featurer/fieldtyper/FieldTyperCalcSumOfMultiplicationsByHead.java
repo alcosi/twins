@@ -5,7 +5,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinFieldDecimalRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
@@ -19,12 +19,15 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import java.util.Properties;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_1343,
+@Featurer(
+        id = FeaturerTwins.ID_1343,
         name = "Fields sum of multiplications by head",
-        description = "Fields sum of multiplications by head twin")
+        description = "Fields sum of multiplications by head twin"
+)
 @RequiredArgsConstructor
 public class FieldTyperCalcSumOfMultiplicationsByHead extends FieldTyperCalcBinaryByHead<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumOfMultiplicationsByHead, TwinFieldSearchNotImplemented> {
-    private final TwinFieldSimpleRepository twinFieldSimpleRepository;
+
+    private final TwinFieldDecimalRepository twinFieldDecimalRepository;
 
     @Override
     protected FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
@@ -46,11 +49,12 @@ public class FieldTyperCalcSumOfMultiplicationsByHead extends FieldTyperCalcBina
     public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new TwinFieldStorageCalcSumOfMultiplicationsByHead(
                 twinClassFieldEntity.getId(),
-                twinFieldSimpleRepository,
+                twinFieldDecimalRepository,
                 firstFieldId.extract(properties),
                 secondFieldId.extract(properties),
                 childrenTwinInStatusIds.extract(properties),
                 childrenTwinOfClassIds.extract(properties),
-                statusExclude.extract(properties));
+                statusExclude.extract(properties)
+        );
     }
 }

@@ -7,7 +7,7 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinFieldDecimalRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
@@ -26,7 +26,8 @@ import java.util.Properties;
         description = "Fields sum of divisions by head twin")
 @RequiredArgsConstructor
 public class FieldTyperCalcSumOfDivisionsByHead extends FieldTyperCalcBinaryByHead<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumOfDivisionsByHead, TwinFieldSearchNotImplemented> {
-    private final TwinFieldSimpleRepository twinFieldSimpleRepository;
+
+    private final TwinFieldDecimalRepository twinFieldDecimalRepository;
 
     @FeaturerParam(name = "Throw on division by zero", order = 6, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean throwOnDivisionByZero = new FeaturerParamBoolean("throwOnDivisionByZero");
@@ -51,12 +52,13 @@ public class FieldTyperCalcSumOfDivisionsByHead extends FieldTyperCalcBinaryByHe
     public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new TwinFieldStorageCalcSumOfDivisionsByHead(
                 twinClassFieldEntity.getId(),
-                twinFieldSimpleRepository,
+                twinFieldDecimalRepository,
                 firstFieldId.extract(properties),
                 secondFieldId.extract(properties),
                 childrenTwinInStatusIds.extract(properties),
                 childrenTwinOfClassIds.extract(properties),
                 statusExclude.extract(properties),
-                throwOnDivisionByZero.extract(properties));
+                throwOnDivisionByZero.extract(properties)
+        );
     }
 }

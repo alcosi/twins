@@ -6,7 +6,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinFieldDecimalRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
@@ -21,12 +21,15 @@ import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinClassFieldId;
 import java.util.Properties;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_1341,
+@Featurer(
+        id = FeaturerTwins.ID_1341,
         name = "Sum fields by head",
-        description = "Sum of fields by head twin")
+        description = "Sum of fields by head twin"
+)
 @RequiredArgsConstructor
 public class FieldTyperCalcSumByHead extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumByHead, TwinFieldSearchNotImplemented> implements FieldTyperCalcByHead {
-    private final TwinFieldSimpleRepository twinFieldSimpleRepository;
+
+    private final TwinFieldDecimalRepository twinFieldDecimalRepository;
 
     @FeaturerParam(name = "fieldIds", description = "Fields to sum")
     public static final FeaturerParamUUIDSetTwinsTwinClassFieldId fieldIds = new FeaturerParamUUIDSetTwinsTwinClassFieldId("fieldIds");
@@ -50,11 +53,12 @@ public class FieldTyperCalcSumByHead extends FieldTyper<FieldDescriptorText, Fie
     @Override
     public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new TwinFieldStorageCalcSumByHead(
-                twinFieldSimpleRepository,
+                twinFieldDecimalRepository,
                 twinClassFieldEntity.getId(),
                 fieldIds.extract(properties),
                 childrenTwinInStatusIds.extract(properties),
                 childrenTwinOfClassIds.extract(properties),
-                statusExclude.extract(properties));
+                statusExclude.extract(properties)
+        );
     }
 }
