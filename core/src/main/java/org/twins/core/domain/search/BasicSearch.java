@@ -13,7 +13,5 @@ public class BasicSearch extends TwinSearch {
     // in some cases we need to disable view-permission check for featurer MultiplierIsolatedChildrenInStatuses.class
     // when user cant load twins created by other user, but logic required it.
     boolean checkViewPermission = true;
-    // if true, status check will consider freeze status from twin class (freeze status has priority over native twin status)
-    boolean checkFreezeStatus = true;
     List<TwinSort> sorts;
 }

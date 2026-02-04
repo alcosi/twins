@@ -61,6 +61,8 @@ public class TwinSearch {
     private TwinSearchEntity configuredSearch;
     private HierarchySearch hierarchyChildrenSearch;
     private Boolean distinct;
+    // if true, status check will consider freeze status from twin class (freeze status has priority over native twin status)
+    private boolean checkFreezeStatus = true;
 
     public boolean isEmpty() {
         return CollectionUtils.isEmpty(twinIdList) &&

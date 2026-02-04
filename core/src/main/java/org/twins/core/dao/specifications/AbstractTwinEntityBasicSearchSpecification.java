@@ -8,7 +8,6 @@ import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinSearch;
@@ -22,15 +21,7 @@ import static org.twins.core.dao.specifications.twin.TwinSpecification.checkStat
 
 public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends CommonSpecification<T> {
 
-    public static <T> Specification<T> createTwinEntityBasicSearchSpecification(BasicSearch basicSearch, UUID userId, String... twinsEntityFieldPath) throws ServiceException {
-        return createTwinEntityBasicSearchSpecification(basicSearch, userId, basicSearch.isCheckFreezeStatus(), twinsEntityFieldPath);
-    }
-
     public static <T> Specification<T> createTwinEntityBasicSearchSpecification(TwinSearch twinSearch, UUID userId, String... twinsEntityFieldPath) throws ServiceException {
-        return createTwinEntityBasicSearchSpecification(twinSearch, userId, true, twinsEntityFieldPath);
-    }
-
-    public static <T> Specification<T> createTwinEntityBasicSearchSpecification(TwinSearch twinSearch, UUID userId, boolean checkFreezeStatus, String... twinsEntityFieldPath) throws ServiceException {
 
         String[] idFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.id);
         String[] nameFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.name);
@@ -65,7 +56,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkUuidIn(twinSearch.getAssigneeUserIdExcludeList(), true, true, assignerUserIdFieldPath),
                 checkUuidIn(twinSearch.getCreatedByUserIdList(), false, false, createdByUserIdFieldPath),
                 checkUuidIn(twinSearch.getCreatedByUserIdExcludeList(), true, true, createdByUserIdFieldPath),
-                checkStatusIdWithFreeze(twinSearch.getStatusIdList(), twinSearch.getStatusIdExcludeList(), checkFreezeStatus),
+                checkStatusIdWithFreeze(twinSearch.getStatusIdList(), twinSearch.getStatusIdExcludeList(), twinSearch.isCheckFreezeStatus()),
                 checkUuidIn(twinSearch.getHeadTwinIdList(), false, false, headTwinIdFieldPath),
                 checkUuidIn(twinSearch.getTwinClassIdExcludeList(), true, false, twinClassIdFieldPath),
                 checkUuidIn(twinSearch.getTagDataListOptionIdList(), false, false, tagsFieldPath),

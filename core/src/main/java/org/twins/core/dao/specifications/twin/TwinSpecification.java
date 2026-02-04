@@ -83,20 +83,15 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
             }
 
             // With freeze consideration: use COALESCE(twinClassFreeze.twinStatusId, twin.twinStatusId)
-            // Join twin_class to get twin_class_freeze_id
+            // Join chain: twin -> twin_class -> twin_class_freeze
             Join<TwinEntity, org.twins.core.dao.twinclass.TwinClassEntity> twinClassJoin =
                 root.join(TwinEntity.Fields.twinClass, JoinType.LEFT);
+            Join<org.twins.core.dao.twinclass.TwinClassEntity, org.twins.core.dao.twinclass.TwinClassFreezeEntity> twinClassFreezeJoin =
+                twinClassJoin.join(org.twins.core.dao.twinclass.TwinClassEntity.Fields.twinClassFreeze, JoinType.LEFT);
 
-            // Create subquery to get freeze status by twin_class_freeze_id
-            Subquery<UUID> freezeStatusSubquery = query.subquery(UUID.class);
-            Root<org.twins.core.dao.twinclass.TwinClassFreezeEntity> freezeRoot = freezeStatusSubquery.from(org.twins.core.dao.twinclass.TwinClassFreezeEntity.class);
-            freezeStatusSubquery.select(freezeRoot.get(org.twins.core.dao.twinclass.TwinClassFreezeEntity.Fields.twinStatusId));
-            freezeStatusSubquery.where(cb.equal(freezeRoot.get(org.twins.core.dao.twinclass.TwinClassFreezeEntity.Fields.id),
-                twinClassJoin.get(org.twins.core.dao.twinclass.TwinClassEntity.Fields.twinClassFreezeId)));
-
-            // COALESCE((select twinStatusId from twin_class_freeze where id = twin_class.twin_class_freeze_id), twin.twinStatusId)
+            // COALESCE(freeze.twinStatusId, twin.twinStatusId) - freeze status has priority
             Expression<UUID> effectiveStatus = cb.coalesce(
-                freezeStatusSubquery,
+                twinClassFreezeJoin.get(org.twins.core.dao.twinclass.TwinClassFreezeEntity.Fields.twinStatusId),
                 root.get(TwinEntity.Fields.twinStatusId)
             );
 
