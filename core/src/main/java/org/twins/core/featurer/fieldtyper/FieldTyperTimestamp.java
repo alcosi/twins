@@ -34,7 +34,11 @@ import java.util.Properties;
 
 @Component
 @Slf4j
-@Featurer(id = FeaturerTwins.ID_1350, name = "Timestamp", description = "")
+@Featurer(
+        id = FeaturerTwins.ID_1302,
+        name = "Timestamp",
+        description = "Timestamp field with dedicated table storage"
+)
 public class FieldTyperTimestamp extends FieldTyperTimestampBase<FieldDescriptorDate, FieldValueDate, TwinFieldSearchDate> {
 
     @FeaturerParam(name = "Pattern", description = "pattern for timestamp value", optional = true, defaultValue = "yyyy-MM-dd'T'HH:mm:ss")
@@ -71,10 +75,13 @@ public class FieldTyperTimestamp extends FieldTyperTimestampBase<FieldDescriptor
     protected FieldValueDate deserializeValue(Properties properties, TwinField twinField, TwinFieldTimestampEntity twinFieldEntity) throws ServiceException {
         FieldValueDate fieldValueDate = new FieldValueDate(twinField.getTwinClassField());
         fieldValueDate
-                .setDateStr(twinFieldEntity != null && !StringUtils.isEmpty(twinFieldEntity.getValue().toString()) ? formatDate(twinFieldEntity.getValue().toLocalDateTime(), properties) : null)
+                .setDateStr(twinFieldEntity != null && twinFieldEntity.getValue() != null
+                        ? formatDate(twinFieldEntity.getValue().toLocalDateTime(), properties)
+                        : null)
                 .setDate(fieldValueDate.getDateStr() != null
                         ? parseDateTime(fieldValueDate.getDateStr(), properties)
                         : null);
+
         return fieldValueDate;
     }
 
@@ -114,14 +121,14 @@ public class FieldTyperTimestamp extends FieldTyperTimestampBase<FieldDescriptor
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " date[" + value + "] does not match pattern[" + datePattern + "]");
             LocalDateTime localDateTime = parseDateTime(dateValue, properties);
             LocalDateTime now = LocalDateTime.now();
-            Integer minHours = FieldTyperDateScroll.hoursPast.extract(properties);
+            Integer minHours = hoursPast.extract(properties);
             if (minHours != null && minHours >= 0) {
                 LocalDateTime minDate = now.minusHours(minHours);
                 if (localDateTime.isBefore(minDate)) {
                     throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Date value [" + localDateTime + "] is more than " + minHours + " hours in the past");
                 }
             }
-            Integer maxHours = FieldTyperDateScroll.hoursFuture.extract(properties);
+            Integer maxHours = hoursFuture.extract(properties);
             if (maxHours != null && maxHours >= 0) {
                 LocalDateTime maxDate = now.plusHours(maxHours);
                 if (localDateTime.isAfter(maxDate)) {
