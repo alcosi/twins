@@ -24,6 +24,7 @@ public class TwinClassSaveRestDTOReverseMapper extends RestSimpleDTOMapper<TwinC
                 .setTwinClass(new TwinClassEntity()
                         .setKey(src.getKey())
                         .setAbstractt(BooleanUtils.isTrue(src.getAbstractClass()))
+                        .setUniqueName(BooleanUtils.isTrue(src.getUniqueName()))
                         .setAliasSpace(BooleanUtils.isTrue(src.getAliasSpace()))
                         .setPermissionSchemaSpace(BooleanUtils.isTrue(src.getPermissionSchemaSpace()))
                         .setTwinClassSchemaSpace(BooleanUtils.isTrue(src.getTwinClassSchemaSpace()))
