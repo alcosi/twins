@@ -393,10 +393,9 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
                 .filter(Objects::nonNull)
                 .filter(row -> row.length >= 2)
                 .map(row -> {
-                    UUID twinId = (UUID) row[0];
-                    Object value = row[1];
-                    String calcValue = StringUtils.formatNumericValue(value);
-                    return new TwinFieldCalcProjection(twinId, calcValue);
+                    var twinId = (UUID) row[0];
+                    var value = (BigDecimal) row[1];
+                    return new TwinFieldCalcProjection(twinId, value);
                 })
                 .collect(Collectors.toList());
     }

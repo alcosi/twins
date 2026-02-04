@@ -34,6 +34,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.link.TwinLinkService;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Map;
@@ -381,7 +382,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private Map<UUID, Object> twinFieldCalculated;
+    private Map<UUID, BigDecimal> twinFieldCalculated;
 
     @Transient
     @EqualsAndHashCode.Exclude
