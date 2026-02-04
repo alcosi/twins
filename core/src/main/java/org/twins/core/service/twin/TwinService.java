@@ -51,6 +51,7 @@ import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.comment.CommentService;
 import org.twins.core.service.history.ChangesRecorder;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.i18n.I18nService;
@@ -126,6 +127,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private TwinflowFactoryService twinflowFactoryService;
     @Autowired
     private I18nService i18nService;
+    @Autowired
+    private CommentService commentService;
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
         Map<UUID, List<TwinEntity>> ret = new HashMap<>();
@@ -409,6 +412,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (CollectionUtils.isNotEmpty(twinCreate.getTwinFieldAttributeEntityList())) {
             twinFieldAttributeService.addAttributes(twinEntity, twinCreate.getTwinFieldAttributeEntityList(), twinChangesCollector);
         }
+        if (CollectionUtils.isNotEmpty(twinCreate.getCommentsAdd())) {
+            commentService.createComment(twinEntity, twinCreate.getCommentsAdd(), twinChangesCollector);
+        }
         runFactoryAfterCreate(twinCreate, twinChangesCollector);
     }
 
@@ -667,7 +673,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         twinChangesService.applyChanges(twinChangesCollector);
 
-        return twinUpdates.stream().map(TwinUpdate::getDbTwinEntity).toList();
+        return twinUpdates.stream().map(TwinUpdate::getDbTwinEntity).map(TwinEntity::resetCalculatedFields).toList();
     }
 
     public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector, ChangesRecorder<TwinEntity, ?> twinChangesRecorder) throws ServiceException {
@@ -1323,7 +1329,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public boolean isCopyable(TwinClassFieldEntity src, TwinClassFieldEntity dst) throws ServiceException {
         FieldTyper srcFieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturerId(), FieldTyper.class);
         FieldTyper dstFieldTyper = featurerService.getFeaturer(dst.getFieldTyperFeaturerId(), FieldTyper.class);
-        return srcFieldTyper.getStorageType().equals(dstFieldTyper.getStorageType());
+        return srcFieldTyper.getValueType(src).equals(dstFieldTyper.getValueType(dst));
     }
 
     public TwinField getTwinFieldOrNull(TwinEntity twinEntity, UUID twinClassFieldId) throws ServiceException {

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Properties;
 
 @Component
@@ -19,18 +20,30 @@ public class FieldTyperCalcMultiplication extends FieldTyperCalcBinaryBase {
 
     @Override
     protected String calculate(BigDecimal v1, BigDecimal v2, Properties properties) throws ServiceException {
-        var extractedReplaceZeroWithOne = replaceZeroWithOne.extract(properties);
-        var d1 = prepare(v1, extractedReplaceZeroWithOne);
-        var d2 = prepare(v2, extractedReplaceZeroWithOne);
+        boolean replace = replaceZeroWithOne.extract(properties);
+        Integer scale = decimalPlaces.extract(properties);
+        RoundingMode roundingModeParam = roundingMode.extract(properties);
 
-        return d1.multiply(d2).toPlainString();
+        BigDecimal d1 = prepare(v1, replace);
+        BigDecimal d2 = prepare(v2, replace);
+
+        BigDecimal result = d1.multiply(d2);
+
+        if (scale != null) {
+            result = result.setScale(scale, roundingModeParam);
+            result = result.stripTrailingZeros();
+        }
+
+        return result.toPlainString();
     }
 
     private BigDecimal prepare(BigDecimal v, boolean replace) {
-        if (replace) {
-            return (v == null || v.equals(BigDecimal.ZERO)) ? BigDecimal.ONE : v;
+        if (v == null) {
+            return BigDecimal.ZERO;
         }
-
-        return v == null ? BigDecimal.ZERO : v;
+        if (replace && v.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ONE;
+        }
+        return v;
     }
 }

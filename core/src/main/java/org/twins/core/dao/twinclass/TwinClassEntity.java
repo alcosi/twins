@@ -189,6 +189,12 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "external_id")
     private String externalId;
 
+    @Column(name = "head_hierarchy_counter_direct_children", nullable = false)
+    private Integer headHierarchyCounterDirectChildren;
+
+    @Column(name = "extends_hierarchy_counter_direct_children", nullable = false)
+    private Integer extendsHierarchyCounterDirectChildren;
+
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "external_properties", columnDefinition = "hstore")
     private Map<String, String> externalProperties;

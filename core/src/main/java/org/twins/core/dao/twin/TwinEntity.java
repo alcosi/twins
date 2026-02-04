@@ -13,6 +13,7 @@ import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
+import org.twins.core.dao.ResettableTransientState;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -45,7 +46,7 @@ import java.util.UUID;
 @Table(name = "twin")
 @FieldNameConstants
 @DynamicUpdate
-public class TwinEntity implements Cloneable, EasyLoggable {
+public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientState {
     @Id
     private UUID id;
 
@@ -489,5 +490,89 @@ public class TwinEntity implements Cloneable, EasyLoggable {
                 .setExternalId(externalId)
                 .setDescription(description)
                 .setSpaceTwin(spaceTwin);
+    }
+
+    public TwinEntity resetTransientState() {
+        pageFace = null;
+        breadCrumbsFace = null;
+
+        markersLoadState = LoadState.NOT_LOADED;
+
+        spaceTwin = null;
+        if (headTwin != null) {
+            headTwin.resetTransientState();
+            headTwin = null;
+        }
+        twinflow = null;
+
+        // Kits — core fields
+        twinFieldSimpleKit = null;
+        twinFieldSimpleNonIndexedKit = null;
+        twinFieldI18nKit = null;
+        twinFieldBooleanKit = null;
+        twinFieldDatalistKit = null;
+        twinFieldUserKit = null;
+        twinFieldSpaceUserKit = null;
+        twinFieldTwinClassKit = null;
+        twinFieldAttributeKit = null;
+
+        // Calculated
+        twinFieldCalculated = null;
+        fieldValuesKit = null;
+
+        // Links / transitions
+        twinLinks = null;
+        validTransitionsKit = null;
+
+        // Attachments / markers / tags
+        attachmentKit = null;
+        twinMarkerKit = null;
+        twinTagKit = null;
+
+        // Aliases / segments
+        twinAliases = null;
+        twinAliasesArchive = null;
+        segments = null;
+
+        // Actions / counters
+        actions = null;
+        twinAttachmentsCount = null;
+
+        // Permissions / creation helpers
+        creatableChildTwinClasses = null;
+        return this;
+    }
+
+    public TwinEntity resetLoadedFields() {
+        if (headTwin != null) {
+            headTwin.resetLoadedFields();
+        }
+        // Kits — core fields
+        twinFieldSimpleKit = null;
+        twinFieldSimpleNonIndexedKit = null;
+        twinFieldI18nKit = null;
+        twinFieldBooleanKit = null;
+        twinFieldDatalistKit = null;
+        twinFieldUserKit = null;
+        twinFieldSpaceUserKit = null;
+        twinFieldTwinClassKit = null;
+        twinFieldAttributeKit = null;
+        // Calculated
+        twinFieldCalculated = null;
+        fieldValuesKit = null;
+        // Links
+        twinLinks = null;
+        // todo
+        return this;
+    }
+
+    public TwinEntity resetCalculatedFields() {
+        if (headTwin != null) {
+            headTwin.resetCalculatedFields();
+        }
+        twinFieldCalculated = null;
+        twinFieldAttributeKit = null;
+        fieldValuesKit = null;
+        return this;
     }
 }

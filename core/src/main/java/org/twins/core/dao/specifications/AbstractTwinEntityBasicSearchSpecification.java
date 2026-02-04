@@ -70,7 +70,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkTouchSearch(userId,false,twinSearch.getTouchList(),touchFieldPath),
                 checkTouchSearch(userId,true,twinSearch.getTouchExcludeList(),touchFieldPath),
                 checkFieldLocalDateTimeBetween(twinSearch.getCreatedAt(), TwinEntity.Fields.createdAt),
-                checkHierarchyChildren(hierarchyChildrenSearch.getIdList(), false, false, hierarchyChildrenSearch.getDepth(), hierarchyTreeFieldPath),
+                checkHierarchyChildren(hierarchyChildrenSearch.getIdList(), false,  hierarchyChildrenSearch.getDepth(), hierarchyTreeFieldPath),
                 checkQueryDistinct(twinSearch.getDistinct())
         };
 

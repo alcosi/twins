@@ -1,0 +1,1 @@
+INSERT INTO featurer VALUES (2345, 23, '','', '', false) ON CONFLICT DO NOTHING;

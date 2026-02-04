@@ -17,7 +17,7 @@ import java.util.Properties;
 @Slf4j
 public abstract class FieldProjector extends FeaturerTwins {
     public FieldValue project(HashMap<String, String> fieldProjectionParams, TwinClassFieldEntity field, TwinEntity entity) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, fieldProjectionParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, fieldProjectionParams);
         return project(properties, field, entity);
     }
 

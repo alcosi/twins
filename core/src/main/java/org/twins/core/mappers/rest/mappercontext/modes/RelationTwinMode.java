@@ -132,6 +132,7 @@ public enum RelationTwinMode implements MapperModeCollection {
             AttachmentMode.Twin2AttachmentMode.DETAILED,
             AttachmentCollectionMode.Twin2AttachmentCollectionMode.ALL,
             LinkMode.TwinLink2LinkMode.HIDE,
+            TwinByHeadMode.GREEN,
             TransitionMode.HIDE),
     @FieldNameConstants.Include RED (4,
             TwinMode.DETAILED,

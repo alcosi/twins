@@ -1,4 +1,15 @@
 ##############################
+## AI Tools
+##############################
+/.beads/
+/.claude/
+/_bmad/
+/_bmad-output/
+.gitattributes
+AGENTS.md
+CLAUDE.md
+
+##############################
 ## Java
 ##############################
 .mtj.tmp/
@@ -91,9 +102,3 @@ nb-configuration.xml
 /gradlew
 /dev/
 /core/src/main/resources/application-devlocal.properties
-
-##############################
-## AI
-##############################
-.claude
-CLAUDE.md

@@ -433,7 +433,14 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             if (twinClass.getSegment() == null) {
                 twinClass.setSegment(false);
             }
+            if (twinClass.getHasDynamicMarkers() == null) {
+                twinClass.setHasDynamicMarkers(false);
+            }
+
             twinClass.setHasSegment(false);
+
+            twinClass.setHeadHierarchyCounterDirectChildren(0);
+            twinClass.setExtendsHierarchyCounterDirectChildren(0);
 
             validateEntityAndThrow(twinClass, EntitySmartService.EntityValidateMode.beforeSave);
             processIcons(twinClass, iconLight, iconDark);

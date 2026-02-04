@@ -36,6 +36,7 @@ public class FactoryContext {
     private Map<FactoryBranchId, Set<FactoryItem>> pipelineScopes = new HashMap<>();
     Map<UUID, UUID> afterCommitFactories = new HashMap<>();
     private UUID runLimitedByOwnerBusinessAccount; //this will help to protect from multi business_account run
+    private UUID requestId; //this will help analyze what exactly launched factory
 
     public FactoryContext(FactoryLauncher factoryLauncher, FactoryBranchId rootFactoryBranchId) {
         this.factoryLauncher = factoryLauncher;
