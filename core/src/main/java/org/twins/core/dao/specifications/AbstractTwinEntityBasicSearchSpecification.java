@@ -8,6 +8,7 @@ import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinSearch;
@@ -17,10 +18,19 @@ import java.util.*;
 
 import static org.cambium.common.util.ArrayUtils.concatArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
+import static org.twins.core.dao.specifications.twin.TwinSpecification.checkStatusIdWithFreeze;
 
 public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends CommonSpecification<T> {
 
+    public static <T> Specification<T> createTwinEntityBasicSearchSpecification(BasicSearch basicSearch, UUID userId, String... twinsEntityFieldPath) throws ServiceException {
+        return createTwinEntityBasicSearchSpecification(basicSearch, userId, basicSearch.isCheckFreezeStatus(), twinsEntityFieldPath);
+    }
+
     public static <T> Specification<T> createTwinEntityBasicSearchSpecification(TwinSearch twinSearch, UUID userId, String... twinsEntityFieldPath) throws ServiceException {
+        return createTwinEntityBasicSearchSpecification(twinSearch, userId, true, twinsEntityFieldPath);
+    }
+
+    public static <T> Specification<T> createTwinEntityBasicSearchSpecification(TwinSearch twinSearch, UUID userId, boolean checkFreezeStatus, String... twinsEntityFieldPath) throws ServiceException {
 
         String[] idFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.id);
         String[] nameFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.name);
@@ -28,7 +38,6 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] externalIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.externalId);
         String[] assignerUserIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.assignerUserId);
         String[] createdByUserIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.createdByUserId);
-        String[] twinStatusIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.twinStatusId);
         String[] headTwinIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.headTwinId);
         String[] hierarchyTreeFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.hierarchyTree);
         String[] twinClassIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.twinClassId);
@@ -56,8 +65,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkUuidIn(twinSearch.getAssigneeUserIdExcludeList(), true, true, assignerUserIdFieldPath),
                 checkUuidIn(twinSearch.getCreatedByUserIdList(), false, false, createdByUserIdFieldPath),
                 checkUuidIn(twinSearch.getCreatedByUserIdExcludeList(), true, true, createdByUserIdFieldPath),
-                checkUuidIn(twinSearch.getStatusIdList(), false, false, twinStatusIdFieldPath),
-                checkUuidIn(twinSearch.getStatusIdExcludeList(), true, false, twinStatusIdFieldPath),
+                checkStatusIdWithFreeze(twinSearch.getStatusIdList(), twinSearch.getStatusIdExcludeList(), checkFreezeStatus),
                 checkUuidIn(twinSearch.getHeadTwinIdList(), false, false, headTwinIdFieldPath),
                 checkUuidIn(twinSearch.getTwinClassIdExcludeList(), true, false, twinClassIdFieldPath),
                 checkUuidIn(twinSearch.getTagDataListOptionIdList(), false, false, tagsFieldPath),

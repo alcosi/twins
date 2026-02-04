@@ -15,10 +15,8 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.service.twin.TwinSearchService;
-import org.twins.core.service.twin.TwinService;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -32,22 +30,16 @@ public class TwinValidatorTwinHasChildrenInStatuses extends TwinValidator {
 
     @Lazy
     private final TwinSearchService twinSearchService;
-    @Lazy
-    private final TwinService twinService;
 
     @Override
     protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
         Set<UUID> statusIdSet = statusIds.extract(properties);
         BasicSearch search = new BasicSearch();
-        search.addHeadTwinId(twinEntity.getId());
+        search
+                .addHeadTwinId(twinEntity.getId())
+                .addStatusId(statusIdSet, false); // consider freeze status from twin class
 
-        // Load all children to check their statuses (taking freeze into account)
-        List<TwinEntity> children = twinSearchService.findTwins(search);
-
-        long count = children.stream()
-                .filter(child -> statusIdSet.contains(twinService.getTwinStatusId(child)))
-                .count();
-
+        long count = twinSearchService.count(search);
         boolean isValid = count > 0;
         return buildResult(
                 isValid,
@@ -59,24 +51,14 @@ public class TwinValidatorTwinHasChildrenInStatuses extends TwinValidator {
     @Override
     protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
         Set<UUID> statusIdSet = statusIds.extract(properties);
-        Set<UUID> parentIds = twinEntityCollection.stream().map(TwinEntity::getId).collect(Collectors.toSet());
-
         BasicSearch search = new BasicSearch();
-        search.setHeadTwinIdList(parentIds);
+        search
+                .addStatusId(statusIdSet, false); // consider freeze status from twin class
 
-        // Load all children for all parents
-        List<TwinEntity> allChildren = twinSearchService.findTwins(search);
-
-        // Group children by head twin id
-        Map<UUID, List<TwinEntity>> childrenByParent = allChildren.stream()
-                .collect(Collectors.groupingBy(TwinEntity::getHeadTwinId));
-
+        Map<UUID, Long> counts = twinSearchService.countGroupBy(search, TwinEntity.Fields.headTwinId);
         CollectionValidationResult result = new CollectionValidationResult();
         for (TwinEntity twinEntity : twinEntityCollection) {
-            List<TwinEntity> children = childrenByParent.getOrDefault(twinEntity.getId(), Collections.emptyList());
-            long count = children.stream()
-                    .filter(child -> statusIdSet.contains(twinService.getTwinStatusId(child)))
-                    .count();
+            long count = counts.getOrDefault(twinEntity.getId(), 0L);
             boolean isValid = count > 0;
             result.getTwinsResults().put(twinEntity.getId(), buildResult(
                     isValid,
