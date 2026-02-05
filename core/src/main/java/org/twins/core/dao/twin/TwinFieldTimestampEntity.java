@@ -10,14 +10,15 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-@Table(name = "twin_field_boolean")
-public class TwinFieldBooleanEntity implements EasyLoggable {
+@Table(name = "twin_field_timestamp")
+public class TwinFieldTimestampEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -33,7 +34,7 @@ public class TwinFieldBooleanEntity implements EasyLoggable {
     private UUID twinClassFieldId;
 
     @Column(name = "value")
-    private Boolean value;
+    private Timestamp value;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -50,16 +51,16 @@ public class TwinFieldBooleanEntity implements EasyLoggable {
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case SHORT -> "twinFieldBoolean[" + id + "]";
+            case SHORT -> "twinFieldTimestamp[" + id + "]";
             case NORMAL ->
-                    "twinFieldBoolean[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + "]";
+                    "twinFieldTimestamp[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + "]";
             default ->
-                    "twinFieldBoolean[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + ", value:" + value + "]";
+                    "twinFieldTimestamp[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + ", value:" + value + "]";
         };
     }
 
-    public TwinFieldBooleanEntity cloneFor(TwinEntity dstTwinEntity) {
-        return new TwinFieldBooleanEntity()
+    public TwinFieldTimestampEntity cloneFor(TwinEntity dstTwinEntity) {
+        return new TwinFieldTimestampEntity()
                 .setTwin(dstTwinEntity)
                 .setTwinId(dstTwinEntity.getId())
                 .setTwinClassField(twinClassField)

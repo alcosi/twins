@@ -1,10 +1,12 @@
 package org.twins.core.dao.specifications;
 
 import jakarta.persistence.criteria.*;
+import jakarta.persistence.metamodel.Attribute;
 import org.apache.commons.lang3.function.TriFunction;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.cambium.common.util.FunctionalUtils.defaultParallelAccumulatorOperator;
@@ -80,8 +82,28 @@ abstract class AbstractSpecification<T> {
     protected static From getReducedRoot(From srcRoot,JoinType joinType, List<String> filedPathList) {
         if (filedPathList == null || filedPathList.isEmpty()) return srcRoot;
         //Get Entity that really contains property with inner joins
-        From reducedRoot = filedPathList.stream().reduce(srcRoot, (from, fld) -> from.join(fld, joinType), defaultParallelAccumulatorOperator(From.class));
+        From reducedRoot = filedPathList.stream().reduce(srcRoot, (from, fld) -> getOrCreateJoin(from, fld, joinType), defaultParallelAccumulatorOperator(From.class));
         return reducedRoot;
+    }
+
+    /**
+     * Gets an existing join or creates a new one if it doesn't exist.
+     * This prevents duplicate joins to the same table.
+     *
+     * @param from the source From object
+     * @param attribute the attribute name to join
+     * @param joinType the type of join
+     * @return existing or newly created Join
+     */
+    protected static Join<?, ?> getOrCreateJoin(From<?, ?> from, String attribute, JoinType joinType) {
+        // Check if join already exists by attribute name
+        for (Join<?, ?> join : from.getJoins()) {
+            Attribute<?, ?> attr = (Attribute<?, ?>) join.getAttribute();
+            if (attr != null && attr.getName().equals(attribute)) {
+                return join;
+            }
+        }
+        return from.join(attribute, joinType);
     }
 
 }

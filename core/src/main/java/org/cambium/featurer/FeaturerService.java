@@ -266,7 +266,7 @@ public class FeaturerService {
         return extractPropertiesCached(getFeaturerId(featurer), params);
     }
 
-    private int getFeaturerId(Featurer featurer) {
+    public static int getFeaturerId(Featurer featurer) {
         var annotation = featurer.getClass().getAnnotation(org.cambium.featurer.annotations.Featurer.class);
         return annotation.id();
     }
@@ -428,5 +428,9 @@ public class FeaturerService {
 
     public static String toConfigKey(int featurerId, HashMap<String, String> params) {
         return DigestUtils.sha256Hex(featurerId + "|" + canonical(params));
+    }
+
+    public static String toConfigKey(Featurer featurer, HashMap<String, String> params) {
+        return toConfigKey(getFeaturerId(featurer), params);
     }
 }

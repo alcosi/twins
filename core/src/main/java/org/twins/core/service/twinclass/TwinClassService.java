@@ -212,6 +212,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 .setAliasSpace(srcTwinClassEntity.getAliasSpace())
                 .setAssigneeRequired(srcTwinClassEntity.getAssigneeRequired())
                 .setAbstractt(srcTwinClassEntity.getAbstractt())
+                .setUniqueName(srcTwinClassEntity.getUniqueName())
                 .setExtendsTwinClassId(srcTwinClassEntity.getExtendsTwinClassId())
                 .setHeadTwinClassId(srcTwinClassEntity.getHeadTwinClassId())
                 .setIconDarkResourceId(srcTwinClassEntity.getIconDarkResourceId())
@@ -436,6 +437,9 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             if (twinClass.getHasDynamicMarkers() == null) {
                 twinClass.setHasDynamicMarkers(false);
             }
+            if (twinClass.getUniqueName() == null) {
+                twinClass.setUniqueName(false);
+            }
 
             twinClass.setHasSegment(false);
 
@@ -579,6 +583,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             ChangesHelper changesHelper = new ChangesHelper();
 
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getAbstractt, TwinClassEntity::setAbstractt, TwinClassEntity.Fields.abstractt, changesHelper);
+            updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getUniqueName, TwinClassEntity::setUniqueName, TwinClassEntity.Fields.uniqueName, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getTwinClassSchemaSpace, TwinClassEntity::setTwinClassSchemaSpace, TwinClassEntity.Fields.twinClassSchemaSpace, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getTwinflowSchemaSpace, TwinClassEntity::setTwinflowSchemaSpace, TwinClassEntity.Fields.twinflowSchemaSpace, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getAliasSpace, TwinClassEntity::setAliasSpace, TwinClassEntity.Fields.aliasSpace, changesHelper);
