@@ -114,6 +114,7 @@ public class TwinClassFieldRuleExecutionService {
                 applyRuleEffect(rule, output);
                 contextValues.put(output.getField().getId(), normalizeValue(output.getValue()));
             } else {
+                output.setHasError(true);
                 output.descriptor.put(DESCRIPTOR_RULE_FAILED, String.valueOf(true));
             }
         }
@@ -382,6 +383,7 @@ public class TwinClassFieldRuleExecutionService {
         private Object value;
         private Boolean required;
         private Map<String, String> descriptor;
+        private Boolean hasError;
     }
 
     @RequiredArgsConstructor
