@@ -10,6 +10,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.factory.FactoryConditionSetService;
 import org.twins.core.service.factory.TwinFactoryService;
 
 import java.util.Collection;
@@ -34,6 +35,8 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
     private final FactoryRestDTOMapper factoryRestDTOMapper;
 
     private final TwinFactoryService twinFactoryService;
+
+    private final FactoryConditionSetService factoryConditionSetService;
 
     @Override
     public void map(TwinFactoryConditionSetEntity src, FactoryConditionSetDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -78,7 +81,7 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
             userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.FactoryConditionSet2UserMode.HIDE));
         }
         if (mapperContext.hasModeButNot(FactoryMode.FactoryConditionSet2FactoryMode.HIDE)) {
-            twinFactoryService.loadFactoryForConditionSet(src);
+            factoryConditionSetService.loadFactory(src);
             dst.setTwinFactoryId(src.getTwinFactoryId());
             factoryRestDTOMapper.postpone(src.getTwinFactory(), mapperContext.forkOnPoint(FactoryMode.FactoryConditionSet2FactoryMode.SHORT));
         }
@@ -98,6 +101,6 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
         if (mapperContext.hasModeButNot(ConditionSetInFactoryEraserUsagesCountMode.HIDE))
             twinFactoryService.countConditionSetInFactoryEraserUsages(srcCollection);
         if (mapperContext.hasModeButNot(FactoryMode.FactoryConditionSet2FactoryMode.HIDE))
-            twinFactoryService.loadFactoryForConditionSet(srcCollection);
+            factoryConditionSetService.loadFactory(srcCollection);
     }
 }
