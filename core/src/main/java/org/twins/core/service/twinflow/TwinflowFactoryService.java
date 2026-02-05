@@ -28,6 +28,7 @@ import org.twins.core.domain.factory.FactoryResultUncommited;
 import org.twins.core.domain.twinoperation.TwinSave;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.enums.factory.FactoryLauncher;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.factory.TwinFactoryService;
 
 import java.util.Collection;
@@ -49,6 +50,7 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
     private final TwinFactoryService twinFactoryService;
     private final TwinflowFactoryRepository repository;
     private final TwinflowFactoryRepository twinflowFactoryRepository;
+    private final AuthService authService;
 
     @Override
     public CrudRepository<TwinflowFactoryEntity, UUID> entityRepository() {
@@ -178,6 +180,7 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
         if (twinflowFactory == null)
             return;
         FactoryContext factoryContext = new FactoryContext(twinflowFactory.getTwinFactoryLauncher(), FactoryBranchId.root(twinflowFactory.getTwinFactoryId()));
+        factoryContext.setRequestId(authService.getApiUser().getRequestId());
         factoryContext.add(new FactoryItem().setOutput(twinSave).setFactoryContext(factoryContext));
         FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(twinflowFactory.getTwinFactoryId(), factoryContext);
         if (result.getUpdates().size() > 1 || !result.getCreates().isEmpty() || !result.getDeletes().isEmpty()) {

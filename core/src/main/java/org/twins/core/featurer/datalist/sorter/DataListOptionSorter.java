@@ -17,7 +17,7 @@ import java.util.function.Function;
 @Slf4j
 public abstract class DataListOptionSorter extends FeaturerTwins {
     public Function<Specification<DataListOptionEntity>, Specification<DataListOptionEntity>> createSort(HashMap<String, String> optionSorterParams) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, optionSorterParams, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, optionSorterParams);
         log.info("Running featurer[{}].createSort with params: {}", this.getClass().getSimpleName(), properties.toString());
         return createSort(properties);
     }

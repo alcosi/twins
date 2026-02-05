@@ -2,6 +2,7 @@ package org.twins.core.domain;
 
 import lombok.Getter;
 import org.cambium.common.util.ChangesHelper;
+import org.hibernate.Hibernate;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,6 +17,7 @@ public class EntitiesChangesCollector {
     public EntitiesChangesCollector() {}
 
     protected ChangesHelper detectChangesHelper(Object entity) {
+        //todo perhaps we need to call Hibernate.getClass
         Map<Object, ChangesHelper> entityClassChanges = saveEntityMap.computeIfAbsent(entity.getClass(), k -> new ConcurrentHashMap<>());
         return entityClassChanges.computeIfAbsent(entity, k -> new ChangesHelper());
     }
@@ -76,7 +78,7 @@ public class EntitiesChangesCollector {
     }
 
     public void delete(Object entity) {
-        Set<Object> entityClassDeletions = deleteEntityMap.computeIfAbsent(entity.getClass(), k -> new HashSet<>());
+        Set<Object> entityClassDeletions = deleteEntityMap.computeIfAbsent(Hibernate.getClass(entity), k -> new HashSet<>());
         entityClassDeletions.add(entity);
     }
 

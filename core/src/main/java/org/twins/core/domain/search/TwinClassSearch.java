@@ -47,6 +47,7 @@ public class TwinClassSearch {
     private Ternary assigneeRequired;
     private Ternary segment;
     private Ternary hasSegments;
+    private Ternary uniqueName;
     private Set<UUID> viewPermissionIdList;
     private Set<UUID> viewPermissionIdExcludeList;
     private Set<UUID> createPermissionIdList;
@@ -111,6 +112,7 @@ public class TwinClassSearch {
             Pair.of(TwinClassSearch::getAliasSpace, TwinClassSearch::setAliasSpace),
             Pair.of(TwinClassSearch::getAbstractt, TwinClassSearch::setAbstractt),
             Pair.of(TwinClassSearch::getSegment, TwinClassSearch::setSegment),
-            Pair.of(TwinClassSearch::getHasSegments, TwinClassSearch::setHasSegments)
+            Pair.of(TwinClassSearch::getHasSegments, TwinClassSearch::setHasSegments),
+            Pair.of(TwinClassSearch::getUniqueName, TwinClassSearch::setUniqueName)
     );
 }

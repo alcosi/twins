@@ -87,6 +87,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         return valuetype;
     }
 
+    public Class<D> getFieldDescriptorType(TwinClassFieldEntity twinClassField) throws ServiceException {
+        return descriptorType;
+    }
+
     public Class<S> getStorageType() {
         return storageType;
     }
@@ -106,14 +110,14 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     }
 
     public D getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams());
         return getFieldDescriptor(twinClassFieldEntity, properties);
     }
 
     protected abstract D getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException;
 
     public void serializeValue(TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
         if (!validate(twin, value).isValid()) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Can not serialize invalid value for " + value.getTwinClassField().logNormal());
         }
@@ -125,7 +129,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
 
     public T deserializeValue(TwinField twinField) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, twinField.getTwinClassField().getFieldTyperParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, twinField.getTwinClassField().getFieldTyperParams());
         return deserializeValue(properties, twinField);
     }
 
@@ -137,7 +141,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
         if (twinClassFieldEntity.getFieldStorage() == null) {
-            Properties properties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams(), new HashMap<>());
+            Properties properties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams());
             twinClassFieldEntity.setFieldStorage(getStorage(twinClassFieldEntity, properties));
         }
         return twinClassFieldEntity.getFieldStorage();
@@ -183,7 +187,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
             log.error("{} is not suitable for {}", value.getTwinClassField().logNormal(), twin.logNormal());
             return new ValidationResult(false, getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField()));
         }
-        Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
         ValidationResult validationResult = validate(properties, twin, value);
         value.setValidationResult(validationResult);
         return validationResult;

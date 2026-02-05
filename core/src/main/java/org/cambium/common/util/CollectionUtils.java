@@ -1,8 +1,12 @@
 package org.cambium.common.util;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cambium.common.EasyLoggable;
+import org.cambium.common.exception.ServiceException;
+import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class CollectionUtils extends org.apache.commons.collections.CollectionUtils {
@@ -99,5 +103,20 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
                  return collection;
          }
          return null;
+    }
+
+    public static <T, E extends Enum<E>> List<T> filterByEnum(Collection<T> items, Function<T, E> getter, E targetValue) {
+        return items.stream()
+                .filter(item -> getter.apply(item) == targetValue)
+                .toList();
+    }
+
+    public static <T, E extends Enum<E>> void validateByEnumWithException(Collection<T> items, Function<T, E> getter, E targetValue) throws ServiceException {
+        List<T> filtered = CollectionUtils.filterByEnum(items, getter, targetValue);
+
+        if (!filtered.isEmpty()) {
+            EasyLoggable firstInvalidItem = (EasyLoggable) filtered.getFirst();
+            throw new ServiceException(ErrorCodeTwins.RECURSIVE_LOAD_DETECTED, "Cannot load recursively for " + firstInvalidItem.logShort());
+        }
     }
 }

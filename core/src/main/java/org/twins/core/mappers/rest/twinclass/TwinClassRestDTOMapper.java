@@ -108,6 +108,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                         .setKey(src.getKey())
                         .setHeadClassId(src.getHeadTwinClassId())
                         .setAbstractClass(src.getAbstractt())
+                        .setUniqueName(src.getUniqueName())
                         .setMarkersDataListId(src.getMarkerDataListId())
                         .setTagsDataListId(src.getTagDataListId())
                         .setTwinClassFreezeId(src.getTwinClassFreezeId())
@@ -139,7 +140,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                         .setExternalId(src.getExternalId())
                         .setExternalProperties(src.getExternalProperties())
                         .setSegment(src.getSegment())
-                        .setHasSegment(src.getHasSegment());
+                        .setHasSegment(src.getHasSegment())
+                        .setHeadHierarchyCounterDirectChildren(src.getHeadHierarchyCounterDirectChildren())
+                        .setExtendsHierarchyCounterDirectChildren(src.getExtendsHierarchyCounterDirectChildren());
                 break;
             case DETAILED:
                 dst
@@ -148,6 +151,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                         .setHeadClassId(src.getHeadTwinClassId())
 //                        .setHeadClass(convertOrPostpone(src))
                         .setAbstractClass(src.getAbstractt())
+                        .setUniqueName(src.getUniqueName())
                         .setMarkersDataListId(src.getMarkerDataListId())
                         .setTagsDataListId(src.getTagDataListId())
                         .setTwinClassFreezeId(src.getTwinClassFreezeId())

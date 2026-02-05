@@ -339,4 +339,8 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         Map<UUID, LinkEntity> forwardLinks = new LinkedHashMap<>();
         Map<UUID, LinkEntity> backwardLinks = new LinkedHashMap<>();
     }
+
+    public Collection<LinkEntity> findAllByIdIn(Collection<UUID> ids) {
+        return linkRepository.findAllByIdIn(ids);
+    }
 }

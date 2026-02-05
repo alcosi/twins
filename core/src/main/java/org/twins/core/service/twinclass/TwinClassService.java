@@ -28,6 +28,7 @@ import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.resource.ResourceEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
@@ -211,6 +212,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 .setAliasSpace(srcTwinClassEntity.getAliasSpace())
                 .setAssigneeRequired(srcTwinClassEntity.getAssigneeRequired())
                 .setAbstractt(srcTwinClassEntity.getAbstractt())
+                .setUniqueName(srcTwinClassEntity.getUniqueName())
                 .setExtendsTwinClassId(srcTwinClassEntity.getExtendsTwinClassId())
                 .setHeadTwinClassId(srcTwinClassEntity.getHeadTwinClassId())
                 .setIconDarkResourceId(srcTwinClassEntity.getIconDarkResourceId())
@@ -349,6 +351,10 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
     }
 
+    public boolean isInstanceOf(TwinEntity twin, UUID ofClass) throws ServiceException {
+        return isInstanceOf(twin.getTwinClass(), ofClass);
+    }
+
     public boolean isInstanceOf(TwinClassEntity instanceClass, UUID ofClass) throws ServiceException {
         if (!instanceClass.getId().equals(ofClass)) {
             return instanceClass.getExtendedClassIdSet().contains(ofClass);
@@ -428,7 +434,17 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             if (twinClass.getSegment() == null) {
                 twinClass.setSegment(false);
             }
+            if (twinClass.getHasDynamicMarkers() == null) {
+                twinClass.setHasDynamicMarkers(false);
+            }
+            if (twinClass.getUniqueName() == null) {
+                twinClass.setUniqueName(false);
+            }
+
             twinClass.setHasSegment(false);
+
+            twinClass.setHeadHierarchyCounterDirectChildren(0);
+            twinClass.setExtendsHierarchyCounterDirectChildren(0);
 
             validateEntityAndThrow(twinClass, EntitySmartService.EntityValidateMode.beforeSave);
             processIcons(twinClass, iconLight, iconDark);
@@ -567,6 +583,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             ChangesHelper changesHelper = new ChangesHelper();
 
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getAbstractt, TwinClassEntity::setAbstractt, TwinClassEntity.Fields.abstractt, changesHelper);
+            updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getUniqueName, TwinClassEntity::setUniqueName, TwinClassEntity.Fields.uniqueName, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getTwinClassSchemaSpace, TwinClassEntity::setTwinClassSchemaSpace, TwinClassEntity.Fields.twinClassSchemaSpace, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getTwinflowSchemaSpace, TwinClassEntity::setTwinflowSchemaSpace, TwinClassEntity.Fields.twinflowSchemaSpace, changesHelper);
             updateEntityFieldByEntity(twinClassUpdate.getTwinClass(), dbTwinClassEntity, TwinClassEntity::getAliasSpace, TwinClassEntity::setAliasSpace, TwinClassEntity.Fields.aliasSpace, changesHelper);

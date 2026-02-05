@@ -388,12 +388,21 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return new HistoryItem<>(HistoryType.linkUpdated, context);
     }
 
-    public HistoryItem<HistoryContextSpaceRoleUserChange> spaceRoleUserAdd(TwinClassFieldEntity twinClassFieldEntity, UUID roleId, List<UUID> userIdList) {
+    public HistoryItem<HistoryContextSpaceRoleUserChange> spaceRoleUserAdd(TwinEntity twinEntity, UUID roleId, List<UUID> userIdList) {
         HistoryContextSpaceRoleUserChange context = new HistoryContextSpaceRoleUserChange()
                 .setRoleId(roleId)
                 .setTargetedUserIds(userIdList);
-        context.shotField(twinClassFieldEntity, i18nService);
-        return new HistoryItem<>(HistoryType.spaceRoleUserAdded, context);
+        if (twinEntity.isCreateElseUpdate()) {
+            return new HistoryItem<>(HistoryType.spaceRoleUserAddedOnCreate, context);
+        } else {
+            return new HistoryItem<>(HistoryType.spaceRoleUserAdded, context);
+        }
+    }
+
+    public HistoryItem<HistoryContextSpaceRoleUserChange> spaceRoleUserAdd(TwinEntity twin, TwinClassFieldEntity twinClassFieldEntity, UUID roleId, List<UUID> userIdList) {
+        HistoryItem<HistoryContextSpaceRoleUserChange> historyContextSpaceRoleUserChangeHistoryItem = spaceRoleUserAdd(twin, roleId, userIdList);
+        historyContextSpaceRoleUserChangeHistoryItem.getContext().shotField(twinClassFieldEntity, i18nService);
+        return historyContextSpaceRoleUserChangeHistoryItem;
     }
 
     public HistoryItem<HistoryContextSpaceRoleUserChange> spaceRoleUserDelete(TwinClassFieldEntity twinClassFieldEntity, UUID roleId, List<UUID> userIdList) {
@@ -466,5 +475,9 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                     .add(linkDeleted(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getDstTwin(), true));
         }
         return ret;
+    }
+
+    public boolean existsByHistoryBatchIdAndHistoryType(UUID historyBatchId, HistoryType type) {
+        return historyRepository.existsByHistoryBatchIdAndHistoryType(historyBatchId, type);
     }
 }

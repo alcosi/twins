@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.twins.core.enums.history.HistoryType;
 
 import java.util.UUID;
 
@@ -19,4 +20,6 @@ public interface HistoryRepository extends CrudRepository<HistoryEntity, UUID>, 
     @Query(value = "select he from HistoryEntity he where he.twinId = :twinId " +
             "or he.twinId in (select child.id from TwinEntity child where child.headTwinId = :twinId)")
     Page<HistoryEntity> findByTwinIdIncludeFirstLevelChildren(@Param("twinId") UUID twinId, Pageable pageable);
+
+    boolean existsByHistoryBatchIdAndHistoryType(UUID batchId, HistoryType type);
 }

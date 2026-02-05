@@ -88,7 +88,7 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
             }
             twinChangesCollector.addAll(listToAdd);
             if (twinChangesCollector.isHistoryCollectorEnabled())
-                twinChangesCollector.getHistoryCollector(twin).add(historyService.spaceRoleUserAdd(value.getTwinClassField(), roleId, listToAdd.stream().map(SpaceRoleUserEntity::getUserId).toList()));
+                twinChangesCollector.getHistoryCollector(twin).add(historyService.spaceRoleUserAdd(twin, value.getTwinClassField(), roleId, listToAdd.stream().map(SpaceRoleUserEntity::getUserId).toList()));
         }
         if (CollectionUtils.isNotEmpty(spaceRoleUserChanges.getDeleteUsers())) {
             List<SpaceRoleUserEntity> userForDelete = spaceUserRoleService.findAllByTwinIdAndRoleIdAndUserIds(twin.getId(), roleId, spaceRoleUserChanges.getDeleteUsers());
