@@ -13,7 +13,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFreezeEntity;
 import org.twins.core.domain.search.*;
 
-import java.time.LocalDateTime;
+import java.sql.Timestamp;
 import java.util.*;
 
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
@@ -362,6 +362,31 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
         Expression<Boolean> booleanField = twinFieldBooleanJoin.get(TwinFieldBooleanEntity.Fields.value);
 
         return cb.equal(booleanField, search.getValue());
+    }
+
+    public static Specification<TwinEntity> checkFieldTimestamp(TwinFieldSearchDate search) {
+        return (root, query, cb) -> {
+            if (search.isEmptySearch()) return cb.conjunction();
+
+            Join<TwinEntity, TwinFieldTimestampEntity> join = root.join(TwinEntity.Fields.fieldsTimestamp, JoinType.INNER);
+            join.on(cb.equal(join.get(TwinFieldTimestampEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
+
+            Expression<Timestamp> timestampField = join.get(TwinFieldTimestampEntity.Fields.value);
+            java.util.List<Predicate> predicates = new java.util.ArrayList<>();
+
+            if (search.getEquals() != null)
+                predicates.add(cb.equal(timestampField, convertToTimestamp(search.getEquals())));
+            if (search.getLessThen() != null)
+                predicates.add(cb.lessThan(timestampField, convertToTimestamp(search.getLessThen())));
+            if (search.getMoreThen() != null)
+                predicates.add(cb.greaterThan(timestampField, convertToTimestamp(search.getMoreThen())));
+
+            return predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
+
+    private static Timestamp convertToTimestamp(java.time.LocalDateTime localDateTime) {
+        return Timestamp.valueOf(localDateTime);
     }
 
     public static Specification<TwinEntity> checkFieldTwinClassList(final TwinFieldSearchTwinClassList search) {

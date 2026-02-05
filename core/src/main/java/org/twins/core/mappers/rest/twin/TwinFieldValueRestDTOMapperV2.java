@@ -125,9 +125,9 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
                             src.getTwinClassField().logNormal() + " can't serialize i18n");
                 dst.setValue(jsonStr);
             }
-        } else
+        } else {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, src.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " unknown value type");
-
+        }
         return dst;
     }
 
