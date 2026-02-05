@@ -48,10 +48,7 @@ public class TwinFactoryConditionSetEntity implements EasyLoggable {
     @Column(name = "twin_factory_id")
     private UUID twinFactoryId;
 
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
+    @Transient
     private TwinFactoryEntity twinFactory;
 
     @EqualsAndHashCode.Exclude

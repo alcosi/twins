@@ -78,6 +78,7 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
             userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.FactoryConditionSet2UserMode.HIDE));
         }
         if (mapperContext.hasModeButNot(FactoryMode.FactoryConditionSet2FactoryMode.HIDE)) {
+            twinFactoryService.loadFactoryForConditionSet(src);
             dst.setTwinFactoryId(src.getTwinFactoryId());
             factoryRestDTOMapper.postpone(src.getTwinFactory(), mapperContext.forkOnPoint(FactoryMode.FactoryConditionSet2FactoryMode.SHORT));
         }
@@ -96,5 +97,7 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
             twinFactoryService.countConditionSetInFactoryBranchUsages(srcCollection);
         if (mapperContext.hasModeButNot(ConditionSetInFactoryEraserUsagesCountMode.HIDE))
             twinFactoryService.countConditionSetInFactoryEraserUsages(srcCollection);
+        if (mapperContext.hasModeButNot(FactoryMode.FactoryConditionSet2FactoryMode.HIDE))
+            twinFactoryService.loadFactoryForConditionSet(srcCollection);
     }
 }

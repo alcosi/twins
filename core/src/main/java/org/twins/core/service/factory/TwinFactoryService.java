@@ -701,4 +701,25 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         Map<UUID, Integer> mulitplierFilterMap = mapUuidInt(twinFactoryMultiplierFilterRepository.countByMultiplierIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(multiplierFilter -> multiplierFilter.setFactoryMultiplierFiltersCount(mulitplierFilterMap.getOrDefault(multiplierFilter.getId(), 0)));
     }
+
+    public void loadFactoryForConditionSet(TwinFactoryConditionSetEntity conditionSet) throws ServiceException {
+        loadFactoryForConditionSet(Collections.singletonList(conditionSet));
+    }
+
+    public void loadFactoryForConditionSet(Collection<TwinFactoryConditionSetEntity> conditionSetList) throws ServiceException {
+        Kit<TwinFactoryConditionSetEntity, UUID> needLoad = new Kit<>(TwinFactoryConditionSetEntity::getId);
+        for (TwinFactoryConditionSetEntity conditionSet : conditionSetList) {
+            if (conditionSet.getTwinFactoryId() != null && conditionSet.getTwinFactory() == null)
+                needLoad.add(conditionSet);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        List<UUID> factoryIds = needLoad.getCollection().stream().map(TwinFactoryConditionSetEntity::getTwinFactoryId).distinct().toList();
+        Map<UUID, TwinFactoryEntity> factoryMap = new HashMap<>();
+        for (TwinFactoryEntity factory : twinFactoryRepository.findAllById(factoryIds)) {
+            factoryMap.put(factory.getId(), factory);
+        }
+        needLoad.getCollection().forEach(conditionSet -> conditionSet.setTwinFactory(factoryMap.get(conditionSet.getTwinFactoryId())));
+    }
 }
