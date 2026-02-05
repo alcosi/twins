@@ -25,12 +25,12 @@ public class TransitionTriggerSearchDTOv1 {
     @Schema(description = "twinflow transition id exclude list")
     public Set<UUID> twinflowTransitionIdExcludeList;
 
-    @Schema(description = "transition trigger featurer id list")
-    public Set<Integer> transitionTriggerFeaturerIdList;
+    @Schema(description = "twin trigger id list")
+    public Set<UUID> twinTriggerIdList;
 
-    @Schema(description = "transition trigger featurer id exclude list")
-    public Set<Integer> transitionTriggerFeaturerIdExcludeList;
-    
+    @Schema(description = "twin trigger id exclude list")
+    public Set<UUID> twinTriggerIdExcludeList;
+
     @Schema(description = "active", example = DTOExamples.TERNARY)
     public Ternary active;
 }

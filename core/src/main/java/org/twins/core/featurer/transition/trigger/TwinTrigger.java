@@ -15,7 +15,7 @@ import java.util.Properties;
         name = "TransitionTrigger",
         description = "")
 @Slf4j
-public abstract class TransitionTrigger extends FeaturerTwins {
+public abstract class TwinTrigger extends FeaturerTwins {
 
     public void run(HashMap<String, String> triggerParams, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, triggerParams);

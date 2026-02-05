@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
+import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
 
 import java.util.UUID;
 
@@ -17,6 +17,6 @@ public class TriggerDTOv1 extends TriggerBaseDTOv1 {
     @Schema(description = "id", example = DTOExamples.TRIGGER_ID)
     public UUID id;
 
-    @Schema(description = "trigger featurer")
-    public FeaturerDTOv1 triggerFeaturer;
+    @Schema(description = "twin trigger")
+    public TwinTriggerDTOv1 twinTrigger;
 }

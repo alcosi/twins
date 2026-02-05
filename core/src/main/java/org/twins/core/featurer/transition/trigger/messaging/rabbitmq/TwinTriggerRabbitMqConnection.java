@@ -9,13 +9,13 @@ import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.featurer.transition.trigger.TransitionTrigger;
+import org.twins.core.featurer.transition.trigger.TwinTrigger;
 
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public abstract class TransitionTriggerRabbitMqConnection extends TransitionTrigger {
+public abstract class TwinTriggerRabbitMqConnection extends TwinTrigger {
 
     @FeaturerParam(name = "url", description = "rabbit server url")
     public static final FeaturerParamString url = new FeaturerParamString("url");

@@ -37,7 +37,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.status.StatusType;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.transition.trigger.TransitionTrigger;
+import org.twins.core.featurer.transition.trigger.TwinTrigger;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
@@ -214,8 +214,8 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
             return;
         for (TwinStatusTransitionTriggerEntity triggerEntity : twinStatusTransitionTriggerEntityList) {
             log.info(triggerEntity.easyLog(EasyLoggable.Level.DETAILED) + " will be triggered");
-            TransitionTrigger transitionTrigger = featurerService.getFeaturer(triggerEntity.getTransitionTriggerFeaturerId(), TransitionTrigger.class);
-            transitionTrigger.run(triggerEntity.getTransitionTriggerParams(), twinEntity, srcStatusEntity, dstStatusEntity);
+            TwinTrigger twinTrigger = featurerService.getFeaturer(triggerEntity.getTransitionTriggerFeaturerId(), TwinTrigger.class);
+            twinTrigger.run(triggerEntity.getTransitionTriggerParams(), twinEntity, srcStatusEntity, dstStatusEntity);
         }
     }
 

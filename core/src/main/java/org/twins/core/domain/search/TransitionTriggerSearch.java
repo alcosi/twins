@@ -16,7 +16,7 @@ public class TransitionTriggerSearch {
     private Set<UUID> idExcludeList;
     private Set<UUID> twinflowTransitionIdList;
     private Set<UUID> twinflowTransitionIdExcludeList;
-    private Set<Integer> transitionTriggerFeaturerIdList;
-    private Set<Integer> transitionTriggerFeaturerIdExcludeList;
+    private Set<UUID> twinTriggerIdList;
+    private Set<UUID> twinTriggerIdExcludeList;
     private Ternary active;
 }

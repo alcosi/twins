@@ -25,7 +25,7 @@ import java.util.Properties;
         name = "RabbitMqSendFieldsForOperation",
         description = "Trigger for sending fields to rabbit")
 @RequiredArgsConstructor
-public class TransitionTriggerRabbitMqSendFields extends TransitionTriggerRabbitMqConnection {
+public class TwinTriggerRabbitMqSendFields extends TwinTriggerRabbitMqConnection {
 
     private final AmpqManager ampqManager;
 
@@ -61,8 +61,8 @@ public class TransitionTriggerRabbitMqSendFields extends TransitionTriggerRabbit
                 excludeInfoFields.extract(properties)
         );
 
-        ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(
-                TransitionTriggerRabbitMqConnection.url.extract(properties));
+        ConnectionFactory factory = TwinTriggerRabbitMqConnection.rabbitConnectionCache.get(
+                TwinTriggerRabbitMqConnection.url.extract(properties));
 
         ampqManager.sendMessage(factory, exchange.extract(properties), queue.extract(properties), payload);
     }
