@@ -58,6 +58,14 @@ public class EntitiesChangesCollector {
         return false;
     }
 
+    public boolean collectIfChangedWithNullSupport(Object entity, String field, Object oldValue, Object newValue) {
+        if (!Objects.equals(oldValue, newValue)) {
+            detectChangesHelper(entity).addWithNullifySupport(field, oldValue, newValue);
+            return true;
+        }
+        return false;
+    }
+
     public boolean hasChanges() {
         return !saveEntityMap.isEmpty() || !deleteEntityMap.isEmpty();
     }

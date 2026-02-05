@@ -17,7 +17,7 @@ import java.util.Properties;
 public abstract class FieldTyperTimestampBase<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldSearch> extends FieldTyper<D, T, TwinFieldStorageTimestamp, A> {
 
     protected void detectValueChange(TwinFieldTimestampEntity twinFieldTimestampEntity, TwinChangesCollector twinChangesCollector, Timestamp newValue) {
-        if (twinChangesCollector.collectIfChanged(twinFieldTimestampEntity, "field[" + twinFieldTimestampEntity.getTwinClassField().getKey() + "]", twinFieldTimestampEntity.getValue(), newValue)) {
+        if (twinChangesCollector.collectIfChangedWithNullSupport(twinFieldTimestampEntity, "field[" + twinFieldTimestampEntity.getTwinClassField().getKey() + "]", twinFieldTimestampEntity.getValue(), newValue)) {
             if (twinChangesCollector.isHistoryCollectorEnabled()) {
                 twinChangesCollector
                         .getHistoryCollector(twinFieldTimestampEntity.getTwin())
