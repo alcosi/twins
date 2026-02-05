@@ -2,6 +2,7 @@ package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -83,10 +84,9 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
         Integer decimalPlacesValue = decimalPlaces.extract(properties);
         Boolean roundValue = round.extract(properties);
 
-        String finalValue;
         try {
-            finalValue = value.getValue();
-            if (!StringUtils.isBlank(finalValue)) {
+            String finalValue = value.getValue();
+            if (Strings.isNotEmpty(finalValue)) {
                 if (finalValue.matches(EXPONENTIAL_FORM_REGEXP)) {
                     DecimalFormat df = new DecimalFormat("#.############");
                     finalValue = df.format(Double.parseDouble(finalValue));
@@ -146,7 +146,11 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
                     log.error("FieldTyperNumeric: value[" + value.getValue() + "] is out of range");
                     throw new Exception();
                 }
-            } // else value setting null
+
+                detectValueChange(twinFieldEntity, twinChangesCollector, new BigDecimal(finalValue));
+            } else {
+                detectValueChange(twinFieldEntity, twinChangesCollector, null);
+            }
         } catch (Exception e) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
                     twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) +
@@ -155,7 +159,6 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
                             " thousandSep:" + thousandSeparatorValue + " extraThousandSep:" + extraThousandSeparators +
                             " decimalSep:" + decimalSeparatorValue + " extraDecimalSep:" + extraDecimalSeparators + "].");
         }
-        detectValueChange(twinFieldEntity, twinChangesCollector, new BigDecimal(finalValue));
     }
 
 

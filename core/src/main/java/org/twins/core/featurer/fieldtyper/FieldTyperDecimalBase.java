@@ -17,7 +17,7 @@ import java.util.Properties;
 public abstract class FieldTyperDecimalBase<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldSearch> extends FieldTyper<D, T, TwinFieldStorageDecimal, A> {
 
     protected void detectValueChange(TwinFieldDecimalEntity twinFieldDecimalEntity, TwinChangesCollector twinChangesCollector, BigDecimal newValue) {
-        if (twinChangesCollector.collectIfChanged(twinFieldDecimalEntity, "field[" + twinFieldDecimalEntity.getTwinClassField().getKey() + "]", twinFieldDecimalEntity.getValue(), newValue)) {
+        if (twinChangesCollector.collectIfChangedWithNullSupport(twinFieldDecimalEntity, "field[" + twinFieldDecimalEntity.getTwinClassField().getKey() + "]", twinFieldDecimalEntity.getValue(), newValue)) {
             if (twinChangesCollector.isHistoryCollectorEnabled()) {
                 twinChangesCollector
                         .getHistoryCollector(twinFieldDecimalEntity.getTwin())
