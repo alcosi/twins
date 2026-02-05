@@ -14,6 +14,7 @@ import org.twins.core.dao.twinclass.TwinClassFreezeEntity;
 import org.twins.core.domain.search.*;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
