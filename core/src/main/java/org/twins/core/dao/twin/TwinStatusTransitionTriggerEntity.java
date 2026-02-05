@@ -10,6 +10,8 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.domain.DomainVersionEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -17,6 +19,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
+@DomainSetting
 @Table(name = "twin_status_transition_trigger")
 public class TwinStatusTransitionTriggerEntity implements EasyLoggable {
     @Id
@@ -29,6 +32,9 @@ public class TwinStatusTransitionTriggerEntity implements EasyLoggable {
 
     @Column(name = "twin_status_id")
     private UUID twinStatusId;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     @Column(name = "twin_status_transition_type_id")
     @Enumerated(EnumType.STRING)
@@ -53,6 +59,12 @@ public class TwinStatusTransitionTriggerEntity implements EasyLoggable {
     @Column(name = "transition_trigger_params", columnDefinition = "hstore")
     private HashMap<String, String> transitionTriggerParams;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
+
     public enum TransitionType {
         incoming, outgoing;
     }
@@ -64,7 +76,8 @@ public class TwinStatusTransitionTriggerEntity implements EasyLoggable {
             case NORMAL:
                 return "twinStatusTransitionTrigger[id:" + id + ", statusId:" + twinStatusId + ", type:" + type + "]";
             default:
-                return "twinStatusTransitionTrigger[id:" + id + ", statusId:" + twinStatusId + ", type:" + type + ", order:" + order + ", featurer:" + transitionTriggerFeaturerId + "]";
+                return "twinStatusTransitionTrigger[id:" + id + ", statusId:" + twinStatusId + ", type:" + type
+                        + ", order:" + order + ", featurer:" + transitionTriggerFeaturerId + "]";
         }
     }
 }

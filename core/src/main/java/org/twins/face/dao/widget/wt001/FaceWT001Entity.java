@@ -6,16 +6,20 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceVariantEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.UUID;
 
 @Data
 @Entity
+@Entity
+@DomainSetting
 @Table(name = "face_wt001")
 public class FaceWT001Entity implements EasyLoggable, FaceVariantEntity {
     @Id
@@ -49,6 +53,9 @@ public class FaceWT001Entity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "show_create_button", nullable = false)
     private boolean showCreateButton;
 
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "label_i18n_id", nullable = false, insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
@@ -77,7 +84,14 @@ public class FaceWT001Entity implements EasyLoggable, FaceVariantEntity {
     @JoinColumn(name = "modal_face_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @ToString.Exclude
     private FaceEntity modalFace;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 
     @Transient
     @EqualsAndHashCode.Exclude

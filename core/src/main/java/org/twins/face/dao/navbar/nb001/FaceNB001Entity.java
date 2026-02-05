@@ -7,15 +7,19 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
 @Entity
+@Entity
+@DomainSetting
 @Table(name = "face_navbar_nb001")
 public class FaceNB001Entity implements EasyLoggable {
     @Id
@@ -33,6 +37,9 @@ public class FaceNB001Entity implements EasyLoggable {
 
     @Column(name = "user_area_icon_resource_id")
     private UUID userAreaIconResourceId;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
@@ -63,6 +70,12 @@ public class FaceNB001Entity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private ResourceEntity userAreaIconResource;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 
     @Override
     public String easyLog(Level level) {

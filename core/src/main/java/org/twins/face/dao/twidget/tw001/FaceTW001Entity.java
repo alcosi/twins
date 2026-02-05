@@ -6,16 +6,20 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FacePointedEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.UUID;
 
 @Data
 @Entity
+@Entity
+@DomainSetting
 @Table(name = "face_tw001")
 public class FaceTW001Entity implements EasyLoggable, FacePointedEntity {
     @Id
@@ -43,6 +47,9 @@ public class FaceTW001Entity implements EasyLoggable, FacePointedEntity {
     @Column(name = "uploadable")
     private boolean uploadable;
 
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
@@ -65,7 +72,14 @@ public class FaceTW001Entity implements EasyLoggable, FacePointedEntity {
     @JoinColumn(name = "images_twin_class_field_id", nullable = false, insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @ToString.Exclude
     private TwinClassFieldEntity imagesTwinClassField;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 
     @Transient
     @EqualsAndHashCode.Exclude

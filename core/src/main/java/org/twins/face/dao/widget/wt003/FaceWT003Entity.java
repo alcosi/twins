@@ -5,17 +5,21 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceVariantEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.UUID;
 
 @Data
 @Entity
+@Entity
+@DomainSetting
 @Table(name = "face_wt003")
 public class FaceWT003Entity implements EasyLoggable, FaceVariantEntity {
     @Id
@@ -53,6 +57,9 @@ public class FaceWT003Entity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "message_substitution_twin_class_field_id")
     private UUID messageSubstitutionTwinClassFieldId;
 
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
@@ -82,6 +89,12 @@ public class FaceWT003Entity implements EasyLoggable, FaceVariantEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "message_substitution_twin_class_field_id", insertable = false, updatable = false)
     private TwinClassFieldEntity substitutionMessageField;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 
     @Override
     public String easyLog(Level level) {

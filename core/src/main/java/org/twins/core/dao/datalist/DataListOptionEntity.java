@@ -8,7 +8,9 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 import org.twins.core.enums.datalist.DataListStatus;
 
 import java.sql.Timestamp;
@@ -21,6 +23,7 @@ import java.util.function.Function;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
+@DomainSetting
 @Table(name = "data_list_option")
 public class DataListOptionEntity implements EasyLoggable {
     @Id
@@ -29,7 +32,8 @@ public class DataListOptionEntity implements EasyLoggable {
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            this.id = UUID.nameUUIDFromBytes((dataListId + option + optionI18nId + businessAccountId + externalId).getBytes());
+            this.id = UUID.nameUUIDFromBytes(
+                    (dataListId + option + optionI18nId + businessAccountId + externalId).getBytes());
         }
     }
 
@@ -38,6 +42,9 @@ public class DataListOptionEntity implements EasyLoggable {
 
     @Column(name = "business_account_id")
     private UUID businessAccountId;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     @Column(name = "option")
     private String option;
@@ -97,22 +104,27 @@ public class DataListOptionEntity implements EasyLoggable {
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
     private BusinessAccountEntity businessAccount;
 
-
-    @Deprecated //for specification only
+    @Deprecated // for specification only
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)
     private I18nEntity optionI18n;
 
-    @Deprecated //for specification only
+    @Deprecated // for specification only
     @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "dataListOption", fetch = FetchType.LAZY)
     private Set<DataListSubsetOptionEntity> subsetOptions;
 
-//    @ManyToOne(fetch = FetchType.EAGER)
-//    @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)
-//    private I18nEntity optionI18n;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
+
+    // @ManyToOne(fetch = FetchType.EAGER)
+    // @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)
+    // private I18nEntity optionI18n;
 
     public String easyLog(Level level) {
         return switch (level) {

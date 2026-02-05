@@ -11,7 +11,9 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -20,6 +22,7 @@ import java.util.UUID;
 @Entity
 @FieldNameConstants
 @Accessors(chain = true)
+@DomainSetting
 @Table(name = "twin_factory_multiplier")
 public class TwinFactoryMultiplierEntity implements EasyLoggable {
     @Id
@@ -32,6 +35,9 @@ public class TwinFactoryMultiplierEntity implements EasyLoggable {
 
     @Column(name = "twin_factory_id")
     private UUID twinFactoryId;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     @Column(name = "input_twin_class_id")
     private UUID inputTwinClassId;
@@ -66,6 +72,12 @@ public class TwinFactoryMultiplierEntity implements EasyLoggable {
     @JoinColumn(name = "input_twin_class_id", insertable = false, updatable = false)
     private TwinClassEntity inputTwinClass;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
+
     @Transient
     private Integer factoryMultiplierFiltersCount;
 
@@ -73,8 +85,8 @@ public class TwinFactoryMultiplierEntity implements EasyLoggable {
         return switch (level) {
             case SHORT -> "twinFactoryMultiplier[" + id + "]";
             case NORMAL -> "twinFactoryMultiplier[id:" + id + ", multiplierFeaturerId:" + multiplierFeaturerId + "]";
-            default ->
-                    "**" + description + "** twinFactoryMultiplier[id:" + id + ", multiplierFeaturerId:" + multiplierFeaturerId + ", twinFactoryId:" + twinFactoryId + "]";
+            default -> "**" + description + "** twinFactoryMultiplier[id:" + id + ", multiplierFeaturerId:"
+                    + multiplierFeaturerId + ", twinFactoryId:" + twinFactoryId + "]";
         };
     }
 }

@@ -6,6 +6,8 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.domain.DomainVersionEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.UUID;
 
@@ -13,6 +15,7 @@ import java.util.UUID;
 @Data
 @FieldNameConstants
 @Accessors(chain = true)
+@DomainSetting
 @Table(name = "twin_attachment_restriction")
 public class TwinAttachmentRestrictionEntity implements EasyLoggable {
     @Id
@@ -25,6 +28,9 @@ public class TwinAttachmentRestrictionEntity implements EasyLoggable {
 
     @Column(name = "domain_id")
     private UUID domainId;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     @Column(name = "min_count")
     private int minCount;
@@ -40,6 +46,12 @@ public class TwinAttachmentRestrictionEntity implements EasyLoggable {
 
     @Column(name = "file_name_regexp")
     private String fileNameRegexp;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 
     @Override
     public String easyLog(Level level) {

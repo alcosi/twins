@@ -12,11 +12,14 @@ import org.cambium.common.PublicCloneable;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.domain.DomainVersionEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.HashMap;
 import java.util.UUID;
 
 @Entity
+@DomainSetting
 @Data
 @Accessors(chain = true)
 @Table(name = "twinflow_transition_trigger")
@@ -53,18 +56,30 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicClon
     @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twinflow_transition_id", insertable = false, updatable = false)
+    @JoinColumn(name = "twinflow_transition_id", insertable = false, updatable = false)
     private TwinflowTransitionEntity twinflowTransition;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 
     @Column(name = "active")
     private Boolean isActive;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     public String easyLog(EasyLoggable.Level level) {
         return switch (level) {
             case SHORT -> "twinflowTransitionTrigger[" + id + "]";
             case NORMAL ->
-                    "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", isActive: " + isActive + "]";
+                    "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", isActive: "
+                            + isActive + "]";
             default ->
-                    "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", order:" + order + ", featurer:" + transitionTriggerFeaturerId + ", isActive: " + isActive + "]";
+                    "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", order:"
+                            + order + ", featurer:" + transitionTriggerFeaturerId + ", isActive: " + isActive + "]";
         };
     }
 

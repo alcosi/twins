@@ -1,5 +1,4 @@
 
-
 package org.twins.core.dao.search;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
@@ -10,6 +9,8 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.domain.DomainVersionEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
+@DomainSetting
 @Table(name = "twin_search_predicate")
 public class TwinSearchPredicateEntity implements EasyLoggable {
     @Id
@@ -24,6 +26,9 @@ public class TwinSearchPredicateEntity implements EasyLoggable {
 
     @Column(name = "twin_search_id")
     private UUID twinSearchId;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     @Column(name = "description")
     private String description;
@@ -41,7 +46,13 @@ public class TwinSearchPredicateEntity implements EasyLoggable {
     @JoinColumn(name = "twin_search_id", insertable = false, updatable = false, nullable = false)
     private TwinSearchEntity search;
 
-    public String easyLog(Level level)  {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
+
+    public String easyLog(Level level) {
         switch (level) {
             case SHORT:
                 return "twinSearchPredicate[" + id + "]";
@@ -50,4 +61,3 @@ public class TwinSearchPredicateEntity implements EasyLoggable {
         }
     }
 }
-

@@ -10,18 +10,21 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 import org.twins.core.enums.twinflow.TwinflowTransitionType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
+@DomainSetting
 @Data
 @Accessors(chain = true)
 @Table(name = "twinflow_transition")
@@ -68,15 +71,15 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
 
-    //todo delete it
+    // todo delete it
     @Column(name = "allow_comment")
     private boolean allowComment;
 
-    //todo delete it
+    // todo delete it
     @Column(name = "allow_attachments")
     private boolean allowAttachment;
 
-    //todo delete it
+    // todo delete it
     @Column(name = "allow_links")
     private boolean allowLinks;
 
@@ -88,6 +91,9 @@ public class TwinflowTransitionEntity implements EasyLoggable {
 
     @Column(name = "twinflow_transition_alias_id")
     private UUID twinflowTransitionAliasId;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -103,14 +109,14 @@ public class TwinflowTransitionEntity implements EasyLoggable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    @Deprecated //for specification only
+    @Deprecated // for specification only
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private I18nEntity nameI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-    @Deprecated //for specification only
+    @Deprecated // for specification only
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private I18nEntity descriptionI18n;
@@ -157,16 +163,27 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "drafting_twin_factory_id", insertable = false, updatable = false)
+    @JoinColumn(name = "drafting_twin_factory_id", insertable = false, updatable = false)
     private TwinFactoryEntity draftingFactory;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 
     @Override
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinflowTransition[" + id + "]";
-            case NORMAL ->
-                    "twinflowTransition[id:" + id + ", alias:" + (twinflowTransitionAlias != null ? twinflowTransitionAlias.getAlias() : twinflowTransitionAliasId) + "]";
-            default ->
-                    "twinflowTransition[id:" + id + ", alias:" + (twinflowTransitionAlias != null ? twinflowTransitionAlias.getAlias() : twinflowTransitionAliasId) + "]";
+            case NORMAL -> "twinflowTransition[id:" + id + ", alias:"
+                    + (twinflowTransitionAlias != null ? twinflowTransitionAlias.getAlias()
+                    : twinflowTransitionAliasId)
+                    + "]";
+            default -> "twinflowTransition[id:" + id + ", alias:"
+                    + (twinflowTransitionAlias != null ? twinflowTransitionAlias.getAlias()
+                    : twinflowTransitionAliasId)
+                    + "]";
         };
     }
 }

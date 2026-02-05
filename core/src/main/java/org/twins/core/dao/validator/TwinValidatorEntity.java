@@ -12,6 +12,8 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.domain.DomainVersionEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -20,6 +22,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "twin_validator")
 @Accessors(chain = true)
+@DomainSetting
 @FieldNameConstants
 public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggable {
     @Id
@@ -32,6 +35,9 @@ public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggab
 
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     @Column(name = "twin_validator_featurer_id")
     private Integer twinValidatorFeaturerId;
@@ -65,13 +71,19 @@ public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggab
     @Transient
     private TwinValidatorSetEntity twinValidatorSet;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
+
     @Override
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinValidatorEntity[" + id + "]";
             case NORMAL -> "twinValidatorEntity[id:" + id + ", twinValidatorSetId:" + twinValidatorSetId + "]";
-            default ->
-                    "twinValidatorEntity[id:" + id + ", twinValidatorSetId:" + twinValidatorSetId + ", twinValidatorFeaturerId:" + twinValidatorFeaturerId + "]";
+            default -> "twinValidatorEntity[id:" + id + ", twinValidatorSetId:" + twinValidatorSetId
+                    + ", twinValidatorFeaturerId:" + twinValidatorFeaturerId + "]";
         };
     }
 

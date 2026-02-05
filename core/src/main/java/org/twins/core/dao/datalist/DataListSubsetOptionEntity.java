@@ -7,12 +7,16 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 
+import org.twins.core.dao.domain.DomainVersionEntity;
+import org.twins.core.domain.versioning.DomainSetting;
+
 import java.util.UUID;
 
 @Entity
 @Data
 @Accessors(chain = true)
 @Table(name = "data_list_subset_option")
+@DomainSetting
 @FieldNameConstants
 @IdClass(DataListOptionSubsetId.class)
 public class DataListSubsetOptionEntity {
@@ -22,6 +26,9 @@ public class DataListSubsetOptionEntity {
 
     @Column(name = "data_list_option_id")
     private UUID dataListOptionId;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -34,4 +41,10 @@ public class DataListSubsetOptionEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "data_list_option_id", insertable = false, updatable = false)
     private DataListOptionEntity dataListOption;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 }

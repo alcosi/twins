@@ -7,11 +7,14 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.UUID;
 
 @Entity
+@DomainSetting
 @Data
 @Accessors(chain = true)
 @Table(name = "twinflow_schema_map")
@@ -34,6 +37,9 @@ public class TwinflowSchemaMapEntity {
     @Column(name = "twinflow_id")
     private UUID twinflowId;
 
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
+
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne
@@ -50,5 +56,12 @@ public class TwinflowSchemaMapEntity {
     @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twinflow_id", insertable = false, updatable = false)
+    @JoinColumn(name = "twinflow_id", insertable = false, updatable = false)
     private TwinflowEntity twinflow;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 }

@@ -6,14 +6,17 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceVariantEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.UUID;
 
 @Data
 @Entity
+@DomainSetting
 @Table(name = "face_pg002")
 public class FacePG002Entity implements EasyLoggable, FaceVariantEntity {
     @Id
@@ -35,7 +38,10 @@ public class FacePG002Entity implements EasyLoggable, FaceVariantEntity {
 
     @Column(name = "style_classes")
     private String styleClasses;
-    
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
@@ -46,7 +52,14 @@ public class FacePG002Entity implements EasyLoggable, FaceVariantEntity {
     @JoinColumn(name = "title_i18n_id", nullable = false, insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @ToString.Exclude
     private I18nEntity titleI18n;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 
     @Transient
     @EqualsAndHashCode.Exclude

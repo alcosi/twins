@@ -10,9 +10,11 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.projection.ProjectionEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.service.SystemEntityService;
 
@@ -25,6 +27,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_class_field")
+@DomainSetting
 @FieldNameConstants
 public class TwinClassFieldEntity implements EasyLoggable {
 
@@ -71,7 +74,7 @@ public class TwinClassFieldEntity implements EasyLoggable {
     private UUID editPermissionId;
 
     @Column(name = "required", nullable = false)
-    private Boolean required; //not a primitive type because the update logic will break
+    private Boolean required; // not a primitive type because the update logic will break
 
     @Column(name = "external_id")
     private String externalId;
@@ -87,7 +90,7 @@ public class TwinClassFieldEntity implements EasyLoggable {
     private UUID beValidationErrorI18nId;
 
     @Column(name = "system")
-    private Boolean system;  //not a primitive type because the update logic will break
+    private Boolean system; // not a primitive type because the update logic will break
 
     @Column(name = "dependent_field")
     private Boolean dependentField;
@@ -105,20 +108,23 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Column(name = "has_projected_fields")
     private Boolean hasProjectedFields;
 
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
+
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
 
-    @Deprecated //for specification only
+    @Deprecated // for specification only
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
     private I18nEntity nameI18n;
 
-    @Deprecated //for specification only
+    @Deprecated // for specification only
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
@@ -135,9 +141,16 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "edit_permission_id", insertable = false, updatable = false)
+    @JoinColumn(name = "edit_permission_id", insertable = false, updatable = false)
     private PermissionEntity editPermission;
 
-    //needed for specification
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
+
+    // needed for specification
     @Deprecated
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_twin_class_field_id", insertable = false, updatable = false)
@@ -145,7 +158,7 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     private Collection<ProjectionEntity> projectionsBySrc;
 
-    //needed for specification
+    // needed for specification
     @Deprecated
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "dst_twin_class_field_id", insertable = false, updatable = false)

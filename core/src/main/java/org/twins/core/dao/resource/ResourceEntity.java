@@ -9,12 +9,15 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
+@DomainSetting
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
@@ -41,6 +44,9 @@ public class ResourceEntity implements EasyLoggable {
     @Column(name = "storage_id")
     private UUID storageId;
 
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
+
     @CreationTimestamp
     @Column(name = "created_at")
     private Timestamp createdAt;
@@ -61,7 +67,14 @@ public class ResourceEntity implements EasyLoggable {
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uploaded_by_user_id", insertable = false, updatable = false)
+    @JoinColumn(name = "uploaded_by_user_id", insertable = false, updatable = false)
     private UserEntity uploadedByUser;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 
     @Override
     public String easyLog(Level level) {
@@ -71,6 +84,5 @@ public class ResourceEntity implements EasyLoggable {
                     "resource[id:" + id + ", domainId:" + domainId + ", originalFileName:" + originalFileName + "]";
         };
     }
-
 
 }

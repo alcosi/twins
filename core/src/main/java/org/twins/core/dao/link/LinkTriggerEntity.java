@@ -8,12 +8,15 @@ import lombok.ToString;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.domain.DomainVersionEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.HashMap;
 import java.util.UUID;
 
 @Entity
 @Data
+@DomainSetting
 @Table(name = "link_trigger")
 public class LinkTriggerEntity {
     @Id
@@ -26,6 +29,9 @@ public class LinkTriggerEntity {
 
     @Column(name = "link_id")
     private UUID linkId;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     @Column(name = "`order`")
     @Basic
@@ -42,4 +48,10 @@ public class LinkTriggerEntity {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "link_trigger_params", columnDefinition = "hstore")
     private HashMap<String, String> linkTriggerParams;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 }

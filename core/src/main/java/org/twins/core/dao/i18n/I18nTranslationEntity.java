@@ -11,6 +11,8 @@ import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.twins.core.dao.domain.DomainVersionEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.io.Serializable;
 import java.util.*;
@@ -20,6 +22,7 @@ import java.util.*;
 @Data
 @Accessors(chain = true)
 @Table(name = "i18n_translation")
+@DomainSetting
 @IdClass(I18nTranslationEntity.PK.class)
 @FieldNameConstants
 public class I18nTranslationEntity implements EasyLoggable {
@@ -29,9 +32,16 @@ public class I18nTranslationEntity implements EasyLoggable {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
     private I18nEntity i18n;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 
     @Id
     @Column(name = "locale")
@@ -39,12 +49,17 @@ public class I18nTranslationEntity implements EasyLoggable {
     private Locale locale;
 
     @Basic
-    @Column(name = "translation", length = 255)
+    @Column(name = "translation")
     private String translation;
 
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
+
     /**
-     * this counter is used to indicate how many times this translation was requested, but it was missed.
-     * this can help to detect most awaited translations. must be incremented only if translation is empty
+     * this counter is used to indicate how many times this translation was
+     * requested, but it was missed.
+     * this can help to detect most awaited translations. must be incremented only
+     * if translation is empty
      */
     @Basic
     @Column(name = "usage_counter")

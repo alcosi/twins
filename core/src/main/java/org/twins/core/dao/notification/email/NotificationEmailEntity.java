@@ -9,16 +9,19 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.email.EmailSenderEntity;
 import org.twins.core.dao.event.EventEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.template.generator.TemplateGeneratorEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
 @Table(name = "notification_email")
+@DomainSetting
 @DynamicUpdate
 @Data
 @FieldNameConstants
@@ -34,6 +37,9 @@ public class NotificationEmailEntity implements EasyLoggable {
 
     @Column(name = "domain_id")
     private UUID domainId;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     @Column(name = "event_id")
     private UUID eventId;
@@ -97,7 +103,14 @@ public class NotificationEmailEntity implements EasyLoggable {
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "body_i18n_id", insertable = false, updatable = false)
+    @JoinColumn(name = "body_i18n_id", insertable = false, updatable = false)
     private I18nEntity bodyI18n;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 
     public String easyLog(Level level) {
         return "notificationEmail[id:" + id + "]";

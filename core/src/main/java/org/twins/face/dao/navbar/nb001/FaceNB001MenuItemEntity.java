@@ -7,17 +7,20 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
 @Entity
+@DomainSetting
 @Table(name = "face_navbar_nb001_menu_item")
 public class FaceNB001MenuItemEntity implements EasyLoggable {
     @Id
@@ -41,6 +44,9 @@ public class FaceNB001MenuItemEntity implements EasyLoggable {
 
     @Column(name = "permission_id")
     private UUID permissionId;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     @Column(name = "face_navbar_nb001_status_id")
     @Enumerated(EnumType.STRING)
@@ -97,7 +103,14 @@ public class FaceNB001MenuItemEntity implements EasyLoggable {
     @JoinColumn(name = "permission_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @ToString.Exclude
     private PermissionEntity permission;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 
     @Transient
     @EqualsAndHashCode.Exclude

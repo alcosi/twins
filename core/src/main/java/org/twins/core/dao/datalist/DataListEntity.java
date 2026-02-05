@@ -10,6 +10,9 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.i18n.I18nEntity;
 
+import org.twins.core.dao.domain.DomainVersionEntity;
+import org.twins.core.domain.versioning.DomainSetting;
+
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.Map;
@@ -19,6 +22,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "data_list")
+@DomainSetting
 @FieldNameConstants
 public class DataListEntity implements EasyLoggable {
     @Id
@@ -42,6 +46,9 @@ public class DataListEntity implements EasyLoggable {
 
     @Column(name = "domain_id")
     private UUID domainId;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     @Column(name = "created_at")
     private Timestamp createdAt;
@@ -115,12 +122,18 @@ public class DataListEntity implements EasyLoggable {
     @JoinColumn(name = "attribute_4_name_i18n_id", insertable = false, updatable = false)
     private I18nEntity attribute4nameI18n;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
+
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     Kit<DataListOptionEntity, UUID> options;
 
-    //needed for specification
+    // needed for specification
     @Deprecated
     @OneToMany(mappedBy = "dataList", fetch = FetchType.LAZY)
     @EqualsAndHashCode.Exclude

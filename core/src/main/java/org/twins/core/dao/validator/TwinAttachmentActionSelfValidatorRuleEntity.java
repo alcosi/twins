@@ -6,6 +6,8 @@ import lombok.Data;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.BatchSize;
+import org.twins.core.dao.domain.DomainVersionEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
 
 import java.util.Set;
@@ -13,6 +15,7 @@ import java.util.UUID;
 
 @Data
 @Entity
+@DomainSetting
 @Table(name = "twin_attachment_action_self_validator_rule")
 public class TwinAttachmentActionSelfValidatorRuleEntity implements EasyLoggable {
     @Id
@@ -25,6 +28,9 @@ public class TwinAttachmentActionSelfValidatorRuleEntity implements EasyLoggable
 
     @Column(name = "twin_class_id")
     private UUID twinClassId;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     @Column(name = "`order`")
     private Integer order;
@@ -44,13 +50,19 @@ public class TwinAttachmentActionSelfValidatorRuleEntity implements EasyLoggable
     @BatchSize(size = 20)
     private Set<TwinValidatorEntity> twinValidators;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
+
     @Override
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinAttachmentActionSelfValidatorRule[" + id + "]";
             case NORMAL -> "twinAttachmentActionSelfValidatorRule[id:" + id + ", twinClassId:" + twinClassId + "]";
-            default ->
-                    "twinAttachmentActionSelfValidatorRule[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorSetId:" + twinValidatorSetId + "]";
+            default -> "twinAttachmentActionSelfValidatorRule[id:" + id + ", twinClassId:" + twinClassId
+                    + ", twinValidatorSetId:" + twinValidatorSetId + "]";
         };
     }
 }

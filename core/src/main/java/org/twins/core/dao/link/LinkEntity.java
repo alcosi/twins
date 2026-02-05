@@ -67,9 +67,9 @@ public class LinkEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-//    @ManyToOne
-//    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
-//    private DomainEntity domain;
+    // @ManyToOne
+    // @JoinColumn(name = "domain_id", insertable = false, updatable = false)
+    // private DomainEntity domain;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -88,14 +88,14 @@ public class LinkEntity implements EasyLoggable {
     @ToString.Exclude
     private UserEntity createdByUser;
 
-    @Deprecated //for specification only
+    @Deprecated // for specification only
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "forward_name_i18n_id", insertable = false, updatable = false)
     private I18nEntity forwardNameI18n;
 
-    @Deprecated //for specification only
+    @Deprecated // for specification only
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)

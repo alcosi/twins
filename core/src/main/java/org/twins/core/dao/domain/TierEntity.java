@@ -12,11 +12,13 @@ import org.twins.core.dao.notification.NotificationSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
+@DomainSetting
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
@@ -69,7 +71,10 @@ public class TierEntity implements EasyLoggable {
     @Column(name = "notification_schema_id")
     private UUID notificationSchemaId;
 
-    //Performance safe because tier is not used in operations
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
+
+    // Performance safe because tier is not used in operations
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne
@@ -91,7 +96,14 @@ public class TierEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @EqualsAndHashCode.Exclude
     @JoinColumn(name = "notification_schema_id", insertable = false, updatable = false)
+    @JoinColumn(name = "notification_schema_id", insertable = false, updatable = false)
     private NotificationSchemaEntity notificationSchema;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 
     @Override
     public String easyLog(Level level) {
@@ -99,7 +111,9 @@ public class TierEntity implements EasyLoggable {
             case SHORT -> "TierEntity[id:" + id + ", name: " + name + "]";
             case NORMAL -> "TierEntity[id:" + id + ", name: " + name + ", custom: " + custom + "]";
             default ->
-                    "TierEntity[id:" + id + ", name: " + name + ", custom: " + custom + ", attachmentsStorageQuotaCount: " + attachmentsStorageQuotaCount + ", attachmentsStorageQuotaSize: " + attachmentsStorageQuotaSize + ", userCountQuota: " + userCountQuota + "]";
+                    "TierEntity[id:" + id + ", name: " + name + ", custom: " + custom + ", attachmentsStorageQuotaCount: "
+                            + attachmentsStorageQuotaCount + ", attachmentsStorageQuotaSize: " + attachmentsStorageQuotaSize
+                            + ", userCountQuota: " + userCountQuota + "]";
         };
     }
 

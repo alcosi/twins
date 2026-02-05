@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.domain.DomainVersionEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.Locale;
 import java.util.UUID;
@@ -12,6 +14,8 @@ import java.util.UUID;
 @Entity
 @Data
 @Table(name = "i18n_translation_style")
+@DomainSetting
+@FieldNameConstants
 public class I18nTranslationStyleEntity {
     @Id
     private UUID id;
@@ -26,9 +30,15 @@ public class I18nTranslationStyleEntity {
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "i18n_id", insertable = false, updatable = false)
     private I18nEntity i18n;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 
     @Column(name = "locale")
     @Convert(converter = LocaleConverter.class)
@@ -46,6 +56,12 @@ public class I18nTranslationStyleEntity {
     @Column(name = "size")
     private String size;
 
+    @Column(name = "mask")
+    private String mask;
+
     @Column(name = "link")
     private String link;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 }

@@ -6,11 +6,14 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.domain.DomainVersionEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.UUID;
 
 @Entity
 @Data
+@DomainSetting
 @Table(name = "twin_status_group")
 public class TwinStatusGroupEntity {
     @Id
@@ -23,6 +26,9 @@ public class TwinStatusGroupEntity {
 
     @Column(name = "domain_id")
     private UUID domainId;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     @Column(name = "key")
     private String key;
@@ -37,5 +43,12 @@ public class TwinStatusGroupEntity {
     @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
+    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 }

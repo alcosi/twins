@@ -9,10 +9,13 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.domain.DomainVersionEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.UUID;
 
 @Entity
+@DomainSetting
 @Data
 @Table(name = "twinflow_transition_validator_rule")
 @FieldNameConstants
@@ -39,6 +42,9 @@ public class TwinflowTransitionValidatorRuleEntity implements ContainsTwinValida
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;
 
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
+
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -48,15 +54,22 @@ public class TwinflowTransitionValidatorRuleEntity implements ContainsTwinValida
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
+    @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
     private TwinValidatorSetEntity twinValidatorSet;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 
     public String easyLog(EasyLoggable.Level level) {
         return switch (level) {
             case SHORT -> "twinflowTransitionValidatorRule[" + id + "]";
             case NORMAL ->
                     "twinflowTransitionValidatorRule[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + "]";
-            default ->
-                    "twinflowTransitionValidatorRule[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", order:" + order + "]";
+            default -> "twinflowTransitionValidatorRule[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId
+                    + ", order:" + order + "]";
         };
     }
 }

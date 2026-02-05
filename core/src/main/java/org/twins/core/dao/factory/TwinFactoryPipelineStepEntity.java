@@ -11,6 +11,8 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.domain.DomainVersionEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -19,6 +21,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Entity
+@DomainSetting
 @Table(name = "twin_factory_pipeline_step")
 public class TwinFactoryPipelineStepEntity implements EasyLoggable {
     @Id
@@ -31,6 +34,9 @@ public class TwinFactoryPipelineStepEntity implements EasyLoggable {
 
     @Column(name = "twin_factory_pipeline_id")
     private UUID twinFactoryPipelineId;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     @Column(name = "twin_factory_condition_set_id")
     private UUID twinFactoryConditionSetId;
@@ -75,12 +81,19 @@ public class TwinFactoryPipelineStepEntity implements EasyLoggable {
     @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
     private TwinFactoryConditionSetEntity twinFactoryConditionSet;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
+
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinFactoryPipelineStep[" + id + "]";
             case NORMAL -> "twinFactoryPipelineStep[" + id + "] **" + description + "**";
             default ->
-                    "twinFactoryPipelineStep[id:" + id + ", twinFactoryPipelineId:" + twinFactoryPipelineId + ", comment:" + description + "]";
+                    "twinFactoryPipelineStep[id:" + id + ", twinFactoryPipelineId:" + twinFactoryPipelineId + ", comment:"
+                            + description + "]";
         };
 
     }

@@ -10,6 +10,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.domain.DomainVersionEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -17,6 +19,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
+@DomainSetting
 @Table(name = "twin_search_alias")
 public class TwinSearchAliasEntity implements EasyLoggable {
     @Id
@@ -24,6 +27,9 @@ public class TwinSearchAliasEntity implements EasyLoggable {
 
     @Column(name = "domain_id")
     private UUID domainId;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     @Column(name = "alias")
     private String alias;
@@ -35,7 +41,13 @@ public class TwinSearchAliasEntity implements EasyLoggable {
     @Column(name = "twin_search_detector_params", columnDefinition = "hstore")
     private HashMap<String, String> twinSearchDetectorParams;
 
-    public String easyLog(Level level)  {
+    @jakarta.persistence.ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
+    @jakarta.persistence.JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @lombok.EqualsAndHashCode.Exclude
+    @lombok.ToString.Exclude
+    private DomainVersionEntity domainVersion;
+
+    public String easyLog(Level level) {
         switch (level) {
             case SHORT:
                 return "twinSearchAlias[" + id + "]";
@@ -45,4 +57,3 @@ public class TwinSearchAliasEntity implements EasyLoggable {
 
     }
 }
-

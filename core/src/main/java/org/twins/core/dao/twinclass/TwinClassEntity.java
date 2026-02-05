@@ -20,6 +20,7 @@ import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
 import org.twins.core.dao.comment.TwinCommentActionAlienPermissionEntity;
 import org.twins.core.dao.comment.TwinCommentActionSelfEntity;
 import org.twins.core.dao.datalist.DataListEntity;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.link.LinkEntity;
@@ -32,6 +33,7 @@ import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionAlienValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionSelfValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
 import org.twins.core.enums.comment.TwinCommentAction;
@@ -45,6 +47,7 @@ import java.util.*;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_class")
+@DomainSetting
 @FieldNameConstants
 public class TwinClassEntity implements EasyLoggable {
     @Id
@@ -59,6 +62,9 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Column(name = "domain_id")
     private UUID domainId;
+
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
 
     @Column(name = "key")
     private String key;
@@ -203,9 +209,9 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "external_json", columnDefinition = "jsonb")
     private Map<String, Object> externalJson;
 
-//    @ManyToOne
-//    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
-//    private DomainEntity domain;
+    // @ManyToOne
+    // @JoinColumn(name = "domain_id", insertable = false, updatable = false)
+    // private DomainEntity domain;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -221,14 +227,14 @@ public class TwinClassEntity implements EasyLoggable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    @Deprecated //for specification only
+    @Deprecated // for specification only
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private I18nEntity nameI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-    @Deprecated //for specification only
+    @Deprecated // for specification only
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private I18nEntity descriptionI18n;
@@ -269,9 +275,16 @@ public class TwinClassEntity implements EasyLoggable {
     @ToString.Exclude
     private DataListEntity inheritedTagDataList;
 
-//    @ManyToOne
-//    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
-//    private UserEntity createdByUser;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
+
+    // @ManyToOne
+    // @JoinColumn(name = "created_by_user_id", insertable = false, updatable =
+    // false, nullable = false)
+    // private UserEntity createdByUser;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -358,7 +371,7 @@ public class TwinClassEntity implements EasyLoggable {
     @ToString.Exclude
     private KitGrouped<TwinAttachmentActionSelfValidatorRuleEntity, UUID, TwinAttachmentAction> attachmentSelfActionsRestriction;
 
-    //TODO m.b. move to Twinflow entity? services logic
+    // TODO m.b. move to Twinflow entity? services logic
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -419,12 +432,11 @@ public class TwinClassEntity implements EasyLoggable {
     @ToString.Exclude
     private Kit<TwinClassEntity, UUID> segmentTwinsClassKit;
 
-
     public Set<UUID> getExtendedClassIdSet() {
         if (null == extendedClassIdSet && null != getExtendsHierarchyTree()) {
             extendedClassIdSet = new LinkedHashSet<>();
             var hierarchyIds = convertUuidFromLtreeFormat(getExtendsHierarchyTree()).split("\\.");
-            for (int i = hierarchyIds.length - 1; i >= 0; i--) //reverse direction, directly extends - first
+            for (int i = hierarchyIds.length - 1; i >= 0; i--) // reverse direction, directly extends - first
                 extendedClassIdSet.add(UUID.fromString(hierarchyIds[i]));
         }
         return extendedClassIdSet;
@@ -434,7 +446,7 @@ public class TwinClassEntity implements EasyLoggable {
         if (null == headHierarchyClassIdSet && null != getHeadHierarchyTree()) {
             headHierarchyClassIdSet = new LinkedHashSet<>();
             var hierarchyIds = convertUuidFromLtreeFormat(getHeadHierarchyTree()).split("\\.");
-            for (int i = hierarchyIds.length - 1; i >= 0; i--) //reverse direction, directly extends - first
+            for (int i = hierarchyIds.length - 1; i >= 0; i--) // reverse direction, directly extends - first
                 headHierarchyClassIdSet.add(UUID.fromString(hierarchyIds[i]));
         }
         return headHierarchyClassIdSet;
@@ -455,6 +467,5 @@ public class TwinClassEntity implements EasyLoggable {
     public boolean isSpace() {
         return permissionSchemaSpace || twinflowSchemaSpace || twinClassSchemaSpace || aliasSpace;
     }
-
 
 }

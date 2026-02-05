@@ -130,6 +130,9 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "notification_schema_id")
     private UUID notificationSchemaId;
 
+    @Column(name = "current_domain_version_id")
+    private UUID currentDomainVersionId;
+
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -213,6 +216,12 @@ public class DomainEntity implements EasyLoggable {
     @JoinColumn(name = "notification_schema_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     private NotificationSchemaEntity notificationSchema;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "current_domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity currentDomainVersion;
 
     // needed for specification
     @Deprecated

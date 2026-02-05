@@ -6,14 +6,18 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceVariantEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.UUID;
 
 @Data
 @Entity
+@Entity
+@DomainSetting
 @Table(name = "face_wt002")
 public class FaceWT002Entity implements EasyLoggable, FaceVariantEntity {
     @Id
@@ -32,6 +36,9 @@ public class FaceWT002Entity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "style_classes")
     private String styleClasses;
 
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
@@ -42,7 +49,14 @@ public class FaceWT002Entity implements EasyLoggable, FaceVariantEntity {
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @ToString.Exclude
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 
     @Transient
     @EqualsAndHashCode.Exclude

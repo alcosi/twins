@@ -8,9 +8,11 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.UUID;
 
@@ -18,6 +20,7 @@ import java.util.UUID;
 @Entity
 @Accessors(chain = true)
 @FieldNameConstants
+@DomainSetting
 @Table(name = "twin_factory_pipeline")
 public class TwinFactoryPipelineEntity implements EasyLoggable {
     @Id
@@ -61,6 +64,9 @@ public class TwinFactoryPipelineEntity implements EasyLoggable {
     @Column(name = "output_twin_status_id")
     private UUID outputTwinStatusId;
 
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
+
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
@@ -95,7 +101,14 @@ public class TwinFactoryPipelineEntity implements EasyLoggable {
     @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "template_twin_id", insertable = false, updatable = false, nullable = true)
+    @JoinColumn(name = "template_twin_id", insertable = false, updatable = false, nullable = true)
     private TwinEntity templateTwin;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 
     @Transient
     private Integer pipelineStepsCount;
@@ -103,8 +116,8 @@ public class TwinFactoryPipelineEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinFactoryPipeline[" + id + "]";
-            default ->
-                    "twinFactoryPipeline[id:" + id + ", twinFactoryId:" + twinFactoryId + ", inputTwinClassId:" + inputTwinClassId + "]";
+            default -> "twinFactoryPipeline[id:" + id + ", twinFactoryId:" + twinFactoryId + ", inputTwinClassId:"
+                    + inputTwinClassId + "]";
         };
 
     }

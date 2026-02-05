@@ -10,6 +10,8 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.domain.DomainVersionEntity;
+import org.twins.core.domain.versioning.DomainSetting;
 import org.twins.core.enums.i18n.I18nType;
 
 import java.util.List;
@@ -20,6 +22,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "i18n")
+@DomainSetting
 @FieldNameConstants
 public class I18nEntity {
     @Id
@@ -38,6 +41,9 @@ public class I18nEntity {
     @Column(name = "name")
     private String name;
 
+    @Column(name = "domain_version_id")
+    private UUID domainVersionId;
+
     @Column(name = "i18n_type_id")
     @Convert(converter = I18nTypeConverter.class)
     private I18nType type;
@@ -51,6 +57,18 @@ public class I18nEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @JoinColumn(name = "i18n_type_id", insertable = false, updatable = false)
+    private I18nTypeEntity i18nType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainVersionEntity domainVersion;
 
     @OneToMany(fetch = FetchType.LAZY)
     @EqualsAndHashCode.Exclude
