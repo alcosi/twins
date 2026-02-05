@@ -216,6 +216,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return headTwin;
     }
 
+    public UUID getTwinStatusId(TwinEntity twinEntity) {
+        if (twinEntity.getTwinClass().getTwinClassFreezeId() != null) {
+            return twinEntity.getTwinClass().getTwinClassFreeze().getTwinStatusId();
+        }
+        return twinEntity.getTwinStatusId();
+    }
+
     public FieldValue getTwinFieldValue(TwinField twinField) throws ServiceException {
         if (twinField == null)
             return null;

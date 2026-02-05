@@ -272,6 +272,13 @@ public class TwinClassEntity implements EasyLoggable {
     @ToString.Exclude
     private DataListEntity inheritedTagDataList;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_class_freeze_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassFreezeEntity twinClassFreeze;
+
+
 //    @ManyToOne
 //    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
 //    private UserEntity createdByUser;
@@ -366,11 +373,6 @@ public class TwinClassEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Kit<TwinflowTransitionEntity, UUID> transitionsKit;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private TwinClassFreezeEntity twinClassFreeze;
 
     @Transient
     @EqualsAndHashCode.Exclude

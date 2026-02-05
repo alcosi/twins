@@ -8,14 +8,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.specifications.AbstractTwinEntityBasicSearchSpecification;
 import org.twins.core.dao.twin.*;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.twinclass.TwinClassFreezeEntity;
 import org.twins.core.domain.search.*;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
@@ -60,6 +60,48 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
                     null != classPredicate ? classPredicate : cb.conjunction()
             );
             return cb.in(root.get(TwinEntity.Fields.id)).value(subquery);
+        };
+    }
+
+    /**
+     * Checks twin status with consideration of freeze status from twin class.
+     * If twin class has freeze status (twinClassFreezeId is not null), it has priority over twin's native status.
+     *
+     * @param statusIdList          list of status ids to check (include)
+     * @param statusIdExcludeList   list of status ids to exclude
+     * @param checkFreezeStatus     if true, freeze status from twin class will be considered
+     * @return specification for status check with freeze consideration
+     */
+    public static Specification<TwinEntity> checkStatusIdWithFreeze(Set<UUID> statusIdList, Set<UUID> statusIdExcludeList, boolean checkFreezeStatus) {
+        return (root, query, cb) -> {
+            if (!checkFreezeStatus) {
+                // Use standard logic without freeze consideration
+                Predicate include = CollectionUtils.isEmpty(statusIdList)
+                    ? cb.conjunction()
+                    : root.get(TwinEntity.Fields.twinStatusId).in(statusIdList);
+                Predicate exclude = CollectionUtils.isEmpty(statusIdExcludeList)
+                    ? cb.conjunction()
+                    : cb.not(root.get(TwinEntity.Fields.twinStatusId).in(statusIdExcludeList));
+                return cb.and(include, exclude);
+            }
+
+            // With freeze consideration: use COALESCE(twinClassFreeze.twinStatusId, twin.twinStatusId)
+            // Join chain: twin -> twin_class (INNER) -> twin_class_freeze (LEFT)
+            Join twinClassJoin = getOrCreateJoin(root, TwinEntity.Fields.twinClass, JoinType.INNER);
+            Join twinClassFreezeJoin = getOrCreateJoin(twinClassJoin, TwinClassEntity.Fields.twinClassFreeze, JoinType.LEFT);
+
+            Expression<UUID> effectiveStatus = cb.coalesce(
+                twinClassFreezeJoin.get(TwinClassFreezeEntity.Fields.twinStatusId),
+                root.get(TwinEntity.Fields.twinStatusId)
+            );
+
+            Predicate include = CollectionUtils.isEmpty(statusIdList)
+                ? cb.conjunction()
+                : effectiveStatus.in(statusIdList);
+            Predicate exclude = CollectionUtils.isEmpty(statusIdExcludeList)
+                ? cb.conjunction()
+                : cb.not(effectiveStatus.in(statusIdExcludeList));
+            return cb.and(include, exclude);
         };
     }
 
