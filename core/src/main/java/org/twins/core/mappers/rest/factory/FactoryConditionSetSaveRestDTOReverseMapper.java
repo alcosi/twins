@@ -15,6 +15,7 @@ public class FactoryConditionSetSaveRestDTOReverseMapper extends RestSimpleDTOMa
     public void map(FactoryConditionSetSaveDTOv1 src, TwinFactoryConditionSetEntity dst, MapperContext mapperContext) throws Exception {
         dst
                 .setName(src.getName())
-                .setDescription(src.getDescription());
+                .setDescription(src.getDescription())
+                .setTwinFactoryId(src.getTwinFactoryId());
     }
 }
