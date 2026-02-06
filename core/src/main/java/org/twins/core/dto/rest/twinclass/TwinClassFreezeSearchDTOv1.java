@@ -10,7 +10,6 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = false)
 @Schema(name =  "TwinClassFreezeSearchV1")
 public class TwinClassFreezeSearchDTOv1 {
     @Schema(description = "id list")
