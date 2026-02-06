@@ -24,10 +24,10 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2344,
-        name = "Basic filed from twin field",
+        name = "Basic field from twin field",
         description = "")
 @Slf4j
-public class FillerBasicsFiledFromTwinField extends Filler {
+public class FillerBasicsFieldFromTwinField extends Filler {
     @FeaturerParam(name = "Field id", description = "", order = 1)
     public static final FeaturerParamUUID fieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("fieldId");
 
@@ -38,7 +38,7 @@ public class FillerBasicsFiledFromTwinField extends Filler {
 
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldLookuperNearest fieldLookuperNearest) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
-        UUID fieldId = FillerBasicsFiledFromTwinField.fieldId.extract(properties);
+        UUID fieldId = FillerBasicsFieldFromTwinField.fieldId.extract(properties);
         FieldValue fieldValue = fieldLookuperNearest.lookupFieldValue(factoryItem, fieldId);
         String fieldName;
         switch (fieldValue) {
