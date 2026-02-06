@@ -25,6 +25,7 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
     private boolean historyCollectorEnabled = true; // in some cases we do not need to collect history changes (before drafting for example, currently we do not collect history, only after )
     private final Map<Object, Set<TwinInvalidate>> invalidationMap = new ConcurrentHashMap<>();
     private final Map<UUID, Pair<UUID, FactoryLauncher>> postponedChanges = new ConcurrentHashMap<>();
+    private final Map<UUID, Pair<UUID, FactoryLauncher>> postponedTrigger = new ConcurrentHashMap<>();
 
     public TwinChangesCollector() {
         super();
@@ -109,6 +110,15 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
                     "twin[{}] already has postponed changes by factory[{}]. Skipping changes by factory[{}]", twinId, postponedChanges.get(twinId), twinFactoryId);
         }
         postponedChanges.put(twinId, Pair.of(twinFactoryId, factoryLauncher));
+        return this;
+    }
+
+    public TwinChangesCollector addPostponedTrigger(UUID twinId, UUID twinTrigger, FactoryLauncher triggerLauncher) throws ServiceException {
+        if (postponedTrigger.containsKey(twinId) && !postponedTrigger.get(twinId).getLeft().equals(twinTrigger)) {
+            throw new ServiceException(ErrorCodeTwins.CONFIGURATION_IS_INVALID,
+                    "twin[{}] already has postponed trigger by trigger[{}]. Skipping trigger by trigger[{}]", twinId, postponedTrigger.get(twinId), twinTrigger);
+        }
+        postponedTrigger.put(twinId, Pair.of(twinTrigger, triggerLauncher));
         return this;
     }
 
