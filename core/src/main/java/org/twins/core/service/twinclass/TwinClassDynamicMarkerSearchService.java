@@ -26,12 +26,12 @@ public class TwinClassDynamicMarkerSearchService {
     private final TwinClassDynamicMarkerRepository twinClassDynamicMarkerRepository;
 
     public PaginationResult<TwinClassDynamicMarkerEntity> findTwinClassDynamicMarkers(TwinClassDynamicMarkerSearch search, SimplePagination pagination) throws ServiceException {
-        Specification<TwinClassDynamicMarkerEntity> spec = createTwinClassFreezeSearchSpecification(search);
+        Specification<TwinClassDynamicMarkerEntity> spec = createTwinClassDynamicMarkerSearchSpecification(search);
         Page<TwinClassDynamicMarkerEntity> ret = twinClassDynamicMarkerRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<TwinClassDynamicMarkerEntity> createTwinClassFreezeSearchSpecification(TwinClassDynamicMarkerSearch search) {
+    private Specification<TwinClassDynamicMarkerEntity> createTwinClassDynamicMarkerSearchSpecification(TwinClassDynamicMarkerSearch search) {
         return Specification.allOf(
                 checkUuidIn(search.getIdList(), false, false, TwinClassDynamicMarkerEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinClassDynamicMarkerEntity.Fields.id),

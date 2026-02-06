@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinClassDynamicMarkerCreateV1")
 public class TwinClassDynamicMarkerCreateDTOv1 extends TwinClassDynamicMarkerSaveDTOv1 {
 }

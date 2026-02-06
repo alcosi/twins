@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinClassDynamicMarkerUpdateV1")
 public class TwinClassDynamicMarkerUpdateDTOv1 extends TwinClassDynamicMarkerSaveDTOv1 {
 

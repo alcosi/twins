@@ -8,7 +8,7 @@ import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Schema(name = "TwinClassFreezeSearchRsV1")
 public class TwinClassFreezeSearchRsDTOv1 extends TwinClassFreezeListRsDTOv1 {
     @Schema(description = "pagination data")

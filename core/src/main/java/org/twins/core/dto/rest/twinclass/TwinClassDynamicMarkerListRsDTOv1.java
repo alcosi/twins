@@ -10,7 +10,7 @@ import java.util.List;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Schema(name = "TwinClassDynamicMarkerListRsV1")
 public class TwinClassDynamicMarkerListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
 

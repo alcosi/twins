@@ -8,7 +8,7 @@ import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Schema(name = "TwinClassDynamicMarkerSearchRsV1")
 public class TwinClassDynamicMarkerSearchRsDTOv1 extends TwinClassDynamicMarkerListRsDTOv1{
 

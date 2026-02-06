@@ -10,7 +10,6 @@ import org.twins.core.dto.rest.twinclass.TwinClassDynamicMarkerDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassDynamicMarkerMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFreezeMode;
 
 @Slf4j
 @Component
@@ -18,12 +17,12 @@ import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFreezeMode;
 @MapperModeBinding(modes = {TwinClassDynamicMarkerMode.class})
 public class TwinClassDynamicMarkerDTOMapper extends RestSimpleDTOMapper<TwinClassDynamicMarkerEntity, TwinClassDynamicMarkerDTOv1> {
 
-    @MapperModePointerBinding(modes = {TwinClassDynamicMarkerMode.TwinClassMode2TwinClassDynamicMarkerMode.class})
+    @MapperModePointerBinding(modes = {TwinClassDynamicMarkerMode.TwinClassDynamicMarkerMode2TwinClassMode.class})
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @Override
     public void map(TwinClassDynamicMarkerEntity src, TwinClassDynamicMarkerDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(TwinClassFreezeMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(TwinClassDynamicMarkerMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setId(src.getId())
@@ -40,9 +39,9 @@ public class TwinClassDynamicMarkerDTOMapper extends RestSimpleDTOMapper<TwinCla
                 break;
         }
 
-        if (mapperContext.hasModeButNot(TwinClassDynamicMarkerMode.TwinClassMode2TwinClassDynamicMarkerMode.HIDE)) {
+        if (mapperContext.hasModeButNot(TwinClassDynamicMarkerMode.TwinClassDynamicMarkerMode2TwinClassMode.HIDE)) {
             dst.setTwinClassId(src.getTwinClassId());
-            twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassDynamicMarkerMode.TwinClassMode2TwinClassDynamicMarkerMode.SHORT));
+            twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassDynamicMarkerMode.TwinClassDynamicMarkerMode2TwinClassMode.SHORT));
         }
     }
 }

@@ -10,7 +10,7 @@ import java.util.List;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Schema(name = "TwinClassFreezeListRsV1")
 public class TwinClassFreezeListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "twin class freeze list")
