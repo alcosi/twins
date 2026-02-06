@@ -15,6 +15,7 @@ import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.notification.HistoryNotificationRecipientEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
@@ -41,6 +42,7 @@ import org.twins.core.dto.rest.factory.FactoryMultiplierDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.i18n.I18nDTOv1;
+import org.twins.core.dto.rest.notification.HistoryNotificationRecipientDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
@@ -72,6 +74,7 @@ import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.i18n.I18nRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.RelatedObject;
+import org.twins.core.mappers.rest.notification.HistoryNotificationRecipientDTOMapperV1;
 import org.twins.core.mappers.rest.permission.PermissionGroupRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapper;
@@ -130,6 +133,7 @@ public class RelatedObjectsRestDTOConverter {
     private final ProjectionTypeGroupRestDTOMapper projectionTypeGroupRestDTOMapper;
     private final ProjectionTypeRestDTOMapper projectionTypeRestDTOMapper;
     private final SchedulerRestDTOMapperV1 schedulerRestDTOMapperV1;
+    private final HistoryNotificationRecipientDTOMapperV1 historyNotificationRecipientDTOMapper;
 
     public RelatedObjectsDTOv1 convert(MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())
@@ -166,6 +170,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, ProjectionTypeGroupDTOv1> projectionTypeGroupMap = new HashMap<>();
         Map<UUID, ProjectionTypeDTOv1> projectionTypeMap = new HashMap<>();
         Map<UUID, SchedulerDTOv1> schedulerMap = new HashMap<>();
+        Map<UUID, HistoryNotificationRecipientDTOv1> historyNotificationRecipientMap = new HashMap<>();
 
         MapperContext mapperContextLevel2 = mapperContext.cloneIgnoreRelatedObjects();
         if (!mapperContext.getRelatedTwinClassMap().isEmpty())
@@ -230,6 +235,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContext.getRelatedProjectionTypeMap(), projectionTypeRestDTOMapper, mapperContextLevel2, projectionTypeMap, ProjectionTypeEntity::getId);
         if (!mapperContext.getRelatedSchedulerMap().isEmpty())
             convertAndPut(mapperContext.getRelatedSchedulerMap(), schedulerRestDTOMapperV1, mapperContextLevel2, schedulerMap, SchedulerEntity::getId);
+        if (!mapperContext.getRelatedHistoryNotificationRecipientMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedHistoryNotificationRecipientMap(), historyNotificationRecipientDTOMapper, mapperContextLevel2, historyNotificationRecipientMap, HistoryNotificationRecipientEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         MapperContext mapperContextLevel3 = mapperContextLevel2.cloneIgnoreRelatedObjects();
@@ -295,6 +302,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel2.getRelatedProjectionTypeMap(), projectionTypeRestDTOMapper, mapperContextLevel3, projectionTypeMap, ProjectionTypeEntity::getId);
         if (!mapperContextLevel2.getRelatedSchedulerMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedSchedulerMap(), schedulerRestDTOMapperV1, mapperContextLevel3, schedulerMap, SchedulerEntity::getId);
+        if (!mapperContextLevel2.getRelatedHistoryNotificationRecipientMap().isEmpty())
+            convertAndPut(mapperContextLevel2.getRelatedHistoryNotificationRecipientMap(), historyNotificationRecipientDTOMapper, mapperContextLevel3, historyNotificationRecipientMap, HistoryNotificationRecipientEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         //this level was added because of dataLists. In case of search twins, twinClass will be detected on level1, twinClass.tagDataList will be detected on level2 and list options for tagDataList will be detected only on level3
@@ -361,6 +370,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedProjectionTypeMap(), projectionTypeRestDTOMapper, mapperContextLevel3, projectionTypeMap, ProjectionTypeEntity::getId);
         if (!mapperContextLevel3.getRelatedSchedulerMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedSchedulerMap(), schedulerRestDTOMapperV1, mapperContextLevel3, schedulerMap, SchedulerEntity::getId);
+        if (!mapperContextLevel3.getRelatedHistoryNotificationRecipientMap().isEmpty())
+            convertAndPut(mapperContextLevel3.getRelatedHistoryNotificationRecipientMap(), historyNotificationRecipientDTOMapper, mapperContextLevel3, historyNotificationRecipientMap, HistoryNotificationRecipientEntity::getId);
 
         ret
                 .setTwinClassMap(twinClassMap.isEmpty() ? null : twinClassMap)
@@ -394,6 +405,7 @@ public class RelatedObjectsRestDTOConverter {
                 .setProjectionTypeGroupMap(projectionTypeGroupMap.isEmpty() ? null : projectionTypeGroupMap)
                 .setProjectionTypeMap(projectionTypeMap.isEmpty() ? null : projectionTypeMap)
                 .setSchedulerMap(schedulerMap.isEmpty() ? null : schedulerMap)
+                .setHistoryNotificationRecipientMap(historyNotificationRecipientMap.isEmpty() ? null : historyNotificationRecipientMap)
         ;
         return ret;
     }
