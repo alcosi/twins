@@ -73,91 +73,22 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinFieldDecimalEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        Double minValue = min.extract(properties);
-        Double maxValue = max.extract(properties);
-        Double stepValue = step.extract(properties);
-        String thousandSeparatorValue = thousandSeparator.extract(properties);
-        String decimalSeparatorValue = decimalSeparator.extract(properties);
-        Set<String> extraThousandSeparators = Optional.ofNullable(extraThousandSeparatorSet.extract(properties)).orElse(Collections.emptySet());
-        Set<String> extraDecimalSeparators = Optional.ofNullable(extraDecimalSeparatorSet.extract(properties)).orElse(Collections.emptySet());
-        Integer decimalPlacesValue = decimalPlaces.extract(properties);
-        Boolean roundValue = round.extract(properties);
+    protected void serializeValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldDecimalEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        var fieldValue = value.getValue();
 
-        try {
-            String finalValue = value.getValue();
-            if (Strings.isNotEmpty(finalValue)) {
-                if (finalValue.matches(EXPONENTIAL_FORM_REGEXP)) {
-                    DecimalFormat df = new DecimalFormat("#.############");
-                    finalValue = df.format(Double.parseDouble(finalValue));
-                }
-
-                // Combine main decimal separator with extra ones for counting
-                Set<String> allDecimalSeparators = new HashSet<>();
-                allDecimalSeparators.add(decimalSeparatorValue);
-                allDecimalSeparators.addAll(extraDecimalSeparators);
-
-                int decimalSeparatorCount = 0;
-                for (String decimalSep : allDecimalSeparators) {
-                    decimalSeparatorCount += StringUtils.countMatches(finalValue, decimalSep);
-                }
-                if (decimalSeparatorCount > 1) {
-                    log.error("FieldTyperNumeric: value[" + value.getValue() + "] has multiple decimal separators");
-                    throw new Exception();
-                }
-
-                // Combine main thousand separator with extra ones for removal
-                Set<String> allThousandSeparators = new HashSet<>();
-                allThousandSeparators.add(thousandSeparatorValue);
-                allThousandSeparators.addAll(extraThousandSeparators);
-
-                // Remove all thousand separators
-                for (String thousandSep : allThousandSeparators) {
-                    finalValue = finalValue.replaceAll(Pattern.quote(thousandSep), "");
-                }
-
-                // Replace all decimal separators with dot
-                for (String decimalSep : allDecimalSeparators) {
-                    finalValue = finalValue.replaceAll(Pattern.quote(decimalSep), ".");
-                }
-
-                String[] parts = finalValue.split("\\.");
-                String integerPart = parts[0];
-                String decimalPart = parts.length > 1 ? parts[1] : "";
-
-                if (decimalPart.length() > decimalPlacesValue) {
-                    if (Boolean.FALSE.equals(roundValue)) {
-                        log.error("FieldTyperNumeric: value[" + value.getValue() + "] has more decimal places then parametrized");
-                        throw new Exception();
-                    }
-                    decimalPart = decimalPart.substring(0, decimalPlacesValue);
-                } else if (decimalPart.length() < decimalPlacesValue) {
-                    decimalPart = StringUtils.rightPad(decimalPart, decimalPlacesValue, '0');
-                }
-
-                if (decimalPlacesValue > 0) {
-                    finalValue = integerPart + "." + decimalPart;
-                } else {
-                    finalValue = integerPart;
-                }
-
-                double doubleValue = Double.parseDouble(finalValue);
-                if ((minValue != null && doubleValue < minValue) || (maxValue != null && doubleValue > maxValue)) {
-                    log.error("FieldTyperNumeric: value[" + value.getValue() + "] is out of range");
-                    throw new Exception();
-                }
-
-                detectValueChange(twinFieldEntity, twinChangesCollector, new BigDecimal(finalValue));
-            } else {
-                detectValueChange(twinFieldEntity, twinChangesCollector, null);
-            }
-        } catch (Exception e) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
-                    twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) +
-                            " value[" + value.getValue() + "] is not numeric format or does not match the field settings[" +
-                            " min:" + minValue + " max:" + maxValue + " step:" + stepValue + " decPlaces:" + decimalPlacesValue +
-                            " thousandSep:" + thousandSeparatorValue + " extraThousandSep:" + extraThousandSeparators +
-                            " decimalSep:" + decimalSeparatorValue + " extraDecimalSep:" + extraDecimalSeparators + "].");
+        if (twinFieldDecimalEntity == null && Strings.isNotEmpty(fieldValue)) {
+            // create
+            twinFieldDecimalEntity = twinService.createTwinFieldDecimalEntity(twin, value.getTwinClassField(), null);
+            twinChangesCollector.add(twinFieldDecimalEntity);
+            detectValueChange(twinFieldDecimalEntity, twinChangesCollector, processValue(properties, twinFieldDecimalEntity, value));
+        } else if (twinFieldDecimalEntity != null && Strings.isNotEmpty(fieldValue)) {
+            // update
+            twinChangesCollector.add(twinFieldDecimalEntity);
+            detectValueChange(twinFieldDecimalEntity, twinChangesCollector, processValue(properties, twinFieldDecimalEntity, value));
+        } else if (twinFieldDecimalEntity != null && Strings.isEmpty(fieldValue)) {
+            // delete
+            twinChangesCollector.delete(twinFieldDecimalEntity);
+            addHistoryContext(twinChangesCollector, twinFieldDecimalEntity, null);
         }
     }
 
@@ -179,5 +110,91 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldSearchNumeric search) throws ServiceException {
         return TwinSpecification.checkFieldDecimal(search);
+    }
+
+    private BigDecimal processValue(Properties properties, TwinFieldDecimalEntity twinFieldDecimal, FieldValueText value) throws ServiceException {
+        var minValue = min.extract(properties);
+        var maxValue = max.extract(properties);
+        var stepValue = step.extract(properties);
+        var thousandSeparatorValue = thousandSeparator.extract(properties);
+        var decimalSeparatorValue = decimalSeparator.extract(properties);
+        var extraThousandSeparators = Optional.ofNullable(extraThousandSeparatorSet.extract(properties)).orElse(Collections.emptySet());
+        var extraDecimalSeparators = Optional.ofNullable(extraDecimalSeparatorSet.extract(properties)).orElse(Collections.emptySet());
+        var decimalPlacesValue = decimalPlaces.extract(properties);
+        var roundValue = round.extract(properties);
+        var returnValue = value.getValue();
+
+        try {
+            if (Strings.isNotEmpty(returnValue)) {
+                if (returnValue.matches(EXPONENTIAL_FORM_REGEXP)) {
+                    DecimalFormat df = new DecimalFormat("#.############");
+                    returnValue = df.format(Double.parseDouble(returnValue));
+                }
+
+                // Combine main decimal separator with extra ones for counting
+                Set<String> allDecimalSeparators = new HashSet<>();
+                allDecimalSeparators.add(decimalSeparatorValue);
+                allDecimalSeparators.addAll(extraDecimalSeparators);
+
+                int decimalSeparatorCount = 0;
+                for (String decimalSep : allDecimalSeparators) {
+                    decimalSeparatorCount += StringUtils.countMatches(returnValue, decimalSep);
+                }
+                if (decimalSeparatorCount > 1) {
+                    log.error("FieldTyperNumeric: value[{}] has multiple decimal separators", value.getValue());
+                    throw new Exception();
+                }
+
+                // Combine main thousand separator with extra ones for removal
+                Set<String> allThousandSeparators = new HashSet<>();
+                allThousandSeparators.add(thousandSeparatorValue);
+                allThousandSeparators.addAll(extraThousandSeparators);
+
+                // Remove all thousand separators
+                for (String thousandSep : allThousandSeparators) {
+                    returnValue = returnValue.replaceAll(Pattern.quote(thousandSep), "");
+                }
+
+                // Replace all decimal separators with dot
+                for (String decimalSep : allDecimalSeparators) {
+                    returnValue = returnValue.replaceAll(Pattern.quote(decimalSep), ".");
+                }
+
+                String[] parts = returnValue.split("\\.");
+                String integerPart = parts[0];
+                String decimalPart = parts.length > 1 ? parts[1] : "";
+
+                if (decimalPart.length() > decimalPlacesValue) {
+                    if (Boolean.FALSE.equals(roundValue)) {
+                        log.error("FieldTyperNumeric: value[{}] has more decimal places then parametrized", value.getValue());
+                        throw new Exception();
+                    }
+                    decimalPart = decimalPart.substring(0, decimalPlacesValue);
+                } else if (decimalPart.length() < decimalPlacesValue) {
+                    decimalPart = StringUtils.rightPad(decimalPart, decimalPlacesValue, '0');
+                }
+
+                if (decimalPlacesValue > 0) {
+                    returnValue = integerPart + "." + decimalPart;
+                } else {
+                    returnValue = integerPart;
+                }
+
+                double doubleValue = Double.parseDouble(returnValue);
+                if ((minValue != null && doubleValue < minValue) || (maxValue != null && doubleValue > maxValue)) {
+                    log.error("FieldTyperNumeric: value[{}] is out of range", value.getValue());
+                    throw new Exception();
+                }
+            }
+        } catch (Exception e) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
+                    twinFieldDecimal.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) +
+                            " value[" + value.getValue() + "] is not numeric format or does not match the field settings[" +
+                            " min:" + minValue + " max:" + maxValue + " step:" + stepValue + " decPlaces:" + decimalPlacesValue +
+                            " thousandSep:" + thousandSeparatorValue + " extraThousandSep:" + extraThousandSeparators +
+                            " decimalSep:" + decimalSeparatorValue + " extraDecimalSep:" + extraDecimalSeparators + "].");
+        }
+
+        return new BigDecimal(returnValue);
     }
 }

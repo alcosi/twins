@@ -16,42 +16,14 @@ import java.util.Properties;
 
 public abstract class FieldTyperDecimalBase<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldSearch> extends FieldTyper<D, T, TwinFieldStorageDecimal, A> {
 
-    protected void detectValueChange(TwinFieldDecimalEntity twinFieldDecimalEntity, TwinChangesCollector twinChangesCollector, BigDecimal newValue) {
-        if (twinChangesCollector.collectIfChangedWithNullSupport(twinFieldDecimalEntity, "field[" + twinFieldDecimalEntity.getTwinClassField().getKey() + "]", twinFieldDecimalEntity.getValue(), newValue)) {
-            if (twinChangesCollector.isHistoryCollectorEnabled()) {
-                twinChangesCollector
-                        .getHistoryCollector(twinFieldDecimalEntity.getTwin())
-                        .add(
-                                historyService.fieldChangeDecimal(
-                                        twinFieldDecimalEntity.getTwinClassField(),
-                                        twinFieldDecimalEntity.getValue() != null ? twinFieldDecimalEntity.getValue() : null,
-                                        newValue
-                                )
-                        );
-            }
-
-            twinFieldDecimalEntity.setValue(newValue);
-        }
-    }
-
-    public TwinFieldDecimalEntity convertToTwinFieldEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
-        twinService.loadTwinFields(twinEntity);
-        return twinEntity.getTwinFieldDecimalKit().get(twinClassFieldEntity.getId());
-    }
+    protected abstract void serializeValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldEntity, T value, TwinChangesCollector twinChangesCollector) throws ServiceException;
+    protected abstract T deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldDecimalEntity) throws ServiceException;
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         var twinFieldDecimalEntity = convertToTwinFieldEntity(twin, value.getTwinClassField());
-
-        if (twinFieldDecimalEntity == null) {
-            twinFieldDecimalEntity = twinService.createTwinFieldDecimalEntity(twin, value.getTwinClassField(), null);
-            twinChangesCollector.add(twinFieldDecimalEntity);
-        }
-
-        serializeValue(properties, twinFieldDecimalEntity, value, twinChangesCollector);
+        serializeValue(properties, twin, twinFieldDecimalEntity, value, twinChangesCollector);
     }
-
-    protected abstract void serializeValue(Properties properties, TwinFieldDecimalEntity twinFieldEntity, T value, TwinChangesCollector twinChangesCollector) throws ServiceException;
 
     @Override
     protected T deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
@@ -59,5 +31,30 @@ public abstract class FieldTyperDecimalBase<D extends FieldDescriptor, T extends
         return deserializeValue(properties, twinField, twinFieldDecimalEntity);
     }
 
-    protected abstract T deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldDecimalEntity) throws ServiceException;
+    private TwinFieldDecimalEntity convertToTwinFieldEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        twinService.loadTwinFields(twinEntity);
+        return twinEntity.getTwinFieldDecimalKit().get(twinClassFieldEntity.getId());
+    }
+
+    protected void detectValueChange(TwinFieldDecimalEntity twinFieldDecimalEntity, TwinChangesCollector twinChangesCollector, BigDecimal newValue) {
+        if (twinChangesCollector.collectIfChanged(twinFieldDecimalEntity, "field[" + twinFieldDecimalEntity.getTwinClassField().getKey() + "]", twinFieldDecimalEntity.getValue(), newValue)) {
+            addHistoryContext(twinChangesCollector,  twinFieldDecimalEntity, newValue);
+            twinFieldDecimalEntity.setValue(newValue);
+        }
+    }
+
+    protected void addHistoryContext(TwinChangesCollector twinChangesCollector, TwinFieldDecimalEntity twinFieldDecimalEntity, BigDecimal newValue) {
+        if (twinChangesCollector.isHistoryCollectorEnabled()) {
+            twinChangesCollector
+                    .getHistoryCollector(twinFieldDecimalEntity.getTwin())
+                    .add(
+                            historyService.fieldChangeDecimal(
+                                    twinFieldDecimalEntity.getTwinClassField(),
+                                    twinFieldDecimalEntity.getValue() != null ? twinFieldDecimalEntity.getValue() : null,
+                                    newValue
+                            )
+                    );
+        }
+    }
 }
+

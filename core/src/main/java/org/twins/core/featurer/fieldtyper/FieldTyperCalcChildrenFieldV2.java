@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -34,7 +35,7 @@ public class FieldTyperCalcChildrenFieldV2 extends FieldTyperDecimalBase<FieldDe
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinFieldDecimalEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    protected void serializeValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         detectValueChange(twinFieldEntity, twinChangesCollector, getSumResult(properties, twinFieldEntity.getTwin(), twinFieldDecimalRepository));
     }
 
