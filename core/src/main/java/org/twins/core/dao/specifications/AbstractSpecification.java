@@ -82,7 +82,7 @@ abstract class AbstractSpecification<T> {
     protected static From getReducedRoot(From srcRoot,JoinType joinType, List<String> filedPathList) {
         if (filedPathList == null || filedPathList.isEmpty()) return srcRoot;
         //Get Entity that really contains property with inner joins
-        From reducedRoot = filedPathList.stream().reduce(srcRoot, (from, fld) -> from.join(fld, joinType), defaultParallelAccumulatorOperator(From.class));
+        From reducedRoot = filedPathList.stream().reduce(srcRoot, (from, fld) -> getOrCreateJoin(from, fld, joinType), defaultParallelAccumulatorOperator(From.class));
         return reducedRoot;
     }
 
