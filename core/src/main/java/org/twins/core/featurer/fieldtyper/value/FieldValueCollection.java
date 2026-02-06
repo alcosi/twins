@@ -7,7 +7,11 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import java.util.*;
 import java.util.function.Function;
 
-
+/**
+ * Collection can be updated outside an object.
+ * So isCleared and isUndefined are detected on the fly (based on a collection)
+ * @param <T>
+ */
 public abstract class FieldValueCollection<T> extends FieldValue {
     protected List<T> collection = null;
 
@@ -16,55 +20,33 @@ public abstract class FieldValueCollection<T> extends FieldValue {
     }
 
     public List<T> getItems() {
-        return collection != null
-                ? Collections.unmodifiableList(collection)
-                : Collections.emptyList();
+        return collection;
     }
 
-    protected List<T> setWithNullifyMarkerSupport(Collection<T> newCollection) {
-        if (CollectionUtils.isEmpty(newCollection) || UuidUtils.hasNullifyMarker(newCollection, itemGetIdFunction())) {
-            state = State.CLEARED;
-            return null;
-        } else {
-            state = State.PRESENT;
-            return new ArrayList<>(newCollection); //this will be another list
-        }
+    public List<T> getItemsOrEmpty() {
+        return collection != null
+                ? collection
+                : Collections.emptyList();
     }
 
     public FieldValueCollection<T> add(T newItem) {
         if (newItem == null) {
             return this;
         } else if (UuidUtils.isNullifyMarker(itemGetIdFunction().apply(newItem))) {
-            state = State.CLEARED;
-            collection = null;
+            clear();
         } else {
-            state = State.PRESENT;
-            CollectionUtils.safeAdd(collection, newItem);
+            collection = CollectionUtils.safeAdd(collection, newItem);
         }
         return this;
     }
 
     public FieldValueCollection<T> setItems(Collection<T> newCollection) {
         if (CollectionUtils.isEmpty(newCollection) || UuidUtils.hasNullifyMarker(newCollection, itemGetIdFunction())) {
-            state = State.CLEARED;
-            collection = null;
+            clear();
         } else {
-            state = State.PRESENT;
             collection = new ArrayList<>(newCollection); //this will be another list
         }
         return this;
-    }
-
-    protected List<T> addWithNullifyMarkerSupport(List<T> collection, T newItem) {
-        if (newItem == null) {
-            return collection;
-        } else if (UuidUtils.isNullifyMarker(itemGetIdFunction().apply(newItem))) {
-            state = State.CLEARED;
-            return null;
-        }
-        CollectionUtils.safeAdd(collection, newItem);
-        state = State.PRESENT;
-        return collection;
     }
 
     public int size() {
@@ -82,17 +64,32 @@ public abstract class FieldValueCollection<T> extends FieldValue {
             collection.clear();
             collection.addAll(((FieldValueCollection<T>) src).collection);
         }
-
     }
 
     @Override
-    public void onUndefine() {
-        collection = null;
+    public boolean isUndefined() {
+        return collection == null;
     }
 
     @Override
-    public void onClear() {
-        collection = null;
+    public boolean isCleared() {
+        return collection != null && collection.isEmpty();
+    }
+
+    @Override
+    public FieldValue undefine() {
+        collection = null; // this will be check in isUndefined
+        return this;
+    }
+
+    @Override
+    public FieldValue clear() {
+        if (collection != null) {
+            collection.clear();
+        } else {
+            collection = new ArrayList<>(); // we do not use Collections.emptyList(), because it's immutable
+        }
+        return null;
     }
 
     protected abstract Function<T, UUID> itemGetIdFunction();

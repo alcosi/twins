@@ -1,7 +1,6 @@
 package org.twins.core.featurer.factory.filler;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -48,13 +47,13 @@ public class FillerBasicsAssigneeFromContextFieldTwinAssignee extends Filler {
         if (assigneeField == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + assigneeFieldId + "] is not present in context ");
         if (assigneeField instanceof FieldValueLink fieldValueLink) {
-            if (CollectionUtils.isEmpty(fieldValueLink.getTwinLinks()))
+            if (fieldValueLink.isEmpty())
                 throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, assigneeField.getTwinClassField().logShort() + " is not filled");
-            else if (fieldValueLink.getTwinLinks().size() > 1) {
+            else if (fieldValueLink.size() > 1) {
                 throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, assigneeField.getTwinClassField().logShort() + " is filled by multiply twins");
             } else {
-                log.info(outputTwinEntity.logShort() + " [assignee] will be filled from twin " + fieldValueLink.getTwinLinks());
-                TwinLinkEntity linkEntity = fieldValueLink.getTwinLinks().get(0);
+                log.info(outputTwinEntity.logShort() + " [assignee] will be filled from twin " + fieldValueLink.getItems());
+                TwinLinkEntity linkEntity = fieldValueLink.getItems().getFirst();
                 UserEntity assignee = twinService.getTwinAssignee(linkEntity.getDstTwinId());
                 if (assignee == null)
                     throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No assignee for twin[" + linkEntity.getDstTwinId() + "]");

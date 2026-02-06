@@ -35,6 +35,6 @@ public class FieldTyperBaseTwinClassField extends FieldTyper<FieldDescriptorImmu
     @Override
     protected FieldValueTwinClassSingle deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         TwinEntity twin = twinField.getTwin();
-        return new FieldValueTwinClassSingle(twinField.getTwinClassField()).setTwinClass(twin.getTwinClass());
+        return new FieldValueTwinClassSingle(twinField.getTwinClassField()).setValue(twin.getTwinClass());
     }
 }

@@ -35,6 +35,6 @@ public class FieldTyperBaseStatusField extends FieldTyper<FieldDescriptorImmutab
     @Override
     protected FieldValueStatus deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         TwinEntity twin = twinField.getTwin();
-        return new FieldValueStatus(twinField.getTwinClassField()).setStatus(twin.getTwinStatus());
+        return new FieldValueStatus(twinField.getTwinClassField()).setValue(twin.getTwinStatus());
     }
 }

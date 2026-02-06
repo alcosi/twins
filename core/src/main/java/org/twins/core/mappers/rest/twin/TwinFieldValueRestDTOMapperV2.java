@@ -96,18 +96,18 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
             dst.setValue(stringJoiner.toString());
         } else if (src instanceof FieldValueUserSingle userField) {
             if (mapperContext.hasModeButNot(UserMode.TwinField2UserMode.HIDE)) {
-                userRestDTOMapper.postpone(userField.getUser(), mapperContext.forkOnPoint(UserMode.TwinField2UserMode.HIDE));
+                userRestDTOMapper.postpone(userField.getValue(), mapperContext.forkOnPoint(UserMode.TwinField2UserMode.HIDE));
             }
-            dst.setValue(userField.getUser().getId().toString());
+            dst.setValue(userField.getValue().getId().toString());
         } else if (src instanceof FieldValueStatus statusField) {
             if (mapperContext.hasModeButNot(StatusMode.TwinField2StatusMode.HIDE)) {
-                twinStatusRestDTOMapper.postpone(statusField.getStatus(), mapperContext.forkOnPoint(StatusMode.TwinField2StatusMode.HIDE));
+                twinStatusRestDTOMapper.postpone(statusField.getValue(), mapperContext.forkOnPoint(StatusMode.TwinField2StatusMode.HIDE));
             }
-            dst.setValue(statusField.getStatus().getId().toString());
+            dst.setValue(statusField.getValue().getId().toString());
         } else if (src instanceof FieldValueLink link) {
             StringJoiner stringJoiner = new StringJoiner(",");
             TwinEntity linkedTwin;
-            for (TwinLinkEntity twinLinkEntity : link.getTwinLinks()) {
+            for (TwinLinkEntity twinLinkEntity : link.getItems()) {
                 if (link.isForwardLink())
                     linkedTwin = twinLinkEntity.getDstTwin();
                 else
@@ -120,9 +120,9 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
             dst.setValue(stringJoiner.toString());
         } else if (src instanceof FieldValueLinkSingle link) {
             if (mapperContext.hasModeButNot(RelationTwinMode.TwinByFieldMode.WHITE)) {
-                twinBaseRestDTOMapper.postpone(link.getDstTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByFieldMode.GREEN));
+                twinBaseRestDTOMapper.postpone(link.getValue(), mapperContext.forkOnPoint(RelationTwinMode.TwinByFieldMode.GREEN));
             }
-            dst.setValue(link.getDstTwin().getId().toString());
+            dst.setValue(link.getValue().getId().toString());
         } else if (src instanceof FieldValueI18n i18nField) {
             if (i18nField.isNotEmpty()) {
                 String jsonStr = JsonUtils.translationsMapToJson(i18nField.getTranslations());

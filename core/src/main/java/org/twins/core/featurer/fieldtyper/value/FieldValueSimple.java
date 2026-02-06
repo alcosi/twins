@@ -8,7 +8,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public abstract class FieldValueSimple<T> extends FieldValue {
+public abstract class FieldValueSimple<T> extends FieldValueStated {
     @Getter
     protected T value;
 

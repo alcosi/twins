@@ -15,7 +15,7 @@ import java.util.function.Function;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FieldValueSelect extends FieldValueCollectionImmutable<DataListOptionEntity> {
+public class FieldValueSelect extends FieldValueCollection<DataListOptionEntity> {
     private List<DataListOptionEntity> options = null;
 
     public FieldValueSelect(TwinClassFieldEntity twinClassField) {
@@ -28,7 +28,7 @@ public class FieldValueSelect extends FieldValueCollectionImmutable<DataListOpti
     }
 
     @Override
-    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
+    public FieldValueSelect clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueSelect clone = new FieldValueSelect(newTwinClassFieldEntity);
         clone.setItems(this.collection);
         return clone;

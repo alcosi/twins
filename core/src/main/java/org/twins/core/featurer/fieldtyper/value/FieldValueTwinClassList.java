@@ -21,7 +21,7 @@ public class FieldValueTwinClassList extends FieldValueCollectionImmutable<TwinC
     }
 
     @Override
-    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
+    public FieldValueTwinClassList clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueTwinClassList clone = new FieldValueTwinClassList(newTwinClassFieldEntity);
         clone.setItems(this.collection);
         return clone;

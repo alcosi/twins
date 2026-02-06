@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FieldValueDate extends FieldValue {
+public class FieldValueDate extends FieldValueStated {
     @Getter
     private String dateStr;
     @Getter

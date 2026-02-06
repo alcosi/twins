@@ -21,7 +21,7 @@ public class FieldValueUser extends FieldValueCollectionImmutable<UserEntity> {
     }
 
     @Override
-    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
+    public FieldValueUser clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueUser clone = new FieldValueUser(newTwinClassFieldEntity);
         clone.setItems(this.collection); // we have to copy a list
         return clone;

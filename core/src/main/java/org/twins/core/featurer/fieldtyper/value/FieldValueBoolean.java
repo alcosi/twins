@@ -18,7 +18,7 @@ public class FieldValueBoolean extends FieldValueSimple<Boolean> {
     }
 
     @Override
-    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
+    public FieldValueBoolean clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueBoolean clone = new FieldValueBoolean(newTwinClassFieldEntity);
         clone.setValue(this.value);
         return clone;

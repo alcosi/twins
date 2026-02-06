@@ -7,8 +7,11 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import java.util.*;
 import java.util.function.Function;
 
-
-public abstract class FieldValueCollectionImmutable<T> extends FieldValue {
+/**
+ * An immutable version of a collection
+ * @param <T>
+ */
+public abstract class FieldValueCollectionImmutable<T> extends FieldValueStated {
     protected List<T> collection = null;
 
     public FieldValueCollectionImmutable(TwinClassFieldEntity twinClassField) {
@@ -23,10 +26,10 @@ public abstract class FieldValueCollectionImmutable<T> extends FieldValue {
 
     protected List<T> setWithNullifyMarkerSupport(Collection<T> newCollection) {
         if (CollectionUtils.isEmpty(newCollection) || UuidUtils.hasNullifyMarker(newCollection, itemGetIdFunction())) {
-            state = FieldValue.State.CLEARED;
+            state = State.CLEARED;
             return null;
         } else {
-            state = FieldValue.State.PRESENT;
+            state = State.PRESENT;
             return new ArrayList<>(newCollection); //this will be another list
         }
     }
@@ -39,17 +42,17 @@ public abstract class FieldValueCollectionImmutable<T> extends FieldValue {
             collection = null;
         } else {
             state = State.PRESENT;
-            CollectionUtils.safeAdd(collection, newItem);
+            collection = CollectionUtils.safeAdd(collection, newItem);
         }
         return this;
     }
 
     public FieldValueCollectionImmutable<T> setItems(Collection<T> newCollection) {
         if (CollectionUtils.isEmpty(newCollection) || UuidUtils.hasNullifyMarker(newCollection, itemGetIdFunction())) {
-            state = FieldValue.State.CLEARED;
+            state = State.CLEARED;
             collection = null;
         } else {
-            state = FieldValue.State.PRESENT;
+            state = State.PRESENT;
             collection = new ArrayList<>(newCollection); //this will be another list
         }
         return this;

@@ -1,7 +1,6 @@
 package org.twins.core.featurer.fieldtyper.value;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -13,16 +12,13 @@ import java.util.function.Function;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class FieldValueTwinClassSingle extends FieldValueItem<TwinClassEntity> {
-    @Getter
-    private TwinClassEntity twinClass;
-
     public FieldValueTwinClassSingle(TwinClassFieldEntity twinClassField) {
         super(twinClassField);
     }
 
     @Override
-    protected TwinClassEntity getItem() {
-        return twinClass;
+    public FieldValueTwinClassSingle setValue(TwinClassEntity newStatus) {
+        return (FieldValueTwinClassSingle) super.setValue(newStatus);
     }
 
     @Override
@@ -30,30 +26,10 @@ public class FieldValueTwinClassSingle extends FieldValueItem<TwinClassEntity> {
         return TwinClassEntity::getId;
     }
 
-    public FieldValueTwinClassSingle setTwinClass(TwinClassEntity newTwinClass) {
-        twinClass = setItemWithNullifSupport(newTwinClass);
-        return this;
-    }
-
     @Override
-    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
+    public FieldValueTwinClassSingle clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueTwinClassSingle clone = new FieldValueTwinClassSingle(newTwinClassFieldEntity);
-        clone.setTwinClass(this.getTwinClass());
+        clone.setValue(this.getValue());
         return clone;
-    }
-
-    @Override
-    public void copyValueFrom(FieldValue src) {
-        twinClass = ((FieldValueTwinClassSingle) src).twinClass;
-    }
-
-    @Override
-    public void onUndefine() {
-        twinClass = null;
-    }
-
-    @Override
-    public void onClear() {
-        twinClass = null;
     }
 }

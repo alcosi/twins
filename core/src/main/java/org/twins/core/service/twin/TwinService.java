@@ -1290,11 +1290,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         if (fieldValue instanceof FieldValueUserSingle fieldValueUserSingle) {
             UUID userId = UuidUtils.fromString(value);
-            fieldValueUserSingle.setUser(new UserEntity().setId(userId));
+            fieldValueUserSingle.setValue(new UserEntity().setId(userId));
         }
         if (fieldValue instanceof FieldValueStatus fieldValueStatus) {
             UUID statusId = UuidUtils.fromString(value);
-            fieldValueStatus.setStatus(new TwinStatusEntity().setId(statusId));
+            fieldValueStatus.setValue(new TwinStatusEntity().setId(statusId));
         }
         if (fieldValue instanceof FieldValueLink fieldValueLink) {
             for (String dstTwinId : value.split(LIST_SPLITTER)) {
@@ -1312,7 +1312,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         if (fieldValue instanceof FieldValueLinkSingle fieldValueLinkSingle) {
             UUID twinId = UuidUtils.fromString(value);
-            fieldValueLinkSingle.setDstTwin(new TwinEntity().setId(twinId));
+            fieldValueLinkSingle.setValue(new TwinEntity().setId(twinId));
         }
         if (fieldValue instanceof FieldValueI18n fieldValueI18n) {
             Map<Locale, String> translations = JsonUtils.jsonToTranslationsMap(value);

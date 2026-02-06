@@ -13,7 +13,7 @@ import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FieldValueI18n extends FieldValue {
+public class FieldValueI18n extends FieldValueStated {
     public Map<Locale, String> translations;
 
     public FieldValueI18n(TwinClassFieldEntity twinClassField) {
@@ -46,7 +46,7 @@ public class FieldValueI18n extends FieldValue {
     }
 
     @Override
-    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
+    public FieldValueI18n clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueI18n clone = new FieldValueI18n(newTwinClassFieldEntity);
         clone.translations = new HashMap<>(this.translations);
         return clone;

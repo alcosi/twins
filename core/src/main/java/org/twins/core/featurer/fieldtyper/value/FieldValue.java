@@ -9,20 +9,21 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import java.util.UUID;
 
 /**
- * FieldValue class is not combined with TwinField class, because ins some cases
- * we need to have values out of twin (for example, in transition context)
+ * FieldValue class is not combined with TwinField class, because in some cases
+ * we need to have values out of twin (for example, in a transition context)
  */
 @Accessors(chain = true)
 public abstract class FieldValue implements Cloneable {
     @Getter
     protected final TwinClassFieldEntity twinClassField;
+
     @Getter
     @Setter
     private ValidationResult validationResult;
+
     @Getter
     @Setter
     private boolean alreadyInitialized = false; //will help to prevent repeated initialization
-    protected State state = State.UNDEFINED;
 
     public FieldValue(TwinClassFieldEntity twinClassField) {
         this.twinClassField = twinClassField;
@@ -38,7 +39,6 @@ public abstract class FieldValue implements Cloneable {
 
     public FieldValue clone() {
         var clone = clone(twinClassField);
-        clone.state = state;
         return clone;
     }
 
@@ -60,39 +60,11 @@ public abstract class FieldValue implements Cloneable {
 
     public abstract void copyValueFrom(FieldValue src);
 
-    public enum State {
-        UNDEFINED,
-        PRESENT,
-        CLEARED
-    }
+    public abstract FieldValue undefine();
 
-    public FieldValue undefine() {
-        this.state = State.UNDEFINED;
-        onUndefine();
-        return this;
-    }
+    public abstract boolean isUndefined();
 
-    public abstract void onUndefine();
+    public abstract FieldValue clear();
 
-    public boolean isUndefined() {
-        updateMutableValueState();
-        return this.state == State.UNDEFINED;
-    }
-
-    protected void updateMutableValueState() {
-        //override me if state is depend upon some mutable data
-    }
-
-    public FieldValue clear() {
-        this.state =  State.CLEARED;
-        onClear();
-        return this;
-    }
-
-    public abstract void onClear();
-
-    public boolean isCleared() {
-        updateMutableValueState();
-        return this.state == State.CLEARED;
-    }
+    public abstract boolean isCleared();
 }

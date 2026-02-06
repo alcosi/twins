@@ -33,12 +33,22 @@ public class FieldValueInvisible extends FieldValue {
     }
 
     @Override
-    public void onUndefine() {
-
+    public FieldValueInvisible undefine() {
+        return this;
     }
 
     @Override
-    public void onClear() {
+    public boolean isUndefined() {
+        return false;
+    }
 
+    @Override
+    public FieldValueInvisible clear() {
+        return null;
+    }
+
+    @Override
+    public boolean isCleared() {
+        return false;
     }
 }

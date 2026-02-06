@@ -7,8 +7,6 @@ import lombok.experimental.Accessors;
 import org.twins.core.dao.twin.TwinAliasEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -17,15 +15,8 @@ import java.util.function.Function;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class FieldValueAliases extends FieldValueCollectionImmutable<TwinAliasEntity> {
-    private List<TwinAliasEntity> aliases = new ArrayList<>();
-
     public FieldValueAliases(TwinClassFieldEntity twinClassField) {
         super(twinClassField);
-    }
-
-    @Override
-    protected List<TwinAliasEntity> getCollection() {
-        return aliases;
     }
 
     @Override
@@ -33,29 +24,10 @@ public class FieldValueAliases extends FieldValueCollectionImmutable<TwinAliasEn
         return TwinAliasEntity::getId;
     }
 
-
     @Override
-    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
+    public FieldValueAliases clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         FieldValueAliases clone = new FieldValueAliases(newTwinClassFieldEntity);
-        clone.getAliases().addAll(this.aliases);
+        clone.setItems(this.collection);
         return clone;
     }
-
-
-    @Override
-    public void copyValueFrom(FieldValue src) {
-        aliases.clear();
-        aliases.addAll(((FieldValueAliases)src).aliases);
-    }
-
-    @Override
-    public void onUndefine() {
-        aliases = null;
-    }
-
-    @Override
-    public void onClear() {
-        aliases = null;
-    }
-
 }
