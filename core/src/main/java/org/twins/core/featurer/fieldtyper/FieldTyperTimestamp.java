@@ -63,12 +63,15 @@ public class FieldTyperTimestamp extends FieldTyperTimestampBase<FieldDescriptor
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldTimestampEntity twinFieldEntity, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (!value.isNullified()) {
+        if (value.isFilled()) {
             LocalDateTime localDateTime = parseDateTime(value.getDateStr(), properties);
             value.setDate(localDateTime);
             value.setDateStr(formatDate(localDateTime, properties));
+
+            detectValueChange(twinFieldEntity, twinChangesCollector, Timestamp.valueOf(value.getDate()));
+        } else {
+            detectValueChange(twinFieldEntity, twinChangesCollector, null);
         }
-        detectValueChange(twinFieldEntity, twinChangesCollector, Timestamp.valueOf(value.getDate()));
     }
 
     @Override

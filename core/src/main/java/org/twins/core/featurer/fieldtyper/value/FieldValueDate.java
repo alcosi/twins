@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.time.LocalDateTime;
@@ -23,7 +24,7 @@ public class FieldValueDate extends FieldValue {
 
     @Override
     public boolean isFilled() {
-        return dateStr != null;
+        return Strings.isNotEmpty(dateStr);
     }
 
     @Override
