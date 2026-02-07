@@ -24,6 +24,7 @@ public class TwinTriggerTaskScheduler {
     @Qualifier("twinTriggerTaskExecutor")
     final TaskExecutor taskExecutor;
     final TwinTriggerTaskRepository twinTriggerTaskRepository;
+    final TwinTriggerTaskService twinTriggerTaskService;
 
     @Scheduled(fixedDelayString = "${twin.trigger.task.scheduler.delay:2000}")
     public void collectTriggerTasks() {
@@ -41,7 +42,7 @@ public class TwinTriggerTaskScheduler {
                 try {
                     log.info("Running twin trigger task[{}] from status[{}]", taskEntity.getId(), taskEntity.getStatusId());
                     taskEntity.setStatusId(TwinTriggerTaskStatus.IN_PROGRESS);
-                    twinTriggerTaskRepository.save(taskEntity);
+                    twinTriggerTaskService.saveSafe(taskEntity);
                     TwinTriggerTask twinTriggerTask = applicationContext.getBean(TwinTriggerTask.class, taskEntity);
                     taskExecutor.execute(twinTriggerTask);
                 } catch (Exception e) {

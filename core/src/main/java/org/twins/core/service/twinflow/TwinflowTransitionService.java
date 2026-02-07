@@ -36,7 +36,9 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
-import org.twins.core.dao.trigger.TwinTriggerRepository;
+import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
+import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
+import org.twins.core.service.trigger.TwinTriggerTaskService;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleRepository;
@@ -71,6 +73,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 import org.twins.core.service.validator.TwinValidatorService;
+import org.twins.core.service.trigger.TwinTriggerService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -89,7 +92,10 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     private final TwinflowTransitionValidatorRuleRepository twinflowTransitionValidatorRuleRepository;
     private final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
     private final TwinflowTransitionAliasRepository twinflowTransitionAliasRepository;
-    private final TwinTriggerRepository twinTriggerRepository;
+    @Lazy
+    private final TwinTriggerService twinTriggerService;
+    @Lazy
+    private final TwinTriggerTaskService twinTriggerTaskService;
     private final TwinClassService twinClassService;
     private final TwinFactoryService twinFactoryService;
     private final TwinStatusService twinStatusService;
@@ -115,10 +121,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
     @Autowired
     private CacheManager cacheManager;
-    @Autowired
-    private TwinChangesService twinChangesService;
-    @Autowired
-    private TwinChangeTaskService twinChangeTaskService;
 
     @Override
     public CrudRepository<TwinflowTransitionEntity, UUID> entityRepository() {
@@ -926,6 +928,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     @Transactional
     public void runTriggers(TransitionContextBatch transitionContextBatch) throws ServiceException {
         loadTriggers(transitionContextBatch.getAll().stream().map(TransitionContext::getTransitionEntity).toList());
+        ApiUser apiUser = authService.getApiUser();
         for (TransitionContext transitionContext : transitionContextBatch.getAll()) {
             TwinflowTransitionEntity transitionEntity = transitionContext.getTransitionEntity();
             //todo run status input/output triggers
@@ -936,10 +939,23 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                         continue;
                     }
                     log.info("{} will be triggered", triggerEntity.logDetailed());
-                    //todo run it by TwinTriggerTask (async)
-                    TwinTriggerEntity twinTriggerEntity = entitySmartService.findById(triggerEntity.getTwinTriggerId(), twinTriggerRepository, EntitySmartService.FindMode.ifEmptyThrows);
-                    TwinTrigger twinTrigger = featurerService.getFeaturer(twinTriggerEntity.getTwinTriggerFeaturerId(), TwinTrigger.class);
-                    twinTrigger.run(twinTriggerEntity.getTwinTriggerParam(), targetTwin, transitionEntity.getSrcTwinStatus(), transitionEntity.getDstTwinStatus());
+                    if (triggerEntity.getAsync()) {
+                        log.info("Creating async trigger task for {} twin[{}]", triggerEntity.logDetailed(), targetTwin.logShort());
+                        TwinTriggerTaskEntity taskEntity = new TwinTriggerTaskEntity()
+                                .setTwinId(targetTwin.getId())
+                                .setTwinTriggerId(triggerEntity.getTwinTriggerId())
+                                .setPreviousTwinStatusId(transitionEntity.getSrcTwinStatusId())
+                                .setStatusId(TwinTriggerTaskStatus.NEED_START)
+                                .setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()))
+                                .setCreatedByUserId(apiUser.getUserId())
+                                .setBusinessAccountId(targetTwin.getOwnerBusinessAccountId());
+                        twinTriggerTaskService.saveSafe(taskEntity);
+                    } else {
+                        log.info("Executing sync trigger for {} twin[{}]", triggerEntity.logDetailed(), targetTwin.logShort());
+                        TwinTriggerEntity twinTriggerEntity = twinTriggerService.findEntitySafe(triggerEntity.getTwinTriggerId());
+                        TwinTrigger twinTrigger = featurerService.getFeaturer(twinTriggerEntity.getTwinTriggerFeaturerId(), TwinTrigger.class);
+                        twinTrigger.run(twinTriggerEntity.getTwinTriggerParam(), targetTwin, transitionEntity.getSrcTwinStatus(), transitionEntity.getDstTwinStatus());
+                    }
                 }
         }
     }

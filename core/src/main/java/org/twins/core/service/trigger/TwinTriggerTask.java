@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
-import org.twins.core.dao.trigger.TwinTriggerTaskRepository;
 import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -25,7 +24,7 @@ public class TwinTriggerTask implements Runnable {
     private final TwinTriggerTaskEntity twinTriggerTaskEntity;
 
     @Autowired
-    private TwinTriggerTaskRepository twinTriggerTaskRepository;
+    private TwinTriggerTaskService twinTriggerTaskService;
 
     @Autowired
     private AuthService authService;
@@ -51,7 +50,7 @@ public class TwinTriggerTask implements Runnable {
                     twinTriggerTaskEntity.getCreatedByUserId()
             );
 
-            TwinTrigger trigger = featurerService.getFeaturer(twinTrigger.getTwinTriggerFeaturer(), TwinTrigger.class);
+            TwinTrigger trigger = featurerService.getFeaturer(twinTrigger.getTwinTriggerFeaturerId(), TwinTrigger.class);
             trigger.run(twinTrigger.getTwinTriggerParam(), twin, previousTwinStatus, null);
 
             twinTriggerTaskEntity
@@ -69,7 +68,11 @@ public class TwinTriggerTask implements Runnable {
                     .setStatusDetails(e.getMessage());
         } finally {
             authService.removeThreadLocalApiUser();
-            twinTriggerTaskRepository.save(twinTriggerTaskEntity);
+            try {
+                twinTriggerTaskService.saveSafe(twinTriggerTaskEntity);
+            } catch (Exception e) {
+                log.error("Failed to save trigger task status: {}", e.getMessage(), e);
+            }
         }
     }
 }
