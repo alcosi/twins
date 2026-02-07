@@ -72,7 +72,6 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     final TwinFactoryPipelineStepRepository twinFactoryPipelineStepRepository;
     final TwinFactoryEraserRepository twinFactoryEraserRepository;
     final TwinService twinService;
-    final TwinEraserService twinEraserService;
     final TwinClassService twinClassService;
     final TwinFactoryConditionRepository twinFactoryConditionRepository;
     final TwinFactoryRepository twinFactoryRepository;

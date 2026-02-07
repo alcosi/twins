@@ -15,14 +15,13 @@ import org.twins.core.service.auth.AuthService;
 import java.util.UUID;
 import java.util.function.Function;
 
+@Getter
 @Slf4j
 @Service
 @Lazy
 @AllArgsConstructor
 public class TwinTriggerTaskService extends EntitySecureFindServiceImpl<TwinTriggerTaskEntity> {
-    @Getter
     private final TwinTriggerTaskRepository repository;
-    private final AuthService authService;
 
     @Override
     public CrudRepository<TwinTriggerTaskEntity, UUID> entityRepository() {

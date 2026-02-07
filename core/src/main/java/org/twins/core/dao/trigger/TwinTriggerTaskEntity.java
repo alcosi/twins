@@ -51,7 +51,7 @@ public class TwinTriggerTaskEntity implements EasyLoggable {
     @Column(name = "twin_trigger_task_status_id")
     private TwinTriggerTaskStatus statusId;
 
-    @Column(name = "twin_trigger_status_details")
+    @Column(name = "status_details")
     private String statusDetails;
 
     @Column(name = "created_at")
