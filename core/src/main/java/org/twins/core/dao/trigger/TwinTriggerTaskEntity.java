@@ -14,9 +14,6 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import java.sql.Timestamp;
 import java.util.UUID;
 
-/**
- * Entity that represents async task created for twin trigger processing.
- */
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
@@ -60,7 +57,6 @@ public class TwinTriggerTaskEntity implements EasyLoggable {
     @Column(name = "done_at")
     private Timestamp doneAt;
 
-    /* Relations */
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne

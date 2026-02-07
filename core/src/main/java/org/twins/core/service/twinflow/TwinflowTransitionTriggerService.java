@@ -6,6 +6,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.Set;
+import java.util.HashSet;
 
 @Slf4j
 @Service
@@ -104,9 +107,22 @@ public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImp
     }
 
     public void loadTriggers(Collection<TwinflowTransitionTriggerEntity> srcCollection) throws ServiceException {
+        // Collect all trigger IDs that need loading
+        Set<UUID> triggerIdsToLoad = new HashSet<>();
         for (TwinflowTransitionTriggerEntity entity : srcCollection) {
             if (entity.getTwinTriggerId() != null && entity.getTwinTrigger() == null) {
-                entity.setTwinTrigger(twinTriggerService.findEntitySafe(entity.getTwinTriggerId()));
+                triggerIdsToLoad.add(entity.getTwinTriggerId());
+            }
+        }
+        if (triggerIdsToLoad.isEmpty()) {
+            return;
+        }
+        // Load all triggers
+        var triggers = twinTriggerService.findEntitiesSafe(triggerIdsToLoad);
+        // Set loaded triggers
+        for (TwinflowTransitionTriggerEntity entity : srcCollection) {
+            if (entity.getTwinTriggerId() != null && entity.getTwinTrigger() == null) {
+                entity.setTwinTrigger(triggers.get(entity.getTwinTriggerId()));
             }
         }
     }

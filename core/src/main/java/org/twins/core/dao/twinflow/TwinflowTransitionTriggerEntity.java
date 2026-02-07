@@ -40,7 +40,6 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicClon
     @Column(name = "async")
     private Boolean async;
 
-    /* Relations */
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne

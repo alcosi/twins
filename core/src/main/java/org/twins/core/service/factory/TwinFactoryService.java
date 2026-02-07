@@ -428,6 +428,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                     TwinTriggerTaskEntity taskEntity = new TwinTriggerTaskEntity()
                             .setTwinId(targetTwin.getId())
                             .setTwinTriggerId(factoryTriggerEntity.getTwinTriggerId())
+                            .setPreviousTwinStatusId(targetTwin.getTwinStatusId())
                             .setStatusId(TwinTriggerTaskStatus.NEED_START)
                             .setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()))
                             .setCreatedByUserId(apiUser.getUserId())

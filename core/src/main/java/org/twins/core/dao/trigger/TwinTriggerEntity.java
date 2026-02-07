@@ -3,13 +3,10 @@ package org.twins.core.dao.trigger;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 
 import java.util.HashMap;
@@ -34,12 +31,6 @@ public class TwinTriggerEntity implements EasyLoggable {
 
     @Column(name = "twin_trigger_featurer_id")
     private Integer twinTriggerFeaturerId;
-
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "twin_trigger_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity twinTriggerFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "twin_trigger_param", columnDefinition = "hstore")
