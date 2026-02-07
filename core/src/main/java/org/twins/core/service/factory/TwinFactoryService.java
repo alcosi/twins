@@ -404,7 +404,6 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (CollectionUtils.isEmpty(factoryTriggerEntityList)) {
             return;
         }
-        ApiUser apiUser = authService.getApiUser();
         LoggerUtils.traceTreeLevelDown();
         for (TwinFactoryTriggerEntity factoryTriggerEntity : factoryTriggerEntityList) {
             if (!factoryTriggerEntity.getActive()) {
@@ -424,16 +423,16 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                     continue;
                 }
                 if (factoryTriggerEntity.getAsync()) {
-                    log.info("Creating async trigger task for {} twin[{}]", factoryTriggerEntity.logNormal(), targetTwin.logShort());
-                    TwinTriggerTaskEntity taskEntity = new TwinTriggerTaskEntity()
-                            .setTwinId(targetTwin.getId())
-                            .setTwinTriggerId(factoryTriggerEntity.getTwinTriggerId())
-                            .setPreviousTwinStatusId(targetTwin.getTwinStatusId())
-                            .setStatusId(TwinTriggerTaskStatus.NEED_START)
-                            .setCreatedAt(new java.sql.Timestamp(System.currentTimeMillis()))
-                            .setCreatedByUserId(apiUser.getUserId())
-                            .setBusinessAccountId(targetTwin.getOwnerBusinessAccountId());
-                    twinTriggerTaskService.saveSafe(taskEntity);
+                    log.info("Adding async trigger to postponed list for {} twin[{}]", factoryTriggerEntity.logNormal(), targetTwin.logShort());
+                    if (factoryContext.getTwinChangesCollector() != null) {
+                        factoryContext.getTwinChangesCollector().addPostponedTrigger(
+                                targetTwin.getId(),
+                                factoryTriggerEntity.getTwinTriggerId(),
+                                targetTwin.getTwinStatusId(),
+                                factoryContext.getFactoryLauncher());
+                    } else {
+                        log.warn("TwinChangesCollector is not set in FactoryContext, skipping async trigger");
+                    }
                 } else {
                     log.info("Executing sync trigger for {} twin[{}]", factoryTriggerEntity.logNormal(), targetTwin.logShort());
                     TwinTriggerEntity twinTriggerEntity = twinTriggerService.findEntitySafe(factoryTriggerEntity.getTwinTriggerId());

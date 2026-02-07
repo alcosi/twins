@@ -168,19 +168,20 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
         }
     }
 
-    public void runFactoryOn(TwinSave twinSave, FactoryLauncher factoryLauncher) throws ServiceException {
+    public void runFactoryOn(TwinSave twinSave, FactoryLauncher factoryLauncher, TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinEntity twinEntity = detectTwinEntity(twinSave);
         twinflowService.loadTwinflow(twinEntity);
         loadFactories(twinEntity.getTwinflow());
         TwinflowFactoryEntity twinflowFactory = twinEntity.getTwinflow().getFactoriesKit().get(factoryLauncher);
-        runFactoryOn(twinSave, twinflowFactory);
+        runFactoryOn(twinSave, twinflowFactory, twinChangesCollector);
     }
 
-    public void runFactoryOn(TwinSave twinSave, TwinflowFactoryEntity twinflowFactory) throws ServiceException {
+    public void runFactoryOn(TwinSave twinSave, TwinflowFactoryEntity twinflowFactory, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinflowFactory == null)
             return;
         FactoryContext factoryContext = new FactoryContext(twinflowFactory.getTwinFactoryLauncher(), FactoryBranchId.root(twinflowFactory.getTwinFactoryId()));
         factoryContext.setRequestId(authService.getApiUser().getRequestId());
+        factoryContext.setTwinChangesCollector(twinChangesCollector);
         factoryContext.add(new FactoryItem().setOutput(twinSave).setFactoryContext(factoryContext));
         FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(twinflowFactory.getTwinFactoryId(), factoryContext);
         if (result.getUpdates().size() > 1 || !result.getCreates().isEmpty() || !result.getDeletes().isEmpty()) {

@@ -37,6 +37,7 @@ public class FactoryContext {
     Map<UUID, UUID> afterCommitFactories = new HashMap<>();
     private UUID runLimitedByOwnerBusinessAccount; //this will help to protect from multi business_account run
     private UUID requestId; //this will help analyze what exactly launched factory
+    private org.twins.core.domain.TwinChangesCollector twinChangesCollector; // for postponed trigger tasks
 
     public FactoryContext(FactoryLauncher factoryLauncher, FactoryBranchId rootFactoryBranchId) {
         this.factoryLauncher = factoryLauncher;

@@ -3,6 +3,7 @@ package org.twins.core.domain;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
@@ -13,9 +14,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -25,7 +24,7 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
     private boolean historyCollectorEnabled = true; // in some cases we do not need to collect history changes (before drafting for example, currently we do not collect history, only after )
     private final Map<Object, Set<TwinInvalidate>> invalidationMap = new ConcurrentHashMap<>();
     private final Map<UUID, Pair<UUID, FactoryLauncher>> postponedChanges = new ConcurrentHashMap<>();
-    private final Map<UUID, Pair<UUID, FactoryLauncher>> postponedTrigger = new ConcurrentHashMap<>();
+    private final Map<UUID, List<Triple<UUID, UUID, FactoryLauncher>>> postponedTrigger = new ConcurrentHashMap<>();
 
     public TwinChangesCollector() {
         super();
@@ -113,12 +112,9 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         return this;
     }
 
-    public TwinChangesCollector addPostponedTrigger(UUID twinId, UUID twinTrigger, FactoryLauncher triggerLauncher) throws ServiceException {
-        if (postponedTrigger.containsKey(twinId) && !postponedTrigger.get(twinId).getLeft().equals(twinTrigger)) {
-            throw new ServiceException(ErrorCodeTwins.CONFIGURATION_IS_INVALID,
-                    "twin[{}] already has postponed trigger by trigger[{}]. Skipping trigger by trigger[{}]", twinId, postponedTrigger.get(twinId), twinTrigger);
-        }
-        postponedTrigger.put(twinId, Pair.of(twinTrigger, triggerLauncher));
+    public TwinChangesCollector addPostponedTrigger(UUID twinId, UUID twinTriggerId, UUID previousTwinStatusId, FactoryLauncher triggerLauncher) throws ServiceException {
+        postponedTrigger.computeIfAbsent(twinId, k -> new ArrayList<>());
+        postponedTrigger.get(twinId).add(Triple.of(twinTriggerId, previousTwinStatusId, triggerLauncher));
         return this;
     }
 
