@@ -20,6 +20,7 @@ import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.comment.TwinCommentRepository;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
+import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
@@ -132,7 +133,6 @@ public class TwinChangesService {
     }
 
     private void savePostponedTriggers(TwinChangesCollector twinChangesCollector) throws ServiceException {
-        log.info("savePostponedTriggers called, postponedTrigger.size()={}", twinChangesCollector.getPostponedTrigger().size());
         if (twinChangesCollector.getPostponedTrigger().isEmpty())
             return;
         List<org.twins.core.dao.trigger.TwinTriggerTaskEntity> triggerTaskList = new ArrayList<>();
@@ -142,7 +142,7 @@ public class TwinChangesService {
                         .setTwinId(entry.getKey())
                         .setTwinTriggerId(triple.getLeft())
                         .setPreviousTwinStatusId(triple.getMiddle())
-                        .setStatusId(org.twins.core.dao.trigger.TwinTriggerTaskStatus.NEED_START));
+                        .setStatusId(TwinTriggerTaskStatus.NEED_START));
             }
         }
         log.info("Saving {} postponed triggers", triggerTaskList.size());
