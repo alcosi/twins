@@ -16,8 +16,8 @@ public class TriggerBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowTran
     public void map(TwinflowTransitionTriggerEntity src, TriggerBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
                 dst
                         .setOrder(src.getOrder())
-                        .setTriggerFeaturerId(src.getTransitionTriggerFeaturerId())
-                        .setTriggerParams(src.getTransitionTriggerParams())
+                        .setTwinTriggerId(src.getTwinTriggerId())
+                        .setAsync(src.getAsync())
                         .setActive(src.getIsActive());
     }
 

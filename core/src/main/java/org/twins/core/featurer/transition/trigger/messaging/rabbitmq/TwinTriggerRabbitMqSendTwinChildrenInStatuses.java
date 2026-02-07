@@ -34,7 +34,7 @@ import java.util.UUID;
         name = "RabbitMqSendTwin",
         description = "Trigger for sending event to rabbit")
 @RequiredArgsConstructor
-public class TransitionTriggerRabbitMqSendTwinChildrenInStatuses extends TransitionTriggerRabbitMqConnection {
+public class TwinTriggerRabbitMqSendTwinChildrenInStatuses extends TwinTriggerRabbitMqConnection {
 
     private final AmpqManager ampqManager;
 
@@ -75,8 +75,8 @@ public class TransitionTriggerRabbitMqSendTwinChildrenInStatuses extends Transit
         List<TwinEntity> children = twinSearchService.findTwins(search);
 
         log.debug("Sending to Rabbit");
-        ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(
-                TransitionTriggerRabbitMqConnection.url.extract(properties));
+        ConnectionFactory factory = TwinTriggerRabbitMqConnection.rabbitConnectionCache.get(
+                TwinTriggerRabbitMqConnection.url.extract(properties));
 
         RabbitMqMessagePayloadTwin payload;
         for (TwinEntity child : children) {

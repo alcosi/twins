@@ -20,11 +20,13 @@ import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.comment.TwinCommentRepository;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
+import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinChangeTaskService;
+import org.twins.core.service.trigger.TwinTriggerTaskService;
 
 import java.util.*;
 
@@ -56,11 +58,14 @@ public class TwinChangesService {
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
     private final TwinChangeTaskService twinChangeTaskService;
+    private final TwinTriggerTaskService twinTriggerTaskService;
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinChangesApplyResult applyChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinChangesApplyResult changesApplyResult = new TwinChangesApplyResult();
-        if (!twinChangesCollector.hasChanges())
+        if (!twinChangesCollector.hasChanges() &&
+            twinChangesCollector.getPostponedChanges().isEmpty() &&
+            twinChangesCollector.getPostponedTrigger().isEmpty())
             return changesApplyResult;
         //we have to flush new twins save because of "Not-null property references a transient value - transient instance must be saved before current operation" in other related entities
         saveEntitiesAndFlush(twinChangesCollector, TwinEntity.class, twinRepository, changesApplyResult);
@@ -109,6 +114,7 @@ public class TwinChangesService {
                 log.warn("Unsupported entity class[{}] for deletion", classChanges.getKey().getSimpleName());
             }
         savePostponedChanges(twinChangesCollector);
+        savePostponedTriggers(twinChangesCollector);
         invalidate(twinChangesCollector.getInvalidationMap());
         historyService.saveHistory(twinChangesCollector.getHistoryCollector());
         twinChangesCollector.clear();
@@ -127,6 +133,23 @@ public class TwinChangesService {
                     .setStatusId(TwinChangeTaskStatus.NEED_START));
         }
         twinChangeTaskService.addTasks(changeTaskList);
+    }
+
+    private void savePostponedTriggers(TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (twinChangesCollector.getPostponedTrigger().isEmpty())
+            return;
+        List<org.twins.core.dao.trigger.TwinTriggerTaskEntity> triggerTaskList = new ArrayList<>();
+        for (var entry : twinChangesCollector.getPostponedTrigger().entrySet()) {
+            for (var triple : entry.getValue()) {
+                triggerTaskList.add(new org.twins.core.dao.trigger.TwinTriggerTaskEntity()
+                        .setTwinId(entry.getKey())
+                        .setTwinTriggerId(triple.getLeft())
+                        .setPreviousTwinStatusId(triple.getMiddle())
+                        .setStatusId(TwinTriggerTaskStatus.NEED_START));
+            }
+        }
+        log.info("Saving {} postponed triggers", triggerTaskList.size());
+        twinTriggerTaskService.addTasks(triggerTaskList);
     }
 
     private void invalidate(Map<Object, Set<TwinChangesCollector.TwinInvalidate>> invalidationMap) {

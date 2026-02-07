@@ -21,7 +21,7 @@ import java.util.Properties;
         name = "ClearAllUsersTouch",
         description = "")
 @RequiredArgsConstructor
-public class TransitionTriggerClearAllUsersTouch extends TransitionTrigger {
+public class TwinTriggerClearAllUsersTouch extends TwinTrigger {
     @Lazy
     final TwinTouchService twinTouchService;
 

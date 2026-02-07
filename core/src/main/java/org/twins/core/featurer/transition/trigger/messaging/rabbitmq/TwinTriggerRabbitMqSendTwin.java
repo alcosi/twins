@@ -12,12 +12,10 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.transition.trigger.messaging.rabbitmq.payloads.RabbitMqMessagePayloadTranslation;
 import org.twins.core.featurer.transition.trigger.messaging.rabbitmq.payloads.RabbitMqMessagePayloadTwin;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.rabbit.AmpqManager;
 
-import java.util.Map;
 import java.util.Properties;
 
 @Service
@@ -26,7 +24,7 @@ import java.util.Properties;
         name = "RabbitMqSendTwin",
         description = "Trigger for sending event to rabbit")
 @RequiredArgsConstructor
-public class TransitionTriggerRabbitMqSendTwin extends TransitionTriggerRabbitMqConnection {
+public class TwinTriggerRabbitMqSendTwin extends TwinTriggerRabbitMqConnection {
 
     private final AmpqManager ampqManager;
 
@@ -47,8 +45,8 @@ public class TransitionTriggerRabbitMqSendTwin extends TransitionTriggerRabbitMq
         ApiUser apiUser = authService.getApiUser();
 
         log.debug("Sending to Rabbit");
-        ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(
-                TransitionTriggerRabbitMqConnection.url.extract(properties));
+        ConnectionFactory factory = TwinTriggerRabbitMqConnection.rabbitConnectionCache.get(
+                TwinTriggerRabbitMqConnection.url.extract(properties));
 
         RabbitMqMessagePayloadTwin payload = new RabbitMqMessagePayloadTwin(
                 twinEntity.getId(),

@@ -24,7 +24,7 @@ import java.util.Properties;
         name = "DuplicateTwin",
         description = "")
 @RequiredArgsConstructor
-public class TransitionTriggerDuplicateTwin extends TransitionTrigger {
+public class TwinTriggerDuplicateTwin extends TwinTrigger {
     @Lazy
     final TwinService twinService;
     @Lazy

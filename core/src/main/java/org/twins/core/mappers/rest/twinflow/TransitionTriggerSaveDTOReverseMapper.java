@@ -17,8 +17,8 @@ public class TransitionTriggerSaveDTOReverseMapper extends RestSimpleDTOMapper<T
                 .setId(src.getId())
                 .setOrder(src.getOrder())
                 .setIsActive(src.getActive())
+                .setAsync(src.getAsync())
                 .setTwinflowTransitionId(src.getTwinflowTransitionId())
-                .setTransitionTriggerFeaturerId(src.getTransitionTriggerFeaturerId())
-                .setTransitionTriggerParams(src.getTransitionTriggerParams());
+                .setTwinTriggerId(src.getTwinTriggerId());
     }
 }

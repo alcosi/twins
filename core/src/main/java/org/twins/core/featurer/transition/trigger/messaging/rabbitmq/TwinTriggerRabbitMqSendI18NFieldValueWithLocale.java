@@ -32,7 +32,7 @@ import java.util.*;
         name = "RabbitMqSendI18nFieldValueWithLocaleForOperation",
         description = "Trigger for sending translations event to rabbit")
 @RequiredArgsConstructor
-public class TransitionTriggerRabbitMqSendI18nFieldValueWithLocale extends TransitionTriggerRabbitMqConnection {
+public class TwinTriggerRabbitMqSendI18NFieldValueWithLocale extends TwinTriggerRabbitMqConnection {
 
     private final AmpqManager ampqManager;
 
@@ -82,8 +82,8 @@ public class TransitionTriggerRabbitMqSendI18nFieldValueWithLocale extends Trans
                 fieldsToTranslate
         );
 
-        ConnectionFactory factory = TransitionTriggerRabbitMqConnection.rabbitConnectionCache.get(
-                TransitionTriggerRabbitMqConnection.url.extract(properties));
+        ConnectionFactory factory = TwinTriggerRabbitMqConnection.rabbitConnectionCache.get(
+                TwinTriggerRabbitMqConnection.url.extract(properties));
 
         ampqManager.sendMessage(factory, exchange.extract(properties), queue.extract(properties), payload);
     }

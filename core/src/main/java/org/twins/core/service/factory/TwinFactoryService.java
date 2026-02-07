@@ -24,6 +24,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowFactoryRepository;
 import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
 import org.twins.core.domain.ApiUser;
+import org.apache.commons.collections4.CollectionUtils;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
@@ -43,6 +44,13 @@ import org.twins.core.service.twin.TwinChangeTaskService;
 import org.twins.core.service.twin.TwinEraserService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.dao.trigger.TwinFactoryTriggerRepository;
+import org.twins.core.dao.trigger.TwinTriggerEntity;
+import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
+import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
+import org.twins.core.featurer.transition.trigger.TwinTrigger;
+import org.twins.core.service.trigger.TwinTriggerService;
+import org.twins.core.service.trigger.TwinTriggerTaskService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -64,7 +72,6 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     final TwinFactoryPipelineStepRepository twinFactoryPipelineStepRepository;
     final TwinFactoryEraserRepository twinFactoryEraserRepository;
     final TwinService twinService;
-    final TwinEraserService twinEraserService;
     final TwinClassService twinClassService;
     final TwinFactoryConditionRepository twinFactoryConditionRepository;
     final TwinFactoryRepository twinFactoryRepository;
@@ -80,6 +87,11 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     private final TwinflowTransitionRepository twinflowTransitionRepository;
     private final I18nService i18nService;
     private final TwinflowFactoryRepository twinflowFactoryRepository;
+    private final TwinFactoryTriggerRepository twinFactoryTriggerRepository;
+    @Lazy
+    private final TwinTriggerService twinTriggerService;
+    @Lazy
+    private final TwinTriggerTaskService twinTriggerTaskService;
 
     @Override
     public CrudRepository<TwinFactoryEntity, UUID> entityRepository() {
@@ -197,6 +209,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         runPipelines(factoryEntity, factoryContext);
         runBranches(factoryEntity, factoryContext);
         runErasers(factoryEntity, factoryContext);
+        runTriggers(factoryEntity, factoryContext);
         factoryContext.currentFactoryBranchLevelUp();
         log.info("Factory " + factoryEntity.logShort() + " ended");
     }
@@ -380,6 +393,52 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                     action = eraserEntity.getEraserAction();
                 log.info("Eraser action {} was detected for {}", action, eraserInput.logDetailed());
                 eraserInput.setEraseAction(new EraseAction(action, eraserEntity.logDetailed()));
+            }
+        }
+        LoggerUtils.traceTreeLevelUp();
+    }
+
+    private void runTriggers(TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {
+        List<TwinFactoryTriggerEntity> factoryTriggerEntityList = twinFactoryTriggerRepository.findByTwinFactoryId(factoryEntity.getId());
+        log.info("Loaded {} triggers", factoryTriggerEntityList.size());
+        if (CollectionUtils.isEmpty(factoryTriggerEntityList)) {
+            return;
+        }
+        LoggerUtils.traceTreeLevelDown();
+        for (TwinFactoryTriggerEntity factoryTriggerEntity : factoryTriggerEntityList) {
+            if (!factoryTriggerEntity.getActive()) {
+                log.info("Skipping inactive trigger: {}", factoryTriggerEntity.logNormal());
+                continue;
+            }
+            Set<FactoryItem> triggerInputList = getInputItems(factoryContext, factoryTriggerEntity.getInputTwinClassId(),
+                    factoryTriggerEntity.getTwinFactoryConditionSetId(), factoryTriggerEntity.getTwinFactoryConditionInvert());
+            if (CollectionUtils.isEmpty(triggerInputList)) {
+                log.info("Skipping trigger {} because of empty input", factoryTriggerEntity.logShort());
+                continue;
+            }
+            for (FactoryItem triggerInput : triggerInputList) {
+                TwinEntity targetTwin = triggerInput.getTwin();
+                if (targetTwin == null || targetTwin.getId() == null) {
+                    log.info("Skipping trigger {} because twin is not persisted yet", factoryTriggerEntity.logShort());
+                    continue;
+                }
+                if (factoryTriggerEntity.getAsync()) {
+                    log.info("Adding async trigger to postponed list for {} twin[{}]", factoryTriggerEntity.logNormal(), targetTwin.logShort());
+                    if (factoryContext.getTwinChangesCollector() != null) {
+                        factoryContext.getTwinChangesCollector().addPostponedTrigger(
+                                targetTwin.getId(),
+                                factoryTriggerEntity.getTwinTriggerId(),
+                                targetTwin.getTwinStatusId(),
+                                factoryContext.getFactoryLauncher());
+                    } else {
+                        log.warn("TwinChangesCollector is not set in FactoryContext, skipping async trigger");
+                    }
+                } else {
+                    log.info("Executing sync trigger for {} twin[{}]", factoryTriggerEntity.logNormal(), targetTwin.logShort());
+                    TwinTriggerEntity twinTriggerEntity = twinTriggerService.findEntitySafe(factoryTriggerEntity.getTwinTriggerId());
+                    TwinTrigger twinTrigger = featurerService.getFeaturer(twinTriggerEntity.getTwinTriggerFeaturerId(), TwinTrigger.class);
+                    twinTrigger.run(twinTriggerEntity.getTwinTriggerParam(), targetTwin, null, null);
+                }
             }
         }
         LoggerUtils.traceTreeLevelUp();

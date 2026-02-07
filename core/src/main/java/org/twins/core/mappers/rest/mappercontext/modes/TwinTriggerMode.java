@@ -9,7 +9,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 @Getter
 @AllArgsConstructor
 @FieldNameConstants(onlyExplicitlyIncluded = true)
-public enum TransitionTriggerMode implements MapperMode {
+public enum TwinTriggerMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include SHORT(1),
     @FieldNameConstants.Include DETAILED(2);
@@ -19,7 +19,7 @@ public enum TransitionTriggerMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TransitionTrigger2TransitionTriggerMode implements MapperModePointer<TransitionTriggerMode> {
+    public enum TransitionTrigger2TwinTriggerMode implements MapperModePointer<TwinTriggerMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -27,11 +27,11 @@ public enum TransitionTriggerMode implements MapperMode {
         final int priority;
 
         @Override
-        public TransitionTriggerMode point() {
+        public TwinTriggerMode point() {
             return switch (this) {
-                case HIDE -> TransitionTriggerMode.HIDE;
-                case SHORT -> TransitionTriggerMode.SHORT;
-                case DETAILED -> TransitionTriggerMode.DETAILED;
+                case HIDE -> TwinTriggerMode.HIDE;
+                case SHORT -> TwinTriggerMode.SHORT;
+                case DETAILED -> TwinTriggerMode.DETAILED;
             };
         }
     }
