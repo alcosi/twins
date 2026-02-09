@@ -1,7 +1,6 @@
 package org.twins.core.featurer.factory.filler;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -65,12 +64,12 @@ public class FillerBasicsFieldFromTwinField extends Filler {
     }
 
     private String handleUserField(FieldValueUser fieldValueUser, TwinEntity outputTwinEntity, FieldValue fieldValue) throws ServiceException {
-        if (CollectionUtils.isEmpty(fieldValueUser.getUsers())) {
+        if (fieldValueUser.isEmpty()) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, fieldValue.getTwinClassField().logShort() + " is not filled");
-        } else if (fieldValueUser.getUsers().size() > 1) {
+        } else if (fieldValueUser.size() > 1) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, fieldValue.getTwinClassField().logShort() + " is filled by multiple users");
         } else {
-            UserEntity user = fieldValueUser.getUsers().getFirst();
+            UserEntity user = fieldValueUser.getItems().getFirst();
             if (fieldId.equals(SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER)) {
                 outputTwinEntity
                         .setAssignerUser(user)

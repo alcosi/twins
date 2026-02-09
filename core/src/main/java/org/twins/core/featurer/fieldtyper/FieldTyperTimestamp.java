@@ -67,24 +67,23 @@ public class FieldTyperTimestamp extends FieldTyper<FieldDescriptorDate, FieldVa
         //todo refactor me
         if (value.isUndefined())
             return;
-        else if (value.isFilled()) {
+        else if (value.isNotEmpty()) {
             var localDateTime = parseDateTime(value.getDateStr(), properties);
-            value.setDate(localDateTime);
-            value.setDateStr(formatDate(localDateTime, properties));
+            value.setDate(localDateTime, formatDate(localDateTime, properties));
         }
 
         var twinFieldTimestampEntity = convertToTwinFieldTimestampEntity(twin, value.getTwinClassField());
 
-        if (twinFieldTimestampEntity == null && value.isFilled()) {
+        if (twinFieldTimestampEntity == null && value.isNotEmpty()) {
             // create field
             twinFieldTimestampEntity = twinService.createTwinFieldTimestampEntity(twin, value.getTwinClassField(), null);
             twinChangesCollector.add(twinFieldTimestampEntity);
             detectValueChange(twinFieldTimestampEntity, twinChangesCollector, Timestamp.valueOf(value.getDate()));
-        } else if (twinFieldTimestampEntity != null && !value.isFilled()) {
+        } else if (twinFieldTimestampEntity != null && value.isCleared()) {
             // delete field
             twinChangesCollector.delete(twinFieldTimestampEntity);
             addHistoryContext(twinChangesCollector,  twinFieldTimestampEntity, null);
-        } else if (twinFieldTimestampEntity != null && value.isFilled()) {
+        } else if (twinFieldTimestampEntity != null && value.isNotEmpty()) {
             // update field
             twinChangesCollector.add(twinFieldTimestampEntity);
             detectValueChange(twinFieldTimestampEntity, twinChangesCollector, Timestamp.valueOf(value.getDate()));

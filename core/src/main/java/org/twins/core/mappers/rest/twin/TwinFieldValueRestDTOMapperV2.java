@@ -5,6 +5,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.JsonUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -38,6 +39,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
     @MapperModePointerBinding(modes = StatusMode.TwinField2StatusMode.class)
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
 
+    @Lazy
     @MapperModePointerBinding(modes = UserMode.TwinField2UserMode.class)
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 

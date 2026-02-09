@@ -8,7 +8,6 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
-import java.util.HashMap;
 import java.util.Properties;
 
 
@@ -25,7 +24,7 @@ public abstract class FieldInitializer<D extends FieldDescriptor, T extends Fiel
         if (value.isAlreadyInitialized())
             return;
         if (reinitForce || value.isUndefined()) {
-            Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldInitializerParams(), new HashMap<>());
+            Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldInitializerParams());
             setInitValue(properties, twin, value);
             value.setAlreadyInitialized(true);
         }
