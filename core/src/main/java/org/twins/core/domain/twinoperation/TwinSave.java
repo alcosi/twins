@@ -11,24 +11,25 @@ import java.util.*;
 @EqualsAndHashCode(callSuper = true) // TWINS-254 bug with hashcode generation during insert in factory items set
 @Accessors(chain = true)
 public abstract class TwinSave extends TwinOperation {
-    protected Map<UUID, FieldValue> fields; // key: twinClassFieldId
+    protected LinkedHashMap<UUID, FieldValue> fields; // key: twinClassFieldId
     protected Set<UUID> markersAdd;
     protected Set<String> tagsAddNew;
     protected Set<UUID> tagsAddExisted;
+    protected LinkedHashSet<String> commentsAdd;
     //this flag helps to simply avoid recursion factory task call during creates/updates,
     //so currently we do not support cascade factory call during such operations
     private boolean canTriggerAfterOperationFactory = true;
 
     public TwinSave addField(FieldValue fieldValue) {
         if (fields == null)
-            fields = new HashMap<>();
+            fields = new LinkedHashMap<>();
         fields.put(fieldValue.getTwinClassField().getId(), fieldValue);
         return this;
     }
 
     public TwinSave addFields(List<FieldValue> fieldValueList) {
         if (fields == null)
-            fields = new HashMap<>();
+            fields = new LinkedHashMap<>();
         for (FieldValue fieldValue : fieldValueList)
             fields.put(fieldValue.getTwinClassField().getId(), fieldValue);
         return this;
@@ -40,7 +41,7 @@ public abstract class TwinSave extends TwinOperation {
 
     public TwinSave setFields(List<FieldValue> fieldValueList) {
         if (fieldValueList != null) {
-            fields = new HashMap<>();
+            fields = new LinkedHashMap<>();
             for (FieldValue fieldValue : fieldValueList)
                 fields.put(fieldValue.getTwinClassField().getId(), fieldValue);
         }
@@ -51,6 +52,13 @@ public abstract class TwinSave extends TwinOperation {
         if (markersAdd == null)
             markersAdd = new HashSet<>();
         markersAdd.add(marker);
+        return this;
+    }
+
+    public TwinSave addComment(String comment) {
+        if (commentsAdd == null)
+            commentsAdd = new LinkedHashSet<>();
+        commentsAdd.add(comment);
         return this;
     }
 

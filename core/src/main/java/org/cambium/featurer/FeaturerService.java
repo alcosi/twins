@@ -3,6 +3,7 @@ package org.cambium.featurer;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
@@ -12,6 +13,7 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
+import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerParamType;
@@ -21,6 +23,7 @@ import org.cambium.featurer.exception.ErrorCodeFeaturer;
 import org.cambium.featurer.injectors.Injector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -57,6 +60,9 @@ public class FeaturerService {
     public void setFeaturerList(List<Featurer> featurerList) {
         this.featurerList = featurerList;
     }
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     @PostConstruct
     public void postConstruct() {
@@ -250,27 +256,21 @@ public class FeaturerService {
     }
 
     public Properties extractProperties(FeaturerEntity featurerEntity, HashMap<String, String> params, Map<String, Object> context) throws ServiceException {
-        return extractProperties(featurerEntity.getId(), params, context);
-    }
-
-    public Properties extractProperties(Featurer featurer, HashMap<String, String> params, Map<String, Object> context) throws ServiceException {
-        return extractProperties(getFeaturerId(featurer), params, context);
+        if (MapUtils.isNotEmpty(context))
+            return extractProperties(featurerEntity.getId(), params, context);
+        else
+            return extractPropertiesCached(featurerEntity.getId(), params);
     }
 
     public Properties extractProperties(Featurer featurer, HashMap<String, String> params) throws ServiceException {
-        return extractProperties(getFeaturerId(featurer), params, Collections.emptyMap());
+        return extractPropertiesCached(getFeaturerId(featurer), params);
     }
 
-    private int getFeaturerId(Featurer featurer) {
+    public static int getFeaturerId(Featurer featurer) {
         var annotation = featurer.getClass().getAnnotation(org.cambium.featurer.annotations.Featurer.class);
         return annotation.id();
     }
 
-    public Properties extractProperties(Integer featurerId, HashMap<String, String> params) throws ServiceException {
-        return extractProperties(featurerId,  params, Collections.emptyMap());
-    }
-
-    //todo add caching
     public Properties extractProperties(Integer featurerId, HashMap<String, String> params, Map<String, Object> context) throws ServiceException {
         Properties ret = new Properties();
 
@@ -344,7 +344,7 @@ public class FeaturerService {
             throw new ServiceException(ErrorCodeCommon.FEATURER_ID_UNKNOWN, "unknown featurer id[" + featurerId + "]");
         if (!expectedFeaturerClass.isInstance(featurer))
             throw new ServiceException(ErrorCodeCommon.FEATURER_INCORRECT_TYPE, "featurer of id[" + featurerId + "] is not of expected type[" + expectedFeaturerClass.getSimpleName() + "]");
-        Properties properties = extractProperties(featurer, featurerParams, new HashMap<>());
+        Properties properties = extractProperties(featurer, featurerParams);
         basicParamsValidation(featurerId, properties);
         featurer.extraParamsValidation(properties);
         return featurerRepository.findById(featurerId).get();
@@ -406,5 +406,31 @@ public class FeaturerService {
             }
         }
         return featurerParams;
+    }
+
+    @Cacheable(value = "FeaturerExtractPropertiesCache", key = "T(org.cambium.featurer.FeaturerService).toConfigKey(#featurerId, #params)")
+    public Properties extractProperties(Integer featurerId, HashMap<String, String> params) throws ServiceException {
+        return extractProperties(featurerId, params, Collections.emptyMap());
+    }
+
+    private Properties extractPropertiesCached(Integer featurerId, HashMap<String, String> params) throws ServiceException {
+        return applicationContext.getBean(FeaturerService.class).extractProperties(featurerId, params); //self proxy
+    }
+
+    private static String canonical(Map<String, String> map) {
+        if(MapUtils.isEmpty(map)) return "";
+        return map.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(e -> e.getKey() + "=" + e.getValue())
+                .collect(Collectors.joining("&"));
+    }
+
+    public static String toConfigKey(int featurerId, HashMap<String, String> params) {
+        return DigestUtils.sha256Hex(featurerId + "|" + canonical(params));
+    }
+
+    public static String toConfigKey(Featurer featurer, HashMap<String, String> params) {
+        return toConfigKey(getFeaturerId(featurer), params);
     }
 }

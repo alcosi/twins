@@ -26,7 +26,7 @@ public class FactoryContext {
     private FactoryLauncher factoryLauncher;
     private Collection<TwinEntity> inputTwinList;
     private Map<UUID, FieldValue> fields; // key: twinClassFieldId
-    private Set<FactoryItem> factoryItemList = new HashSet<>();
+    private Set<FactoryItem> factoryItemList = new LinkedHashSet<>(); // LinkedHashSet must guarantee the order for creating twins in the hierarchy
     private Map<UUID, FactoryItem> factoryItemsUniq = new Hashtable<>(); // this will help to avoid conflict updates of same twin
     private TwinBasicFields basics = null;
     private FactoryBranchId rootFactoryBranchId;
@@ -36,6 +36,7 @@ public class FactoryContext {
     private Map<FactoryBranchId, Set<FactoryItem>> pipelineScopes = new HashMap<>();
     Map<UUID, UUID> afterCommitFactories = new HashMap<>();
     private UUID runLimitedByOwnerBusinessAccount; //this will help to protect from multi business_account run
+    private UUID requestId; //this will help analyze what exactly launched factory
 
     public FactoryContext(FactoryLauncher factoryLauncher, FactoryBranchId rootFactoryBranchId) {
         this.factoryLauncher = factoryLauncher;

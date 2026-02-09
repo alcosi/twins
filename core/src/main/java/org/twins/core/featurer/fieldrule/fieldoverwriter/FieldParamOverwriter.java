@@ -8,7 +8,10 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
 
 @FeaturerType(id = FeaturerTwins.TYPE_46,
         name = "FieldOverwriter",
@@ -43,7 +46,7 @@ public abstract class FieldParamOverwriter<D extends FieldDescriptor> extends Fe
     }
 
     public D getFieldOverwriterDescriptor(TwinClassFieldRuleEntity twinClassFieldRuleEntity) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, twinClassFieldRuleEntity.getFieldOverwriterParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, twinClassFieldRuleEntity.getFieldOverwriterParams());
         return getFieldOverwriterDescriptor(twinClassFieldRuleEntity, properties);
     }
 

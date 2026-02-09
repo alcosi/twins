@@ -84,8 +84,12 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
             throw new RuntimeException("Can not initialize ");
     }
 
-    public Class<T> getValueType() {
+    public Class<T> getValueType(TwinClassFieldEntity twinClassField) throws ServiceException {
         return valuetype;
+    }
+
+    public Class<D> getFieldDescriptorType(TwinClassFieldEntity twinClassField) throws ServiceException {
+        return descriptorType;
     }
 
     public Class<S> getStorageType() {
@@ -118,7 +122,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     protected abstract D getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException;
 
     public void serializeValue(TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
         if (value.isUndefined()) {
             initializeField(twin, value);
         }
@@ -136,7 +140,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
 
     public T deserializeValue(TwinField twinField) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, twinField.getTwinClassField().getFieldTyperParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, twinField.getTwinClassField().getFieldTyperParams());
         return deserializeValue(properties, twinField);
     }
 
@@ -148,7 +152,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
         if (twinClassFieldEntity.getFieldStorage() == null) {
-            Properties properties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams(), new HashMap<>());
+            Properties properties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams());
             twinClassFieldEntity.setFieldStorage(getStorage(twinClassFieldEntity, properties));
         }
         return twinClassFieldEntity.getFieldStorage();

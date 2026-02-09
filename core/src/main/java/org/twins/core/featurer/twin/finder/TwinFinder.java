@@ -7,7 +7,6 @@ import org.twins.core.dao.search.TwinSearchPredicateEntity;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.featurer.FeaturerTwins;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -18,7 +17,7 @@ import java.util.Properties;
 @Slf4j
 public abstract class TwinFinder extends FeaturerTwins {
     public void concat(TwinSearch twinSearch, TwinSearchPredicateEntity twinSearchPredicateEntity, Map<String, String> namedParamsMap) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, twinSearchPredicateEntity.getTwinFinderParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, twinSearchPredicateEntity.getTwinFinderParams());
         concat(twinSearch, properties, namedParamsMap);
     }
 

@@ -150,6 +150,9 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "assignee_required")
     private Boolean assigneeRequired;
 
+    @Column(name = "has_dynamic_markers")
+    private Boolean hasDynamicMarkers;
+
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -186,6 +189,12 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "external_id")
     private String externalId;
 
+    @Column(name = "head_hierarchy_counter_direct_children", nullable = false)
+    private Integer headHierarchyCounterDirectChildren;
+
+    @Column(name = "extends_hierarchy_counter_direct_children", nullable = false)
+    private Integer extendsHierarchyCounterDirectChildren;
+
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "external_properties", columnDefinition = "hstore")
     private Map<String, String> externalProperties;
@@ -193,6 +202,9 @@ public class TwinClassEntity implements EasyLoggable {
     @Type(JsonType.class)
     @Column(name = "external_json", columnDefinition = "jsonb")
     private Map<String, Object> externalJson;
+
+    @Column(name = "unique_name")
+    private Boolean uniqueName;
 
 //    @ManyToOne
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
@@ -259,6 +271,13 @@ public class TwinClassEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private DataListEntity inheritedTagDataList;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_class_freeze_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassFreezeEntity twinClassFreeze;
+
 
 //    @ManyToOne
 //    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
@@ -354,11 +373,6 @@ public class TwinClassEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Kit<TwinflowTransitionEntity, UUID> transitionsKit;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private TwinClassFreezeEntity twinClassFreeze;
 
     @Transient
     @EqualsAndHashCode.Exclude

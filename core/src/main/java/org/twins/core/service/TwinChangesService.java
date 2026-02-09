@@ -16,6 +16,8 @@ import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationRepository;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
+import org.twins.core.dao.comment.TwinCommentEntity;
+import org.twins.core.dao.comment.TwinCommentRepository;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.twin.*;
@@ -45,9 +47,11 @@ public class TwinChangesService {
     private final TwinAttachmentRepository twinAttachmentRepository;
     private final TwinFieldI18nRepository twinFieldI18nRepository;
     private final TwinFieldBooleanRepository twinFieldBooleanRepository;
+    private final TwinFieldTimestampRepository twinFieldTimestampRepository;
     private final TwinFieldTwinClassListRepository twinFieldTwinClassListRepository;
     private final TwinAttachmentModificationRepository twinAttachmentModificationRepository;
     private final TwinFieldAttributeRepository twinFieldAttributeRepository;
+    private final TwinCommentRepository twinCommentRepository;
     private final SpaceRoleUserRepository spaceRoleUserRepository;
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
@@ -71,9 +75,11 @@ public class TwinChangesService {
         saveEntities(twinChangesCollector, TwinAttachmentModificationEntity.class, twinAttachmentModificationRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldI18nEntity.class, twinFieldI18nRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldBooleanEntity.class, twinFieldBooleanRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, TwinFieldTimestampEntity.class, twinFieldTimestampRepository, changesApplyResult);
         saveEntities(twinChangesCollector, SpaceRoleUserEntity.class, spaceRoleUserRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldTwinClassEntity.class, twinFieldTwinClassListRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldAttributeEntity.class, twinFieldAttributeRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, TwinCommentEntity.class, twinCommentRepository, changesApplyResult);
 
         if (!twinChangesCollector.getSaveEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Map<Object, ChangesHelper>> classChanges : twinChangesCollector.getSaveEntityMap().entrySet()) {
@@ -92,9 +98,11 @@ public class TwinChangesService {
         deleteEntities(twinChangesCollector, TwinFieldI18nEntity.class, twinFieldI18nRepository);
         deleteEntities(twinChangesCollector, TwinAttachmentModificationEntity.class, twinAttachmentModificationRepository);
         deleteEntities(twinChangesCollector, TwinFieldBooleanEntity.class, twinFieldBooleanRepository);
+        deleteEntities(twinChangesCollector, TwinFieldTimestampEntity.class, twinFieldTimestampRepository);
         deleteEntities(twinChangesCollector, SpaceRoleUserEntity.class, spaceRoleUserRepository);
         deleteEntities(twinChangesCollector, TwinFieldTwinClassEntity.class, twinFieldTwinClassListRepository);
         deleteEntities(twinChangesCollector, TwinFieldAttributeEntity.class, twinFieldAttributeRepository);
+        deleteEntities(twinChangesCollector, TwinCommentEntity.class, twinCommentRepository);
 
         if (!twinChangesCollector.getDeleteEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Set<Object>> classChanges : twinChangesCollector.getDeleteEntityMap().entrySet()) {
@@ -139,6 +147,7 @@ public class TwinChangesService {
                         case twinFieldBooleanKit -> twinEntity.setTwinFieldBooleanKit(null);
                         case twinFieldTwinClassKit -> twinEntity.setTwinFieldTwinClassKit(null);
                         case twinFieldAttributeKit -> twinEntity.setTwinFieldAttributeKit(null);
+                        case twinFieldTimestampKit -> twinEntity.setTwinFieldTimestampKit(null);
                     }
                 }
             } else if (entry.getKey() instanceof TwinAttachmentEntity twinAttachmentEntity) {

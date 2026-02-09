@@ -88,6 +88,15 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_1338 = 1338;
     public static final int ID_1339 = 1339;
     public static final int ID_1340 = 1340;
+    public static final int ID_1341 = 1341;
+    public static final int ID_1342 = 1342;
+    public static final int ID_1343 = 1343;
+    public static final int ID_1344 = 1344;
+    public static final int ID_1345 = 1345;
+    public static final int ID_1346 = 1346;
+    public static final int ID_1347 = 1347;
+    public static final int ID_1348 = 1348;
+    public static final int ID_1349 = 1349;
     public static final int ID_1401 = 1401;
     public static final int ID_1402 = 1402;
     public static final int ID_1403 = 1403;
@@ -140,6 +149,7 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_2210 = 2210;
     public static final int ID_2211 = 2211;
     public static final int ID_2212 = 2212;
+    public static final int ID_2213 = 2213;
     public static final int ID_2301 = 2301;
     public static final int ID_2302 = 2302;
     public static final int ID_2303 = 2303;
@@ -183,6 +193,11 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_2341 = 2341;
     public static final int ID_2342 = 2342;
     public static final int ID_2343 = 2343;
+    public static final int ID_2344 = 2344;
+    public static final int ID_2345 = 2345;
+    public static final int ID_2346 = 2346;
+    public static final int ID_2347 = 2347;
+    public static final int ID_2348 = 2348;
     public static final int ID_2401 = 2401;
     public static final int ID_2402 = 2402;
     public static final int ID_2403 = 2403;
@@ -223,6 +238,7 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_2438 = 2438;
     public static final int ID_2439 = 2439;
     public static final int ID_2440 = 2440;
+    public static final int ID_2441 = 2441;
     public static final int ID_2501 = 2501;
     public static final int ID_2502 = 2502;
     public static final int ID_2601 = 2601;

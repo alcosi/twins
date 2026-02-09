@@ -4,6 +4,8 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamInt;
+import org.cambium.featurer.params.FeaturerParamRoundingMode;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
@@ -17,6 +19,8 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinClassFieldId;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 @Component
@@ -25,6 +29,20 @@ public class FieldTyperCalcSum extends FieldTyper<FieldDescriptorText, FieldValu
 
     @FeaturerParam(name = "fieldIds", description = "Fields to sum")
     public static final FeaturerParamUUIDSetTwinsTwinClassFieldId fieldIds = new FeaturerParamUUIDSetTwinsTwinClassFieldId("fieldIds");
+
+    @FeaturerParam(name = "Decimal places",
+            description = "Number of decimal places.",
+            optional = true,
+            defaultValue = "2")
+    FeaturerParamInt decimalPlaces = new FeaturerParamInt("decimalPlaces");
+
+    @FeaturerParam(
+            name = "Rounding mode",
+            description = "Rounding mode for decimal scaling",
+            optional = true,
+            defaultValue = "HALF_UP"
+    )
+    FeaturerParamRoundingMode roundingMode = new FeaturerParamRoundingMode("roundingMode");
 
     @Override
     protected FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
@@ -39,15 +57,22 @@ public class FieldTyperCalcSum extends FieldTyper<FieldDescriptorText, FieldValu
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         Kit<TwinFieldSimpleEntity, UUID> twinFieldSimpleKit = twinField.getTwin().getTwinFieldSimpleKit();
         Set<UUID> extractedTwinFields = fieldIds.extract(properties);
-        double totalSum = 0.0;
+        BigDecimal totalSum = BigDecimal.ZERO;
+
         for (UUID twinFieldId : extractedTwinFields) {
-            TwinFieldSimpleEntity twinFieldSimple = twinFieldSimpleKit.get(twinFieldId);
-            if (twinFieldSimple != null) {
-                Double ret = FieldTyperNumeric.parseDoubleValue(twinField.getTwin(), twinFieldId, 0.0);
-                totalSum += ret;
-            }
+            BigDecimal value = FieldTyperNumeric.parseBigDecimalValue(twinField.getTwin(), twinFieldId, BigDecimal.ZERO);
+            totalSum = totalSum.add(value);
         }
 
-        return new FieldValueText(twinField.getTwinClassField()).setValue(String.valueOf(totalSum));
+        // Apply rounding if parameters are specified
+        Integer scale = decimalPlaces.extract(properties);
+        RoundingMode roundingModeParam = roundingMode.extract(properties);
+
+        if (scale != null) {
+            totalSum = totalSum.setScale(scale, roundingModeParam);
+            totalSum = totalSum.stripTrailingZeros();
+        }
+
+        return new FieldValueText(twinField.getTwinClassField()).setValue(totalSum.toPlainString());
     }
 }

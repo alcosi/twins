@@ -13,16 +13,17 @@ import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageCalcSumField;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageCalcSumByHead;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.util.Properties;
+import java.util.Set;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1312,
         name = "Sum children field values (on fly)",
         description = "Get sum of child.fields.values on fly")
-public class FieldTyperCalcChildrenFieldV1 extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumField, TwinFieldSearchNotImplemented> implements FieldTyperCalcChildrenField {
+public class FieldTyperCalcChildrenFieldV1 extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumByHead, TwinFieldSearchNotImplemented> implements FieldTyperCalcChildrenField {
     public static final Integer ID = 1312;
 
     @Autowired
@@ -47,11 +48,12 @@ public class FieldTyperCalcChildrenFieldV1 extends FieldTyper<FieldDescriptorTex
 
     @Override
     public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
-        return new TwinFieldStorageCalcSumField(
+        return new TwinFieldStorageCalcSumByHead(
                 twinFieldSimpleRepository,
                 twinClassFieldEntity.getId(),
-                childrenTwinClassFieldId.extract(properties),
+                Set.of(childrenTwinClassFieldId.extract(properties)),
                 childrenTwinStatusIdList.extract(properties),
+                null,
                 exclude.extract(properties));
     }
 }

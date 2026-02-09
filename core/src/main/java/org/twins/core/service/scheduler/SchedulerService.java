@@ -91,7 +91,7 @@ public class SchedulerService extends EntitySecureFindServiceImpl<SchedulerEntit
 
         List<SchedulerEntity> activeSchedules = schedulerRepository.findAllByActiveTrue();
         for (SchedulerEntity config : activeSchedules) {
-            Properties properties = featurerService.extractProperties(config.getSchedulerFeaturerId(), config.getSchedulerParams(), new HashMap<>());
+            Properties properties = featurerService.extractProperties(config.getSchedulerFeaturerId(), config.getSchedulerParams());
             Scheduler scheduler = featurerService.getFeaturer(config.getSchedulerFeaturerId(), Scheduler.class);
             Runnable schedulerTask = scheduler.getRunnableForScheduling(properties, config);
 
@@ -122,7 +122,7 @@ public class SchedulerService extends EntitySecureFindServiceImpl<SchedulerEntit
             throw new ServiceException(ErrorCodeTwins.SCHEDULER_IS_NOT_ACTIVE);
         }
 
-        Properties properties = featurerService.extractProperties(config.getSchedulerFeaturerId(), config.getSchedulerParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(config.getSchedulerFeaturerId(), config.getSchedulerParams());
         Scheduler scheduler = featurerService.getFeaturer(config.getSchedulerFeaturerId(), Scheduler.class);
         Runnable schedulerTask = scheduler.getRunnableForScheduling(properties, config);
 

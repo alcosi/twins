@@ -19,7 +19,6 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorBoolean;
 import org.twins.core.featurer.fieldtyper.value.FieldValueBoolean;
 import org.twins.core.featurer.params.FeaturerParamStringTwinsCheckboxType;
 
-import java.util.HashMap;
 import java.util.Properties;
 
 @Component
@@ -80,7 +79,7 @@ public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolea
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldSearchBoolean twinFieldSearchBoolean) throws ServiceException {
         TwinClassFieldEntity fieldEntity = twinFieldSearchBoolean.getTwinClassFieldEntity();
-        Properties properties = featurerService.extractProperties(this, fieldEntity.getFieldTyperParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, fieldEntity.getFieldTyperParams());
         Boolean isRequired = fieldEntity.getRequired();
 
         return isRequired

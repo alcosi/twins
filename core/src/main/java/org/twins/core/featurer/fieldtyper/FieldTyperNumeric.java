@@ -21,6 +21,8 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -164,8 +166,31 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
-        return new FieldValueText(twinField.getTwinClassField())
-                .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : null);
+        if (twinFieldEntity == null || twinFieldEntity.getValue() == null) {
+            return new FieldValueText(twinField.getTwinClassField()).setValue(null);
+        }
+
+        String rawValue = twinFieldEntity.getValue();
+        Integer decimalPlacesValue = decimalPlaces.extract(properties);
+        Boolean roundValue = round.extract(properties);
+
+        // Apply rounding if enabled and decimalPlaces is specified
+        if (Boolean.TRUE.equals(roundValue) && decimalPlacesValue != null && decimalPlacesValue >= 0) {
+            try {
+                BigDecimal bd = new BigDecimal(rawValue);
+                // Use HALF_UP as default rounding mode for backward compatibility
+                bd = bd.setScale(decimalPlacesValue, RoundingMode.HALF_UP);
+                // Strip trailing zeros to keep clean representation
+                bd = bd.stripTrailingZeros();
+                return new FieldValueText(twinField.getTwinClassField()).setValue(bd.toPlainString());
+            } catch (NumberFormatException e) {
+                // If value cannot be parsed as BigDecimal, return as-is
+                log.warn("FieldTyperNumeric: value[{}] cannot be parsed as BigDecimal, returning raw value", rawValue);
+                return new FieldValueText(twinField.getTwinClassField()).setValue(rawValue);
+            }
+        }
+
+        return new FieldValueText(twinField.getTwinClassField()).setValue(rawValue);
     }
 
     @Override
@@ -182,6 +207,20 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
                 }
             } catch (NumberFormatException e) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, field.easyLog(EasyLoggable.Level.NORMAL) + " value[" + field.getValue() + "] can't be parsed to double");
+            }
+        }
+        return defaultValue;
+    }
+
+    public static BigDecimal parseBigDecimalValue(TwinEntity twin, UUID fieldId, BigDecimal defaultValue) throws ServiceException {
+        if (twin.getTwinFieldSimpleKit() != null && twin.getTwinFieldSimpleKit().containsKey(fieldId)) {
+            TwinFieldSimpleEntity field = twin.getTwinFieldSimpleKit().get(fieldId);
+            try {
+                if (field.getValue() != null) {
+                    return new BigDecimal(field.getValue());
+                }
+            } catch (NumberFormatException e) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, field.easyLog(EasyLoggable.Level.NORMAL) + " value[" + field.getValue() + "] can't be parsed to BigDecimal");
             }
         }
         return defaultValue;

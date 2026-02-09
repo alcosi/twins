@@ -74,6 +74,21 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
             FROM twin_link tl
             JOIN twin src ON tl.src_twin_id = src.id
             JOIN twin dst ON tl.dst_twin_id = dst.id
+            WHERE tl.link_id IN :linkIds
+              AND EXISTS (
+                SELECT 1 FROM twin h
+                WHERE h.id IN :hierarchyTwinIds
+                  AND src.hierarchy_tree <@ h.hierarchy_tree
+                  AND dst.hierarchy_tree <@ h.hierarchy_tree
+            )
+            """, nativeQuery = true)
+    Set<TwinLinkEntity> findAllWithinHierarchiesAndLinkIdIn(@Param("hierarchyTwinIds") Collection<UUID> hierarchyTwinIds, @Param("linkIds") Collection<UUID> linkIds);
+
+    @Query(value = """
+            SELECT tl.*
+            FROM twin_link tl
+            JOIN twin src ON tl.src_twin_id = src.id
+            JOIN twin dst ON tl.dst_twin_id = dst.id
             WHERE src.twin_status_id IN :twinStatusIds
               AND dst.twin_status_id IN :twinStatusIds
               AND EXISTS (
@@ -84,4 +99,21 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
               )
             """, nativeQuery = true)
     Set<TwinLinkEntity> findAllWithinHierarchiesAndTwinsInStatusIds(@Param("hierarchyTwinIds") Collection<UUID> hierarchyTwinIds, @Param("twinStatusIds") Collection<UUID> twinStatusIds);
+
+    @Query(value = """
+            SELECT tl.*
+            FROM twin_link tl
+            JOIN twin src ON tl.src_twin_id = src.id
+            JOIN twin dst ON tl.dst_twin_id = dst.id
+            WHERE src.twin_status_id IN :twinStatusIds
+              AND dst.twin_status_id IN :twinStatusIds
+              AND tl.link_id in :linkIds
+              AND EXISTS (
+                  SELECT 1 FROM twin h
+                  WHERE h.id IN :hierarchyTwinIds
+                    AND src.hierarchy_tree <@ h.hierarchy_tree
+                    AND dst.hierarchy_tree <@ h.hierarchy_tree
+              )
+            """, nativeQuery = true)
+    Set<TwinLinkEntity> findAllWithinHierarchiesAndLinkIdInAndTwinsInStatusIds(@Param("hierarchyTwinIds") Collection<UUID> hierarchyTwinIds, @Param("linkIds") Collection<UUID> linkIds, @Param("twinStatusIds") Collection<UUID> twinStatusIds);
 }

@@ -827,6 +827,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         UUID inbuiltTwinFactoryId = transitionContext.getTransitionEntity().getInbuiltTwinFactoryId();
         FactoryBranchId factoryBranchId = FactoryBranchId.root(inbuiltTwinFactoryId);
         FactoryContext factoryContext = new FactoryContext(FactoryLauncher.transition, factoryBranchId)
+                .setRequestId(authService.getApiUser().getRequestId())
                 .setInputTwinList(transitionContext.getTargetTwinList().values())
                 .setFields(transitionContext.getFields())
                 .setAttachmentCUD(transitionContext.getAttachmentCUD())

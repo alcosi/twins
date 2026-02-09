@@ -11,6 +11,8 @@ import java.util.UUID;
 public class FactoryConditionSetSearch {
    Set<UUID> idList;
    Set<UUID> idExcludeList;
+   Set<UUID> twinFactoryIdList;
+   Set<UUID> twinFactoryIdExcludeList;
    Set<String> nameLikeList;
    Set<String> nameNotLikeList;
    Set<String> descriptionLikeList;

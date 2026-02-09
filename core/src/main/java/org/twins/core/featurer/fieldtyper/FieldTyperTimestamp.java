@@ -14,7 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldSimpleEntity;
+import org.twins.core.dao.twin.TwinFieldTimestampEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
@@ -22,8 +22,10 @@ import org.twins.core.domain.search.TwinFieldSearchDate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorDate;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTimestamp;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -33,15 +35,20 @@ import java.util.Properties;
 
 @Component
 @Slf4j
-@Featurer(id = FeaturerTwins.ID_1302, name = "Date", description = "")
-public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, FieldValueDate, TwinFieldSearchDate> {
-    @FeaturerParam(name = "Pattern", description = "pattern for date value")
+@Featurer(
+        id = FeaturerTwins.ID_1302,
+        name = "Timestamp",
+        description = "Timestamp field with dedicated table storage"
+)
+public class FieldTyperTimestamp extends FieldTyper<FieldDescriptorDate, FieldValueDate, TwinFieldStorageTimestamp, TwinFieldSearchDate> {
+
+    @FeaturerParam(name = "Pattern", description = "pattern for timestamp value", optional = true, defaultValue = "yyyy-MM-dd'T'HH:mm:ss")
     public static final FeaturerParamString pattern = new FeaturerParamString("pattern");
 
-    @FeaturerParam(name = "HoursPast", description = "number of hours in the past", optional = true, defaultValue = "-1")
+    @FeaturerParam(name = "HoursPast", description = "max hours in the past", optional = true, defaultValue = "-1")
     public static final FeaturerParamInt hoursPast = new FeaturerParamInt("hoursPast");
 
-    @FeaturerParam(name = "HoursFuture", description = "number of hours in the futures", optional = true, defaultValue = "-1")
+    @FeaturerParam(name = "HoursFuture", description = "max hours in the future", optional = true, defaultValue = "-1")
     public static final FeaturerParamInt hoursFuture = new FeaturerParamInt("hoursFuture");
 
     @Override
@@ -56,23 +63,42 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    protected void serializeValue(Properties properties, TwinEntity twin, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         //todo refactor me
         if (value.isUndefined())
             return;
-        else if (value.isNotEmpty()) {
-            LocalDateTime localDateTime = parseDateTime(value.getDateStr(), properties);
-            value.setDate(localDateTime, formatDate(localDateTime, properties));
-        } else { // isCleared
-            value.setDateStr("");
+        else if (value.isFilled()) {
+            var localDateTime = parseDateTime(value.getDateStr(), properties);
+            value.setDate(localDateTime);
+            value.setDateStr(formatDate(localDateTime, properties));
         }
-        detectValueChange(twinFieldEntity, twinChangesCollector, value.getDateStr());
+
+        var twinFieldTimestampEntity = convertToTwinFieldTimestampEntity(twin, value.getTwinClassField());
+
+        if (twinFieldTimestampEntity == null && value.isFilled()) {
+            // create field
+            twinFieldTimestampEntity = twinService.createTwinFieldTimestampEntity(twin, value.getTwinClassField(), null);
+            twinChangesCollector.add(twinFieldTimestampEntity);
+            detectValueChange(twinFieldTimestampEntity, twinChangesCollector, Timestamp.valueOf(value.getDate()));
+        } else if (twinFieldTimestampEntity != null && !value.isFilled()) {
+            // delete field
+            twinChangesCollector.delete(twinFieldTimestampEntity);
+            addHistoryContext(twinChangesCollector,  twinFieldTimestampEntity, null);
+        } else if (twinFieldTimestampEntity != null && value.isFilled()) {
+            // update field
+            twinChangesCollector.add(twinFieldTimestampEntity);
+            detectValueChange(twinFieldTimestampEntity, twinChangesCollector, Timestamp.valueOf(value.getDate()));
+        }
     }
 
     @Override
-    protected FieldValueDate deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) throws ServiceException {
-        FieldValueDate fieldValueDate = new FieldValueDate(twinField.getTwinClassField());
-        var dateStr = twinFieldEntity != null && !StringUtils.isEmpty(twinFieldEntity.getValue()) ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : null;
+    protected FieldValueDate deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
+        var twinFieldEntity = convertToTwinFieldTimestampEntity(twinField.getTwin(), twinField.getTwinClassField());
+
+        var fieldValueDate = new FieldValueDate(twinField.getTwinClassField());
+        var dateStr = twinFieldEntity != null && twinFieldEntity.getValue() != null
+                        ? formatDate(twinFieldEntity.getValue().toLocalDateTime(), properties)
+                        : null;
         if (dateStr != null) {
             fieldValueDate.setDate(parseDateTime(dateStr, properties),dateStr);
         } else
@@ -80,17 +106,9 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
         return fieldValueDate;
     }
 
-    public String validDateOrEmpty(String dateStr, Properties properties) {
-        if (GenericValidator.isDate(dateStr, pattern.extract(properties), false)) {
-            return dateStr;
-        }
-        log.warn("Value[{}] does not match expected format[{}]", dateStr, pattern.extract(properties));
-        return "";
-    }
-
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldSearchDate search) {
-        return TwinSpecification.checkFieldDate(search);
+        return TwinSpecification.checkFieldTimestamp(search);
     }
 
     private LocalDateTime parseDateTime(String value, Properties properties) throws ServiceException {
@@ -124,14 +142,14 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " date[" + value + "] does not match pattern[" + datePattern + "]");
             LocalDateTime localDateTime = parseDateTime(dateValue, properties);
             LocalDateTime now = LocalDateTime.now();
-            Integer minHours = FieldTyperDateScroll.hoursPast.extract(properties);
+            Integer minHours = hoursPast.extract(properties);
             if (minHours != null && minHours >= 0) {
                 LocalDateTime minDate = now.minusHours(minHours);
                 if (localDateTime.isBefore(minDate)) {
                     throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Date value [" + localDateTime + "] is more than " + minHours + " hours in the past");
                 }
             }
-            Integer maxHours = FieldTyperDateScroll.hoursFuture.extract(properties);
+            Integer maxHours = hoursFuture.extract(properties);
             if (maxHours != null && maxHours >= 0) {
                 LocalDateTime maxDate = now.plusHours(maxHours);
                 if (localDateTime.isAfter(maxDate)) {
@@ -142,5 +160,31 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
             result = new ValidationResult(false, i18nService.translateToLocale(value.getTwinClassField().getBeValidationErrorI18nId()));
         }
         return result;
+    }
+
+    private void detectValueChange(TwinFieldTimestampEntity twinFieldTimestampEntity, TwinChangesCollector twinChangesCollector, Timestamp newValue) {
+        if (twinChangesCollector.collectIfChanged(twinFieldTimestampEntity, "field[" + twinFieldTimestampEntity.getTwinClassField().getKey() + "]", twinFieldTimestampEntity.getValue(), newValue)) {
+            addHistoryContext(twinChangesCollector, twinFieldTimestampEntity, newValue);
+            twinFieldTimestampEntity.setValue(newValue);
+        }
+    }
+
+    private void addHistoryContext(TwinChangesCollector twinChangesCollector, TwinFieldTimestampEntity twinFieldTimestampEntity, Timestamp newValue) {
+        if (twinChangesCollector.isHistoryCollectorEnabled()) {
+            twinChangesCollector
+                    .getHistoryCollector(twinFieldTimestampEntity.getTwin())
+                    .add(
+                            historyService.fieldChangeTimestamp(
+                                    twinFieldTimestampEntity.getTwinClassField(),
+                                    twinFieldTimestampEntity.getValue(),
+                                    newValue
+                            )
+                    );
+        }
+    }
+
+    private TwinFieldTimestampEntity convertToTwinFieldTimestampEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        twinService.loadTwinFields(twinEntity);
+        return twinEntity.getTwinFieldTimestampKit().get(twinClassFieldEntity.getId());
     }
 }

@@ -20,14 +20,12 @@ import static org.cambium.common.util.SpecificationUtils.getPredicate;
 @Slf4j
 public class TwinClassSpecification extends CommonSpecification<TwinClassEntity> {
 
-    public static <T> Specification<T> checkExtendsTwinClassChildren(Collection<UUID> ids, boolean not,
-                                                                     boolean includeNullValues, Integer depthLimit, final String... twinClassFieldPath) {
-        return checkHierarchyChildren(ids, not, includeNullValues, depthLimit, ArrayUtils.concatArray(twinClassFieldPath, TwinClassEntity.Fields.extendsHierarchyTree));
+    public static <T> Specification<T> checkExtendsTwinClassChildren(Collection<UUID> ids, boolean not, Integer depthLimit, final String... twinClassFieldPath) {
+        return checkHierarchyChildren(ids, not, depthLimit, ArrayUtils.concatArray(twinClassFieldPath, TwinClassEntity.Fields.extendsHierarchyTree));
     }
 
-    public static <T> Specification<T> checkHeadTwinClassChildren(Collection<UUID> ids, boolean not,
-                                                                  boolean includeNullValues, Integer depthLimit, final String... twinClassFieldPath) {
-        return checkHierarchyChildren(ids, not, includeNullValues, depthLimit, ArrayUtils.concatArray(twinClassFieldPath, TwinClassEntity.Fields.headHierarchyTree));
+    public static <T> Specification<T> checkHeadTwinClassChildren(Collection<UUID> ids, boolean not, Integer depthLimit, final String... twinClassFieldPath) {
+        return checkHierarchyChildren(ids, not, depthLimit, ArrayUtils.concatArray(twinClassFieldPath, TwinClassEntity.Fields.headHierarchyTree));
     }
 
 

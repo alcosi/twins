@@ -209,6 +209,7 @@ public class SystemEntityService {
                     .setAssigneeRequired(systemClass.assigneeRequired)
                     .setSegment(false)
                     .setHasSegment(false)
+                    .setUniqueName(false)
                     .setCreatedAt(Timestamp.from(Instant.now()));
             entitySmartService.save(twinClassEntity.getId(), twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndLogOnException);
 
