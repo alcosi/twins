@@ -21,7 +21,7 @@ public class FieldValueDate extends FieldValueStated {
     }
 
     public FieldValueDate setDateStr(String newValue) {
-        if (newValue == null) {
+        if (StringUtils.isEmpty(newValue)) {
             this.dateStr = null;
             this.date = null;
             this.state = State.CLEARED;
@@ -34,7 +34,7 @@ public class FieldValueDate extends FieldValueStated {
     }
 
     public FieldValueDate setDate(LocalDateTime date, String newValue) {
-        if (newValue == null) {
+        if (StringUtils.isEmpty(newValue)) {
             this.dateStr = null;
             this.date = null;
             this.state = State.CLEARED;
