@@ -21,6 +21,6 @@ public class FactoryConditionSetSaveDTOv1 {
     public String description;
 
     @Schema(description = "twin factory id")
-    private UUID twinFactoryId;
+    public UUID twinFactoryId;
 
 }
