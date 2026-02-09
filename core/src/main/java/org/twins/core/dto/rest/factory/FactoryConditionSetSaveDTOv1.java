@@ -20,7 +20,7 @@ public class FactoryConditionSetSaveDTOv1 {
     @Schema(description = "description", example = DTOExamples.DESCRIPTION)
     public String description;
 
-    @Schema(name = "twin factory id")
-    private UUID twinFactoryId;
+    @Schema(description = "twin factory id")
+    public UUID twinFactoryId;
 
 }
