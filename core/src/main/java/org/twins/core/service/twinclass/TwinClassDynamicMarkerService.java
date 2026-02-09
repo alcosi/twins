@@ -72,6 +72,7 @@ public class TwinClassDynamicMarkerService extends EntitySecureFindServiceImpl<T
         return StreamSupport.stream(entityRepository().saveAll(dynamicMarkers).spliterator(), false).toList();
     }
 
+    @Transactional(rollbackFor = Throwable.class)
     public List<TwinClassDynamicMarkerEntity> updateTwinClassDynamicMarkerList(Collection<TwinClassDynamicMarkerEntity> dynamicMarkers) throws ServiceException {
         if (CollectionUtils.isEmpty(dynamicMarkers)) {
             return Collections.emptyList();
