@@ -39,7 +39,7 @@ public class FieldTyperSelect extends FieldTyperList {
         // TODO maybe need to get BAiD at apiUser
         UUID datalistId = dataListId.extract(properties);
         boolean supportCustomValue = supportCustom.extract(properties);
-        dataListOptionService.processIncompleteOptions(datalistId, value.getOptions(), twin.getOwnerBusinessAccountId(), supportCustomValue);
+        dataListOptionService.processIncompleteOptions(datalistId, value.getItems(), twin.getOwnerBusinessAccountId(), supportCustomValue);
         super.serializeValue(properties, twin, value, twinChangesCollector);
     }
 
