@@ -18,7 +18,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 @MapperModeBinding(modes = {TwinClassDynamicMarkerMode.class})
 public class TwinClassDynamicMarkerDTOMapper extends RestSimpleDTOMapper<TwinClassDynamicMarkerEntity, TwinClassDynamicMarkerDTOv1> {
 
-    @MapperModePointerBinding(modes = {TwinClassMode.TwinClassDynamicMarkerMode2TwinClassMode.class})
+    @MapperModePointerBinding(modes = {TwinClassMode.TwinClassDynamicMarker2TwinClassMode.class})
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @Override
@@ -40,9 +40,9 @@ public class TwinClassDynamicMarkerDTOMapper extends RestSimpleDTOMapper<TwinCla
                 break;
         }
 
-        if (mapperContext.hasModeButNot(TwinClassMode.TwinClassDynamicMarkerMode2TwinClassMode.HIDE)) {
+        if (mapperContext.hasModeButNot(TwinClassMode.TwinClassDynamicMarker2TwinClassMode.HIDE)) {
             dst.setTwinClassId(src.getTwinClassId());
-            twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinClassDynamicMarkerMode2TwinClassMode.SHORT));
+            twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinClassDynamicMarker2TwinClassMode.SHORT));
         }
     }
 }
