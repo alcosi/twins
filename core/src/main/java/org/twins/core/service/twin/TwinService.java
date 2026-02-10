@@ -1246,7 +1246,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueColorHEX.class)
             fieldValue = new FieldValueColorHEX(twinClassFieldEntity);
         if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueDate.class)
-            fieldValue = new FieldValueDate(twinClassFieldEntity);
+            fieldValue = new FieldValueDate(twinClassFieldEntity, twinClassFieldService.getDateFieldPattern(twinClassFieldEntity));
         if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueSelect.class)
             fieldValue = new FieldValueSelect(twinClassFieldEntity);
         if (fieldTyper.getValueType(twinClassFieldEntity) == FieldValueUser.class)
@@ -1288,7 +1288,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (fieldValue instanceof FieldValueColorHEX fieldValueColorHEX)
             fieldValueColorHEX.setValue(value);
         if (fieldValue instanceof FieldValueDate fieldValueDate)
-            fieldValueDate.setDateStr(value);
+            fieldValueDate.setDate(value);
         if (fieldValue instanceof FieldValueBoolean fieldValueBoolean)
             fieldValueBoolean.setValue(Boolean.parseBoolean(value));
         if (fieldValue instanceof FieldValueAttachment fieldValueAttachment) {

@@ -16,6 +16,8 @@ INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated
 VALUES (5307, 53, '', '', '', false) ON CONFLICT (id) DO NOTHING;
 INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
 VALUES (5308, 53, '', '', '', false) ON CONFLICT (id) DO NOTHING;
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated)
+VALUES (5309, 53, '', '', '', false) ON CONFLICT (id) DO NOTHING;
 
 ALTER TABLE IF EXISTS twin_class_field
     ADD COLUMN IF NOT EXISTS field_initializer_featurer_id int,

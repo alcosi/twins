@@ -1,15 +1,11 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.validator.GenericValidator;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
-import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
@@ -26,11 +22,7 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTimestamp;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.Properties;
 
 @Component
@@ -40,10 +32,7 @@ import java.util.Properties;
         name = "Timestamp",
         description = "Timestamp field with dedicated table storage"
 )
-public class FieldTyperTimestamp extends FieldTyper<FieldDescriptorDate, FieldValueDate, TwinFieldStorageTimestamp, TwinFieldSearchDate> {
-
-    @FeaturerParam(name = "Pattern", description = "pattern for timestamp value", optional = true, defaultValue = "yyyy-MM-dd'T'HH:mm:ss")
-    public static final FeaturerParamString pattern = new FeaturerParamString("pattern");
+public class FieldTyperTimestamp extends FieldTyper<FieldDescriptorDate, FieldValueDate, TwinFieldStorageTimestamp, TwinFieldSearchDate> implements FieldTyperDateTime{
 
     @FeaturerParam(name = "HoursPast", description = "max hours in the past", optional = true, defaultValue = "-1")
     public static final FeaturerParamInt hoursPast = new FeaturerParamInt("hoursPast");
@@ -66,10 +55,6 @@ public class FieldTyperTimestamp extends FieldTyper<FieldDescriptorDate, FieldVa
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (value.isUndefined())
             return;
-        else if (value.isNotEmpty()) {
-            var localDateTime = parseDateTime(value.getDateStr(), properties);
-            value.setDate(localDateTime, formatDate(localDateTime, properties));
-        }
 
         var twinFieldTimestampEntity = convertToTwinFieldTimestampEntity(twin, value.getTwinClassField());
 
@@ -92,13 +77,9 @@ public class FieldTyperTimestamp extends FieldTyper<FieldDescriptorDate, FieldVa
     @Override
     protected FieldValueDate deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         var twinFieldEntity = convertToTwinFieldTimestampEntity(twinField.getTwin(), twinField.getTwinClassField());
-
-        var fieldValueDate = new FieldValueDate(twinField.getTwinClassField());
-        var dateStr = twinFieldEntity != null && twinFieldEntity.getValue() != null
-                        ? formatDate(twinFieldEntity.getValue().toLocalDateTime(), properties)
-                        : null;
-        if (dateStr != null) {
-            fieldValueDate.setDate(parseDateTime(dateStr, properties),dateStr);
+        var fieldValueDate = new FieldValueDate(twinField.getTwinClassField(), pattern.extract(properties));
+        if (twinFieldEntity != null && twinFieldEntity.getValue() != null) {
+            fieldValueDate.setDate(twinFieldEntity.getValue().toLocalDateTime());
         } else
             fieldValueDate.undefine();
         return fieldValueDate;
@@ -109,36 +90,11 @@ public class FieldTyperTimestamp extends FieldTyper<FieldDescriptorDate, FieldVa
         return TwinSpecification.checkFieldTimestamp(search);
     }
 
-    private LocalDateTime parseDateTime(String value, Properties properties) throws ServiceException {
-        String patternStr = pattern.extract(properties);
-        SimpleDateFormat formatter = new SimpleDateFormat(patternStr);
-        formatter.setLenient(false);
-        try {
-            return formatter.parse(value).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-        } catch (ParseException var6) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Value [" + value + "] is not a valid datetime in format " + patternStr);
-        }
-    }
-
-    private String formatDate(LocalDateTime dateTime, Properties properties) {
-        String patternStr = pattern.extract(properties);
-        SimpleDateFormat formatter = new SimpleDateFormat(patternStr);
-        formatter.setLenient(false);
-        Date date = Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
-        return formatter.format(date);
-    }
-
     @Override
     public ValidationResult validate(Properties properties, TwinEntity twin, FieldValueDate value) {
-        String datePattern = pattern.extract(properties);
         ValidationResult result = new ValidationResult(true);
         try {
-            String dateValue = value.getDateStr();
-            if (StringUtils.isEmpty(dateValue) && !value.getTwinClassField().getRequired())
-                return result;
-            if (!GenericValidator.isDate(dateValue, datePattern, false))
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " date[" + value + "] does not match pattern[" + datePattern + "]");
-            LocalDateTime localDateTime = parseDateTime(dateValue, properties);
+            LocalDateTime localDateTime = value.getDate();
             LocalDateTime now = LocalDateTime.now();
             Integer minHours = hoursPast.extract(properties);
             if (minHours != null && minHours >= 0) {
