@@ -10,10 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.ValidationResult;
-import org.cambium.common.exception.ErrorCodeCommon;
-import org.cambium.common.exception.ServiceException;
-import org.cambium.common.exception.TwinBatchFieldValidationException;
-import org.cambium.common.exception.TwinFieldValidationException;
+import org.cambium.common.exception.*;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.kit.KitGroupedObj;
@@ -28,6 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
+import org.twins.core.dao.error.ErrorEntity;
+import org.twins.core.dao.error.ErrorRepository;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -131,6 +130,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private CommentService commentService;
     @Autowired
     private TwinSearchService twinSearchService;
+    @Lazy
+    @Autowired
+    private ErrorRepository errorRepository;
+
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
         Map<UUID, List<TwinEntity>> ret = new HashMap<>();
@@ -404,7 +407,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         createTwinEntity(twinCreate, twinChangesCollector);
         intFields(twinEntity, twinCreate.getFields());
         runFactoryOnCreate(twinCreate);
-        validateFields(twinEntity, twinCreate.getFields());
+        validateFields(twinEntity, twinCreate.getFields(), true);
         saveTwinFields(twinEntity, twinCreate.getFields(), twinChangesCollector);
         if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
             attachmentService.checkAndSetAttachmentTwin(twinCreate.getAttachmentEntityList(), twinEntity);
@@ -745,7 +748,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinChangesRecorder.hasChanges())
             twinChangesCollector.add(twinChangesRecorder.getRecorder());
         if (MapUtils.isNotEmpty(twinUpdate.getFields())) {
-            validateFields(twinUpdate.getDbTwinEntity(), twinUpdate.getFields());
+            validateFields(twinUpdate.getDbTwinEntity(), twinUpdate.getFields(), false);
             updateTwinFields(twinChangesRecorder.getDbEntity(), twinUpdate.getFields().values().stream().toList(), twinChangesCollector);
         }
         attachmentService.cudAttachments(twinUpdate.getDbTwinEntity(), twinUpdate.getAttachmentCUD(), twinChangesCollector);
@@ -1639,17 +1642,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinCreate.isSketchMode()) {
             setInitSketchStatus(twinCreate.getTwinEntity());
         }
-        validateFields(twinCreate.getTwinEntity(), twinCreate.getFields());
+        validateFields(twinCreate.getTwinEntity(), twinCreate.getFields(), false);
     }
 
-    public void validateFields(TwinEntity twinEntity, Map<UUID, FieldValue> fields) throws ServiceException {
+    public void validateFields(TwinEntity twinEntity, Map<UUID, FieldValue> fields, boolean checkRequired) throws ServiceException {
         if (twinEntity.getTwinClass() == null) {
             twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
         }
         twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
         Map<UUID, String> invalidFieldIds = new HashMap<>();
         for (TwinClassFieldEntity twinClassFieldEntity : twinEntity.getTwinClass().getTwinClassFieldKit().getCollection()) {
-            ValidationResult validationResult = validateField(twinEntity, fields, twinClassFieldEntity);
+            ValidationResult validationResult = validateField(twinEntity, fields, twinClassFieldEntity, checkRequired);
             if (!validationResult.isValid()) {
                 invalidFieldIds.put(twinClassFieldEntity.getId(), validationResult.getMessage());
             }
@@ -1659,11 +1662,18 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
-    private ValidationResult validateField(TwinEntity twinEntity, Map<UUID, FieldValue> fields, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+    private ValidationResult validateField(TwinEntity twinEntity, Map<UUID, FieldValue> fields, TwinClassFieldEntity twinClassFieldEntity, boolean checkRequired) throws ServiceException {
         Optional<FieldValue> fieldValue = getFieldValueSafe(twinEntity, fields, twinClassFieldEntity);
-        //todo check for required field (for sketch)
-        if (fieldValue.isEmpty())
-            return new ValidationResult(true);
+        if (fieldValue.isEmpty()) {
+            if (checkRequired
+                    && !twinEntity.isSketch() // check required for non-sketch twins
+                    && twinClassFieldEntity.getRequired()) {
+                log.error("{} is required", twinClassFieldEntity.logNormal());
+                return new ValidationResult(false, getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinClassFieldEntity));
+            } else {
+                return new ValidationResult(true);
+            }
+        }
         FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
         return fieldTyper.validate(twinEntity, fieldValue.get());
     }
@@ -1694,6 +1704,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (var twin : needLoad) {
             twin.setTwinClass(items.get(twin.getTwinClassId()));
         }
+    }
+
+    public String getErrorMessage(ErrorCode errorCode, TwinClassFieldEntity twinClassField) throws ServiceException {
+        Hashtable<String, String> context = new Hashtable<>();
+        context.put("field.name", i18nService.translateToLocale(twinClassField.getNameI18nId())); //todo think over batch load
+        //todo change to errorService call also think over errorCode to twinClassField mapping
+        ErrorEntity errorEntity = errorRepository.findByErrorCodeLocal(errorCode.getCode());
+        if (errorEntity != null)
+            return i18nService.translateToLocale(errorEntity.getClientMsgI18nId(), context);
+        else
+            return errorCode.getMessage();
     }
 
 }
