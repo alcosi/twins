@@ -104,19 +104,4 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
          }
          return null;
     }
-
-    public static <T, E extends Enum<E>> List<T> filterByEnum(Collection<T> items, Function<T, E> getter, E targetValue) {
-        return items.stream()
-                .filter(item -> getter.apply(item) == targetValue)
-                .toList();
-    }
-
-    public static <T, E extends Enum<E>> void validateByEnumWithException(Collection<T> items, Function<T, E> getter, E targetValue) throws ServiceException {
-        List<T> filtered = CollectionUtils.filterByEnum(items, getter, targetValue);
-
-        if (!filtered.isEmpty()) {
-            EasyLoggable firstInvalidItem = (EasyLoggable) filtered.getFirst();
-            throw new ServiceException(ErrorCodeTwins.RECURSIVE_LOAD_DETECTED, "Cannot load recursively for " + firstInvalidItem.logShort());
-        }
-    }
 }
