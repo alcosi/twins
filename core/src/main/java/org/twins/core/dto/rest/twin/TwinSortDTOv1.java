@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.twin;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.enums.SortDirection;
 
 import java.util.UUID;
 
@@ -14,5 +15,5 @@ public class TwinSortDTOv1 {
     private UUID twinClassFieldId;
 
     @Schema(description = "Sort direction: ASC or DESC")
-    private SortDirectionDTOv1 direction;
+    private SortDirection direction;
 }

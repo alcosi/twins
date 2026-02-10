@@ -2,9 +2,8 @@ package org.twins.core.mappers.rest.twin;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.hibernate.query.SortDirection;
 import org.twins.core.domain.search.TwinSort;
-import org.twins.core.dto.rest.twin.SortDirectionDTOv1;
+import org.twins.core.enums.SortDirection;
 import org.twins.core.dto.rest.twin.TwinSortDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -20,10 +19,10 @@ public class TwinSortDTOReverseMapper extends RestSimpleDTOMapper<TwinSortDTOv1,
                 .setDirection(toSortDirection(src.getDirection()));
     }
 
-    private static SortDirection toSortDirection(SortDirectionDTOv1 dto) {
+    private static org.hibernate.query.SortDirection toSortDirection(SortDirection dto) {
         if (dto == null) {
             return null;
         }
-        return dto == SortDirectionDTOv1.DESC ? SortDirection.DESCENDING : SortDirection.ASCENDING;
+        return dto == SortDirection.DESC ? org.hibernate.query.SortDirection.DESCENDING : org.hibernate.query.SortDirection.ASCENDING;
     }
 }
