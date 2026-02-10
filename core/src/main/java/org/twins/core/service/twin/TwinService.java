@@ -444,6 +444,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             fields.put(twinClassFieldEntity.getId(), fieldValue);
         }
         var fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
+        //If field is already initiated this will be checked later.
+        //In some cases, we need to force rewrite value with some defaults. This logic can be done in FieldInitializer
         fieldTyper.initializeField(twinEntity, fieldValue);
     }
 

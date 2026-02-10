@@ -118,10 +118,6 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         if (value.isUndefined()) {
             //let's try to init field
             initializeField(twin, value);
-            if (value.isUndefined()) {
-                log.info("{} is undefined, can not serialize", value.getTwinClassField().logNormal());
-                return;
-            }
         }
         if (value.isCleared()) {
             //todo some common clear logic
@@ -129,6 +125,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
             if (!validate(twin, value).isValid()) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, "Can not serialize invalid value for " + value.getTwinClassField().logNormal());
             }
+        }
+        if (value.isUndefined()) {
+            log.info("{} is undefined, serialization will be skipped", value.getTwinClassField().logNormal());
+            return;
         }
         serializeValue(properties, twin, value, twinChangesCollector);
     }

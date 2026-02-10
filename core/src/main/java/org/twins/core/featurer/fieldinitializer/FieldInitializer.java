@@ -44,7 +44,7 @@ public abstract class FieldInitializer<D extends FieldDescriptor, T extends Fiel
 
     public void setInitValue(TwinEntity twin, T value, boolean reinitForce) throws ServiceException {
         if (!valueType.isInstance(value)) {
-            throw new ServiceException(ErrorCodeTwins.CONFIGURATION_IS_INVALID, "{} incorrect value type", value.getTwinClassField().logNormal());
+            throw new ServiceException(ErrorCodeTwins.CONFIGURATION_IS_INVALID, "{} incompatible field initiator value type", value.getTwinClassField().logNormal());
         }
         if (value.isAlreadyInitialized())
             return;
