@@ -25,9 +25,7 @@ public class FieldValueAliases extends FieldValueCollectionImmutable<TwinAliasEn
     }
 
     @Override
-    public FieldValueAliases clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        FieldValueAliases clone = new FieldValueAliases(newTwinClassFieldEntity);
-        clone.setItems(this.collection);
-        return clone;
+    public FieldValueAliases newInstance(TwinClassFieldEntity newTwinClassFieldEntity) {
+        return new FieldValueAliases(newTwinClassFieldEntity);
     }
 }

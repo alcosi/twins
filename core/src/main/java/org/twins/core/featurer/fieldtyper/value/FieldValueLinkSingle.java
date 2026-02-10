@@ -25,9 +25,7 @@ public class FieldValueLinkSingle extends FieldValueItem<TwinEntity> {
         return TwinEntity::getId;
     }
 
-    public FieldValueLinkSingle clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        FieldValueLinkSingle clone = new FieldValueLinkSingle(newTwinClassFieldEntity);
-        clone.setValue(this.value);
-        return clone;
+    public FieldValueLinkSingle newInstance(TwinClassFieldEntity newTwinClassFieldEntity) {
+        return new FieldValueLinkSingle(newTwinClassFieldEntity);
     }
 }

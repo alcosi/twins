@@ -21,11 +21,8 @@ public class FieldValueAttachment extends FieldValueStated {
     }
 
     @Override
-    public FieldValueAttachment clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        FieldValueAttachment clone = new FieldValueAttachment(newTwinClassFieldEntity);
-        clone.setName(name);
-        clone.setBase64Content(base64Content);
-        return clone;
+    public FieldValueAttachment newInstance(TwinClassFieldEntity newTwinClassFieldEntity) {
+        return new FieldValueAttachment(newTwinClassFieldEntity);
     }
 
     @Override
@@ -34,9 +31,10 @@ public class FieldValueAttachment extends FieldValueStated {
     }
 
     @Override
-    public void copyValueFrom(FieldValue src) {
-        name = ((FieldValueAttachment) src).getName();
-        base64Content = ((FieldValueAttachment) src).getBase64Content();
+    public void copyValueTo(FieldValueStated dst) {
+        var dstValue = (FieldValueAttachment) dst;
+        dstValue.name = name;
+        dstValue.base64Content = base64Content;
     }
 
     @Override

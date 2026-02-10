@@ -23,11 +23,8 @@ public class FieldValueLink extends FieldValueCollection<TwinLinkEntity> {
     }
 
     @Override
-    public FieldValueLink clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        FieldValueLink clone = new FieldValueLink(newTwinClassFieldEntity);
-        clone.setForwardLink(this.forwardLink);
-        clone.setItems(this.collection);
-        return clone;
+    public FieldValueLink newInstance(TwinClassFieldEntity newTwinClassFieldEntity) {
+        return new FieldValueLink(newTwinClassFieldEntity);
     }
 
     @Override
@@ -36,8 +33,9 @@ public class FieldValueLink extends FieldValueCollection<TwinLinkEntity> {
     }
 
     @Override
-    public void copyValueFrom(FieldValue src) {
-        forwardLink = ((FieldValueLink) src).forwardLink;
-        setItems(((FieldValueLink) src).getItems());
+    public void copyValueTo(FieldValue dst) {
+        super.copyValueTo(dst);
+        var dstValue = (FieldValueLink) dst;
+        dstValue.forwardLink = forwardLink;
     }
 }

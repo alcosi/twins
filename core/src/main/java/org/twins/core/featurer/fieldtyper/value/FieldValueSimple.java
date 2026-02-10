@@ -27,15 +27,14 @@ public abstract class FieldValueSimple<T> extends FieldValueStated {
         super(twinClassField);
     }
 
-
     @Override
     public boolean hasValue(String value) {
         return StringUtils.equals(this.value != null ? this.value.toString() : null, value); //todo
     }
 
     @Override
-    public void copyValueFrom(FieldValue src) {
-        value = (T) ((FieldValueSimple) src).getValue();
+    public void copyValueTo(FieldValueStated dst) {
+        ((FieldValueSimple) dst).value = value;
     }
 
     @Override

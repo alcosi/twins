@@ -17,9 +17,7 @@ public class FieldValueText extends FieldValueSimple<String> {
     }
 
     @Override
-    public FieldValueText clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        FieldValueText clone = new FieldValueText(newTwinClassFieldEntity);
-        clone.setValue(this.value);
-        return clone;
+    public FieldValueText newInstance(TwinClassFieldEntity newTwinClassFieldEntity) {
+        return new FieldValueText(newTwinClassFieldEntity);
     }
 }

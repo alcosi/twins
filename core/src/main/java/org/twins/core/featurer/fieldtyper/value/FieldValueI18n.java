@@ -46,10 +46,8 @@ public class FieldValueI18n extends FieldValueStated {
     }
 
     @Override
-    public FieldValueI18n clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        FieldValueI18n clone = new FieldValueI18n(newTwinClassFieldEntity);
-        clone.translations = new HashMap<>(this.translations);
-        return clone;
+    public FieldValueI18n newInstance(TwinClassFieldEntity newTwinClassFieldEntity) {
+        return new FieldValueI18n(newTwinClassFieldEntity);
     }
 
     @Override
@@ -58,8 +56,8 @@ public class FieldValueI18n extends FieldValueStated {
     }
 
     @Override
-    public void copyValueFrom(FieldValue src) {
-        translations = new HashMap<>(((FieldValueI18n) src).translations);
+    public void copyValueTo(FieldValueStated dst) {
+        ((FieldValueI18n) dst).translations = new HashMap<>(translations);
     }
 
     @Override

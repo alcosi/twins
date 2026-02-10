@@ -47,11 +47,8 @@ public class FieldValueDate extends FieldValueStated {
     }
 
     @Override
-    public FieldValueDate clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        FieldValueDate clone = new FieldValueDate(newTwinClassFieldEntity);
-        clone.dateStr = this.dateStr;
-        clone.date = this.date;
-        return clone;
+    public FieldValueDate newInstance(TwinClassFieldEntity newTwinClassFieldEntity) {
+        return new FieldValueDate(newTwinClassFieldEntity);
     }
 
     @Override
@@ -60,9 +57,10 @@ public class FieldValueDate extends FieldValueStated {
     }
 
     @Override
-    public void copyValueFrom(FieldValue src) {
-        dateStr = ((FieldValueDate) src).getDateStr();
-        date = ((FieldValueDate) src).getDate();
+    public void copyValueTo(FieldValueStated dst) {
+        var dstValue = (FieldValueDate) dst;
+        dstValue.dateStr = dateStr;
+        dstValue.date = date;
     }
 
     @Override

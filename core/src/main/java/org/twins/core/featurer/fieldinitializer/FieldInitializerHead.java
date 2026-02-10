@@ -23,7 +23,7 @@ import java.util.Properties;
         name = "Value initializer from head",
         description = "")
 @Slf4j
-public class FieldInitializerHead<D extends FieldDescriptor, T extends FieldValue> extends FieldInitializer<D, T> implements FieldInitializerThrowIfNull{
+public class FieldInitializerHead extends FieldInitializer<FieldDescriptor, FieldValue> implements FieldInitializerThrowIfNull{
     @FeaturerParam(name = "Head field id", description = "", optional = false, order = 1)
     public static final FeaturerParamUUID fromTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("fromTwinClassFieldId");
 
@@ -32,12 +32,12 @@ public class FieldInitializerHead<D extends FieldDescriptor, T extends FieldValu
     TwinService twinService;
 
     @Override
-    protected void setInitValue(Properties properties, TwinEntity twin, T value) throws ServiceException {
+    protected void setInitValue(Properties properties, TwinEntity twin, FieldValue value) throws ServiceException {
         if (twin.getHeadTwinId() == null) {
             throw new ServiceException(ErrorCodeTwins.CONFIGURATION_IS_INVALID, twin.logNormal() + " has no head twin");
         }
         twinService.loadHeadForTwin(twin);
-        twinService.loadTwinFields(twin.getHeadTwin());
+        twinService.loadFieldsValues(twin.getHeadTwin());
         var headTwinValue = twin.getHeadTwin().getFieldValuesKit().get(fromTwinClassFieldId.extract(properties));
         if (headTwinValue != null && headTwinValue.isNotEmpty()) {
             twinService.copyToField(headTwinValue, value);

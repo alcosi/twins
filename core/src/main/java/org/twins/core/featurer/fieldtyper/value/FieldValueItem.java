@@ -46,8 +46,8 @@ public abstract class FieldValueItem<T> extends FieldValueStated {
     protected abstract Function<T, UUID> itemGetIdFunction();
 
     @Override
-    public void copyValueFrom(FieldValue src) {
-        value = ((FieldValueItem<T>) src).getValue();
+    public void copyValueTo(FieldValueStated dst) {
+        ((FieldValueItem<T>) dst).value = value;
     }
 
     @Override

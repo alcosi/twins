@@ -64,7 +64,6 @@ public class FieldTyperTimestamp extends FieldTyper<FieldDescriptorDate, FieldVa
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        //todo refactor me
         if (value.isUndefined())
             return;
         else if (value.isNotEmpty()) {

@@ -22,10 +22,8 @@ public class FieldValueUserSingle extends FieldValueItem<UserEntity> {
     }
 
     @Override
-    public FieldValueUserSingle clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        FieldValueUserSingle clone = new FieldValueUserSingle(newTwinClassFieldEntity);
-        clone.setValue(this.getValue());
-        return clone;
+    public FieldValueUserSingle newInstance(TwinClassFieldEntity newTwinClassFieldEntity) {
+        return new FieldValueUserSingle(newTwinClassFieldEntity);
     }
 
     @Override

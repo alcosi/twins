@@ -12,16 +12,15 @@ public abstract class FieldValueStated extends FieldValue {
         super(twinClassField);
     }
 
-    public FieldValue clone() {
-        var clone = clone(twinClassField);
-        clone.state = state;
-        return clone;
-    }
 
     @Override
-    public FieldValueStated clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        return null;
+    public void copyValueTo(FieldValue dst) {
+        var dstValue = (FieldValueStated) dst;
+        copyValueTo(dstValue);
+        dstValue.state = this.state;
     }
+
+    public abstract void copyValueTo(FieldValueStated dst);
 
     public enum State {
         UNDEFINED,

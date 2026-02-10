@@ -16,9 +16,9 @@ import java.util.Properties;
         name = "Null value initializer",
         description = "")
 @Slf4j
-public class FieldInitializerNull<D extends FieldDescriptor,T extends FieldValue> extends FieldInitializer<D, T> {
+public class FieldInitializerNull extends FieldInitializer<FieldDescriptor, FieldValue> {
     @Override
-    protected void setInitValue(Properties properties, TwinEntity twin, T value) throws ServiceException {
+    protected void setInitValue(Properties properties, TwinEntity twin, FieldValue value) throws ServiceException {
         value.undefine();
     }
 }

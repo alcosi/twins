@@ -19,7 +19,7 @@ public class FieldValueId extends FieldValueSimple<UUID> {
     }
 
     @Override
-    public FieldValueId clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        return (FieldValueId) super.clone(newTwinClassFieldEntity);
+    public FieldValueId newInstance(TwinClassFieldEntity newTwinClassFieldEntity) {
+        return new FieldValueId(newTwinClassFieldEntity);
     }
 }

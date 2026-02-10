@@ -38,11 +38,16 @@ public abstract class FieldValue implements Cloneable {
     }
 
     public FieldValue clone() {
-        var clone = clone(twinClassField);
+        return clone(twinClassField);
+    }
+
+    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
+        var clone = newInstance(newTwinClassFieldEntity);
+        copyValueTo(clone);
         return clone;
     }
 
-    public abstract FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity);
+    public abstract FieldValue newInstance(TwinClassFieldEntity newTwinClassFieldEntity);
 
     public abstract boolean hasValue(String value);
 
@@ -58,7 +63,7 @@ public abstract class FieldValue implements Cloneable {
         return !isEmpty();
     }
 
-    public abstract void copyValueFrom(FieldValue src);
+    public abstract void copyValueTo(FieldValue dst);
 
     public abstract FieldValue undefine();
 

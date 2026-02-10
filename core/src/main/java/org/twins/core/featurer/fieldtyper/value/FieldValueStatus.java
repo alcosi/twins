@@ -26,11 +26,7 @@ public class FieldValueStatus extends FieldValueItem<TwinStatusEntity> {
     }
 
     @Override
-    public FieldValueStatus clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        FieldValueStatus clone = new FieldValueStatus(newTwinClassFieldEntity);
-        clone.setValue(this.getValue());
-        return clone;
+    public FieldValueStatus newInstance(TwinClassFieldEntity newTwinClassFieldEntity) {
+        return new FieldValueStatus(newTwinClassFieldEntity);
     }
-
-
 }

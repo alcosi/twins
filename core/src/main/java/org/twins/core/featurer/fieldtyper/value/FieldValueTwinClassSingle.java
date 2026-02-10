@@ -27,9 +27,7 @@ public class FieldValueTwinClassSingle extends FieldValueItem<TwinClassEntity> {
     }
 
     @Override
-    public FieldValueTwinClassSingle clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        FieldValueTwinClassSingle clone = new FieldValueTwinClassSingle(newTwinClassFieldEntity);
-        clone.setValue(this.getValue());
-        return clone;
+    public FieldValueTwinClassSingle newInstance(TwinClassFieldEntity newTwinClassFieldEntity) {
+        return new FieldValueTwinClassSingle(newTwinClassFieldEntity);
     }
 }

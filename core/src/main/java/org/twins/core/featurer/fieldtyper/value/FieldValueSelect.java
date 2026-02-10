@@ -22,9 +22,7 @@ public class FieldValueSelect extends FieldValueCollection<DataListOptionEntity>
     }
 
     @Override
-    public FieldValueSelect clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        FieldValueSelect clone = new FieldValueSelect(newTwinClassFieldEntity);
-        clone.setItems(this.collection);
-        return clone;
+    public FieldValueSelect newInstance(TwinClassFieldEntity newTwinClassFieldEntity) {
+        return new FieldValueSelect(newTwinClassFieldEntity);
     }
 }

@@ -59,10 +59,13 @@ public abstract class FieldValueCollection<T> extends FieldValue {
     }
 
     @Override
-    public void copyValueFrom(FieldValue src) {
-        if (collection != null) {
-            collection.clear();
-            collection.addAll(((FieldValueCollection<T>) src).collection);
+    public void copyValueTo(FieldValue dst) {
+        var dstValue = (FieldValueCollection<T>) dst;
+        if (dstValue.collection != null) {
+            dstValue.collection.clear();
+            dstValue.collection.addAll(collection);
+        } else {
+            dstValue.collection = new ArrayList<>(collection);
         }
     }
 

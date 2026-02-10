@@ -1387,10 +1387,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void copyToField(FieldValue src, FieldValue dst) throws ServiceException {
-        if (!src.getTwinClassField().equals(dst.getTwinClassField()))
+        if (!isCopyable(src.getTwinClassField(), dst.getTwinClassField()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, src.getTwinClassField().logShort()
                     + " value can not be copied to " + dst.getTwinClassField().logShort());
-        dst.copyValueFrom(src);
+        src.copyValueTo(dst);
     }
 
     //TODO ft params equals(data list scope)
