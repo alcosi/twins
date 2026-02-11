@@ -11,8 +11,9 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "TwinClassFreezeListRsV1")
-public class TwinClassFreezeListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
-    @Schema(description = "twin class freeze list")
-    public List<TwinClassFreezeDTOv1> twinClassFreezes;
+@Schema(name = "TwinClassDynamicMarkerListRsV1")
+public class TwinClassDynamicMarkerListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+
+    @Schema(description = "twin class dynamic marker list")
+    public List<TwinClassDynamicMarkerDTOv1> dynamicMarkers;
 }
