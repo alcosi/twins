@@ -1,6 +1,8 @@
 package org.twins.core.config.filter;
 
 import ch.qos.logback.classic.Logger;
+import com.zaxxer.hikari.HikariDataSource;
+import javax.sql.DataSource;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,6 +15,7 @@ import org.cambium.common.util.LoggerUtils;
 import org.cambium.common.util.UuidUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -42,18 +45,24 @@ public class LoggingFilter extends OncePerRequestFilter {
     public static final String CONTROLLER_METHOD = "ControllerMethod";
     public static final Random RANDOM = new Random();
 
+    @Autowired
+    private DataSource dataSource;
+
+    @Value("${logging.pool.status.enabled:false}")
+    private boolean logPoolStatusEnabled;
+
     public static class LogInternalService {
         protected final JsonUtils jsonUtils = new JsonUtils(new String[]{"fullName", "accessToken", "refreshToken", "username", "password", "email", "firstName", "lastName"});
 
 
-        public void afterRequest(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response, Long time, byte[] multipartContent) {
+        public void afterRequest(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response, Long time, byte[] multipartContent, String poolStatus) {
             try {
                 if ("OPTIONS".equals(request.getMethod())) {
                     return;
                 }
                 String id = request.getAttribute(REQUEST_LOG_ID) + "";
                 logRequest(request, id, multipartContent);
-                logResponse(request, response, id, time);
+                logResponse(request, response, id, time, poolStatus);
             } catch (Throwable t) {
                 log.error("RqRs error !", t);
             } finally {
@@ -99,12 +108,12 @@ public class LoggingFilter extends OncePerRequestFilter {
         }
 
         @SneakyThrows
-        private void logResponse(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response, String rqId, Long time) {
+        private void logResponse(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response, String rqId, Long time, String poolStatus) {
             String requestUri = StringUtils.defaultIfBlank(request.getRequestURI(), "");
             if (!requestUri.contains("/actuator/prometheus")) {
                 int status = response.getStatus();
                 String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
-                logInfoBoth("RS_URL {}:{}{} STATUS:{} {} | {} ms", request.getMethod(), requestUri, queryString, status, HttpStatus.valueOf(status).getReasonPhrase(), System.currentTimeMillis() - time);
+                logInfoBoth("RS_URL {}:{}{} STATUS:{} {} | {} ms | {}", request.getMethod(), requestUri, queryString, status, HttpStatus.valueOf(status).getReasonPhrase(), System.currentTimeMillis() - time, poolStatus);
                 response.getHeaderNames().forEach(headerName ->
                         log.debug("RS_HEADER {}: {}", headerName, response.getHeader(headerName)));
 
@@ -299,12 +308,27 @@ public class LoggingFilter extends OncePerRequestFilter {
             String id = getIdString();
             multipartContent = logInternalService.extractMultipartContent(request);
             String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
-            logInfoBoth("RQ_URL {}:{}{}", request.getMethod(), request.getRequestURI(), queryString);
+            logInfoBoth("RQ_URL {}:{}{} | {}", request.getMethod(), request.getRequestURI(), queryString, getPoolStatus());
             request.setAttribute(REQUEST_LOG_ID, id);
             filterChain.doFilter(request, response);
         } finally {
-            logInternalService.afterRequest(request, response, time, multipartContent);
+            logInternalService.afterRequest(request, response, time, multipartContent, getPoolStatus());
         }
+    }
+
+    private String getPoolStatus() {
+        if (logPoolStatusEnabled && dataSource instanceof HikariDataSource hikariDataSource) {
+            var pool = hikariDataSource.getHikariPoolMXBean();
+            if (pool != null) {
+                return String.format("Pool: %s (active: %d, idle: %d, total: %d, waiting: %d)",
+                        hikariDataSource.getPoolName(),
+                        pool.getActiveConnections(),
+                        pool.getIdleConnections(),
+                        pool.getTotalConnections(),
+                        pool.getThreadsAwaitingConnection());
+            }
+        }
+        return "db pool: log disabled || unknown pool";
     }
 
     private String getIdString() {
