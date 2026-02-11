@@ -33,6 +33,7 @@ import org.twins.core.domain.twinclass.TwinClassFieldSave;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.fieldinitializer.FieldInitializer;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperDateTime;
 import org.twins.core.featurer.fieldtyper.FieldTyperLink;
@@ -418,6 +419,15 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 field
                         .setTwinSorterFeaturerId(FeaturerTwins.ID_4101)
                         .setTwinSorterParams(null);
+            }
+
+            if (field.getFieldInitializerFeaturerId() != null) {
+                featurerService.checkValid(field.getFieldInitializerFeaturerId(), field.getFieldInitializerParams(), FieldInitializer.class);
+                featurerService.prepareForStore(field.getFieldInitializerFeaturerId(), field.getFieldInitializerParams());
+            } else {
+                field
+                        .setFieldInitializerFeaturerId(FeaturerTwins.ID_5301)
+                        .setFieldInitializerParams(null);
             }
 
             if (field.getSystem() == null) {
