@@ -113,6 +113,9 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Column(name = "bread_crumbs_face_id")
     private UUID breadCrumbsFaceId;
 
+    @Column(name = "head_hierarchy_counter_direct_children", nullable = false)
+    private Integer headHierarchyCounterDirectChildren;
+
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER)
