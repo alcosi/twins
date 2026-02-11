@@ -35,6 +35,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] twinClassFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.twinClass);
         String[] twinClassExtendsHierarchyTreeFieldPath = concatArray(twinClassFieldPath, TwinClassEntity.Fields.extendsHierarchyTree);
         String[] createdAtFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.createdAt);
+        String[] headHierarchyCounterDirectChildrenFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.headHierarchyCounterDirectChildren);
         String[] tagsFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.tags, TwinTagEntity.Fields.tagDataListOptionId);
         String[] markersFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.markers, TwinMarkerEntity.Fields.markerDataListOptionId);
         String[] touchFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.touches);
@@ -70,7 +71,8 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkTouchSearch(userId,true,twinSearch.getTouchExcludeList(),touchFieldPath),
                 checkFieldLocalDateTimeBetween(twinSearch.getCreatedAt(), TwinEntity.Fields.createdAt),
                 checkHierarchyChildren(hierarchyChildrenSearch.getIdList(), false,  hierarchyChildrenSearch.getDepth(), hierarchyTreeFieldPath),
-                checkQueryDistinct(twinSearch.getDistinct())
+                checkQueryDistinct(twinSearch.getDistinct()),
+                checkFieldIntegerRange(twinSearch.getHeadHierarchyCounterDirectChildrenRange(), headHierarchyCounterDirectChildrenFieldPath)
         };
 
         return Specification.allOf(concatArray(commonSpecifications, getTwinSearchFieldsSpecifications(twinSearch.getFields())));

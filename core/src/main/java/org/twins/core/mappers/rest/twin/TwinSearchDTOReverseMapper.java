@@ -6,6 +6,7 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.dto.rest.twin.TwinSearchByLinkDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchDTOv1;
 import org.twins.core.mappers.rest.DataTimeRangeDTOReverseMapper;
+import org.twins.core.mappers.rest.IntegerRangeDTOReverseMapper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.common.HierarchySearchRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -19,6 +20,7 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
     private final TwinFieldSearchMapDTOReverseMapper twinFieldSearchMapDTOReverseMapper;
     private final DataTimeRangeDTOReverseMapper dataTimeRangeDTOReverseMapper;
     private final HierarchySearchRestDTOReverseMapper hierarchySearchRestDTOReverseMapper;
+    private final IntegerRangeDTOReverseMapper integerRangeDTOReverseMapper;
 
     @Override
     public void map(TwinSearchDTOv1 src, BasicSearch dst, MapperContext mapperContext) throws Exception {
@@ -51,6 +53,7 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                 .setTouchExcludeList(convertToSetSafe(src.getTouchExcludeList()))
                 .setCreatedAt(dataTimeRangeDTOReverseMapper.convert(src.getCreatedAt()))
                 .setHierarchyChildrenSearch(hierarchySearchRestDTOReverseMapper.convert(src.getHierarchyChildrenSearch()))
+                .setHeadHierarchyCounterDirectChildrenRange(integerRangeDTOReverseMapper.convert(src.getHeadHierarchyCounterDirectChildrenRange()))
                 .setDistinct(src.getDistinct());
         if (src.getLinksAnyOfList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO : src.getLinksAnyOfList()) {
