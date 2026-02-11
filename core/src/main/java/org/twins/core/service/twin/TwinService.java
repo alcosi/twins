@@ -405,7 +405,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinCreate.isCheckCreatePermission())
             checkCreatePermission(twinEntity, authService.getApiUser());
         createTwinEntity(twinCreate, twinChangesCollector);
-        intFields(twinEntity, twinCreate.getFields());
+        initFields(twinEntity, twinCreate.getFields());
         runFactoryOnCreate(twinCreate);
         validateFields(twinEntity, twinCreate.getFields(), true);
         saveTwinFields(twinEntity, twinCreate.getFields(), twinChangesCollector);
@@ -431,7 +431,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         runFactoryAfterCreate(twinCreate, twinChangesCollector);
     }
 
-    private void intFields(TwinEntity twinEntity, Map<UUID, FieldValue> fields) throws ServiceException {
+    private void initFields(TwinEntity twinEntity, Map<UUID, FieldValue> fields) throws ServiceException {
         twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
         //we will try to init all fields (not only required).
         //If you want to fill default values only in required fields, check this flag in some fieldInitializer
