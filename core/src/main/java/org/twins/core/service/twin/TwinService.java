@@ -1656,12 +1656,20 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void checkFieldEditable(TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
+       if (isFieldImmutable(twin, twinClassField)) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, "{} can not be edited", twinClassField.logNormal());
+       }
+    }
+
+    public boolean isFieldImmutable(TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
         loadFieldEditability(twin);
         if (twin.getTwinFieldEditability().get(twinClassField.getId()) == null) {
-            throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "undetected editability for field {}", twinClassField.logNormal());
+            log.warn("undetected editability for field {}", twinClassField.logNormal());
+            return true;
         } else if (Boolean.FALSE.equals(twin.getTwinFieldEditability().get(twinClassField.getId()))) {
-            throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "{} can not be edited", twinClassField.logNormal());
+            return true;
         }
+        return false;
     }
 
     @Data

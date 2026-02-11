@@ -59,8 +59,6 @@ public abstract class FieldInitializer<D extends FieldDescriptor, T extends Fiel
             Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldInitializerParams());
             initValue(properties, twin, value);
             value.setSystemInitialized(true);
-        } else if (value.isNotEmpty()) {
-            twinService.checkFieldEditable(twin, value.getTwinClassField());
         }
     }
 

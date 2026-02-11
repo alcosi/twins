@@ -186,6 +186,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         if (value.isValidated()) { // already validated, no need to validate again
             return value.getValidationResult();
         }
+        if (value.isNotEmpty() && !value.isSystemInitialized() && twinService.isFieldImmutable(twin, value.getTwinClassField())) {
+            log.error("{} value can not be edited", value.getTwinClassField().logNormal());
+            return new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, value.getTwinClassField()));
+        }
         if (!valueType.isInstance(value)) {
             log.error("{} incorrect value type", value.getTwinClassField().logNormal());
             return new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, value.getTwinClassField()));
