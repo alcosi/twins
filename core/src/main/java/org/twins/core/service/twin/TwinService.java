@@ -357,6 +357,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public List<TwinEntity> createTwinsAsync(List<TwinCreate> twinCreateList) throws ServiceException {
         // todo try to use parallel stream for this
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        //we can call a bulk load for all fields, because initFields method will loop them anyway
+        loadFieldEditability(twinCreateList.stream().map(TwinCreate::getTwinEntity).toList());
         for (TwinCreate twinCreate : twinCreateList) {
             createTwin(twinCreate, twinChangesCollector);
         }
@@ -405,6 +407,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinCreate.isCheckCreatePermission())
             checkCreatePermission(twinEntity, authService.getApiUser());
         createTwinEntity(twinCreate, twinChangesCollector);
+        loadFieldEditability(twinEntity);
         initFields(twinEntity, twinCreate.getFields());
         runFactoryOnCreate(twinCreate);
         validateFields(twinEntity, twinCreate.getFields(), true);
@@ -447,8 +450,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             fields.put(twinClassFieldEntity.getId(), fieldValue);
         }
         var fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
-        //If field is already initiated this will be checked later.
-        //In some cases, we need to force rewrite value with some defaults. This logic can be done in FieldInitializer
         fieldTyper.initializeField(twinEntity, fieldValue);
     }
 
@@ -702,6 +703,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public List<TwinEntity> updateTwin(List<TwinUpdate> twinUpdates, boolean validateAll) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         TwinBatchFieldValidationException batchFieldValidationException = null;
+        var twinUpdatesWithFields = twinUpdates.stream().filter(twinUpdate -> MapUtils.isNotEmpty(twinUpdate.getFields())).map(TwinUpdate::getDbTwinEntity).toList();
+        loadFieldEditability(twinUpdatesWithFields);
         for (TwinUpdate twinUpdate : twinUpdates) {
             if (!twinUpdate.isChanged()) continue;
 
@@ -748,6 +751,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinChangesRecorder.hasChanges())
             twinChangesCollector.add(twinChangesRecorder.getRecorder());
         if (MapUtils.isNotEmpty(twinUpdate.getFields())) {
+            loadFieldEditability(twinUpdate.getDbTwinEntity());
             validateFields(twinUpdate.getDbTwinEntity(), twinUpdate.getFields(), false);
             updateTwinFields(twinChangesRecorder.getDbEntity(), twinUpdate.getFields().values().stream().toList(), twinChangesCollector);
         }
@@ -1648,6 +1652,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     twin.getTwinFieldEditability().put(twinClassField.getId(), false);
                 }
             }
+        }
+    }
+
+    public void checkFieldEditable(TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
+        loadFieldEditability(twin);
+        if (twin.getTwinFieldEditability().get(twinClassField.getId()) == null) {
+            throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "undetected editability for field {}", twinClassField.logNormal());
+        } else if (Boolean.FALSE.equals(twin.getTwinFieldEditability().get(twinClassField.getId()))) {
+            throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "{} can not be edited", twinClassField.logNormal());
         }
     }
 

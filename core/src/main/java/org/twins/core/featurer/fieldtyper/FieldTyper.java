@@ -112,10 +112,14 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     public void serializeValue(TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
-        if (value.isUndefined()) {
-            //let's try to init field
-            initializeField(twin, value);
-        }
+//        if (value.isNotEmpty() && !value.isSystemInitialized()) {
+//            //we will check an editability flag only for user not empty field
+//            twinService.checkFieldEditable(twin, value.getTwinClassField());
+//        } else if (value.isUndefined()) {
+//            //let's try to init the field
+//            initializeField(twin, value);
+//        }
+        initializeField(twin, value);
         if (value.isCleared()) {
             //todo some common clear logic
         } else {
@@ -203,9 +207,11 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         return validationResult;
     }
 
+    //If field is already initiated this will be checked later.
+    //In some cases, we need to force rewrite value with some defaults. This logic can be done in FieldInitializer
     public void initializeField(TwinEntity twin, T value) throws ServiceException {
         var fieldInitializer = featurerService.getFeaturer(value.getTwinClassField().getFieldInitializerFeaturerId(), FieldInitializer.class);
-        fieldInitializer.setInitValue(twin, value);
+        fieldInitializer.initValue(twin, value);
     }
 
     /*

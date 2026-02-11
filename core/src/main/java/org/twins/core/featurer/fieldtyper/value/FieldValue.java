@@ -23,7 +23,8 @@ public abstract class FieldValue implements Cloneable {
 
     @Getter
     @Setter
-    private boolean alreadyInitialized = false; //will help to prevent repeated initialization
+    //will help to prevent repeated initialization and identify values set by a system
+    private boolean systemInitialized = false;
 
     public FieldValue(TwinClassFieldEntity twinClassField) {
         this.twinClassField = twinClassField;

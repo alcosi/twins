@@ -3,11 +3,14 @@ package org.twins.core.featurer.fieldinitializer;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -24,6 +27,10 @@ public abstract class FieldInitializer<D extends FieldDescriptor, T extends Fiel
     private Class<T> valueType = null;
     private Class<D> descriptorType = null;
 
+    @Lazy
+    @Autowired
+    TwinService twinService;
+
     public FieldInitializer() {
         List<Type> collected = collectParameterizedTypes(getClass(), new ArrayList<>());
         for (Type ptType : collected) {
@@ -38,24 +45,26 @@ public abstract class FieldInitializer<D extends FieldDescriptor, T extends Fiel
             throw new RuntimeException("Can not initialize ");
     }
 
-    public void setInitValue(TwinEntity twin, T value) throws ServiceException {
-        setInitValue(twin, value, false);
+    public void initValue(TwinEntity twin, T value) throws ServiceException {
+        initValue(twin, value, false);
     }
 
-    public void setInitValue(TwinEntity twin, T value, boolean reinitForce) throws ServiceException {
+    public void initValue(TwinEntity twin, T value, boolean reinitForce) throws ServiceException {
         if (!valueType.isInstance(value)) {
             throw new ServiceException(ErrorCodeTwins.CONFIGURATION_IS_INVALID, "{} incompatible field initiator value type", value.getTwinClassField().logNormal());
         }
-        if (value.isAlreadyInitialized())
+        if (value.isSystemInitialized())
             return;
         if (reinitForce || value.isUndefined()) {
             Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldInitializerParams());
-            setInitValue(properties, twin, value);
-            value.setAlreadyInitialized(true);
+            initValue(properties, twin, value);
+            value.setSystemInitialized(true);
+        } else if (value.isNotEmpty()) {
+            twinService.checkFieldEditable(twin, value.getTwinClassField());
         }
     }
 
-    protected abstract void setInitValue(Properties properties, TwinEntity twin, T value) throws ServiceException;
+    protected abstract void initValue(Properties properties, TwinEntity twin, T value) throws ServiceException;
 
     /**
      * override this if you need to add some data to the descriptor

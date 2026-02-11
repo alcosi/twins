@@ -14,8 +14,12 @@ import java.util.Properties;
 
 public abstract class FieldTyperImmutable<D extends FieldDescriptor, T extends FieldValue, S extends TwinFieldStorage, A extends TwinFieldSearch> extends FieldTyper<D, T, S, A>{
     @Override
-    protected void serializeValue(Properties properties, TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    public void serializeValue(TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, "direct change of {} is not allowed", value.getTwinClassField().logNormal());
+    }
+
+    @Override
+    protected void serializeValue(Properties properties, TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
     }
 
     @Override

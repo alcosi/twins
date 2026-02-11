@@ -23,7 +23,7 @@ public class FieldInitializerTextFixed extends FieldInitializer<FieldDescriptorT
     public static final FeaturerParamString initValue = new FeaturerParamString("value");
 
     @Override
-    protected void setInitValue(Properties properties, TwinEntity twin, FieldValueText value) throws ServiceException {
+    protected void initValue(Properties properties, TwinEntity twin, FieldValueText value) throws ServiceException {
         value.setValue(initValue.extract(properties));
     }
 }
