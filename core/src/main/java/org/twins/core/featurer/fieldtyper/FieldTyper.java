@@ -132,6 +132,12 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     protected abstract void serializeValue(Properties properties, TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException;
 
+    /**
+     * Override this method only if fieldTyper does not support serialization
+     */
+    public boolean canSerialize(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        return true;
+    }
 
     public T deserializeValue(TwinField twinField) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, twinField.getTwinClassField().getFieldTyperParams());

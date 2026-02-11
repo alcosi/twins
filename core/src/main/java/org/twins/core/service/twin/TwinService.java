@@ -1596,7 +1596,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         var needLoad = new KitGroupedObj<>(TwinEntity::getId, TwinEntity::getTwinClassId, TwinEntity::getTwinClass);
         for (var twin : collection) {
             if (twin.getTwinFieldEditability() == null) {
-                twin.setTwinFieldEditability(new HashMap<>());
                 needLoad.add(twin);
             }
         }
@@ -1604,17 +1603,39 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
         twinClassFieldService.loadTwinClassFields(needLoad.getGroupingObjectMap().values());
 
-        for (var twin : needLoad) {
-            var twinSpecificPermissionsCache = new HashMap<UUID, Boolean>();
-            for (var twinClassField : needLoad.getGroupingObject(twin.getId()).getTwinClassFieldKit()) {
+        //let's try to check common permission for classes, this will help to reduce loop count
+        var classLevelPermissionCheckPassed = new HashMap<UUID, Map<UUID, Boolean>>(); // classId -> classFieldId -> editable = true
+        var twinLevelPermissionCheckNeeded = new HashMap<UUID, List<TwinClassFieldEntity>>(); // classId -> classFieldId
+        for (var twinClass : needLoad.getGroupingObjectMap().values()) {
+            for (var twinClassField : twinClass.getTwinClassFieldKit()) {
+                var fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
+                if (!fieldTyper.canSerialize(twinClassField)) { //this edit blocker flag from field typer
+                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(),l -> new HashMap<>())
+                            .put(twinClassField.getId(), false);
+                    continue;
+                }
                 if (twinClassField.getEditPermissionId() == null) {
-                    twin.getTwinFieldEditability().put(twinClassField.getId(), true);
+                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(),l -> new HashMap<>())
+                            .put(twinClassField.getId(), true);
                     continue;
                 }
                 if (permissionService.currentUserHasPermission(twinClassField.getEditPermissionId())) {
-                    twin.getTwinFieldEditability().put(twinClassField.getId(), true);
+                    classLevelPermissionCheckPassed.computeIfAbsent(twinClass.getId(),l -> new HashMap<>())
+                            .put(twinClassField.getId(), true);
                     continue;
                 }
+                twinLevelPermissionCheckNeeded.computeIfAbsent(twinClass.getId(), l -> new ArrayList<>()).add(twinClassField);
+            }
+        }
+
+        for (var twin : needLoad) {
+            if (!twinLevelPermissionCheckNeeded.containsKey(twin.getTwinClassId())) {
+                twin.setTwinFieldEditability(classLevelPermissionCheckPassed.get(twin.getTwinClassId())); // we can use the same map object
+                continue;
+            }
+            twin.setTwinFieldEditability(new HashMap<>(classLevelPermissionCheckPassed.get(twin.getTwinClassId()))); // here we have to create new map
+            var twinSpecificPermissionsCache = new HashMap<UUID, Boolean>();
+            for (var twinClassField : twinLevelPermissionCheckNeeded.get(twin.getTwinClassId())) {
                 if (twinSpecificPermissionsCache.containsKey(twinClassField.getEditPermissionId())) {
                     twin.getTwinFieldEditability().put(twinClassField.getId(), twinSpecificPermissionsCache.get(twinClassField.getEditPermissionId()));
                     continue;
