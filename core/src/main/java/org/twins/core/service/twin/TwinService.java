@@ -1558,6 +1558,78 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return src.getTwinClass().getTwinClassFreezeId() != null;
     }
 
+    public void loadEditableFlag(TwinField src) throws ServiceException {
+        loadEditableFlag(Collections.singletonList(src));
+    }
+
+    public void loadEditableFlag(Collection<TwinField> collection) throws ServiceException {
+        var permissionsCache = new HashMap<UUID, Boolean>();
+        for (var twinField : collection) {
+            if (twinField.getEditable() != null) {
+                continue;
+            }
+            if (twinField.getTwinClassField().getEditPermissionId() == null) {
+                twinField.setEditable(true);
+                continue;
+            }
+            if (permissionService.currentUserHasPermission(twinField.getTwinClassField().getEditPermissionId())) {
+                twinField.setEditable(true);
+                continue;
+            }
+            if (permissionsCache.containsKey(twinField.getTwinClassField().getEditPermissionId())) {
+                twinField.setEditable(permissionsCache.get(twinField.getTwinClassField().getEditPermissionId()));
+                continue;
+            }
+            if (permissionService.hasPermission(twinField.getTwin(), twinField.getTwinClassField().getEditPermissionId())) {
+                permissionsCache.put(twinField.getTwinClassField().getEditPermissionId(), true);
+            } else {
+                permissionsCache.put(twinField.getTwinClassField().getEditPermissionId(), false);
+            }
+        }
+    }
+
+    public void loadFieldEditability(TwinEntity src) throws ServiceException {
+        loadFieldEditability(Collections.singletonList(src));
+    }
+
+    public void loadFieldEditability(Collection<TwinEntity> collection) throws ServiceException {
+        var needLoad = new KitGroupedObj<>(TwinEntity::getId, TwinEntity::getTwinClassId, TwinEntity::getTwinClass);
+        for (var twin : collection) {
+            if (twin.getTwinFieldEditability() == null) {
+                twin.setTwinFieldEditability(new HashMap<>());
+                needLoad.add(twin);
+            }
+        }
+        if (needLoad.isEmpty())
+            return;
+        twinClassFieldService.loadTwinClassFields(needLoad.getGroupingObjectMap().values());
+
+        for (var twin : needLoad) {
+            var twinSpecificPermissionsCache = new HashMap<UUID, Boolean>();
+            for (var twinClassField : needLoad.getGroupingObject(twin.getId()).getTwinClassFieldKit()) {
+                if (twinClassField.getEditPermissionId() == null) {
+                    twin.getTwinFieldEditability().put(twinClassField.getId(), true);
+                    continue;
+                }
+                if (permissionService.currentUserHasPermission(twinClassField.getEditPermissionId())) {
+                    twin.getTwinFieldEditability().put(twinClassField.getId(), true);
+                    continue;
+                }
+                if (twinSpecificPermissionsCache.containsKey(twinClassField.getEditPermissionId())) {
+                    twin.getTwinFieldEditability().put(twinClassField.getId(), twinSpecificPermissionsCache.get(twinClassField.getEditPermissionId()));
+                    continue;
+                }
+                if (permissionService.hasPermission(twin, twinClassField.getEditPermissionId())) {
+                    twinSpecificPermissionsCache.put(twinClassField.getEditPermissionId(), true);
+                    twin.getTwinFieldEditability().put(twinClassField.getId(), true);
+                } else {
+                    twinSpecificPermissionsCache.put(twinClassField.getEditPermissionId(), false);
+                    twin.getTwinFieldEditability().put(twinClassField.getId(), false);
+                }
+            }
+        }
+    }
+
     @Data
     @Accessors(chain = true)
     public static class TwinCreateResult {
