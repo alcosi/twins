@@ -52,6 +52,7 @@ public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolea
         where tfb.twin_id is null or tfb.value = false|true;
     */
 
+    @Deprecated //better to user FieldInitializer
     @FeaturerParam(name = "DefaultValue", description = "", order = 2, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean defaultValue = new FeaturerParamBoolean("defaultValue");
 
@@ -65,7 +66,7 @@ public class FieldTyperBooleanV1 extends FieldTyperBoolean<FieldDescriptorBoolea
         detectValueChange(
                 twinFieldBooleanEntity,
                 twinChangesCollector,
-                value.isFilled() ? value.getValue() : defaultValue.extract(properties) // if field_value=null in json and field is not required we use defaultValue and save it in db
+                value.isNotEmpty() ? value.getValue() : defaultValue.extract(properties) // if field_value=null in json and field is not required we use defaultValue and save it in db
         );
     }
 

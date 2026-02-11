@@ -54,6 +54,4 @@ public abstract class FieldTyperSimple<D extends FieldDescriptor, T extends Fiel
     public ValidationResult validate(Properties properties, TwinEntity twin, T fieldValue) throws ServiceException {
         return new ValidationResult(true);
     }
-
-
 }

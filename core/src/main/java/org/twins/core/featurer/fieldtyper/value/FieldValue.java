@@ -1,6 +1,7 @@
 package org.twins.core.featurer.fieldtyper.value;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.cambium.common.ValidationResult;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -8,20 +9,25 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import java.util.UUID;
 
 /**
- * FieldValue class is not combined with TwinField class, because ins some cases
- * we need to have values out of twin (for example, in transition context)
+ * FieldValue class is not combined with TwinField class, because in some cases
+ * we need to have values out of twin (for example, in a transition context)
  */
-@Data
 @Accessors(chain = true)
 public abstract class FieldValue implements Cloneable {
+    @Getter
     protected final TwinClassFieldEntity twinClassField;
+
+    @Getter
+    @Setter
     private ValidationResult validationResult;
+
+    @Getter
+    @Setter
+    private boolean alreadyInitialized = false; //will help to prevent repeated initialization
 
     public FieldValue(TwinClassFieldEntity twinClassField) {
         this.twinClassField = twinClassField;
     }
-
-    public abstract boolean isFilled();
 
     public boolean isBaseField() {
         return twinClassField.isBaseField();
@@ -35,11 +41,13 @@ public abstract class FieldValue implements Cloneable {
         return clone(twinClassField);
     }
 
-    public abstract FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity);
+    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
+        var clone = newInstance(newTwinClassFieldEntity);
+        copyValueTo(clone);
+        return clone;
+    }
 
-    public abstract void nullify();
-
-    public abstract boolean isNullified();
+    public abstract FieldValue newInstance(TwinClassFieldEntity newTwinClassFieldEntity);
 
     public abstract boolean hasValue(String value);
 
@@ -48,6 +56,20 @@ public abstract class FieldValue implements Cloneable {
     }
 
     public boolean isEmpty() {
-        return !isFilled() || isNullified();
+        return isUndefined() || isCleared();
     }
+
+    public boolean isNotEmpty() {
+        return !isEmpty();
+    }
+
+    public abstract void copyValueTo(FieldValue dst);
+
+    public abstract FieldValue undefine();
+
+    public abstract boolean isUndefined();
+
+    public abstract FieldValue clear();
+
+    public abstract boolean isCleared();
 }

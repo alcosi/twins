@@ -35,23 +35,30 @@ import static org.cambium.common.util.MathUtils.EXPONENTIAL_FORM_REGEXP;
         name = "Numeric",
         description = "Numeric field")
 public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, FieldValueText, TwinFieldSearchNumeric> {
-
     @FeaturerParam(name = "Min", description = "Min possible value", order = 1)
     public static final FeaturerParamDouble min = new FeaturerParamDouble("min");
+
     @FeaturerParam(name = "Max", description = "Max possible value", order = 2)
     public static final FeaturerParamDouble max = new FeaturerParamDouble("max");
+
     @FeaturerParam(name = "Step", description = "Step of value change", order = 3)
     public static final FeaturerParamDouble step = new FeaturerParamDouble("step");
+
     @FeaturerParam(name = "Thousand separator", description = "Thousand separator. Must not be equal to decimal separator.", order = 4)
     public static final FeaturerParamString thousandSeparator = new FeaturerParamString("thousandSeparator");
+
     @FeaturerParam(name = "Decimal separator", description = "Decimal separator. Must not be equal to thousand separator.", order = 5)
     public static final FeaturerParamString decimalSeparator = new FeaturerParamString("decimalSeparator");
+
     @FeaturerParam(name = "Decimal places", description = "Number of decimal places.", order = 6)
     public static final FeaturerParamInt decimalPlaces = new FeaturerParamInt("decimalPlaces");
+
     @FeaturerParam(name = "Extra thousand separators", description = "Extra thousand separators. Must not be equal to decimal separator.", order = 7, optional = true)
     public static final FeaturerParamStringSet extraThousandSeparatorSet = new FeaturerParamStringSet("extraThousandSeparatorSet");
+
     @FeaturerParam(name = "Extra decimal separators", description = "Extra decimal separators. Must not be equal to thousand separator.", order = 8, optional = true)
     public static final FeaturerParamStringSet extraDecimalSeparatorSet = new FeaturerParamStringSet("extraDecimalSeparatorSet");
+
     @FeaturerParam(name = "Round", description = "Round a number to the required number of decimal places", order = 9, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean round = new FeaturerParamBoolean("round");
 

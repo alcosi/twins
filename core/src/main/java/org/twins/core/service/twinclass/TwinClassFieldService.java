@@ -34,6 +34,7 @@ import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.featurer.fieldtyper.FieldTyperDateTime;
 import org.twins.core.featurer.fieldtyper.FieldTyperLink;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.twin.sorter.TwinSorter;
@@ -620,5 +621,13 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         if (newSystemFlag == null || !changesHelper.isChanged(TwinClassFieldEntity.Fields.system, dbTwinClassFieldEntity.getRequired(), newSystemFlag))
             return;
         dbTwinClassFieldEntity.setRequired(newSystemFlag);
+    }
+
+    public String getDateFieldPattern(TwinClassFieldEntity twinClassField) throws ServiceException {
+        FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
+        if (!(fieldTyper instanceof FieldTyperDateTime fieldTyperDateTime))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, twinClassField.logNormal() + " is not datetime");
+        Properties properties = featurerService.extractProperties(fieldTyper, twinClassField.getFieldTyperParams());
+        return fieldTyperDateTime.getPattern(properties);
     }
 }

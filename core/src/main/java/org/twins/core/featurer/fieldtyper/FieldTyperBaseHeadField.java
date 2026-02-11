@@ -35,6 +35,6 @@ public class FieldTyperBaseHeadField extends FieldTyper<FieldDescriptorLinkHead,
     @Override
     protected FieldValueLinkSingle deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         TwinEntity twin = twinField.getTwin();
-        return new FieldValueLinkSingle(twinField.getTwinClassField()).setDstTwin(twin.getHeadTwin());
+        return new FieldValueLinkSingle(twinField.getTwinClassField()).setValue(twin.getHeadTwin());
     }
 }

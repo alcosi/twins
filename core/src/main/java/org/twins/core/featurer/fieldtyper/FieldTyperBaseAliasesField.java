@@ -35,6 +35,8 @@ public class FieldTyperBaseAliasesField extends FieldTyper<FieldDescriptorImmuta
     @Override
     protected FieldValueAliases deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         TwinEntity twin = twinField.getTwin();
-        return new FieldValueAliases(twinField.getTwinClassField()).setAliases(twin.getTwinAliases().getList());
+        FieldValueAliases ret = new FieldValueAliases(twinField.getTwinClassField());
+        ret.setItems(twin.getTwinAliases().getList());
+        return ret;
     }
 }

@@ -58,7 +58,7 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
                         .filter(not(FieldValue::isBaseField));
                 fieldsStream = switch (mapperContext.getModeOrUse(TwinFieldCollectionFilterEmptyMode.ANY)) {
                     case ONLY -> fieldsStream.filter(FieldValue::isEmpty); //perhaps we need !isFilled
-                    case ONLY_NOT -> fieldsStream.filter(FieldValue::isFilled);
+                    case ONLY_NOT -> fieldsStream.filter(FieldValue::isNotEmpty);
                     default -> fieldsStream;
                 };
                 fieldsStream = switch (mapperContext.getModeOrUse(TwinFieldCollectionFilterRequiredMode.ANY)) {

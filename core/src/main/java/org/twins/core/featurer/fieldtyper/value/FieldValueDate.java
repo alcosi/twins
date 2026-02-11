@@ -2,50 +2,76 @@ package org.twins.core.featurer.fieldtyper.value;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.util.Strings;
+import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.DateUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.time.LocalDateTime;
 
-@Getter
-@Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FieldValueDate extends FieldValue {
-    private String dateStr;
+public class FieldValueDate extends FieldValueStated {
+    @Getter
     private LocalDateTime date;
+    private String pattern;
 
-    public FieldValueDate(TwinClassFieldEntity twinClassField) {
+    public FieldValueDate(TwinClassFieldEntity twinClassField, String pattern) {
         super(twinClassField);
+        this.pattern = pattern;
+    }
+
+    public String getDateStr() {
+        return DateUtils.formatDate(date, pattern);
+    }
+
+    public FieldValueDate setDate(String dateStr) throws ServiceException {
+        if (StringUtils.isEmpty(dateStr)) {
+            this.date = null;
+            this.state = State.CLEARED;
+        } else {
+            this.date = DateUtils.parseDateTime(dateStr, pattern);
+            this.state = State.PRESENT;
+        }
+        return this;
+    }
+
+    public FieldValueDate setDate(LocalDateTime date) {
+        if (date == null) {
+            this.date = null;
+            this.state = State.CLEARED;
+        } else {
+            this.date = date;
+            this.state = State.PRESENT;
+        }
+        return this;
     }
 
     @Override
-    public boolean isFilled() {
-        return Strings.isNotEmpty(dateStr);
-    }
-
-    @Override
-    public FieldValueDate clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        FieldValueDate clone = new FieldValueDate(newTwinClassFieldEntity);
-        clone.setDateStr(this.dateStr);
-        return clone;
+    public FieldValueDate newInstance(TwinClassFieldEntity newTwinClassFieldEntity) {
+        return new FieldValueDate(newTwinClassFieldEntity, null);
     }
 
     @Override
     public boolean hasValue(String value) {
-        return StringUtils.equals(dateStr, value);
+        return StringUtils.equals(getDateStr(), value);
     }
 
     @Override
-    public void nullify() {
-        dateStr = "";
+    public void copyValueTo(FieldValueStated dst) {
+        var dstValue = (FieldValueDate) dst;
+        dstValue.pattern = pattern;
+        dstValue.date = date;
     }
 
     @Override
-    public boolean isNullified() {
-        return "".equals(dateStr);
+    public void onUndefine() {
+        date = null;
+    }
+
+    @Override
+    public void onClear() {
+        date = null;
     }
 }

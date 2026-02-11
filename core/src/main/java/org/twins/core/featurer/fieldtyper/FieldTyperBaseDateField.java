@@ -1,6 +1,7 @@
 package org.twins.core.featurer.fieldtyper;
 
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.DateUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
@@ -40,8 +41,7 @@ public class FieldTyperBaseDateField extends FieldTyper<FieldDescriptorImmutable
         UUID fieldId = twinField.getTwinClassField().getId();
         TwinEntity twin = twinField.getTwin();
         if (fieldId.equals(TWIN_CLASS_FIELD_TWIN_CREATED_AT)) {
-            return new FieldValueDate(twinField.getTwinClassField())
-                    .setDateStr(twin.getCreatedAt().toString())
+            return new FieldValueDate(twinField.getTwinClassField(), DateUtils.DEFAULT_DATE_TIME_PATTERN)
                     .setDate(twin.getCreatedAt().toLocalDateTime());
         }
         throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,

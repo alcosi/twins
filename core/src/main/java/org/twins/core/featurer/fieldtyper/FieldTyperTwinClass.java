@@ -1,8 +1,6 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections.CollectionUtils;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.annotations.Featurer;
@@ -17,7 +15,6 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchTwinClassList;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTwinClassList;
 import org.twins.core.featurer.fieldtyper.value.FieldValueTwinClassList;
@@ -27,8 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 
 @Component
@@ -47,7 +42,7 @@ public class FieldTyperTwinClass extends FieldTyper<FieldDescriptorTwinClassList
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueTwinClassList value, TwinChangesCollector twinChangesCollector) throws ServiceException {
 
         List<TwinClassEntity> selectedTwinClassEntities = twinClassService.findEntitiesSafe(
-                value.getTwinClassEntities().stream()
+                value.getItems().stream()
                         .map(TwinClassEntity::getId)
                         .toList()
         ).getList();
@@ -128,7 +123,7 @@ public class FieldTyperTwinClass extends FieldTyper<FieldDescriptorTwinClassList
         FieldValueTwinClassList ret = new FieldValueTwinClassList(twinField.getTwinClassField());
         if (twinFieldTwinClassEntityList != null)
             for (var item : twinFieldTwinClassEntityList) {
-                ret.getTwinClassEntities().add(item.getTwinClass());
+                ret.add(item.getTwinClass());
             }
 
         return ret;
