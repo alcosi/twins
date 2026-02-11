@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -18,11 +19,11 @@ public class TwinClassDynamicMarkerSearchDTOv1 {
     @Schema(description = "id exclude list")
     public Set<UUID> idExcludeList;
 
-    @Schema(description = "twin class id list")
-    public Set<UUID> twinClassIdList;
+    @Schema(description = "twin class id map")
+    public Map<UUID, Boolean> twinClassIdMap;
 
-    @Schema(description = "twin class id exclude list")
-    public Set<UUID> twinClassIdExcludeList;
+    @Schema(description = "twin class id exclude map")
+    public Map<UUID, Boolean> twinClassIdExcludeMap;
 
     @Schema(description = "twin validator set id list")
     public Set<UUID> twinValidatorSetIdList;

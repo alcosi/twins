@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -14,8 +15,8 @@ public class TwinClassDynamicMarkerSearch {
 
     public Set<UUID> idList;
     public Set<UUID> idExcludeList;
-    public Set<UUID> twinClassIdList;
-    public Set<UUID> twinClassIdExcludeList;
+    public Map<UUID, Boolean> twinClassIdMap;
+    public Map<UUID, Boolean> twinClassIdExcludeMap;
     public Set<UUID> twinValidatorSetIdList;
     public Set<UUID> twinValidatorSetIdExcludeList;
     public Set<UUID> markerDataListOptionIdList;

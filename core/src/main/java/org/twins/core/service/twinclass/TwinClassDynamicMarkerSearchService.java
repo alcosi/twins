@@ -24,6 +24,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 public class TwinClassDynamicMarkerSearchService {
 
     private final TwinClassDynamicMarkerRepository twinClassDynamicMarkerRepository;
+    private final TwinClassService twinClassService;
 
     public PaginationResult<TwinClassDynamicMarkerEntity> findTwinClassDynamicMarkers(TwinClassDynamicMarkerSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinClassDynamicMarkerEntity> spec = createTwinClassDynamicMarkerSearchSpecification(search);
@@ -31,12 +32,12 @@ public class TwinClassDynamicMarkerSearchService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<TwinClassDynamicMarkerEntity> createTwinClassDynamicMarkerSearchSpecification(TwinClassDynamicMarkerSearch search) {
+    private Specification<TwinClassDynamicMarkerEntity> createTwinClassDynamicMarkerSearchSpecification(TwinClassDynamicMarkerSearch search) throws ServiceException {
         return Specification.allOf(
                 checkUuidIn(search.getIdList(), false, false, TwinClassDynamicMarkerEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinClassDynamicMarkerEntity.Fields.id),
-                checkUuidIn(search.getTwinClassIdList(), false, false, TwinClassDynamicMarkerEntity.Fields.twinClassId),
-                checkUuidIn(search.getTwinClassIdExcludeList(), true, false, TwinClassDynamicMarkerEntity.Fields.twinClassId),
+                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdMap()), false, false, TwinClassDynamicMarkerEntity.Fields.twinClassId),
+                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdExcludeMap()), true, false, TwinClassDynamicMarkerEntity.Fields.twinClassId),
                 checkUuidIn(search.getTwinValidatorSetIdList(), false, false, TwinClassDynamicMarkerEntity.Fields.twinValidatorSetId),
                 checkUuidIn(search.getTwinValidatorSetIdExcludeList(), true, false, TwinClassDynamicMarkerEntity.Fields.twinValidatorSetId),
                 checkUuidIn(search.getMarkerDataListOptionIdList(), false, false, TwinClassDynamicMarkerEntity.Fields.markerDataListOptionId),
