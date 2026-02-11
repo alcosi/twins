@@ -19,21 +19,19 @@ public enum TwinClassFreezeMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinClassMode2TwinClassFreezeMode implements MapperModePointer<TwinClassMode> {
+    public enum TwinClass2TwinClassFreezeMode implements MapperModePointer<TwinClassFreezeMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2),
-        @FieldNameConstants.Include MANAGED(3);
+        @FieldNameConstants.Include DETAILED(2);
 
         final int priority;
 
         @Override
-        public TwinClassMode point() {
+        public TwinClassFreezeMode point() {
             return switch (this) {
-                case HIDE -> TwinClassMode.HIDE;
-                case SHORT -> TwinClassMode.SHORT;
-                case DETAILED -> TwinClassMode.DETAILED;
-                case MANAGED -> TwinClassMode.MANAGED;
+                case HIDE -> TwinClassFreezeMode.HIDE;
+                case SHORT -> TwinClassFreezeMode.SHORT;
+                case DETAILED -> TwinClassFreezeMode.DETAILED;
             };
         }
     }
