@@ -72,7 +72,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkFieldLocalDateTimeBetween(twinSearch.getCreatedAt(), TwinEntity.Fields.createdAt),
                 checkHierarchyChildren(hierarchyChildrenSearch.getIdList(), false,  hierarchyChildrenSearch.getDepth(), hierarchyTreeFieldPath),
                 checkQueryDistinct(twinSearch.getDistinct()),
-                CommonSpecification.checkFieldIntegerRange(twinSearch.getHeadHierarchyCounterDirectChildrenRange(), headHierarchyCounterDirectChildrenFieldPath)
+                checkFieldIntegerRange(twinSearch.getHeadHierarchyCounterDirectChildrenRange(), headHierarchyCounterDirectChildrenFieldPath)
         };
 
         return Specification.allOf(concatArray(commonSpecifications, getTwinSearchFieldsSpecifications(twinSearch.getFields())));
