@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.search.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
@@ -157,6 +158,7 @@ public class TwinSearchService {
     // if it is a multiple, then of30 + sz10 = pg3 (31-40) - everything is ok//
     //***********************************************************************//
 
+    @Transactional(readOnly = true)
     public PaginationResult<TwinEntity> findTwins(BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
         detectSystemClassSearchCheck(basicSearch);
         Specification<TwinEntity> spec = createTwinEntitySearchSpecification(basicSearch);
