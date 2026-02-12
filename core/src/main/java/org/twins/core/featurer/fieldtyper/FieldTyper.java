@@ -112,13 +112,6 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     public void serializeValue(TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
-//        if (value.isNotEmpty() && !value.isSystemInitialized()) {
-//            //we will check an editability flag only for user not empty field
-//            twinService.checkFieldEditable(twin, value.getTwinClassField());
-//        } else if (value.isUndefined()) {
-//            //let's try to init the field
-//            initializeField(twin, value);
-//        }
         initializeField(twin, value);
         if (value.isCleared()) {
             //todo some common clear logic
