@@ -154,18 +154,18 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
             Expression<LocalDateTime> dateTimeValue = cb.function("text2timestamp", LocalDateTime.class, stringValue);
 
             Predicate valuePredicate = cb.conjunction();
-            if (search.getLessThen() != null || search.getMoreThen() != null || search.getEquals() != null) {
+            if (search.getLessThenOrEquals() != null || search.getMoreThenOrEquals() != null || search.getEquals() != null) {
                 if(!search.isEmpty())
                     valuePredicate = cb.and(cb.isNotNull(stringValue), cb.notEqual(stringValue, cb.literal("")));
 
                 boolean hasRange = false;
                 Predicate rangePredicate = cb.conjunction();
-                if (search.getLessThen() != null) {
-                    rangePredicate = cb.and(rangePredicate, cb.lessThan(dateTimeValue, cb.literal(search.getLessThen())));
+                if (search.getLessThenOrEquals() != null) {
+                    rangePredicate = cb.and(rangePredicate, cb.lessThan(dateTimeValue, cb.literal(search.getLessThenOrEquals())));
                     hasRange = true;
                 }
-                if (search.getMoreThen() != null) {
-                    rangePredicate = cb.and(rangePredicate, cb.greaterThan(dateTimeValue, cb.literal(search.getMoreThen())));
+                if (search.getMoreThenOrEquals() != null) {
+                    rangePredicate = cb.and(rangePredicate, cb.greaterThan(dateTimeValue, cb.literal(search.getMoreThenOrEquals())));
                     hasRange = true;
                 }
 
@@ -377,10 +377,10 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
 
             if (search.getEquals() != null)
                 predicates.add(cb.equal(timestampField, convertToTimestamp(search.getEquals())));
-            if (search.getLessThen() != null)
-                predicates.add(cb.lessThan(timestampField, convertToTimestamp(search.getLessThen())));
-            if (search.getMoreThen() != null)
-                predicates.add(cb.greaterThan(timestampField, convertToTimestamp(search.getMoreThen())));
+            if (search.getLessThenOrEquals() != null)
+                predicates.add(cb.lessThanOrEqualTo(timestampField, convertToTimestamp(search.getLessThenOrEquals())));
+            if (search.getMoreThenOrEquals() != null)
+                predicates.add(cb.greaterThanOrEqualTo(timestampField, convertToTimestamp(search.getMoreThenOrEquals())));
 
             return predicates.isEmpty() ? cb.conjunction() : cb.and(predicates.toArray(new Predicate[0]));
         };
