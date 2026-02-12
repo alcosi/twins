@@ -5,6 +5,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.featurer.FeaturerTwins;
@@ -22,6 +23,11 @@ public class FieldTyperAttachmentInvisible extends FieldTyperAttachment<FieldVal
     @Deprecated
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueInvisible value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    }
+
+    @Override
+    public boolean canSerialize(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        return false;
     }
 
     @Deprecated

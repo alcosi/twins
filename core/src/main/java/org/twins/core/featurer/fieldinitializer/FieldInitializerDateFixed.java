@@ -27,7 +27,7 @@ public class FieldInitializerDateFixed extends FieldInitializer<FieldDescriptorD
     public static final FeaturerParamString pattern = new FeaturerParamString("pattern");
 
     @Override
-    protected void setInitValue(Properties properties, TwinEntity twin, FieldValueDate value) throws ServiceException {
+    protected void initValue(Properties properties, TwinEntity twin, FieldValueDate value) throws ServiceException {
         value.setDate(DateUtils.parseDateTime(initValue.extract(properties), pattern.extract(properties)));
     }
 }

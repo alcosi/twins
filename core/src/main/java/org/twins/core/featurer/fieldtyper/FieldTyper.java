@@ -112,10 +112,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     public void serializeValue(TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
-        if (value.isUndefined()) {
-            //let's try to init field
-            initializeField(twin, value);
-        }
+        initializeField(twin, value);
         if (value.isCleared()) {
             //todo some common clear logic
         } else {
@@ -132,6 +129,12 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     protected abstract void serializeValue(Properties properties, TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException;
 
+    /**
+     * Override this method only if fieldTyper does not support serialization
+     */
+    public boolean canSerialize(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        return true;
+    }
 
     public T deserializeValue(TwinField twinField) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, twinField.getTwinClassField().getFieldTyperParams());
@@ -176,6 +179,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         if (value.isValidated()) { // already validated, no need to validate again
             return value.getValidationResult();
         }
+        if (value.isNotEmpty() && !value.isSystemInitialized() && twinService.isFieldImmutable(twin, value.getTwinClassField())) {
+            log.error("{} value can not be edited", value.getTwinClassField().logNormal());
+            return new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, value.getTwinClassField()));
+        }
         if (!valueType.isInstance(value)) {
             log.error("{} incorrect value type", value.getTwinClassField().logNormal());
             return new ValidationResult(false, twinService.getErrorMessage(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, value.getTwinClassField()));
@@ -197,9 +204,11 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         return validationResult;
     }
 
+    //If field is already initiated this will be checked later.
+    //In some cases, we need to force rewrite value with some defaults. This logic can be done in FieldInitializer
     public void initializeField(TwinEntity twin, T value) throws ServiceException {
         var fieldInitializer = featurerService.getFeaturer(value.getTwinClassField().getFieldInitializerFeaturerId(), FieldInitializer.class);
-        fieldInitializer.setInitValue(twin, value);
+        fieldInitializer.initValue(twin, value);
     }
 
     /*

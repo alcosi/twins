@@ -18,7 +18,7 @@ import java.util.Properties;
 @Slf4j
 public class FieldInitializerNull extends FieldInitializer<FieldDescriptor, FieldValue> {
     @Override
-    protected void setInitValue(Properties properties, TwinEntity twin, FieldValue value) throws ServiceException {
+    protected void initValue(Properties properties, TwinEntity twin, FieldValue value) throws ServiceException {
         value.undefine();
     }
 }
