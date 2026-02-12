@@ -23,7 +23,7 @@ public class FieldInitializerUrlFixed extends FieldInitializer<FieldDescriptorUr
     public static final FeaturerParamUrl initValue = new FeaturerParamUrl("value");
 
     @Override
-    protected void setInitValue(Properties properties, TwinEntity twin, FieldValueText value) throws ServiceException {
+    protected void initValue(Properties properties, TwinEntity twin, FieldValueText value) throws ServiceException {
         value.setValue(initValue.extract(properties));
     }
 }

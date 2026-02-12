@@ -6,7 +6,6 @@ import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -24,16 +23,11 @@ import static org.twins.core.service.SystemEntityService.TWIN_CLASS_FIELD_TWIN_C
 @Featurer(id = FeaturerTwins.ID_1325,
         name = "BaseDate",
         description = "Field typer for base date twin field")
-public class FieldTyperBaseDateField extends FieldTyper<FieldDescriptorImmutable, FieldValueDate, TwinFieldStorageTwin, TwinFieldSearchNotImplemented> {
+public class FieldTyperBaseDateField extends FieldTyperImmutable<FieldDescriptorImmutable, FieldValueDate, TwinFieldStorageTwin, TwinFieldSearchNotImplemented> {
 
     @Override
     public FieldDescriptorImmutable getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new FieldDescriptorImmutable();
-    }
-
-    @Override
-    protected void serializeValue(Properties properties, TwinEntity twin, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, "direct change of twin date field is not allowed");
     }
 
     @Override

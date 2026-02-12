@@ -94,6 +94,7 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
             twinFieldAttributeService.loadAttributes(Collections.singletonList(src));
         }
 
+        twinService.loadFieldEditability(src);
         for (var fieldValueText : fieldsValues) {
             UUID fieldId = fieldValueText.getTwinClassField().getId();
             String fieldKey = fieldValueText.getTwinClassField().getKey();
@@ -101,7 +102,8 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
 
             TwinFieldDTOv2 fieldDto = new TwinFieldDTOv2()
                     .setKey(fieldKey)
-                    .setValue(fieldValue);
+                    .setValue(fieldValue)
+                    .setEditable(src.getTwinFieldEditability().get(fieldId));
 
             if (mapperContext.hasMode(TwinFieldAttributeMode.SHOW) && src.getTwinFieldAttributeKit() != null && src.getTwinFieldAttributeKit().containsGroupedKey(fieldId)) {
                 Map<UUID, TwinFieldAttributeDTOv1> fieldAttributesMap = twinFieldAttributeRestDTOMapper.convertCollection(src.getTwinFieldAttributeKit().getGrouped(fieldId), mapperContext)
@@ -126,11 +128,11 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
         TwinFieldCollectionMode.legacyConverter(mapperContext);
         if (mapperContext.hasMode(TwinFieldCollectionMode.SHOW)) {
             twinService.loadTwinFields(srcCollection); // bulk load (minimizing the number of db queries)
-
         }
         if (mapperContext.hasMode(TwinFieldAttributeMode.SHOW)) {
             twinFieldAttributeService.loadAttributes(srcCollection);
         }
+        twinService.loadFieldEditability(srcCollection);
     }
 
     @Override

@@ -5,7 +5,6 @@ import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -23,16 +22,11 @@ import static org.twins.core.service.SystemEntityService.*;
 @Featurer(id = FeaturerTwins.ID_1321,
         name = "BaseText",
         description = "Field typer for base text twin fields (name, description, externalId)")
-public class FieldTyperBaseTextField extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageTwin, TwinFieldSearchNotImplemented> {
+public class FieldTyperBaseTextField extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageTwin, TwinFieldSearchNotImplemented> {
 
     @Override
     public FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new FieldDescriptorText();
-    }
-
-    @Override
-    protected void serializeValue(Properties properties, TwinEntity twin, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, value.getTwinClassField().logShort() + " can not be changed by field typer");
     }
 
     @Override
