@@ -303,8 +303,12 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             Expression<UUID> permissionIdTwinClass = joinTwin.join(TwinEntity.Fields.twinClass).get(TwinClassEntity.Fields.viewPermissionId);
             Expression<UUID> twinClassId = joinTwin.join(TwinEntity.Fields.twinClass).get(TwinClassEntity.Fields.id);
 
-            //TODO permissionIdTwin check first
-            Predicate globalPermissionCheck = (CollectionUtils.isEmpty(domainLevelPermissions)) ? cb.conjunction() : permissionIdTwinClass.in(domainLevelPermissions);
+            // Select permissionIdTwin if it is not null, otherwise select permissionIdTwinClass
+            Expression<UUID> effectivePermissionId = cb.<UUID>selectCase()
+                    .when(cb.isNotNull(permissionIdTwin), permissionIdTwin)
+                    .otherwise(permissionIdTwinClass);
+
+            Predicate globalPermissionCheck = (CollectionUtils.isEmpty(domainLevelPermissions)) ? cb.conjunction() : effectivePermissionId.in(domainLevelPermissions);
 
             Predicate isAssigneePredicate = cb.equal(joinTwin.get(TwinEntity.Fields.assignerUserId), cb.literal(userId));
             Predicate isCreatorPredicate = cb.equal(joinTwin.get(TwinEntity.Fields.createdByUserId), cb.literal(userId));

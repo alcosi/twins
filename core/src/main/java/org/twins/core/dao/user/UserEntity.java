@@ -52,6 +52,9 @@ public class UserEntity implements EasyLoggable {
     @Transient
     private Set<UUID> permissions;
 
+    @Transient
+    private UUID detectedPermissionSchemaId;
+
     public String easyLog(Level level) {
         return "user[id:" + id + ", email:" + maskEmail(email) + "]";
     }

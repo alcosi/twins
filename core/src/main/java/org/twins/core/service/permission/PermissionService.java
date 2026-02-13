@@ -469,6 +469,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
             apiUser.setActAsUserStep(ApiUser.ActAsUserStep.USER_GROUP_INVOLVE_NEEDED);
         }
         UUID permissionSchemaId = detectPermissionSchemaId(apiUser);
+        user.setDetectedPermissionSchemaId(permissionSchemaId);
         userGroupService.loadGroups(user);
         Set<UUID> userGroupIds = user.getUserGroups().getIdSetSafe();
         List<UUID> permissionList = permissionGrantUserRepository.findAllPermissionsForUser(permissionSchemaId, user.getId(), collectionUuidsToSqlArray(userGroupIds));

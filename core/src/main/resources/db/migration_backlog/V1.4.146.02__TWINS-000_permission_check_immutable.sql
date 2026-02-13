@@ -1,4 +1,150 @@
-create or replace function permission_check(domainid uuid, businessaccountid uuid, spaceid uuid, permissionid uuid, userid uuid, usergroupidlist uuid[], twinclassid uuid, isassignee boolean DEFAULT false, iscreator boolean DEFAULT false) returns boolean
+drop index if exists idx_user_group_by_assignee_propagation_granted_by_user_id;
+drop index if exists idx_user_group_by_assignee_propagation_user_group_id;
+drop index if exists idx_user_group_by_assignee_propagation_permission_schema_id;
+drop index if exists idx_user_group_by_assignee_propagation_twin_class_id;
+drop index if exists idx_user_group_by_assignee_propagation_twin_status_id;
+
+create table user_group_by_assignee_propagation
+(
+    id                            uuid not null
+        constraint user_group_by_assignee_propagation_pk
+            primary key,
+    permission_schema_id          uuid not null
+        constraint user_group_by_assignee_propagation_permission_schema_id_fkey
+            references permission_schema,
+    user_group_id                 uuid not null
+        constraint user_group_by_assignee_propagation_permission_id_fkey
+            references permission
+            on delete cascade,
+    propagation_by_twin_class_id  uuid not null
+        constraint user_group_by_assignee_propagation_twin_class_id_fkey
+            references twin_class,
+    propagation_by_twin_status_id uuid
+        constraint user_group_by_assignee_propagation_twin_status_id_fkey
+            references twin_status,
+    created_by_user_id            uuid not null
+        constraint user_group_by_assignee_propagation_granted_by_user_id_fkey
+            references "user",
+    created_at                    timestamp default CURRENT_TIMESTAMP
+);
+
+create index idx_user_group_by_assignee_propagation_granted_by_user_id
+    on user_group_by_assignee_propagation (created_by_user_id);
+
+create index idx_user_group_by_assignee_propagation_user_group_id
+    on user_group_by_assignee_propagation (user_group_id);
+
+create index idx_user_group_by_assignee_propagation_permission_schema_id
+    on user_group_by_assignee_propagation (permission_schema_id);
+
+create index idx_user_group_by_assignee_propagation_twin_class_id
+    on user_group_by_assignee_propagation (propagation_by_twin_class_id);
+
+create index idx_user_group_by_assignee_propagation_twin_status_id
+    on user_group_by_assignee_propagation (propagation_by_twin_status_id);
+
+
+
+drop trigger if exists twin_after_delete_wrapper_trigger on twin;
+-- auto-generated definition
+create trigger twin_after_delete_wrapper_trigger
+    after delete
+    on twin
+    for each row
+execute procedure twin_after_delete_wrapper();
+
+create or replace function twin_after_delete_wrapper() returns trigger
+    language plpgsql
+as
+$$
+begin
+    IF old.assigner_user_id IS NOT NULL THEN
+        perform user_group_involve_by_assignee_propagation(old.assigner_user_id, old.twin_class_id, old.twin_status_id, old.owner_business_account_id);
+    END IF;
+
+    return old;
+end;
+$$;
+
+create or replace function twin_after_update_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    IF OLD.head_twin_id IS DISTINCT FROM NEW.head_twin_id THEN
+        RAISE NOTICE 'Process update for: %', new.id;
+        PERFORM hierarchyUpdateTreeSoft(new.id, public.hierarchyDetectTree(new.id));
+
+        IF NEW.assigner_user_id IS DISTINCT FROM OLD.assigner_user_id AND NEW.assigner_user_id IS NOT NULL THEN
+            PERFORM user_group_involve_by_assignee_propagation(NEW.assigner_user_id, NEW.twin_class_id, NEW.twin_status_id, NEW.owner_business_account_id);
+        END IF;
+
+        IF OLD.head_twin_id IS NOT NULL THEN
+            PERFORM update_twin_head_direct_children_counter(OLD.head_twin_id);
+        END IF;
+        IF NEW.head_twin_id IS NOT NULL THEN
+            PERFORM update_twin_head_direct_children_counter(NEW.head_twin_id);
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+create or replace function twin_after_insert_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    RAISE NOTICE 'Process insert for: %', new.id;
+    PERFORM hierarchyUpdateTreeHard(new.id, hierarchyDetectTree(new.id));
+
+    IF NEW.assigner_user_id IS NOT NULL THEN
+        PERFORM user_group_involve_by_assignee_propagation(NEW.assigner_user_id, NEW.twin_class_id, NEW.twin_status_id, NEW.owner_business_account_id);
+    END IF;
+
+    IF NEW.head_twin_id IS NOT NULL THEN
+        PERFORM update_twin_head_direct_children_counter(NEW.head_twin_id);
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+create or replace function user_group_involve_by_assignee_propagation(assigner_user_id uuid, twin_class_id uuid, twin_status_id uuid, owner_business_account_id uuid) returns boolean
+    volatile
+    language plpgsql
+as
+$$
+DECLARE
+    permissionIdForUse UUID := permissionIdTwin;
+BEGIN
+    IF permissionIdForUse IS NULL THEN
+        permissionIdForUse = permissionIdTwinClass;
+    END IF;
+    RETURN permission_check(permissionSchemaId, businessAccountId, spaceId, permissionIdForUse, userId, userGroupIdList, twinClassId, isAssignee, isCreator);
+END;
+$$;
+
+
+
+create or replace function permission_check(permissionSchemaId uuid, businessaccountid uuid, spaceid uuid, permissionidtwin uuid, permissionidtwinclass uuid, userid uuid, usergroupidlist uuid[], twinclassid uuid, isassignee boolean DEFAULT false, iscreator boolean DEFAULT false) returns boolean
+    volatile
+    language plpgsql
+as
+$$
+DECLARE
+    permissionIdForUse UUID := permissionIdTwin;
+BEGIN
+    IF permissionIdForUse IS NULL THEN
+        permissionIdForUse = permissionIdTwinClass;
+    END IF;
+    RETURN permission_check(permissionSchemaId, businessAccountId, spaceId, permissionIdForUse, userId, userGroupIdList, twinClassId, isAssignee, isCreator);
+END;
+$$;
+
+
+create or replace function permission_check(domainId uuid, businessaccountid uuid, spaceid uuid, permissionid uuid, userid uuid, usergroupidlist uuid[], twinclassid uuid, isassignee boolean DEFAULT false, iscreator boolean DEFAULT false) returns boolean
     volatile
     language plpgsql
 as
@@ -20,17 +166,12 @@ BEGIN
         RETURN FALSE;
     END IF;
 
-    -- Detect permission schema
+--     Detect permission schema
     permissionSchemaId := permission_detect_schema(domainId, businessAccountId, spaceId);
 
     -- Exit if no permission schema found
     IF permissionSchemaId IS NULL THEN
         RETURN FALSE;
-    END IF;
-
-    -- Check direct user or user group permissions
-    IF permission_check_by_group_or_user(permissionSchemaId, permissionId, userId, userGroupIdList, domainId, businessAccountId) THEN
-        RETURN TRUE;
     END IF;
 
     IF isAssignee THEN
@@ -108,37 +249,8 @@ $$;
 
 
 
-create or replace function permission_check_by_group_or_user(permissionschemaid uuid, permissionidforuse uuid, userid uuid, usergroupidlist uuid[], domainid uuid, businessaccountid uuid) returns boolean
-    volatile
-    language plpgsql
-as
-$$
-DECLARE
-    userPermissionExists INT;
-    groupPermissionExists INT;
-BEGIN
-    SELECT COUNT(id) INTO userPermissionExists
-    FROM permission_grant_user
-    WHERE permission_schema_id = permissionSchemaId
-      AND permission_id = permissionIdForUse
-      AND user_id = userId
-      AND domain_id = domainId
-      AND (business_account_id = businessAccountId OR business_account_id IS NULL);
+DROP FUNCTION IF EXISTS public.permission_check_by_group_or_user(uuid, uuid, uuid, uuid[], uuid, uuid);
 
-    IF userPermissionExists > 0 THEN
-        RETURN TRUE;
-    END IF;
-
-    -- Check group permissions (unchanged)
-    SELECT COUNT(id) INTO groupPermissionExists
-    FROM permission_grant_user_group
-    WHERE permission_schema_id = permissionSchemaId
-      AND permission_id = permissionIdForUse
-      AND user_group_id = ANY(userGroupIdList);
-
-    RETURN groupPermissionExists > 0;
-END;
-$$;
 
 create or replace function permission_check_space_assignee_and_creator(spaceid uuid, userid uuid) returns space_permissions
     volatile

@@ -57,6 +57,11 @@ public class ApiUser {
             return Collections.EMPTY_SET;
     }
 
+    public UUID getDetectedPermissionSchemaId() {
+        if (user != null) return user.getDetectedPermissionSchemaId();
+        return null;
+    }
+
     @Getter
     @Setter
     private boolean checkMembershipMode = true;
