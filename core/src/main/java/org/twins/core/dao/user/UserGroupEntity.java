@@ -10,14 +10,11 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.domain.versioning.DomainSetting;
 
 import java.util.UUID;
 
 @Entity
-@DomainSetting
 @Data
 @Accessors(chain = true)
 @Table(name = "user_group")
@@ -45,9 +42,6 @@ public class UserGroupEntity implements EasyLoggable {
 
     @Column(name = "description_i18n_id")
     private UUID descriptionI18NId;
-
-    @Column(name = "domain_version_id")
-    private UUID domainVersionId;
 
     @Deprecated
     @EqualsAndHashCode.Exclude
@@ -79,14 +73,7 @@ public class UserGroupEntity implements EasyLoggable {
     @ToString.Exclude
     @ManyToOne
     @JoinColumn(name = "user_group_type_id", insertable = false, updatable = false)
-    @JoinColumn(name = "user_group_type_id", insertable = false, updatable = false)
     private UserGroupTypeEntity userGroupType;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private DomainVersionEntity domainVersion;
 
     public String easyLog(Level level) {
         return "userGroup[id:" + id + "]";

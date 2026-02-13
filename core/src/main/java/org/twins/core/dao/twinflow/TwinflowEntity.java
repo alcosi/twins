@@ -9,13 +9,11 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
-import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.eraseflow.EraseflowEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.versioning.DomainSetting;
 import org.twins.core.enums.factory.FactoryLauncher;
 
 import java.sql.Timestamp;
@@ -26,7 +24,6 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twinflow")
-@DomainSetting
 @FieldNameConstants
 public class TwinflowEntity implements EasyLoggable {
     @Id
@@ -39,9 +36,6 @@ public class TwinflowEntity implements EasyLoggable {
 
     @Column(name = "twin_class_id")
     private UUID twinClassId;
-
-    @Column(name = "domain_version_id")
-    private UUID domainVersionId;
 
     @Column(name = "name_i18n_id")
     private UUID nameI18NId;
@@ -101,12 +95,6 @@ public class TwinflowEntity implements EasyLoggable {
     @ManyToOne
     @JoinColumn(name = "initial_sketch_twin_status_id", insertable = false, updatable = false, nullable = false)
     private TwinStatusEntity initialSketchTwinStatus;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "domain_version_id", insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private DomainVersionEntity domainVersion;
 
     // needed for specification
     @Deprecated
