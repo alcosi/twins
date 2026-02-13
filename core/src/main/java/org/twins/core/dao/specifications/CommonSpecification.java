@@ -294,9 +294,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      * based on the provided criteria
      * @throws ServiceException if there is an error during specification creation or permission validation
      */
-    public static <
-            T> Specification<T> checkPermissions(UUID domainId, UUID businessAccountId, UUID userId, Set<UUID> userGroups, String...
-            twinEntityFieldPath) throws ServiceException {
+    public static <T> Specification<T> checkPermissions(UUID domainId, UUID businessAccountId, UUID userId, Set<UUID> domainLevelPermissions, Set<UUID> userGroups, String... twinEntityFieldPath) throws ServiceException {
         return (root, query, cb) -> {
             From joinTwin = getReducedRoot(root, JoinType.INNER, twinEntityFieldPath);
 
@@ -305,10 +303,13 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             Expression<UUID> permissionIdTwinClass = joinTwin.join(TwinEntity.Fields.twinClass).get(TwinClassEntity.Fields.viewPermissionId);
             Expression<UUID> twinClassId = joinTwin.join(TwinEntity.Fields.twinClass).get(TwinClassEntity.Fields.id);
 
+            //TODO permissionIdTwin check first
+            Predicate globalPermissionCheck = (CollectionUtils.isEmpty(domainLevelPermissions)) ? cb.conjunction() : permissionIdTwinClass.in(domainLevelPermissions);
+
             Predicate isAssigneePredicate = cb.equal(joinTwin.get(TwinEntity.Fields.assignerUserId), cb.literal(userId));
             Predicate isCreatorPredicate = cb.equal(joinTwin.get(TwinEntity.Fields.createdByUserId), cb.literal(userId));
 
-            return cb.isTrue(cb.function("permission_check", Boolean.class,
+            return cb.or(globalPermissionCheck, cb.isTrue(cb.function("permission_check", Boolean.class,
                     cb.literal(domainId),
                     cb.literal(businessAccountId),
                     spaceId,
@@ -319,7 +320,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                     twinClassId,
                     cb.selectCase().when(isAssigneePredicate, cb.literal(true)).otherwise(cb.literal(false)),
                     cb.selectCase().when(isCreatorPredicate, cb.literal(true)).otherwise(cb.literal(false))
-            ));
+            )));
         };
     }
 

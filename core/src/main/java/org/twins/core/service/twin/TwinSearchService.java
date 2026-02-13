@@ -95,7 +95,7 @@ public class TwinSearchService {
         } else {
             detectSystemClassSearchCheck(basicSearch);
             specification = specification
-                    .and(checkPermissions(domainId, businessAccountId, userId, apiUser.getUser().getUserGroups().getIdSetSafe()))
+                    .and(checkPermissions(domainId, businessAccountId, userId, apiUser.getPermissions(), apiUser.getUser().getUserGroups().getIdSetSafe()))
                     .and(checkClass(basicSearch.getTwinClassIdList(), apiUser, basicSearch.getDbuMembershipCheck()));
         }
 

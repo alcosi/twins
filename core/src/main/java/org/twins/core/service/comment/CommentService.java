@@ -249,7 +249,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         if (!permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL)) {
             userGroupService.loadGroupsForCurrentUser();
             specification = specification
-                    .and(checkPermissions(apiUser.getDomainId(), apiUser.getBusinessAccountId(), apiUser.getUserId(), apiUser.getUser().getUserGroups().getIdSetSafe(),TwinCommentEntity.Fields.twin))
+                    .and(checkPermissions(apiUser.getDomainId(), apiUser.getBusinessAccountId(), apiUser.getUserId(), apiUser.getPermissions(), apiUser.getUser().getUserGroups().getIdSetSafe(),TwinCommentEntity.Fields.twin))
                     .and(checkClass(List.of(), apiUser, DBUMembershipCheck.BLOCKED));
         } else {
             specification = specification
