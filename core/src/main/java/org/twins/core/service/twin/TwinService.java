@@ -360,13 +360,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         //batch load twin classes if they are null, before loadFieldEditability call
         List<TwinEntity> twinEntities = twinCreateList.stream().map(TwinCreate::getTwinEntity).toList();
         Kit<TwinEntity, UUID> needLoadTwinClassKit = new Kit<>(TwinEntity::getId);
+        Set<UUID> twinClassIds = new HashSet<>();
         for (TwinEntity twinEntity : twinEntities) {
             if (twinEntity.getTwinClass() == null) {
                 needLoadTwinClassKit.add(twinEntity);
+                twinClassIds.add(twinEntity.getTwinClassId());
             }
         }
         if (!needLoadTwinClassKit.isEmpty()) {
-            Kit<TwinClassEntity, UUID> twinClassEntitiesKit = twinClassService.findEntitiesSafe(needLoadTwinClassKit.getIdSet());
+            Kit<TwinClassEntity, UUID> twinClassEntitiesKit = twinClassService.findEntitiesSafe(twinClassIds);
             for (TwinEntity twinEntity : needLoadTwinClassKit.getList()) {
                 twinEntity.setTwinClass(twinClassEntitiesKit.get(twinEntity.getTwinClassId()));
             }
