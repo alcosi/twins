@@ -353,32 +353,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twins;
     }
 
-    public void loadClasses(TwinEntity twinEntity) throws ServiceException {
-        loadClasses(Collections.singletonList(twinEntity));
-    }
-
-    public void loadClasses(Collection<TwinEntity> twinEntities) throws ServiceException {
-        KitGrouped<TwinEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinEntity::getId, TwinEntity::getTwinClassId);
-        for (TwinEntity twinEntity : twinEntities) {
-            if (twinEntity.getTwinClass() == null) {
-                needLoad.add(twinEntity);
-            }
-        }
-        if (!needLoad.isEmpty()) {
-            Kit<TwinClassEntity, UUID> twinClassEntitiesKit = twinClassService.findEntitiesSafe(needLoad.getGroupedMap().keySet());
-            for (TwinEntity twinEntity : needLoad.getList()) {
-                twinEntity.setTwinClass(twinClassEntitiesKit.get(twinEntity.getTwinClassId()));
-            }
-        }
-    }
-
     @Transactional(rollbackFor = Throwable.class)
     public List<TwinEntity> createTwinsAsync(List<TwinCreate> twinCreateList) throws ServiceException {
         // todo try to use parallel stream for this
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         //batch load twin classes if they are null, before loadFieldEditability call
         List<TwinEntity> twinEntities = twinCreateList.stream().map(TwinCreate::getTwinEntity).toList();
-        loadClasses(twinEntities);
+        loadClass(twinEntities);
         //we can call a bulk load for all fields, because initFields method will loop them anyway
         loadFieldEditability(twinEntities);
         for (TwinCreate twinCreate : twinCreateList) {
