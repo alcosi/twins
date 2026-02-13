@@ -234,4 +234,24 @@ public enum FeaturerMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum HistoryNotificationRecipientCollector2FeaturerMode implements MapperModePointer<FeaturerMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public FeaturerMode point() {
+            return switch (this) {
+                case HIDE -> FeaturerMode.HIDE;
+                case SHORT -> FeaturerMode.SHORT;
+                case DETAILED -> FeaturerMode.DETAILED;
+            };
+        }
+    }
 }
