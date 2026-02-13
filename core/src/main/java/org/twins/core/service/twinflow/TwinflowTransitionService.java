@@ -941,7 +941,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     }
                     log.info("{} will be triggered", triggerEntity.logDetailed());
                     if (triggerEntity.getAsync()) {
-                        log.info("Adding async trigger to postponed list for {} twin[{}]", triggerEntity.logDetailed(), targetTwin.logShort());
                         twinChangesCollector.addPostponedTrigger(
                                 targetTwin.getId(),
                                 transitionEntity.getSrcTwinStatusId(),

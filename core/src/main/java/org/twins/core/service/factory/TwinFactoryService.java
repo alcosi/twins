@@ -423,7 +423,6 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                     continue;
                 }
                 if (factoryTriggerEntity.getAsync()) {
-                    log.info("Adding async trigger to postponed list for {} twin[{}]", factoryTriggerEntity.logNormal(), targetTwin.logShort());
                     factoryContext.getPostponedTriggers().add(
                             targetTwin.getId(),
                             targetTwin.getTwinStatusId(),
