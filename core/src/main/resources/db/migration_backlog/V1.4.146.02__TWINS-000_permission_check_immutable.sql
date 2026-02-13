@@ -59,7 +59,7 @@ as
 $$
 begin
     IF old.assigner_user_id IS NOT NULL THEN
-        perform user_group_involve_by_assignee_propagation(old.assigner_user_id, old.twin_class_id, old.twin_status_id, old.owner_business_account_id);
+        perform user_group_involve_by_assignee_propagation(null, old.assigner_user_id, old.twin_class_id, old.twin_status_id, old.owner_business_account_id);
     END IF;
 
     return old;
@@ -76,7 +76,7 @@ BEGIN
         PERFORM hierarchyUpdateTreeSoft(new.id, public.hierarchyDetectTree(new.id));
 
         IF NEW.assigner_user_id IS DISTINCT FROM OLD.assigner_user_id AND NEW.assigner_user_id IS NOT NULL THEN
-            PERFORM user_group_involve_by_assignee_propagation(NEW.assigner_user_id, NEW.twin_class_id, NEW.twin_status_id, NEW.owner_business_account_id);
+            PERFORM user_group_involve_by_assignee_propagation(NEW.assigner_user_id, old.assigner_user_id,NEW.twin_class_id, NEW.twin_status_id, NEW.owner_business_account_id);
         END IF;
 
         IF OLD.head_twin_id IS NOT NULL THEN
@@ -100,7 +100,7 @@ BEGIN
     PERFORM hierarchyUpdateTreeHard(new.id, hierarchyDetectTree(new.id));
 
     IF NEW.assigner_user_id IS NOT NULL THEN
-        PERFORM user_group_involve_by_assignee_propagation(NEW.assigner_user_id, NEW.twin_class_id, NEW.twin_status_id, NEW.owner_business_account_id);
+        PERFORM user_group_involve_by_assignee_propagation(NEW.assigner_user_id, null, NEW.twin_class_id, NEW.twin_status_id, NEW.owner_business_account_id);
     END IF;
 
     IF NEW.head_twin_id IS NOT NULL THEN
@@ -111,18 +111,47 @@ BEGIN
 END;
 $$;
 
-create or replace function user_group_involve_by_assignee_propagation(assigner_user_id uuid, twin_class_id uuid, twin_status_id uuid, owner_business_account_id uuid) returns boolean
+create or replace function user_group_involve_by_assignee_propagation(new_assigner_user_id uuid, old_assigner_user_id uuid, p_twin_class_id uuid, p_twin_status_id uuid, p_owner_business_account_id uuid) returns void
     volatile
     language plpgsql
 as
 $$
 DECLARE
-    permissionIdForUse UUID := permissionIdTwin;
+    selected_user_group_id UUID := null;
 BEGIN
-    IF permissionIdForUse IS NULL THEN
-        permissionIdForUse = permissionIdTwinClass;
-    END IF;
-    RETURN permission_check(permissionSchemaId, businessAccountId, spaceId, permissionIdForUse, userId, userGroupIdList, twinClassId, isAssignee, isCreator);
+    if new_assigner_user_id is not null then
+        if p_owner_business_account_id is not null then
+
+            select user_group_id into selected_user_group_id from user_group_by_assignee_propagation a
+            join twin_class tc on tc.id = a.propagation_by_twin_status_id
+            join domain d on d.id = tc.domain_id
+            join domain_business_account db on db.domain_id = d.id and db.business_account_id = p_owner_business_account_id
+                             where
+                                 a.propagation_by_twin_class_id = p_twin_class_id and
+                                 (a.propagation_by_twin_status_id = p_twin_status_id or a.propagation_by_twin_status_id is null) and
+                                 a.permission_schema_id = COALESCE(db.permission_schema_id, d.permission_schema_id)
+        end if;
+        if p_owner_business_account_id is null then
+            select user_group_id into selected_user_group_id from user_group_by_assignee_propagation a
+                                                                      join twin_class tc on tc.id = a.propagation_by_twin_status_id
+                                                                      join domain d on d.id = tc.domain_id
+            where
+                a.propagation_by_twin_class_id = p_twin_class_id and
+                (a.propagation_by_twin_status_id = p_twin_status_id or a.propagation_by_twin_status_id is null) and
+                a.permission_schema_id = d.permission_schema_id
+        end if;
+
+        if selected_user_group_id is not null then
+--             TODO insert into groups
+        end if;
+
+    end if;
+
+    if old_assigner_user_id is not null and new_assigner_user_id is null then
+
+--         todo remove from grops
+
+    end if;
 END;
 $$;
 
@@ -212,6 +241,33 @@ BEGIN
 
 END;
 $$;
+
+create or replace function permission_detect_schema(domainid uuid, businessaccountid uuid) returns uuid
+    volatile
+    language plpgsql
+as
+$$
+DECLARE
+    schemaId UUID;
+BEGIN
+    -- twin in BA
+    IF businessAccountId IS NOT NULL THEN
+        SELECT permission_schema_id INTO schemaId
+        FROM domain_business_account
+        WHERE domain_id = domainId AND business_account_id = businessAccountId;
+        IF FOUND THEN
+            RETURN schemaId;
+        END IF;
+    END IF;
+
+    -- return domain schema, if twin not in space, and not in BA
+    SELECT permission_schema_id INTO schemaId FROM domain WHERE id = domainId;
+    RETURN schemaId;
+EXCEPTION WHEN OTHERS THEN
+    RETURN NULL;
+END;
+$$;
+
 
 create or replace function permission_detect_schema(domainid uuid, businessaccountid uuid, spaceid uuid) returns uuid
     volatile
