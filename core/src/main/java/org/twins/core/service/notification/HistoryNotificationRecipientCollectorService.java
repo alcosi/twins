@@ -4,6 +4,7 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
@@ -77,6 +78,8 @@ public class HistoryNotificationRecipientCollectorService extends EntitySecureFi
             if (recipientCollector.getRecipientResolverFeaturerId() != null) {
                 featurerService.checkValid(recipientCollector.getRecipientResolverFeaturerId(), recipientResolverParams, RecipientResolver.class);
                 featurerService.prepareForStore(recipientCollector.getRecipientResolverFeaturerId(), recipientResolverParams);
+            } else {
+                throw new ServiceException(ErrorCodeCommon.FEATURER_IS_NULL);
             }
 
             HistoryNotificationRecipientCollectorEntity recipientEntity = new HistoryNotificationRecipientCollectorEntity()

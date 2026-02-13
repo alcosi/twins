@@ -19,7 +19,7 @@ public enum HistoryNotificationRecipientMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum HistoryNotificationRecipientCollector2HistoryNotificationRecipientMode implements MapperModePointer<HistoryNotificationRecipientCollectorMode> {
+    public enum HistoryNotificationRecipientCollector2HistoryNotificationRecipientMode implements MapperModePointer<HistoryNotificationRecipientMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -27,11 +27,11 @@ public enum HistoryNotificationRecipientMode implements MapperMode {
         final int priority;
 
         @Override
-        public HistoryNotificationRecipientCollectorMode point() {
+        public HistoryNotificationRecipientMode point() {
             return switch (this) {
-                case HIDE -> HistoryNotificationRecipientCollectorMode.HIDE;
-                case SHORT -> HistoryNotificationRecipientCollectorMode.SHORT;
-                case DETAILED -> HistoryNotificationRecipientCollectorMode.DETAILED;
+                case HIDE -> HistoryNotificationRecipientMode.HIDE;
+                case SHORT -> HistoryNotificationRecipientMode.SHORT;
+                case DETAILED -> HistoryNotificationRecipientMode.DETAILED;
             };
         }
     }
