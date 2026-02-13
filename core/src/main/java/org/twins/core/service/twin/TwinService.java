@@ -353,12 +353,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twins;
     }
 
-    @Transactional(rollbackFor = Throwable.class)
-    public List<TwinEntity> createTwinsAsync(List<TwinCreate> twinCreateList) throws ServiceException {
-        // todo try to use parallel stream for this
-        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-        //batch load twin classes if they are null, before loadFieldEditability call
-        List<TwinEntity> twinEntities = twinCreateList.stream().map(TwinCreate::getTwinEntity).toList();
+    public void loadClasses(TwinEntity twinEntity) throws ServiceException {
+        loadClasses(Collections.singletonList(twinEntity));
+    }
+
+    public void loadClasses(Collection<TwinEntity> twinEntities) throws ServiceException {
         Kit<TwinEntity, UUID> needLoadTwinClassKit = new Kit<>(TwinEntity::getId);
         Set<UUID> twinClassIds = new HashSet<>();
         for (TwinEntity twinEntity : twinEntities) {
@@ -373,6 +372,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 twinEntity.setTwinClass(twinClassEntitiesKit.get(twinEntity.getTwinClassId()));
             }
         }
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinEntity> createTwinsAsync(List<TwinCreate> twinCreateList) throws ServiceException {
+        // todo try to use parallel stream for this
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        //batch load twin classes if they are null, before loadFieldEditability call
+        List<TwinEntity> twinEntities = twinCreateList.stream().map(TwinCreate::getTwinEntity).toList();
+        loadClasses(twinEntities);
         //we can call a bulk load for all fields, because initFields method will loop them anyway
         loadFieldEditability(twinEntities);
         for (TwinCreate twinCreate : twinCreateList) {
