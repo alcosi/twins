@@ -1,4 +1,4 @@
-package org.twins.core.featurer.transition.trigger.messaging.rabbitmq.payloads;
+package org.twins.core.featurer.trigger.messaging.rabbitmq.payloads;
 
 import java.util.Set;
 import java.util.UUID;

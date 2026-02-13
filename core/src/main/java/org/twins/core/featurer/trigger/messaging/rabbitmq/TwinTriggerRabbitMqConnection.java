@@ -1,4 +1,4 @@
-package org.twins.core.featurer.transition.trigger.messaging.rabbitmq;
+package org.twins.core.featurer.trigger.messaging.rabbitmq;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cache2k.Cache;
@@ -9,7 +9,7 @@ import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.featurer.transition.trigger.TwinTrigger;
+import org.twins.core.featurer.trigger.TwinTrigger;
 
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
