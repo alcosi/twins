@@ -38,7 +38,7 @@ public class FieldValueInvisible extends FieldValue {
 
     @Override
     public boolean isUndefined() {
-        return false;
+        return true;
     }
 
     @Override

@@ -113,6 +113,9 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Column(name = "bread_crumbs_face_id")
     private UUID breadCrumbsFaceId;
 
+    @Column(name = "head_hierarchy_counter_direct_children", insertable = false, updatable = false)
+    private Integer headHierarchyCounterDirectChildren;
+
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER)
@@ -382,6 +385,11 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Map<UUID, Object> twinFieldCalculated;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Map<UUID, Boolean> twinFieldEditability;
 
     @Transient
     @EqualsAndHashCode.Exclude

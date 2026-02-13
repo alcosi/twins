@@ -38,7 +38,7 @@ public class FieldInitializerListDefaultOrNull extends FieldInitializer<FieldDes
     FeaturerService featurerService;
 
     @Override
-    protected void setInitValue(Properties properties, TwinEntity twin, FieldValueSelect value) throws ServiceException {
+    protected void initValue(Properties properties, TwinEntity twin, FieldValueSelect value) throws ServiceException {
         var twinClassField = value.getTwinClassField();
         Properties fieldTyperProperties = featurerService.extractProperties(twinClassField.getFieldTyperFeaturerId(), twinClassField.getFieldTyperParams());
         var dataListId = FieldTyperList.getDataListId(fieldTyperProperties);

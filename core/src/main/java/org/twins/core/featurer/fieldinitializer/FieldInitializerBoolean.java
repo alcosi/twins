@@ -23,7 +23,7 @@ public class FieldInitializerBoolean extends FieldInitializer<FieldDescriptorBoo
     public static final FeaturerParamBoolean initValue = new FeaturerParamBoolean("value");
 
     @Override
-    protected void setInitValue(Properties properties, TwinEntity twin, FieldValueBoolean value) throws ServiceException {
+    protected void initValue(Properties properties, TwinEntity twin, FieldValueBoolean value) throws ServiceException {
         value.setValue(initValue.extract(properties));
     }
 }

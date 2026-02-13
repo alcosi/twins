@@ -5,6 +5,6 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
-public abstract class FieldTyperCalcBinaryByHead<D extends FieldDescriptor, T extends FieldValue, S extends TwinFieldStorage, A extends TwinFieldSearch> extends FieldTyper<D, T, S, A> implements FieldTyperCalcBinary, FieldTyperCalcByHead {
+public abstract class FieldTyperCalcBinaryByHead<D extends FieldDescriptor, T extends FieldValue, S extends TwinFieldStorage, A extends TwinFieldSearch> extends FieldTyperImmutable<D, T, S, A> implements FieldTyperCalcBinary, FieldTyperCalcByHead {
 
 }

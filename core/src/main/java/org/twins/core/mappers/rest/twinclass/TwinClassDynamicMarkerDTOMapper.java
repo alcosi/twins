@@ -8,7 +8,9 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twinclass.TwinClassDynamicMarkerEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassDynamicMarkerDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassDynamicMarkerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 
@@ -20,6 +22,8 @@ public class TwinClassDynamicMarkerDTOMapper extends RestSimpleDTOMapper<TwinCla
 
     @MapperModePointerBinding(modes = {TwinClassMode.TwinClassDynamicMarker2TwinClassMode.class})
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
+    @MapperModePointerBinding(modes = {DataListOptionMode.TwinClassDynamicMarker2DataListOptionMode.class})
+    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     @Override
     public void map(TwinClassDynamicMarkerEntity src, TwinClassDynamicMarkerDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -43,6 +47,10 @@ public class TwinClassDynamicMarkerDTOMapper extends RestSimpleDTOMapper<TwinCla
         if (mapperContext.hasModeButNot(TwinClassMode.TwinClassDynamicMarker2TwinClassMode.HIDE)) {
             dst.setTwinClassId(src.getTwinClassId());
             twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinClassDynamicMarker2TwinClassMode.SHORT));
+        }
+        if (mapperContext.hasModeButNot(DataListOptionMode.TwinClassDynamicMarker2DataListOptionMode.HIDE)) {
+            dst.setMarkerDataListOptionId(src.getMarkerDataListOptionId());
+            dataListOptionRestDTOMapper.postpone(src.getMarkerDataListOption(), mapperContext.forkOnPoint(DataListOptionMode.TwinClassDynamicMarker2DataListOptionMode.SHORT));
         }
     }
 }

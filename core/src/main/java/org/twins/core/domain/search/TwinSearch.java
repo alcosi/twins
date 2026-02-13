@@ -6,6 +6,8 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.math.IntegerRange;
+import org.cambium.common.util.RangeUtils;
 import org.twins.core.dao.search.TwinSearchEntity;
 import org.twins.core.domain.DataTimeRange;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
@@ -61,6 +63,7 @@ public class TwinSearch {
     private TwinSearchEntity configuredSearch;
     private HierarchySearch hierarchyChildrenSearch;
     private Boolean distinct;
+    private IntegerRange headHierarchyCounterDirectChildrenRange;
     // if true, status check will consider freeze status from twin class (freeze status has priority over native twin status)
     private boolean checkFreezeStatus = true;
 
@@ -104,7 +107,8 @@ public class TwinSearch {
                 CollectionUtils.isEmpty(fields) &&
                 (hierarchyChildrenSearch == null || hierarchyChildrenSearch.isEmpty()) &&
                 createdAt == null &&
-                distinct == null;
+                distinct == null &&
+                RangeUtils.isEmpty(headHierarchyCounterDirectChildrenRange);
     }
 
     public TwinSearch addTwinId(UUID twinId, boolean exclude) {
