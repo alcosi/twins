@@ -358,17 +358,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void loadClasses(Collection<TwinEntity> twinEntities) throws ServiceException {
-        Kit<TwinEntity, UUID> needLoadTwinClassKit = new Kit<>(TwinEntity::getId);
-        Set<UUID> twinClassIds = new HashSet<>();
+        KitGrouped<TwinEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinEntity::getId, TwinEntity::getTwinClassId);
         for (TwinEntity twinEntity : twinEntities) {
             if (twinEntity.getTwinClass() == null) {
-                needLoadTwinClassKit.add(twinEntity);
-                twinClassIds.add(twinEntity.getTwinClassId());
+                needLoad.add(twinEntity);
             }
         }
-        if (!needLoadTwinClassKit.isEmpty()) {
-            Kit<TwinClassEntity, UUID> twinClassEntitiesKit = twinClassService.findEntitiesSafe(twinClassIds);
-            for (TwinEntity twinEntity : needLoadTwinClassKit.getList()) {
+        if (!needLoad.isEmpty()) {
+            Kit<TwinClassEntity, UUID> twinClassEntitiesKit = twinClassService.findEntitiesSafe(needLoad.getGroupedMap().keySet());
+            for (TwinEntity twinEntity : needLoad.getList()) {
                 twinEntity.setTwinClass(twinClassEntitiesKit.get(twinEntity.getTwinClassId()));
             }
         }
