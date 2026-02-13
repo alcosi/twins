@@ -4,9 +4,13 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.util.*;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.KitUtils;
+import org.cambium.common.util.LoggerUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -19,12 +23,13 @@ import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.factory.*;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.trigger.TwinFactoryTriggerRepository;
+import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowFactoryRepository;
 import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
 import org.twins.core.domain.ApiUser;
-import org.apache.commons.collections4.CollectionUtils;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
@@ -36,21 +41,16 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.conditioner.Conditioner;
 import org.twins.core.featurer.factory.filler.Filler;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
+import org.twins.core.featurer.transition.trigger.TwinTrigger;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
 import org.twins.core.service.i18n.I18nService;
-import org.twins.core.service.twin.TwinChangeTaskService;
-import org.twins.core.service.twin.TwinEraserService;
-import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassService;
-import org.twins.core.dao.trigger.TwinFactoryTriggerRepository;
-import org.twins.core.dao.trigger.TwinTriggerEntity;
-import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
-import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
-import org.twins.core.featurer.transition.trigger.TwinTrigger;
 import org.twins.core.service.trigger.TwinTriggerService;
 import org.twins.core.service.trigger.TwinTriggerTaskService;
+import org.twins.core.service.twin.TwinChangeTaskService;
+import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -424,15 +424,11 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 }
                 if (factoryTriggerEntity.getAsync()) {
                     log.info("Adding async trigger to postponed list for {} twin[{}]", factoryTriggerEntity.logNormal(), targetTwin.logShort());
-                    if (factoryContext.getTwinChangesCollector() != null) {
-                        factoryContext.getTwinChangesCollector().addPostponedTrigger(
-                                targetTwin.getId(),
-                                factoryTriggerEntity.getTwinTriggerId(),
-                                targetTwin.getTwinStatusId(),
-                                factoryContext.getFactoryLauncher());
-                    } else {
-                        log.warn("TwinChangesCollector is not set in FactoryContext, skipping async trigger");
-                    }
+                    factoryContext.getPostponedTriggers().add(
+                            targetTwin.getId(),
+                            targetTwin.getTwinStatusId(),
+                            factoryTriggerEntity.getTwinTriggerId()
+                    );
                 } else {
                     log.info("Executing sync trigger for {} twin[{}]", factoryTriggerEntity.logNormal(), targetTwin.logShort());
                     TwinTriggerEntity twinTriggerEntity = twinTriggerService.findEntitySafe(factoryTriggerEntity.getTwinTriggerId());

@@ -181,7 +181,6 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
             return;
         FactoryContext factoryContext = new FactoryContext(twinflowFactory.getTwinFactoryLauncher(), FactoryBranchId.root(twinflowFactory.getTwinFactoryId()));
         factoryContext.setRequestId(authService.getApiUser().getRequestId());
-        factoryContext.setTwinChangesCollector(twinChangesCollector);
         factoryContext.add(new FactoryItem().setOutput(twinSave).setFactoryContext(factoryContext));
         FactoryResultUncommited result = twinFactoryService.runFactoryAndCollectResult(twinflowFactory.getTwinFactoryId(), factoryContext);
         if (result.getUpdates().size() > 1 || !result.getCreates().isEmpty() || !result.getDeletes().isEmpty()) {
