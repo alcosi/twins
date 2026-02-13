@@ -395,11 +395,11 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             }
 
             if (field.getViewPermissionId() != null &&
-                    !permissionRepository.existsByIdAndPermissionGroup_DomainId(field.getViewPermissionId(), apiUser.getDomainId())) {
+                    !permissionRepository.existsByIdAndPermissionGroup_DomainIdOrDomainIdIsNull(field.getViewPermissionId(), apiUser.getDomainId())) {
                 throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id");
             }
             if (field.getEditPermissionId() != null &&
-                    !permissionRepository.existsByIdAndPermissionGroup_DomainId(field.getEditPermissionId(), apiUser.getDomainId())) {
+                    !permissionRepository.existsByIdAndPermissionGroup_DomainIdOrDomainIdIsNull(field.getEditPermissionId(), apiUser.getDomainId())) {
                 throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown edit permission id");
             }
 

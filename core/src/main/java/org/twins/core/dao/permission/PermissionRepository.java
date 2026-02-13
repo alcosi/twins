@@ -17,6 +17,10 @@ public interface PermissionRepository extends CrudRepository<PermissionEntity, U
 
     boolean existsByIdAndPermissionGroup_DomainId(UUID permissionId, UUID domainId);
 
+    @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM PermissionEntity p " +
+           "WHERE p.id = :permissionId AND (p.permissionGroup.domainId = :domainId OR p.permissionGroup.domainId IS NULL)")
+    boolean existsByIdAndPermissionGroup_DomainIdOrDomainIdIsNull(@Param("permissionId") UUID permissionId, @Param("domainId") UUID domainId);
+
     List<PermissionEntity> findByIdIn(Collection<UUID> ids);
 
     Optional<PermissionEntity> findByPermissionGroup_DomainIdAndKey(UUID uuid, String key);

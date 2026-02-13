@@ -1810,17 +1810,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void loadClass(Collection<TwinEntity> collection) throws ServiceException {
-        KitGrouped<TwinEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinEntity::getId, TwinEntity::getTwinClassId);
-        for (var entry : collection) {
-            if (entry.getTwinClass() == null)
-                needLoad.add(entry);
-        }
-        if (KitUtils.isEmpty(needLoad))
-            return;
-        Kit<TwinClassEntity, UUID> items = twinClassService.findEntitiesSafe(needLoad.getGroupedKeySet());
-        for (var twin : needLoad) {
-            twin.setTwinClass(items.get(twin.getTwinClassId()));
-        }
+        twinClassService.load(collection,
+                TwinEntity::getId,
+                TwinEntity::getTwinClassId,
+                TwinEntity::getTwinClass,
+                TwinEntity::setTwinClass);
     }
 
     public String getErrorMessage(ErrorCode errorCode, TwinClassFieldEntity twinClassField) throws ServiceException {
