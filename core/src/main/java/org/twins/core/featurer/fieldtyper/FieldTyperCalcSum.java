@@ -3,8 +3,6 @@ package org.twins.core.featurer.fieldtyper;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamInt;
-import org.cambium.featurer.params.FeaturerParamRoundingMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -23,24 +21,10 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1340, name = "Sum fields", description = "Sum of fields")
-public class FieldTyperCalcSum extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageDecimal, TwinFieldSearchNotImplemented> {
+public class FieldTyperCalcSum extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageDecimal, TwinFieldSearchNotImplemented> implements FieldTyperScalable {
 
     @FeaturerParam(name = "fieldIds", description = "Fields to sum")
     public static final FeaturerParamUUIDSetTwinsTwinClassFieldId fieldIds = new FeaturerParamUUIDSetTwinsTwinClassFieldId("fieldIds");
-
-    @FeaturerParam(name = "Decimal places",
-            description = "Number of decimal places.",
-            optional = true,
-            defaultValue = "2")
-    FeaturerParamInt decimalPlaces = new FeaturerParamInt("decimalPlaces");
-
-    @FeaturerParam(
-            name = "Rounding mode",
-            description = "Rounding mode for decimal scaling",
-            optional = true,
-            defaultValue = "HALF_UP"
-    )
-    FeaturerParamRoundingMode roundingMode = new FeaturerParamRoundingMode("roundingMode");
 
     @Autowired
     private TwinClassFieldService twinClassFieldService;
@@ -60,15 +44,6 @@ public class FieldTyperCalcSum extends FieldTyperImmutable<FieldDescriptorText, 
             totalSum = totalSum.add(value);
         }
 
-        // Apply rounding if parameters are specified
-        var scale = decimalPlaces.extract(properties);
-        var roundingModeParam = roundingMode.extract(properties);
-
-        if (scale != null) {
-            totalSum = totalSum.setScale(scale, roundingModeParam);
-            totalSum = totalSum.stripTrailingZeros();
-        }
-
-        return new FieldValueText(twinField.getTwinClassField()).setValue(totalSum.toPlainString());
+        return new FieldValueText(twinField.getTwinClassField()).setValue(scaleAndRound(totalSum, properties).toPlainString());
     }
 }
