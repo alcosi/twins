@@ -1,10 +1,48 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE OR REPLACE FUNCTION uuid_generate_v7_custom()
+    RETURNS uuid
+    LANGUAGE plpgsql
+AS $$
+DECLARE
+    unix_ms bigint;
+    rand_bytes bytea;
+    uuid_bytes bytea;
+BEGIN
+    -- 48-bit unix timestamp in milliseconds
+    unix_ms := floor(extract(epoch from clock_timestamp()) * 1000);
+
+    -- 10 random bytes (80 bits)
+    rand_bytes := gen_random_bytes(10);
+
+    -- Compose UUID (16 bytes total)
+    uuid_bytes :=
+            -- 6 bytes timestamp
+        substring(int8send(unix_ms) from 3 for 6)
+            ||
+            -- version (4 bits) + first 4 bits random
+        set_byte(substring(rand_bytes from 1 for 1), 0,
+                 (get_byte(rand_bytes, 0) & 15) | 112)  -- 0111xxxx
+            ||
+            -- remaining 9 random bytes
+        substring(rand_bytes from 2);
+
+    -- Set variant (10xxxxxx)
+    uuid_bytes :=
+            set_byte(uuid_bytes, 8,
+                     (get_byte(uuid_bytes, 8) & 63) | 128);
+
+    RETURN encode(uuid_bytes, 'hex')::uuid;
+END;
+$$;
+
+
 drop index if exists idx_user_group_by_assignee_propagation_granted_by_user_id;
 drop index if exists idx_user_group_by_assignee_propagation_user_group_id;
 drop index if exists idx_user_group_by_assignee_propagation_permission_schema_id;
 drop index if exists idx_user_group_by_assignee_propagation_twin_class_id;
 drop index if exists idx_user_group_by_assignee_propagation_twin_status_id;
 
-create table user_group_by_assignee_propagation
+create table if not exists user_group_by_assignee_propagation
 (
     id                            uuid not null
         constraint user_group_by_assignee_propagation_pk
@@ -111,7 +149,8 @@ BEGIN
 END;
 $$;
 
-create or replace function user_group_involve_by_assignee_propagation(new_assigner_user_id uuid, old_assigner_user_id uuid, p_twin_class_id uuid, p_twin_status_id uuid, p_owner_business_account_id uuid) returns void
+
+create or replace function user_group_add_or_remove_group(p_user_id uuid, p_group_id uuid, p_domain_id uuid, p_business_account_id uuid, p_add_to_group boolean) returns void
     volatile
     language plpgsql
 as
@@ -119,44 +158,68 @@ $$
 DECLARE
     selected_user_group_id UUID := null;
 BEGIN
-    if new_assigner_user_id is not null then
-        if p_owner_business_account_id is not null then
 
-            select user_group_id into selected_user_group_id from user_group_by_assignee_propagation a
-            join twin_class tc on tc.id = a.propagation_by_twin_status_id
-            join domain d on d.id = tc.domain_id
-            join domain_business_account db on db.domain_id = d.id and db.business_account_id = p_owner_business_account_id
-                             where
-                                 a.propagation_by_twin_class_id = p_twin_class_id and
-                                 (a.propagation_by_twin_status_id = p_twin_status_id or a.propagation_by_twin_status_id is null) and
-                                 a.permission_schema_id = COALESCE(db.permission_schema_id, d.permission_schema_id)
-        end if;
-        if p_owner_business_account_id is null then
-            select user_group_id into selected_user_group_id from user_group_by_assignee_propagation a
-                                                                      join twin_class tc on tc.id = a.propagation_by_twin_status_id
-                                                                      join domain d on d.id = tc.domain_id
-            where
-                a.propagation_by_twin_class_id = p_twin_class_id and
-                (a.propagation_by_twin_status_id = p_twin_status_id or a.propagation_by_twin_status_id is null) and
-                a.permission_schema_id = d.permission_schema_id
-        end if;
+    if p_add_to_group then
+        -- TODO suppurt type1 and type3 groups
+        insert into user_group_map_type2 (id,user_group_id, business_account_id, user_id, added_at, added_by_user_id)
+        VALUES (uuid_generate_v7_custom(), p_group_id, p_business_account_id, p_user_id, now(), '00000000-0000-0000-0000-000000000000') on conflict (user_id, business_account_id, user_group_id) do nothing;
+    else
+        delete from user_group_map_type2 where user_id = p_user_id and business_account_id = p_business_account_id and user_group_id = p_group_id;
+    end if;
+END;
+$$;
 
-        if selected_user_group_id is not null then
---             TODO insert into groups
-        end if;
+create or replace function user_group_involve_by_assignee_propagation(new_assigner_user_id uuid, old_assigner_user_id uuid, p_twin_class_id uuid, p_twin_status_id uuid, p_owner_business_account_id uuid) returns void
+    volatile
+    language plpgsql
+as
+$$
+DECLARE
+    selected_user_group_id UUID := null;
+    selected_domain_id UUID := null;
+BEGIN
+    if p_owner_business_account_id is not null then
 
+        select a.user_group_id, d.id into selected_user_group_id, selected_domain_id from user_group_by_assignee_propagation a
+                                                                                              join twin_class tc on tc.id = a.propagation_by_twin_status_id
+                                                                                              join domain d on d.id = tc.domain_id
+                                                                                              join domain_business_account db on db.domain_id = d.id and db.business_account_id = p_owner_business_account_id
+        where
+            a.propagation_by_twin_class_id = p_twin_class_id and
+            (a.propagation_by_twin_status_id = p_twin_status_id or a.propagation_by_twin_status_id is null) and
+            a.permission_schema_id = COALESCE(db.permission_schema_id, d.permission_schema_id);
+    end if;
+    if p_owner_business_account_id is null then
+        select a.user_group_id, d.id into selected_user_group_id, selected_domain_id from user_group_by_assignee_propagation a
+                                                                                              join twin_class tc on tc.id = a.propagation_by_twin_status_id
+                                                                                              join domain d on d.id = tc.domain_id
+        where
+            a.propagation_by_twin_class_id = p_twin_class_id and
+            (a.propagation_by_twin_status_id = p_twin_status_id or a.propagation_by_twin_status_id is null) and
+            a.permission_schema_id = d.permission_schema_id;
     end if;
 
+    if selected_user_group_id is not null then
+        RETURN;
+    end if;
+
+
+    if new_assigner_user_id is not null then
+        perform user_group_add_or_remove_group(new_assigner_user_id, selected_user_group_id, selected_domain_id, p_owner_business_account_id, true);
+    end if;
+
+        -- todo check other twins;
+
     if old_assigner_user_id is not null and new_assigner_user_id is null then
-
---         todo remove from grops
-
+        perform user_group_add_or_remove_group(old_assigner_user_id,selected_user_group_id , selected_domain_id, p_owner_business_account_id, false);
     end if;
 END;
 $$;
 
 
 
+
+DROP FUNCTION IF EXISTS permission_check(uuid,uuid,uuid,uuid,uuid,uuid,uuid[],uuid,boolean,boolean);
 create or replace function permission_check(permissionSchemaId uuid, businessaccountid uuid, spaceid uuid, permissionidtwin uuid, permissionidtwinclass uuid, userid uuid, usergroupidlist uuid[], twinclassid uuid, isassignee boolean DEFAULT false, iscreator boolean DEFAULT false) returns boolean
     volatile
     language plpgsql
@@ -173,6 +236,7 @@ END;
 $$;
 
 
+DROP FUNCTION IF EXISTS permission_check(uuid,uuid,uuid,uuid,uuid, uuid[],uuid,boolean,boolean);
 create or replace function permission_check(domainId uuid, businessaccountid uuid, spaceid uuid, permissionid uuid, userid uuid, usergroupidlist uuid[], twinclassid uuid, isassignee boolean DEFAULT false, iscreator boolean DEFAULT false) returns boolean
     volatile
     language plpgsql
@@ -404,29 +468,31 @@ create or replace function permission_check_space_role_permissions(permissionsch
 as
 $$
 DECLARE
-    userAssignedToRoleExists INT;
-    groupAssignedToRoleExists INT;
+    userAssignedToRoleExists BOOLEAN;
+    groupAssignedToRoleExists BOOLEAN;
 BEGIN
     -- Check if any space role assigned to the user has the given permission
-    SELECT COUNT(sru.id)
-    INTO userAssignedToRoleExists
-    FROM space_role_user sru
-    WHERE sru.twin_id = spaceId
-      AND sru.user_id = userId
-      AND sru.space_role_id IN (SELECT space_role_id FROM permission_get_roles(permissionSchemaId, permissionId));
+    SELECT EXISTS (
+        SELECT 1
+        FROM space_role_user sru
+        WHERE sru.twin_id = spaceId
+          AND sru.user_id = userId
+          AND sru.space_role_id IN (SELECT space_role_id FROM permission_get_roles(permissionSchemaId, permissionId))
+    ) INTO userAssignedToRoleExists;
 
-    IF userAssignedToRoleExists > 0 THEN
+    IF userAssignedToRoleExists THEN
         RETURN TRUE;
     END IF;
 
     -- Check if any space role assigned to the user's group has the given permission
-    SELECT COUNT(srug.id)
-    INTO groupAssignedToRoleExists
-    FROM space_role_user_group srug
-    WHERE srug.twin_id = spaceId
-      AND srug.user_group_id = ANY (userGroupIdList)
-      AND srug.space_role_id IN (SELECT space_role_id FROM permission_get_roles(permissionSchemaId, permissionId));
+    SELECT EXISTS (
+        SELECT 1
+        FROM space_role_user_group srug
+        WHERE srug.twin_id = spaceId
+          AND srug.user_group_id = ANY (userGroupIdList)
+          AND srug.space_role_id IN (SELECT space_role_id FROM permission_get_roles(permissionSchemaId, permissionId))
+    ) INTO groupAssignedToRoleExists;
 
-    RETURN groupAssignedToRoleExists > 0;
+    RETURN groupAssignedToRoleExists;
 END;
 $$;
