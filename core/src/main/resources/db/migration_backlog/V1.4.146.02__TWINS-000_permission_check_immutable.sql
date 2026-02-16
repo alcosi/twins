@@ -160,7 +160,7 @@ DECLARE
 BEGIN
 
     if p_add_to_group then
-        -- TODO suppurt type1 and type3 groups
+        -- TODO support type1 and type3 groups
         insert into user_group_map_type2 (id,user_group_id, business_account_id, user_id, added_at, added_by_user_id)
         VALUES (uuid_generate_v7_custom(), p_group_id, p_business_account_id, p_user_id, now(), '00000000-0000-0000-0000-000000000000') on conflict (user_id, business_account_id, user_group_id) do nothing;
     else
@@ -199,7 +199,7 @@ BEGIN
             a.permission_schema_id = d.permission_schema_id;
     end if;
 
-    if selected_user_group_id is not null then
+    if selected_user_group_id is null then
         RETURN;
     end if;
 
@@ -208,10 +208,15 @@ BEGIN
         perform user_group_add_or_remove_group(new_assigner_user_id, selected_user_group_id, selected_domain_id, p_owner_business_account_id, true);
     end if;
 
-        -- todo check other twins;
-
-    if old_assigner_user_id is not null and new_assigner_user_id is null then
-        perform user_group_add_or_remove_group(old_assigner_user_id,selected_user_group_id , selected_domain_id, p_owner_business_account_id, false);
+    if old_assigner_user_id is not null then
+        IF NOT EXISTS (SELECT 1 FROM twin
+                       WHERE assigner_user_id = old_assigner_user_id
+                         AND twin_class_id = p_twin_class_id
+                         AND (p_twin_status_id IS NULL OR twin_status_id = p_twin_status_id)
+                         AND (p_owner_business_account_id IS NULL OR owner_business_account_id = p_owner_business_account_id)
+                         LIMIT 1) THEN
+            perform user_group_add_or_remove_group(old_assigner_user_id, selected_user_group_id, selected_domain_id, p_owner_business_account_id, false);
+        END IF;
     end if;
 END;
 $$;
