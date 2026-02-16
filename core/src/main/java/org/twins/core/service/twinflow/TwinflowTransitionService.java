@@ -31,14 +31,11 @@ import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
-import org.twins.core.dao.trigger.TwinTriggerEntity;
-import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
-import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
-import org.twins.core.service.trigger.TwinTriggerTaskService;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleRepository;
@@ -58,14 +55,16 @@ import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.enums.twinflow.TwinflowTransitionType;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.transition.trigger.TwinTrigger;
-import org.twins.core.service.auth.AuthService;
+import org.twins.core.featurer.trigger.TwinTrigger;
 import org.twins.core.service.TwinChangesService;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
 import org.twins.core.service.factory.TwinFactoryService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.trigger.TwinTriggerService;
+import org.twins.core.service.trigger.TwinTriggerTaskService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twin.TwinValidatorSetService;
@@ -73,7 +72,6 @@ import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 import org.twins.core.service.validator.TwinValidatorService;
-import org.twins.core.service.trigger.TwinTriggerService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -837,7 +835,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         FactoryBranchId factoryBranchId = FactoryBranchId.root(inbuiltTwinFactoryId);
         FactoryContext factoryContext = new FactoryContext(FactoryLauncher.transition, factoryBranchId)
                 .setRequestId(authService.getApiUser().getRequestId())
-                .setTwinChangesCollector(twinChangesCollector)
                 .setInputTwinList(transitionContext.getTargetTwinList().values())
                 .setFields(transitionContext.getFields())
                 .setAttachmentCUD(transitionContext.getAttachmentCUD())
@@ -944,12 +941,11 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     }
                     log.info("{} will be triggered", triggerEntity.logDetailed());
                     if (triggerEntity.getAsync()) {
-                        log.info("Adding async trigger to postponed list for {} twin[{}]", triggerEntity.logDetailed(), targetTwin.logShort());
                         twinChangesCollector.addPostponedTrigger(
                                 targetTwin.getId(),
-                                triggerEntity.getTwinTriggerId(),
                                 transitionEntity.getSrcTwinStatusId(),
-                                FactoryLauncher.transition);
+                                triggerEntity.getTwinTriggerId()
+                        );
                     } else {
                         log.info("Executing sync trigger for {} twin[{}]", triggerEntity.logDetailed(), targetTwin.logShort());
                         TwinTriggerEntity twinTriggerEntity = twinTriggerService.findEntitySafe(triggerEntity.getTwinTriggerId());

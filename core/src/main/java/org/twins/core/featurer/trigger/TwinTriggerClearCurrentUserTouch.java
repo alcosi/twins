@@ -1,4 +1,4 @@
-package org.twins.core.featurer.transition.trigger;
+package org.twins.core.featurer.trigger;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

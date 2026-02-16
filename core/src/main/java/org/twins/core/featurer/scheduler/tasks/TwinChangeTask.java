@@ -13,10 +13,9 @@ import org.twins.core.dao.twin.TwinChangeTaskRepository;
 import org.twins.core.domain.factory.FactoryBranchId;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryResultUncommited;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.TwinChangesService;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.factory.TwinFactoryService;
 
 import java.sql.Timestamp;
@@ -54,10 +53,8 @@ public class TwinChangeTask implements Runnable {
                 throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "can not detect domain from input " + twinChangeTaskEntity.getTwin().logNormal());
             }
             authService.setThreadLocalApiUser(twinChangeTaskEntity.getTwin().getTwinClass().getDomainId(), twinChangeTaskEntity.getBusinessAccountId(), twinChangeTaskEntity.getCreatedByUserId());
-            TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
             FactoryContext factoryContext = new FactoryContext(twinChangeTaskEntity.getTwinFactorylauncher(), FactoryBranchId.root(twinChangeTaskEntity.getTwinFactoryId()))
                     .setRequestId(twinChangeTaskEntity.getRequestId())
-                    .setTwinChangesCollector(twinChangesCollector)
                     .setInputTwinList(Collections.singletonList(twinChangeTaskEntity.getTwin()));
 //                    .setFields(transitionContext.getFields())
 //                    .setAttachmentCUD(transitionContext.getAttachmentCUD())
@@ -73,9 +70,7 @@ public class TwinChangeTask implements Runnable {
                 twinUpdate.setCanTriggerAfterOperationFactory(false);
             }
             twinFactoryService.commitResult(result);
-            log.info("Applying changes with {} postponed triggers", twinChangesCollector.getPostponedTrigger().size());
-            twinChangesService.applyChanges(twinChangesCollector);
-            log.info("Changes applied successfully");
+            twinChangesService.savePostponedTriggers(factoryContext.getPostponedTriggers());
             twinChangeTaskEntity
                     .setStatusId(TwinChangeTaskStatus.DONE)
                     .setDoneAt(Timestamp.from(Instant.now()));

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
@@ -20,13 +21,15 @@ import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.comment.TwinCommentRepository;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
+import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
 import org.twins.core.dao.trigger.TwinTriggerTaskStatus;
 import org.twins.core.dao.twin.*;
+import org.twins.core.domain.PostponedTriggers;
 import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.service.history.HistoryService;
-import org.twins.core.service.twin.TwinChangeTaskService;
 import org.twins.core.service.trigger.TwinTriggerTaskService;
+import org.twins.core.service.twin.TwinChangeTaskService;
 
 import java.util.*;
 
@@ -65,7 +68,7 @@ public class TwinChangesService {
         TwinChangesApplyResult changesApplyResult = new TwinChangesApplyResult();
         if (!twinChangesCollector.hasChanges() &&
             twinChangesCollector.getPostponedChanges().isEmpty() &&
-            twinChangesCollector.getPostponedTrigger().isEmpty())
+            twinChangesCollector.getPostponedTriggers().isEmpty())
             return changesApplyResult;
         //we have to flush new twins save because of "Not-null property references a transient value - transient instance must be saved before current operation" in other related entities
         saveEntitiesAndFlush(twinChangesCollector, TwinEntity.class, twinRepository, changesApplyResult);
@@ -114,7 +117,7 @@ public class TwinChangesService {
                 log.warn("Unsupported entity class[{}] for deletion", classChanges.getKey().getSimpleName());
             }
         savePostponedChanges(twinChangesCollector);
-        savePostponedTriggers(twinChangesCollector);
+        savePostponedTriggers(twinChangesCollector.getPostponedTriggers());
         invalidate(twinChangesCollector.getInvalidationMap());
         historyService.saveHistory(twinChangesCollector.getHistoryCollector());
         twinChangesCollector.clear();
@@ -135,18 +138,16 @@ public class TwinChangesService {
         twinChangeTaskService.addTasks(changeTaskList);
     }
 
-    private void savePostponedTriggers(TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (twinChangesCollector.getPostponedTrigger().isEmpty())
+    public void savePostponedTriggers(PostponedTriggers postponedTriggers) throws ServiceException {
+        if (CollectionUtils.isEmpty(postponedTriggers))
             return;
-        List<org.twins.core.dao.trigger.TwinTriggerTaskEntity> triggerTaskList = new ArrayList<>();
-        for (var entry : twinChangesCollector.getPostponedTrigger().entrySet()) {
-            for (var triple : entry.getValue()) {
-                triggerTaskList.add(new org.twins.core.dao.trigger.TwinTriggerTaskEntity()
-                        .setTwinId(entry.getKey())
-                        .setTwinTriggerId(triple.getLeft())
-                        .setPreviousTwinStatusId(triple.getMiddle())
-                        .setStatusId(TwinTriggerTaskStatus.NEED_START));
-            }
+        List<TwinTriggerTaskEntity> triggerTaskList = new ArrayList<>();
+        for (PostponedTriggers.PostponedTrigger postponedTrigger : postponedTriggers) {
+            triggerTaskList.add(new TwinTriggerTaskEntity()
+                    .setTwinId(postponedTrigger.twinId())
+                    .setTwinTriggerId(postponedTrigger.triggerId())
+                    .setPreviousTwinStatusId(postponedTrigger.statusId())
+                    .setStatusId(TwinTriggerTaskStatus.NEED_START));
         }
         log.info("Saving {} postponed triggers", triggerTaskList.size());
         twinTriggerTaskService.addTasks(triggerTaskList);
