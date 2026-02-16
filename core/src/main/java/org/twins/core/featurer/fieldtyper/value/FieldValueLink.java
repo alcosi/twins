@@ -34,8 +34,11 @@ public class FieldValueLink extends FieldValueCollection<TwinLinkEntity> {
 
     @Override
     public void copyValueTo(FieldValue dst) {
-        super.copyValueTo(dst);
         var dstValue = (FieldValueLink) dst;
+        dstValue.clear();
+        for (TwinLinkEntity twinLinkEntity : collection) {
+            dstValue.collection.add(twinLinkEntity.clone()); //link and src twin will filled on serialize in FieldTyperLink
+        }
         dstValue.forwardLink = forwardLink;
     }
 }
