@@ -26,7 +26,7 @@ public class TwinflowTransitionValidatorRuleBaseV1RestDTOMapper extends RestSimp
     private final TwinValidatorBaseV1RestDTOMapper twinValidatorBaseV1RestDTOMapper;
 
     @MapperModePointerBinding(modes = {TwinValidatorSetMode.TwinflowTransitionValidatorRule2TwinValidatorSetMode.class})
-    private final TwinValidatorSetBaseV1RestDTOMapper twinValidatorSetBaseV1RestDTOMapper;
+    private final TwinValidatorSetRestDTOMapper twinValidatorSetRestDTOMapper;
 
     private final TwinValidatorSetService twinValidatorSetService;
     private final TwinValidatorService twinValidatorService;
@@ -48,7 +48,7 @@ public class TwinflowTransitionValidatorRuleBaseV1RestDTOMapper extends RestSimp
         }
         if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinflowTransitionValidatorRule2TwinValidatorSetMode.HIDE))
             dst
-                    .setTwinValidatorSet(twinValidatorSetBaseV1RestDTOMapper.convert(
+                    .setTwinValidatorSet(twinValidatorSetRestDTOMapper.convert(
                            src.getTwinValidatorSet(), mapperContext.forkOnPoint(TwinValidatorSetMode.TwinflowTransitionValidatorRule2TwinValidatorSetMode.SHORT)))
                     .setTwinValidatorSetId(src.getTwinValidatorSetId());
         if (mapperContext.hasModeButNot(TwinValidatorMode.TwinflowTransitionValidatorRule2TwinValidatorMode.HIDE)) {

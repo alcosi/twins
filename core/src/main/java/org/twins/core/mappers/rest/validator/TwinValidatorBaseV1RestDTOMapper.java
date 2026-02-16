@@ -23,7 +23,7 @@ import java.util.Collection;
 public class TwinValidatorBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinValidatorEntity, TwinValidatorBaseDTOv1> {
 
     @MapperModePointerBinding(modes = {TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.class})
-    private final TwinValidatorSetBaseV1RestDTOMapper twinValidatorSetBaseV1RestDTOMapper;
+    private final TwinValidatorSetRestDTOMapper twinValidatorSetRestDTOMapper;
 
     @MapperModePointerBinding(modes = FeaturerMode.TwinValidator2FeaturerMode.class)
     private final FeaturerRestDTOMapper featurerRestDTOMapper;
@@ -53,7 +53,7 @@ public class TwinValidatorBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinVa
         if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.HIDE)) {
             twinValidatorSetService.loadTwinValidatorSet(src);
             dst
-                    .setTwinValidatorSet(twinValidatorSetBaseV1RestDTOMapper.convert(src.getTwinValidatorSet(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.SHORT))))
+                    .setTwinValidatorSet(twinValidatorSetRestDTOMapper.convert(src.getTwinValidatorSet(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.SHORT))))
                     .setTwinValidatorSetId(src.getTwinValidatorSetId());
         }
         if (mapperContext.hasModeButNot(FeaturerMode.TwinValidator2FeaturerMode.HIDE)) {

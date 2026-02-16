@@ -41,7 +41,7 @@ public class TwinValidatorBaseDTOv1 {
 
     //todo move to related objects
     @Schema(description = "grouping set of twin validator")
-    public TwinValidatorSetBaseDTOv1 twinValidatorSet;
+    public TwinValidatorSetDTOv1 twinValidatorSet;
 }
 
 

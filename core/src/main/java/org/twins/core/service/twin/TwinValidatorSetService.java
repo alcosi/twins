@@ -9,24 +9,30 @@ import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import org.twins.core.dao.validator.TwinValidatorSetRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.validator.TwinValidatorSetCreate;
+import org.twins.core.domain.validator.TwinValidatorSetUpdate;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.validator.TwinValidatorService;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -87,7 +93,8 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
         }
         twinValidatorService.loadValidators(validatorContainer);
         if (validatorContainer.getTwinValidatorKit() == null) {
-            return !validatorContainer.getTwinValidatorSet().isInvert();
+            Boolean invert = validatorContainer.getTwinValidatorSet().getInvert();
+            return invert != null && invert;
         }
         List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validatorContainer.getTwinValidatorKit().getList());
         sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
@@ -108,7 +115,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
             }
         }
 
-        return validatorContainer.getTwinValidatorSet().isInvert() != validationResultOfSet;
+        return validatorContainer.getTwinValidatorSet().getInvert() != validationResultOfSet;
     }
 
     public <T extends ContainsTwinValidatorSet> Map<UUID, ValidationResult> isValid(Collection<TwinEntity> twinEntities, T validatorContainer) throws ServiceException {
@@ -119,10 +126,10 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
         }
 
         twinValidatorService.loadValidators(validatorContainer);
-        boolean setInvert = validatorContainer.getTwinValidatorSet().isInvert();
+        Boolean setInvert = validatorContainer.getTwinValidatorSet().getInvert();
 
         if (validatorContainer.getTwinValidatorKit() == null) {
-            return initializeResults(twinEntities, !setInvert);
+            return initializeResults(twinEntities, setInvert != null && setInvert);
         }
 
         List<TwinValidatorEntity> sortedValidators = getSortedActiveValidators(validatorContainer);
@@ -152,7 +159,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
             }
         }
 
-        if (setInvert) {
+        if (setInvert != null && setInvert) {
             invertResults(results);
         }
 
@@ -184,6 +191,56 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
                             .setMessage(original.getMessage())
             );
         }
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinValidatorSetEntity> createTwinValidatorSet(List<TwinValidatorSetCreate> validatorSets) throws ServiceException {
+        if (validatorSets == null || validatorSets.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<TwinValidatorSetEntity> entitiesToSave = new ArrayList<>();
+
+        for (TwinValidatorSetCreate validatorSet : validatorSets) {
+            TwinValidatorSetEntity sourceEntity = validatorSet.getTwinValidatorSet();
+            TwinValidatorSetEntity entity = new TwinValidatorSetEntity()
+                    .setName(sourceEntity.getName())
+                    .setDescription(sourceEntity.getDescription())
+                    .setInvert(sourceEntity.getInvert() != null ? sourceEntity.getInvert() : false)
+                    .setDomainId(authService.getApiUser().getDomainId());
+
+            entitiesToSave.add(entity);
+        }
+
+        return StreamSupport.stream(saveSafe(entitiesToSave).spliterator(), false).toList();
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinValidatorSetEntity> updateTwinValidatorSet(List<TwinValidatorSetUpdate> validatorSets) throws ServiceException {
+        if (validatorSets == null || validatorSets.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        ChangesHelperMulti<TwinValidatorSetEntity> changes = new ChangesHelperMulti<>();
+        Kit<TwinValidatorSetEntity, UUID> entitiesKit = findEntitiesSafe(validatorSets.stream().map(TwinValidatorSetUpdate::getId).toList());
+        List<TwinValidatorSetEntity> allEntities = new ArrayList<>(validatorSets.size());
+
+        for (TwinValidatorSetUpdate validatorSet : validatorSets) {
+            TwinValidatorSetEntity entity = entitiesKit.get(validatorSet.getId());
+            allEntities.add(entity);
+
+            ChangesHelper changesHelper = new ChangesHelper();
+            TwinValidatorSetEntity sourceEntity = validatorSet.getTwinValidatorSet();
+            updateEntityFieldByValue(sourceEntity.getName(), entity, TwinValidatorSetEntity::getName, TwinValidatorSetEntity::setName, TwinValidatorSetEntity.Fields.name, changesHelper);
+            updateEntityFieldByValue(sourceEntity.getDescription(), entity, TwinValidatorSetEntity::getDescription, TwinValidatorSetEntity::setDescription, TwinValidatorSetEntity.Fields.description, changesHelper);
+            updateEntityFieldByValue(sourceEntity.getInvert(), entity, TwinValidatorSetEntity::getInvert, TwinValidatorSetEntity::setInvert, TwinValidatorSetEntity.Fields.invert, changesHelper);
+
+            changes.add(entity, changesHelper);
+        }
+
+        updateSafe(changes);
+
+        return allEntities;
     }
 
     public void loadTwinValidator(TwinValidatorEntity src) {
