@@ -133,3 +133,9 @@ ALTER TABLE twinflow_transition_trigger
 
 ALTER TABLE twinflow_transition_trigger
     DROP COLUMN IF EXISTS transition_trigger_params;
+
+INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (5010::integer, 50::integer, '', '', '', DEFAULT) on conflict do nothing;
+
+INSERT INTO scheduler (id, domain_id, scheduler_featurer_id, cron, active, log_enabled, scheduler_params, fixed_rate, description, created_at, updated_at)
+VALUES ('00000000-0000-0000-0015-00000000000a'::uuid, NULL, 5010, NULL, true, true, NULL, 2000, 'Scheduler for executing twin triggers', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+ON CONFLICT DO NOTHING;

@@ -10,8 +10,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "TwinTriggerV1")
-public class TwinTriggerDTOv1 {
+@Schema(name = "TransitionTriggerV1")
+public class TransitionTriggerDTOv1 {
     @Schema(description = "id", example = DTOExamples.TRIGGER_ID)
     public UUID id;
 

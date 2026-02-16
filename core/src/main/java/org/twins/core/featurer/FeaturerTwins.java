@@ -368,6 +368,7 @@ public abstract class FeaturerTwins extends Featurer {
     public static final int ID_5007 = 5007;
     public static final int ID_5008 = 5008;
     public static final int ID_5009 = 5009;
+    public static final int ID_5010 = 5010;
     public static final int ID_5101 = 5101;
     public static final int ID_5102 = 5102;
     public static final int ID_5103 = 5103;

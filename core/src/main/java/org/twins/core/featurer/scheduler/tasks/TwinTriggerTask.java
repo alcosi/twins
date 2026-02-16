@@ -1,7 +1,8 @@
-package org.twins.core.service.trigger;
+package org.twins.core.featurer.scheduler.tasks;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -13,6 +14,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.featurer.trigger.TwinTrigger;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.trigger.TwinTriggerTaskService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -39,6 +41,9 @@ public class TwinTriggerTask implements Runnable {
     @Override
     public void run() {
         try {
+            LoggerUtils.logSession();
+            LoggerUtils.logController("twinTriggerTask$");
+            LoggerUtils.logPrefix("TRIGGER_TASK[" + twinTriggerTaskEntity.getId() + "]:");
             log.info("Performing async twin trigger run: {}", twinTriggerTaskEntity.logDetailed());
             TwinEntity twin = twinTriggerTaskEntity.getTwin();
             TwinStatusEntity previousTwinStatus = twinTriggerTaskEntity.getPreviousTwinStatus();
@@ -73,6 +78,7 @@ public class TwinTriggerTask implements Runnable {
             } catch (Exception e) {
                 log.error("Failed to save trigger task status: {}", e.getMessage(), e);
             }
+            LoggerUtils.cleanMDC();
         }
     }
 }
