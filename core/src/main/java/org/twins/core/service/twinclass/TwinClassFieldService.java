@@ -34,6 +34,7 @@ import org.twins.core.domain.twinclass.TwinClassFieldSave;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.fieldinitializer.FieldInitializer;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperLink;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
@@ -395,11 +396,11 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             }
 
             if (field.getViewPermissionId() != null &&
-                    !permissionRepository.existsByIdAndPermissionGroup_DomainId(field.getViewPermissionId(), apiUser.getDomainId())) {
+                    !permissionRepository.existsByIdAndPermissionGroup_DomainIdOrDomainIdIsNull(field.getViewPermissionId(), apiUser.getDomainId())) {
                 throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id");
             }
             if (field.getEditPermissionId() != null &&
-                    !permissionRepository.existsByIdAndPermissionGroup_DomainId(field.getEditPermissionId(), apiUser.getDomainId())) {
+                    !permissionRepository.existsByIdAndPermissionGroup_DomainIdOrDomainIdIsNull(field.getEditPermissionId(), apiUser.getDomainId())) {
                 throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown edit permission id");
             }
 
@@ -419,6 +420,15 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 field
                         .setTwinSorterFeaturerId(FeaturerTwins.ID_4101)
                         .setTwinSorterParams(null);
+            }
+
+            if (field.getFieldInitializerFeaturerId() != null) {
+                featurerService.checkValid(field.getFieldInitializerFeaturerId(), field.getFieldInitializerParams(), FieldInitializer.class);
+                featurerService.prepareForStore(field.getFieldInitializerFeaturerId(), field.getFieldInitializerParams());
+            } else {
+                field
+                        .setFieldInitializerFeaturerId(FeaturerTwins.ID_5301)
+                        .setFieldInitializerParams(null);
             }
 
             if (field.getSystem() == null) {
@@ -634,5 +644,13 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         }
 
         return defaultValue;
+    }
+
+    public String getDateFieldPattern(TwinClassFieldEntity twinClassField) throws ServiceException {
+        FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
+        if (!(fieldTyper instanceof FieldTyperDateTime fieldTyperDateTime))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, twinClassField.logNormal() + " is not datetime");
+        Properties properties = featurerService.extractProperties(fieldTyper, twinClassField.getFieldTyperParams());
+        return fieldTyperDateTime.getPattern(properties);
     }
 }

@@ -434,4 +434,46 @@ public enum TwinClassMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum TwinClassDynamicMarker2TwinClassMode implements MapperModePointer<TwinClassMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2),
+        @FieldNameConstants.Include MANAGED(3);
+
+        final int priority;
+
+        @Override
+        public TwinClassMode point() {
+            return switch (this) {
+                case HIDE -> TwinClassMode.HIDE;
+                case SHORT -> TwinClassMode.SHORT;
+                case DETAILED -> TwinClassMode.DETAILED;
+                case MANAGED -> TwinClassMode.MANAGED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum TwinField2TwinClassMode implements MapperModePointer<TwinClassMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public TwinClassMode point() {
+            return switch (this) {
+                case HIDE -> TwinClassMode.HIDE;
+                case SHORT -> TwinClassMode.SHORT;
+                case DETAILED -> TwinClassMode.DETAILED;
+            };
+        }
+    }
 }

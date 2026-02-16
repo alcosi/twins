@@ -283,6 +283,15 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return new HistoryItem<>(HistoryType.fieldChanged, context);
     }
 
+    public HistoryItem<HistoryContextTimestampChange> fieldChangeTimestamp(TwinClassFieldEntity twinClassFieldEntity, Timestamp fromValue, Timestamp toValue) {
+        var context = new HistoryContextTimestampChange()
+                .setFromValue(fromValue)
+                .setToValue(toValue);
+        context.shotField(twinClassFieldEntity, i18nService);
+
+        return new HistoryItem<>(HistoryType.fieldChanged, context);
+    }
+
     public HistoryItem<HistoryContextDecimalChange> fieldChangeDecimal(TwinClassFieldEntity twinClassFieldEntity, BigDecimal fromValue, BigDecimal toValue) {
         var context = new HistoryContextDecimalChange()
                 .setFromValue(fromValue)

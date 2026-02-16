@@ -70,7 +70,7 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
         UUID roleId = spaceRoleId.extract(properties);
 
         SpaceUserRoleService.SpaceRoleUserChanges spaceRoleUserChanges = spaceUserRoleService
-                .calculateSpaceRoleUserChanges(twin.getId(), roleId, value.getUsers().stream().map(UserEntity::getId).toList());
+                .calculateSpaceRoleUserChanges(twin.getId(), roleId, value.getItems().stream().map(UserEntity::getId).toList());
 
         if (CollectionUtils.isNotEmpty(spaceRoleUserChanges.getAddUsers())) {
             List<UUID> invalidUsers = userService.getUsersOutOfDomainAndBusinessAccount(spaceRoleUserChanges.getAddUsers(), apiUser.getBusinessAccountId(), apiUser.getDomainId());
@@ -120,7 +120,7 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
         List<SpaceRoleUserEntity> spaceRoleUserEntityList = twinEntity.getTwinFieldSpaceUserKit().getGrouped(roleId);
         FieldValueUser ret = new FieldValueUser(twinField.getTwinClassField());
         if (spaceRoleUserEntityList != null) {
-            ret.getUsers().addAll(spaceRoleUserEntityList.stream().map(SpaceRoleUserEntity::getUser).toList());
+            ret.setItems(spaceRoleUserEntityList.stream().map(SpaceRoleUserEntity::getUser).toList());
         }
         return ret;
     }

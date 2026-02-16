@@ -6,11 +6,13 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
+import java.util.Objects;
+
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FieldValueAttachment extends FieldValue {
+public class FieldValueAttachment extends FieldValueStated {
     private String name;
     private String base64Content;
 
@@ -19,31 +21,31 @@ public class FieldValueAttachment extends FieldValue {
     }
 
     @Override
-    public boolean isFilled() {
-        return name != null && !name.isEmpty() && base64Content != null && !base64Content.isEmpty();
-    }
-
-    @Override
-    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        FieldValueAttachment clone = new FieldValueAttachment(newTwinClassFieldEntity);
-        clone.setName(name);
-        clone.setBase64Content(base64Content);
-        return clone;
+    public FieldValueAttachment newInstance(TwinClassFieldEntity newTwinClassFieldEntity) {
+        return new FieldValueAttachment(newTwinClassFieldEntity);
     }
 
     @Override
     public boolean hasValue(String value) {
-        return false;
+        return Objects.equals(base64Content, value);
     }
 
     @Override
-    public void nullify() {
+    public void copyValueTo(FieldValueStated dst) {
+        var dstValue = (FieldValueAttachment) dst;
+        dstValue.name = name;
+        dstValue.base64Content = base64Content;
+    }
+
+    @Override
+    public void onUndefine() {
         name = null;
         base64Content = null;
     }
 
     @Override
-    public boolean isNullified() {
-        return name == null && base64Content == null;
+    public void onClear() {
+        name = null;
+        base64Content = null;
     }
 }

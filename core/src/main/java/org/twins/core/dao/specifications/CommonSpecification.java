@@ -172,7 +172,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
 
         return (root, query, cb) -> {
             From fromTwin = getReducedRoot(root, JoinType.INNER, twinEntityFieldPath);
-            Join twinClass = fromTwin.join(TwinEntity.Fields.twinClass);
+            Join twinClass = getOrCreateJoin(fromTwin, TwinEntity.Fields.twinClass, JoinType.INNER);
             Predicate domain = cb.equal(twinClass.get(TwinClassEntity.Fields.domainId), finalDomainId);
             List<Predicate> predicates = List.of(cb.conjunction());
             if (!CollectionUtils.isEmpty(twinClassUuids))

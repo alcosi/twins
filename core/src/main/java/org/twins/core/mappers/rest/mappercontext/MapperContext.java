@@ -16,6 +16,7 @@ import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.notification.HistoryNotificationRecipientEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
@@ -103,6 +104,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<ProjectionTypeEntity>> relatedProjectionTypeMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<SchedulerEntity>> relatedSchedulerMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<HistoryNotificationRecipientEntity>> relatedHistoryNotificationRecipientMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
@@ -263,6 +266,8 @@ public class MapperContext {
             smartPut(relatedProjectionTypeMap, entity, entity.getId());
         else if (relatedObject instanceof SchedulerEntity entity)
             smartPut(relatedSchedulerMap, entity, entity.getId());
+        else if (relatedObject instanceof HistoryNotificationRecipientEntity entity)
+            smartPut(relatedHistoryNotificationRecipientMap, entity, entity.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -477,6 +482,7 @@ public class MapperContext {
         dstMapperContext.relatedProjectionTypeGroupMap = srcMapperContext.relatedProjectionTypeGroupMap;
         dstMapperContext.relatedProjectionTypeMap = srcMapperContext.relatedProjectionTypeMap;
         dstMapperContext.relatedSchedulerMap = srcMapperContext.relatedSchedulerMap;
+        dstMapperContext.relatedHistoryNotificationRecipientMap = srcMapperContext.relatedHistoryNotificationRecipientMap;
     }
 
     public MapperContext fork(MapperModeCollection mapperModeCollection) {

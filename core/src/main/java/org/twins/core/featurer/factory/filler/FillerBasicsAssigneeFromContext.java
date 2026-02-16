@@ -1,7 +1,6 @@
 package org.twins.core.featurer.factory.filler;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -40,13 +39,13 @@ public class FillerBasicsAssigneeFromContext extends Filler {
         UUID assigneeFieldId = assigneeField.extract(properties);
         FieldValue fieldValue = fieldLookuperNearest.lookupFieldValue(factoryItem, assigneeFieldId);
         if (fieldValue instanceof FieldValueUser fieldValueUser) {
-            if (CollectionUtils.isEmpty(fieldValueUser.getUsers()))
+            if (fieldValueUser.isEmpty())
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, fieldValue.getTwinClassField().logShort() + " is not filled");
-            else if (fieldValueUser.getUsers().size() > 1) {
+            else if (fieldValueUser.size() > 1) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, fieldValue.getTwinClassField().logShort() + " is filled by multiply users");
             } else {
                 log.info(outputTwinEntity.logShort() + " [assignee] will be filled from context " + fieldValue.getTwinClassField().logShort());
-                UserEntity assignee = fieldValueUser.getUsers().get(0);
+                UserEntity assignee = fieldValueUser.getItems().getFirst();
                 outputTwinEntity
                         .setAssignerUser(assignee)
                         .setAssignerUserId(assignee.getId());

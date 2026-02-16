@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
@@ -27,7 +26,7 @@ import java.util.Properties;
         description = "Sum of fields by head twin"
 )
 @RequiredArgsConstructor
-public class FieldTyperCalcSumByHead extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumByHead, TwinFieldSearchNotImplemented> implements FieldTyperCalcByHead {
+public class FieldTyperCalcSumByHead extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumByHead, TwinFieldSearchNotImplemented> implements FieldTyperCalcByHead {
 
     private final TwinFieldDecimalRepository twinFieldDecimalRepository;
 
@@ -37,11 +36,6 @@ public class FieldTyperCalcSumByHead extends FieldTyper<FieldDescriptorText, Fie
     @Override
     protected FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         return new FieldDescriptorText();
-    }
-
-    @Override
-    protected void serializeValue(Properties properties, TwinEntity twin, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-
     }
 
     @Override

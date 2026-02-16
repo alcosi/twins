@@ -36,8 +36,10 @@ import java.util.Properties;
 public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, FieldValueText, TwinFieldSearchText> {
     @FeaturerParam(name = "Regexp", description = "", optional = true, defaultValue = "(?s).*", order = 1)
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
+
     @FeaturerParam(name = "EditorType", description = "", order = 2, optional = true, defaultValue = "PLAIN")
     public static final FeaturerParamStringTwinsEditorType editorType = new FeaturerParamStringTwinsEditorType("editorType");
+
     @FeaturerParam(name = "Unique", description = "", order = 3, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean unique = new FeaturerParamBoolean("unique");
 
@@ -107,5 +109,4 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
         }
         return new ValidationResult(true);
     }
-
 }

@@ -4,10 +4,8 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
@@ -22,7 +20,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1314,
         name = "Count children twins by child-status (on fly)",
         description = "Get count of child-twins by child-status(inc/exc) on fly")
-public class FieldTyperCountChildrenByStatusV1 extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcChildrenInStatusCount, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenByStatus {
+public class FieldTyperCountChildrenByStatusV1 extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcChildrenInStatusCount, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenByStatus {
     public static final Integer ID = 1314;
 
     @Autowired
@@ -32,11 +30,6 @@ public class FieldTyperCountChildrenByStatusV1 extends FieldTyper<FieldDescripto
     @Override
     public FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new FieldDescriptorText();
-    }
-
-    @Deprecated
-    @Override
-    protected void serializeValue(Properties properties, TwinEntity twin, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
     }
 
     @Override

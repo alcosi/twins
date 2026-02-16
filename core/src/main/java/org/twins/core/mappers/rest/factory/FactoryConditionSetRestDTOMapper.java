@@ -10,6 +10,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.factory.FactoryConditionSetService;
 import org.twins.core.service.factory.TwinFactoryService;
 
 import java.util.Collection;
@@ -24,13 +25,18 @@ import static org.cambium.common.util.DateUtils.convertOrNull;
         ConditionSetInFactoryPipelineStepUsagesCountMode.class,
         ConditionSetInFactoryMultiplierFilterUsagesCountMode.class,
         ConditionSetInFactoryBranchUsagesCountMode.class,
-        ConditionSetInFactoryEraserUsagesCountMode.class})
+        ConditionSetInFactoryEraserUsagesCountMode.class,})
 public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryConditionSetEntity, FactoryConditionSetDTOv1> {
 
     @MapperModePointerBinding(modes = UserMode.FactoryConditionSet2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
 
+    @MapperModePointerBinding(modes = FactoryMode.FactoryConditionSet2FactoryMode.class)
+    private final FactoryRestDTOMapper factoryRestDTOMapper;
+
     private final TwinFactoryService twinFactoryService;
+
+    private final FactoryConditionSetService factoryConditionSetService;
 
     @Override
     public void map(TwinFactoryConditionSetEntity src, FactoryConditionSetDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -42,11 +48,13 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
                         .setDescription(src.getDescription())
                         .setCreatedByUserId(src.getCreatedByUserId())
                         .setUpdatedAt(convertOrNull(src.getUpdatedAt()))
-                        .setCreatedAt(convertOrNull(src.getCreatedAt()));
+                        .setCreatedAt(convertOrNull(src.getCreatedAt()))
+                        .setTwinFactoryId(src.getTwinFactoryId());
             case SHORT ->
                 dst
                         .setId(src.getId())
-                        .setName(src.getName());
+                        .setName(src.getName())
+                        .setTwinFactoryId(src.getTwinFactoryId());
         }
         if (mapperContext.hasModeButNot(ConditionSetInFactoryPipelineUsagesCountMode.HIDE)) {
             twinFactoryService.countConditionSetInFactoryPipelineUsages(src);
@@ -72,6 +80,11 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
             dst.setCreatedByUserId(src.getCreatedByUserId());
             userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(UserMode.FactoryConditionSet2UserMode.HIDE));
         }
+        if (mapperContext.hasModeButNot(FactoryMode.FactoryConditionSet2FactoryMode.HIDE)) {
+            factoryConditionSetService.loadFactory(src);
+            dst.setTwinFactoryId(src.getTwinFactoryId());
+            factoryRestDTOMapper.postpone(src.getTwinFactory(), mapperContext.forkOnPoint(FactoryMode.FactoryConditionSet2FactoryMode.SHORT));
+        }
     }
 
     @Override
@@ -87,5 +100,7 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
             twinFactoryService.countConditionSetInFactoryBranchUsages(srcCollection);
         if (mapperContext.hasModeButNot(ConditionSetInFactoryEraserUsagesCountMode.HIDE))
             twinFactoryService.countConditionSetInFactoryEraserUsages(srcCollection);
+        if (mapperContext.hasModeButNot(FactoryMode.FactoryConditionSet2FactoryMode.HIDE))
+            factoryConditionSetService.loadFactory(srcCollection);
     }
 }

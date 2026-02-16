@@ -164,6 +164,8 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
 
     public boolean hasPermission(PermissionDetectKey permissionDetectKey, UUID permissionId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
+        if (currentUserHasPermission(permissionId))
+            return true;
         userGroupService.loadGroupsForCurrentUser();
         return twinRepository.hasPermission(
                 permissionId,

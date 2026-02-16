@@ -2,9 +2,7 @@ package org.twins.core.featurer.fieldtyper;
 
 import org.cambium.common.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorImmutable;
@@ -15,7 +13,8 @@ import org.twins.core.service.twinclass.TwinClassFieldService;
 import java.math.BigDecimal;
 import java.util.Properties;
 
-public abstract class FieldTyperCalcBinaryBase extends FieldTyper<FieldDescriptorImmutable, FieldValueText, TwinFieldStorageDecimal, TwinFieldSearchNotImplemented> implements FieldTyperCalcBinary {
+
+public abstract class FieldTyperCalcBinaryBase extends FieldTyperImmutable<FieldDescriptorImmutable, FieldValueText, TwinFieldStorageDecimal, TwinFieldSearchNotImplemented> implements FieldTyperCalcBinary {
 
     @Autowired
     private TwinClassFieldService twinClassFieldService;
@@ -23,10 +22,6 @@ public abstract class FieldTyperCalcBinaryBase extends FieldTyper<FieldDescripto
     @Override
     protected FieldDescriptorImmutable getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         return new FieldDescriptorImmutable();
-    }
-
-    @Override
-    protected void serializeValue(Properties properties, TwinEntity twin, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
     }
 
     protected abstract String calculate(BigDecimal v1, BigDecimal v2, Properties properties) throws ServiceException;

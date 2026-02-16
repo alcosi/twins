@@ -203,6 +203,9 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "external_json", columnDefinition = "jsonb")
     private Map<String, Object> externalJson;
 
+    @Column(name = "unique_name")
+    private Boolean uniqueName;
+
 //    @ManyToOne
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
 //    private DomainEntity domain;
@@ -268,6 +271,13 @@ public class TwinClassEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private DataListEntity inheritedTagDataList;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_class_freeze_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassFreezeEntity twinClassFreeze;
+
 
 //    @ManyToOne
 //    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
@@ -363,11 +373,6 @@ public class TwinClassEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Kit<TwinflowTransitionEntity, UUID> transitionsKit;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private TwinClassFreezeEntity twinClassFreeze;
 
     @Transient
     @EqualsAndHashCode.Exclude

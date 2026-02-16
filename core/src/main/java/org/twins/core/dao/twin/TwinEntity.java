@@ -114,6 +114,9 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Column(name = "bread_crumbs_face_id")
     private UUID breadCrumbsFaceId;
 
+    @Column(name = "head_hierarchy_counter_direct_children", insertable = false, updatable = false)
+    private Integer headHierarchyCounterDirectChildren;
+
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER)
@@ -242,6 +245,14 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    private Collection<TwinFieldTimestampEntity> fieldsTimestamp;
+
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinFieldDataListEntity> fieldsList;
 
     //needed for specification
@@ -346,6 +357,11 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @ToString.Exclude
     private Kit<TwinFieldBooleanEntity, UUID> twinFieldBooleanKit;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<TwinFieldTimestampEntity, UUID> twinFieldTimestampKit;
+
     /*
      we have to use TwinClassFieldId as key, not id. Also, multiple values supported, that is why kit inside a ki
      */
@@ -383,6 +399,11 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Map<UUID, BigDecimal> twinFieldCalculated;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Map<UUID, Boolean> twinFieldEditability;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -445,6 +466,11 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Kit<TwinClassEntity, UUID> creatableChildTwinClasses;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Map<String, Boolean> twinValidatorResultCache;
 
     public boolean isSketch() {
         return SystemEntityService.TWIN_STATUS_SKETCH.equals(twinStatusId) || twinStatus.getType().equals(StatusType.SKETCH);
@@ -541,6 +567,9 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
 
         // Permissions / creation helpers
         creatableChildTwinClasses = null;
+
+        // TwinValidators
+        twinValidatorResultCache = null;
         return this;
     }
 

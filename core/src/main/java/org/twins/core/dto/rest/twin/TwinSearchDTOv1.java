@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dto.rest.DataTimeRangeDTOv1;
+import org.twins.core.dto.rest.IntegerRangeDTOv1;
 import org.twins.core.dto.rest.twinclass.HierarchySearchDTOv1;
 import org.twins.core.enums.twin.Touch;
 
@@ -125,6 +126,9 @@ public class TwinSearchDTOv1 {
 
     @Schema(description = "hierarchy children search")
     public HierarchySearchDTOv1 hierarchyChildrenSearch;
+
+    @Schema(description = "Filter by head hierarchy direct children count (range: from, to)")
+    public IntegerRangeDTOv1 headHierarchyCounterDirectChildrenRange;
 
     @Schema(description = "apply distinct on query results")
     public Boolean distinct;

@@ -83,6 +83,7 @@ public class DomainInitiatorB2B extends DomainInitiator {
         TwinClassEntity twinClassEntity = new TwinClassEntity()
                 .setDomainId(domainEntity.getId())
                 .setAbstractt(false)
+                .setUniqueName(false)
                 .setExtendsTwinClassId(domainEntity.getAncestorTwinClassId())
                 .setKey("DOMAIN_BUSINESS_ACCOUNT_FOR_" + domainEntity.getKey().toUpperCase())
                 .setOwnerType(OwnerType.DOMAIN_BUSINESS_ACCOUNT)

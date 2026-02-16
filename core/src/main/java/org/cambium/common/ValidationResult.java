@@ -20,4 +20,9 @@ public class ValidationResult {
         this.valid = valid;
         this.message = message;
     }
+
+    public void addMessage(String s) {
+        if (message == null) message = s;
+        else message += s;
+    }
 }

@@ -72,6 +72,10 @@ import java.util.HashMap;
                 value = HistoryContextSpaceRoleUserChange.class
         ),
         @JsonSubTypes.Type(
+                name = HistoryContextTimestampChange.DISCRIMINATOR,
+                value = HistoryContextTimestampChange.class
+        ),
+        @JsonSubTypes.Type(
                 name = HistoryContextDecimalChange.DISCRIMINATOR,
                 value = HistoryContextDecimalChange.class
         )
