@@ -5,7 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 
 
@@ -31,5 +35,15 @@ public abstract class Featurer {
     }
 
     public void extraParamsValidation(Properties properties) throws ServiceException {
+    }
+
+    protected static List<Type> collectParameterizedTypes(Class<?> _class, List<Type> collected) {
+        Type t = _class.getGenericSuperclass();
+        if (t instanceof ParameterizedType pt) {
+            collected.addAll(Arrays.asList(pt.getActualTypeArguments()));
+        }
+        if (_class.getSuperclass() == null)
+            return collected;
+        return collectParameterizedTypes(_class.getSuperclass(), collected);
     }
 }

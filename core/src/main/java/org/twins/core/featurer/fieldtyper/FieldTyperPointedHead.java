@@ -8,9 +8,7 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
@@ -26,7 +24,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1349,
         name = "Pointed field from head",
         description = "")
-public class FieldTyperPointedHead extends FieldTyper<FieldDescriptor, FieldValue, TwinFieldStoragePointedHead, TwinFieldSearchNotImplemented> {
+public class FieldTyperPointedHead extends FieldTyperImmutable<FieldDescriptor, FieldValue, TwinFieldStoragePointedHead, TwinFieldSearchNotImplemented> {
     @FeaturerParam(name = "Head twin field", description = "", order = 3)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUID("headTwinClassFieldId");
 
@@ -53,13 +51,10 @@ public class FieldTyperPointedHead extends FieldTyper<FieldDescriptor, FieldValu
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinEntity twin, FieldValue value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-    }
-
-    @Override
     protected FieldValue deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         var headTwinClassField = getHeadTwinClassFieldSafe(properties);
-        return twinField.getTwin().getHeadTwin().getFieldValuesKit().get(headTwinClassField.getId());
+        var headTwinFieldValue = twinField.getTwin().getHeadTwin().getFieldValuesKit().get(headTwinClassField.getId());
+        return headTwinFieldValue.clone(twinField.getTwinClassField());
     }
 
     protected TwinClassFieldEntity getHeadTwinClassFieldSafe(Properties properties) throws ServiceException {

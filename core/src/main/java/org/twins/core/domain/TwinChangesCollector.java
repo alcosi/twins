@@ -100,6 +100,9 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         } else if (entity instanceof TwinFieldAttributeEntity twinFieldAttributeEntity) {
             invalidates = invalidationMap.computeIfAbsent(twinFieldAttributeEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
             invalidates.add(TwinInvalidate.twinFieldAttributeKit);
+        } else if (entity instanceof TwinFieldTimestampEntity twinFieldTimestampEntity) {
+            invalidates = invalidationMap.computeIfAbsent(twinFieldTimestampEntity.getTwin(), k -> ConcurrentHashMap.newKeySet());
+            invalidates.add(TwinInvalidate.twinFieldTimestampKit);
         }
     }
 
@@ -138,6 +141,7 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         twinFieldBooleanKit,
         twinFieldTwinClassKit,
         twinLinks,
-        twinFieldAttributeKit;
+        twinFieldAttributeKit,
+        twinFieldTimestampKit
     }
 }

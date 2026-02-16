@@ -30,14 +30,14 @@ public class FieldTyperColorPicker extends FieldTyperSimple<FieldDescriptorColor
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueColorHEX value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (!value.getHex().matches(HEX_PATTERN))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) +  " hex[" + value.getHex() + "] does not match pattern[" + HEX_PATTERN + "]");
-        detectValueChange(twinFieldEntity, twinChangesCollector, value.getHex());
+        if (!value.getValue().matches(HEX_PATTERN))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) +  " hex[" + value.getValue() + "] does not match pattern[" + HEX_PATTERN + "]");
+        detectValueChange(twinFieldEntity, twinChangesCollector, value.getValue());
     }
 
     @Override
     protected FieldValueColorHEX deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
         return new FieldValueColorHEX(twinField.getTwinClassField())
-                .setHex(twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : null);
+                .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : null);
     }
 }

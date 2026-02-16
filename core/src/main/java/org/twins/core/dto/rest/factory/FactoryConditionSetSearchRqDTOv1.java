@@ -20,6 +20,12 @@ public class FactoryConditionSetSearchRqDTOv1 extends Request {
     @Schema(description = "id exclude list")
     public Set<UUID> idExcludeList;
 
+    @Schema(description = "twin factory id list")
+    public Set<UUID> twinFactoryIdList;
+
+    @Schema(description = "twin factory id exclude list")
+    public Set<UUID> twinFactoryIdExcludeList;
+
     @Schema(description = "name like list")
     public Set<String> nameLikeList;
 

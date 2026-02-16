@@ -88,4 +88,8 @@
         <appender-ref ref="ASYNC-FILE"/>
     </logger>
 
+    <logger name="org.hibernate.SQL_SLOW" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC-FILE"/>
+    </logger>
+
 </configuration>

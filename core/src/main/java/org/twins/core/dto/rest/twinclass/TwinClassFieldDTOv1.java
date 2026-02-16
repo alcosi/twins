@@ -51,7 +51,15 @@ public class TwinClassFieldDTOv1 {
     @Schema(description = "field typer params", example = "")
     public Map<String, String> fieldTyperParams;
 
+    @Schema(description = "field initializer featurer id", example = "")
+    @RelatedObject(type = FeaturerDTOv1.class, name = "fieldInitializerFeaturerId")
+    public Integer fieldInitializerFeaturerId;
+
+    @Schema(description = "field initializer params", example = "")
+    public Map<String, String> fieldInitializerParams;
+
     @Schema(description = "twin sorter featurer id", example = "")
+    @RelatedObject(type = FeaturerDTOv1.class, name = "twinSorterFeaturerId")
     public Integer twinSorterFeaturerId;
 
     @Schema(description = "twin sorter params", example = "")

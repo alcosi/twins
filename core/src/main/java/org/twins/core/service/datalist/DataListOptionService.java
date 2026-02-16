@@ -21,7 +21,6 @@ import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.i18n.I18nTranslationLight;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListOptionCreate;
@@ -30,6 +29,7 @@ import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.enums.datalist.DataListStatus;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 
@@ -231,21 +231,19 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     }
 
     //Method for reloading options if dataList is not present in entity;
-    public List<DataListOptionEntity> reloadOptionsOnDataListAbsent(List<DataListOptionEntity> options) throws ServiceException {
+    public void reloadOptionsOnDataListAbsent(FieldValueSelect valueSelect) throws ServiceException {
         List<UUID> idsForReload = new ArrayList<>();
 
-        for (var option : options) {
+        for (var option : valueSelect.getItems()) {
             if (null == option.getDataList() || null == option.getDataListId()) {
                 idsForReload.add(option.getId());
             }
         }
 
         if (!idsForReload.isEmpty()) {
-            options.removeIf(o -> idsForReload.contains(o.getId()));
-            options.addAll(findEntities(idsForReload, EntitySmartService.ListFindMode.ifMissedThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.afterRead));
+            var loadedOptions = findEntities(idsForReload, EntitySmartService.ListFindMode.ifMissedThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.afterRead);
+            valueSelect.setItems(loadedOptions);
         }
-
-        return options;
     }
 
     public Kit<DataListOptionEntity, UUID> findDataListOptionsByIds(Collection<UUID> dataListOptionIdSet) throws ServiceException {

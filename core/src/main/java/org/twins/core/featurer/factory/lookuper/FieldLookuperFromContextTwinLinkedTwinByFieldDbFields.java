@@ -22,7 +22,7 @@ public class FieldLookuperFromContextTwinLinkedTwinByFieldDbFields extends Field
         if (fieldValue == null || !(fieldValue instanceof FieldValueLink)) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] is not present in context twin fields or it's not a link");
         }
-        TwinEntity fromTwin = ((FieldValueLink) fieldValue).getTwinLinks().getFirst().getDstTwin();
+        TwinEntity fromTwin = ((FieldValueLink) fieldValue).getItems().getFirst().getDstTwin();
         FieldValue fieldValueForCopy = twinService.getTwinFieldValue(fromTwin, lookupTwinClassFieldId);
         if (fieldValueForCopy == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] is not present in head twin fields");

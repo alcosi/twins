@@ -17,14 +17,8 @@ public class FieldValueInvisible extends FieldValue {
     }
 
     @Override
-    public boolean isFilled() {
-        return false;
-    }
-
-    @Override
-    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        FieldValueInvisible clone = new FieldValueInvisible(newTwinClassFieldEntity);
-        return clone;
+    public FieldValue newInstance(TwinClassFieldEntity newTwinClassFieldEntity) {
+        return new FieldValueInvisible(newTwinClassFieldEntity);
     }
 
     @Override
@@ -33,10 +27,27 @@ public class FieldValueInvisible extends FieldValue {
     }
 
     @Override
-    public void nullify() {}
+    public void copyValueTo(FieldValue dst) {
+
+    }
 
     @Override
-    public boolean isNullified() {
+    public FieldValueInvisible undefine() {
+        return this;
+    }
+
+    @Override
+    public boolean isUndefined() {
+        return true;
+    }
+
+    @Override
+    public FieldValueInvisible clear() {
+        return null;
+    }
+
+    @Override
+    public boolean isCleared() {
         return false;
     }
 }

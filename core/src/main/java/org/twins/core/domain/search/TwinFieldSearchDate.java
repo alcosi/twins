@@ -11,14 +11,14 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class TwinFieldSearchDate extends TwinFieldSearch {
-    private LocalDateTime lessThen;
-    private LocalDateTime moreThen;
+    private LocalDateTime lessThenOrEquals;
+    private LocalDateTime moreThenOrEquals;
     private LocalDateTime equals;
     private boolean empty;
 
     public boolean isEmptySearch() {
-        return ObjectUtils.isEmpty(lessThen) &&
-                ObjectUtils.isEmpty(moreThen) &&
+        return ObjectUtils.isEmpty(lessThenOrEquals) &&
+                ObjectUtils.isEmpty(moreThenOrEquals) &&
                 ObjectUtils.isEmpty(equals);
     }
 }

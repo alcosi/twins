@@ -36,15 +36,16 @@ public class TwinFieldRestDTOMapperV4 extends RestSimpleDTOMapper<TwinField, Twi
 
     @Override
     public void map(TwinField src, TwinFieldDTOv4 dst, MapperContext mapperContext) throws Exception {
-        FieldValue fieldValue = twinService.getTwinFieldValue(src);
+        FieldValue fieldValue = twinService.getTwinFieldValue(src); // N+1 problem
         var fieldValueText = twinFieldValueRestDTOMapperV2.convert(fieldValue, mapperContext);
         String fieldKey = src.getTwinClassField().getKey();
         String fieldValueStr = fieldValueText.getValue();
-
+        twinService.loadEditableFlag(src);
         dst
                 .setId(src.getTwinClassFieldId())
                 .setKey(fieldKey)
-                .setValue(fieldValueStr);
+                .setValue(fieldValueStr)
+                .setEditable(src.getEditable());
 
         if (mapperContext.hasMode(TwinFieldAttributeMode.SHOW)) {
             twinFieldAttributeService.loadFieldAttributes(src);
@@ -59,6 +60,7 @@ public class TwinFieldRestDTOMapperV4 extends RestSimpleDTOMapper<TwinField, Twi
     @Override
     public void beforeCollectionConversion(Collection<TwinField> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
+        twinService.loadEditableFlag(srcCollection);
         if (mapperContext.hasMode(TwinFieldAttributeMode.SHOW)) {
             twinFieldAttributeService.loadFieldAttributes(srcCollection);
         }

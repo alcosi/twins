@@ -53,12 +53,12 @@ public class FillerFieldUserFromContextTwinBasicField extends Filler {
             case createdByUserId:
                 if(null == factoryItemTwin.getCreatedByUserId())
                     throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No creator detected for twin: " + factoryItemTwin.logDetailed());
-                fieldValue.getUsers().add(factoryItemTwin.getCreatedByUser());
+                fieldValue.add(factoryItemTwin.getCreatedByUser());
                 break;
             case assigneeUserId:
                 if(null == factoryItemTwin.getAssignerUserId())
                     throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No assignee detected for twin: " + factoryItemTwin.logDetailed());
-                fieldValue.getUsers().add(factoryItemTwin.getAssignerUser());
+                fieldValue.add(factoryItemTwin.getAssignerUser());
                 break;
             default:
                 throw new ServiceException(ErrorCodeTwins.TWIN_BASIC_FIELD_UNKNOWN, "Unknown/Unsupported in featurer twin basic field: " + fieldName);

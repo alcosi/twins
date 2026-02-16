@@ -24,6 +24,7 @@ import org.twins.core.service.auth.AuthService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -40,6 +41,7 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
     @Getter
     private final TwinFactoryConditionSetRepository repository;
     private final AuthService authService;
+    private final FactoryService factoryService;
 
     @Override
     public CrudRepository<TwinFactoryConditionSetEntity, UUID> entityRepository() {
@@ -114,11 +116,26 @@ public class FactoryConditionSetService extends EntitySecureFindServiceImpl<Twin
             updateEntityFieldByEntity(twinFactoryConditionSetEntity, dbFactoryConditionSetEntity,
                     TwinFactoryConditionSetEntity::getDescription, TwinFactoryConditionSetEntity::setDescription,
                     TwinFactoryConditionSetEntity.Fields.description, changesHelper);
+            updateEntityFieldByEntity(twinFactoryConditionSetEntity, dbFactoryConditionSetEntity,
+                    TwinFactoryConditionSetEntity::getTwinFactoryId, TwinFactoryConditionSetEntity::setTwinFactoryId,
+                    TwinFactoryConditionSetEntity.Fields.twinFactoryId, changesHelper);
 
             dbFactoryConditionSetEntity.setUpdatedAt(Timestamp.from(Instant.now()));
             changes.add(dbFactoryConditionSetEntity, changesHelper);
         }
         updateSafe(changes);
         return dbFactoryConditionSetKit.getList();
+    }
+
+    public void loadFactory(TwinFactoryConditionSetEntity conditionSet) throws ServiceException {
+        loadFactory(Collections.singletonList(conditionSet));
+    }
+
+    public void loadFactory(Collection<TwinFactoryConditionSetEntity> collection) throws ServiceException {
+        factoryService.load(collection,
+                TwinFactoryConditionSetEntity::getId,
+                TwinFactoryConditionSetEntity::getTwinFactoryId,
+                TwinFactoryConditionSetEntity::getTwinFactory,
+                TwinFactoryConditionSetEntity::setTwinFactory);
     }
 }

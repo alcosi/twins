@@ -62,4 +62,10 @@ public abstract class TwinClassFieldSaveDTOv1{
 
     @Schema(description = "order", example = "1")
     public Integer order;
+
+    @Schema(description = "field initializer featurer ID", example = "1")
+    public Integer fieldInitializerFeaturerId;
+
+    @Schema(description = "field initializer parameters", example = "{}")
+    public HashMap<String, String> fieldInitializerParams;
 }
