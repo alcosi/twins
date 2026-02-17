@@ -64,6 +64,7 @@ import org.twins.core.service.twinflow.TwinflowFactoryService;
 import org.twins.core.service.twinflow.TwinflowService;
 import org.twins.core.service.user.UserService;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
@@ -94,6 +95,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinFieldI18nRepository twinFieldI18nRepository;
     private final TwinFieldBooleanRepository twinFieldBooleanRepository;
     private final TwinFieldTwinClassListRepository twinFieldTwinClassListRepository;
+    private final TwinFieldDecimalRepository twinFieldDecimalRepository;
     private final TwinFieldTimestampRepository twinFieldTimestampRepository;
     private final TwinClassFieldService twinClassFieldService;
     private final EntitySmartService entitySmartService;
@@ -1150,6 +1152,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 .setValue(value);
     }
 
+    public TwinFieldDecimalEntity createTwinFieldDecimalEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, BigDecimal value) {
+        return new TwinFieldDecimalEntity()
+                .setTwinClassField(twinClassFieldEntity)
+                .setTwinClassFieldId(twinClassFieldEntity.getId())
+                .setTwin(twinEntity)
+                .setTwinId(twinEntity.getId())
+                .setValue(value);
+    }
+
     public TwinFieldSimpleNonIndexedEntity createTwinFieldNonIndexedEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, String value) {
         return new TwinFieldSimpleNonIndexedEntity()
                 .setTwinClassField(twinClassFieldEntity)
@@ -1489,6 +1500,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinFieldBooleanRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
         twinFieldTwinClassListRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
         twinFieldTimestampRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
+        twinFieldDecimalRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
 
         log.info("Twin class fields [" + StringUtils.join(twinClassFieldIds, ",") + "] perhaps were deleted from all twins of class[" + twinClassId + "]");
     }
@@ -1516,6 +1528,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             twinFieldTwinClassListRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
         } else if (fieldTyper.getStorageType() == TwinFieldStorageTimestamp.class) {
             twinFieldTimestampRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
+        } else if (fieldTyper.getStorageType() == TwinFieldStorageDecimal.class) {
+            twinFieldDecimalRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
         }
     }
 

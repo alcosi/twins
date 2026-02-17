@@ -3,20 +3,25 @@ package org.twins.core.featurer.fieldtyper.storage;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldCalcProjection;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinFieldDecimalRepository;
 
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+
 
 public class TwinFieldStorageCalcSumByHead extends TwinFieldStorageCalc {
-    private final TwinFieldSimpleRepository twinFieldSimpleRepository;
+
+    private final TwinFieldDecimalRepository twinFieldDecimalRepository;
     private final Set<UUID> childrenTwinClassFieldIds;
     private final Set<UUID> childrenTwinStatusIdSet;
     private final Set<UUID> childrenTwinOfClassIdSet;
     private final boolean exclude;
 
-    public TwinFieldStorageCalcSumByHead(TwinFieldSimpleRepository twinFieldSimpleRepository, UUID twinClassFieldId, Set<UUID> childrenTwinClassFieldIds, Set<UUID> childrenTwinStatusIdSet, Set<UUID> childrenTwinOfClassIdSet, boolean exclude) {
+    public TwinFieldStorageCalcSumByHead(TwinFieldDecimalRepository twinFieldDecimalRepository, UUID twinClassFieldId, Set<UUID> childrenTwinClassFieldIds, Set<UUID> childrenTwinStatusIdSet, Set<UUID> childrenTwinOfClassIdSet, boolean exclude) {
         super(twinClassFieldId);
-        this.twinFieldSimpleRepository = twinFieldSimpleRepository;
+        this.twinFieldDecimalRepository = twinFieldDecimalRepository;
         this.childrenTwinClassFieldIds = childrenTwinClassFieldIds;
         this.childrenTwinStatusIdSet = childrenTwinStatusIdSet;
         this.childrenTwinOfClassIdSet = childrenTwinOfClassIdSet;
@@ -25,7 +30,7 @@ public class TwinFieldStorageCalcSumByHead extends TwinFieldStorageCalc {
 
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) {
-        List<TwinFieldCalcProjection> calc = twinFieldSimpleRepository.sumChildrenTwinFieldValuesByHead(
+        List<TwinFieldCalcProjection> calc = twinFieldDecimalRepository.sumChildrenTwinFieldValuesByHead(
                 twinsKit.getIdSet(),
                 childrenTwinClassFieldIds,
                 childrenTwinStatusIdSet,

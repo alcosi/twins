@@ -4,7 +4,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldCalcProjection;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinFieldDecimalRepository;
 
 import java.util.List;
 import java.util.Objects;
@@ -12,7 +12,8 @@ import java.util.Set;
 import java.util.UUID;
 
 public class TwinFieldStorageCalcSumOfDivisionsByLink extends TwinFieldStorageCalc {
-    private final TwinFieldSimpleRepository twinFieldSimpleRepository;
+
+    private final TwinFieldDecimalRepository twinFieldDecimalRepository;
     private final UUID firstFieldId;
     private final UUID secondFieldId;
     private final UUID linkId;
@@ -22,9 +23,9 @@ public class TwinFieldStorageCalcSumOfDivisionsByLink extends TwinFieldStorageCa
     private final boolean statusExclude;
     private final boolean divisionByZeroIgnore;
 
-    public TwinFieldStorageCalcSumOfDivisionsByLink(UUID twinClassFieldId, TwinFieldSimpleRepository twinFieldSimpleRepository, UUID firstFieldId, UUID secondFieldId, UUID linkId, boolean srcElseDst, Set<UUID> linkedTwinInStatusIdList, Set<UUID> linkedTwinOfClassIds, boolean statusExclude, boolean divisionByZeroIgnore) {
+    public TwinFieldStorageCalcSumOfDivisionsByLink(UUID twinClassFieldId, TwinFieldDecimalRepository twinFieldDecimalRepository, UUID firstFieldId, UUID secondFieldId, UUID linkId, boolean srcElseDst, Set<UUID> linkedTwinInStatusIdList, Set<UUID> linkedTwinOfClassIds, boolean statusExclude, boolean divisionByZeroIgnore) {
         super(twinClassFieldId);
-        this.twinFieldSimpleRepository = twinFieldSimpleRepository;
+        this.twinFieldDecimalRepository = twinFieldDecimalRepository;
         this.firstFieldId = firstFieldId;
         this.secondFieldId = secondFieldId;
         this.linkId = linkId;
@@ -38,7 +39,7 @@ public class TwinFieldStorageCalcSumOfDivisionsByLink extends TwinFieldStorageCa
 
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) throws ServiceException {
-        List<TwinFieldCalcProjection> calc = twinFieldSimpleRepository.sumLinkedTwinFieldValuesOfDivisionsByLink(
+        List<TwinFieldCalcProjection> calc = twinFieldDecimalRepository.sumLinkedTwinFieldValuesOfDivisionsByLink(
                 twinsKit.getIdSet(),
                 srcElseDst,
                 linkedTwinInStatusIdList,
