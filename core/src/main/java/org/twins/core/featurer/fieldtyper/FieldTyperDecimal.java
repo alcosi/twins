@@ -74,21 +74,21 @@ public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNume
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldDecimalEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        var fieldValue = value.getValue();
-
-        if (twinFieldDecimalEntity == null && Strings.isNotEmpty(fieldValue)) {
+        if (value.isUndefined())
+            return;
+        if (twinFieldDecimalEntity == null && value.isNotEmpty()) {
             // create
             twinFieldDecimalEntity = twinService.createTwinFieldDecimalEntity(twin, value.getTwinClassField(), null);
             twinChangesCollector.add(twinFieldDecimalEntity);
             detectValueChange(twinFieldDecimalEntity, twinChangesCollector, processValue(properties, twinFieldDecimalEntity, value));
-        } else if (twinFieldDecimalEntity != null && Strings.isNotEmpty(fieldValue)) {
-            // update
-            twinChangesCollector.add(twinFieldDecimalEntity);
-            detectValueChange(twinFieldDecimalEntity, twinChangesCollector, processValue(properties, twinFieldDecimalEntity, value));
-        } else if (twinFieldDecimalEntity != null && Strings.isEmpty(fieldValue)) {
+        } else if (twinFieldDecimalEntity != null && value.isCleared()) {
             // delete
             twinChangesCollector.delete(twinFieldDecimalEntity);
             addHistoryContext(twinChangesCollector, twinFieldDecimalEntity, null);
+        } else if (twinFieldDecimalEntity != null && value.isNotEmpty()) {
+            // update
+            twinChangesCollector.add(twinFieldDecimalEntity);
+            detectValueChange(twinFieldDecimalEntity, twinChangesCollector, processValue(properties, twinFieldDecimalEntity, value));
         }
     }
 
