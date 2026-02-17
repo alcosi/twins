@@ -93,8 +93,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
         }
         twinValidatorService.loadValidators(validatorContainer);
         if (validatorContainer.getTwinValidatorKit() == null) {
-            Boolean invert = validatorContainer.getTwinValidatorSet().getInvert();
-            return invert != null && invert;
+            return !Boolean.TRUE.equals(validatorContainer.getTwinValidatorSet().getInvert());
         }
         List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(validatorContainer.getTwinValidatorKit().getList());
         sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
@@ -126,10 +125,10 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
         }
 
         twinValidatorService.loadValidators(validatorContainer);
-        Boolean setInvert = validatorContainer.getTwinValidatorSet().getInvert();
+        boolean setInvert = Boolean.TRUE.equals(validatorContainer.getTwinValidatorSet().getInvert());
 
         if (validatorContainer.getTwinValidatorKit() == null) {
-            return initializeResults(twinEntities, setInvert != null && setInvert);
+            return initializeResults(twinEntities, setInvert);
         }
 
         List<TwinValidatorEntity> sortedValidators = getSortedActiveValidators(validatorContainer);
@@ -159,7 +158,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
             }
         }
 
-        if (setInvert != null && setInvert) {
+        if (setInvert) {
             invertResults(results);
         }
 
@@ -202,13 +201,9 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
         List<TwinValidatorSetEntity> entitiesToSave = new ArrayList<>();
 
         for (TwinValidatorSetCreate validatorSet : validatorSets) {
-            TwinValidatorSetEntity sourceEntity = validatorSet.getTwinValidatorSet();
-            TwinValidatorSetEntity entity = new TwinValidatorSetEntity()
-                    .setName(sourceEntity.getName())
-                    .setDescription(sourceEntity.getDescription())
-                    .setInvert(sourceEntity.getInvert() != null ? sourceEntity.getInvert() : false)
-                    .setDomainId(authService.getApiUser().getDomainId());
-
+            TwinValidatorSetEntity entity = validatorSet.getTwinValidatorSet();
+            entity.setInvert(entity.getInvert() != null ? entity.getInvert() : false);
+            entity.setDomainId(authService.getApiUser().getDomainId());
             entitiesToSave.add(entity);
         }
 
