@@ -25,10 +25,10 @@ public class ValidatorRuleBaseDTOv1 {
     public UUID twinValidatorSetId;;
 
     @Schema(description = "Twin validator list")
-    public List<TwinValidatorBaseDTOv1> twinValidators;
+    public List<TwinValidatorDTOv1> twinValidators;
 
     @Schema(description = "grouping set of twin validator")
-    public TwinValidatorSetBaseDTOv1 twinValidatorSet;
+    public TwinValidatorSetDTOv1 twinValidatorSet;
 }
 
 

@@ -1,7 +1,6 @@
 package org.twins.core.mappers.rest.validator;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
@@ -14,18 +13,16 @@ import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorSetMode;
 import org.twins.core.service.twin.TwinValidatorSetService;
 
-import java.util.Collection;
-
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {TwinActionValidatorRuleMode.class})
 public class TwinActionValidatorRuleBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinActionValidatorRuleEntity, TwinActionValidatorRuleBaseDTOv1> {
 
     @MapperModePointerBinding(modes = {TwinValidatorMode.TwinActionValidatorRule2TwinValidatorMode.class})
-    private final TwinValidatorBaseV1RestDTOMapper twinValidatorBaseV1RestDTOMapper;
+    private final TwinValidatorV1RestDTOMapper twinValidatorV1RestDTOMapper;
 
     @MapperModePointerBinding(modes = {TwinValidatorSetMode.TwinActionValidatorRule2TwinValidatorSetMode.class})
-    private final TwinValidatorSetBaseV1RestDTOMapper twinValidatorSetBaseV1RestDTOMapper;
+    private final TwinValidatorSetRestDTOMapper twinValidatorSetRestDTOMapper;
 
     private final TwinValidatorSetService twinValidatorSetService;
 
@@ -47,11 +44,11 @@ public class TwinActionValidatorRuleBaseV1RestDTOMapper extends RestSimpleDTOMap
         }
         if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinActionValidatorRule2TwinValidatorSetMode.HIDE))
             dst
-                    .setTwinValidatorSet(twinValidatorSetBaseV1RestDTOMapper.convert(
+                    .setTwinValidatorSet(twinValidatorSetRestDTOMapper.convert(
                             src.getTwinValidatorSet(), mapperContext.forkOnPoint(TwinValidatorSetMode.TwinActionValidatorRule2TwinValidatorSetMode.SHORT)))
                     .setTwinValidatorSetId(src.getTwinValidatorSetId());
         if (mapperContext.hasModeButNot(TwinValidatorMode.TwinActionValidatorRule2TwinValidatorMode.HIDE)) {
-            dst.setTwinValidators(twinValidatorBaseV1RestDTOMapper.convertCollection(
+            dst.setTwinValidators(twinValidatorV1RestDTOMapper.convertCollection(
                     src.getTwinValidatorKit().getList(), mapperContext.forkOnPoint(TwinValidatorMode.TwinActionValidatorRule2TwinValidatorMode.SHORT)));
         }
     }
