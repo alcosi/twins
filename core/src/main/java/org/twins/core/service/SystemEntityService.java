@@ -210,6 +210,7 @@ public class SystemEntityService {
                     .setSegment(false)
                     .setHasSegment(false)
                     .setUniqueName(false)
+                    .setHasDynamicMarkers(false)
                     .setCreatedAt(Timestamp.from(Instant.now()));
             entitySmartService.save(twinClassEntity.getId(), twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndLogOnException);
 
