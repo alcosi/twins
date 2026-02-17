@@ -12,13 +12,14 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Schema(name = "TwinValidatorBaseV1")
-public class TwinValidatorBaseDTOv1 {
+public class TwinValidatorDTOv1 {
 
     @Schema(description = "id")
     public UUID id;
 
     @Schema(description = "grouped set of twin validators id")
-    public UUID twinValidatorSetId;;
+    @RelatedObject(type = TwinValidatorSetDTOv1.class, name = "twinValidatorSet")
+    public UUID twinValidatorSetId;
 
     @Schema(description = "validator featurer id")
     @RelatedObject(type = FeaturerDTOv1.class, name = "validatorFeaturer")
@@ -38,10 +39,6 @@ public class TwinValidatorBaseDTOv1 {
 
     @Schema(description = "order")
     public Integer order;
-
-    //todo move to related objects
-    @Schema(description = "grouping set of twin validator")
-    public TwinValidatorSetBaseDTOv1 twinValidatorSet;
 }
 
 
