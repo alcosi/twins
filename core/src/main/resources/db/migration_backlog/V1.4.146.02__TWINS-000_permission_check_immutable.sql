@@ -49,20 +49,24 @@ create table if not exists user_group_by_assignee_propagation
             primary key,
     permission_schema_id          uuid not null
         constraint user_group_by_assignee_propagation_permission_schema_id_fkey
-            references permission_schema,
+            references permission_schema
+            on update cascade on delete cascade,
     user_group_id                 uuid not null
-        constraint user_group_by_assignee_propagation_permission_id_fkey
-            references permission
-            on delete cascade,
+        constraint user_group_by_assignee_propagation_user_group_id_fkey
+            references user_group
+            on update cascade on delete cascade,
     propagation_by_twin_class_id  uuid not null
         constraint user_group_by_assignee_propagation_twin_class_id_fkey
-            references twin_class,
+            references twin_class
+            on update cascade on delete cascade,
     propagation_by_twin_status_id uuid
         constraint user_group_by_assignee_propagation_twin_status_id_fkey
-            references twin_status,
+            references twin_status
+            on update cascade on delete cascade,
     created_by_user_id            uuid not null
         constraint user_group_by_assignee_propagation_granted_by_user_id_fkey
-            references "user",
+            references "user"
+            on update cascade on delete cascade,
     created_at                    timestamp default CURRENT_TIMESTAMP
 );
 
@@ -109,13 +113,15 @@ create or replace function twin_after_update_wrapper() returns trigger
 as
 $$
 BEGIN
+
+    --todo react on tc and status change
+    IF NEW.assigner_user_id IS DISTINCT FROM OLD.assigner_user_id THEN
+        PERFORM user_group_involve_by_assignee_propagation(NEW.assigner_user_id, old.assigner_user_id,NEW.twin_class_id, NEW.twin_status_id, NEW.owner_business_account_id);
+    END IF;
+
     IF OLD.head_twin_id IS DISTINCT FROM NEW.head_twin_id THEN
         RAISE NOTICE 'Process update for: %', new.id;
         PERFORM hierarchyUpdateTreeSoft(new.id, public.hierarchyDetectTree(new.id));
-
-        IF NEW.assigner_user_id IS DISTINCT FROM OLD.assigner_user_id AND NEW.assigner_user_id IS NOT NULL THEN
-            PERFORM user_group_involve_by_assignee_propagation(NEW.assigner_user_id, old.assigner_user_id,NEW.twin_class_id, NEW.twin_status_id, NEW.owner_business_account_id);
-        END IF;
 
         IF OLD.head_twin_id IS NOT NULL THEN
             PERFORM update_twin_head_direct_children_counter(OLD.head_twin_id);
@@ -150,6 +156,8 @@ END;
 $$;
 
 
+alter table user_group_map_type2 add if not exists auto_involved boolean default false not null;
+
 create or replace function user_group_add_or_remove_group(p_user_id uuid, p_group_id uuid, p_domain_id uuid, p_business_account_id uuid, p_add_to_group boolean) returns void
     volatile
     language plpgsql
@@ -161,10 +169,10 @@ BEGIN
 
     if p_add_to_group then
         -- TODO support type1 and type3 groups
-        insert into user_group_map_type2 (id,user_group_id, business_account_id, user_id, added_at, added_by_user_id)
-        VALUES (uuid_generate_v7_custom(), p_group_id, p_business_account_id, p_user_id, now(), '00000000-0000-0000-0000-000000000000') on conflict (user_id, business_account_id, user_group_id) do nothing;
+        insert into user_group_map_type2 (id,user_group_id, business_account_id, user_id, added_at, added_by_user_id, auto_involved)
+        VALUES (uuid_generate_v7_custom(), p_group_id, p_business_account_id, p_user_id, now(), '00000000-0000-0000-0000-000000000000', true) on conflict (user_id, business_account_id, user_group_id) do nothing;
     else
-        delete from user_group_map_type2 where user_id = p_user_id and business_account_id = p_business_account_id and user_group_id = p_group_id;
+        delete from user_group_map_type2 where auto_involved and user_id = p_user_id and business_account_id = p_business_account_id and user_group_id = p_group_id;
     end if;
 END;
 $$;
@@ -177,11 +185,12 @@ $$
 DECLARE
     selected_user_group_id UUID := null;
     selected_domain_id UUID := null;
+    selected_status_id UUID := null;
 BEGIN
     if p_owner_business_account_id is not null then
 
-        select a.user_group_id, d.id into selected_user_group_id, selected_domain_id from user_group_by_assignee_propagation a
-                                                                                              join twin_class tc on tc.id = a.propagation_by_twin_status_id
+        select a.user_group_id, d.id, a.propagation_by_twin_status_id into selected_user_group_id, selected_domain_id, selected_status_id from user_group_by_assignee_propagation a
+                                                                                              join twin_class tc on tc.id = a.propagation_by_twin_class_id
                                                                                               join domain d on d.id = tc.domain_id
                                                                                               join domain_business_account db on db.domain_id = d.id and db.business_account_id = p_owner_business_account_id
         where
@@ -191,7 +200,7 @@ BEGIN
     end if;
     if p_owner_business_account_id is null then
         select a.user_group_id, d.id into selected_user_group_id, selected_domain_id from user_group_by_assignee_propagation a
-                                                                                              join twin_class tc on tc.id = a.propagation_by_twin_status_id
+                                                                                              join twin_class tc on tc.id = a.propagation_by_twin_class_id
                                                                                               join domain d on d.id = tc.domain_id
         where
             a.propagation_by_twin_class_id = p_twin_class_id and
@@ -212,7 +221,7 @@ BEGIN
         IF NOT EXISTS (SELECT 1 FROM twin
                        WHERE assigner_user_id = old_assigner_user_id
                          AND twin_class_id = p_twin_class_id
-                         AND (p_twin_status_id IS NULL OR twin_status_id = p_twin_status_id)
+                         AND (selected_status_id IS NOT NULL AND twin_status_id = selected_status_id)
                          AND (p_owner_business_account_id IS NULL OR owner_business_account_id = p_owner_business_account_id)
                          LIMIT 1) THEN
             perform user_group_add_or_remove_group(old_assigner_user_id, selected_user_group_id, selected_domain_id, p_owner_business_account_id, false);
@@ -295,11 +304,6 @@ BEGIN
         RETURN TRUE;
     END IF;
 
-    -- check propagation
-    IF permission_check_assignee_propagation(permissionSchemaId, permissionId, businessAccountId, spaceId, userId) THEN
-        RETURN TRUE;
-    END IF;
-
     -- Exit if spaceId is NULL, indicating no further hierarchy to check
     IF spaceId IS NULL THEN
         RETURN FALSE;
@@ -374,7 +378,7 @@ $$;
 
 
 
-DROP FUNCTION IF EXISTS public.permission_check_by_group_or_user(uuid, uuid, uuid, uuid[], uuid, uuid);
+DROP FUNCTION IF EXISTS permission_check_by_group_or_user(uuid, uuid, uuid, uuid[], uuid, uuid);
 
 
 create or replace function permission_check_space_assignee_and_creator(spaceid uuid, userid uuid) returns space_permissions
@@ -417,55 +421,7 @@ BEGIN
 END;
 $$;
 
-create or replace function permission_check_assignee_propagation(permissionschemaid uuid, permissionid uuid, businessaccountid uuid, spaceid uuid, userid uuid) returns boolean
-    volatile
-    language plpgsql
-as
-$$
-DECLARE
-    twinClassId UUID;
-    twinStatusId UUID;
-    inSpaceOnly BOOLEAN;
-BEGIN
-    -- check rights by twin_class_id
-    SELECT propagation_by_twin_class_id, in_space_only INTO twinClassId, inSpaceOnly FROM public.permission_grant_assignee_propagation
-    WHERE permission_schema_id = permissionSchemaId AND permission_id = permissionId AND propagation_by_twin_class_id IS NOT NULL
-    LIMIT 1;
-
-    -- check rights by twin_status_id
-    SELECT propagation_by_twin_status_id, in_space_only INTO twinStatusId, inSpaceOnly FROM public.permission_grant_assignee_propagation
-    WHERE permission_schema_id = permissionSchemaId AND permission_id = permissionId AND propagation_by_twin_status_id IS NOT NULL
-    LIMIT 1;
-
-    IF twinStatusId IS NOT NULL THEN
-        -- if twin_status_id exists, check twin exists with assignee current user
-        IF inSpaceOnly THEN
-            PERFORM 1 FROM public.twin WHERE assigner_user_id = userId AND twin_status_id = twinStatusId AND owner_business_account_id = businessAccountId AND permission_schema_space_id = spaceId LIMIT 1;
-        ELSE
-            PERFORM 1 FROM public.twin WHERE assigner_user_id = userId AND twin_status_id = twinStatusId AND owner_business_account_id = businessAccountId LIMIT 1;
-        END IF;
-        IF FOUND THEN
-            RETURN TRUE;
-        END IF;
-    END IF;
-
-    IF twinClassId IS NOT NULL THEN
-        -- if twin_class_id exists, check twin exists with assignee current user
-        IF inSpaceOnly THEN
-            PERFORM 1 FROM public.twin WHERE assigner_user_id = userId AND twin_class_id = twinClassId AND owner_business_account_id = businessAccountId AND permission_schema_space_id = spaceId LIMIT 1;
-        ELSE
-            PERFORM 1
-            FROM public.twin WHERE assigner_user_id = userId AND twin_class_id = twinClassId AND owner_business_account_id = businessAccountId LIMIT 1;
-        END IF;
-        IF FOUND THEN
-            RETURN TRUE;
-        END IF;
-    END IF;
-
-    RETURN FALSE;
-END;
-$$;
-
+DROP FUNCTION IF EXISTS permission_check_assignee_propagation(uuid, uuid, uuid, uuid, uuid);
 
 create or replace function permission_check_space_role_permissions(permissionschemaid uuid, permissionid uuid, spaceid uuid, userid uuid, usergroupidlist uuid[]) returns boolean
     volatile
@@ -501,3 +457,17 @@ BEGIN
     RETURN groupAssignedToRoleExists;
 END;
 $$;
+
+drop table if exists permission_grant_assignee_propagation;
+
+UPDATE permission SET key = 'USER_GROUP_BY_ASSIGNEE_PROPAGATION_CREATE' WHERE id = '00000000-0000-0004-0020-000000000002';
+UPDATE permission SET key = 'USER_GROUP_BY_ASSIGNEE_PROPAGATION_MANAGE' WHERE id = '00000000-0000-0004-0020-000000000001';
+UPDATE permission SET key = 'USER_GROUP_BY_ASSIGNEE_PROPAGATION_UPDATE' WHERE id = '00000000-0000-0004-0020-000000000004';
+UPDATE permission SET key = 'USER_GROUP_BY_ASSIGNEE_PROPAGATION_DELETE' WHERE id = '00000000-0000-0004-0020-000000000005';
+UPDATE permission SET key = 'USER_GROUP_BY_ASSIGNEE_PROPAGATION_VIEW' WHERE id = '00000000-0000-0004-0020-000000000003';
+
+-- INSERT INTO user_group_by_assignee_propagation (id, permission_schema_id, user_group_id, propagation_by_twin_class_id, propagation_by_twin_status_id, created_by_user_id, created_at) VALUES ('0050f1ad-e160-4719-9382-df99a5abcc4a', 'af143656-9899-4e1f-8683-48795cdefeac', '6173ff08-7c2b-4302-9fff-c576f9d3c2d8', '7c027b60-0f6c-445c-9889-8ee3855d2c59', null, '00000000-0000-0000-0000-000000000000', '2026-02-16 15:09:30.000000') on conflict do nothing;
+-- INSERT INTO user_group_by_assignee_propagation (id, permission_schema_id, user_group_id, propagation_by_twin_class_id, propagation_by_twin_status_id, created_by_user_id, created_at) VALUES ('0b5ffd00-d5ca-4fc1-996b-a92eb71613c6', '343db5da-c45c-4f48-b876-b488e2818d5e', '6173ff08-7c2b-4302-9fff-c576f9d3c2d8', '7c027b60-0f6c-445c-9889-8ee3855d2c59', null, '00000000-0000-0000-0000-000000000000', '2026-02-16 15:09:30.000000') on conflict do nothing;
+-- select user_group_involve_by_assignee_propagation(t.assigner_user_id, NULL, t.twin_class_id, NULL, t.owner_business_account_id) from twin t where t.twin_class_id='7c027b60-0f6c-445c-9889-8ee3855d2c59' and t.assigner_user_id is not null;
+-- INSERT INTO permission_grant_user_group (id, permission_schema_id, permission_id, user_group_id, granted_by_user_id, granted_at) VALUES ('019c667a-b95e-7366-ada0-756d9fcf3db1', 'af143656-9899-4e1f-8683-48795cdefeac', 'a62c04f4-6f5a-497c-aa71-3065e3529d29', '6173ff08-7c2b-4302-9fff-c576f9d3c2d8', '00000000-0000-0000-0000-000000000000', '2026-02-16 15:42:14.000000') on conflict do nothing ;
+-- INSERT INTO permission_grant_user_group (id, permission_schema_id, permission_id, user_group_id, granted_by_user_id, granted_at) VALUES ('019c667b-2264-71e2-8d1d-cb89588ce101', '343db5da-c45c-4f48-b876-b488e2818d5e', 'a62c04f4-6f5a-497c-aa71-3065e3529d29', '6173ff08-7c2b-4302-9fff-c576f9d3c2d8', '00000000-0000-0000-0000-000000000000', '2026-02-16 15:42:14.000000') on conflict do nothing ;

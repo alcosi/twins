@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.permission;
+package org.twins.core.dto.rest.usergroup;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -9,13 +9,13 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "PermissionGrantAssigneePropagationSaveV1")
-public class PermissionGrantAssigneePropagationSaveDTOv1 {
+@Schema(name = "UserGroupByAssigneePropagationSaveV1")
+public class UserGroupByAssigneePropagationSaveDTOv1 {
     @Schema(description = "permission schema id", example = DTOExamples.PERMISSION_SCHEMA_ID)
     public UUID permissionSchemaId;
 
-    @Schema(description = "permission id", example = DTOExamples.PERMISSION_ID)
-    public UUID permissionId;
+    @Schema(description = "user group id", example = DTOExamples.USER_GROUP_ID)
+    public UUID userGroupId;
 
     @Schema(description = "propagation by twin class id", example = DTOExamples.TWIN_CLASS_ID)
     public  UUID propagationByTwinClassId;

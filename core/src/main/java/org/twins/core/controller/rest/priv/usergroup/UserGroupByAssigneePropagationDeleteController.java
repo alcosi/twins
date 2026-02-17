@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.permission;
+package org.twins.core.controller.rest.priv.usergroup;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -21,32 +21,32 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.service.permission.PermissionGrantAssigneePropagationService;
+import org.twins.core.service.usergroup.UserGroupByAssigneePropagationService;
 import org.twins.core.service.permission.Permissions;
 
 import java.util.UUID;
 
-@Tag(description = "Delete permission grant assignee propagation", name = ApiTag.PERMISSION)
+@Tag(description = "Delete user group by assignee propagation", name = ApiTag.USER_GROUP)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_MANAGE, Permissions.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_DELETE})
-public class PermissionGrantAssigneePropagationDeleteController extends ApiController {
-    private final PermissionGrantAssigneePropagationService permissionGrantAssigneePropagationService;
+@ProtectedBy({Permissions.USER_GROUP_BY_ASSIGNEE_PROPAGATION_MANAGE, Permissions.USER_GROUP_BY_ASSIGNEE_PROPAGATION_DELETE})
+public class UserGroupByAssigneePropagationDeleteController extends ApiController {
+    private final UserGroupByAssigneePropagationService userGroupByAssigneePropagationService;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "permissionGrantAssigneePropagationDeleteV1", summary = "Delete permission grant assignee propagation by id")
+    @Operation(operationId = "userGroupByAssigneePropagationDeleteV1", summary = "Delete user group by assignee propagation by id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @DeleteMapping(value = "/private/permission_grant/assignee_propagation/{permissionGrantAssigneePropagationId}/v1")
-    public ResponseEntity<?> permissionGrantAssigneePropagationDeleteV1(
-            @Parameter(example = DTOExamples.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_ID) @PathVariable UUID permissionGrantAssigneePropagationId) {
+    @DeleteMapping(value = "/private/user_group/assignee_propagation/{userGroupByAssigneePropagationId}/v1")
+    public ResponseEntity<?> userGroupByAssigneePropagationDeleteV1(
+            @Parameter(example = DTOExamples.USER_GROUP_BY_ASSIGNEE_PROPAGATION_ID) @PathVariable UUID userGroupByAssigneePropagationId) {
         Response rs = new Response();
         try {
-            permissionGrantAssigneePropagationService.deleteById(permissionGrantAssigneePropagationId);
+            userGroupByAssigneePropagationService.deleteById(userGroupByAssigneePropagationId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
