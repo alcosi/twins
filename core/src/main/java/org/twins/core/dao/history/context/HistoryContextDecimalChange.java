@@ -1,9 +1,8 @@
-package org.twins.core.dao.history;
+package org.twins.core.dao.history.context;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.history.context.HistoryContext;
 
 import java.math.BigDecimal;
 

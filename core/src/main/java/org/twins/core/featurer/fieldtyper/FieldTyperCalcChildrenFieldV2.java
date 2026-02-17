@@ -25,8 +25,6 @@ import java.util.Properties;
         description = "Save sum of child.fields.values on serializeValue, and return saved total from database"
 )
 public class FieldTyperCalcChildrenFieldV2 extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldSearchNumeric> implements FieldTyperCalcChildrenField {
-
-    public static final Integer ID = 1313;
     private final TwinFieldDecimalRepository twinFieldDecimalRepository;
 
     @Override

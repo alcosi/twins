@@ -25,8 +25,6 @@ import java.util.Set;
         description = "Get sum of child.fields.values on fly"
 )
 public class FieldTyperCalcChildrenFieldV1 extends FieldTyperImmutable<FieldDescriptorText, FieldValueText, TwinFieldStorageCalcSumByHead, TwinFieldSearchNotImplemented> implements FieldTyperCalcChildrenField {
-
-    public static final Integer ID = 1312;
     private final TwinFieldDecimalRepository twinFieldDecimalRepository;
 
     @Deprecated

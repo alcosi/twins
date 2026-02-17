@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.history.HistoryContextDecimalChange;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.history.HistoryRepository;
 import org.twins.core.dao.history.HistoryTypeDomainTemplateRepository;
