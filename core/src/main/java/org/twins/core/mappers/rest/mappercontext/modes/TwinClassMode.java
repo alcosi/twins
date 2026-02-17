@@ -476,4 +476,24 @@ public enum TwinClassMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum HistoryNotificationSchemaMap2TwinClassMode implements MapperModePointer<TwinClassMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public TwinClassMode point() {
+            return switch (this) {
+                case HIDE -> TwinClassMode.HIDE;
+                case SHORT -> TwinClassMode.SHORT;
+                case DETAILED -> TwinClassMode.DETAILED;
+            };
+        }
+    }
 }
