@@ -3,17 +3,17 @@ package org.twins.core.mappers.rest.twinflow;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
-import org.twins.core.dto.rest.twinflow.TriggerBaseDTOv1;
+import org.twins.core.dto.rest.trigger.TwinTriggerSaveDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
 
 @Component
 @RequiredArgsConstructor
-public class TriggerBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionTriggerEntity, TriggerBaseDTOv1> {
+public class TriggerBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionTriggerEntity, TwinTriggerSaveDTOv1> {
 
     @Override
-    public void map(TwinflowTransitionTriggerEntity src, TriggerBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
+    public void map(TwinflowTransitionTriggerEntity src, TwinTriggerSaveDTOv1 dst, MapperContext mapperContext) throws Exception {
                 dst
                         .setOrder(src.getOrder())
                         .setTwinTriggerId(src.getTwinTriggerId())

@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
-import org.twins.core.dto.rest.twinflow.TriggerDTOv1;
+import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
@@ -16,7 +16,7 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
-public class TriggerV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionTriggerEntity, TriggerDTOv1> {
+public class TriggerV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionTriggerEntity, TwinTriggerDTOv1> {
 
     private final TriggerBaseV1RestDTOMapper triggerBaseV1RestDTOMapper;
 
@@ -25,7 +25,7 @@ public class TriggerV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransiti
     private final TwinflowTransitionTriggerService twinflowTransitionTriggerService;
 
     @Override
-    public void map(TwinflowTransitionTriggerEntity src, TriggerDTOv1 dst, MapperContext mapperContext) throws Exception {
+    public void map(TwinflowTransitionTriggerEntity src, TwinTriggerDTOv1 dst, MapperContext mapperContext) throws Exception {
         triggerBaseV1RestDTOMapper.map(src, dst, mapperContext);
         dst.setId(src.getId());
         if (mapperContext.hasModeButNot(TwinTriggerMode.TransitionTrigger2TwinTriggerMode.HIDE)) {

@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
-import org.twins.core.dto.rest.trigger.TransitionTriggerDTOv1;
+import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinTriggerMode;
@@ -12,20 +12,21 @@ import org.twins.core.mappers.rest.mappercontext.modes.TwinTriggerMode;
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = TwinTriggerMode.class)
-public class TwinTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinTriggerEntity, TransitionTriggerDTOv1> {
+public class TwinTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinTriggerEntity, TwinTriggerDTOv1> {
 
     @Override
-    public void map(TwinTriggerEntity src, TransitionTriggerDTOv1 dst, MapperContext mapperContext) throws Exception {
+    public void map(TwinTriggerEntity src, TwinTriggerDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(TwinTriggerMode.DETAILED)) {
             case DETAILED -> dst
                     .setId(src.getId())
-                    .setDomainId(src.getDomainId())
-                    .setTwinTriggerFeaturerId(src.getTwinTriggerFeaturerId())
-                    .setTwinTriggerParam(src.getTwinTriggerParam())
+                    .setTriggerFeaturerId(src.getTwinTriggerFeaturerId())
+                    .setTriggerParams(src.getTwinTriggerParam())
+                    .setName()
+                    .setDescription()
                     .setActive(src.getActive());
             case SHORT -> dst
                     .setId(src.getId())
-                    .setDomainId(src.getDomainId());
+                    .setName();
         }
     }
 

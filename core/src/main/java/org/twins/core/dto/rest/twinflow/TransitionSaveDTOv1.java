@@ -3,19 +3,15 @@ package org.twins.core.dto.rest.twinflow;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.twins.core.enums.twinflow.TwinflowTransitionType;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
+import org.twins.core.enums.twinflow.TwinflowTransitionType;
 
 import java.util.UUID;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TransitionSaveRqV1")
-public class TransitionSaveRqDTOv1 extends Request {
-
+@Schema(name =  "TransitionSaveV1")
+public class TransitionSaveDTOv1 {
     @Schema(description = "I18n name", example = "")
     public I18nSaveDTOv1 nameI18n;
 
