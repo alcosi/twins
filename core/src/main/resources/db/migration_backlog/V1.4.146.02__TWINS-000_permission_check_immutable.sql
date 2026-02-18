@@ -521,8 +521,8 @@ permission_grant_space_role
 
 id
 permission_schema_id+
-permission_id+                  space_permission_user_update_by_permission_grant_space_role_insert()
-space_role_id+                  space_permission_user_update_by_permission_grant_space_role_delete()
+permission_id+                  space_permission_user_update_by_permiss_grant_space_role_insert()
+space_role_id+                  space_permission_user_update_by_permiss_grant_space_role_delete()
 granted_by_user_id
 granted_at
 
@@ -583,6 +583,7 @@ created_at
 -- END;
 -- $$;
 
+
 create or replace function space_permission_user_update_by_user_group_map_type2_insert(p_new_user_group_id uuid, p_new_user_id uuid, p_new_business_account_id uuid) returns void
     volatile
     language plpgsql
@@ -615,7 +616,105 @@ END;
 $$;
 
 -----------------------------------------------------------------
+-----------------------------------------------------------------
+create or replace function space_permission_user_update_by_permiss_grant_space_role_insert(p_new_permission_schema_id uuid, p_new_permission_schema_id uuid, p_new_space_role_id uuid) returns void
+    volatile
+    language plpgsql
+as
+$$
+BEGIN
+    --todo
+  insert into space_permission_user (twin_id, permission_id, user_id, grants_count)
+  select t.id, pgsr.permission_id, p_new_user_id  from space_role_user_group srug
+         join space s on s.twin_id = srug.id
+         join permission_grant_space_role pgsr on pgsr.space_role_id = srug.space_role_id and pgsr.permission_schema_id = s.permission_schema_id
+         join twin t on t.owner_business_account_id = p_new_business_account_id and t.id = srug.twin_id
+  where srug.user_group_id = p_new_user_group_id
+  on conflict do update set grants_count = grants_count + 1;
+END;
+$$;
 
+create or replace function space_permission_user_update_by_permiss_grant_space_role_delete(p_old_permission_schema_id uuid, p_old_permission_schema_id uuid, p_old_space_role_id uuid) returns void
+    volatile
+    language plpgsql
+as
+$$
+BEGIN
+    update space_permission_user set grants_count = grants_count - 1
+    from space_role_user_group srug
+      join space s on s.twin_id = srug.id
+      join permission_grant_space_role pgsr on pgsr.space_role_id = srug.space_role_id and pgsr.permission_schema_id = s.permission_schema_id
+      join twin t on t.owner_business_account_id = p_old_business_account_id and t.id = srug.twin_id
+    where srug.user_group_id = p_old_user_group_id;
+END;
+$$;
+-----------------------------------------------------------------
+-----------------------------------------------------------------
+create or replace function space_permission_user_update_by_space_role_user_group_insert(p_new_twin_id uuid, p_new_space_role_id uuid, p_new_user_group_id uuid) returns void
+    volatile
+    language plpgsql
+as
+$$
+BEGIN
+    --todo
+    insert into space_permission_user (twin_id, permission_id, user_id, grants_count)
+    select t.id, pgsr.permission_id, p_new_user_id  from space_role_user_group srug
+                                                             join space s on s.twin_id = srug.id
+                                                             join permission_grant_space_role pgsr on pgsr.space_role_id = srug.space_role_id and pgsr.permission_schema_id = s.permission_schema_id
+                                                             join twin t on t.owner_business_account_id = p_new_business_account_id and t.id = srug.twin_id
+    where srug.user_group_id = p_new_user_group_id
+    on conflict do update set grants_count = grants_count + 1;
+END;
+$$;
+
+create or replace function space_permission_user_update_by_space_role_user_group_delete(p_old_twin_id uuid, p_old_space_role_id uuid, p_old_user_group_id uuid) returns void
+    volatile
+    language plpgsql
+as
+$$
+BEGIN
+    update space_permission_user set grants_count = grants_count - 1
+    from space_role_user_group srug
+             join space s on s.twin_id = srug.id
+             join permission_grant_space_role pgsr on pgsr.space_role_id = srug.space_role_id and pgsr.permission_schema_id = s.permission_schema_id
+             join twin t on t.owner_business_account_id = p_old_business_account_id and t.id = srug.twin_id
+    where srug.user_group_id = p_old_user_group_id;
+END;
+$$;
+-----------------------------------------------------------------
+-----------------------------------------------------------------
+create or replace function space_permission_user_update_by_space_role_user_insert(p_new_twin_id uuid, p_new_space_role_id uuid, p_new_user_id uuid) returns void
+    volatile
+    language plpgsql
+as
+$$
+BEGIN
+    --todo
+    insert into space_permission_user (twin_id, permission_id, user_id, grants_count)
+    select t.id, pgsr.permission_id, p_new_user_id  from space_role_user_group srug
+                                                             join space s on s.twin_id = srug.id
+                                                             join permission_grant_space_role pgsr on pgsr.space_role_id = srug.space_role_id and pgsr.permission_schema_id = s.permission_schema_id
+                                                             join twin t on t.owner_business_account_id = p_new_business_account_id and t.id = srug.twin_id
+    where srug.user_group_id = p_new_user_group_id
+    on conflict do update set grants_count = grants_count + 1;
+END;
+$$;
+
+create or replace function space_permission_user_update_by_space_role_user_delete(p_old_twin_id uuid, p_old_space_role_id uuid, p_old_user_id uuid) returns void
+    volatile
+    language plpgsql
+as
+$$
+BEGIN
+    update space_permission_user set grants_count = grants_count - 1
+    from space_role_user_group srug
+             join space s on s.twin_id = srug.id
+             join permission_grant_space_role pgsr on pgsr.space_role_id = srug.space_role_id and pgsr.permission_schema_id = s.permission_schema_id
+             join twin t on t.owner_business_account_id = p_old_business_account_id and t.id = srug.twin_id
+    where srug.user_group_id = p_old_user_group_id;
+END;
+$$;
+-----------------------------------------------------------------
 
 
 create or replace function permission_grant_space_role_after_insert_wrapper() returns trigger
@@ -623,8 +722,8 @@ create or replace function permission_grant_space_role_after_insert_wrapper() re
 as
 $$
 BEGIN
-    PERFORM space_p(NEW.permission_schema_id, NEW.permission_id, NEW.space_role_id);
-    RETURN OLD;
+    PERFORM space_permission_user_update_by_permiss_grant_space_role_insert(NEW.permission_schema_id, NEW.permission_id, NEW.space_role_id);
+    RETURN NEW;
 END;
 $$;
 
@@ -637,8 +736,8 @@ BEGIN
        NEW.permission_id IS DISTINCT FROM OLD.permission_id OR
        NEW.space_role_id IS DISTINCT FROM OLD.space_role_id
        THEN
-        PERFORM space_permission_user_update_by_permission_grant_space_role(NEW.permission_schema_id, NEW.permission_id, NEW.space_role_id,
-                                                                           OLD.permission_schema_id, OLD.permission_id, OLD.space_role_id);
+        PERFORM space_permission_user_update_by_permiss_grant_space_role_insert(NEW.permission_schema_id, NEW.permission_id, NEW.space_role_id);
+        PERFORM space_permission_user_update_by_permiss_grant_space_role_delete(OLD.permission_schema_id, OLD.permission_id, OLD.space_role_id);
     END IF;
 
     RETURN NEW;
@@ -650,20 +749,19 @@ create or replace function permission_grant_space_role_after_delete_wrapper() re
 as
 $$
 BEGIN
-        PERFORM space_permission_user_update_by_permission_grant_space_role(null, null, null,
-                                                                           OLD.permission_schema_id, OLD.permission_id, OLD.space_role_id);
+        PERFORM space_permission_user_update_by_permiss_grant_space_role_delete(OLD.permission_schema_id, OLD.permission_id, OLD.space_role_id);
     RETURN OLD;
 END;
 $$;
 ------------------------------------------------------------------------------
+
 create or replace function space_role_user_group_after_insert_wrapper() returns trigger
     language plpgsql
 as
 $$
 BEGIN
-    PERFORM space_permission_user_update_by_space_role_user_group(NEW.twin_id, NEW.space_role_id, NEW.user_group_id,
-                                                                       null, null, null);
-    RETURN OLD;
+    PERFORM space_permission_user_update_by_space_role_user_group_insert(NEW.twin_id, NEW.space_role_id, NEW.user_group_id);
+    RETURN NEW;
 END;
 $$;
 
@@ -676,8 +774,8 @@ BEGIN
        NEW.user_group_id IS DISTINCT FROM OLD.user_group_id OR
        NEW.space_role_id IS DISTINCT FROM OLD.space_role_id
     THEN
-        PERFORM space_permission_user_update_by_space_role_user_group(NEW.twin_id, NEW.space_role_id, NEW.user_group_id,
-                                                                           OLD.twin_id, OLD.space_role_id, OLD.user_group_id);
+        PERFORM space_permission_user_update_by_space_role_user_group_insert(NEW.twin_id, NEW.space_role_id, NEW.user_group_id);
+        PERFORM space_permission_user_update_by_space_role_user_group_delete(OLD.twin_id, OLD.space_role_id, OLD.user_group_id);
     END IF;
 
     RETURN NEW;
@@ -689,8 +787,7 @@ create or replace function space_role_user_group_after_delete_wrapper() returns 
 as
 $$
 BEGIN
-    PERFORM space_permission_user_update_by_space_role_user_group(null, null, null,
-                                                                       OLD.twin_id, OLD.space_role_id, OLD.user_group_id);
+    PERFORM space_permission_user_update_by_space_role_user_group_delete(OLD.twin_id, OLD.space_role_id, OLD.user_group_id);
     RETURN OLD;
 END;
 $$;
@@ -700,9 +797,8 @@ create or replace function space_role_user_after_insert_wrapper() returns trigge
 as
 $$
 BEGIN
-    PERFORM space_permission_user_update_by_space_role_user(NEW.twin_id, NEW.space_role_id, NEW.user_id,
-                                                                 null, null, null);
-    RETURN OLD;
+    PERFORM space_permission_user_update_by_space_role_user_insert(NEW.twin_id, NEW.space_role_id, NEW.user_id);
+    RETURN NEW;
 END;
 $$;
 
@@ -715,8 +811,8 @@ BEGIN
        NEW.user_id IS DISTINCT FROM OLD.user_id OR
        NEW.space_role_id IS DISTINCT FROM OLD.space_role_id
     THEN
-        PERFORM space_permission_user_update_by_space_role_user(NEW.twin_id, NEW.space_role_id, NEW.user_id,
-                                                                           OLD.twin_id, OLD.space_role_id, OLD.user_id);
+        PERFORM space_permission_user_update_by_space_role_user_insert(NEW.twin_id, NEW.space_role_id, NEW.user_id);
+        PERFORM space_permission_user_update_by_space_role_user_delete(OLD.twin_id, OLD.space_role_id, OLD.user_id);
     END IF;
 
     RETURN NEW;
@@ -728,8 +824,7 @@ create or replace function space_role_user_after_delete_wrapper() returns trigge
 as
 $$
 BEGIN
-    PERFORM space_permission_user_update_by_space_role_user(null, null, null,
-                                                                       OLD.twin_id, OLD.space_role_id, OLD.user_id);
+    PERFORM space_permission_user_update_by_space_role_user_delete(OLD.twin_id, OLD.space_role_id, OLD.user_id);
     RETURN OLD;
 END;
 $$;
@@ -776,10 +871,8 @@ as
 $$
 BEGIN
     IF NEW.business_account_id IS DISTINCT FROM OLD.business_account_id THEN
-        RAISE "!!!!!!!!!!!!!!!!!!!!!!"
-        --todo
+        RAISE EXCEPTION 'It is forbidden to change the [business_account_id] field for table [user_group_map_type2]';
     END IF;
-
     RETURN NEW;
 END;
 $$;
