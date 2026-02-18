@@ -13,7 +13,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Accessors(chain = true)
-@Schema(name = "HistoryNotificationSearchRequestV1")
+@Schema(name = "HistoryNotificationSearchRqV1")
 public class HistoryNotificationSearchRqDTOv1 extends Request {
     @Schema(description = "id list")
     public Set<UUID> idList;

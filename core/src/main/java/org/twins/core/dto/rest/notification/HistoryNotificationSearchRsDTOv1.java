@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Accessors(chain = true)
-@Schema(name = "HistoryNotificationSearchResponseV1")
+@Schema(name = "HistoryNotificationSearchRsV1")
 public class HistoryNotificationSearchRsDTOv1 extends HistoryNotificationListRsDTOv1 {
     @Schema(description = "pagination")
     private PaginationDTOv1 pagination;

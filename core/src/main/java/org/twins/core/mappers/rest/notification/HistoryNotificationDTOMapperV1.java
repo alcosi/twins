@@ -10,7 +10,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.mappers.rest.validator.TwinValidatorSetBaseV1RestDTOMapper;
+import org.twins.core.mappers.rest.validator.TwinValidatorSetRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
@@ -20,7 +20,7 @@ public class HistoryNotificationDTOMapperV1 extends RestSimpleDTOMapper<HistoryN
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @MapperModePointerBinding(modes = TwinValidatorSetMode.HistoryNotification2TwinValidatorSetMode.class)
-    private final TwinValidatorSetBaseV1RestDTOMapper twinValidatorSetRestDTOMapper;
+    private final TwinValidatorSetRestDTOMapper twinValidatorSetRestDTOMapper;
 
     @MapperModePointerBinding(modes = HistoryNotificationRecipientMode.HistoryNotification2HistoryNotificationRecipientMode.class)
     private final HistoryNotificationRecipientDTOMapperV1 historyNotificationRecipientDTOMapperV1;

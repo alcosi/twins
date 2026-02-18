@@ -11,7 +11,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Accessors(chain = true)
-@Schema(name = "HistoryNotificationListResponseV1")
+@Schema(name = "HistoryNotificationListRsV1")
 public class HistoryNotificationListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "history notifications")
     public List<HistoryNotificationDTOv1> historyNotifications;
