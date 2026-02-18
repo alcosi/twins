@@ -591,7 +591,8 @@ $$
 BEGIN
   insert into space_permission_user (twin_id, permission_id, user_id, grants_count)
   select t.id, pgsr.permission_id, p_new_user_id  from space_role_user_group srug
-         join permission_grant_space_role pgsr on pgsr.space_role_id = srug.space_role_id
+         join space s on s.twin_id = srug.id
+         join permission_grant_space_role pgsr on pgsr.space_role_id = srug.space_role_id and pgsr.permission_schema_id = s.permission_schema_id
          join twin t on t.owner_business_account_id = p_new_business_account_id and t.id = srug.twin_id
   where srug.user_group_id = p_new_user_group_id
   on conflict do update set grants_count = grants_count + 1;
@@ -606,7 +607,8 @@ $$
 BEGIN
     update space_permission_user set grants_count = grants_count - 1
     from space_role_user_group srug
-      join permission_grant_space_role pgsr on pgsr.space_role_id = srug.space_role_id
+      join space s on s.twin_id = srug.id
+      join permission_grant_space_role pgsr on pgsr.space_role_id = srug.space_role_id and pgsr.permission_schema_id = s.permission_schema_id
       join twin t on t.owner_business_account_id = p_old_business_account_id and t.id = srug.twin_id
     where srug.user_group_id = p_old_user_group_id;
 END;
