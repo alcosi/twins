@@ -16,5 +16,6 @@ public class TransitionTriggerUpdateDTOReverseMapper extends RestSimpleDTOMapper
     @Override
     public void map(TransitionTriggerUpdateDTOv1 src, TwinflowTransitionTriggerEntity dst, MapperContext mapperContext) throws Exception {
         transitionTriggerSaveDTOReverseMapper.map(src, dst, mapperContext);
+        dst.setId(src.getId());
     }
 }

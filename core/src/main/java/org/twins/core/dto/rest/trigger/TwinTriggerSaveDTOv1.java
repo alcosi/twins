@@ -28,4 +28,7 @@ public class TwinTriggerSaveDTOv1 {
 
     @Schema(description = "is active", example = DTOExamples.COUNT)
     public Boolean active;
+
+    @Schema(description = "order")
+    public Integer order;
 }

@@ -9,7 +9,9 @@ CREATE TABLE IF NOT EXISTS twin_trigger (
      ON UPDATE CASCADE
      ON DELETE CASCADE,
      twin_trigger_param       hstore,
-     active                   boolean DEFAULT true
+     active                   boolean DEFAULT true,
+     name                     varchar,
+     description              varchar
 );
 
 CREATE INDEX IF NOT EXISTS twin_trigger_domain_id_index

@@ -3,10 +3,13 @@ package org.twins.core.dao.trigger;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 
 import java.util.HashMap;
@@ -39,11 +42,22 @@ public class TwinTriggerEntity implements EasyLoggable {
     @Column(name = "active")
     private Boolean active;
 
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "description")
+    private String description;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FeaturerEntity twinTriggerFeaturer;
+
     @Override
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinTrigger[" + id + "]";
-            default -> "twinTrigger[id:" + id + ", domainId:" + domainId + ", active:" + active + "]";
+            default -> "twinTrigger[id:" + id + ", domainId:" + domainId + ", name:" + name + ", active:" + active + "]";
         };
     }
 }

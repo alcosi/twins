@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.twinflow;
+package org.twins.core.dto.rest.trigger;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -9,8 +9,8 @@ import org.twins.core.dto.rest.Request;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@Schema(name = "TransitionCreateRqV1")
-public class TransitionCreateRqDTOv1 extends Request {
-    @Schema(description = "transition")
-    public TransitionCreateDTOv1 transition;
+@Schema(name = "TwinTriggerSearchRqV1")
+public class TwinTriggerSearchRqDTOv1 extends Request {
+    @Schema
+    public TwinTriggerSearchDTOv1 search;
 }

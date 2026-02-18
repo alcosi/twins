@@ -21,12 +21,12 @@ public class TwinTriggerRestDTOMapper extends RestSimpleDTOMapper<TwinTriggerEnt
                     .setId(src.getId())
                     .setTriggerFeaturerId(src.getTwinTriggerFeaturerId())
                     .setTriggerParams(src.getTwinTriggerParam())
-                    .setName()
-                    .setDescription()
+                    .setName(src.getName())
+                    .setDescription(src.getDescription())
                     .setActive(src.getActive());
             case SHORT -> dst
                     .setId(src.getId())
-                    .setName();
+                    .setName(src.getName());
         }
     }
 

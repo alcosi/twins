@@ -2,6 +2,8 @@ package org.twins.core.dao.factory;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -47,6 +49,12 @@ public class TwinFactoryTriggerEntity implements EasyLoggable {
 
     @Column(name = "async")
     private Boolean async;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne
+    @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity twinFactory;
 
     @Override
     public String easyLog(Level level) {

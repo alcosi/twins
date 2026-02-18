@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.trigger;
+package org.twins.core.dto.rest.twinflow;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -11,8 +11,8 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-@Schema(name = "TwinTriggerUpdateV1")
-public class TwinTriggerUpdateDTOv1 extends TwinTriggerSaveDTOv1 {
-    @Schema(description = "id", example = DTOExamples.UUID_ID)
+@Schema(name = "TransitionUpdateV1")
+public class TransitionUpdateDTOv1 extends TransitionSaveDTOv1 {
+    @Schema(description = "transition id", example = DTOExamples.TWINFLOW_TRANSITION_ID)
     public UUID id;
 }
