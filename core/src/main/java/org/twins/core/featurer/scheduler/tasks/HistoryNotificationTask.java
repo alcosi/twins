@@ -95,7 +95,7 @@ public class HistoryNotificationTask implements Runnable {
                 var recipientIds = new HashSet<UUID>();
                 for (var config : entry.getValue()) {
                     if (twinValidatorSetService.isValid(history.getTwin(), config)) {
-                        recipientIds.addAll(historyRecipientService.recipientResolve(config.getHistoryNotificationRecipient().getId(), history));
+                        recipientIds.addAll(historyRecipientService.recipientResolve(config.getHistoryNotificationRecipientId(), history));
                     }
                 }
                 if (recipientIds.isEmpty())
