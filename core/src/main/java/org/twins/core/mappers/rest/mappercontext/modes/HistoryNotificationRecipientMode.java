@@ -39,7 +39,7 @@ public enum HistoryNotificationRecipientMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum HistoryNotificationSchemaMap2HistoryNotificationRecipientMode implements MapperModePointer<HistoryNotificationRecipientMode> {
+    public enum HistoryNotification2HistoryNotificationRecipientMode implements MapperModePointer<HistoryNotificationRecipientMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

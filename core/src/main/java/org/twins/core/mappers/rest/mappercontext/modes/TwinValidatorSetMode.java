@@ -99,7 +99,7 @@ public enum TwinValidatorSetMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum HistoryNotificationSchemaMap2TwinValidatorSetMode implements MapperModePointer<TwinValidatorSetMode> {
+    public enum HistoryNotification2TwinValidatorSetMode implements MapperModePointer<TwinValidatorSetMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

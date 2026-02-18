@@ -11,7 +11,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class HistoryNotificationSchemaMapSearch {
+public class HistoryNotificationSearch {
     public Set<UUID> idList;
     public Set<UUID> idExcludeList;
     public Set<String> historyTypeIdList;

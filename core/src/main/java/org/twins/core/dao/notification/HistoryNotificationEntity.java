@@ -19,12 +19,12 @@ import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import java.util.UUID;
 
 @Entity
-@Table(name = "history_notification_schema_map")
+@Table(name = "history_notification")
 @DynamicUpdate
 @Data
 @FieldNameConstants
 @Accessors(chain = true)
-public class HistoryNotificationSchemaMapEntity implements EasyLoggable, ContainsTwinValidatorSet {
+public class HistoryNotificationEntity implements EasyLoggable, ContainsTwinValidatorSet {
     @Id
     private UUID id;
 
@@ -96,6 +96,6 @@ public class HistoryNotificationSchemaMapEntity implements EasyLoggable, Contain
     private NotificationChannelEventEntity notificationChannelEvent;
 
     public String easyLog(Level level) {
-        return "historyNotificationSchemaMap[id:" + id + "]";
+        return "historyNotification[id:" + id + "]";
     }
 }

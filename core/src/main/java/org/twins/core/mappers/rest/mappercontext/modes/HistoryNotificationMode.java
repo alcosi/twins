@@ -8,7 +8,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperMode;
 @Getter
 @AllArgsConstructor
 @FieldNameConstants(onlyExplicitlyIncluded = true)
-public enum HistoryNotificationSchemaMapMode implements MapperMode {
+public enum HistoryNotificationMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include SHORT(1),
     @FieldNameConstants.Include DETAILED(2);

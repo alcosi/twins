@@ -4,8 +4,11 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
+import java.util.UUID;
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true)
-public class HistoryNotificationSchemaMapCreate extends HistoryNotificationSchemaMapSave {
+public class HistoryNotificationUpdate extends HistoryNotificationSave {
+    private UUID id;
 }

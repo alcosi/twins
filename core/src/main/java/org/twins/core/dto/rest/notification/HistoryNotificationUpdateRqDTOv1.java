@@ -11,8 +11,8 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @Data
 @Accessors(chain = true)
-@Schema(name = "HistoryNotificationSchemaMapUpdateRequestV1")
-public class HistoryNotificationSchemaMapUpdateRqDTOv1 extends Request {
-    @Schema(description = "history notification schema maps")
-    public List<HistoryNotificationSchemaMapUpdateDTOv1> historyNotificationSchemaMaps;
+@Schema(name = "HistoryNotificationUpdateRequestV1")
+public class HistoryNotificationUpdateRqDTOv1 extends Request {
+    @Schema(description = "history notifications")
+    public List<HistoryNotificationUpdateDTOv1> historyNotifications;
 }
