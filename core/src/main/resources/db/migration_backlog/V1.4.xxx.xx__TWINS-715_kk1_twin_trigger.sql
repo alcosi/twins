@@ -141,3 +141,30 @@ INSERT INTO featurer (id, featurer_type_id, class, name, description, deprecated
 INSERT INTO scheduler (id, domain_id, scheduler_featurer_id, cron, active, log_enabled, scheduler_params, fixed_rate, description, created_at, updated_at)
 VALUES ('00000000-0000-0000-0015-00000000000a'::uuid, NULL, 5010, NULL, true, true, NULL, 2000, 'Scheduler for executing twin triggers', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
 ON CONFLICT DO NOTHING;
+
+-- Step 1: Add new columns
+ALTER TABLE public.twin_status_transition_trigger
+    ADD COLUMN IF NOT EXISTS twin_trigger_id uuid,
+    ADD COLUMN IF NOT EXISTS async boolean DEFAULT false NOT NULL;
+
+-- Step 2: Create foreign key constraint to twin_trigger table
+ALTER TABLE public.twin_status_transition_trigger
+    ADD CONSTRAINT twin_status_transition_trigger_twin_trigger_id_fk
+        FOREIGN KEY (twin_trigger_id) REFERENCES public.twin_trigger(id) ON UPDATE CASCADE;
+
+-- Step 3: Create index for the new twin_trigger_id column
+CREATE INDEX IF NOT EXISTS twin_status_transition_trigger_twin_trigger_id_i
+    ON public.twin_status_transition_trigger(twin_trigger_id);
+
+-- Step 4: Drop old foreign key constraint to featurer table
+ALTER TABLE public.twin_status_transition_trigger
+DROP CONSTRAINT IF EXISTS twin_status_transition_trigger_featurer_id_fk;
+
+-- Step 5: Drop old index on transition_trigger_featurer_id
+DROP INDEX IF EXISTS twin_status_transition_trigger_transition_trigger_featurer_id_i;
+
+-- Step 6: Drop old columns
+ALTER TABLE public.twin_status_transition_trigger
+DROP COLUMN IF EXISTS transition_trigger_featurer_id,
+    DROP COLUMN IF EXISTS transition_trigger_params;
+

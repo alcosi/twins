@@ -332,9 +332,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public TwinCreateResult createTwin(TwinCreate twinCreate) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         createTwin(twinCreate, twinChangesCollector);
-        twinChangesService.applyChanges(twinChangesCollector);
         TwinEntity twinEntity = twinCreate.getTwinEntity();
-        twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
+        twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus(), twinChangesCollector);
+        twinChangesService.applyChanges(twinChangesCollector);
         //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
         return new TwinCreateResult()
                 .setCreatedTwin(twinEntity)
@@ -367,13 +367,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (TwinCreate twinCreate : twinCreateList) {
             createTwin(twinCreate, twinChangesCollector);
         }
-        twinChangesService.applyChanges(twinChangesCollector);
         List<TwinEntity> twins = new ArrayList<>();
         for (TwinCreate twinCreate : twinCreateList) {
             TwinEntity twinEntity = twinCreate.getTwinEntity();
             twins.add(twinEntity);
-            twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
+            twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus(), twinChangesCollector);
         }
+        twinChangesService.applyChanges(twinChangesCollector);
         //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
         return twins;
     }
@@ -1221,8 +1221,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional
     public void saveDuplicateTwin(TwinDuplicate twinDuplicate) throws ServiceException {
+        twinflowService.runTwinStatusTransitionTriggers(twinDuplicate.getDuplicate(), null, twinDuplicate.getDuplicate().getTwinStatus(), twinDuplicate.getChangesCollector());
         twinChangesService.applyChanges(twinDuplicate.getChangesCollector());
-        twinflowService.runTwinStatusTransitionTriggers(twinDuplicate.getDuplicate(), null, twinDuplicate.getDuplicate().getTwinStatus());
     }
 
     public UserEntity getTwinAssignee(UUID twinId) {
