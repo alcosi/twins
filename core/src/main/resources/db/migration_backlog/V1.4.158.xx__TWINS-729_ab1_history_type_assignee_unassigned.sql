@@ -1,0 +1,1 @@
+INSERT INTO history_type (id, snapshot_message_template, history_type_status_id) VALUES ('assigneeUnassigned', 'Assignee was unassigned', 'softEnabled') on conflict on constraint history_type_pkey do nothing ;
