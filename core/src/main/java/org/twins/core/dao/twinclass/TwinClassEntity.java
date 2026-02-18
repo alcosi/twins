@@ -24,6 +24,7 @@ import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.permission.PermissionGrantTwinRoleEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
@@ -222,9 +223,16 @@ public class TwinClassEntity implements EasyLoggable {
     @JoinColumn(name = "icon_dark_resource_id", insertable = false, updatable = false)
     private ResourceEntity iconDarkResource;
 
+    @Deprecated //for specification only
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_class_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Collection<PermissionGrantTwinRoleEntity> permissionGrantTwinRoles;
+
+    @Deprecated //for specification only
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    @Deprecated //for specification only
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private I18nEntity nameI18n;

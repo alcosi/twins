@@ -482,9 +482,6 @@ UPDATE permission SET key = 'USER_GROUP_BY_ASSIGNEE_PROPAGATION_VIEW' WHERE id =
 
 create table space_permission_user
 (
-    id                 uuid not null
-        constraint space_permission_user_pk
-            primary key,
     twin_id            uuid not null
         constraint space_permission_user_twin_id_fk
             references twin
@@ -493,68 +490,377 @@ create table space_permission_user
         constraint space_permission_user_permission_id_fk
             references permission
             on update cascade on delete cascade,
---     space_role_id      uuid not null
---         constraint space_permission_user_space_role_id_fk
---             references space_role
---             on update cascade on delete cascade,
     user_id            uuid not null
         constraint space_permission_user_user_id_fk
             references "user"
             on update cascade on delete cascade,
-    created_by_user_id uuid not null
-        constraint space_permission_user_user_id_fk_2
-            references "user"
-            on update cascade on delete restrict,
-    created_at         timestamp default CURRENT_TIMESTAMP
+    grants_count            int not null default 0,
+        constraint space_permission_user_pk
+        primary key (twin_id, permission_id, user_id)
 );
 
-drop index if exists space_permission_user_twin_id_perm_user_id_uindex;
-create unique index space_permission_user_twin_id_perm_user_id_uindex
-    on space_permission_user (twin_id, permission_id, user_id);
-
-drop index if exists idx_space_permission_user_created_by_user_id;
-create index idx_space_permission_user_created_by_user_id
-    on space_permission_user (created_by_user_id);
+drop index if exists idx_space_permission_user_grants_count;
+create index idx_space_permission_user_grants_count
+    on space_permission_user (grants_count);
 
 
-create table space_permission_user_group
-(
-    id                 uuid not null
-        constraint space_role_user_group_pk
-            primary key,
-    twin_id            uuid not null
-        constraint space_role_user_group_twin_id_fk
-            references twin
-            on update cascade on delete cascade,
-    permission_id      uuid not null
-        constraint space_permission_user_group_permission_id_fk
-            references permission
-            on update cascade on delete cascade,
---     space_role_id      uuid not null
---         constraint space_permission_user_space_role_id_fk
---             references space_role
---             on update cascade on delete cascade,
-    user_group_id      uuid not null
-        constraint space_role_user_group_user_group_id_fk
-            references user_group
-            on update cascade on delete cascade,
-    created_by_user_id uuid not null
-        constraint space_role_user_group_user_id_fk
-            references "user"
-            on update cascade on delete restrict ,
-    created_at         timestamp default CURRENT_TIMESTAMP
-);
-
-drop index if exists space_permission_user_gr_twin_id_perm_user_id_uindex;
-create unique index space_permission_user_gr_twin_id_perm_user_id_uindex
-    on space_permission_user_group (twin_id, permission_id, user_group_id);
-
-drop index if exists idx_space_permission_user_gr_created_by_user_id;
-create index idx_space_permission_user_gr_created_by_user_id
-    on space_permission_user_group (created_by_user_id);
 
 
--- todo groups
+
+
+user_group_map_type2
+id
+user_group_id
+business_account_id
+user_id                         space_permission_user_update_by_user_group_map_type2_insert()
+added_at                        space_permission_user_update_by_user_group_map_type2_delete()
+added_by_user_id
+auto_involved
+
+permission_grant_space_role
+
+id
+permission_schema_id+
+permission_id+                  space_permission_user_update_by_permission_grant_space_role_insert()
+space_role_id+                  space_permission_user_update_by_permission_grant_space_role_delete()
+granted_by_user_id
+granted_at
+
+space_role_user_group
+
+id
++twin_id
++space_role_id                  space_permission_user_update_by_space_role_user_group_insert()
++user_group_id                  space_permission_user_update_by_space_role_user_group_delete()
+created_by_user_id
+created_at
+
+space_role_user
+
+id
++twin_id                        space_permission_user_update_by_space_role_user_insert()
++space_role_id                  space_permission_user_update_by_space_role_user_delete()
++user_id
+created_by_user_id
+created_at
 
 -- todo triggers space_role_user - CUD -> wrapper function
             insert/update/delete space_permission_user values (gen_random_uuid(), :twinId, :permissionId, :userId, :createdByUserId, now());
+
+
+-- create or replace function space_permission_user_update_by_user_group_map_type2_insert(p_new_user_group_id uuid, p_new_user_id uuid, p_new_business_account_id uuid) returns void
+--     volatile
+--     language plpgsql
+-- as
+-- $$
+-- DECLARE
+--     selected_user_group_id UUID := null;
+-- BEGIN
+--
+--     if p_new_user_group_id is not null then
+--         if p_old_user_group_id is not null then
+--             -- update
+--         else
+--             insert into space_permission_user (twin_id, permission_id, user_id, grants_count)
+--             select t.id, pgsr.permission_id, p_new_user_id  from space_role_user_group srug
+--                          join permission_grant_space_role pgsr on pgsr.space_role_id = srug.space_role_id
+--                          join twin t on t.owner_business_account_id = p_new_business_account_id and
+--                                         t.id = srug.twin_id
+--             where srug.user_group_id = p_new_user_group_id
+--             on conflict do update set grants_count = grants_count + 1;
+--         end if;
+--
+--     else
+--         delete from space_permission_user_group spug
+--             using space_role_user_group srug, space s
+--         where spug.permission_id = p_old_permission_id and
+--             spug.user_group_id = srug.user_group_id and
+--             spug.twin_id = srug.twin_id and
+--             spug.twin_id = s.twin_id and s.permission_schema_id = p_old_permission_schema_id and
+--             spug.space_role_id = p_old_space_role_id and
+--             srug.space_role_id = p_new_space_role_id;
+--     end if;
+-- END;
+-- $$;
+
+create or replace function space_permission_user_update_by_user_group_map_type2_insert(p_new_user_group_id uuid, p_new_user_id uuid, p_new_business_account_id uuid) returns void
+    volatile
+    language plpgsql
+as
+$$
+BEGIN
+  insert into space_permission_user (twin_id, permission_id, user_id, grants_count)
+  select t.id, pgsr.permission_id, p_new_user_id  from space_role_user_group srug
+         join permission_grant_space_role pgsr on pgsr.space_role_id = srug.space_role_id
+         join twin t on t.owner_business_account_id = p_new_business_account_id and t.id = srug.twin_id
+  where srug.user_group_id = p_new_user_group_id
+  on conflict do update set grants_count = grants_count + 1;
+END;
+$$;
+
+create or replace function space_permission_user_update_by_user_group_map_type2_delete(p_old_user_group_id uuid, p_old_user_id uuid, p_old_business_account_id uuid) returns void
+    volatile
+    language plpgsql
+as
+$$
+BEGIN
+    update space_permission_user set grants_count = grants_count - 1
+    from space_role_user_group srug
+      join permission_grant_space_role pgsr on pgsr.space_role_id = srug.space_role_id
+      join twin t on t.owner_business_account_id = p_old_business_account_id and t.id = srug.twin_id
+    where srug.user_group_id = p_old_user_group_id;
+END;
+$$;
+
+-----------------------------------------------------------------
+
+
+
+create or replace function permission_grant_space_role_after_insert_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    PERFORM space_p(NEW.permission_schema_id, NEW.permission_id, NEW.space_role_id);
+    RETURN OLD;
+END;
+$$;
+
+create or replace function permission_grant_space_role_after_update_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    IF NEW.permission_schema_id IS DISTINCT FROM OLD.permission_schema_id OR
+       NEW.permission_id IS DISTINCT FROM OLD.permission_id OR
+       NEW.space_role_id IS DISTINCT FROM OLD.space_role_id
+       THEN
+        PERFORM space_permission_user_update_by_permission_grant_space_role(NEW.permission_schema_id, NEW.permission_id, NEW.space_role_id,
+                                                                           OLD.permission_schema_id, OLD.permission_id, OLD.space_role_id);
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+create or replace function permission_grant_space_role_after_delete_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+        PERFORM space_permission_user_update_by_permission_grant_space_role(null, null, null,
+                                                                           OLD.permission_schema_id, OLD.permission_id, OLD.space_role_id);
+    RETURN OLD;
+END;
+$$;
+------------------------------------------------------------------------------
+create or replace function space_role_user_group_after_insert_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    PERFORM space_permission_user_update_by_space_role_user_group(NEW.twin_id, NEW.space_role_id, NEW.user_group_id,
+                                                                       null, null, null);
+    RETURN OLD;
+END;
+$$;
+
+create or replace function space_role_user_group_after_update_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    IF NEW.twin_id IS DISTINCT FROM OLD.twin_id OR
+       NEW.user_group_id IS DISTINCT FROM OLD.user_group_id OR
+       NEW.space_role_id IS DISTINCT FROM OLD.space_role_id
+    THEN
+        PERFORM space_permission_user_update_by_space_role_user_group(NEW.twin_id, NEW.space_role_id, NEW.user_group_id,
+                                                                           OLD.twin_id, OLD.space_role_id, OLD.user_group_id);
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+create or replace function space_role_user_group_after_delete_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    PERFORM space_permission_user_update_by_space_role_user_group(null, null, null,
+                                                                       OLD.twin_id, OLD.space_role_id, OLD.user_group_id);
+    RETURN OLD;
+END;
+$$;
+------------------------------------------------------------------------------
+create or replace function space_role_user_after_insert_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    PERFORM space_permission_user_update_by_space_role_user(NEW.twin_id, NEW.space_role_id, NEW.user_id,
+                                                                 null, null, null);
+    RETURN OLD;
+END;
+$$;
+
+create or replace function space_role_user_after_update_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    IF NEW.twin_id IS DISTINCT FROM OLD.twin_id OR
+       NEW.user_id IS DISTINCT FROM OLD.user_id OR
+       NEW.space_role_id IS DISTINCT FROM OLD.space_role_id
+    THEN
+        PERFORM space_permission_user_update_by_space_role_user(NEW.twin_id, NEW.space_role_id, NEW.user_id,
+                                                                           OLD.twin_id, OLD.space_role_id, OLD.user_id);
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+create or replace function space_role_user_after_delete_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    PERFORM space_permission_user_update_by_space_role_user(null, null, null,
+                                                                       OLD.twin_id, OLD.space_role_id, OLD.user_id);
+    RETURN OLD;
+END;
+$$;
+------------------------------------------------------------------------------
+create or replace function user_group_map_type2_after_insert_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    PERFORM space_permission_user_update_by_user_group_map_type2_insert(NEW.user_id, NEW.user_group_id, NEW.business_account_id);
+    RETURN NEW;
+END;
+$$;
+
+
+create or replace function user_group_map_type2_after_update_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    IF NEW.user_id IS DISTINCT FROM OLD.user_id OR
+       NEW.user_group_id IS DISTINCT FROM OLD.user_group_id
+    THEN
+        PERFORM space_permission_user_update_by_user_group_map_type2_insert(NEW.user_id, NEW.user_group_id, NEW.business_account_id);
+        PERFORM space_permission_user_update_by_user_group_map_type2_delete(OLD.user_id, OLD.user_group_id, OLD.business_account_id);
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+create or replace function user_group_map_type2_after_delete_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    PERFORM space_permission_user_update_by_user_group_map_type2_delete(OLD.user_id, OLD.user_group_id, OLD.business_account_id);
+    RETURN OLD;
+END;
+$$;
+
+create or replace function user_group_map_type2_before_update_wrapper() returns trigger
+    language plpgsql
+as
+$$
+BEGIN
+    IF NEW.business_account_id IS DISTINCT FROM OLD.business_account_id THEN
+        RAISE "!!!!!!!!!!!!!!!!!!!!!!"
+        --todo
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+----------------------------------------------------------------------------------
+drop trigger if exists permission_grant_space_role_after_delete_wrapper_trigger on permission_grant_space_role;
+create trigger permission_grant_space_role_after_delete_wrapper_trigger
+    after delete
+    on permission_grant_space_role
+    for each row
+execute procedure permission_grant_space_role_after_delete_wrapper();
+drop trigger if exists permission_grant_space_role_after_insert_wrapper_trigger on permission_grant_space_role;
+create trigger permission_grant_space_role_after_insert_wrapper_trigger
+    after delete
+    on permission_grant_space_role
+    for each row
+execute procedure permission_grant_space_role_after_insert_wrapper();
+drop trigger if exists permission_grant_space_role_after_update_wrapper_trigger on permission_grant_space_role;
+create trigger permission_grant_space_role_after_update_wrapper_trigger
+    after delete
+    on permission_grant_space_role
+    for each row
+execute procedure permission_grant_space_role_after_update_wrapper();
+--------------------------------------------------
+drop trigger if exists space_role_user_group_after_delete_wrapper_trigger on space_role_user_group;
+create trigger space_role_user_group_after_delete_wrapper_trigger
+    after delete
+    on space_role_user_group
+    for each row
+execute procedure space_role_user_group_after_delete_wrapper();
+drop trigger if exists space_role_user_group_after_insert_wrapper_trigger on space_role_user_group;
+create trigger space_role_user_group_after_insert_wrapper_trigger
+    after delete
+    on space_role_user_group
+    for each row
+execute procedure space_role_user_group_after_insert_wrapper();
+drop trigger if exists space_role_user_group_after_update_wrapper_trigger on space_role_user_group;
+create trigger space_role_user_group_after_update_wrapper_trigger
+    after delete
+    on space_role_user_group
+    for each row
+execute procedure space_role_user_group_after_update_wrapper();
+-----------------------------------------------------------------
+drop trigger if exists space_role_user_after_delete_wrapper_trigger on space_role_user;
+create trigger space_role_user_after_delete_wrapper_trigger
+    after delete
+    on space_role_user
+    for each row
+execute procedure space_role_user_after_delete_wrapper();
+drop trigger if exists space_role_user_after_insert_wrapper_trigger on space_role_user;
+create trigger space_role_user_after_insert_wrapper_trigger
+    after delete
+    on space_role_user
+    for each row
+execute procedure space_role_user_after_insert_wrapper();
+drop trigger if exists space_role_user_after_update_wrapper_trigger on space_role_user;
+create trigger space_role_user_after_update_wrapper_trigger
+    after delete
+    on space_role_user
+    for each row
+execute procedure space_role_user_after_update_wrapper();
+-----------------------------------------------------------------
+drop trigger if exists user_group_map_type2_after_delete_wrapper_trigger on user_group_map_type2;
+create trigger user_group_map_type2_after_delete_wrapper_trigger
+    after delete
+    on user_group_map_type2
+    for each row
+execute procedure user_group_map_type2_after_delete_wrapper();
+drop trigger if exists user_group_map_type2_after_insert_wrapper_trigger on user_group_map_type2;
+create trigger user_group_map_type2_after_insert_wrapper_trigger
+    after delete
+    on user_group_map_type2
+    for each row
+execute procedure user_group_map_type2_after_insert_wrapper();
+drop trigger if exists user_group_map_type2_after_update_wrapper_trigger on user_group_map_type2;
+create trigger user_group_map_type2_after_update_wrapper_trigger
+    after delete
+    on user_group_map_type2
+    for each row
+execute procedure user_group_map_type2_after_update_wrapper();
+drop trigger if exists user_group_map_type2_before_update_wrapper_trigger on user_group_map_type2;
+create trigger user_group_map_type2_before_update_wrapper_trigger
+    after delete
+    on user_group_map_type2
+    for each row
+execute procedure user_group_map_type2_before_update_wrapper();

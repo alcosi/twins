@@ -24,6 +24,10 @@ import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
+import org.twins.core.dao.permission.PermissionGrantTwinRoleEntity;
+import org.twins.core.dao.permission.SpacePermissionUserEntity;
+import org.twins.core.dao.permission.SpacePermissionUserGroupEntity;
+import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.enums.action.TwinAction;
@@ -277,7 +281,21 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
-    private Collection<TwinFieldDecimalEntity> fieldsDecimal;
+    private Collection<SpacePermissionUserEntity> spacePermissionUser;
+
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    private Collection<SpacePermissionUserGroupEntity> spacePermissionUserGroup;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "permission_schema_space_id", insertable = false, updatable = false)
+    private TwinEntity permissionSchemaSpace;
 
     //needed for specification
     @Deprecated

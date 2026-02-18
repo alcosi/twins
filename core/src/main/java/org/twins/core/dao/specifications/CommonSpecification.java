@@ -15,6 +15,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
+import org.twins.core.dao.permission.PermissionGrantTwinRoleEntity;
+import org.twins.core.dao.permission.SpacePermissionUserEntity;
+import org.twins.core.dao.permission.SpacePermissionUserGroupEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
@@ -296,35 +299,72 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      */
     public static <T> Specification<T> checkPermissions(UUID domainId, UUID businessAccountId, UUID userId, Set<UUID> domainLevelPermissions, Set<UUID> userGroups, String... twinEntityFieldPath) throws ServiceException {
         return (root, query, cb) -> {
-            From joinTwin = getReducedRoot(root, JoinType.INNER, twinEntityFieldPath);
+            From<T, TwinEntity> joinTwin = getReducedRoot(root, JoinType.INNER, twinEntityFieldPath);
 
-            Expression<UUID> spaceId = joinTwin.get(TwinEntity.Fields.permissionSchemaSpaceId);
-            Expression<UUID> permissionIdTwin = joinTwin.get(TwinEntity.Fields.viewPermissionId);
-            Expression<UUID> permissionIdTwinClass = getOrCreateJoin(joinTwin, TwinEntity.Fields.twinClass, JoinType.INNER).get(TwinClassEntity.Fields.viewPermissionId);
-            Expression<UUID> twinClassId = getOrCreateJoin(joinTwin, TwinEntity.Fields.twinClass, JoinType.INNER).get(TwinClassEntity.Fields.id);
+            Join<TwinEntity, TwinClassEntity> twinClassJoin = (Join<TwinEntity, TwinClassEntity>) getOrCreateJoin(joinTwin, TwinEntity.Fields.twinClass, JoinType.INNER);
 
             // Select permissionIdTwin if it is not null, otherwise select permissionIdTwinClass
+            Expression<UUID> permissionIdTwin = joinTwin.get(TwinEntity.Fields.viewPermissionId);
+            Expression<UUID> permissionIdTwinClass = twinClassJoin.get(TwinClassEntity.Fields.viewPermissionId);
             Expression<UUID> effectivePermissionId = cb.<UUID>selectCase()
                     .when(cb.isNotNull(permissionIdTwin), permissionIdTwin)
                     .otherwise(permissionIdTwinClass);
 
             Predicate globalPermissionCheck = (CollectionUtils.isEmpty(domainLevelPermissions)) ? cb.conjunction() : effectivePermissionId.in(domainLevelPermissions);
 
-            Predicate isAssigneePredicate = cb.equal(joinTwin.get(TwinEntity.Fields.assignerUserId), cb.literal(userId));
-            Predicate isCreatorPredicate = cb.equal(joinTwin.get(TwinEntity.Fields.createdByUserId), cb.literal(userId));
+            // space assignee check
+            Join<TwinEntity, TwinEntity> spaceJoin = joinTwin.join(TwinEntity.Fields.permissionSchemaSpace, JoinType.LEFT);
+            Predicate isSpaceAssigneePredicate = cb.equal(spaceJoin.get(TwinEntity.Fields.assignerUserId), userId);
+            Predicate isSpaceCreatorPredicate = cb.equal(spaceJoin.get(TwinEntity.Fields.createdByUserId), userId);
+            Predicate isAssigneePredicate = cb.equal(joinTwin.get(TwinEntity.Fields.assignerUserId), userId);
+            Predicate isCreatorPredicate = cb.equal(joinTwin.get(TwinEntity.Fields.createdByUserId), userId);
 
-            return cb.or(globalPermissionCheck, cb.isTrue(cb.function("permission_check", Boolean.class,
-                    cb.literal(domainId),
-                    cb.literal(businessAccountId),
-                    spaceId,
-                    permissionIdTwin,
-                    permissionIdTwinClass,
-                    cb.literal(userId),
-                    cb.literal(collectionUuidsToSqlArray(userGroups)),
-                    twinClassId,
-                    cb.selectCase().when(isAssigneePredicate, cb.literal(true)).otherwise(cb.literal(false)),
-                    cb.selectCase().when(isCreatorPredicate, cb.literal(true)).otherwise(cb.literal(false))
-            )));
+            // join permission_grant_twin_role p
+            Join<TwinClassEntity, PermissionGrantTwinRoleEntity> grantTwinRole = twinClassJoin.join(TwinClassEntity.Fields.permissionGrantTwinRoles, JoinType.LEFT);
+            grantTwinRole.on(cb.equal(grantTwinRole.get(PermissionGrantTwinRoleEntity.Fields.permissionId), effectivePermissionId));
+
+            Predicate twinRoleCheck = cb.or(
+                    cb.and(cb.isTrue(grantTwinRole.get(PermissionGrantTwinRoleEntity.Fields.grantedToAssignee)), isAssigneePredicate),
+                    cb.and(cb.isTrue(grantTwinRole.get(PermissionGrantTwinRoleEntity.Fields.grantedToCreator)), isCreatorPredicate),
+                    cb.and(cb.isTrue(grantTwinRole.get(PermissionGrantTwinRoleEntity.Fields.grantedToSpaceAssignee)), isSpaceAssigneePredicate),
+                    cb.and(cb.isTrue(grantTwinRole.get(PermissionGrantTwinRoleEntity.Fields.grantedToSpaceCreator)), isSpaceCreatorPredicate)
+            );
+
+
+            // join space_permission_user spu
+            Join<TwinEntity, SpacePermissionUserEntity> spuJoin = joinTwin.join(TwinEntity.Fields.spacePermissionUser, JoinType.LEFT);
+            spuJoin.on(
+                    cb.and(
+                            cb.equal(spuJoin.get(SpacePermissionUserEntity.Fields.userId), userId),
+                            cb.equal(spuJoin.get(SpacePermissionUserEntity.Fields.permissionId), effectivePermissionId)
+                    )
+            );
+
+            // join space_permission_user_group spug
+            Join<TwinEntity, SpacePermissionUserGroupEntity> spugJoin = joinTwin.join(TwinEntity.Fields.spacePermissionUserGroup, JoinType.LEFT);
+            if (!CollectionUtils.isEmpty(userGroups)) {
+                spugJoin.on(
+                        cb.and(
+                                spugJoin.get(SpacePermissionUserGroupEntity.Fields.userGroupId).in(userGroups),
+                                cb.equal(spugJoin.get(SpacePermissionUserGroupEntity.Fields.permissionId), effectivePermissionId)
+                        )
+                );
+            } else {
+                spugJoin.on(cb.disjunction());
+            }
+
+
+
+
+
+
+
+            return cb.or(
+                    globalPermissionCheck,
+                    cb.isNotNull(spuJoin.get(SpacePermissionUserEntity.Fields.id)),
+                    cb.isNotNull(spugJoin.get(SpacePermissionUserGroupEntity.Fields.id)),
+                    twinRoleCheck
+            );
         };
     }
 
