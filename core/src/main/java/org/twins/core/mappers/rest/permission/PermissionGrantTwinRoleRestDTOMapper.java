@@ -36,7 +36,10 @@ public class PermissionGrantTwinRoleRestDTOMapper extends RestSimpleDTOMapper<Pe
                         .setPermissionSchemaId(src.getPermissionSchemaId())
                         .setPermissionId(src.getPermissionId())
                         .setTwinClassId(src.getTwinClassId())
-                        .setTwinRole(src.getTwinRole())
+                        .setGrantedToAssignee(src.getGrantedToAssignee())
+                        .setGrantedToSpaceAssignee(src.isGrantedToSpaceAssignee())
+                        .setGrantedToCreator(src.isGrantedToCreator())
+                        .setGrantedToSpaceCreator(src.isGrantedToSpaceCreator())
                         .setGrantedByUserId(src.getGrantedByUserId())
                         .setGrantedAt(src.getGrantedAt().toLocalDateTime());
                 break;
@@ -45,7 +48,10 @@ public class PermissionGrantTwinRoleRestDTOMapper extends RestSimpleDTOMapper<Pe
                         .setId(src.getId())
                         .setPermissionId(src.getPermissionId())
                         .setTwinClassId(src.getTwinClassId())
-                        .setTwinRole(src.getTwinRole());
+                        .setGrantedToSpaceAssignee(src.isGrantedToSpaceAssignee())
+                        .setGrantedToCreator(src.isGrantedToCreator())
+                        .setGrantedToSpaceCreator(src.isGrantedToSpaceCreator())
+                        .setGrantedByUserId(src.getGrantedByUserId());
                 break;
         }
 

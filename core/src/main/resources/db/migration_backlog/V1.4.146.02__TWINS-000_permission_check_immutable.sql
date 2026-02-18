@@ -281,28 +281,28 @@ BEGIN
         RETURN FALSE;
     END IF;
 
-    IF isAssignee THEN
-        roles := array_append(roles, 'assignee');
-    END IF;
+--     IF isAssignee THEN
+--         roles := array_append(roles, 'assignee');
+--     END IF;
+--
+--     IF isCreator THEN
+--         roles := array_append(roles, 'creator');
+--     END IF;
+--
+--     SELECT * INTO isSpaceAssignee, isSpaceCreator FROM permission_check_space_assignee_and_creator(spaceId, userId);
 
-    IF isCreator THEN
-        roles := array_append(roles, 'creator');
-    END IF;
+--     IF isSpaceAssignee THEN
+--         roles := array_append(roles, 'space_assignee');
+--     END IF;
 
-    SELECT * INTO isSpaceAssignee, isSpaceCreator FROM permission_check_space_assignee_and_creator(spaceId, userId);
-
-    IF isSpaceAssignee THEN
-        roles := array_append(roles, 'space_assignee');
-    END IF;
-
-    IF isSpaceCreator THEN
-        roles := array_append(roles, 'space_creator');
-    END IF;
+--     IF isSpaceCreator THEN
+--         roles := array_append(roles, 'space_creator');
+--     END IF;
 
     -- Check twin-role permissions
-    IF permission_check_twin_role(permissionSchemaId, permissionId, roles, twinClassId) THEN
-        RETURN TRUE;
-    END IF;
+--     IF permission_check_twin_role(permissionSchemaId, permissionId, roles, twinClassId) THEN
+--         RETURN TRUE;
+--     END IF;
 
     -- Exit if spaceId is NULL, indicating no further hierarchy to check
     IF spaceId IS NULL THEN
@@ -379,26 +379,29 @@ $$;
 
 
 DROP FUNCTION IF EXISTS permission_check_by_group_or_user(uuid, uuid, uuid, uuid[], uuid, uuid);
+DROP FUNCTION IF EXISTS permission_check_space_assignee_and_creator(uuid, uuid, uuid, uuid[], uuid, uuid);
 
 
-create or replace function permission_check_space_assignee_and_creator(spaceid uuid, userid uuid) returns space_permissions
-    volatile
-    language plpgsql
-as
-$$
-DECLARE
-    result space_permissions := (FALSE, FALSE);
-BEGIN
-    IF spaceId IS NULL THEN
-        RETURN result;
-    END IF;
-    SELECT
-        (t.assigner_user_id = userId) AS isSpaceAssignee,
-        (t.created_by_user_id = userId) AS isSpaceCreator
-    INTO result FROM twin t WHERE t.id = spaceId;
-    RETURN result;
-END;
-$$;
+ALTER TABLE permission_grant_twin_role ADD COLUMN IF NOT EXISTS granted_to_assignee BOOLEAN DEFAULT FALSE;
+ALTER TABLE permission_grant_twin_role ADD COLUMN IF NOT EXISTS granted_to_creator BOOLEAN DEFAULT FALSE;
+ALTER TABLE permission_grant_twin_role ADD COLUMN IF NOT EXISTS granted_to_space_assignee BOOLEAN DEFAULT FALSE;
+ALTER TABLE permission_grant_twin_role ADD COLUMN IF NOT EXISTS granted_to_space_creator BOOLEAN DEFAULT FALSE;
+
+UPDATE permission_grant_twin_role SET granted_to_assignee = TRUE WHERE twin_role_id = 'assignee';
+UPDATE permission_grant_twin_role SET granted_to_creator = TRUE WHERE twin_role_id = 'creator';
+UPDATE permission_grant_twin_role SET granted_to_space_assignee = TRUE WHERE twin_role_id = 'space_assignee';
+UPDATE permission_grant_twin_role SET granted_to_space_creator = TRUE WHERE twin_role_id = 'space_creator';
+
+ALTER TABLE permission_grant_twin_role ALTER COLUMN granted_to_assignee SET NOT NULL;
+ALTER TABLE permission_grant_twin_role ALTER COLUMN granted_to_creator SET NOT NULL;
+ALTER TABLE permission_grant_twin_role ALTER COLUMN granted_to_space_assignee SET NOT NULL;
+ALTER TABLE permission_grant_twin_role ALTER COLUMN granted_to_space_creator SET NOT NULL;
+
+ALTER TABLE permission_grant_twin_role DROP COLUMN IF EXISTS twin_role_id;
+
+drop index if exists idx_permission_schema_twin_role_twinclass_schema_and_perm_id;
+create unique index idx_permission_schema_twin_role_twinclass_schema_and_perm_id
+    on permission_grant_twin_role (twin_class_id, permission_schema_id, permission_id);
 
 create or replace function permission_check_twin_role(permissionschemaid uuid, permissionid uuid, roles character varying[], twinclassid uuid) returns boolean
     volatile
@@ -414,7 +417,12 @@ BEGIN
         WHERE permission_schema_id = permissionSchemaId
           AND permission_id = permissionId
           AND twin_class_id = twinClassId
-          AND twin_role_id = ANY(roles)
+          AND (
+            (granted_to_assignee AND 'assignee' = ANY(roles)) OR
+            (granted_to_creator AND 'creator' = ANY(roles)) OR
+            (granted_to_space_assignee AND 'space_assignee' = ANY(roles)) OR
+            (granted_to_space_creator AND 'space_creator' = ANY(roles))
+          )
     ) INTO hasPermission;
 
     RETURN hasPermission;
@@ -471,3 +479,82 @@ UPDATE permission SET key = 'USER_GROUP_BY_ASSIGNEE_PROPAGATION_VIEW' WHERE id =
 -- select user_group_involve_by_assignee_propagation(t.assigner_user_id, NULL, t.twin_class_id, NULL, t.owner_business_account_id) from twin t where t.twin_class_id='7c027b60-0f6c-445c-9889-8ee3855d2c59' and t.assigner_user_id is not null;
 -- INSERT INTO permission_grant_user_group (id, permission_schema_id, permission_id, user_group_id, granted_by_user_id, granted_at) VALUES ('019c667a-b95e-7366-ada0-756d9fcf3db1', 'af143656-9899-4e1f-8683-48795cdefeac', 'a62c04f4-6f5a-497c-aa71-3065e3529d29', '6173ff08-7c2b-4302-9fff-c576f9d3c2d8', '00000000-0000-0000-0000-000000000000', '2026-02-16 15:42:14.000000') on conflict do nothing ;
 -- INSERT INTO permission_grant_user_group (id, permission_schema_id, permission_id, user_group_id, granted_by_user_id, granted_at) VALUES ('019c667b-2264-71e2-8d1d-cb89588ce101', '343db5da-c45c-4f48-b876-b488e2818d5e', 'a62c04f4-6f5a-497c-aa71-3065e3529d29', '6173ff08-7c2b-4302-9fff-c576f9d3c2d8', '00000000-0000-0000-0000-000000000000', '2026-02-16 15:42:14.000000') on conflict do nothing ;
+
+create table space_permission_user
+(
+    id                 uuid not null
+        constraint space_permission_user_pk
+            primary key,
+    twin_id            uuid not null
+        constraint space_permission_user_twin_id_fk
+            references twin
+            on update cascade on delete cascade,
+    permission_id      uuid not null
+        constraint space_permission_user_permission_id_fk
+            references permission
+            on update cascade on delete cascade,
+--     space_role_id      uuid not null
+--         constraint space_permission_user_space_role_id_fk
+--             references space_role
+--             on update cascade on delete cascade,
+    user_id            uuid not null
+        constraint space_permission_user_user_id_fk
+            references "user"
+            on update cascade on delete cascade,
+    created_by_user_id uuid not null
+        constraint space_permission_user_user_id_fk_2
+            references "user"
+            on update cascade on delete restrict,
+    created_at         timestamp default CURRENT_TIMESTAMP
+);
+
+drop index if exists space_permission_user_twin_id_perm_user_id_uindex;
+create unique index space_permission_user_twin_id_perm_user_id_uindex
+    on space_permission_user (twin_id, permission_id, user_id);
+
+drop index if exists idx_space_permission_user_created_by_user_id;
+create index idx_space_permission_user_created_by_user_id
+    on space_permission_user (created_by_user_id);
+
+
+create table space_permission_user_group
+(
+    id                 uuid not null
+        constraint space_role_user_group_pk
+            primary key,
+    twin_id            uuid not null
+        constraint space_role_user_group_twin_id_fk
+            references twin
+            on update cascade on delete cascade,
+    permission_id      uuid not null
+        constraint space_permission_user_group_permission_id_fk
+            references permission
+            on update cascade on delete cascade,
+--     space_role_id      uuid not null
+--         constraint space_permission_user_space_role_id_fk
+--             references space_role
+--             on update cascade on delete cascade,
+    user_group_id      uuid not null
+        constraint space_role_user_group_user_group_id_fk
+            references user_group
+            on update cascade on delete cascade,
+    created_by_user_id uuid not null
+        constraint space_role_user_group_user_id_fk
+            references "user"
+            on update cascade on delete restrict ,
+    created_at         timestamp default CURRENT_TIMESTAMP
+);
+
+drop index if exists space_permission_user_gr_twin_id_perm_user_id_uindex;
+create unique index space_permission_user_gr_twin_id_perm_user_id_uindex
+    on space_permission_user_group (twin_id, permission_id, user_group_id);
+
+drop index if exists idx_space_permission_user_gr_created_by_user_id;
+create index idx_space_permission_user_gr_created_by_user_id
+    on space_permission_user_group (created_by_user_id);
+
+
+-- todo groups
+
+-- todo triggers space_role_user - CUD -> wrapper function
+            insert/update/delete space_permission_user values (gen_random_uuid(), :twinId, :permissionId, :userId, :createdByUserId, now());

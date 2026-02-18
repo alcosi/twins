@@ -10,7 +10,6 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.enums.twin.TwinRole;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -38,9 +37,17 @@ public class PermissionGrantTwinRoleEntity implements EasyLoggable {
     @Column(name = "twin_class_id")
     private UUID twinClassId;
 
-    @Column(name = "twin_role_id")
-    @Enumerated(EnumType.STRING)
-    private TwinRole twinRole;
+    @Column(name = "granted_to_assignee")
+    private Boolean grantedToAssignee;
+
+    @Column(name = "granted_to_space_assignee")
+    private Boolean grantedToSpaceAssignee;
+
+    @Column(name = "granted_to_creator")
+    private Boolean grantedToCreator;
+
+    @Column(name = "granted_to_space_creator")
+    private Boolean grantedToSpaceCreator;
 
     @Column(name = "granted_by_user_id")
     private UUID grantedByUserId;

@@ -300,8 +300,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
 
             Expression<UUID> spaceId = joinTwin.get(TwinEntity.Fields.permissionSchemaSpaceId);
             Expression<UUID> permissionIdTwin = joinTwin.get(TwinEntity.Fields.viewPermissionId);
-            Expression<UUID> permissionIdTwinClass = joinTwin.join(TwinEntity.Fields.twinClass).get(TwinClassEntity.Fields.viewPermissionId);
-            Expression<UUID> twinClassId = joinTwin.join(TwinEntity.Fields.twinClass).get(TwinClassEntity.Fields.id);
+            Expression<UUID> permissionIdTwinClass = getOrCreateJoin(joinTwin, TwinEntity.Fields.twinClass, JoinType.INNER).get(TwinClassEntity.Fields.viewPermissionId);
+            Expression<UUID> twinClassId = getOrCreateJoin(joinTwin, TwinEntity.Fields.twinClass, JoinType.INNER).get(TwinClassEntity.Fields.id);
 
             // Select permissionIdTwin if it is not null, otherwise select permissionIdTwinClass
             Expression<UUID> effectivePermissionId = cb.<UUID>selectCase()

@@ -2,6 +2,7 @@ package org.twins.core.domain.search;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.Ternary;
 import org.twins.core.enums.twin.TwinRole;
 
 import java.util.Set;
@@ -18,6 +19,8 @@ public class PermissionGrantTwinRoleSearch {
     Set<UUID> permissionIdExcludeList;
     Set<UUID> twinClassIdList;
     Set<UUID> twinClassIdExcludeList;
+    Ternary isAssignee;
+    ...
     Set<TwinRole> twinRoleList;
     Set<TwinRole> twinRoleExcludeList;
     Set<UUID> grantedByUserIdList;
