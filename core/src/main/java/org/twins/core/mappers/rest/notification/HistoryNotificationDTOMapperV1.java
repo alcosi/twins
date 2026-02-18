@@ -9,7 +9,6 @@ import org.twins.core.dto.rest.notification.HistoryNotificationDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
-import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.validator.TwinValidatorSetBaseV1RestDTOMapper;
 
@@ -39,7 +38,9 @@ public class HistoryNotificationDTOMapperV1 extends RestSimpleDTOMapper<HistoryN
                         .setTwinValidatorSetInvert(src.getTwinValidatorSetInvert())
                         .setNotificationSchemaId(src.getNotificationSchemaId())
                         .setHistoryNotificationRecipientId(src.getHistoryNotificationRecipientId())
-                        .setNotificationChannelEventId(src.getNotificationChannelEventId());
+                        .setNotificationChannelEventId(src.getNotificationChannelEventId())
+                        .setCreatedByUserId(src.getCreatedByUserId())
+                        .setCreatedAt(src.getCreatedAt());
                 break;
             case SHORT:
                 dst

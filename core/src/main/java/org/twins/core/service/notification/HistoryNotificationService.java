@@ -18,6 +18,7 @@ import org.twins.core.dao.notification.HistoryNotificationEntity;
 import org.twins.core.dao.notification.HistoryNotificationRepository;
 import org.twins.core.domain.notification.HistoryNotificationCreate;
 import org.twins.core.domain.notification.HistoryNotificationUpdate;
+import org.twins.core.service.auth.AuthService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,6 +35,7 @@ import java.util.stream.StreamSupport;
 public class HistoryNotificationService extends EntitySecureFindServiceImpl<HistoryNotificationEntity> {
 
     private final HistoryNotificationRepository repository;
+    private final AuthService authService;
 
     @Override
     public CrudRepository<HistoryNotificationEntity, UUID> entityRepository() {
@@ -65,6 +67,7 @@ public class HistoryNotificationService extends EntitySecureFindServiceImpl<Hist
 
         for (HistoryNotificationCreate notification : notifications) {
             HistoryNotificationEntity entity = notification.getHistoryNotification();
+            entity.setCreatedByUserId(authService.getApiUser().getUserId());
 
             entitiesToSave.add(entity);
         }

@@ -16,6 +16,8 @@ import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -56,6 +58,12 @@ public class HistoryNotificationEntity implements EasyLoggable, ContainsTwinVali
 
     @Column(name = "notification_channel_event_id")
     private UUID notificationChannelEventId;
+
+    @Column(name = "created_by_user_id")
+    private UUID createdByUserId;
+
+    @Column(name = "created_at")
+    private Timestamp createdAt;
 
     @ManyToOne
     @JoinColumn(name = "history_type_id", insertable = false, updatable = false)

@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 
 @Data
@@ -44,4 +45,10 @@ public class HistoryNotificationDTOv1 {
     @Schema(description = "notification channel event id")
     @RelatedObject(type = HistoryNotificationDTOv1.class, name = "notificationChannelEvent")
     public UUID notificationChannelEventId;
+
+    @Schema(description = "created by user id")
+    public UUID createdByUserId;
+
+    @Schema(description = "created at")
+    public Timestamp createdAt;
 }
