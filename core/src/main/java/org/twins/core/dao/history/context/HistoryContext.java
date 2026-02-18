@@ -73,6 +73,10 @@ import java.util.HashMap;
         @JsonSubTypes.Type(
                 name = HistoryContextTimestampChange.DISCRIMINATOR,
                 value = HistoryContextTimestampChange.class
+        ),
+        @JsonSubTypes.Type(
+                name = HistoryContextDecimalChange.DISCRIMINATOR,
+                value = HistoryContextDecimalChange.class
         )
 })
 @JsonIgnoreProperties(ignoreUnknown = true)

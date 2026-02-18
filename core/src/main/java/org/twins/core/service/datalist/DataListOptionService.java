@@ -235,7 +235,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         List<UUID> idsForReload = new ArrayList<>();
 
         for (var option : valueSelect.getItems()) {
-            if (null == option.getDataList() || null == option.getDataListId()) {
+            if (option.getId() != null && (null == option.getDataList() || null == option.getDataListId())) {
                 idsForReload.add(option.getId());
             }
         }

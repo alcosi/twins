@@ -2,6 +2,7 @@ package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -11,7 +12,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldSimpleEntity;
+import org.twins.core.dao.twin.TwinFieldDecimalEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
@@ -31,34 +32,29 @@ import static org.cambium.common.util.MathUtils.EXPONENTIAL_FORM_REGEXP;
 
 @Component
 @Slf4j
-@Featurer(id = FeaturerTwins.ID_1317,
-        name = "Numeric",
-        description = "Numeric field")
-public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, FieldValueText, TwinFieldSearchNumeric> {
+@Featurer(
+        id = FeaturerTwins.ID_1317,
+        name = "Decimal",
+        description = "Decimal field with dedicated table storage"
+)
+public class FieldTyperDecimal extends FieldTyperDecimalBase<FieldDescriptorNumeric, FieldValueText, TwinFieldSearchNumeric> {
+    
     @FeaturerParam(name = "Min", description = "Min possible value", order = 1)
     public static final FeaturerParamDouble min = new FeaturerParamDouble("min");
-
     @FeaturerParam(name = "Max", description = "Max possible value", order = 2)
     public static final FeaturerParamDouble max = new FeaturerParamDouble("max");
-
     @FeaturerParam(name = "Step", description = "Step of value change", order = 3)
     public static final FeaturerParamDouble step = new FeaturerParamDouble("step");
-
     @FeaturerParam(name = "Thousand separator", description = "Thousand separator. Must not be equal to decimal separator.", order = 4)
     public static final FeaturerParamString thousandSeparator = new FeaturerParamString("thousandSeparator");
-
     @FeaturerParam(name = "Decimal separator", description = "Decimal separator. Must not be equal to thousand separator.", order = 5)
     public static final FeaturerParamString decimalSeparator = new FeaturerParamString("decimalSeparator");
-
     @FeaturerParam(name = "Decimal places", description = "Number of decimal places.", order = 6)
     public static final FeaturerParamInt decimalPlaces = new FeaturerParamInt("decimalPlaces");
-
     @FeaturerParam(name = "Extra thousand separators", description = "Extra thousand separators. Must not be equal to decimal separator.", order = 7, optional = true)
     public static final FeaturerParamStringSet extraThousandSeparatorSet = new FeaturerParamStringSet("extraThousandSeparatorSet");
-
     @FeaturerParam(name = "Extra decimal separators", description = "Extra decimal separators. Must not be equal to thousand separator.", order = 8, optional = true)
     public static final FeaturerParamStringSet extraDecimalSeparatorSet = new FeaturerParamStringSet("extraDecimalSeparatorSet");
-
     @FeaturerParam(name = "Round", description = "Round a number to the required number of decimal places", order = 9, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean round = new FeaturerParamBoolean("round");
 
@@ -77,24 +73,62 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        Double minValue = min.extract(properties);
-        Double maxValue = max.extract(properties);
-        Double stepValue = step.extract(properties);
-        String thousandSeparatorValue = thousandSeparator.extract(properties);
-        String decimalSeparatorValue = decimalSeparator.extract(properties);
-        Set<String> extraThousandSeparators = Optional.ofNullable(extraThousandSeparatorSet.extract(properties)).orElse(Collections.emptySet());
-        Set<String> extraDecimalSeparators = Optional.ofNullable(extraDecimalSeparatorSet.extract(properties)).orElse(Collections.emptySet());
-        Integer decimalPlacesValue = decimalPlaces.extract(properties);
-        Boolean roundValue = round.extract(properties);
+    protected void serializeValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldDecimalEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (value.isUndefined())
+            return;
+        if (twinFieldDecimalEntity == null && value.isNotEmpty()) {
+            // create
+            twinFieldDecimalEntity = twinService.createTwinFieldDecimalEntity(twin, value.getTwinClassField(), null);
+            twinChangesCollector.add(twinFieldDecimalEntity);
+            detectValueChange(twinFieldDecimalEntity, twinChangesCollector, processValue(properties, twinFieldDecimalEntity, value));
+        } else if (twinFieldDecimalEntity != null && value.isCleared()) {
+            // delete
+            twinChangesCollector.delete(twinFieldDecimalEntity);
+            addHistoryContext(twinChangesCollector, twinFieldDecimalEntity, null);
+        } else if (twinFieldDecimalEntity != null && value.isNotEmpty()) {
+            // update
+            twinChangesCollector.add(twinFieldDecimalEntity);
+            detectValueChange(twinFieldDecimalEntity, twinChangesCollector, processValue(properties, twinFieldDecimalEntity, value));
+        }
+    }
 
-        String finalValue;
+
+    @Override
+    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldEntity) {
+        var scale = decimalPlaces.extract(properties);
+        var value = "";
+
+        if (scale != null) {
+            value = twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue().setScale(scale, RoundingMode.UNNECESSARY).toPlainString() : null;
+        } else {
+            value = twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue().toString() : null;
+        }
+
+        return new FieldValueText(twinField.getTwinClassField()).setValue(value);
+    }
+
+    @Override
+    public Specification<TwinEntity> searchBy(TwinFieldSearchNumeric search) throws ServiceException {
+        return TwinSpecification.checkFieldDecimal(search);
+    }
+
+    private BigDecimal processValue(Properties properties, TwinFieldDecimalEntity twinFieldDecimal, FieldValueText value) throws ServiceException {
+        var minValue = min.extract(properties);
+        var maxValue = max.extract(properties);
+        var stepValue = step.extract(properties);
+        var thousandSeparatorValue = thousandSeparator.extract(properties);
+        var decimalSeparatorValue = decimalSeparator.extract(properties);
+        var extraThousandSeparators = Optional.ofNullable(extraThousandSeparatorSet.extract(properties)).orElse(Collections.emptySet());
+        var extraDecimalSeparators = Optional.ofNullable(extraDecimalSeparatorSet.extract(properties)).orElse(Collections.emptySet());
+        var decimalPlacesValue = decimalPlaces.extract(properties);
+        var roundValue = round.extract(properties);
+        var returnValue = value.getValue();
+
         try {
-            finalValue = value.getValue();
-            if (!StringUtils.isBlank(finalValue)) {
-                if (finalValue.matches(EXPONENTIAL_FORM_REGEXP)) {
+            if (Strings.isNotEmpty(returnValue)) {
+                if (returnValue.matches(EXPONENTIAL_FORM_REGEXP)) {
                     DecimalFormat df = new DecimalFormat("#.############");
-                    finalValue = df.format(Double.parseDouble(finalValue));
+                    returnValue = df.format(Double.parseDouble(returnValue));
                 }
 
                 // Combine main decimal separator with extra ones for counting
@@ -104,10 +138,10 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
 
                 int decimalSeparatorCount = 0;
                 for (String decimalSep : allDecimalSeparators) {
-                    decimalSeparatorCount += StringUtils.countMatches(finalValue, decimalSep);
+                    decimalSeparatorCount += StringUtils.countMatches(returnValue, decimalSep);
                 }
                 if (decimalSeparatorCount > 1) {
-                    log.error("FieldTyperNumeric: value[" + value.getValue() + "] has multiple decimal separators");
+                    log.error("FieldTyperNumeric: value[{}] has multiple decimal separators", value.getValue());
                     throw new Exception();
                 }
 
@@ -118,21 +152,21 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
 
                 // Remove all thousand separators
                 for (String thousandSep : allThousandSeparators) {
-                    finalValue = finalValue.replaceAll(Pattern.quote(thousandSep), "");
+                    returnValue = returnValue.replaceAll(Pattern.quote(thousandSep), "");
                 }
 
                 // Replace all decimal separators with dot
                 for (String decimalSep : allDecimalSeparators) {
-                    finalValue = finalValue.replaceAll(Pattern.quote(decimalSep), ".");
+                    returnValue = returnValue.replaceAll(Pattern.quote(decimalSep), ".");
                 }
 
-                String[] parts = finalValue.split("\\.");
+                String[] parts = returnValue.split("\\.");
                 String integerPart = parts[0];
                 String decimalPart = parts.length > 1 ? parts[1] : "";
 
                 if (decimalPart.length() > decimalPlacesValue) {
                     if (Boolean.FALSE.equals(roundValue)) {
-                        log.error("FieldTyperNumeric: value[" + value.getValue() + "] has more decimal places then parametrized");
+                        log.error("FieldTyperNumeric: value[{}] has more decimal places then parametrized", value.getValue());
                         throw new Exception();
                     }
                     decimalPart = decimalPart.substring(0, decimalPlacesValue);
@@ -141,88 +175,26 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
                 }
 
                 if (decimalPlacesValue > 0) {
-                    finalValue = integerPart + "." + decimalPart;
+                    returnValue = integerPart + "." + decimalPart;
                 } else {
-                    finalValue = integerPart;
+                    returnValue = integerPart;
                 }
 
-                double doubleValue = Double.parseDouble(finalValue);
+                double doubleValue = Double.parseDouble(returnValue);
                 if ((minValue != null && doubleValue < minValue) || (maxValue != null && doubleValue > maxValue)) {
-                    log.error("FieldTyperNumeric: value[" + value.getValue() + "] is out of range");
+                    log.error("FieldTyperNumeric: value[{}] is out of range", value.getValue());
                     throw new Exception();
                 }
-            } // else value setting null
+            }
         } catch (Exception e) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
-                    twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) +
+                    twinFieldDecimal.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) +
                             " value[" + value.getValue() + "] is not numeric format or does not match the field settings[" +
                             " min:" + minValue + " max:" + maxValue + " step:" + stepValue + " decPlaces:" + decimalPlacesValue +
                             " thousandSep:" + thousandSeparatorValue + " extraThousandSep:" + extraThousandSeparators +
                             " decimalSep:" + decimalSeparatorValue + " extraDecimalSep:" + extraDecimalSeparators + "].");
         }
-        detectValueChange(twinFieldEntity, twinChangesCollector, finalValue);
-    }
 
-
-    @Override
-    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
-        if (twinFieldEntity == null || twinFieldEntity.getValue() == null) {
-            return new FieldValueText(twinField.getTwinClassField()).setValue(null);
-        }
-
-        String rawValue = twinFieldEntity.getValue();
-        Integer decimalPlacesValue = decimalPlaces.extract(properties);
-        Boolean roundValue = round.extract(properties);
-
-        // Apply rounding if enabled and decimalPlaces is specified
-        if (Boolean.TRUE.equals(roundValue) && decimalPlacesValue != null && decimalPlacesValue >= 0) {
-            try {
-                BigDecimal bd = new BigDecimal(rawValue);
-                // Use HALF_UP as default rounding mode for backward compatibility
-                bd = bd.setScale(decimalPlacesValue, RoundingMode.HALF_UP);
-                // Strip trailing zeros to keep clean representation
-                bd = bd.stripTrailingZeros();
-                return new FieldValueText(twinField.getTwinClassField()).setValue(bd.toPlainString());
-            } catch (NumberFormatException e) {
-                // If value cannot be parsed as BigDecimal, return as-is
-                log.warn("FieldTyperNumeric: value[{}] cannot be parsed as BigDecimal, returning raw value", rawValue);
-                return new FieldValueText(twinField.getTwinClassField()).setValue(rawValue);
-            }
-        }
-
-        return new FieldValueText(twinField.getTwinClassField()).setValue(rawValue);
-    }
-
-    @Override
-    public Specification<TwinEntity> searchBy(TwinFieldSearchNumeric search) throws ServiceException {
-        return TwinSpecification.checkFieldNumeric(search);
-    }
-
-    public static Double parseDoubleValue(TwinEntity twin, UUID fieldId, Double defaultValue) throws ServiceException {
-        if (twin.getTwinFieldSimpleKit() != null && twin.getTwinFieldSimpleKit().containsKey(fieldId)) {
-            TwinFieldSimpleEntity field = twin.getTwinFieldSimpleKit().get(fieldId);
-            try {
-                if (field.getValue() != null) {
-                    return Double.parseDouble(field.getValue());
-                }
-            } catch (NumberFormatException e) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, field.easyLog(EasyLoggable.Level.NORMAL) + " value[" + field.getValue() + "] can't be parsed to double");
-            }
-        }
-        return defaultValue;
-    }
-
-    public static BigDecimal parseBigDecimalValue(TwinEntity twin, UUID fieldId, BigDecimal defaultValue) throws ServiceException {
-        if (twin.getTwinFieldSimpleKit() != null && twin.getTwinFieldSimpleKit().containsKey(fieldId)) {
-            TwinFieldSimpleEntity field = twin.getTwinFieldSimpleKit().get(fieldId);
-            try {
-                if (field.getValue() != null) {
-                    return new BigDecimal(field.getValue());
-                }
-            } catch (NumberFormatException e) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, field.easyLog(EasyLoggable.Level.NORMAL) + " value[" + field.getValue() + "] can't be parsed to BigDecimal");
-            }
-        }
-        return defaultValue;
+        return new BigDecimal(returnValue);
     }
 }

@@ -13,6 +13,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFreezeEntity;
 import org.twins.core.domain.search.*;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -128,6 +129,42 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
             Predicate equals = null;
             if (search.getEquals() != null)
                 equals = cb.equal(numericValue, cb.literal(search.getEquals()));
+
+            Predicate finalPredicate = cb.conjunction();
+            if (null != equals && null != lessAndMore) {
+                predicates = new ArrayList<>();
+                predicates.add(lessAndMore);
+                predicates.add(equals);
+                finalPredicate = getPredicate(cb, predicates, true);
+            } else if (null != equals)
+                finalPredicate = equals;
+            else if (null != lessAndMore)
+                finalPredicate = lessAndMore;
+            return finalPredicate;
+        };
+    }
+
+    public static Specification<TwinEntity> checkFieldDecimal(final TwinFieldSearchNumeric search) throws ServiceException {
+        return (root, query, cb) -> {
+            if(search.isEmptySearch()) return cb.conjunction();
+            Join<TwinEntity, TwinFieldDecimalEntity> twinFieldDecimalJoin = root.join(TwinEntity.Fields.fieldsDecimal, JoinType.INNER);
+            twinFieldDecimalJoin.on(cb.equal(twinFieldDecimalJoin.get(TwinFieldDecimalEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
+            Expression<BigDecimal> decimalValue = twinFieldDecimalJoin.get(TwinFieldDecimalEntity.Fields.value);
+
+            List<Predicate> predicates = new ArrayList<>();
+            if (search.getLessThen() != null)
+                predicates.add(cb.lessThan(decimalValue, cb.literal(BigDecimal.valueOf(search.getLessThen()))));
+
+            if (search.getMoreThen() != null)
+                predicates.add(cb.greaterThan(decimalValue, cb.literal(BigDecimal.valueOf(search.getMoreThen()))));
+
+            Predicate lessAndMore = null;
+            if (!predicates.isEmpty())
+                lessAndMore = getPredicate(cb, predicates, false);
+
+            Predicate equals = null;
+            if (search.getEquals() != null)
+                equals = cb.equal(decimalValue, cb.literal(BigDecimal.valueOf(search.getEquals())));
 
             Predicate finalPredicate = cb.conjunction();
             if (null != equals && null != lessAndMore) {
