@@ -43,6 +43,7 @@ import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinActionService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
@@ -287,6 +288,14 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setToValue(toValue);
         context.shotField(twinClassFieldEntity, i18nService);
 
+        return new HistoryItem<>(HistoryType.fieldChanged, context);
+    }
+
+    public HistoryItem<HistoryContextDecimalChange> fieldChangeDecimal(TwinClassFieldEntity twinClassFieldEntity, BigDecimal fromValue, BigDecimal toValue) {
+        var context = new HistoryContextDecimalChange()
+                .setFromValue(fromValue)
+                .setToValue(toValue);
+        context.shotField(twinClassFieldEntity, i18nService);
         return new HistoryItem<>(HistoryType.fieldChanged, context);
     }
 

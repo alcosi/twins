@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
-import org.twins.core.dto.rest.validator.TwinValidatorSetBaseDTOv1;
+import org.twins.core.dto.rest.validator.TwinValidatorSetDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorSetMode;
@@ -12,16 +12,17 @@ import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorSetMode;
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {TwinValidatorSetMode.class})
-public class TwinValidatorSetBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinValidatorSetEntity, TwinValidatorSetBaseDTOv1> {
+public class TwinValidatorSetRestDTOMapper extends RestSimpleDTOMapper<TwinValidatorSetEntity, TwinValidatorSetDTOv1> {
 
     @Override
-    public void map(TwinValidatorSetEntity src, TwinValidatorSetBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
+    public void map(TwinValidatorSetEntity src, TwinValidatorSetDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(TwinValidatorSetMode.SHORT)) {
             case DETAILED:
                 dst
                         .setId(src.getId())
                         .setName(src.getName())
-                        .setDescription(src.getDescription());
+                        .setDescription(src.getDescription())
+                        .setInvert(src.getInvert());
                 break;
             case SHORT:
                 dst

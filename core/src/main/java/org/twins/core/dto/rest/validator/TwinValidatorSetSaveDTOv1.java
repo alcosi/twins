@@ -4,18 +4,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.util.UUID;
-
 @Data
 @Accessors(chain = true)
-@Schema(name = "TwinValidatorSetBaseV1")
-public class TwinValidatorSetBaseDTOv1 {
-
-    @Schema(description = "id")
-    public UUID id;
-
-    @Schema(description = "domain id")
-    public UUID domainId;
+@Schema(name = "TwinValidatorSetSaveV1")
+public class TwinValidatorSetSaveDTOv1 {
 
     @Schema(description = "name")
     public String name;
@@ -23,6 +15,7 @@ public class TwinValidatorSetBaseDTOv1 {
     @Schema(description = "description")
     public String description;
 
+    @Schema(description = "invert")
+    public Boolean invert;
+
 }
-
-
